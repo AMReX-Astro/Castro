@@ -235,16 +235,13 @@ initialization routines, which may be implemented either in Fortran
 or in C++.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
 you problem will read.  These parameters are controlled by the
-<code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</p></li>
+set in the inputs file as <code class="docutils literal notranslate"><span class="pre">problem.param</span></code> where <code class="docutils literal notranslate"><span class="pre">param</span></code> is
+one of the parameters listed in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
 during the build process.  It tells the build system about any
 problem-specific files that need to be compiled.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code> : this is the main inputs file that controls Castro and
 AMReX’s behavior.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">probin</span></code> : this is the problem-specific inputs file that
-contains Fortran namelists with problem parameters as well as any
-paramters for external physics (e.g., from the StarKiller
-Microphysics)</p></li>
 </ul>
 </div></blockquote>
 <p>The best way to get started writing a new problem is to copy an
@@ -263,12 +260,12 @@ This has the form:</p>
 <code class="docutils literal notranslate"><span class="pre">logical</span></code>.</p></li>
 <li><p><cite>default</cite> is the default value of the runtime parameter.  It may be
 overridden at runtime by reading from the namelist.</p></li>
-<li><p><cite>namelist</cite> indicates if the variable should be in the namelist and
-controlled at runtime.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if
-you want the parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in
-the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file at runtime.  If it is empty or marked with
-<code class="docutils literal notranslate"><span class="pre">n</span></code>, then the variable will still be put into the
-<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will not be initialized via the namelist.</p></li>
+<li><p><cite>namelist</cite> indicates if the variable should be able to be set as
+a runtime parameter.  If it is empty or marked with
+<code class="docutils literal notranslate"><span class="pre">n</span></code>, then the variable will still be creates in the <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace,
+but it will not be able to be set via the commandline or inputs file.
+A common usage of this is to define global variables that might be set
+at problem initialization that are used elsewhere in Castro.</p></li>
 <li><p><cite>size</cite> is for arrays, and gives their size.  It can be any integer
 or variable that is known to the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a
 variable from a different module to specify the size (for example,
@@ -285,29 +282,25 @@ two implementations, in C++ (<code class="docutils literal notranslate"><span cl
 and you can pick either but not both (C++ is recommended since eventually
 we will switch the whole code to C++).</p>
 <ul id="index-1">
-<li><p><code class="docutils literal notranslate"><span class="pre">amrex_probinit()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code> (C++):</p>
-<p>This routine is primarily responsible for doing any one-time
+<li><p><code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code></p>
+<p>This C++ routine is primarily responsible for doing any one-time
 initialization for the problem (like reading in an
-initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
-<code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example).</p>
+initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser.H</span></code> functionality—see the
+<code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example.</p>
 <p>This routine can also postprocess any of the parameters defined
-in the <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file, which are defined in <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file, which are defined in <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
-from <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> here (in C++, the <code class="docutils literal notranslate"><span class="pre">center[]</span></code> variable
-from the <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace).  This is used to note the
+<p>many problems set the value of the <code class="docutils literal notranslate"><span class="pre">problem::center[]</span></code> array
+from the <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace.  This is used to note the
 center of the problem (which does not necessarily need to be
 the center of the domain, e.g., for axisymmetric problems).
 <code class="docutils literal notranslate"><span class="pre">center</span></code> is used in source terms (including rotation and
 gravity) and in computing some of the derived variables (like
 angular momentum).</p>
 </div>
-<p>In Fortran the arguments include the name and length of the probin file
-as well as the physical values of the domain’s lower-left corner
-(<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>). The C++ version
-accepts no arguments, but for example <code class="docutils literal notranslate"><span class="pre">problo</span></code> and <code class="docutils literal notranslate"><span class="pre">probhi</span></code> can
-be obtained by constructing a <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> object using <code class="docutils literal notranslate"><span class="pre">DefaultGeometry()</span></code>
+<p>If you need coordinate information, it can be obtained
+by constructing a <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> object using <code class="docutils literal notranslate"><span class="pre">DefaultGeometry()</span></code>
 and accessing its <code class="docutils literal notranslate"><span class="pre">ProbLo()</span></code> and <code class="docutils literal notranslate"><span class="pre">ProbHi()</span></code> methods.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data()</span></code>:</p>

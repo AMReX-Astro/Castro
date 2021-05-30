@@ -242,13 +242,12 @@ in plain-text files <code class="docutils literal notranslate"><span class="pre"
 directories that hold the microphysics code. At compile time, a
 a make function locates all
 of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files that are needed for the given choice
-of network, integrator, and EOS, and assembles all of the runtime
-parameters into a module named <code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code> (using the
-<code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code> script). The parameters are set in your
-probin file in the <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist.</p>
+of network, integrator, and EOS, and creates the <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code> and
+<code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code> files that manage the parameters.  These
+are set at runtime via the inputs file.</p>
 <div class="section" id="c-parameter-format">
 <h3>C++ parameter format<a class="headerlink" href="#c-parameter-format" title="Permalink to this headline">¶</a></h3>
-<p>The C parameters take the form of:</p>
+<p>The C++ parameters take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
 name   type   default   need in Fortran?   ifdef
 </pre></div>

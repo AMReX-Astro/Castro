@@ -21,7 +21,8 @@ of the groups and place in it the following files:
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
-    ``probin`` file.
+    set in the inputs file as ``problem.param`` where ``param`` is
+    one of the parameters listed in ``_prob_params``.
 
   * ``Make.package`` : this is a makefile fragment that is included
     during the build process.  It tells the build system about any
@@ -29,11 +30,6 @@ of the groups and place in it the following files:
 
   * ``inputs`` : this is the main inputs file that controls Castro and
     AMReX's behavior.
-
-  * ``probin`` : this is the problem-specific inputs file that
-    contains Fortran namelists with problem parameters as well as any
-    paramters for external physics (e.g., from the StarKiller
-    Microphysics)
 
 The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.
@@ -58,12 +54,12 @@ Here:
 * `default` is the default value of the runtime parameter.  It may be
   overridden at runtime by reading from the namelist.
 
-* `namelist` indicates if the variable should be in the namelist and
-  controlled at runtime.  The namelist column should have a ``y`` if
-  you want the parameter to be read from the ``&fortin`` namelist in
-  the ``probin`` file at runtime.  If it is empty or marked with
-  ``n``, then the variable will still be put into the
-  ``probdata_module`` but it will not be initialized via the namelist.
+* `namelist` indicates if the variable should be able to be set as
+  a runtime parameter.  If it is empty or marked with
+  ``n``, then the variable will still be creates in the ``problem`` namespace,
+  but it will not be able to be set via the commandline or inputs file.
+  A common usage of this is to define global variables that might be set
+  at problem initialization that are used elsewhere in Castro.
 
 * `size` is for arrays, and gives their size.  It can be any integer
   or variable that is known to the ``probdata_module``.  If you need a
@@ -85,30 +81,26 @@ we will switch the whole code to C++).
 
 .. index:: probdata
 
-* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
+* ``initialize_problem()``
 
-  This routine is primarily responsible for doing any one-time
+  This C++ routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
-  initial model through the ``model_parser_module``—see the
-  ``toy_convect`` problem setup for an example).
+  initial model through the ``model_parser.H`` functionality—see the
+  ``toy_convect`` problem setup for an example.
 
   This routine can also postprocess any of the parameters defined
-  in the ``_prob_params`` file, which are defined in ``probdata_module``.
+  in the ``_prob_params`` file, which are defined in ``problem`` namespace.
 
-  .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here (in C++, the ``center[]`` variable
-     from the ``problem`` namespace).  This is used to note the
+  .. note:: many problems set the value of the ``problem::center[]`` array
+     from the ``problem`` namespace.  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  In Fortran the arguments include the name and length of the probin file
-  as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``). The C++ version
-  accepts no arguments, but for example ``problo`` and ``probhi`` can
-  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  If you need coordinate information, it can be obtained 
+  by constructing a ``Geometry`` object using ``DefaultGeometry()``
   and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 

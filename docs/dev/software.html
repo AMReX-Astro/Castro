@@ -135,7 +135,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#gravity-class"><code class="docutils literal notranslate"><span class="pre">Gravity</span></code> class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fortran-helper-modules">Fortran Helper Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#amrex-constants-module"><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#extern-probin-module"><code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fundamental-constants-module"><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#meth-params-module"><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#prob-params-module"><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code></a></li>
@@ -909,15 +908,6 @@ side of Castroor perform other useful tasks.</p>
 <h3><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code><a class="headerlink" href="#amrex-constants-module" title="Permalink to this headline">¶</a></h3>
 <p>This provides double precision constants as Fortran parameters, like
 <code class="docutils literal notranslate"><span class="pre">ZERO</span></code>, <code class="docutils literal notranslate"><span class="pre">HALF</span></code>, and <code class="docutils literal notranslate"><span class="pre">ONE</span></code>.</p>
-</div>
-<div class="section" id="extern-probin-module">
-<h3><code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code><a class="headerlink" href="#extern-probin-module" title="Permalink to this headline">¶</a></h3>
-<p>This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files
-in the external sources, parse them for runtime parameters, and build
-the module.</p>
 </div>
 <div class="section" id="fundamental-constants-module">
 <h3><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code><a class="headerlink" href="#fundamental-constants-module" title="Permalink to this headline">¶</a></h3>

@@ -245,99 +245,10 @@ of the Adaptive Mesh Refinement Short Course at
 next regridding step by using a set of built-in routines that test on
 quantities such as the density and pressure and determining whether
 the quantities themselves or their gradients pass a user-specified
-threshold. This may then be extended if amr.n_error_buf <span class="math notranslate nohighlight">\(&gt; 0\)</span>
+threshold. This may then be extended if <code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code> <span class="math notranslate nohighlight">\(&gt; 0\)</span>
 to a certain number of zones beyond these tagged zones. This section
 describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.</p>
-<p>The routines for tagging cells are located in the
-Tagging_nd.f90 file in the Source/driver/ directory. (These are
-dimension-agnostic routines that loop over all three dimensional
-indices even for 1D or 2D problems.) The main routines are
-ca_denerror, ca_temperror, ca_presserror,
-ca_velerror, and ca_raderror. They refine based on
-density, temperature, pressure, velocity, and radiation energy density
-(if enabled), respectively. The same approach is used for all of
-them. As an example, we consider the density tagging routine. There
-are four parameters that control tagging. If the density in a zone is
-greater than the user-specified parameter denerr, then that
-zone will be tagged for refinement, but only if the current AMR level
-is less than the user-specified parameter max_denerr_lev.
-Similarly, if the absolute density gradient between a zone and any
-adjacent zone is greater than the user-specified parameter
-dengrad, that zone will be tagged for refinement, but only
-if we are currently on a level below
-max_dengrad_lev. Note that setting denerr alone
-will not do anything; you’ll need to set max_dengrad_lev <span class="math notranslate nohighlight">\(&gt;=
-1\)</span> for this to have any effect.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The Fortran <code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> method of defining refinement is deprecated</p>
-</div>
-<p>All four of these parameters are set in the <code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> namelist
-in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file. If left unmodified, they
-default to a value that means we will never tag. The complete set of
-parameters that can be controlled this way is the following:</p>
-<ul class="simple">
-<li><p>density:</p>
-<ul>
-<li><p>value: <code class="docutils literal notranslate"><span class="pre">denerr</span></code>, <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code></p></li>
-<li><p>gradient: <code class="docutils literal notranslate"><span class="pre">dengrad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_dengrad_lev</span></code></p></li>
-</ul>
-</li>
-<li><p>temperature:</p>
-<ul>
-<li><p>value: <code class="docutils literal notranslate"><span class="pre">temperr</span></code>, <code class="docutils literal notranslate"><span class="pre">max_temperr_lev</span></code></p></li>
-<li><p>gradient: <code class="docutils literal notranslate"><span class="pre">tempgrad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_tempgrad_lev</span></code></p></li>
-</ul>
-</li>
-<li><p>velocity (magnitude):</p>
-<ul>
-<li><p>value: <code class="docutils literal notranslate"><span class="pre">velerr</span></code>, <code class="docutils literal notranslate"><span class="pre">max_velerr_lev</span></code></p></li>
-<li><p>gradient: <code class="docutils literal notranslate"><span class="pre">velgrad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_velgrad_lev</span></code></p></li>
-</ul>
-</li>
-<li><p>pressure:</p>
-<ul>
-<li><p>value: <code class="docutils literal notranslate"><span class="pre">presserr</span></code>, <code class="docutils literal notranslate"><span class="pre">max_presserr_lev</span></code></p></li>
-<li><p>gradient: <code class="docutils literal notranslate"><span class="pre">pressgrad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_pressgrad_lev</span></code></p></li>
-</ul>
-</li>
-<li><p>radiation energy density:</p>
-<ul>
-<li><p>value: <code class="docutils literal notranslate"><span class="pre">raderr</span></code>, <code class="docutils literal notranslate"><span class="pre">max_raderr_lev</span></code></p></li>
-<li><p>gradient: <code class="docutils literal notranslate"><span class="pre">radgrad</span></code>, <code class="docutils literal notranslate"><span class="pre">max_radgrad_lev</span></code></p></li>
-</ul>
-</li>
-</ul>
-<p>Since there are multiple algorithms for determining
-whether a zone is tagged or not, it is worthwhile to specify
-in detail what is happening to a zone in the code during this step.
-We show this in the following pseudocode section. A zone
-is tagged if the variable <code class="docutils literal notranslate"><span class="pre">itag</span> <span class="pre">=</span> <span class="pre">SET</span></code>, and is not tagged
-if <code class="docutils literal notranslate"><span class="pre">itag</span> <span class="pre">=</span> <span class="pre">CLEAR</span></code> (these are mapped to <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">0</span></code>, respectively).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">itag</span> <span class="o">=</span> <span class="n">CLEAR</span>
-
-<span class="k">for</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="kn">from</span> <span class="nn">k</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">...</span> <span class="n">N</span>
-    <span class="o">//</span> <span class="n">Three</span> <span class="n">possibilities</span> <span class="k">for</span> <span class="n">itag</span><span class="p">:</span> <span class="n">SET</span> <span class="ow">or</span> <span class="n">CLEAR</span> <span class="ow">or</span> <span class="n">remaining</span> <span class="n">unchanged</span>
-    <span class="n">call</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">itag</span><span class="p">)</span>
-<span class="n">end</span> <span class="k">for</span>
-</pre></div>
-</div>
-<p>In particular, notice that there is an order dependence of this
-operation; if <code class="docutils literal notranslate"><span class="pre">errfunc[2]</span></code> <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code> s a zone and then
-<code class="docutils literal notranslate"><span class="pre">errfunc[3]</span></code>  <code class="docutils literal notranslate"><span class="pre">SET</span></code> s that zone, the final operation will be to tag
-that zone (and vice versa). In practice by default this does not
-matter, because the built-in tagging routines never explicitly perform
-a <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code> . However, it is possible to overwrite the
-<code class="docutils literal notranslate"><span class="pre">Tagging_nd.F90</span></code> file if you want to change how <code class="docutils literal notranslate"><span class="pre">ca_denerror</span></code> ,
-<code class="docutils literal notranslate"><span class="pre">ca_temperror</span></code> , etc. operate. This is not recommended, and if you do
-so be aware that <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code> ing a zone this way may not have the desired
-effect.</p>
-<p id="index-0">We provide also the ability for the user to define their own tagging criteria.
-This is done through the C++ function <code class="docutils literal notranslate"><span class="pre">problem_tagging</span></code>
-in the file <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code>. This function is provided the entire
-state (including density, temperature, velocity, etc.) and the array
-of tagging status for every zone.</p>
 <p>We also provide a mechanism for defining a limited set of refinement
 schemes from the inputs file; for example,</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">refinement_indicators</span> <span class="o">=</span> <span class="n">dens</span> <span class="n">temp</span>
@@ -372,6 +283,11 @@ describing when to tag. These are:</p>
 using the Poisson gravity solver. If your tagging criteria are met in these
 zones, they will be ignored.</p>
 </div>
+<p id="index-0">We provide also the ability for the user to define their own tagging criteria.
+This is done through the C++ function <code class="docutils literal notranslate"><span class="pre">problem_tagging</span></code>
+in the file <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code>. This function is provided the entire
+state (including density, temperature, velocity, etc.) and the array
+of tagging status for every zone.</p>
 </div>
 <div class="section" id="synchronization-algorithm">
 <span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>

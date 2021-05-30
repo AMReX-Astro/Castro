@@ -270,8 +270,8 @@ selected by setting:</p>
 </pre></div>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. To set the value of the conductivity (e.g., to
-<span class="math notranslate nohighlight">\(100\)</span>), you add to your probin file’s <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const_conductivity</span> <span class="o">=</span> <span class="mf">100.0</span>
+<span class="math notranslate nohighlight">\(100\)</span>), you add to your input file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conductivity</span><span class="o">.</span><span class="n">const_conductivity</span> <span class="o">=</span> <span class="mf">100.0</span>
 </pre></div>
 </div>
 </li>
@@ -286,10 +286,10 @@ This is selected by setting:</p>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. To set the value of the opacity, e.g., to
 0.2 (for electron scattering), set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">const_opacity</span> <span class="o">=</span> <span class="mf">0.2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conductivity</span><span class="o">.</span><span class="n">const_opacity</span> <span class="o">=</span> <span class="mf">0.2</span>
 </pre></div>
 </div>
-<p>in the <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist of your probin.</p>
+<p>in the inputs file.</p>
 </li>
 </ul>
 <p id="index-1">The diffusion approximation breaks down at the surface of stars,

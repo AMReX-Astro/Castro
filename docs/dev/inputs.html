@@ -102,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Input Files</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#working-with-probin-files">Working with probin Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#common-inputs-options">Common inputs Options</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#problem-geometry">Problem Geometry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#domain-boundary-conditions">Domain Boundary Conditions</a></li>
@@ -223,16 +222,19 @@
             
   <div class="section" id="input-files">
 <h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
-<p>The Castro executable uses two inputs files at runtime to set and
-alter the behavior of the algorithm and initial conditions:</p>
+<p>The Castro executable uses an inputs file at runtime to set and
+alter the behavior of the algorithm and initial conditions.  Typically
+named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>, it</p>
 <blockquote>
-<div><ul>
-<li><p>The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
-<p>This is used to set AMReX parameters and the control flow in the
-physics solvers in Castro.  Each parameter here has a namespace
-(like <code class="docutils literal notranslate"><span class="pre">amr.optionname</span></code> or <code class="docutils literal notranslate"><span class="pre">castro.optionname</span></code>).  Parameters
-set here are read using the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code> class
-infrastructure.</p>
+<div><ul class="simple">
+<li><p>Sets the AMReX parameters for gridding, refinement, etc., through the
+<code class="docutils literal notranslate"><span class="pre">geometry</span></code> and <code class="docutils literal notranslate"><span class="pre">amr</span></code> namespaces.</p></li>
+<li><p>Enables different physics behaviors through the <code class="docutils literal notranslate"><span class="pre">castro</span></code> namespace.</p></li>
+<li><p>Sets the problem-specific runtime parameters through the <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace.</p></li>
+<li><p>Sets any Microphysics runtime parameters, through the various namespaces
+defined in Microphysics (like <code class="docutils literal notranslate"><span class="pre">eos</span></code>, <code class="docutils literal notranslate"><span class="pre">integrator</span></code>, <code class="docutils literal notranslate"><span class="pre">network</span></code>, …).</p></li>
+</ul>
+</div></blockquote>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Because the inputs file is handled by the C++ portion
@@ -240,49 +242,15 @@ of the code, any quantities you specify in scientific notation,
 must take the form <code class="docutils literal notranslate"><span class="pre">1.e5</span></code> and not <code class="docutils literal notranslate"><span class="pre">1.d5</span></code>—the <code class="docutils literal notranslate"><span class="pre">d</span></code>
 specifier is not recognized.</p>
 </div>
-</li>
-<li><p>The problem / external inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code>:</p>
-<p>This is used by the Fortran code that initializes the problem
-setup.  It is read at problem initialization (via a Fortran
-namelist) and the problem-specific quantities are stored in a
-Fortran module <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in the problem’s
-<code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code> file.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">probin</span></code> file also has an <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist that is
-used to specify runtime parameters for the microphysics
-(EOS, reaction network, …)</p>
-</li>
-</ul>
-</div></blockquote>
-<p>Only the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file is specified on the commandline. The
-associated <code class="docutils literal notranslate"><span class="pre">probin</span></code> file is specified in the inputs file
-using the <code class="docutils literal notranslate"><span class="pre">amr.probin_file</span></code> parameter, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">probin_file</span> <span class="o">=</span> <span class="n">my_special_probin</span>
-</pre></div>
-</div>
-<p>for example, has the Fortran code read a file called <code class="docutils literal notranslate"><span class="pre">my_special_probin</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Additionally, note that in Castro, all quantities are in CGS units.</p>
-</div>
-<div class="section" id="working-with-probin-files">
-<h2>Working with probin Files<a class="headerlink" href="#working-with-probin-files" title="Permalink to this headline">¶</a></h2>
-<p>There are several Fortran namelists that can be defined in the
-<code class="docutils literal notranslate"><span class="pre">probin</span></code> file:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> is the main namelist read by the problem’s
-<code class="docutils literal notranslate"><span class="pre">probinit</span></code> subroutine in the <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> is used to set different microphysics options</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> is used to get the parameters (defined in
-<code class="docutils literal notranslate"><span class="pre">tagging_module</span></code>) that affect how we tag for refinement.</p></li>
-</ul>
-</div></blockquote>
 </div>
 <div class="section" id="common-inputs-options">
 <h2>Common inputs Options<a class="headerlink" href="#common-inputs-options" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="problem-geometry">
 <h3>Problem Geometry<a class="headerlink" href="#problem-geometry" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">geometry</span></code> namespace is used by BoxLib to define the
+<p>The <code class="docutils literal notranslate"><span class="pre">geometry</span></code> namespace is used by AMReX to define the
 computational domain. The main parameters here are:</p>
 <blockquote>
 <div><ul>
@@ -328,7 +296,7 @@ between the lower left and upper right corners.</p>
 <div class="section" id="domain-boundary-conditions">
 <h3>Domain Boundary Conditions<a class="headerlink" href="#domain-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p>Boundary conditions are specified using integer keys that are interpreted
-by BoxLib. The runtime parameters that we use are:</p>
+by AMReX. The runtime parameters that we use are:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code>: boundary type of each low face (must be set)</p></li>
