@@ -4114,7 +4114,6 @@ Castro::define_new_center(MultiFab& S, Real time)
       problem::center[0] = 0;
     }
 
-    set_f90_center(problem::center);
 }
 
 void
