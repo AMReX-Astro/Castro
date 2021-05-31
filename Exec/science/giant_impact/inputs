@@ -76,10 +76,10 @@ amr.regrid_int = 2
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
 
 # Maximum grid size at each level
-amr.max_grid_size = 32
+amr.max_grid_size = 64
 
 # Grid sizes must be a multiple of blocking factor
-amr.blocking_factor = 16
+amr.blocking_factor = 32
 
 # Refinement indicators
 amr.refinement_indicators = denerr
@@ -201,7 +201,7 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-amr.check_per = 10.0
+amr.check_per = 100.0
 
 # Number of timesteps between checkpoints
 amr.check_int = -1
@@ -210,7 +210,7 @@ amr.check_int = -1
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = 10.0
+amr.plot_per = 100.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
