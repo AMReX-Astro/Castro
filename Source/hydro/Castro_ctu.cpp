@@ -466,9 +466,12 @@ Castro::add_species_source_to_states(const Box& bx, const int idir, const Real d
 }
 
 void
-Castro::src_to_prim(const Box& bx,
+Castro::src_to_prim(const Box& bx, const Real dt,
                     Array4<Real const> const& q_arr,
-                    Array4<Real const> const& src,
+                    Array4<Real const> const& old_src,
+#ifndef TRUE_SDC
+                    Array4<Real const> const& src_corr,
+#endif
                     Array4<Real> const& srcQ)
 {
 
@@ -476,9 +479,27 @@ Castro::src_to_prim(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-
       for (int n = 0; n < NQSRC; ++n) {
         srcQ(i,j,k,n) = 0.0_rt;
+      }
+
+      // the conserved source may have a predictor that time-centers it
+
+      Real srcU[NSRC] = {0.0_rt};
+
+      for (int n = 0; n < NSRC; n++) {
+
+#ifndef TRUE_SDC
+          if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+              if (n == UMX || n == UMY || n == UMZ) {
+                  srcU[n] += 0.5 * dt * src_corr(i,j,k,n);
+              }
+          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+              srcU[n] += src_corr(i,j,k,n);
+          }
+#endif
+
+          srcU[n] += old_src(i,j,k,n);
       }
 
       Real rhoinv = 1.0_rt / q_arr(i,j,k,QRHO);
@@ -499,12 +520,11 @@ Castro::src_to_prim(const Box& bx,
 
       eos(eos_input_re, eos_state);
 
-
-      srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
-      srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QV) = (src(i,j,k,UMY) - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QW) = (src(i,j,k,UMZ) - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QREINT) = src(i,j,k,UEINT);
+      srcQ(i,j,k,QRHO) = srcU[URHO];
+      srcQ(i,j,k,QU) = (srcU[UMX] - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QV) = (srcU[UMY] - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QW) = (srcU[UMZ] - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QREINT) = srcU[UEINT];
       srcQ(i,j,k,QPRES ) = eos_state.dpde *
         (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
         rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
@@ -516,7 +536,7 @@ Castro::src_to_prim(const Box& bx,
 
        // we may not be including the ability to have species sources,
        //  so check to make sure that we are < NQSRC
-        srcQ(i,j,k,iq) = (src(i,j,k,n) - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
+        srcQ(i,j,k,iq) = (srcU[n] - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
           q_arr(i,j,k,QRHO);
       }
 #endif

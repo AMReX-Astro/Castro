@@ -8,3 +8,6 @@ filter_rhomax       real        -1.e20_rt      y
 filter_timemax      real        -1.e20_rt      y
 
 model_file          character   "model.input"  y
+
+iye                 int         -1             n
+iinvmu              int         -1             n

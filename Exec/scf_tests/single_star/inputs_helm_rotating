@@ -10,7 +10,7 @@ amr.n_cell           =  128 128 128
 
 amr.max_level        = 0
 amr.ref_ratio        = 2 2 2 2 2 2 2 2 2 2 2
-amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
+amr.n_error_buf      = 2 2 2 2 2 0 0 0 0 0 0
 amr.blocking_factor  = 16
 amr.max_grid_size    = 64
 
@@ -57,5 +57,17 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 1        # timesteps between plotfiles
 amr.derive_plot_vars  = ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin_helm_rotating
+# problem initialization
+
+problem.density      = 1.0e6
+problem.radius       = 1.0e9
+problem.ambient_dens = 1.0e-8
+
+# refinement
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.max_level = 20
+amr.refine.denerr.value_greater = 1.e6
+amr.refine.denerr.field_name = density
+

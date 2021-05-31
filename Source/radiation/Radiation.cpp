@@ -3,7 +3,7 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 #include <rad_util.H>
-
+#include <filt_prim.H>
 #include <Castro_F.H>
 
 #include <RAD_F.H>
@@ -249,13 +249,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -272,13 +272,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -434,7 +434,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   if (verbose > 2) {
     Vector<int> temp;
-    if (pp.queryarr("spot",temp,0,BL_SPACEDIM)) {
+    if (pp.queryarr("spot",temp,0,AMREX_SPACEDIM)) {
       IntVect tempi(temp);
       spot = tempi;
     }
@@ -507,10 +507,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   // incoming flux information in the RadBndry constructor.  we just
   // set the boundary condition type here:
 
-  Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-  pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-  for (int i = 0; i < BL_SPACEDIM; i++) {
+  Vector<int> lo_bc(AMREX_SPACEDIM), hi_bc(AMREX_SPACEDIM);
+  pp.getarr("lo_bc",lo_bc,0,AMREX_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc,0,AMREX_SPACEDIM);
+  for (int i = 0; i < AMREX_SPACEDIM; i++) {
     rad_bc.setLo(i,lo_bc[i]);
     rad_bc.setHi(i,hi_bc[i]);
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
@@ -2033,7 +2033,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
         // with piecewise-constant (area-adjusted)
         // interpolation with ratio given by ref_rat.
 
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
           const Orientation lo_face(dir,Orientation::low);
           const Orientation hi_face(dir,Orientation::high);
 
@@ -2090,7 +2090,7 @@ void Radiation::reflux(int level)
 // Computes the scaled gradient for use in flux limiters
 
 void Radiation::scaledGradient(int level,
-                               Array<MultiFab, BL_SPACEDIM>& R,
+                               Array<MultiFab, AMREX_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
                                int limiter, int nGrow_Er, int Rcomp)
@@ -2426,7 +2426,7 @@ void Radiation::scaledGradient(int level,
 // On output this will be overwritten with the flux limiter.
 
 void Radiation::fluxLimiter(int level,
-                            Array<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
     BL_PROFILE("Radiation:fluxLimiter");
@@ -2434,7 +2434,7 @@ void Radiation::fluxLimiter(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
@@ -2634,44 +2634,12 @@ void Radiation::set_current_group(int igroup)
 void Radiation::filter_prim(int level, MultiFab& State)
 {
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
-  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom = parent->Geom(level);
-
-  const int*  domain_lo = geom.Domain().loVect();
-  const int*  domain_hi = geom.Domain().hiVect();
-  const Real* dx        = geom.CellSize();
-  const Real* prob_lo   = geom.ProbLo();
+  auto geomdata = geom.data();
 
   int ngrow = filter_prim_T;
   int ncomp = State.nComp();
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  MultiFab mask(grids,dmap,1,ngrow);
-  mask.setVal(-1.0,ngrow);
-  mask.setVal( 0.0,0);
-  mask.FillBoundary(geom.periodicity());
-
-  if (level < parent->finestLevel())
-  {
-      BoxArray baf = parent->boxArray(level+1);
-      baf.coarsen(parent->refRatio(level));
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(mask); mfi.isValid(); ++mfi)
-      {
-          FArrayBox& mask_fab = mask[mfi];
-          const Box& mask_box = mask_fab.box();
-
-          const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
-
-          for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
-          }
-      }
-  }
 
   FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,0,ncomp);
   MultiFab& S_fp = fpi.get_mf();
@@ -2683,16 +2651,19 @@ void Radiation::filter_prim(int level, MultiFab& State)
   {
       const Box& bx = mfi.tilebox();
 
-      const RealBox& gridloc = RealBox(bx, dx, prob_lo);
-      const Real* xlo = gridloc.lo();
+      auto S_fp_arr = S_fp[mfi].array();
+      auto State_arr = State[mfi].array();
 
-      ca_filt_prim(bx.loVect(), bx.hiVect(),
-                   BL_TO_FORTRAN( S_fp[mfi]),
-                   BL_TO_FORTRAN(State[mfi]),
-                   BL_TO_FORTRAN( mask[mfi]),
-                   &filter_prim_T, &filter_prim_S,
-                   domain_lo, domain_hi,
-                   dx, xlo, prob_lo,
-                   &time, &level);
+      int T = filter_prim_T;
+      int S = filter_prim_S;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          filt_prim(i, j, k,
+                    S_fp_arr, State_arr,
+                    T, S,
+                    geomdata, time);
+      });
   }
 }

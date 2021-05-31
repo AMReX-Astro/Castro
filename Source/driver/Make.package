@@ -7,7 +7,7 @@ CEXE_sources += runparams_defaults.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)
-ifneq ($(USE_CUDA), TRUE)
+ifneq ($(USE_GPU), TRUE)
   CEXE_sources += Castro_advance_sdc.cpp
 endif
 endif
@@ -25,7 +25,6 @@ CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
-FEXE_headers += Castro_error_F.H
 
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
@@ -55,6 +54,8 @@ ifdef NEED_MGUTIL
 endif
 
 ca_F90EXE_sources += prob_params_nd.F90
-ca_F90EXE_sources += Tagging_nd.F90
-ca_f90EXE_sources += filfc.f90
+
+ifeq ($(USE_MHD),TRUE)
+  ca_f90EXE_sources += filfc.f90
+endif
 CEXE_sources += timestep.cpp

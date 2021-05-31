@@ -90,7 +90,7 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 1;
@@ -148,7 +148,7 @@ Castro::initialize_do_advance(Real time)
         define_new_center(get_old_data(State_Type), time);
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 0;
        make_radial_data(is_new);
@@ -283,12 +283,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // This array holds the sum of all source terms that affect the
-    // hydrodynamics.
-
-    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW_SRC);
-    sources_for_hydro.setVal(0.0, NUM_GROW_SRC);
-
     // This array holds the source term corrector.
 
     source_corrector.define(grids, dmap, NSRC, NUM_GROW_SRC);
@@ -395,7 +389,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
     }
@@ -403,7 +397,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
         }
     }
@@ -443,7 +437,6 @@ Castro::finalize_advance()
 #endif
 
     source_corrector.clear();
-    sources_for_hydro.clear();
 
     if (!keep_prev_state) {
         amrex::FillNull(prev_state);

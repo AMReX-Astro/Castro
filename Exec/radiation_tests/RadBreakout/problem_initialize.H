@@ -22,5 +22,8 @@ void problem_initialize ()
         amrex::Error("NumSpec in network is not equal to 1");
     }
 
+    problem::iye = network_aux_index("Ye");
+    problem::iinvmu = network_aux_index("invmu");
+
 }
 #endif

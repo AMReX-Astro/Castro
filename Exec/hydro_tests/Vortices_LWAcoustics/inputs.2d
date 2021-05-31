@@ -48,6 +48,28 @@ amr.regrid_int      = -1
 amr.blocking_factor = 8           # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2 2   # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad pressgrad velgrad_x velgrad_y velgrad_z
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 8
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 8
+
+amr.refine.velgrad_x.gradient = 0.01
+amr.refine.velgrad_x.field_name = x_velocity
+amr.refine.velgrad_x.max_level = 8
+
+amr.refine.velgrad_y.gradient = 0.01
+amr.refine.velgrad_y.field_name = y_velocity
+amr.refine.velgrad_y.max_level = 8
+
+amr.refine.velgrad_y.gradient = 0.01
+amr.refine.velgrad_y.field_name = z_velocity
+amr.refine.velgrad_y.max_level = 8
+
 # CHECKPOINT FILES
 amr.check_file      = chk       # root name of checkpoint file
 amr.check_int       = 100       # number of timesteps between checkpoints
@@ -60,5 +82,13 @@ amr.plot_per        = 5.0      # time between plotfiles
 amr.plot_vars = density xmom ymom rho_e rho_E Temp
 amr.derive_plot_vars = soundspeed entropy magvort divu eint_e magvel x_velocity y_velocity pressure MachNumber
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.p_ref   = 1.0e0
+problem.r_0     = 0.25e0
+problem.mach    = 0.0796e0
+problem.ratio_c = 0.15e0
+problem.r_circ  = 1.0e0
+
+# EOS
+eos.eos_gamma = 1.4e0
+eos.eos_assume_neutral = 1
