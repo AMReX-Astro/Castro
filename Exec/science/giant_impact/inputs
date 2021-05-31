@@ -48,7 +48,7 @@ castro.cfl = 0.8
 castro.init_shrink = 0.01
 
 # Factor by which dt is allowed to change each timestep
-castro.change_max = 1.05
+castro.change_max = 1.1
 
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
