@@ -4,7 +4,6 @@ module prob_params_module
 
   use meth_params_module, only: UMX, UMZ
   use amrex_fort_module, only: rt => amrex_real
-  use probdata_module, only: center ! for backwards compatibility
 
   implicit none
 
