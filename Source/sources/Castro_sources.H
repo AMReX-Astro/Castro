@@ -189,15 +189,17 @@
 /// Compute the sponge source given a state
 ///
 /// @param bx           Box to operate over
-/// @param state        input state
+/// @param state_old    input state at old time
+/// @param state_new    input state at new time
 /// @param source       source incremented with the sponge
 /// @param dt           timestep
-/// @param mult_factor  multiplicative factor in front of the source
+/// @param is_corrector are we in the predictor or corrector step?
 ///
     void apply_sponge(const amrex::Box& bx,
-                      amrex::Array4<amrex::Real const> const state,
+                      amrex::Array4<amrex::Real const> const state_old,
+                      amrex::Array4<amrex::Real const> const state_new,
                       amrex::Array4<amrex::Real> const source,
-                      amrex::Real dt, amrex::Real mult_factor);
+                      amrex::Real dt, int is_corrector);
 
 #endif
 

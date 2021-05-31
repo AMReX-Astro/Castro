@@ -15,7 +15,10 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
 
     if (!do_sponge) return;
 
-    const Real mult_factor = 1.0;
+    // Add the old-time source. Note that we pass in the old time state for both the "old"
+    // and "new" times. This handles both the Strang (predictor) and SDC (MOL) cases.
+
+    int is_corrector = 0;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -24,8 +27,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_in.array(mfi), source.array(mfi), dt, mult_factor);
-
+        apply_sponge(bx, state_in.array(mfi), state_in.array(mfi), source.array(mfi), dt, is_corrector);
     }
 
     if (verbose > 1)
@@ -54,12 +56,18 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
     if (!do_sponge) return;
 
-    const Real mult_factor_old = -0.5;
-    const Real mult_factor_new =  0.5;
+    // First, subtract some fraction of the old-time source.
+    // Then, add the new-time source. The contribution from
+    // the old and new times will be weighted by the relative
+    // velocities at the old and new times. In the limit where the
+    // velocity is much larger at the old-time than the new time,
+    // the sponge will be weighted fully toward the old time, and
+    // in the limit where the velocity is much larger at the new time,
+    // the sponge will be weighted fully toward the new time. If
+    // the two velocities are approximately equal, then the sponge
+    // will approximately be time-centered.
 
-    // First, subtract half of the old-time source.
-    // Note that the sponge parameters are still current
-    // at this point from their evaluation at the old time.
+    int is_corrector = 1;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -68,20 +76,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
-    }
-
-    // Now evaluate the new-time part of the corrector.
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        apply_sponge(bx, state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
-
+        apply_sponge(bx, state_old.array(mfi), state_new.array(mfi), source.array(mfi), dt, is_corrector);
     }
 
     if (verbose > 1)
@@ -105,9 +100,19 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state_in,
+                     Array4<Real const> const state_old,
+                     Array4<Real const> const state_new,
                      Array4<Real> const source,
-                     Real dt, Real mult_factor) {
+                     Real dt, int is_corrector)
+{
+  // In this function, state_old is the state at the old simulation time
+  // and state_new is the function at the new simulation time. These may
+  // refer to the same state (if we're doing the Strang predictor or doing
+  // MOL hydro) or to different states (if we're doing the Strang corrector).
+  // The weighting between the old and new times is determined by the relative
+  // velocities between those states (and if state_old == state_new, then we
+  // will end up giving half weight to each, which achieves the same result as
+  // it would have with only one state to consider).
 
   // alpha is a dimensionless measure of the timestep size; if
   // sponge_timescale < dt, then the sponge will have a larger effect,
@@ -148,7 +153,7 @@ Castro::apply_sponge(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-    Real rho = state_in(i,j,k,URHO);
+    Real rho = state_new(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
     // compute the update factor
@@ -211,14 +216,14 @@ Castro::apply_sponge(const Box& bx,
 
       eos_rep_t eos_state;
 
-      eos_state.rho = state_in(i,j,k,URHO);
-      eos_state.T = state_in(i,j,k,UTEMP);
+      eos_state.rho = state_new(i,j,k,URHO);
+      eos_state.T = state_new(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state_in(i,j,k,UFS+n) * rhoInv;
+        eos_state.xn[n] = state_new(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = state_in(i,j,k,UFX+n) * rhoInv;
+        eos_state.aux[n] = state_new(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -267,7 +272,31 @@ Castro::apply_sponge(const Box& bx,
                                                 sponge_target_y_velocity,
                                                 sponge_target_z_velocity};
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state_in(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
+      // Determine weighting between old and new time. Note that it is important
+      // we use the velocity and not the momentum in this weighting. A shift in
+      // momentum could occur because of a large change in density at the same
+      // time that the velocity holds flat or decreases, and the goal is to target
+      // specifically large changes in velocity.
+
+      Real v_old = state_old(i,j,k,UMX+n) / state_old(i,j,k,URHO);
+      Real v_new = state_new(i,j,k,UMX+n) / state_new(i,j,k,URHO);
+
+      Real sum_old_new = std::abs(v_old) + std::abs(v_new);
+      sum_old_new = amrex::max(sum_old_new, 1.e-30_rt); // Avoid divide by zero
+
+      Real old_factor = std::abs(v_old) / sum_old_new;
+      Real new_factor = std::abs(v_new) / sum_old_new;
+
+      Real old_src = (state_old(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * old_factor / dt;
+      Real new_src = (state_new(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * new_factor / dt;
+
+      if (is_corrector) {
+          Sr[n] = new_src - old_src;
+      }
+      else {
+          Sr[n] = new_src + old_src;
+      }
+
       src[UMX+n] = Sr[n];
     }
 
@@ -278,7 +307,7 @@ Castro::apply_sponge(const Box& bx,
 
     Real SrE = 0.0;
     for (int n = 0; n < 3; n++) {
-      SrE += state_in(i,j,k,UMX+n) * rhoInv * Sr[n];
+      SrE += state_new(i,j,k,UMX+n) * rhoInv * Sr[n];
     }
 
     src[UEDEN] = SrE;
