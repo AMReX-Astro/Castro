@@ -90,6 +90,12 @@ amr.refine.denerr.field_name = density
 # Density threshold for tagging
 amr.refine.denerr.value_greater = 1.0e0
 
+# Order of reconstruction for interpolation
+castro.state_interp_order = 0
+
+# Limiting on state data interpolation (preserve linear combinations)
+castro.lin_limit_state_interp = 1
+
 ############################################################################################
 # Physics to include
 ############################################################################################
