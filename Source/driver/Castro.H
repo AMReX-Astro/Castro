@@ -1420,8 +1420,6 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
 
     amrex::Real lastDt;

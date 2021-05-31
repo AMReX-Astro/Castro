@@ -690,8 +690,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
-                lastDtRetryLimited = true;
-                lastDtFromRetry = dt_subcycle;
                 in_retry = true;
 
                 continue;
