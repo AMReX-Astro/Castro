@@ -82,11 +82,11 @@ public:
 protected:
 //@ManMemo: internal data
 //@ManDoc: Array (on orientation) of boundary condition type specifiers
-    amrex::Vector<RadBoundCond>   bcond[2*BL_SPACEDIM];
+    amrex::Vector<RadBoundCond>   bcond[2*AMREX_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition locations
-    amrex::Vector<amrex::Real>    bcloc[2*BL_SPACEDIM];
+    amrex::Vector<amrex::Real>    bcloc[2*AMREX_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
-    amrex::Vector<std::unique_ptr<amrex::Mask> > masks[2*BL_SPACEDIM];
+    amrex::Vector<std::unique_ptr<amrex::Mask> > masks[2*AMREX_SPACEDIM];
 //@ManDoc: Domain used for mask defintions
     amrex::Geometry geom;
 

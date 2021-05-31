@@ -81,5 +81,6 @@ amr.plot_int        = -1
 amr.plot_per        = 0.24
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4

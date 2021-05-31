@@ -728,7 +728,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
@@ -743,16 +743,6 @@ public:
 /// @param time         current time
 ///
     void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
-
-
-///
-/// Apply a given tagging function.
-///
-/// @param tags         TagBoxArray of tags
-/// @param time         current time
-/// @param j            integer
-///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
 
 ///
@@ -1195,9 +1185,9 @@ public:
     static amrex::Vector<std::string> source_names;
 
 ///
-/// Vector storing list of custom error tags.
+/// Vector storing list of error tags.
 ///
-    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -1312,7 +1302,7 @@ protected:
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
@@ -1322,7 +1312,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
@@ -1338,7 +1328,7 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif

@@ -69,9 +69,9 @@ There are two conductivity routines provided with Castro by default:
        CONDUCTIVITY_DIR := constant
 
    in your ``GNUmakefile``. To set the value of the conductivity (e.g., to
-   :math:`100`), you add to your probin file’s ``&extern`` namelist::
+   :math:`100`), you add to your input file::
 
-       const_conductivity = 100.0
+       conductivity.const_conductivity = 100.0
 
 -  ``constant_opacity`` : A simple constant opacity. This is
    converted to an opacity as:
@@ -86,9 +86,9 @@ There are two conductivity routines provided with Castro by default:
    in your ``GNUmakefile``. To set the value of the opacity, e.g., to
    0.2 (for electron scattering), set::
 
-       const_opacity = 0.2
+       conductivity.const_opacity = 0.2
 
-   in the ``&extern`` namelist of your probin.
+   in the inputs file.
 
 .. index:: castro.diffusion_cutoff_density, castro.diffusion_cutoff_density_hi
 

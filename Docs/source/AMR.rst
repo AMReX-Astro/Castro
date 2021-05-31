@@ -33,105 +33,10 @@ Castro determines what zones should be tagged for refinement at the
 next regridding step by using a set of built-in routines that test on
 quantities such as the density and pressure and determining whether
 the quantities themselves or their gradients pass a user-specified
-threshold. This may then be extended if amr.n_error_buf :math:`> 0`
+threshold. This may then be extended if ``amr.n_error_buf`` :math:`> 0`
 to a certain number of zones beyond these tagged zones. This section
 describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.
-
-The routines for tagging cells are located in the
-Tagging_nd.f90 file in the Source/driver/ directory. (These are
-dimension-agnostic routines that loop over all three dimensional
-indices even for 1D or 2D problems.) The main routines are
-ca_denerror, ca_temperror, ca_presserror,
-ca_velerror, and ca_raderror. They refine based on
-density, temperature, pressure, velocity, and radiation energy density
-(if enabled), respectively. The same approach is used for all of
-them. As an example, we consider the density tagging routine. There
-are four parameters that control tagging. If the density in a zone is
-greater than the user-specified parameter denerr, then that
-zone will be tagged for refinement, but only if the current AMR level
-is less than the user-specified parameter max_denerr_lev.
-Similarly, if the absolute density gradient between a zone and any
-adjacent zone is greater than the user-specified parameter
-dengrad, that zone will be tagged for refinement, but only
-if we are currently on a level below
-max_dengrad_lev. Note that setting denerr alone
-will not do anything; you’ll need to set max_dengrad_lev :math:`>=
-1` for this to have any effect.
-
-
-.. note:: The Fortran ``&tagging`` method of defining refinement is deprecated
-
-All four of these parameters are set in the ``&tagging`` namelist
-in your ``probin`` file. If left unmodified, they
-default to a value that means we will never tag. The complete set of
-parameters that can be controlled this way is the following:
-
--  density:
-
-   -  value: ``denerr``, ``max_denerr_lev``
-
-   -  gradient: ``dengrad``, ``max_dengrad_lev``
-
--  temperature:
-
-   -  value: ``temperr``, ``max_temperr_lev``
-
-   -  gradient: ``tempgrad``, ``max_tempgrad_lev``
-
--  velocity (magnitude):
-
-   -  value: ``velerr``, ``max_velerr_lev``
-
-   -  gradient: ``velgrad``, ``max_velgrad_lev``
-
--  pressure:
-
-   -  value: ``presserr``, ``max_presserr_lev``
-
-   -  gradient: ``pressgrad``, ``max_pressgrad_lev``
-
--  radiation energy density:
-
-   -  value: ``raderr``, ``max_raderr_lev``
-
-   -  gradient: ``radgrad``, ``max_radgrad_lev``
-
-Since there are multiple algorithms for determining
-whether a zone is tagged or not, it is worthwhile to specify
-in detail what is happening to a zone in the code during this step.
-We show this in the following pseudocode section. A zone
-is tagged if the variable ``itag = SET``, and is not tagged
-if ``itag = CLEAR`` (these are mapped to ``1`` and ``0``, respectively).
-
-::
-
-    itag = CLEAR
-
-    for errfunc[k] from k = 1 ... N
-        // Three possibilities for itag: SET or CLEAR or remaining unchanged
-        call errfunc[k](itag)
-    end for
-
-
-In particular, notice that there is an order dependence of this
-operation; if ``errfunc[2]`` ``CLEAR`` s a zone and then
-``errfunc[3]`` ``SET`` s that zone, the final operation will be to tag
-that zone (and vice versa). In practice by default this does not
-matter, because the built-in tagging routines never explicitly perform
-a ``CLEAR``. However, it is possible to overwrite the
-``Tagging_nd.F90`` file if you want to change how ``ca_denerror``,
-``ca_temperror``, etc. operate. This is not recommended, and if you do
-so be aware that ``CLEAR``ing a zone this way may not have the desired
-effect.
-
-.. index:: problem_tagging.H
-
-We provide also the ability for the user to define their own tagging criteria.
-This is done through the C++ function ``problem_tagging``
-in the file ``problem_tagging.H``. This function is provided the entire
-state (including density, temperature, velocity, etc.) and the array
-of tagging status for every zone.
 
 We also provide a mechanism for defining a limited set of refinement
 schemes from the inputs file; for example,
@@ -169,6 +74,15 @@ If a refinement indicator is added, either
    Zones adjacent to a physical boundary cannot be tagged for refinement when
    using the Poisson gravity solver. If your tagging criteria are met in these
    zones, they will be ignored.
+
+.. index:: problem_tagging.H
+
+We provide also the ability for the user to define their own tagging criteria.
+This is done through the C++ function ``problem_tagging``
+in the file ``problem_tagging.H``. This function is provided the entire
+state (including density, temperature, velocity, etc.) and the array
+of tagging status for every zone.
+
 
 .. _sec:amr_synchronization:
 

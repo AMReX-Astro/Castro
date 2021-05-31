@@ -260,10 +260,11 @@ The current ``StateData`` names Castro carries are:
    referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
-   In Fortran, the components of a FAB derived from ``State_Type``
-   is indexed using the integer keys defined in ``Castro_nd.F90``
-   and stored in ``meth_params_module``, e.g., ``URHO``, ``UMX``,
-   ``UMY``, ...
+   We access this data using an AMReX ``Array4`` type which is
+   of the form ``data(i,j,k,n)``, where ``n`` is the component.
+   The integer keys used to index the components are defined
+   in ``Source/driver/_variables`` (e.g., ``URHO``, ``UMX``,
+   ``UMY``, ...)
 
    .. note:: regardless of dimensionality, we always carry around all
       three velocity components. The “out-of-plane” components will
@@ -357,7 +358,7 @@ is given in the AMReX documentation here: https://amrex-codes.github.io/amrex/do
 
 
 Practical Details in Working with Tiling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 With tiling, the OpenMP is now all in C++, and not in Fortran for all
 modules except reactions and ``initdata``.
@@ -709,15 +710,6 @@ side of Castroor perform other useful tasks.
 This provides double precision constants as Fortran parameters, like
 ``ZERO``, ``HALF``, and ``ONE``.
 
-``extern_probin_module``
-------------------------
-
-This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the ``_parameters`` files
-in the external sources, parse them for runtime parameters, and build
-the module.
 
 ``fundamental_constants_module``
 --------------------------------

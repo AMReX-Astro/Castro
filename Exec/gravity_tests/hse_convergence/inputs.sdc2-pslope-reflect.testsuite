@@ -55,6 +55,16 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.value_greater = 6.0e8
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 5
+
+amr.refine.tempgrad.gradient = 1.0e9
+amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.max_level = 5
+
 # CHECKPOINT FILES
 amr.check_file      = hse_256_chk        # root name of checkpoint file
 amr.check_int       = 5000       # number of timesteps between checkpoints
@@ -64,5 +74,11 @@ amr.plot_file        = hse_256_plt        # root name of plotfile
 amr.plot_per         = 0.025       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin.256
+# PROBLEM PARAMETERS
+problem.dens_base = 1.e7
+problem.temp_base = 1.0e8
+
+problem.nx_model = 256
+
+# MICROPHYSICS
+network.small_x = 1.e-10

@@ -63,7 +63,7 @@ set_scalar_bc (BCRec& bc, const BCRec& phys_bc)
 {
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
-  for (int i = 0; i < BL_SPACEDIM; i++)
+  for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
       bc.setLo(i,scalar_bc[lo_bc[i]]);
       bc.setHi(i,scalar_bc[hi_bc[i]]);
@@ -78,11 +78,11 @@ set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,norm_vel_bc[lo_bc[0]]);
   bc.setHi(0,norm_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,tang_vel_bc[lo_bc[1]]);
   bc.setHi(1,tang_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,tang_vel_bc[lo_bc[2]]);
   bc.setHi(2,tang_vel_bc[hi_bc[2]]);
 #endif
@@ -96,11 +96,11 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,tang_vel_bc[lo_bc[0]]);
   bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,norm_vel_bc[lo_bc[1]]);
   bc.setHi(1,norm_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,tang_vel_bc[lo_bc[2]]);
   bc.setHi(2,tang_vel_bc[hi_bc[2]]);
 #endif
@@ -114,11 +114,11 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,tang_vel_bc[lo_bc[0]]);
   bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,tang_vel_bc[lo_bc[1]]);
   bc.setHi(1,tang_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,norm_vel_bc[lo_bc[2]]);
   bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 #endif
@@ -132,7 +132,7 @@ set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
 {
     const int* lo_bc = phys_bc.lo();
     const int* hi_bc = phys_bc.hi();
-    for (int i = 0; i < BL_SPACEDIM; i++)
+    for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
         bc.setLo(i, mag_field_bc[lo_bc[i]]);
         bc.setHi(i, mag_field_bc[hi_bc[i]]);
@@ -303,7 +303,7 @@ Castro::variableSetUp ()
 #endif
 
 
-  const int dm = BL_SPACEDIM;
+  const int dm = AMREX_SPACEDIM;
 
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
@@ -346,11 +346,6 @@ Castro::variableSetUp ()
   ca_set_problem_params(dm,
                         coord_type,
                         dgeom.ProbLo(), dgeom.ProbHi());
-
-  // Read in the parameters for the tagging criteria
-  // and store them in the Fortran module.
-
-  ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
@@ -478,9 +473,17 @@ Castro::variableSetUp ()
   // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = false;
+
+  int num_react = 0;
+  if (store_omegadot == 1) {
+      num_react = NumSpec+NumAux+2;
+  } else {
+      num_react = 2;
+  }
+
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
-                         interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point, 0, num_react,
+                         interp, state_data_extrap, store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -658,25 +661,30 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Source_Type, URHO, state_type_source_names, source_bcs, genericBndryFunc);
 
 #ifdef REACTIONS
-  std::string name_react;
-  for (int i = 0; i < NumSpec; ++i)
-    {
-      set_scalar_bc(bc,phys_bc);
-      replace_inflow_bc(bc);
-      name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
-    }
+  desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
+
+  if (store_omegadot == 1) {
+
+      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      std::string name_react;
+      for (int i = 0; i < NumSpec; ++i)
+      {
+          set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
+          name_react = "rho_omegadot_" + short_spec_names_cxx[i];
+          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+      }
 #if NAUX_NET > 0
-  std::string name_aux;
-  for (int i = 0; i < NumAux; ++i) {
-      set_scalar_bc(bc,phys_bc);
-      replace_inflow_bc(bc);
-      name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
-  }
+      std::string name_aux;
+      for (int i = 0; i < NumAux; ++i) {
+          set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
+          name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
+          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
 #endif
-  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "burn_weights", bc, genericBndryFunc); 
+  }
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -790,7 +798,7 @@ Castro::variableSetUp ()
   derive_lst.add("MachNumber",IndexType::TheCellType(),1,ca_dermachnumber,the_same_box);
   derive_lst.addComponent("MachNumber",desc_lst,State_Type, URHO, NUM_STATE);
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   //
   // Wave speed u+c
   //
@@ -811,7 +819,7 @@ Castro::variableSetUp ()
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
   //    derive_lst.addComponent("rhog",desc_lst,State_Type, URHO, 1);
-  //    derive_lst.addComponent("rhog",desc_lst,Gravity_Type,0,BL_SPACEDIM);
+  //    derive_lst.addComponent("rhog",desc_lst,Gravity_Type,0,AMREX_SPACEDIM);
 #endif
 
   //
@@ -928,16 +936,16 @@ Castro::variableSetUp ()
   // Sound-crossing time t_s == dx / c_s
   // Ratio of these is t_s_t_e == t_s / t_e
   //
-  derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+  derive_lst.add("t_sound_t_enuc", IndexType::TheCellType(), 1, ca_derenuctimescale, the_same_box);
+  derive_lst.addComponent("t_sound_t_enuc", desc_lst, State_Type, URHO, NUM_STATE);
+  derive_lst.addComponent("t_sound_t_enuc", desc_lst, Reactions_Type, 0, 1);
 
   //
   // Nuclear energy generation rate
   //
-  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
-  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
-  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+  derive_lst.add("enuc", IndexType::TheCellType(), 1, ca_derenuc, the_same_box);
+  derive_lst.addComponent("enuc", desc_lst, State_Type, URHO, 1);
+  derive_lst.addComponent("enuc", desc_lst, Reactions_Type, 0, 1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
@@ -1073,12 +1081,12 @@ Castro::variableSetUp ()
   err_list_names.push_back("x_velocity");
   err_list_ng.push_back(1);
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   err_list_names.push_back("y_velocity");
   err_list_ng.push_back(1);
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   err_list_names.push_back("z_velocity");
   err_list_ng.push_back(1);
 #endif

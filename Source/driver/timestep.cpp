@@ -361,7 +361,6 @@ Castro::estdt_burning()
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
     MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -371,7 +370,6 @@ Castro::estdt_burning()
         const Box& box = mfi.validbox();
 
         const auto S = S_new[mfi].array();
-        const auto R = R_new[mfi].array();
 
         const auto dx = geom.CellSizeArray();
 

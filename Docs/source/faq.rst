@@ -45,14 +45,6 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How do I use a system’s BLAS library instead of compiling and
-   linking the one that comes with the StarKiller microphysics?*
-
-   To use a system’s BLAS library, set the Make variable
-   ``USE_SYSTEM_BLAS`` to ``TRUE``. This will then look at
-   the Make variable ``BLAS_LIBRARY`` for the library to link
-   (defaults to ``-lopenblas``).
-
 #. *How can I check to make sure the function signatures defined
    in C are consistent with their implementations in Fortran?*
 
@@ -105,7 +97,7 @@ Debugging
    .. code:: c++
 
              std::ostringstream ss;
-             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             ss << "state.box() = " << state.box() << " cell = " << cell;
              BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.

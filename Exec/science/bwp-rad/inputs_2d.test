@@ -81,7 +81,24 @@ castro.v            = 0       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-amr.probin_file = probin
+problem.model_name =  "SolarLike_0.2M.hse.1280"
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.max_level = 10
+amr.refine.denerr.field_name = density
+amr.refine.denerr.value_greater = 1.0
+
+# this is Free-free Kramers opacity from K&W (Eq. 17.5)
+opacity.const_kappa_p = 3.8e22
+opacity.kappa_p_exp_m = 2.0e0
+opacity.kappa_p_exp_n = 3.5e0
+opacity.kappa_p_exp_p = 0.0e0
+
+opacity.const_kappa_r = 3.8e22
+opacity.kappa_r_exp_m = 2.0e0
+opacity.kappa_r_exp_n = 3.5e0
+opacity.kappa_r_exp_p = 0.0e0
 
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
 

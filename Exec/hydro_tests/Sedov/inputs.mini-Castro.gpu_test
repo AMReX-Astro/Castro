@@ -51,6 +51,11 @@ amr.plot_files_output = 1
 
 amr.plot_int=10
 
-# PROBIN FILENAME
-amr.probin_file = probin.mini-Castro
 amr.derive_plot_vars = pressure
+
+# PROBLEM PARAMETERS
+problem.r_init = 1.25e8
+problem.p_ambient = 1.e21
+problem.exp_energy = 1.e52
+problem.dens_ambient = 1.e4
+problem.nsub = 10

@@ -6,7 +6,7 @@
 
 using namespace amrex;
 
-static BDInterpFunc* bdfunc[2*BL_SPACEDIM];
+static BDInterpFunc* bdfunc[2*AMREX_SPACEDIM];
 static int bdfunc_set = 0;
 
 static void bdfunc_init()
@@ -16,13 +16,13 @@ static void bdfunc_init()
 
     bdfunc[xloface] = FORT_BDINTERPXLO;
     bdfunc[xhiface] = FORT_BDINTERPXHI;
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     Orientation yloface(1,Orientation::low);
     Orientation yhiface(1,Orientation::high);
     bdfunc[yloface] = FORT_BDINTERPYLO;
     bdfunc[yhiface] = FORT_BDINTERPYHI;
 #endif
-#if (BL_SPACEDIM > 2)
+#if (AMREX_SPACEDIM > 2)
     Orientation zloface(2,Orientation::low);
     Orientation zhiface(2,Orientation::high);
     bdfunc[zloface] = FORT_BDINTERPZLO;
@@ -31,11 +31,11 @@ static void bdfunc_init()
 
 }
 
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
 #define NUMDERIV 2
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 #define NUMDERIV 5
 #endif
 
@@ -134,13 +134,13 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
         const int* cblo = crse_bx.loVect();
         const int* cbhi = crse_bx.hiVect();
         int mxlen = crse_bx.longside() + 2;
-        if (pow(mxlen,(float)BL_SPACEDIM-1) > tmplen) {
+        if (pow(mxlen,(float)AMREX_SPACEDIM-1) > tmplen) {
             delete [] derives;
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
             derives = new Real[1];
 #else
             tmplen = mxlen;
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
             tmplen *= mxlen;
 #  endif
             derives = new Real[tmplen*NUMDERIV];

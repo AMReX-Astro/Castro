@@ -184,7 +184,7 @@ and run this using the “``–``\ castro” option, e.g.,
 “fboxinfo.Linux.gfortran.exe ``–``\ castro pltxxxxx ``|``
 tee gr0.maestro”, to generate the Castro-compatible grids file. Note
 that the base grid structure is still controlled by
-**amr.max_grid_size**, **amr.blocking_factor**, etc., since in C BoxLib, the grids file only indicates the refined grid structure,
+``amr.max_grid_size``, ``amr.blocking_factor``, etc., since in C++ AMReX, the grids file only indicates the refined grid structure,
 whereas in Fortran BoxLib the grids file contains the base grid and
 refined grid structures.
 

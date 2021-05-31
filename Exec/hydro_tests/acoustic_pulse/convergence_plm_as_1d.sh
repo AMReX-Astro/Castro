@@ -9,7 +9,7 @@ EXEC=./Castro${DIM}d.gnu.MPI.ex
 RUNPARAMS="
 castro.ppm_type=0
 castro.time_integration_method=0
-amr.probin_file=probin-x
+problem.init_as_1d=1
 geometry.prob_hi=1 0.125 0.125"
 
 mpiexec -n 8 ${EXEC} inputs.64 amr.n_cell=64 8 8 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_plm_plt &> 64.out
