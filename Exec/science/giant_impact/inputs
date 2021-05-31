@@ -166,7 +166,7 @@ castro.sponge_lower_density = 1.0e-2
 castro.sponge_upper_density = 1.0e-2
 
 # Sponge damping timescale (in seconds)
-castro.sponge_timescale     = 1.0e-2
+castro.sponge_timescale     = 1.0e-4
 
 ############################################################################################
 # Load balancing
