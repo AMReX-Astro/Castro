@@ -54,7 +54,7 @@ castro.change_max = 1.05
 amr.compute_new_dt_on_regrid = 1
 
 # Skip retries for small density if the starting density was less than this threshold
-castro.retry_small_density_cutoff = 1.0e-4
+castro.retry_small_density_cutoff = 1.0e-2
 
 ############################################################################################ 
 # Resolution, gridding and AMR
@@ -113,6 +113,9 @@ castro.transverse_reset_rhoe = 1
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
 
+# Explicitly limit fluxes to avoid hitting a negative density
+castro.limit_fluxes_on_small_dens = 1
+
 ############################################################################################
 # Thermodynamics
 ############################################################################################
@@ -166,7 +169,7 @@ castro.sponge_lower_density = 1.0e-2
 castro.sponge_upper_density = 1.0e-2
 
 # Sponge damping timescale (in seconds)
-castro.sponge_timescale     = 1.0e-4
+castro.sponge_timescale     = 1.0e-8
 
 ############################################################################################
 # Load balancing
