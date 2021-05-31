@@ -284,7 +284,7 @@ Castro::apply_sponge(const Box& bx,
       // in practice due to time-centering in Strang not understanding that the reset
       // in between the old-time and new-time makes time-centering inappropriate.
 
-      if (state_new(i,j,k,UMX+n) != sponge_target_velocity[n]) {
+      if (state_new(i,j,k,UMX+n) != state_new(i,j,k,URHO) * sponge_target_velocity[n]) {
         Sr[n] = (state(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
         src[UMX+n] = Sr[n];
       }
