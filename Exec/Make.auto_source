@@ -39,8 +39,6 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
-CEXE_sources += prob_parameters.cpp
-CEXE_headers += prob_parameters.H
 
 # search Bdirs for _prob_params files
 PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_params))
@@ -49,6 +47,10 @@ PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_param
 PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
+
+# for dependency resolution
+$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
+$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
 
 # Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
 # on that; if it doesn't exist, it's ignored as a make target. The default
