@@ -54,7 +54,7 @@ castro.change_max = 1.05
 amr.compute_new_dt_on_regrid = 1
 
 # Skip retries for small density if the starting density was less than this threshold
-castro.retry_small_density_cutoff = 2.0e-8
+castro.retry_small_density_cutoff = 1.0e-4
 
 ############################################################################################ 
 # Resolution, gridding and AMR
