@@ -35,7 +35,7 @@ CXX_HEADER = """
 #ifndef problem_parameters_H
 #define problem_parameters_H
 #include <AMReX_BLFort.H>
-
+#include <AMReX_REAL.H>
 #include <network_properties.H>
 
 """
@@ -203,8 +203,8 @@ def write_probin(prob_param_files, cxx_prefix):
     ofile = f"{cxx_prefix}_parameters.cpp"
     with open(ofile, "w") as fout:
         fout.write(f"#include <{cxx_base}_parameters.H>\n")
-        fout.write("#include <AMReX_ParmParse.H>\n\n")
-
+        fout.write("#include <AMReX_ParmParse.H>\n")
+        fout.write("#include <AMReX_REAL.H>\n\n")
         for p in params:
             if p.dtype == "string":
                 fout.write(f"  std::string problem::{p.name};\n\n")
@@ -228,11 +228,16 @@ def write_probin(prob_param_files, cxx_prefix):
 
         # open namespace
         fout.write("    {\n")
-        fout.write(f"      amrex::ParmParse pp(\"problem\");\n")
+
+        # we need access to _rt
+        fout.write("        using namespace amrex;\n")
+
+        fout.write(f"       amrex::ParmParse pp(\"problem\");\n")
         for p in params:
             if p.in_namelist:
-                qstr = p.get_query_string("C++")
-                fout.write(f"      {qstr}")
+                fout.write(f"        {p.get_default_string()}")
+                fout.write(f"        {p.get_query_string('C++')}")
+                fout.write("\n")
         fout.write("    }\n")
 
         fout.write("  }\n")
