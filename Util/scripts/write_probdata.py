@@ -383,7 +383,7 @@ def write_probin(probin_template, prob_param_files,
         for p in params:
             if not p.is_array():
                 if p.in_namelist:
-                    fout.write(p.get_job_info_test())
+                    fout.write(p.get_job_info_test(lang="C++"))
 
     # now the C++ initialization routines
     ofile = f"{cxx_prefix}_parameters.cpp"
