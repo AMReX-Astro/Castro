@@ -240,7 +240,7 @@ Castro::restart (Amr&     papa,
              orig_domain.setBig(d,hi);
 
           } else {
-             for (int d = 0; d < BL_SPACEDIM; d++)
+             for (int d = 0; d < AMREX_SPACEDIM; d++)
              {
                 int dlen =  domain.size()[d];
                 if (grown_factor == 2) {
@@ -293,7 +293,7 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
        const int nc = S_new.nComp();
@@ -668,7 +668,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
       jobInfoFile << " level: " << i << "\n";
       jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
       jobInfoFile << "   maximum zones   = ";
-      for (int n = 0; n < BL_SPACEDIM; n++)
+      for (int n = 0; n < AMREX_SPACEDIM; n++)
         {
           jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
           //jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
@@ -677,10 +677,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     }
 
   jobInfoFile << " Boundary conditions\n";
-  Vector<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+  Vector<int> lo_bc_out(AMREX_SPACEDIM), hi_bc_out(AMREX_SPACEDIM);
   ParmParse pp("castro");
-  pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
+  pp.getarr("lo_bc",lo_bc_out,0,AMREX_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc_out,0,AMREX_SPACEDIM);
 
 
   // these names correspond to the integer flags setup in the
@@ -692,11 +692,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
   jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
-  if (BL_SPACEDIM >= 2) {
+  if (AMREX_SPACEDIM >= 2) {
     jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
     jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
   }
-  if (BL_SPACEDIM == 3) {
+  if (AMREX_SPACEDIM == 3) {
     jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
     jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
   }
@@ -996,15 +996,15 @@ Castro::plotFileOutput(const std::string& dir,
         }
 #endif
 
-        os << BL_SPACEDIM << '\n';
+        os << AMREX_SPACEDIM << '\n';
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++) {
+        for (int i = 0; i < AMREX_SPACEDIM; i++) {
             os << geom.ProbLo(i) << ' ';
         }
         os << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++) {
+        for (int i = 0; i < AMREX_SPACEDIM; i++) {
             os << geom.ProbHi(i) << ' ';
         }
         os << '\n';
@@ -1022,7 +1022,7 @@ Castro::plotFileOutput(const std::string& dir,
         os << '\n';
         for (int i = 0; i <= f_lev; i++)
         {
-            for (int k = 0; k < BL_SPACEDIM; k++) {
+            for (int k = 0; k < AMREX_SPACEDIM; k++) {
               os << parent->Geom(i).CellSize()[k] << ' ';
             }
             os << '\n';
@@ -1079,7 +1079,7 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i = 0; i < grids.size(); ++i)
         {
             RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-            for (int n = 0; n < BL_SPACEDIM; n++) {
+            for (int n = 0; n < AMREX_SPACEDIM; n++) {
               os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
             }
         }

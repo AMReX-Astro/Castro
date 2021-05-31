@@ -158,11 +158,11 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
                                     rm*rm*U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/(r*r*dx[0]);
       }
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
                                    U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j,k+1,UMZ)/U(i,j,k+1,URHO) -
                                    U(i,j,k-1,UMZ)/U(i,j,k-1,URHO))/dx[2];
 #endif
