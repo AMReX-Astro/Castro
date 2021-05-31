@@ -39,6 +39,8 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
+CEXE_sources += prob_parameters.cpp
+CEXE_headers += prob_parameters.H
 
 # search Bdirs for _prob_params files
 PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_params))

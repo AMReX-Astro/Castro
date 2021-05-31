@@ -203,7 +203,6 @@ def write_probin(prob_param_files, cxx_prefix):
     ofile = f"{cxx_prefix}_parameters.cpp"
     with open(ofile, "w") as fout:
         fout.write(f"#include <{cxx_base}_parameters.H>\n")
-        fout.write(f"#include <{cxx_base}_parameters_F.H>\n\n")
         fout.write("#include <AMReX_ParmParse.H>\n\n")
 
         for p in params:
