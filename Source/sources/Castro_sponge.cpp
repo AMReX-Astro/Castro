@@ -24,7 +24,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_in.array(mfi), source.array(mfi), dt, mult_factor);
+        apply_sponge(bx, state_in.array(mfi), state_in.array(mfi), source.array(mfi), dt, mult_factor);
 
     }
 
@@ -68,7 +68,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
+        apply_sponge(bx, state_old.array(mfi), state_new.array(mfi), source.array(mfi), dt, mult_factor_old);
     }
 
     // Now evaluate the new-time part of the corrector.
@@ -80,7 +80,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
+        apply_sponge(bx, state_new.array(mfi), state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
 
     }
 
@@ -105,9 +105,18 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state_in,
+                     Array4<Real const> const state,
+                     Array4<Real const> const state_new,
                      Array4<Real> const source,
                      Real dt, Real mult_factor) {
+
+  // In this function, state is the state at the current simulation time
+  // and state_new is the function at the new simulation time, if applicable.
+  // If the current simulation time is equal to the new simulation time (in the MOL
+  // integration, or in Strang when we are doing the old-time and new-time sources
+  // but *not* when time-centering the old-time source at the new time) these will
+  // be the same data. We want to use state to construct the sponge, but we will
+  // use information from state_new below to decide whether to even use the sponge.
 
   // alpha is a dimensionless measure of the timestep size; if
   // sponge_timescale < dt, then the sponge will have a larger effect,
@@ -148,7 +157,7 @@ Castro::apply_sponge(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-    Real rho = state_in(i,j,k,URHO);
+    Real rho = state(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
     // compute the update factor
@@ -211,14 +220,14 @@ Castro::apply_sponge(const Box& bx,
 
       eos_rep_t eos_state;
 
-      eos_state.rho = state_in(i,j,k,URHO);
-      eos_state.T = state_in(i,j,k,UTEMP);
+      eos_state.rho = state(i,j,k,URHO);
+      eos_state.T = state(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state_in(i,j,k,UFS+n) * rhoInv;
+        eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = state_in(i,j,k,UFX+n) * rhoInv;
+        eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -267,8 +276,18 @@ Castro::apply_sponge(const Box& bx,
                                                 sponge_target_y_velocity,
                                                 sponge_target_z_velocity};
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state_in(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
-      src[UMX+n] = Sr[n];
+      // Shortcut out of the source construction if the new-time velocity is exactly
+      // equal to the target velocity already. This will happen in the specific
+      // scenario of a density reset prior to entering this routine when the target
+      // velocity is zero (or at the beginning of a simulation which is initially
+      // at rest). The sponge should not change the zero-velocity scenario, but could
+      // in practice due to time-centering in Strang not understanding that the reset
+      // in between the old-time and new-time makes time-centering inappropriate.
+
+      if (state_new(i,j,k,UMX+n) != sponge_target_velocity[n]) {
+        Sr[n] = (state(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
+        src[UMX+n] = Sr[n];
+      }
     }
 
     // Kinetic energy is 1/2 rho u**2, or (rho u)**2 / (2 rho). This means
@@ -278,7 +297,7 @@ Castro::apply_sponge(const Box& bx,
 
     Real SrE = 0.0;
     for (int n = 0; n < 3; n++) {
-      SrE += state_in(i,j,k,UMX+n) * rhoInv * Sr[n];
+      SrE += state(i,j,k,UMX+n) * rhoInv * Sr[n];
     }
 
     src[UEDEN] = SrE;
