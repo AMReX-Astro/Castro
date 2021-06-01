@@ -7,7 +7,7 @@
 
 module meth_params_module
 
-  use castro_error_module
+  use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
 
   ! this will import all of the indices into meth_params for convenience
@@ -75,7 +75,7 @@ contains
     else if (gravity_type == "PoissonGrav") then
        gravity_type_int = PoissonGrav
     else
-       call castro_error("Unknown gravity type")
+       call amrex_error("Unknown gravity type")
     end if
 #endif
 
@@ -115,7 +115,7 @@ contains
 
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        print *, "fspace_type = ", fspace_type
-       call castro_error("Unknown fspace_type")
+       call amrex_error("Unknown fspace_type")
     end if
 
     do_inelastic_scattering = (do_is_in .ne. 0)
@@ -125,7 +125,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-       call castro_error("Wrong value for comoving")
+       call amrex_error("Wrong value for comoving")
     end if
 
   end subroutine ca_init_radhydro_pars
