@@ -5,7 +5,6 @@
 #include <AMReX_REAL.H>
 
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 
 namespace wdmerger
 {
