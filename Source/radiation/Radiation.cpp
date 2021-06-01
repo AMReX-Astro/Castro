@@ -249,13 +249,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -272,13 +272,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -434,7 +434,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   if (verbose > 2) {
     Vector<int> temp;
-    if (pp.queryarr("spot",temp,0,BL_SPACEDIM)) {
+    if (pp.queryarr("spot",temp,0,AMREX_SPACEDIM)) {
       IntVect tempi(temp);
       spot = tempi;
     }
@@ -507,10 +507,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   // incoming flux information in the RadBndry constructor.  we just
   // set the boundary condition type here:
 
-  Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-  pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-  for (int i = 0; i < BL_SPACEDIM; i++) {
+  Vector<int> lo_bc(AMREX_SPACEDIM), hi_bc(AMREX_SPACEDIM);
+  pp.getarr("lo_bc",lo_bc,0,AMREX_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc,0,AMREX_SPACEDIM);
+  for (int i = 0; i < AMREX_SPACEDIM; i++) {
     rad_bc.setLo(i,lo_bc[i]);
     rad_bc.setHi(i,hi_bc[i]);
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
@@ -2033,7 +2033,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
         // with piecewise-constant (area-adjusted)
         // interpolation with ratio given by ref_rat.
 
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
           const Orientation lo_face(dir,Orientation::low);
           const Orientation hi_face(dir,Orientation::high);
 
@@ -2090,7 +2090,7 @@ void Radiation::reflux(int level)
 // Computes the scaled gradient for use in flux limiters
 
 void Radiation::scaledGradient(int level,
-                               Array<MultiFab, BL_SPACEDIM>& R,
+                               Array<MultiFab, AMREX_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
                                int limiter, int nGrow_Er, int Rcomp)
@@ -2426,7 +2426,7 @@ void Radiation::scaledGradient(int level,
 // On output this will be overwritten with the flux limiter.
 
 void Radiation::fluxLimiter(int level,
-                            Array<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
     BL_PROFILE("Radiation:fluxLimiter");
@@ -2434,7 +2434,7 @@ void Radiation::fluxLimiter(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 

@@ -14,8 +14,8 @@
 using namespace amrex;
 
 int         RadBndry::first = 1;
-Vector<int>  RadBndry::bcflag(2*BL_SPACEDIM);
-Vector<Real> RadBndry::bcval(2*BL_SPACEDIM);
+Vector<int>  RadBndry::bcflag(2*AMREX_SPACEDIM);
+Vector<Real> RadBndry::bcval(2*AMREX_SPACEDIM);
 Real        RadBndry::time = 0.0;
 int         RadBndry::correction = 0;
 
@@ -82,13 +82,13 @@ void RadBndry::init()
 
   ParmParse pp("radiation");
 
-  Vector<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
-  pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
-  pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
+  Vector<int> lo_bcflag(AMREX_SPACEDIM, 0), hi_bcflag(AMREX_SPACEDIM, 0);
+  pp.queryarr("lo_bcflag",lo_bcflag,0,AMREX_SPACEDIM);
+  pp.queryarr("hi_bcflag",hi_bcflag,0,AMREX_SPACEDIM);
 
-  Vector<Real> lo_bcval(BL_SPACEDIM, 0.0), hi_bcval(BL_SPACEDIM, 0.0);
-  pp.queryarr("lo_bcval",lo_bcval,0,BL_SPACEDIM);
-  pp.queryarr("hi_bcval",hi_bcval,0,BL_SPACEDIM);
+  Vector<Real> lo_bcval(AMREX_SPACEDIM, 0.0), hi_bcval(AMREX_SPACEDIM, 0.0);
+  pp.queryarr("lo_bcval",lo_bcval,0,AMREX_SPACEDIM);
+  pp.queryarr("hi_bcval",hi_bcval,0,AMREX_SPACEDIM);
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());

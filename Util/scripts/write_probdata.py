@@ -60,8 +60,6 @@ extern "C"
 
 void probdata_init(const int* name, const int* namlen);
 
-void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-
 void update_prob_params_after_cxx();
 
 """
@@ -379,7 +377,15 @@ def write_probin(probin_template, prob_param_files,
 
         fout.write(CXX_FOOTER)
 
-    # finally the C++ initialization routines
+    # now the C++ job_info tests
+    ofile = f"{cxx_prefix}_job_info_tests.H"
+    with open(ofile, "w") as fout:
+        for p in params:
+            if not p.is_array():
+                if p.in_namelist:
+                    fout.write(p.get_job_info_test(lang="C++"))
+
+    # now the C++ initialization routines
     ofile = f"{cxx_prefix}_parameters.cpp"
     with open(ofile, "w") as fout:
         fout.write(f"#include <{cxx_base}_parameters.H>\n")

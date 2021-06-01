@@ -15,7 +15,6 @@
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_error_F.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -80,7 +79,7 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
-Vector<AMRErrorTag> Castro::custom_error_tags;
+Vector<AMRErrorTag> Castro::error_tags;
 
 Vector<std::unique_ptr<std::fstream>> Castro::data_logs;
 Vector<std::unique_ptr<std::fstream>> Castro::problem_data_logs;
@@ -112,14 +111,14 @@ Radiation*   Castro::radiation = 0;
 std::string  Castro::probin_file = "probin";
 
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
 #else
 IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
-#elif BL_SPACEDIM == 2
+#elif AMREX_SPACEDIM == 2
 #ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
@@ -222,10 +221,10 @@ Castro::read_params ()
 
 
     // Get boundary conditions
-    Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-    pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-    pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-    for (int i = 0; i < BL_SPACEDIM; i++)
+    Vector<int> lo_bc(AMREX_SPACEDIM), hi_bc(AMREX_SPACEDIM);
+    pp.getarr("lo_bc",lo_bc,0,AMREX_SPACEDIM);
+    pp.getarr("hi_bc",hi_bc,0,AMREX_SPACEDIM);
+    for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
         phys_bc.setLo(i,lo_bc[i]);
         phys_bc.setHi(i,hi_bc[i]);
@@ -242,7 +241,7 @@ Castro::read_params ()
         //
         // Do idiot check.  Periodic means interior in those directions.
         //
-        for (int dir = 0; dir<BL_SPACEDIM; dir++)
+        for (int dir = 0; dir<AMREX_SPACEDIM; dir++)
         {
             if (dgeom.isPeriodic(dir))
             {
@@ -268,7 +267,7 @@ Castro::read_params ()
         //
         // Do idiot check.  If not periodic, should be no interior.
         //
-        for (int dir=0; dir<BL_SPACEDIM; dir++)
+        for (int dir=0; dir<AMREX_SPACEDIM; dir++)
         {
             if (lo_bc[dir] == Interior)
             {
@@ -292,7 +291,7 @@ Castro::read_params ()
         amrex::Error();
     }
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     if ( dgeom.IsSPHERICAL() )
     {
       if ( (lo_bc[0] != Symmetry) && (dgeom.ProbLo(0) == 0.0) )
@@ -301,12 +300,12 @@ Castro::read_params ()
         amrex::Error();
       }
     }
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
         amrex::Abort("We don't support spherical coordinate systems in 2D");
       }
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
     if ( dgeom.IsRZ() )
       {
         amrex::Abort("We don't support cylindrical coordinate systems in 3D");
@@ -403,7 +402,7 @@ Castro::read_params ()
     }
 #endif
 
-    if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
+    if (hybrid_riemann == 1 && AMREX_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
         amrex::Error();
@@ -464,7 +463,7 @@ Castro::read_params ()
     }
     if (dgeom.IsRZ())
       rot_axis = 2;
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
       if (do_rotation) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
         amrex::Error();
@@ -494,12 +493,6 @@ Castro::read_params ()
 #if (!defined(GRAVITY) || !defined(ROTATION))
    if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
-   }
-#endif
-
-#ifdef AMREX_USE_GPU
-   if (do_scf_initial_model) {
-       amrex::Error("SCF initial model construction is currently not permitted if using GPUs.");
    }
 #endif
 
@@ -547,10 +540,10 @@ Castro::read_params ()
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
-    Vector<int> tilesize(BL_SPACEDIM);
-    if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
+    Vector<int> tilesize(AMREX_SPACEDIM);
+    if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM))
     {
-        for (int i=0; i<BL_SPACEDIM; i++) {
+        for (int i=0; i<AMREX_SPACEDIM; i++) {
           hydro_tile_size[i] = tilesize[i];
         }
     }
@@ -595,28 +588,28 @@ Castro::read_params ()
             ppr.getarr("value_greater", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
-            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
         }
         else if (int nval = ppr.countval("value_less")) {
             Vector<Real> value;
             ppr.getarr("value_less", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
-            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
         }
         else if (int nval = ppr.countval("gradient")) {
             Vector<Real> value;
             ppr.getarr("gradient", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
-            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
         }
         else if (int nval = ppr.countval("relative_gradient")) {
             Vector<Real> value;
             ppr.getarr("relative_gradient", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
-            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
+            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
         }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
@@ -679,7 +672,7 @@ Castro::Castro (Amr&            papa,
          // For 1D, we need to add ghost cells to the numpts
          // given to us by Castro.
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
          numpts_1d += 2 * NUM_GROW;
 #endif
 
@@ -781,13 +774,13 @@ Castro::buildMetrics ()
     volume.define(grids,dmap,1,NUM_GROW);
     geom.GetVolume(volume);
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
     {
         area[dir].clear();
         area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
     }
-    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    for (int dir = AMREX_SPACEDIM; dir < 3; dir++)
     {
         area[dir].clear();
         area[dir].define(grids, dmap, 1, 0);
@@ -795,7 +788,7 @@ Castro::buildMetrics ()
     }
 
     dLogArea[0].clear();
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
 #endif
 
@@ -809,25 +802,25 @@ Castro::initMFs()
 {
     fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
     }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+    for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
       fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
     }
 
     mass_fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
     }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+    for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
       mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
       P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
     }
@@ -835,8 +828,8 @@ Castro::initMFs()
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        rad_fluxes.resize(BL_SPACEDIM);
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        rad_fluxes.resize(AMREX_SPACEDIM);
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
         }
     }
@@ -847,7 +840,7 @@ Castro::initMFs()
         flux_reg.define(grids, dmap, crse_ratio, level, NUM_STATE);
         flux_reg.setVal(0.0);
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
         if (!Geom().IsCartesian()) {
             pres_reg.define(grids, dmap, crse_ratio, level, 1);
             pres_reg.setVal(0.0);
@@ -892,10 +885,10 @@ Castro::initMFs()
         // fluxes, we want the total refluxing contribution
         // over the full set of fine timesteps to equal P_radial.
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
         pres_crse_scale = -1.0;
         pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
         pres_crse_scale = -1.0;
         pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
@@ -953,13 +946,13 @@ Castro::initData ()
     S_new.setVal(0.);
 
     // make sure dx = dy = dz -- that's all we guarantee to support
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
     const Real SMALL = 1.e-13;
     if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
       {
         amrex::Abort("We don't support dx != dy");
       }
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
     const Real SMALL = 1.e-13;
     if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
       {
@@ -1068,20 +1061,6 @@ Castro::initData ()
 
 #endif //MHD
 
-#ifdef AMREX_USE_GPU
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-       {
-#ifdef GPU_COMPATIBLE_PROBLEM
-           // Prefetch data to the device to avoid page faults while we're initializing.
-           S_new.prefetchToDevice(mfi);
-#else
-           // Prefetch data to the host (and then back to the device at the end)
-           // to avoid expensive page faults while the initialization is done.
-           S_new.prefetchToHost(mfi);
-#endif
-       }
-#endif
-
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
           const Box& box     = mfi.validbox();
@@ -1168,14 +1147,6 @@ Castro::initData ()
        if (init_failed_T != 0) {
          amrex::Error("Error: initial data has T <~ small_temp");
        }
-
-#ifdef AMREX_USE_GPU
-#ifndef GPU_COMPATIBLE_PROBLEM
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           S_new.prefetchToDevice(mfi);
-       }
-#endif
-#endif
 
 #ifdef HYBRID_MOMENTUM
        // Generate the initial hybrid momenta based on this user data.
@@ -1399,7 +1370,7 @@ Castro::initData ()
 
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
@@ -2065,7 +2036,7 @@ Castro::post_restart ()
             // Passing numpts_1d at level 0
             int numpts_1d = get_numpts ();
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
             numpts_1d += 2 * NUM_GROW;
 #endif
 
@@ -2197,7 +2168,7 @@ Castro::post_regrid (int lbase,
 
                const Vector<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
 
-               for (int n = 0; n < BL_SPACEDIM; ++n) {
+               for (int n = 0; n < AMREX_SPACEDIM; ++n) {
                    amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
                                                 0, 0, 1,
                                                 parent->Geom(level-1), parent->Geom(level),
@@ -2359,11 +2330,9 @@ Castro::post_init (Real /*stop_time*/)
 
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifndef AMREX_USE_GPU
     if (do_scf_initial_model) {
         scf_relaxation();
     }
-#endif
 #endif
 #endif
 
@@ -2544,11 +2513,11 @@ Castro::FluxRegCrseInit() {
 
     Castro& fine_level = getLevel(level+1);
 
-    for (int i = 0; i < BL_SPACEDIM; ++i) {
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
       fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
     }
@@ -2556,7 +2525,7 @@ Castro::FluxRegCrseInit() {
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-      for (int i = 0; i < BL_SPACEDIM; ++i) {
+      for (int i = 0; i < AMREX_SPACEDIM; ++i) {
         fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
       }
     }
@@ -2574,11 +2543,11 @@ Castro::FluxRegFineAdd() {
       return;
     }
 
-    for (int i = 0; i < BL_SPACEDIM; ++i) {
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
       flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
       getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
     }
@@ -2586,7 +2555,7 @@ Castro::FluxRegFineAdd() {
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-      for (int i = 0; i < BL_SPACEDIM; ++i) {
+      for (int i = 0; i < AMREX_SPACEDIM; ++i) {
         getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
       }
     }
@@ -2666,7 +2635,7 @@ Castro::reflux(int crse_level, int fine_level)
 
         if (update_sources_after_reflux) {
 
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(),
                                                   crse_lev.fluxes[i]->DistributionMap(),
                                                   crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
@@ -2677,7 +2646,7 @@ Castro::reflux(int crse_level, int fine_level)
                 int idir = fi().coordDir();
                 fs.copyTo(*temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir]->nComp());
             }
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
 
                 // The gravity and rotation source terms depend on the mass fluxes.
@@ -2697,7 +2666,7 @@ Castro::reflux(int crse_level, int fine_level)
 
         reg->setVal(0.0);
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
 
             reg = &getLevel(lev).pres_reg;
@@ -2749,7 +2718,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (update_sources_after_reflux) {
 
-                for (int i = 0; i < BL_SPACEDIM; ++i) {
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                     temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(),
                                                       crse_lev.rad_fluxes[i]->DistributionMap(),
                                                       crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
@@ -2760,7 +2729,7 @@ Castro::reflux(int crse_level, int fine_level)
                     int idir = fi().coordDir();
                     fs.copyTo(*temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir]->nComp());
                 }
-                for (int i = 0; i < BL_SPACEDIM; ++i) {
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                     MultiFab::Add(*crse_lev.rad_fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i]->nComp(), 0);
                     temp_fluxes[i].reset();
                 }
@@ -2785,7 +2754,7 @@ Castro::reflux(int crse_level, int fine_level)
             // 37 in the Castro I paper. The dimensions of dphi are therefore actually
             // phi / cm**2, which makes it correct for the RHS of the Poisson equation.
 
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 reg->CrseInit(*(gravity->get_grad_phi_curr(lev-1)[i]), crse_lev.area[i], i, 0, 0, 1, -1.0);
                 reg->FineAdd(*(gravity->get_grad_phi_curr(lev)[i]), fine_lev.area[i], i, 0, 0, 1, 1.0);
             }
@@ -3197,20 +3166,14 @@ Castro::errorEst (TagBoxArray& tags,
       ltime = get_state_data(State_Type).curTime();
     }
 
-    // Apply each of the specified tagging functions.
+    // Apply each of the tagging criteria defined in the inputs.
 
-    for (int j = 0; j < num_err_list_default; j++) {
-        apply_tagging_func(tags, ltime, j);
-    }
-
-    // Apply each of the custom tagging criteria.
-
-    for (int j = 0; j < custom_error_tags.size(); j++) {
+    for (int j = 0; j < error_tags.size(); j++) {
         std::unique_ptr<MultiFab> mf;
-        if (custom_error_tags[j].Field() != std::string()) {
-            mf = derive(custom_error_tags[j].Field(), time, custom_error_tags[j].NGrow());
+        if (error_tags[j].Field() != std::string()) {
+            mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
         }
-        custom_error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -3231,9 +3194,6 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
     BL_PROFILE("Castro::apply_problem_tags()");
 
-    const Real* dx        = geom.CellSize();
-    const Real* prob_lo   = geom.ProbLo();
-
     MultiFab& S_new = get_new_data(State_Type);
 
     int lev = level;
@@ -3244,13 +3204,9 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
     {
         for (MFIter mfi(tags); mfi.isValid(); ++mfi)
         {
-            // tile box
-            const Box&  bx      = mfi.validbox();
+            const Box& bx = mfi.validbox();
 
-            TagBox&     tagfab  = tags[mfi];
-
-            const int8_t tagval   = (int8_t) TagBox::SET;
-            const int8_t clearval = (int8_t) TagBox::CLEAR;
+            TagBox& tagfab = tags[mfi];
 
             auto tag_arr = tagfab.array();
             const auto state_arr = S_new[mfi].array();
@@ -3347,241 +3303,6 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
 
     }
 #endif
-}
-
-
-
-void
-Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
-{
-
-    BL_PROFILE("Castro::apply_tagging_func()");
-
-    const auto dx     = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
-
-    auto mf = derive(err_list_names[jcomp], time, err_list_ng[jcomp]);
-
-    BL_ASSERT(mf);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        const auto dat = (*mf).array(mfi);
-        auto tag = tags.array(mfi);
-
-        const int ncomp = dat.nComp();
-
-        int lev = level;
-
-        if (err_list_names[jcomp] == "density") {
-            Real denerr, dengrad, dengrad_rel;
-            int max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev;
-
-            get_denerr_params(&denerr, &max_denerr_lev,
-                              &dengrad, &max_dengrad_lev,
-                              &dengrad_rel, &max_dengrad_rel_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high density
-                if (lev < max_denerr_lev) {
-                    if (dat(i,j,k,0) >= denerr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-
-                // Tag on regions of high density gradient
-                if (lev < max_dengrad_lev || lev < max_dengrad_rel_lev) {
-                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
-                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
-                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
-                    ax = amrex::max(ax, std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
-                    ay = amrex::max(ay, std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
-                    az = amrex::max(az, std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
-
-                    if (amrex::max(ax, ay, az) >= dengrad || amrex::max(ax, ay, az) >= std::abs(dengrad_rel * dat(i,j,k,0))) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-        else if (err_list_names[jcomp] == "Temp") {
-            Real temperr, tempgrad, tempgrad_rel;
-            int max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev;
-
-            get_temperr_params(&temperr, &max_temperr_lev,
-                               &tempgrad, &max_tempgrad_lev,
-                               &tempgrad_rel, &max_tempgrad_rel_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high temperature
-                if (lev < max_temperr_lev) {
-                    if (dat(i,j,k,0) >= temperr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-
-                // Tag on regions of high temperature gradient
-                if (lev < max_tempgrad_lev || lev < max_tempgrad_rel_lev) {
-                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
-                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
-                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
-                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
-                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
-                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
-                    if (amrex::max(ax, ay, az) >= tempgrad || amrex::max(ax, ay, az) >= std::abs(tempgrad_rel * dat(i,j,k,0))) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-        else if (err_list_names[jcomp] == "pressure") {
-            Real presserr, pressgrad, pressgrad_rel;
-            int max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev;
-
-            get_presserr_params(&presserr, &max_presserr_lev,
-                                &pressgrad, &max_pressgrad_lev,
-                                &pressgrad_rel, &max_pressgrad_rel_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high pressure
-                if (lev < max_presserr_lev) {
-                    if (dat(i,j,k,0) >= presserr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-
-                // Tag on regions of high pressure gradient
-                if (lev < max_pressgrad_lev || lev < max_pressgrad_rel_lev) {
-                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
-                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
-                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
-                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
-                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
-                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
-                    if (amrex::max(ax,ay,az) >= pressgrad || amrex::max(ax,ay,az) >= std::abs(pressgrad_rel * dat(i,j,k,0))) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-        else if (err_list_names[jcomp] == "x_velocity" || err_list_names[jcomp] == "y_velocity" || err_list_names[jcomp] == "z_velocity") {
-            Real velerr, velgrad, velgrad_rel;
-            int max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev;
-
-            get_velerr_params(&velerr, &max_velerr_lev,
-                              &velgrad, &max_velgrad_lev,
-                              &velgrad_rel, &max_velgrad_rel_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high velocity
-                if (lev < max_velerr_lev) {
-                    if (std::abs(dat(i,j,k,0)) >= velerr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-
-                // Tag on regions of high velocity gradient
-                if (lev < max_velgrad_lev || lev < max_velgrad_rel_lev) {
-                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
-                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
-                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
-                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
-                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
-                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
-                    if (amrex::max(ax,ay,az) >= velgrad || amrex::max(ax,ay,az) >= std::abs(velgrad_rel * dat(i,j,k,0))) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-#ifdef REACTIONS
-        else if (err_list_names[jcomp] == "t_sound_t_enuc") {
-            Real dxnuc_min, dxnuc_max;
-            int max_dxnuc_lev;
-
-            get_dxnuc_params(&dxnuc_min, &dxnuc_max, &max_dxnuc_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Disable if we're not utilizing this tagging
-
-                if (dxnuc_min > 1.e199_rt) return;
-
-                if (lev < max_dxnuc_lev) {
-                    if (dat(i,j,k,0) > dxnuc_min && dat(i,j,k,0) < dxnuc_max) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-        else if (err_list_names[jcomp] == "enuc") {
-            Real enucerr;
-            int max_enucerr_lev;
-
-            get_enuc_params(&enucerr, &max_enucerr_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high nuclear energy generation rate
-
-                if (lev < max_enucerr_lev) {
-                    if (dat(i,j,k,0) >= enucerr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-#endif
-#ifdef RADIATION
-        else if (err_list_names[jcomp] == "rad") {
-            Real raderr, radgrad, radgrad_rel;
-            int max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev;
-
-            get_raderr_params(&raderr, &max_raderr_lev,
-                              &radgrad, &max_radgrad_lev,
-                              &radgrad_rel, &max_radgrad_rel_lev);
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-            {
-                // Tag on regions of high radiation
-                if (lev < max_raderr_lev) {
-                    if (dat(i,j,k,0) >= raderr) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-
-                // Tag on regions of high radiation gradient
-                if (lev < max_radgrad_lev || lev < max_radgrad_rel_lev) {
-                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
-                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
-                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
-                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
-                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
-                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
-                    if (amrex::max(ax,ay,az) >= radgrad || amrex::max(ax,ay,az) >= std::abs(radgrad_rel * dat(i,j,k,0))) {
-                        tag(i,j,k) = TagBox::SET;
-                    }
-                }
-            });
-        }
-#endif
-    }
 }
 
 
@@ -4187,13 +3908,13 @@ Castro::get_numpts ()
      Box bx(geom.Domain());
      long nx = bx.size()[0];
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
      numpts_1d = nx;
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
@@ -4210,7 +3931,7 @@ Castro::get_numpts ()
 void
 Castro::make_radial_data(int is_new)
 {
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
 
    BL_PROFILE("Castro::make_radial_data()");
 
@@ -4389,7 +4110,7 @@ Castro::define_new_center(MultiFab& S, Real time)
 
     }
     // Now broadcast to everyone else.
-    ParallelDescriptor::Bcast(&problem::center[0], BL_SPACEDIM, owner);
+    ParallelDescriptor::Bcast(&problem::center[0], AMREX_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
     if ( Geom().IsRZ() ) {
@@ -4420,10 +4141,10 @@ Castro::write_center ()
            data_logc << std::setw( 8) <<  nstep;
            data_logc << std::setw(14) <<  std::setprecision(6) <<  time;
            data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[0];
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
            data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[1];
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
            data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[2];
 #endif
            data_logc << std::endl;

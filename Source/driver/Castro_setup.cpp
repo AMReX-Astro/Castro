@@ -63,7 +63,7 @@ set_scalar_bc (BCRec& bc, const BCRec& phys_bc)
 {
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
-  for (int i = 0; i < BL_SPACEDIM; i++)
+  for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
       bc.setLo(i,scalar_bc[lo_bc[i]]);
       bc.setHi(i,scalar_bc[hi_bc[i]]);
@@ -78,11 +78,11 @@ set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,norm_vel_bc[lo_bc[0]]);
   bc.setHi(0,norm_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,tang_vel_bc[lo_bc[1]]);
   bc.setHi(1,tang_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,tang_vel_bc[lo_bc[2]]);
   bc.setHi(2,tang_vel_bc[hi_bc[2]]);
 #endif
@@ -96,11 +96,11 @@ set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,tang_vel_bc[lo_bc[0]]);
   bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,norm_vel_bc[lo_bc[1]]);
   bc.setHi(1,norm_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,tang_vel_bc[lo_bc[2]]);
   bc.setHi(2,tang_vel_bc[hi_bc[2]]);
 #endif
@@ -114,11 +114,11 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
   const int* hi_bc = phys_bc.hi();
   bc.setLo(0,tang_vel_bc[lo_bc[0]]);
   bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   bc.setLo(1,tang_vel_bc[lo_bc[1]]);
   bc.setHi(1,tang_vel_bc[hi_bc[1]]);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   bc.setLo(2,norm_vel_bc[lo_bc[2]]);
   bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 #endif
@@ -132,7 +132,7 @@ set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
 {
     const int* lo_bc = phys_bc.lo();
     const int* hi_bc = phys_bc.hi();
-    for (int i = 0; i < BL_SPACEDIM; i++)
+    for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
         bc.setLo(i, mag_field_bc[lo_bc[i]]);
         bc.setHi(i, mag_field_bc[hi_bc[i]]);
@@ -223,6 +223,19 @@ Castro::variableSetUp ()
 
   init_prob_parameters();
 
+  // check to make sure that we didn't set any parameters that don't
+  // exist in C++ (like because of misspelling).  All of the problem.*
+  // parameters should have been accessed via parmparse at this point.
+
+  if (ParmParse::hasUnusedInputs("problem")) {
+      amrex::Print() << "Warning: the following problem.* parameters are ignored\n";
+      auto unused = ParmParse::getUnusedInputs("problem"); 
+      for (auto p: unused) {
+          amrex::Print() << p << "\n";
+      }
+      amrex::Print() << std::endl;
+  }
+
   // now sync up the Fortran -- if a parameter was defined in C++, we need
   // to pass it back to Fortran
 
@@ -303,7 +316,7 @@ Castro::variableSetUp ()
 #endif
 
 
-  const int dm = BL_SPACEDIM;
+  const int dm = AMREX_SPACEDIM;
 
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
@@ -346,11 +359,6 @@ Castro::variableSetUp ()
   ca_set_problem_params(dm,
                         coord_type,
                         dgeom.ProbLo(), dgeom.ProbHi());
-
-  // Read in the parameters for the tagging criteria
-  // and store them in the Fortran module.
-
-  ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
@@ -803,7 +811,7 @@ Castro::variableSetUp ()
   derive_lst.add("MachNumber",IndexType::TheCellType(),1,ca_dermachnumber,the_same_box);
   derive_lst.addComponent("MachNumber",desc_lst,State_Type, URHO, NUM_STATE);
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   //
   // Wave speed u+c
   //
@@ -824,7 +832,7 @@ Castro::variableSetUp ()
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
   //    derive_lst.addComponent("rhog",desc_lst,State_Type, URHO, 1);
-  //    derive_lst.addComponent("rhog",desc_lst,Gravity_Type,0,BL_SPACEDIM);
+  //    derive_lst.addComponent("rhog",desc_lst,Gravity_Type,0,AMREX_SPACEDIM);
 #endif
 
   //
@@ -1086,12 +1094,12 @@ Castro::variableSetUp ()
   err_list_names.push_back("x_velocity");
   err_list_ng.push_back(1);
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   err_list_names.push_back("y_velocity");
   err_list_ng.push_back(1);
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   err_list_names.push_back("z_velocity");
   err_list_ng.push_back(1);
 #endif
