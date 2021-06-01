@@ -379,9 +379,9 @@ In the code, the objective is to evolve the state from the old time,
       follows that of Maestro :cite:`maestro:III`
 
    B. external sources : users can define problem-specific sources
-      in the ``ext_src_?d.f90`` file. Sources for the different
+      in the ``problem_source.H`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
-      using the integer keys defined in ``meth_params_module``
+      using the integer keys defined in ``state_indices.H``
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the

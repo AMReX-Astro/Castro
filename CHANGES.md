@@ -14,6 +14,10 @@
 
    * The update_sponge_params hook has been removed. (#1716)
 
+   * The Fortran problem-specific source file, ext_src_nd.F90, has been
+     removed. Problem-specific sources should be implemented in C++ in
+     problem_source.H. (#1856)
+
    * Support for the legacy tagging scheme based on probin parameters (denerr,
      tempgrad, etc.) has been removed. These can be replaced with equivalent
      tagging criteria constructed in the inputs file; see the docs or examples
