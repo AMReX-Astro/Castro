@@ -222,7 +222,11 @@
   <div class="section" id="input-files">
 <h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
 <p>The Castro executable uses an inputs file at runtime to set and
-alter the behavior of the algorithm and initial conditions.  Typically
+alter the behavior of the algorithm and initial conditions.</p>
+<p>Runtime parameters take the form <code class="docutils literal notranslate"><span class="pre">namespace.parameter</span> <span class="pre">=</span> <span class="pre">value</span></code> ,
+where <em>namespace</em> identifies the major code component.  Some
+parameters take multiple values separated by spaces.</p>
+<p>Typically
 named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>, it</p>
 <blockquote>
 <div><ul class="simple">
