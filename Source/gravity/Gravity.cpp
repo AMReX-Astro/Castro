@@ -3196,16 +3196,15 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     for (int i = 0; i < n1d; i++)
         if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
-
-    // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
-    ca_integrate_gr_grav(radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
-                         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
-
-#else
-    // Integrate radially outward to define the gravity
-    ca_integrate_grav(radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
-                      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d);
 #endif
+
+    // Integrate radially outward to define the gravity
+    ca_integrate_grav(radial_mass_summed.dataPtr(), radial_den_summed.dataPtr(),
+                      radial_grav.dataPtr(),
+#ifdef GR_GRAV
+                      radial_pres_summed.dataPtr(),
+#endif
+                      &max_radius_all_in_domain, &dr, &n1d);
 
     if (gravity::verbose)
     {
