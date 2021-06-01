@@ -66,5 +66,12 @@ amr.plot_file       = sedov_2d_cyl_in_cart_plt
 amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords
+# PROBLEM PARAMETERS
+problem.r_init = 0.01
+problem.p_ambient = 1.e-6
+problem.exp_energy = 1.0
+problem.dens_ambient = 1.0
+problem.nsub = 10
+
+# EOS
+eos.eos_assume_neutral = 1

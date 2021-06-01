@@ -54,6 +54,10 @@ castro.change_max     = 1.1     # max time step growth
 
 castro.use_retry      = 1       # retry subcycled times if we detect a CFL violation
 
+castro.sponge_upper_density = 5.0e-8
+castro.sponge_lower_density = 1.0e-8
+castro.sponge_timescale     = 1.0e-6
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
@@ -78,5 +82,54 @@ amr.plot_int        = -1
 amr.plot_per        = 5.e-6
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin_good
+# problem initialization
+
+problem.cutoff_density = 1.e-8
+
+problem.dtemp = 2.0
+
+problem.nx_model = 768
+
+problem.dens_base  = 1.0
+
+problem.T_star = 0.75
+problem.T_hi   = 1.0
+problem.T_lo   = 1.e-2
+
+problem.H_star = 1.25
+problem.atm_delta  = 0.2
+
+problem.fuel1_name = fuel
+problem.fuel1_frac = 1.0
+
+problem.ash1_name  = inert
+problem.ash1_frac = 1.0
+
+problem.low_density_cutoff = 1.e-8
+
+# refinement
+
+amr.refinement_indicators = denerr dengrad
+
+amr.refine.denerr.max_level = 5
+amr.refine.denerr.value_greater = 1.e-7
+amr.refine.denerr.field_name = density
+
+amr.refine.dengrad.max_level = 5
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+
+# Microphysics
+
+eos.eos_assume_neutral = 1
+
+network.rtilde = 40.0
+network.nu = 4.0
+network.specific_q_burn = 1240000000.0
+network.T_burn_ref = 1.0
+
+network.rho_burn_ref = 1.0
+network.f_act = 1.2
+
+conductivity.const_conductivity = 5000000000.0
+

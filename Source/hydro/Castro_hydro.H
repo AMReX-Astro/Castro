@@ -80,9 +80,12 @@
 /// @param src     conserved source array
 /// @param srcQ    primitive variable source array
 ///
-    void src_to_prim(const amrex::Box& bx,
+    void src_to_prim(const amrex::Box& bx, const Real dt,
                      amrex::Array4<amrex::Real const> const& q_arr,
-                     amrex::Array4<amrex::Real const> const& src,
+                     amrex::Array4<amrex::Real const> const& old_src,
+#ifndef TRUE_SDC
+                     amrex::Array4<amrex::Real const> const& src_corr,
+#endif
                      amrex::Array4<amrex::Real> const& srcQ);
 
 ///
@@ -699,14 +702,10 @@
 /// @param update  the hydrodynamics update term, -div{F} + S(U)
 /// @param flux0   flux in the x direction
 /// @param qx      Godunov state in the x direction
-/// @param area0   area of x faces
 /// @param flux1   flux in the y direction
 /// @param qy      Godunov state in the y direction
-/// @param area1   area of y faces
 /// @param flux2   flux in the z direction
 /// @param qz      Godunov state in the z direction
-/// @param area2   area of z faces
-/// @param vol     volume of the cell
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
@@ -716,18 +715,14 @@
                       amrex::Array4<amrex::Real> const& update,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,
-                      amrex::Array4<amrex::Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
                       amrex::Array4<amrex::Real> const& flux1,
                       amrex::Array4<amrex::Real const> const& qy,
-                      amrex::Array4<amrex::Real const> const& area1,
 #endif
 #if AMREX_SPACEDIM == 3
                       amrex::Array4<amrex::Real> const& flux2,
                       amrex::Array4<amrex::Real const> const& qz,
-                      amrex::Array4<amrex::Real const> const& area2,
 #endif
-                      amrex::Array4<amrex::Real const> const& vol,
                       const amrex::Real dt);
 
 

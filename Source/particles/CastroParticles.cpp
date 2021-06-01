@@ -256,10 +256,10 @@ Castro::advance_particles(int iteration, Real time, Real dt)
         int ng = iteration;
         Real t = time + 0.5*dt;
 
-        MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
+        MultiFab Ucc(grids,dmap,AMREX_SPACEDIM,ng); // cell centered velocity
 
         {
-            FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
+            FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, AMREX_SPACEDIM+1);
             MultiFab& S = fpi.get_mf();
 
 #ifdef _OPENMP
@@ -269,7 +269,7 @@ Castro::advance_particles(int iteration, Real time, Real dt)
             {
                 const Box& bx = mfi.growntilebox();
                 S[mfi].invert(1.0, bx, 0, 1);
-                for (int dir=0; dir < BL_SPACEDIM; ++dir) {
+                for (int dir=0; dir < AMREX_SPACEDIM; ++dir) {
                     Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
                     Ucc[mfi].mult(S[mfi], bx, 0, dir);
                 }

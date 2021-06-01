@@ -1093,7 +1093,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
     if (state_arr(i,j,k,URHO) < small_dens) {
 
 #ifndef AMREX_USE_GPU
-      if (verbose > 0) {
+      if (verbose > 1 ||
+          (verbose > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;

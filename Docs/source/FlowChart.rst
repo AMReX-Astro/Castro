@@ -324,15 +324,7 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. If ``source_term_predictor == 1``, then aply
-      ``source_corrector`` to ``sources_for_hydro``.  For Strang+CTU,
-      this was the effect of initializing the source terms as:
-
-      .. math::
-
-         \Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}
-
-   C. Check for NaNs in the initial state, ``S_old``.
+   B. Check for NaNs in the initial state, ``S_old``.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -387,9 +379,9 @@ In the code, the objective is to evolve the state from the old time,
       follows that of Maestro :cite:`maestro:III`
 
    B. external sources : users can define problem-specific sources
-      in the ``ext_src_?d.f90`` file. Sources for the different
+      in the ``problem_source.H`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
-      using the integer keys defined in ``meth_params_module``
+      using the integer keys defined in ``state_indices.H``
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the
@@ -606,7 +598,7 @@ together directly.
    The code must be compiled with ``USE_TRUE_SDC = TRUE`` to use this
    evolution type.
 
-The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
+The SDC solver follows the algorithm detailed in :cite:`castro-sdc`.
 We write our evolution equation as:
 
 .. math::
@@ -746,8 +738,6 @@ do ``FillPatch`` operations.
        ``StateData``, ``old_source``.
 
      * Convert the sources to 4th order averages if needed.
-
-     * ``sources_for_hydro`` :math:`\leftarrow` ``old_source``
 
      * Convert the conserved variables to primitive variables
 
