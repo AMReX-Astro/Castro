@@ -223,6 +223,19 @@ Castro::variableSetUp ()
 
   init_prob_parameters();
 
+  // check to make sure that we didn't set any parameters that don't
+  // exist in C++ (like because of misspelling).  All of the problem.*
+  // parameters should have been accessed via parmparse at this point.
+
+  if (ParmParse::hasUnusedInputs("problem")) {
+      amrex::Print() << "Warning: the following problem.* parameters are ignored\n";
+      auto unused = ParmParse::getUnusedInputs("problem"); 
+      for (auto p: unused) {
+          amrex::Print() << p << "\n";
+      }
+      amrex::Print() << std::endl;
+  }
+
   // now sync up the Fortran -- if a parameter was defined in C++, we need
   // to pass it back to Fortran
 
