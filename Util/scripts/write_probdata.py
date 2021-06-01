@@ -235,15 +235,18 @@ def write_probin(prob_param_files, cxx_prefix):
         fout.write(f"        amrex::ParmParse pp(\"problem\");\n\n")
         for p in params:
             if p.is_array():
-                fout.write(f"        for (int n = 0; n < {p.size}; n++) {{\n")
+                size = p.size
+                if (size == "nspec"):
+                    size = "NumSpec"
+                fout.write(f"        for (int n = 0; n < {size}; n++) {{\n")
                 fout.write(f"            problem::{p.name}[n] = {p.default_format(lang='C++')};\n")
-                fout.write(f"        }}\n\n")
+                fout.write(f"        }}\n")
             else:
                 fout.write(f"        {p.get_default_string()}")
 
             if p.in_namelist:
                 fout.write(f"        {p.get_query_string('C++')}")
-                fout.write("\n")
+            fout.write("\n")
         fout.write("    }\n")
 
         fout.write("  }\n")
