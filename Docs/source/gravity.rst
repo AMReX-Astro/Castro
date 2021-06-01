@@ -24,10 +24,10 @@ via ``castro.do_grav`` = 1. If you want to incorporate a point mass
 
 in the ``GNUmakefile``.
 
-There are currently four options for how gravity is calculated,
+There are currently three options for how gravity is calculated,
 controlled by setting ``gravity.gravity_type``. The options are
-``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav`` or
-``PrescribedGrav``. Again, these are only relevant if ``USE_GRAV =
+``ConstantGrav``, ``PoissonGrav``, or ``MonopoleGrav``.
+Again, these are only relevant if ``USE_GRAV =
 TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.
@@ -124,8 +124,7 @@ The following parameters apply to gravity
 solves:
 
 -  ``gravity.gravity_type`` : how should we calculate gravity?
-   Can be ``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav``, or
-   ``PrescribedGrav``
+   Can be ``ConstantGrav``, ``PoissonGrav``, or ``MonopoleGrav``
 
 -  ``gravity.const_grav`` : if ``gravity.gravity_type`` =
    ``ConstantGrav``, set the value of constant gravity (default: 0.0)
@@ -423,20 +422,6 @@ is :cite:`katz:2016`.
    other methods are producing accurate results. It can be enabled by
    setting ``gravity.direct_sum_bcs`` = 1 in your inputs file.
 
-``PrescribedGrav``
-------------------
-
-With PrescribedGrav [1]_, gravity can be defined as a function that is
-specified by the user. The option is allowed in 2D and 3D. To define
-the gravity vector, copy ``prescribe_grav_nd.f90`` from
-``Source/gravity/`` to your run directory. The makefile system will
-always choose this local copy of the file over the one in another
-directory.  Then define the components of gravity inside a loop over
-the grid inside the file. If your problem uses a radial gravity in the
-form :math:`g(r)`, you can simply adapt
-``ca_prescribe_grav_gravityprofile``, otherwise you will have to adapt
-``ca_prescribe_grav``, both are located in ``prescribed_grav_nd.90``.
-
 Point Mass
 ----------
 
@@ -625,11 +610,6 @@ the hydrodynamics system. The main parameter here is
   fluxes, permitting total energy to be conserved (excluding possible
   losses at open domain boundaries). See
   :cite:`katzthesis` for some more details.
-
-.. [1]
-   Note: The ``PrescribedGrav``
-   option and text here were contributed by Jan Frederik Engels of
-   University of Gottingen.
 
 .. [2]
    Note: The GR

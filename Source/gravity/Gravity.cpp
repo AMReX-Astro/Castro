@@ -110,11 +110,10 @@ Gravity::read_params ()
 
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
-             (gravity::gravity_type != "MonopoleGrav") &&
-             (gravity::gravity_type != "PrescribedGrav") )
+             (gravity::gravity_type != "MonopoleGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
-                amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
+                amrex::Abort("Options are ConstantGrav, PoissonGrav, or MonopoleGrav");
              }
 
         if (  gravity::gravity_type == "ConstantGrav")
@@ -873,11 +872,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        make_radial_gravity(level,prev_time,radial_grav_old[level]);
        interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-        MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
-      make_prescribed_grav(level,time,grav,phi);
-
     } else if (gravity::gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
@@ -950,11 +944,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
         const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
         make_radial_gravity(level,cur_time,radial_grav_new[level]);
         interpolate_monopole_grav(level,radial_grav_new[level],grav);
-
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-    MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
-    make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
@@ -1306,53 +1295,6 @@ Gravity::test_composite_phi (int crse_level)
         }
     }
     if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
-}
-
-void
-Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
-{
-    BL_PROFILE("Gravity::make_prescribed_grav()");
-    
-    const Real strt = ParallelDescriptor::second();
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                         BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
-    }
-
-    if (gravity::verbose)
-    {
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl << std::endl;
-#ifdef BL_LAZY
-        });
-#endif
-    }
 }
 
 void
