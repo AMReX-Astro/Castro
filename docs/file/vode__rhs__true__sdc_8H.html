@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -115,7 +116,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
@@ -237,13 +237,13 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="vode__rhs__true__sdc_8H_1afae629ce78d54d7d5984668096537c2a"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">rhs</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">RArray1D</span> <span class="pre">&amp;dUdt)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="vode__rhs__true__sdc_8H_1afae629ce78d54d7d5984668096537c2a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">rhs</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">RArray1D</span> <span class="pre">&amp;dUdt)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="vode__rhs__true__sdc_8H_1a7ac4538540b25af7dc4db64d8d70d430"></span><code class="sig-name descname"><span class="pre">template&lt;class</span> <span class="pre">MatrixType&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">jac</span> <span class="pre">(burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">MatrixType</span> <span class="pre">&amp;pd)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="vode__rhs__true__sdc_8H_1a7ac4538540b25af7dc4db64d8d70d430"></span><span class="sig-name descname"><span class="pre">template&lt;class</span> <span class="pre">MatrixType&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">jac</span> <span class="pre">(burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">MatrixType</span> <span class="pre">&amp;pd)</span></span></dt>
 <dd></dd></dl>
 
 </div>

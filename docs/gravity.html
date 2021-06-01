@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Gravity</a><ul>
@@ -135,7 +135,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#poisson-boundary-conditions-3d">Poisson Boundary Conditions: 3D</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#prescribedgrav"><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#point-mass">Point Mass</a></li>
 </ul>
 </li>
@@ -250,19 +249,18 @@ via <code class="docutils literal notranslate"><span class="pre">castro.do_grav<
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
-<p>There are currently four options for how gravity is calculated,
+<p>There are currently three options for how gravity is calculated,
 controlled by setting <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code>. The options are
-<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> or
-<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>. Again, these are only relevant if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span> <span class="pre">=</span>
+<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, or <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>.
+Again, these are only relevant if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code> in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> = 1 in the inputs
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
-appropriately for you problem.  This can be done either by directly
-setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
-<code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">problem::center[]</span></code> variable
+appropriately for you problem.  This can be done by directly
+setting it in the <code class="docutils literal notranslate"><span class="pre">problem_initialize()</span></code> function.</p>
 </div>
 </div>
 <div class="section" id="integration-strategy">
@@ -285,7 +283,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</p></li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <span id="id1">[<a class="reference internal" href="zreferences.html#id4">12</a>]</span>. Briefly:</p>
+the discussion in <span id="id1">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">13</a>]</span>. Briefly:</p>
 <ul>
 <li><p>At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
@@ -342,8 +340,7 @@ Section <a class="reference external" href="#sec-poisson-3d-bcs">2.3.2</a>.</p><
 solves:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> : how should we calculate gravity?
-Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></p></li>
+Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, or <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.const_grav</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
 <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, set the value of constant gravity (default: 0.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> : <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
@@ -405,7 +402,7 @@ defined in the inputs file by:</p>
 <p>for example, to set the gravity to have magnitude <span class="math notranslate nohighlight">\(9.8\)</span> in the
 negative <span class="math notranslate nohighlight">\(y\)</span>-direction if in 2D, negative <span class="math notranslate nohighlight">\(z\)</span>-direction if in 3-D.
 The actual setting is done in Gravity.cpp as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grav</span><span class="o">.</span><span class="n">setVal</span><span class="p">(</span><span class="n">const_grav</span><span class="p">,</span> <span class="n">BL_SPACEDIM</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ng</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grav</span><span class="o">.</span><span class="n">setVal</span><span class="p">(</span><span class="n">const_grav</span><span class="p">,</span> <span class="n">AMREX_SPACEDIM</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ng</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Note that at present we do not fill the gravitational potential
@@ -504,7 +501,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <span id="id2">[<a class="reference internal" href="zreferences.html#id18">43</a>]</span>.</p>
+is <span id="id2">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">44</a>]</span>.</p>
 <ul>
 <li><p><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -599,19 +596,6 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </ul>
 </div>
 </div>
-<div class="section" id="prescribedgrav">
-<h3><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code><a class="headerlink" href="#prescribedgrav" title="Permalink to this headline">¶</a></h3>
-<p>With PrescribedGrav <a class="footnote-reference brackets" href="#id8" id="id3">1</a>, gravity can be defined as a function that is
-specified by the user. The option is allowed in 2D and 3D. To define
-the gravity vector, copy <code class="docutils literal notranslate"><span class="pre">prescribe_grav_nd.f90</span></code> from
-<code class="docutils literal notranslate"><span class="pre">Source/gravity/</span></code> to your run directory. The makefile system will
-always choose this local copy of the file over the one in another
-directory.  Then define the components of gravity inside a loop over
-the grid inside the file. If your problem uses a radial gravity in the
-form <span class="math notranslate nohighlight">\(g(r)\)</span>, you can simply adapt
-<code class="docutils literal notranslate"><span class="pre">ca_prescribe_grav_gravityprofile</span></code>, otherwise you will have to adapt
-<code class="docutils literal notranslate"><span class="pre">ca_prescribe_grav</span></code>, both are located in <code class="docutils literal notranslate"><span class="pre">prescribed_grav_nd.90</span></code>.</p>
-</div>
 <div class="section" id="point-mass">
 <h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this headline">¶</a></h3>
 <p>Pointmass gravity works with all other forms of gravity, it is not a
@@ -622,7 +606,7 @@ mass onto the acceleration from whatever other gravity type is under
 in the simulation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>the point mass have a mass &lt; 0</p>
+<p>The point mass may have a mass &lt; 0</p>
 </div>
 <p>A useful option is <code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code>. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -631,20 +615,20 @@ occur after a hydro update in those zones are reset, and the mass
 deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
-<code class="docutils literal notranslate"><span class="pre">pm_compute_delta_mass()</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/gravity/pointmass_nd.f90</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">pointmass_update()</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_pointmass.cpp</span></code>.</p>
 </div>
 </div>
 <div class="section" id="gr-correction">
 <h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this headline">¶</a></h2>
 <p>In the cases of compact objects or very massive stars, the general
-relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id9" id="id4">2</a>. First, we consider
+relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id7" id="id3">2</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
-applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
+applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<span id="id5">[<a class="reference internal" href="zreferences.html#id47">45</a>]</span>. For detailed physics, please refer to
-<span id="id6">[<a class="reference internal" href="zreferences.html#id48">62</a>]</span>. For describing very strong gravitational
+<span id="id4">[<a class="reference internal" href="zreferences.html#id47" title="R. Kippenhahn and A. Weigert. Stellar Structure and Evolution. Springer, 1990.">46</a>]</span>. For detailed physics, please refer to
+<span id="id5">[<a class="reference internal" href="zreferences.html#id48" title="Y. B. Zeldovich and D. Novikov. Relativistic astrophysics. Vol.1: Stars and relativity. University of Chicago Press, 1971.">63</a>]</span>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -763,15 +747,10 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<span id="id7">[<a class="reference internal" href="zreferences.html#id19">42</a>]</span> for some more details.</p></li>
+<span id="id6">[<a class="reference internal" href="zreferences.html#id19" title="M. P. Katz. White Dwarf Mergers on Adaptive Meshes. PhD thesis, State University of New York at Stony Brook, 2016.">43</a>]</span> for some more details.</p></li>
 </ul>
 <dl class="footnote brackets">
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
-<dd><p>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
-option and text here were contributed by Jan Frederik Engels of
-University of Gottingen.</p>
-</dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
 <dd><p>Note: The GR
 code and text here were contributed by Ken Chen of Univ. of
 Minnesota.</p>

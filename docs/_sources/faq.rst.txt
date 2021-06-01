@@ -45,14 +45,6 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How do I use a system’s BLAS library instead of compiling and
-   linking the one that comes with the StarKiller microphysics?*
-
-   To use a system’s BLAS library, set the Make variable
-   ``USE_SYSTEM_BLAS`` to ``TRUE``. This will then look at
-   the Make variable ``BLAS_LIBRARY`` for the library to link
-   (defaults to ``-lopenblas``).
-
 #. *How can I check to make sure the function signatures defined
    in C are consistent with their implementations in Fortran?*
 
@@ -84,7 +76,7 @@ Debugging
    AMReX are controlled by AMReX(e.g., using interruption by the
    user, this was once used to find an MPI deadlock.) It also includes
    the ``AMREX_ASSERTION`` statements if ``USE_ASSERTION=TRUE`` or
-   DEBUG=TRUE.
+   ``DEBUG=TRUE``.
 
    The AMReX parameters that affect the behavior are:
 
@@ -105,14 +97,16 @@ Debugging
    .. code:: c++
 
              std::ostringstream ss;
-             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             ss << "state.box() = " << state.box() << " cell = " << cell;
              BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 
-   The “print” prints to a stack of string, not stdout. When it hits
+   The "print" prints to a stack of string, not stdout. When it hits
    the segfault, you will only see the last print out in the backtrace
    file (e.g. ``BackTrace.0``).
+
+   You may need to include the header ``AMReX_BLBackTrace.H``.
 
 #. *How can I monitor the state in a zone from the C side
    at various points in the evolution?*

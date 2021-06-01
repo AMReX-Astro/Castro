@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -244,147 +244,10 @@ of the Adaptive Mesh Refinement Short Course at
 next regridding step by using a set of built-in routines that test on
 quantities such as the density and pressure and determining whether
 the quantities themselves or their gradients pass a user-specified
-threshold. This may then be extended if amr.n_error_buf <span class="math notranslate nohighlight">\(&gt; 0\)</span>
+threshold. This may then be extended if <code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code> <span class="math notranslate nohighlight">\(&gt; 0\)</span>
 to a certain number of zones beyond these tagged zones. This section
 describes the process by which zones are tagged, and describes how to
 add customized tagging criteria.</p>
-<p>The routines for tagging cells are located in the
-Tagging_nd.f90 file in the Source/driver/ directory. (These are
-dimension-agnostic routines that loop over all three dimensional
-indices even for 1D or 2D problems.) The main routines are
-ca_denerror, ca_temperror, ca_presserror,
-ca_velerror, and ca_raderror. They refine based on
-density, temperature, pressure, velocity, and radiation energy density
-(if enabled), respectively. The same approach is used for all of
-them. As an example, we consider the density tagging routine. There
-are four parameters that control tagging. If the density in a zone is
-greater than the user-specified parameter denerr, then that
-zone will be tagged for refinement, but only if the current AMR level
-is less than the user-specified parameter max_denerr_lev.
-Similarly, if the absolute density gradient between a zone and any
-adjacent zone is greater than the user-specified parameter
-dengrad, that zone will be tagged for refinement, but only
-if we are currently on a level below
-max_dengrad_lev. Note that setting denerr alone
-will not do anything; you’ll need to set max_dengrad_lev <span class="math notranslate nohighlight">\(&gt;=
-1\)</span> for this to have any effect.</p>
-<p>All four of these parameters are set in the &amp;tagging namelist
-in your probin file. If left unmodified, they
-default to a value that means we will never tag. The complete set of
-parameters that can be controlled this way is the following:</p>
-<ul class="simple">
-<li><p>density:</p>
-<ul>
-<li><p>value: denerr, max_denerr_lev</p></li>
-<li><p>gradient: dengrad, max_dengrad_lev</p></li>
-</ul>
-</li>
-<li><p>temperature:</p>
-<ul>
-<li><p>value: temperr, max_temperr_lev</p></li>
-<li><p>gradient: tempgrad, max_tempgrad_lev</p></li>
-</ul>
-</li>
-<li><p>velocity (magnitude):</p>
-<ul>
-<li><p>value: velerr, max_velerr_lev</p></li>
-<li><p>gradient: velgrad, max_velgrad_lev</p></li>
-</ul>
-</li>
-<li><p>pressure:</p>
-<ul>
-<li><p>value: presserr, max_presserr_lev</p></li>
-<li><p>gradient: pressgrad, max_pressgrad_lev</p></li>
-</ul>
-</li>
-<li><p>radiation energy density:</p>
-<ul>
-<li><p>value: raderr, max_raderr_lev</p></li>
-<li><p>gradient: radgrad, max_radgrad_lev</p></li>
-</ul>
-</li>
-</ul>
-<p>Since there are multiple algorithms for determining
-whether a zone is tagged or not, it is worthwhile to specify
-in detail what is happening to a zone in the code during this step.
-We show this in the following pseudocode section. A zone
-is tagged if the variable itag = SET, and is not tagged
-if itag = CLEAR (these are mapped to 1 and 0, respectively).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">itag</span> <span class="o">=</span> <span class="n">CLEAR</span>
-
-<span class="k">for</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="kn">from</span> <span class="nn">k</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">...</span> <span class="n">N</span>
-    <span class="o">//</span> <span class="n">Three</span> <span class="n">possibilities</span> <span class="k">for</span> <span class="n">itag</span><span class="p">:</span> <span class="n">SET</span> <span class="ow">or</span> <span class="n">CLEAR</span> <span class="ow">or</span> <span class="n">remaining</span> <span class="n">unchanged</span>
-    <span class="n">call</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">itag</span><span class="p">)</span>
-<span class="n">end</span> <span class="k">for</span>
-</pre></div>
-</div>
-<p>In particular, notice that there is an order dependence of this operation; if errfunc[2]
-CLEARs a zone and then errfunc[3] SETs that zone, the final operation will
-be to tag that zone (and vice versa). In practice by default this does not matter, because the
-built-in tagging routines never explicitly perform a <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code>. However,
-it is possible to overwrite the Tagging_nd.f90 file if you want to change how
-ca_denerror, ca_temperror, etc. operate. This is not recommended, and if you do so
-be aware that CLEARing a zone this way may not have the desired effect.</p>
-<p>We provide also the ability for the user to define their own tagging criteria.
-This is done through the Fortran function set_problem_tags in the
-file problem_tagging_nd.F90, or through the C++ function problem_tagging
-in the file problem_tagging.H. This function is provided the entire
-state (including density, temperature, velocity, etc.) and the array
-of tagging status for every zone. As an example of how to use this, suppose we
-have a 3D Cartesian simulation where we want to tag any zone that has a
-density gradient greater than 10, but we don’t care about any regions
-outside a radius <span class="math notranslate nohighlight">\(r &gt; 75\)</span> from the problem origin; we leave them always unrefined.
-We also want to ensure that the region <span class="math notranslate nohighlight">\(r \leq 10\)</span> is always refined.
-In our probin file we would set denerr = 10 and max_denerr_lev = 1
-in the &amp;tagging namelist. We would also make a copy of
-problem_tagging_3d.f90 to our work directory and set it up as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">set_problem_tags</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span><span class="n">tagl1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">,</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagh3</span><span class="p">,</span> <span class="o">&amp;</span>
-                            <span class="n">state</span><span class="p">,</span><span class="n">state_l1</span><span class="p">,</span><span class="n">state_l2</span><span class="p">,</span><span class="n">state_l3</span><span class="p">,</span> <span class="o">&amp;</span>
-                            <span class="n">state_h1</span><span class="p">,</span><span class="n">state_h2</span><span class="p">,</span><span class="n">state_h3</span><span class="p">,</span><span class="o">&amp;</span>
-                            <span class="nb">set</span><span class="p">,</span><span class="n">clear</span><span class="p">,</span><span class="o">&amp;</span>
-                            <span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">,</span><span class="o">&amp;</span>
-                            <span class="n">dx</span><span class="p">,</span><span class="n">problo</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">level</span><span class="p">)</span>
-
-  <span class="n">use</span> <span class="n">bl_constants_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">ZERO</span><span class="p">,</span> <span class="n">HALF</span>
-  <span class="n">use</span> <span class="n">prob_params_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">center</span>
-  <span class="n">use</span> <span class="n">meth_params_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">URHO</span><span class="p">,</span> <span class="n">UMX</span><span class="p">,</span> <span class="n">UMY</span><span class="p">,</span> <span class="n">UMZ</span><span class="p">,</span> <span class="n">UEDEN</span><span class="p">,</span> <span class="n">NVAR</span>
-
-  <span class="n">implicit</span> <span class="n">none</span>
-
-  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">state_l1</span><span class="p">,</span><span class="n">state_l2</span><span class="p">,</span><span class="n">state_l3</span><span class="p">,</span> <span class="o">&amp;</span>
-                                    <span class="n">state_h1</span><span class="p">,</span><span class="n">state_h2</span><span class="p">,</span><span class="n">state_h3</span>
-  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">tagl1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">,</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagh3</span>
-  <span class="n">double</span> <span class="n">precision</span><span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">state_l1</span><span class="p">:</span><span class="n">state_h1</span><span class="p">,</span> <span class="o">&amp;</span>
-                                          <span class="n">state_l2</span><span class="p">:</span><span class="n">state_h2</span><span class="p">,</span> <span class="o">&amp;</span>
-                                          <span class="n">state_l3</span><span class="p">:</span><span class="n">state_h3</span><span class="p">,</span><span class="n">NVAR</span><span class="p">)</span>
-  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">tag</span><span class="p">(</span><span class="n">tagl1</span><span class="p">:</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">:</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">:</span><span class="n">tagh3</span><span class="p">)</span>
-  <span class="n">double</span> <span class="n">precision</span><span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">dx</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">time</span>
-  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">level</span><span class="p">,</span><span class="nb">set</span><span class="p">,</span><span class="n">clear</span>
-
-  <span class="n">double</span> <span class="n">precision</span> <span class="p">::</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">r</span>
-
-  <span class="n">do</span> <span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-     <span class="n">z</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-     <span class="n">do</span> <span class="n">j</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">do</span> <span class="n">i</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-           <span class="n">x</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-
-           <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">HALF</span><span class="p">)</span>
-
-           <span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">&gt;</span> <span class="mf">75.0</span><span class="p">)</span> <span class="n">then</span>
-             <span class="n">tag</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="n">clear</span>
-           <span class="n">elseif</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="n">then</span>
-             <span class="n">tag</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="nb">set</span>
-           <span class="n">endif</span>
-        <span class="n">enddo</span>
-     <span class="n">enddo</span>
-  <span class="n">enddo</span>
-
-<span class="n">end</span> <span class="n">subroutine</span> <span class="n">set_problem_tags</span>
-</pre></div>
-</div>
 <p>We also provide a mechanism for defining a limited set of refinement
 schemes from the inputs file; for example,</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">refinement_indicators</span> <span class="o">=</span> <span class="n">dens</span> <span class="n">temp</span>
@@ -400,12 +263,18 @@ schemes from the inputs file; for example,</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">amr.refinement_indicators</span></code> is a list of user-defined names for refinement
 schemes. For each defined name, <code class="docutils literal notranslate"><span class="pre">amr.refine.&lt;name&gt;</span></code> accepts predefined fields
-describing when to tag. These are <code class="docutils literal notranslate"><span class="pre">max_level</span></code> (maximum level to refine to),
-<code class="docutils literal notranslate"><span class="pre">start_time</span></code> (when to start tagging), <code class="docutils literal notranslate"><span class="pre">end_time</span></code> (when to stop tagging),
-<code class="docutils literal notranslate"><span class="pre">value_greater</span></code> (value above which we refine), <code class="docutils literal notranslate"><span class="pre">value_less</span></code> (value below
-which to refine), <code class="docutils literal notranslate"><span class="pre">gradient</span></code> (absolute value of the difference between
-adjacent cells above which we refine), and <code class="docutils literal notranslate"><span class="pre">field_name</span></code> (name of the string
-defining the field in the code). If a refinement indicator is added, either
+describing when to tag. These are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_level</span></code> : maximum level to refine to</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start_time</span></code> : when to start tagging</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">end_time</span></code> : when to stop tagging</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value_greater</span></code> : value above which we refine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">value_less</span></code> : value below which to refine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gradient</span></code> : absolute value of the difference between adjacent cells above which we refine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relative_gradient</span></code> : relative value of the difference between adjacent cells above which we refine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">field_name</span></code> : name of the string defining the field in the code</p></li>
+</ul>
+<p>If a refinement indicator is added, either
 <code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -413,6 +282,11 @@ defining the field in the code). If a refinement indicator is added, either
 using the Poisson gravity solver. If your tagging criteria are met in these
 zones, they will be ignored.</p>
 </div>
+<p id="index-0">We provide also the ability for the user to define their own tagging criteria.
+This is done through the C++ function <code class="docutils literal notranslate"><span class="pre">problem_tagging</span></code>
+in the file <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code>. This function is provided the entire
+state (including density, temperature, velocity, etc.) and the array
+of tagging status for every zone.</p>
 </div>
 <div class="section" id="synchronization-algorithm">
 <span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>
@@ -420,7 +294,7 @@ zones, they will be ignored.</p>
 self-gravity. The gravity component of the algorithm is closely
 related to (but not identical to) that in Miniati and Colella, JCP,
 2007. The content here is largely based on the content in the original
-Castro paper (<span id="id1">[<a class="reference internal" href="zreferences.html#id4">12</a>]</span>). The most significant difference is the
+Castro paper (<span id="id1">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">13</a>]</span>). The most significant difference is the
 addition of a different strategy for when to employ the synchronization;
 but regardless of whether the original or new strategy is used, the fundamental
 synchronization step is identical.</p>

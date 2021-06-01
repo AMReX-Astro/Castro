@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -239,16 +239,14 @@ converted to an angular frequency for use in the source term
 equations.</p>
 <p>The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">center</span></code>, which is typically
-defined in a <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> routine, to the typical “vertical
-direction.” The vertical direction is defined as follows:</p>
+default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">problem::center</span></code> in the vertical direction.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
-appropriately for you problem.  This can be done either by directly
-setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
-<code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">problem::center()</span></code> variable
+appropriately for you problem.  This can be done by directly
+setting it in the <code class="docutils literal notranslate"><span class="pre">problem_initialize()</span></code> function.</p>
 </div>
+<p>The “vertical direction” is defined as follows:</p>
 <ul class="simple">
 <li><p>2D</p>
 <ul>
@@ -297,7 +295,7 @@ switching to a rotating reference frame.</p>
 <h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-default" id="id2">
 <img alt="inertial vs. corotating frame" src="_images/tframes.png" />
-<p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">Inertial frame <span class="math notranslate nohighlight">\(C\)</span> and
+<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Inertial frame <span class="math notranslate nohighlight">\(C\)</span> and
 non-inertial frame <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. We consider a fluid element
 <span class="math notranslate nohighlight">\(P\)</span>, whose distance in the two frames is related by
 <span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
@@ -481,7 +479,7 @@ This does the update of the Coriolis term in the momentum equation
 implicitly (e.g., the velocity in the Coriolis force for the zone
 depends on the updated momentum). The energy update is unchanged.</p>
 <p>A detailed discussion of these options and some verification
-tests is presented in <span id="id1">[<a class="reference internal" href="zreferences.html#id18">43</a>]</span>.</p>
+tests is presented in <span id="id1">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">44</a>]</span>.</p>
 </div>
 </div>
 

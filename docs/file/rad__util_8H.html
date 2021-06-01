@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -115,7 +116,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
@@ -149,11 +149,14 @@
 <li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive_8H.html">File RadDerive.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadHydro_8H.html">File RadHydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_8H.html">File filter.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File rad_util.H</a></li>
 </ul>
@@ -246,33 +249,33 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1a3a30c366f8c966cd0f2a5e2bec5c6991"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">cell_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1a3a30c366f8c966cd0f2a5e2bec5c6991"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">cell_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1a0182c62696ccc9272093bf3a6be20201"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">edge_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1a0182c62696ccc9272093bf3a6be20201"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">edge_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1ae9179c6e0d726153216b62b10d067406"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">face_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">lo,</span> <span class="pre">int</span> <span class="pre">hi,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">ori_dir,</span> <span class="pre">int</span> <span class="pre">ori_lo,</span> <span class="pre">Real</span> <span class="pre">&amp;r)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1ae9179c6e0d726153216b62b10d067406"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">face_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">lo,</span> <span class="pre">int</span> <span class="pre">hi,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">ori_dir,</span> <span class="pre">int</span> <span class="pre">ori_lo,</span> <span class="pre">Real</span> <span class="pre">&amp;r)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1aedfe757fb930db4aadd2c253bc55bb4c"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_ptot_ctot</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*lam,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*q,</span> <span class="pre">int</span> <span class="pre">is_comoving,</span> <span class="pre">int</span> <span class="pre">limiter,</span> <span class="pre">int</span> <span class="pre">closure,</span> <span class="pre">Real</span> <span class="pre">cg,</span> <span class="pre">Real</span> <span class="pre">&amp;ptot,</span> <span class="pre">Real</span> <span class="pre">&amp;ctot,</span> <span class="pre">Real</span> <span class="pre">&amp;gamc_tot)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1aedfe757fb930db4aadd2c253bc55bb4c"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_ptot_ctot</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*lam,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*q,</span> <span class="pre">int</span> <span class="pre">is_comoving,</span> <span class="pre">int</span> <span class="pre">limiter,</span> <span class="pre">int</span> <span class="pre">closure,</span> <span class="pre">Real</span> <span class="pre">cg,</span> <span class="pre">Real</span> <span class="pre">&amp;ptot,</span> <span class="pre">Real</span> <span class="pre">&amp;ctot,</span> <span class="pre">Real</span> <span class="pre">&amp;gamc_tot)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1ac49a57974b29178ce2a70be8f3e7bbb5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">Real</span> <span class="pre">FLDlambda</span> <span class="pre">(Real</span> <span class="pre">r,</span> <span class="pre">int</span> <span class="pre">limiter)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1ac49a57974b29178ce2a70be8f3e7bbb5"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">Real</span> <span class="pre">FLDlambda</span> <span class="pre">(Real</span> <span class="pre">r,</span> <span class="pre">int</span> <span class="pre">limiter)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="rad__util_8H_1ad6eb5fea942b6112609ffd2cb391f1b6"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">amrex::Real</span> <span class="pre">kavg</span> <span class="pre">(Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">b,</span> <span class="pre">Real</span> <span class="pre">d,</span> <span class="pre">int</span> <span class="pre">opt)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="rad__util_8H_1ad6eb5fea942b6112609ffd2cb391f1b6"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">amrex::Real</span> <span class="pre">kavg</span> <span class="pre">(Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">b,</span> <span class="pre">Real</span> <span class="pre">d,</span> <span class="pre">int</span> <span class="pre">opt)</span></span></dt>
 <dd></dd></dl>
 
 </div>

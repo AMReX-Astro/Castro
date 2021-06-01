@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -42,7 +43,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="MHD" href="mhd.html" />
-    <link rel="prev" title="Offloading a routine to GPU" href="gpu_porting.html" /> 
+    <link rel="prev" title="Debugging" href="debugging.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Hydrodynamics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hydrodynamics-data-structures">Hydrodynamics Data Structures</a></li>
@@ -720,7 +720,7 @@ keys for the different quantities are listed in <a class="reference internal" hr
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. <span id="id1">[<a class="reference internal" href="zreferences.html#id3">21</a>]</span>). Second, it is sometimes the case that the
+see e.g. <span id="id1">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">22</a>]</span>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -732,7 +732,7 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <span id="id2">[<a class="reference internal" href="zreferences.html#id16">17</a>]</span>, <span id="id3">[<a class="reference internal" href="zreferences.html#id17">16</a>]</span>, where we switch
+from ENZO <span id="id2">[<a class="reference internal" href="zreferences.html#id16" title="G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. Computer Physics Communications, 89:149-168, August 1995. doi:10.1016/0010-4655(94)00191-4.">18</a>]</span>, <span id="id3">[<a class="reference internal" href="zreferences.html#id17" title="G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. ApJS, 211:19, April 2014. arXiv:1307.2265, doi:10.1088/0067-0049/211/2/19.">17</a>]</span>, where we switch
 between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
 state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
 <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
@@ -915,7 +915,7 @@ Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T 
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper <span id="id4">[<a class="reference internal" href="zreferences.html#id5">23</a>]</span> and the Flash paper <span id="id5">[<a class="reference internal" href="zreferences.html#id11">31</a>]</span>.
+PPM paper <span id="id4">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">24</a>]</span> and the Flash paper <span id="id5">[<a class="reference internal" href="zreferences.html#id11" title="B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. ApJS, 131:273-334, November 2000. doi:10.1086/317361.">32</a>]</span>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -959,15 +959,15 @@ near shocks (0 or 1; default 1)</p></li>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in <span id="id6">[<a class="reference internal" href="zreferences.html#id12">20</a>]</span>,
-the classic PPM limiters <span id="id7">[<a class="reference internal" href="zreferences.html#id5">23</a>]</span>, and the new PPM limiters introduced
-in <span id="id8">[<a class="reference internal" href="zreferences.html#id13">22</a>]</span>. The choice of
+linear method that follows the description in <span id="id6">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">21</a>]</span>,
+the classic PPM limiters <span id="id7">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">24</a>]</span>, and the new PPM limiters introduced
+in <span id="id8">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">23</a>]</span>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of <span id="id9">[<a class="reference internal" href="zreferences.html#id13">22</a>]</span> to eliminate sensitivity due to roundoff error
+of <span id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">23</a>]</span> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14">47</a>]</span>. We
+described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock  Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">48</a>]</span>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -1169,7 +1169,7 @@ its transverse update.</p></li>
 <div class="section" id="riemann-problem">
 <h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this headline">¶</a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3">21</a>]</span> (the same solver used
+Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">22</a>]</span> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
@@ -1266,8 +1266,8 @@ geometries because it relies on the pressure term being part of the flux
 in the momentum equation.</p></li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
-Glaz, &amp; Ferguson manuscript (it also appears in <span id="id12">[<a class="reference internal" href="zreferences.html#id15">6</a>]</span>),
-as described in the original Castro paper <span id="id13">[<a class="reference internal" href="zreferences.html#id4">12</a>]</span>.</p>
+Glaz, &amp; Ferguson manuscript (it also appears in <span id="id12">[<a class="reference internal" href="zreferences.html#id15" title="Richard B. Pember, Jeffrey A. Greenough, and Phillip Colella. An adaptive, higher-order godunov method for gas dynamics in three-dimensional orthogonal curvilinear coordinates. In unknown. 1996.">6</a>]</span>),
+as described in the original Castro paper <span id="id13">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">13</a>]</span>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
@@ -1364,7 +1364,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20">38</a>]</span>. This
+implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equa tions. Journal of Computational Physics, 242:169-180, June 2013. arXiv:1203.1540, doi:10.1016/j.jcp.2013.01.024.">39</a>]</span>. This
 behavior is controlled by
 castro.limit_fluxes_on_small_dens.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1394,33 +1394,33 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20">38</a>]</span>.</p>
+found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equa tions. Journal of Computational Physics, 242:169-180, June 2013. arXiv:1203.1540, doi:10.1016/j.jcp.2013.01.024.">39</a>]</span>.</p>
 </div>
 </div>
 <div class="section" id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this headline">¶</a></h2>
-<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21">18</a>]</span>.
+<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. \apjs , 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">19</a>]</span>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21">18</a>]</span>.</p>
+source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. \apjs , 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">19</a>]</span>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22">52</a>]</span>.  The
+originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. \mnras , 208:721-750, June 1984. doi:10.1093/mnras/208.4.721.">53</a>]</span>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <div class="figure align-default" id="id23">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
-<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
 <span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </div>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
 spreads out into a disk:</p>
 <div class="figure align-default" id="id24">
 <img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
-<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
 has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
 </div>
@@ -1431,7 +1431,7 @@ has become disrupted into a disk.</span><a class="headerlink" href="#id24" title
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  With this enabled, we see that the torus remains intact:</p>
 <div class="figure align-default" id="id25">
 <img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
-<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
 zones.  With this angular-momentum preserving scheme we see that
 the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
@@ -1446,7 +1446,7 @@ the initial torus is largely intact.</span><a class="headerlink" href="#id25" ti
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="gpu_porting.html" class="btn btn-neutral float-left" title="Offloading a routine to GPU" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="debugging.html" class="btn btn-neutral float-left" title="Debugging" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

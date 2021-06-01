@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -402,7 +402,7 @@ we consider the original inputs file to look like:</p>
 <p>Some results:</p>
 <div class="figure align-default" id="id3">
 <img alt="_images/corner.png" src="_images/corner.png" />
-<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
+<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
 coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 0 and
 <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> = 2. The first grown example has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> =
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
@@ -412,7 +412,7 @@ pink.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶
 </div>
 <div class="figure align-default" id="id4">
 <img alt="_images/center.png" src="_images/center.png" />
-<p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
+<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
 coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 1 and
 <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> = 2. The first grown example has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> =
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0

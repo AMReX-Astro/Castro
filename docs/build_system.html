@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -130,7 +131,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -247,11 +247,6 @@ do not need all of the Castro directories compiled.</p></li>
 <code class="docutils literal notranslate"><span class="pre">Base/</span></code>, <code class="docutils literal notranslate"><span class="pre">AmrCore/</span></code>, <code class="docutils literal notranslate"><span class="pre">Amr/</span></code>, and <code class="docutils literal notranslate"><span class="pre">Boundary/</span></code>.  This defaults
 to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> and should be left set for Castro simulations.  The purpose
 of this flag is for unit tests that don’t need all of AMReX.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code>: for the linear algebra routines provided by
-BLAS, should we compile our own versions or should we use a system
-library that provides the BLAS routines?  If we set
-<code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>, then we need to provide the name on
-the library in the <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> build parameter.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_MLMG</span></code>: use the AMReX multi-level multigrid solver for gravity
 and diffusion.  This should always be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled
@@ -427,31 +422,29 @@ the integer keys to index each state variable.</p>
 </li>
 <li><p>Runtime parameter files for the microphysics routines are parsed by <code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code></p>
 <ul class="simple" id="index-19">
-<li><p>This writes the Fortran module that holds the Microphysics runtime
-parameters, <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
+<li><p>This writes the routines that manage the Microphysics runtime
+parameters: <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code>, and  <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code></p></li>
 </ul>
 </li>
 <li><p>Castro’s runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">parse_castro_params.py</span></code></p>
 <ul class="simple" id="index-20">
-<li><p>This writes the Fortran module <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code>, which defines all
+<li><p>This writes the C++ header files that manage and read the runtime parameters and also
+creates the Fortran module <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code>, which defines all
 of the runtime parameters available to Fortran, from the template
 <code class="docutils literal notranslate"><span class="pre">meth_params.template</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/driver</span></code>. The file is output in
-<code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>. It also generates several C++
-headers and snippets of .cpp files that define the variables, and
-read them from the inputs file/command line, respectively, as well
-as the code needed to set the Fortran data correctly once the inputs
-have been read.</p></li>
+<code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code></p></li>
 </ul>
 </li>
 <li><p>Problem-specific runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">write_probdata.py</span></code></p>
 <ul class="simple">
 <li><p>If the problem directory defines a <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> then it is parsed
-and used to define the Fortran <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist that controls the
-runtime parameters for problem initialization. Either way, the namelist
-will include all variables in <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/_default_prob_params</span></code>.</p></li>
+and used to C++ header and source files <code class="docutils literal notranslate"><span class="pre">prob_parameters.H</span></code> and <code class="docutils literal notranslate"><span class="pre">prob_parameters.cpp</span></code>.
+These handle reading the <code class="docutils literal notranslate"><span class="pre">problem.*</span></code> parameters from the inputs file.
+Even without a problem-specific <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>, all of the
+variables in <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/_default_prob_params</span></code> will be included.</p></li>
 <li><p>The script <code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/write_probdata.py</span></code> is used</p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> rule.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> file is output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>

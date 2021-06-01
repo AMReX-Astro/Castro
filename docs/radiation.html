@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -306,7 +306,7 @@ is that you must set <code class="docutils literal notranslate"><span class="pre
 <h3>EOS<a class="headerlink" href="#eos" title="Permalink to this headline">¶</a></h3>
 <p>Castro provides several types of equation of state (EOS), including
 gamma-law and Helmholtz. To use the gamma-law EOS, set</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EOS_DIR</span> <span class="o">:=</span> <span class="n">gamma_law_general</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EOS_DIR</span> <span class="o">:=</span> <span class="n">gamma_law</span>
 </pre></div>
 </div>
 <p>in the GNUmakefile.</p>
@@ -377,59 +377,52 @@ to be very different.</p>
 <ul>
 <li><p>For the Planck opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
-These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.
-<code class="docutils literal notranslate"><span class="pre">const_kappa_p</span></code> must be set positive to be used.</p>
+These are set via the <code class="docutils literal notranslate"><span class="pre">opacity</span></code> namespace in the inputs file.
+<code class="docutils literal notranslate"><span class="pre">opacity.const_kappa_p</span></code> must be set positive to be used.</p>
 <ul class="simple">
-<li><p>const_kappa_p = -1.0</p></li>
-<li><p>kappa_p_exp_m = 0.0</p></li>
-<li><p>kappa_p_exp_n = 0.0</p></li>
-<li><p>kappa_p_exp_p = 0.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.const_kappa_p</span> <span class="pre">=</span> <span class="pre">-1.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_p_exp_m</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_p_exp_n</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_p_exp_p</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
 </ul>
 </li>
 <li><p>For the Rosseland opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
-These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.
-<code class="docutils literal notranslate"><span class="pre">const_kappa_r</span></code> must be set positive to be used.</p>
+These are set via the <code class="docutils literal notranslate"><span class="pre">opacity</span></code> namespace in the inputs file.
+<code class="docutils literal notranslate"><span class="pre">opacity.const_kappa_r</span></code> must be set positive to be used.</p>
 <ul class="simple">
-<li><p>const_kappa_r = -1.0</p></li>
-<li><p>kappa_r_exp_m = 0.0</p></li>
-<li><p>kappa_r_exp_n = 0.0</p></li>
-<li><p>kappa_r_exp_p = 0.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.const_kappa_r</span> <span class="pre">=</span> <span class="pre">-1.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_r_exp_m</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_r_exp_n</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_r_exp_p</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
 </ul>
 </li>
 <li><p>For the scattering coefficient of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
-These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.</p>
+These are set via the <code class="docutils literal notranslate"><span class="pre">opacity</span></code> namespace in the inputs file.</p>
 <ul class="simple">
-<li><p>const_scatter = 0.0</p></li>
-<li><p>scatter_exp_m = 0.0</p></li>
-<li><p>scatter_exp_n = 0.0</p></li>
-<li><p>scatter_exp_p = 0.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.const_scatter</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.scatter_exp_m</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.scatter_exp_n</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.scatter_exp_p</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
 </ul>
 </li>
 <li><p>Since the formula above, <a class="reference internal" href="#equation-eq-kappa">(25)</a>, is non-physical and
 singular, we must set some floors in practice to prevent
 numerical issues. We have one floor for the opacity, which is
 applied to both the Planck and Rosseland opacities, and we
-also have a temperature floor. These are also set in the
-<code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.</p>
+also have a temperature floor.</p>
 <ul class="simple">
-<li><p>kappa_floor = 1.d-50</p></li>
-<li><p>rad_temp_floor = 0.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.kappa_floor</span> <span class="pre">=</span> <span class="pre">1.d-50</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opacity.rad_temp_floor</span> <span class="pre">=</span> <span class="pre">0.0</span></code></p></li>
 </ul>
 </li>
-<li><p>radiation.do_kappa_stm_emission = 0</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">radiation.do_kappa_stm_emission</span> <span class="pre">=</span> <span class="pre">0</span></code></p>
 <p>If it is 1, correction for stimulated emission is applied to Planck mean as
 follows</p>
 <div class="math notranslate nohighlight">
 \[\kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
     \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].\]</div>
-</li>
-<li><p>radiation.surface_average = 2</p>
-<p>How the averaging of opacity is done from faces to center for
-the radiation solver. 0 is arithmetic averaging, 1
-is harmonic averaging, and 2 is a combination of the two.
-This is implemented in <code class="docutils literal notranslate"><span class="pre">RAD_?D.F</span></code> in kavg.</p>
 </li>
 </ul>
 <p>Note that the unit for opacities is <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span>. For

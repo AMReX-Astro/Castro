@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -115,7 +116,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
@@ -252,8 +252,8 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="problem__bc__fill_8H_1a3d720f84f91971bb9aff4a7264e0f78d"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">problem_bc_fill</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">Array1D&lt;</span> <span class="pre">BCRec,</span> <span class="pre">0,</span> <span class="pre">NUM_STATE-1</span> <span class="pre">&gt;</span> <span class="pre">bcs,</span> <span class="pre">GeometryData</span> <span class="pre">geomdata)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="problem__bc__fill_8H_1a3d720f84f91971bb9aff4a7264e0f78d"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">problem_bc_fill</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">Array1D&lt;</span> <span class="pre">BCRec,</span> <span class="pre">0,</span> <span class="pre">NUM_STATE-1</span> <span class="pre">&gt;</span> <span class="pre">bcs,</span> <span class="pre">GeometryData</span> <span class="pre">geomdata)</span></span></dt>
 <dd><p>Problem-specific boundary condition fill</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

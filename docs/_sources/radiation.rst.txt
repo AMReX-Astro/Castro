@@ -79,7 +79,7 @@ gamma-law and Helmholtz. To use the gamma-law EOS, set
 
 ::
 
-    EOS_DIR := gamma_law_general
+    EOS_DIR := gamma_law
 
 in the GNUmakefile.
 
@@ -165,54 +165,53 @@ The parameters describing the opacity include:
 
 -  For the Planck opacity of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents.
-   These are set in the ``extern`` namelist in your probin file.
-   ``const_kappa_p`` must be set positive to be used.
+   These are set via the ``opacity`` namespace in the inputs file.
+   ``opacity.const_kappa_p`` must be set positive to be used.
 
-   -  const_kappa_p = -1.0
+   -  ``opacity.const_kappa_p = -1.0``
 
-   -  kappa_p_exp_m = 0.0
+   -  ``opacity.kappa_p_exp_m = 0.0``
 
-   -  kappa_p_exp_n = 0.0
+   -  ``opacity.kappa_p_exp_n = 0.0``
 
-   -  kappa_p_exp_p = 0.0
+   -  ``opacity.kappa_p_exp_p = 0.0``
 
 -  For the Rosseland opacity of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents.
-   These are set in the ``extern`` namelist in your probin file.
-   ``const_kappa_r`` must be set positive to be used.
+   These are set via the ``opacity`` namespace in the inputs file.
+   ``opacity.const_kappa_r`` must be set positive to be used.
 
-   -  const_kappa_r = -1.0
+   -  ``opacity.const_kappa_r = -1.0``
 
-   -  kappa_r_exp_m = 0.0
+   -  ``opacity.kappa_r_exp_m = 0.0``
 
-   -  kappa_r_exp_n = 0.0
+   -  ``opacity.kappa_r_exp_n = 0.0``
 
-   -  kappa_r_exp_p = 0.0
+   -  ``opacity.kappa_r_exp_p = 0.0``
 
 -  For the scattering coefficient of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents.
-   These are set in the ``extern`` namelist in your probin file.
+   These are set via the ``opacity`` namespace in the inputs file.
 
-   -  const_scatter = 0.0
+   -  ``opacity.const_scatter = 0.0``
 
-   -  scatter_exp_m = 0.0
+   -  ``opacity.scatter_exp_m = 0.0``
 
-   -  scatter_exp_n = 0.0
+   -  ``opacity.scatter_exp_n = 0.0``
 
-   -  scatter_exp_p = 0.0
+   -  ``opacity.scatter_exp_p = 0.0``
 
 -  Since the formula above, :eq:`eq:kappa`, is non-physical and
    singular, we must set some floors in practice to prevent
    numerical issues. We have one floor for the opacity, which is
    applied to both the Planck and Rosseland opacities, and we
-   also have a temperature floor. These are also set in the
-   ``extern`` namelist in your probin file.
+   also have a temperature floor. 
 
-   -  kappa_floor = 1.d-50
+   -  ``opacity.kappa_floor = 1.d-50``
 
-   -  rad_temp_floor = 0.0
+   -  ``opacity.rad_temp_floor = 0.0``
 
--  radiation.do_kappa_stm_emission = 0
+-  ``radiation.do_kappa_stm_emission = 0``
 
    If it is 1, correction for stimulated emission is applied to Planck mean as
    follows
@@ -221,13 +220,6 @@ The parameters describing the opacity include:
 
       \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
           \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
-
--  radiation.surface_average = 2
-
-   How the averaging of opacity is done from faces to center for
-   the radiation solver. 0 is arithmetic averaging, 1
-   is harmonic averaging, and 2 is a combination of the two.
-   This is implemented in ``RAD_?D.F`` in kavg.
 
 Note that the unit for opacities is :math:`\mathrm{cm}^{-1}`. For
 the gray solver, the total opacity in the diffusion coefficient is the sum

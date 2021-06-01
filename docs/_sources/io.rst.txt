@@ -517,10 +517,10 @@ simulation time, and “0.005” is the level-0 time step. This file
 can be plotted very easily to monitor the time step.
 
 
+.. _sec:parallel_io:
+
 Parallel I/O
 ------------
-
-.. _sec:parallel_io:
 
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.

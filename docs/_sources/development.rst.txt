@@ -43,7 +43,7 @@ C++ to Fortran
 
   .. code:: fortran
 
-     subroutine subroutine_name(args) bind(C, name="subroutine_name)
+     subroutine subroutine_name(args) bind(C, name="subroutine_name")
 
 * Data passed by reference from C++ should use ``*`` and not ``&``.
 
@@ -196,11 +196,7 @@ submodule to the Castro PR, then merge. A similar process applies for AMReX.
 Continuous Integration
 ======================
 
-We use Travis CI to run integration tests on the code and to build and deploy the documentation. The current status of these tests on the development branch can be found here:
+We github actions to run integration tests on the code and to build and deploy the documentation.
 
-.. image:: https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development
-   :target: https://travis-ci.com/AMReX-Astro/Castro
+Currently, we run the `clang static analyzer <https://clang-analyzer.llvm.org/>`_, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch. 
 
-Currently, travis runs the `clang static analyzer <https://clang-analyzer.llvm.org/>`_, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch. 
-
-The travis build settings can be found in the ``.travis.yml`` file.

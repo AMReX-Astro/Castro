@@ -30,10 +30,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -117,7 +118,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">MHD</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -223,7 +223,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Castro implements a constrained transport (CT) corner transport upwind
 (CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
-<span id="id1">[<a class="reference internal" href="zreferences.html#id50">5</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">5</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
 the source terms supported by the hydrodynamics solver are also
@@ -280,11 +280,12 @@ in the x-direction this would be <span class="math notranslate nohighlight">\(q_
 </div>
 <div class="section" id="problem-initialization">
 <h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
-<p id="index-0">There is an additional initialization routine for MHD, <code class="docutils literal notranslate"><span class="pre">ca_initmag</span></code>
+<p id="index-0">There is an additional initialization routine for MHD,
+<code class="docutils literal notranslate"><span class="pre">problem_initialize_mhd_data()</span></code>,
 that is used to initialize the face-centered magnetic field
 components.  This is done separately from the main conserved fluid
 state.</p>
-<p>The conserved fluid state is initialized in <code class="docutils literal notranslate"><span class="pre">ca_initdata</span></code> just as
+<p>The conserved fluid state is initialized in <code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data()</span></code> just as
 with pure hydrodynamics problems. Note that you do not need to include
 the magnetic energy contribution to the total energy density, <code class="docutils literal notranslate"><span class="pre">UEDEN</span></code>.
 After this initialization, the driver handles the addition of the magnetic
@@ -312,7 +313,7 @@ characteristic variables (the default) or the primitive variables.</p>
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this headline">¶</a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51">33</a>]</span>.  The updated electric field then
+first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">34</a>]</span>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </div>

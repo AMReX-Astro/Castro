@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -119,7 +120,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -222,7 +222,7 @@ nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
-AMReX library.</p>
+AMReX library <span id="id1">[<a class="reference internal" href="zreferences.html#id69" title="Weiqun Zhang, Ann Almgren, Vince Beckner, John Bell, Johannes Blaschke, Cy Chan, Marcus Day, Brian Friesen, Kevin Gott, Daniel Graves, Max P. Katz, Andrew Myers, Tan Nguyen, Andrew Nonaka, Michele Rosso, Samuel Williams, and Michael Zingale. Amrex: a framework for block-structured adaptive mesh refinement. Journal of Open Source Software, 4(37):1370, 2019. URL: https://doi.org/10.21105/joss.01370, doi:10.21105/joss.01370.">11</a>]</span>.</p>
 <p>The core algorithms in Castro are described in a series of papers:</p>
 <blockquote>
 <div><ul class="simple">
@@ -287,9 +287,9 @@ local copy, and issue a pull-request to the AMReX-Astro/Castro
 project. Further guidelines are given in the <a class="reference external" href="https://github.com/AMReX-Astro/Castro/blob/main/README.md">README.md</a> file.</p>
 <div class="section" id="getting-help">
 <h2>Getting Help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
-<p>To get help, subscribe to the <em>castro-help</em> google group mailing list:
-<a class="reference external" href="https://groups.google.com/forum/#!forum/castro-help">https://groups.google.com/forum/#!forum/castro-help</a></p>
-<p>You can also post issues on the project github page.</p>
+<p>We use github discussions to ask questions about the code and get help:</p>
+<p><a class="reference external" href="https://github.com/AMReX-Astro/Castro/discussions">https://github.com/AMReX-Astro/Castro/discussions</a></p>
+<p>You can also post issues on the github page to report bugs.</p>
 </div>
 <div class="section" id="acknowledging-and-citing-castro">
 <h2>Acknowledging and Citing Castro<a class="headerlink" href="#acknowledging-and-citing-castro" title="Permalink to this headline">¶</a></h2>

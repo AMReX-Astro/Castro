@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -115,7 +116,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
@@ -261,7 +261,7 @@ style guidelines.</p>
 <ul>
 <li><p>All C to Fortran interfaces should use the ISO C binding.  The
 Fortran subroutine should use</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span>subroutine subroutine_name(args) bind(C, name=&quot;subroutine_name)
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -396,10 +396,8 @@ submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
 </div>
 <div class="section" id="continuous-integration">
 <h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this headline">¶</a></h2>
-<p>We use Travis CI to run integration tests on the code and to build and deploy the documentation. The current status of these tests on the development branch can be found here:</p>
-<a class="reference external image-reference" href="https://travis-ci.com/AMReX-Astro/Castro"><img alt="https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development" src="https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development" /></a>
-<p>Currently, travis runs the <a class="reference external" href="https://clang-analyzer.llvm.org/">clang static analyzer</a>, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch.</p>
-<p>The travis build settings can be found in the <code class="docutils literal notranslate"><span class="pre">.travis.yml</span></code> file.</p>
+<p>We github actions to run integration tests on the code and to build and deploy the documentation.</p>
+<p>Currently, we run the <a class="reference external" href="https://clang-analyzer.llvm.org/">clang static analyzer</a>, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch.</p>
 </div>
 </div>
 
