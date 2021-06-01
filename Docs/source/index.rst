@@ -35,7 +35,6 @@ https://github.com/amrex-astro/Castro
 
    build_system
    debugging
-   gpu_porting
    Hydrodynamics
    mhd
    gravity
@@ -70,5 +69,8 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
+
 .. * :ref:`modindex`
+
 * :ref:`search`
+

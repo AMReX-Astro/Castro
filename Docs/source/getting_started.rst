@@ -22,8 +22,7 @@ general requirements to build Castro are:
 
  * GNU make (>= 3.82)
 
-GCC and the PGI compilers are the main compiler suites used by the
-developers.
+GCC is the main compiler suite used by the developers.
 
 For running in parallel, an MPI library is required.  For running on GPUs,
 CUDA 11 or later is required.  More information on parallel builds
@@ -53,9 +52,11 @@ is installed on your machine—we recommend version 1.7.x or higher.
    Microphysics repository from the starkiller-astro organization.
    AMReX adds the necessary code for the driver code for the simulation,
    while Microphysics adds the equations of state, reaction
-   networks, and other microphysics needed to run Castro. If you forget
-   to do a recursive clone, you can rectify the situation by running
-   the following from the top-level of the Castro directory::
+   networks, and other microphysics needed to run Castro.
+
+   If you forget to do a recursive clone, you can rectify the
+   situation by running the following from the top-level of the Castro
+   directory::
 
        git submodule update --init --recursive
 
@@ -79,6 +80,8 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
        export CASTRO_HOME="/path/to/Castro/"
 
+   (or use the analogous form for a different shell).
+
 #. You can keep the code up to date with::
 
        git pull --recurse-submodules
@@ -87,7 +90,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
    stable ``main`` branch of the code; we issue a new release of the code
    at the beginning of each month.
 
-#. (optional, for developers) If you prefer, you can maintain AMReX and
+#. *optional, for developers*: If you prefer, you can maintain AMReX and
    Microphysics as standalone repositories rather than as git submodules.
    To do so, you can clone them from GitHub using::
 

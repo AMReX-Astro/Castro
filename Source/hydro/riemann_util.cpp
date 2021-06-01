@@ -135,8 +135,10 @@ Castro::store_godunov_state(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-    // the hybrid routine uses the Godunov indices, not the full NQ state
+
+#ifdef HYBRID_MOMENTUM
     qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO);
+#endif
     qgdnv(i,j,k,GDU) = qint(i,j,k,QU);
     qgdnv(i,j,k,GDV) = qint(i,j,k,QV);
     qgdnv(i,j,k,GDW) = qint(i,j,k,QW);

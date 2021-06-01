@@ -90,7 +90,7 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 1;
@@ -148,9 +148,8 @@ Castro::initialize_do_advance(Real time)
         define_new_center(get_old_data(State_Type), time);
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       swap_outflow_data();
        int is_new = 0;
        make_radial_data(is_new);
     }
@@ -214,7 +213,7 @@ Castro::finalize_do_advance()
     if (!do_hydro && Radiation::rad_hydro_combined) {
         MultiFab& Er_old = get_old_data(Rad_Type);
         MultiFab& Er_new = get_new_data(Rad_Type);
-        Er_new.copy(Er_old);
+        MultiFab::Copy(Er_new, Er_old, 0, 0, Er_old.nComp(), 0);
     }
 #endif
 
@@ -284,16 +283,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // This array holds the sum of all source terms that affect the
-    // hydrodynamics.
-
-    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
     // This array holds the source term corrector.
 
-    source_corrector.define(grids, dmap, NSRC, NUM_GROW);
-    source_corrector.setVal(0.0, NUM_GROW);
+    source_corrector.define(grids, dmap, NSRC, NUM_GROW_SRC);
+    source_corrector.setVal(0.0, NUM_GROW_SRC);
 
     // Swap the new data from the last timestep into the old state data.
 
@@ -396,7 +389,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
     }
@@ -404,7 +397,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
         }
     }
@@ -444,7 +437,6 @@ Castro::finalize_advance()
 #endif
 
     source_corrector.clear();
-    sources_for_hydro.clear();
 
     if (!keep_prev_state) {
         amrex::FillNull(prev_state);

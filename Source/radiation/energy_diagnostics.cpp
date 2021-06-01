@@ -54,7 +54,7 @@ Castro::do_energy_diagnostics()
 
     // Geometric corrections:
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     if (Geom().IsSPHERICAL()) {
       // Internal to the radiation class, fluxes in flux registers have
       // been weighted by r^2 in spherical coords.  We multiply by an
@@ -64,7 +64,7 @@ Castro::do_energy_diagnostics()
       rr  *= (4.0 * M_PI);
       rry *= (4.0 * M_PI);
     }
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
     if (Geom().IsRZ()) {
       // Internal to the radiation class, fluxes in flux registers have
       // been weighted by r in RZ coordinates.  We multiply by an

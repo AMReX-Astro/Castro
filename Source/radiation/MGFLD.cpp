@@ -442,7 +442,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            MultiFab& kappa_p, MultiFab& kappa_r,
                            MultiFab& etaT, MultiFab& eta1,
                            MultiFab& mugT,
-                           Array<MultiFab, BL_SPACEDIM>& lambda,
+                           Array<MultiFab, AMREX_SPACEDIM>& lambda,
                            RadSolve* solver, MGRadBndry& mgbd, 
                            const BoxArray& grids, int level, Real time, 
                            Real delta_t, Real ptc_tau)
@@ -548,8 +548,8 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   const DistributionMapping& dm = castro->DistributionMap();
 
   // B & C coefficients
-  Array<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  Array<MultiFab, AMREX_SPACEDIM> bcoefs, ccoefs, bcgrp;
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
     const BoxArray& edge_boxes = castro->getEdgeBoxArray(idim);
 
     bcoefs[idim].define(edge_boxes, dm, 1, 0);
@@ -564,7 +564,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
 
   for (int igroup = 0; igroup < nGroups; igroup++) {
-    for (int idim=0; idim<BL_SPACEDIM; idim++) {
+    for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
       solver->computeBCoeffs(bcgrp[idim], idim, kappa_r, igroup,
                             lambda[idim], igroup, c, geom);
       // metrics is already in bcgrp
@@ -630,7 +630,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
     }
   }
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
     solver->setLevelBCoeffs(level, bcoefs[idim], idim);
 
     if (nGroups > 1) {
@@ -782,6 +782,10 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
       }
   }
 
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -789,14 +793,34 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
   {
       const Box& reg  = mfi.tilebox();
 
-      BL_FORT_PROC_CALL(CA_STATE_UPDATE, ca_state_update)
-          (reg.loVect(), reg.hiVect(),
-           BL_TO_FORTRAN(state[mfi]),
-           BL_TO_FORTRAN(rhoe[mfi]),
-           BL_TO_FORTRAN(temp[mfi]),
-           BL_TO_FORTRAN(msk[mfi]),
-           &derat, &dT);
+      auto state_arr = state[mfi].array();
+      auto temp_arr = temp[mfi].array();
+      auto rhoe_arr = rhoe[mfi].array();
+      auto msk_arr = msk[mfi].array();
+
+      reduce_op.eval(reg, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+      {
+          Real ei = state_arr(i,j,k,UEINT);
+          Real derat_loc = std::abs((rhoe_arr(i,j,k) - ei) *
+                                    msk_arr(i,j,k) / (ei + 1.e-50_rt));
+          Real ek = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
+          state_arr(i,j,k,UEINT) = rhoe_arr(i,j,k);
+          state_arr(i,j,k,UEDEN) = rhoe_arr(i,j,k) + ek;
+
+          Real Told = state_arr(i,j,k,UTEMP);
+          Real dTrat_loc = std::abs((temp_arr(i,j,k) - Told) *
+                                    msk_arr(i,j,k) / (Told + 1.e-50_rt));
+          state_arr(i,j,k,UTEMP) = temp_arr(i,j,k);
+
+          return {derat_loc, dTrat_loc};
+      });
+
   }
+
+  ReduceTuple hv = reduce_data.value();
+  derat = amrex::get<0>(hv);
+  dT = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(derat);
   ParallelDescriptor::ReduceRealMax(dT);
@@ -1029,11 +1053,11 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
             SGFLD_compute_rosseland(kappa_r, state);
         }
 
-        int im = 1, ip = 1, jm = 1, jp = 1, km = 1, kp = 1;
-        Real xm = 2.0_rt, xp = 2.0_rt, ym = 2.0_rt, yp = 2.0_rt, zm = 2.0_rt, zp = 2.0_rt;
-
         // Calculate offsets for the case where we don't have enough points
         // to calculate a centered difference. In that case we'll do one-sided.
+
+        int im = 1, ip = 1;
+        Real xm = 2.0_rt, xp = 2.0_rt;
 
         if (!(gPr.box().loVect()[0] - 1 >= box.loVect()[0])) {
             im = 0;
@@ -1046,6 +1070,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
         }
 
 #if AMREX_SPACEDIM >= 2
+        int jm = 1, jp = 1;
+        Real ym = 2.0_rt, yp = 2.0_rt;
+
         if (!(gPr.box().loVect()[1] - 1 >= box.hiVect()[1])) {
             jm = 0;
             ym = 1.0_rt;
@@ -1058,6 +1085,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
 #endif
 
 #if AMREX_SPACEDIM == 3
+        int km = 1, kp = 1;
+        Real zm = 2.0_rt, zp = 2.0_rt;
+
         if (!(gPr.box().loVect()[2] - 1 >= box.hiVect()[2])) {
             km = 0;
             zm = 1.0_rt;
@@ -1069,7 +1099,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
         }
 #endif
 
-        amrex::ParallelFor(box,
+        amrex::ParallelFor(gPr.box(),
         [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
         AMREX_GPU_DEVICE (int i, int j, int k)
         {

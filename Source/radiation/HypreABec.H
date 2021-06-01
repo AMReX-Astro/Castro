@@ -204,9 +204,9 @@ class HypreABec {
   const amrex::Geometry& geom;
 
   std::unique_ptr<amrex::MultiFab> acoefs;
-  std::unique_ptr<amrex::MultiFab> bcoefs[BL_SPACEDIM];
+  std::unique_ptr<amrex::MultiFab> bcoefs[AMREX_SPACEDIM];
   amrex::Real alpha, beta;
-  amrex::Real dx[BL_SPACEDIM];
+  amrex::Real dx[AMREX_SPACEDIM];
   amrex::Real reltol, abstol;
 
   std::unique_ptr<amrex::MultiFab> SPa; ///< LO_SANCHEZ_POMRANING alpha

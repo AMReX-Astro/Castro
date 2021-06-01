@@ -27,17 +27,9 @@ module meth_params_module
   integer, parameter :: ConstantGrav = 0
   integer, parameter :: MonopoleGrav = 1
   integer, parameter :: PoissonGrav = 2
-  integer, parameter :: PrescribedGrav = 3
 #endif
 
   integer, save :: numpts_1d
-
-  real(rt), save, allocatable :: outflow_data_old(:,:)
-  real(rt), save, allocatable :: outflow_data_new(:,:)
-  real(rt), save :: outflow_data_old_time
-  real(rt), save :: outflow_data_new_time
-  logical,  save :: outflow_data_allocated
-  real(rt), save :: max_dist
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
@@ -50,8 +42,6 @@ module meth_params_module
   ! End the declarations of the ParmParse parameters
 
   character (len=:), allocatable :: dummy_string_param
-
-  real(rt), save :: rot_vec(3)
 
 contains
 
@@ -84,8 +74,6 @@ contains
        gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
        gravity_type_int = PoissonGrav
-    else if (gravity_type == "PrescribedGrav") then
-       gravity_type_int = PrescribedGrav
     else
        call castro_error("Unknown gravity type")
     end if

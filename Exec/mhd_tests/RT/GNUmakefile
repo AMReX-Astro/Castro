@@ -19,7 +19,7 @@ USE_MHD = TRUE
 CASTRO_HOME  := ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
-EOS_DIR     := gamma_law_general
+EOS_DIR     := gamma_law
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/Networks
 NETWORK_DIR := general_null
