@@ -239,16 +239,14 @@ converted to an angular frequency for use in the source term
 equations.</p>
 <p>The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">center</span></code>, which is typically
-defined in a <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> routine, to the typical “vertical
-direction.” The vertical direction is defined as follows:</p>
+default axis of rotation points from <code class="docutils literal notranslate"><span class="pre">problem::center</span></code> in the vertical direction.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
-appropriately for you problem.  This can be done either by directly
-setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
-<code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">problem::center()</span></code> variable
+appropriately for you problem.  This can be done by directly
+setting it in the <code class="docutils literal notranslate"><span class="pre">problem_initialize()</span></code> function.</p>
 </div>
+<p>The “vertical direction” is defined as follows:</p>
 <ul class="simple">
 <li><p>2D</p>
 <ul>

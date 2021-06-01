@@ -137,7 +137,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#amrex-constants-module"><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fundamental-constants-module"><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#meth-params-module"><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#prob-params-module"><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -392,11 +391,11 @@ directly, with the exception of the <code class="docutils literal notranslate"><
 which is defined as part of the <code class="docutils literal notranslate"><span class="pre">AmrLevel</span></code> class that <code class="docutils literal notranslate"><span class="pre">Castro</span></code>
 inherits. <code class="docutils literal notranslate"><span class="pre">grids</span></code> is used when building new <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> to give
 the layout of the boxes at the current level.</p>
-<div class="figure align-default" id="id7">
+<div class="figure align-default" id="id5">
 <span id="fig-soft-indexspace"></span><a class="reference internal image-reference" href="_images/index_grid2.png"><img alt="_images/index_grid2.png" src="_images/index_grid2.png" style="width: 4in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Three boxes that comprise a single level. At this
 resolution, the domain is 20 <span class="math notranslate nohighlight">\(\times\)</span> 18 zones. Note that the
-indexing in AMReX starts with <span class="math notranslate nohighlight">\(0\)</span>.</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+indexing in AMReX starts with <span class="math notranslate nohighlight">\(0\)</span>.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> or <em>FAB</em>, for <em>Fortran array box</em> is a data
 structure that contains a <code class="docutils literal notranslate"><span class="pre">Box</span></code> locating it in space, as well as a
@@ -682,7 +681,7 @@ are part of. Note: <code class="docutils literal notranslate"><span class="pre">
 first argument, which is the object that contains the relevant
 <code class="docutils literal notranslate"><span class="pre">StateData</span></code> —that is what the this pointer indicates.
 Finally, we are copying the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data components 0 to
-<code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> <a class="footnote-reference brackets" href="#id5" id="id1">3</a>.</p>
+<code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> <a class="footnote-reference brackets" href="#id3" id="id1">1</a>.</p>
 <p>The result of this operation is that <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> will now have
 <code class="docutils literal notranslate"><span class="pre">NUM_GROW</span></code> ghost cells consistent with the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code>
 data at the old time-level.</p>
@@ -773,7 +772,7 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 </div>
 <div class="section" id="physical-boundaries">
 <span id="soft-phys-bcs"></span><h3>Physical Boundaries<a class="headerlink" href="#physical-boundaries" title="Permalink to this headline">¶</a></h3>
-<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id6" id="id2">4</a> in
+<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id4" id="id2">2</a> in
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -801,8 +800,8 @@ boundary), then you choose an <em>inflow</em> boundary at that face of
 the domain. You then need to write the implementation code for this.
 There is a centralized hydrostatic boundary condition that is implemented
 this way—see <a class="reference internal" href="creating_a_problem.html#create-bcs"><span class="std std-ref">Boundary Conditions</span></a>.</p>
-<span id="table-castro-bcs"></span><table class="docutils align-default" id="id8">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<span id="table-castro-bcs"></span><table class="docutils align-default" id="id6">
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 19%" />
 <col style="width: 19%" />
@@ -921,60 +920,13 @@ and primitive variables (<code class="docutils literal notranslate"><span class=
 the number of scalar variables.</p>
 <p>It also provides the values of most of the <code class="docutils literal notranslate"><span class="pre">castro.*xxxx*</span></code>
 runtime parameters.</p>
-</div>
-<div class="section" id="prob-params-module">
-<span id="soft-prob-params"></span><h3><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code><a class="headerlink" href="#prob-params-module" title="Permalink to this headline">¶</a></h3>
-<p>This module stores information about the domain and current level, and
-is periodically synced up with the C++ driver. The information
-available here is:</p>
-<blockquote>
-<div><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">physbc_lo</span></code>, <code class="docutils literal notranslate"><span class="pre">physbc_hi</span></code>: these are the boundary
-condition types at the low and high ends of the domain, for each
-coordinate direction. Integer keys, <code class="docutils literal notranslate"><span class="pre">Interior</span></code>, <code class="docutils literal notranslate"><span class="pre">Inflow</span></code>,
-<code class="docutils literal notranslate"><span class="pre">Outflow</span></code>, <code class="docutils literal notranslate"><span class="pre">Symmetry</span></code>, <code class="docutils literal notranslate"><span class="pre">SlipWall</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">NoSlipWall</span></code> allow you to interpret the values.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">center</span></code> is the center of the problem. Note—this is up
-to the problem setup to define (in the <code class="docutils literal notranslate"><span class="pre">probinit</span></code> subroutine).
-Alternately, it can be set at runtime via
-<code class="docutils literal notranslate"><span class="pre">castro.center</span></code>.</p>
-<p>Usually <code class="docutils literal notranslate"><span class="pre">center</span></code> will be the physical center of the domain,
-but not always. For instance, for axisymmetric problems,
-center may be on the symmetry axis.</p>
-<p><code class="docutils literal notranslate"><span class="pre">center</span></code> is used in the multipole gravity, hybrid advection
-algorithm, rotation sources, for the point mass gravity, in
-defining the center of the sponge, and in deriving the radial
-velocity.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">coord_type</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dim</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dg</span></code></p></li>
-<li><p><em>refining information</em></p></li>
-</ul>
-</div></blockquote>
 <dl class="footnote brackets">
-<dt class="label" id="id3"><span class="brackets">1</span></dt>
-<dd><p>Note: some older code will use a special AMReX preprocessor macro,
-<code class="docutils literal notranslate"><span class="pre">BL_TO_FORTRAN</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">ArrayLim.H</span></code>, that converts
-the C++ <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> into a Fortran array and its <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> indices.
-Additionally, some older code will wrap the Fortran subroutine name
-in an additional preprocessor macro, <code class="docutils literal notranslate"><span class="pre">BL_FORT_PROC_CALL</span></code>
-to handle the name mangling between Fortran and C. This later
-macro is generally not needed any more because of Fortran 2003
-interoperability with C (through the Fortran <code class="docutils literal notranslate"><span class="pre">bind</span></code> keyword).</p>
-</dd>
-<dt class="label" id="id4"><span class="brackets">2</span></dt>
-<dd><p>the way to read these complicated
-C declarations is right-to-left. So <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">int*</span> <span class="pre">lo</span></code> means
-<code class="docutils literal notranslate"><span class="pre">lo</span></code> is a integer pointer to a memory space that is constant. See
-<a class="reference external" href="https://isocpp.org/wiki/faq/const-correctness#ptr-to-const">https://isocpp.org/wiki/faq/const-correctness#ptr-to-const</a></p>
-</dd>
-<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id1">3</a></span></dt>
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>for clarity and continuity in this
 documentation, some of the variable names have been changed
 compared to the actual code</p>
 </dd>
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id2">4</a></span></dt>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
 <dd><p>the integer values are defined in <code class="docutils literal notranslate"><span class="pre">BC_TYPES.H</span></code></p>
 </dd>
 </dl>

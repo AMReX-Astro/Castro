@@ -258,10 +258,9 @@ file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
-appropriately for you problem.  This can be done either by directly
-setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
-<code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">problem::center[]</span></code> variable
+appropriately for you problem.  This can be done by directly
+setting it in the <code class="docutils literal notranslate"><span class="pre">problem_initialize()</span></code> function.</p>
 </div>
 </div>
 <div class="section" id="integration-strategy">
