@@ -336,10 +336,6 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  ca_set_problem_params(dm,
-                        coord_type,
-                        dgeom.ProbLo(), dgeom.ProbHi());
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
