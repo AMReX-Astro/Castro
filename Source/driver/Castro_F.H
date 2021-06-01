@@ -46,14 +46,6 @@ extern "C"
      const amrex::Real * dt);
 #endif
 
-
-
-
-/* sources */
-#include <Castro_sources_F.H>
-
-
-
 #ifdef __cplusplus
 }
 #endif
