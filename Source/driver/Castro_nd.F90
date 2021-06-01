@@ -120,7 +120,6 @@ subroutine ca_set_problem_params(dm, &
      ! Binds to C function `ca_set_problem_params`
 
   use amrex_constants_module, only: ZERO
-  use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
   use amrex_fort_module, only: rt => amrex_real
