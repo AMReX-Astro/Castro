@@ -232,10 +232,16 @@ def write_probin(prob_param_files, cxx_prefix):
         # we need access to _rt
         fout.write("        using namespace amrex;\n")
 
-        fout.write(f"       amrex::ParmParse pp(\"problem\");\n")
+        fout.write(f"        amrex::ParmParse pp(\"problem\");\n\n")
         for p in params:
-            if p.in_namelist:
+            if p.is_array():
+                fout.write(f"        for (int n = 0; n < {p.size}; n++) {{\n")
+                fout.write(f"            problem::{p.name}[n] = {p.default_format(lang='C++')};\n")
+                fout.write(f"        }}\n\n")
+            else:
                 fout.write(f"        {p.get_default_string()}")
+
+            if p.in_namelist:
                 fout.write(f"        {p.get_query_string('C++')}")
                 fout.write("\n")
         fout.write("    }\n")
