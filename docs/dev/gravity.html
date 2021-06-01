@@ -135,7 +135,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#poisson-boundary-conditions-3d">Poisson Boundary Conditions: 3D</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#prescribedgrav"><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#point-mass">Point Mass</a></li>
 </ul>
 </li>
@@ -250,10 +249,10 @@ via <code class="docutils literal notranslate"><span class="pre">castro.do_grav<
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
-<p>There are currently four options for how gravity is calculated,
+<p>There are currently three options for how gravity is calculated,
 controlled by setting <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code>. The options are
-<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> or
-<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>. Again, these are only relevant if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span> <span class="pre">=</span>
+<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, or <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>.
+Again, these are only relevant if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code> in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> = 1 in the inputs
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.</p>
@@ -342,8 +341,7 @@ Section <a class="reference external" href="#sec-poisson-3d-bcs">2.3.2</a>.</p><
 solves:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> : how should we calculate gravity?
-Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></p></li>
+Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, or <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.const_grav</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
 <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, set the value of constant gravity (default: 0.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> : <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
@@ -599,19 +597,6 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </ul>
 </div>
 </div>
-<div class="section" id="prescribedgrav">
-<h3><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code><a class="headerlink" href="#prescribedgrav" title="Permalink to this headline">¶</a></h3>
-<p>With PrescribedGrav <a class="footnote-reference brackets" href="#id8" id="id3">1</a>, gravity can be defined as a function that is
-specified by the user. The option is allowed in 2D and 3D. To define
-the gravity vector, copy <code class="docutils literal notranslate"><span class="pre">prescribe_grav_nd.f90</span></code> from
-<code class="docutils literal notranslate"><span class="pre">Source/gravity/</span></code> to your run directory. The makefile system will
-always choose this local copy of the file over the one in another
-directory.  Then define the components of gravity inside a loop over
-the grid inside the file. If your problem uses a radial gravity in the
-form <span class="math notranslate nohighlight">\(g(r)\)</span>, you can simply adapt
-<code class="docutils literal notranslate"><span class="pre">ca_prescribe_grav_gravityprofile</span></code>, otherwise you will have to adapt
-<code class="docutils literal notranslate"><span class="pre">ca_prescribe_grav</span></code>, both are located in <code class="docutils literal notranslate"><span class="pre">prescribed_grav_nd.90</span></code>.</p>
-</div>
 <div class="section" id="point-mass">
 <h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this headline">¶</a></h3>
 <p>Pointmass gravity works with all other forms of gravity, it is not a
@@ -637,14 +622,14 @@ back to the grid). This calculation is done in
 <div class="section" id="gr-correction">
 <h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this headline">¶</a></h2>
 <p>In the cases of compact objects or very massive stars, the general
-relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id9" id="id4">2</a>. First, we consider
+relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id7" id="id3">2</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<span id="id5">[<a class="reference internal" href="zreferences.html#id47">46</a>]</span>. For detailed physics, please refer to
-<span id="id6">[<a class="reference internal" href="zreferences.html#id48">63</a>]</span>. For describing very strong gravitational
+<span id="id4">[<a class="reference internal" href="zreferences.html#id47">46</a>]</span>. For detailed physics, please refer to
+<span id="id5">[<a class="reference internal" href="zreferences.html#id48">63</a>]</span>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -763,15 +748,10 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<span id="id7">[<a class="reference internal" href="zreferences.html#id19">43</a>]</span> for some more details.</p></li>
+<span id="id6">[<a class="reference internal" href="zreferences.html#id19">43</a>]</span> for some more details.</p></li>
 </ul>
 <dl class="footnote brackets">
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
-<dd><p>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
-option and text here were contributed by Jan Frederik Engels of
-University of Gottingen.</p>
-</dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
 <dd><p>Note: The GR
 code and text here were contributed by Ken Chen of Univ. of
 Minnesota.</p>
