@@ -26,8 +26,8 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
 
     // Establish the initial guess: a uniform density sphere
 
-    if (std::sqrt(xx * xx + yy * yy + zz * zz) < problem::radius) {
-        state(i,j,k,URHO) = problem::density;
+    if (std::sqrt(xx * xx + yy * yy + zz * zz) < castro::scf_equatorial_radius) {
+        state(i,j,k,URHO) = castro::scf_maximum_density;
     } else {
         state(i,j,k,URHO) = problem::ambient_dens;
     }

@@ -911,9 +911,6 @@ Castro::initMFs()
 
       problem_initialize();
 
-      // Sync Fortran back up with any changes we made to the problem parameters.
-      // If problem_initialize() didn't change them, this has no effect.
-      cxx_to_f90_prob_parameters();
     }
 
 }
@@ -4095,7 +4092,6 @@ Castro::define_new_center(MultiFab& S, Real time)
       problem::center[0] = 0;
     }
 
-    set_f90_center(problem::center);
 }
 
 void
