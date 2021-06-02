@@ -7,7 +7,7 @@
 
 module meth_params_module
 
-  use castro_error_module
+  use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
 
   ! this will import all of the indices into meth_params for convenience
@@ -36,6 +36,7 @@ contains
 
 
     @@set_castro_params@@
+
 
   end subroutine ca_set_castro_method_params
 
