@@ -21,7 +21,6 @@
 #endif
 #include <eos.H>
 #include <ambient.H>
-#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -205,28 +204,22 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
-  // read the probdata parameters
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
-
-  // read the problem parameters into Fortran
-
-  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
-
-  // initialize the C++ values of the runtime parameters.  This
-  // will copy them from the Fortran read and also directly read
-  // any values that were set in the inputs file
+  // initialize the C++ values of the problem-specific runtime parameters.
 
   init_prob_parameters();
 
-  // now sync up the Fortran -- if a parameter was defined in C++, we need
-  // to pass it back to Fortran
+  // check to make sure that we didn't set any parameters that don't
+  // exist in C++ (like because of misspelling).  All of the problem.*
+  // parameters should have been accessed via parmparse at this point.
 
-  cxx_to_f90_prob_parameters();
+  if (ParmParse::hasUnusedInputs("problem")) {
+      amrex::Print() << "Warning: the following problem.* parameters are ignored\n";
+      auto unused = ParmParse::getUnusedInputs("problem"); 
+      for (auto p: unused) {
+          amrex::Print() << p << "\n";
+      }
+      amrex::Print() << std::endl;
+  }
 
   // Read in the non-problem parameter input values to Fortran.
   ca_set_castro_method_params();
@@ -342,10 +335,6 @@ Castro::variableSetUp ()
   const Geometry& dgeom = DefaultGeometry();
 
   const int coord_type = dgeom.Coord();
-
-  ca_set_problem_params(dm,
-                        coord_type,
-                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use

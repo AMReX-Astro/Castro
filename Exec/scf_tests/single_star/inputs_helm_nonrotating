@@ -57,12 +57,6 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 1        # timesteps between plotfiles
 amr.derive_plot_vars  = ALL
 
-# problem initialization
-
-problem.density      = 1.0e6
-problem.radius       = 1.0e9
-problem.ambient_dens = 1.0e-8
-
 # refinement
 
 amr.refinement_indicators = denerr

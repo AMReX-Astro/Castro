@@ -24,11 +24,6 @@ extern "C"
 
   void ca_set_castro_method_params();
 
-  void ca_set_problem_params
-    (const int& dm,
-     const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi);
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -45,14 +40,6 @@ extern "C"
      const int* lo, const int* hi,
      const amrex::Real * dt);
 #endif
-
-
-
-
-/* sources */
-#include <Castro_sources_F.H>
-
-
 
 #ifdef __cplusplus
 }

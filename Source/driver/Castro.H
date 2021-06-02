@@ -10,7 +10,6 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 #include <Castro_util.H>
 
 using namespace castro;
