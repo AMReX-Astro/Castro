@@ -67,17 +67,20 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H: $(DEFAULT_PROB_PARAMETERS) $(wildca
 # Castro C++ parameters
 #------------------------------------------------------------------------------
 
-F90EXE_sources += meth_params_nd.F90
+CEXE_headers += castro_params.H
+
+# for dependency resolution
+$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
-METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
 
-$(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/castro_params.H: $(CPP_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 # for debugging
-test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90
+test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 #------------------------------------------------------------------------------
 # state variable info
