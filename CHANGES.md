@@ -14,6 +14,24 @@
 
    * The update_sponge_params hook has been removed. (#1716)
 
+   * The Fortran problem-specific source file, ext_src_nd.F90, has been
+     removed. Problem-specific sources should be implemented in C++ in
+     problem_source.H. (#1856)
+
+   * Support for the legacy tagging scheme based on probin parameters (denerr,
+     tempgrad, etc.) has been removed. These can be replaced with equivalent
+     tagging criteria constructed in the inputs file; see the docs or examples
+     in Exec/ to see how to use `amr.refinement_indicators`. (#1834)
+
+   * The Fortran set_problem_tags hook has been removed. The C++ replacement
+     is `problem_tagging()` in `problem_tagging.H`. (#1828)
+
+   * The PrescribedGrav functionality has been removed (not replaced with a C++
+     implementation). If you want to obtain the same functionality, you can use
+     a problem-defined source term (look for problem_source in the documentation)
+     and make the appropriate modification for applying it directly to the state
+     (e.g. the momentum source term is rho * g). (#1854)
+
    * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
      an implementation of rbndry has been removed. (#1743)
 

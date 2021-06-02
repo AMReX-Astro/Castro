@@ -260,10 +260,11 @@ The current ``StateData`` names Castro carries are:
    referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
-   In Fortran, the components of a FAB derived from ``State_Type``
-   is indexed using the integer keys defined in ``Castro_nd.F90``
-   and stored in ``meth_params_module``, e.g., ``URHO``, ``UMX``,
-   ``UMY``, ...
+   We access this data using an AMReX ``Array4`` type which is
+   of the form ``data(i,j,k,n)``, where ``n`` is the component.
+   The integer keys used to index the components are defined
+   in ``Source/driver/_variables`` (e.g., ``URHO``, ``UMX``,
+   ``UMY``, ...)
 
    .. note:: regardless of dimensionality, we always carry around all
       three velocity components. The “out-of-plane” components will
@@ -491,7 +492,7 @@ let’s consider the following scenarios:
    first argument, which is the object that contains the relevant
    ``StateData`` —that is what the this pointer indicates.
    Finally, we are copying the ``State_Type`` data components 0 to
-   ``NUM_STATE`` [3]_.
+   ``NUM_STATE`` [1]_.
 
    The result of this operation is that ``Sborder`` will now have
    ``NUM_GROW`` ghost cells consistent with the ``State_Type``
@@ -596,7 +597,7 @@ Physical Boundaries
 
 .. index:: boundary conditions
 
-Physical boundary conditions are specified by an integer index [4]_ in
+Physical boundary conditions are specified by an integer index [2]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -709,15 +710,6 @@ side of Castroor perform other useful tasks.
 This provides double precision constants as Fortran parameters, like
 ``ZERO``, ``HALF``, and ``ONE``.
 
-``extern_probin_module``
-------------------------
-
-This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the ``_parameters`` files
-in the external sources, parse them for runtime parameters, and build
-the module.
 
 ``fundamental_constants_module``
 --------------------------------
@@ -737,67 +729,11 @@ It also provides the values of most of the ``castro.*xxxx*``
 runtime parameters.
 
 
-
-.. _soft:prob_params:
-
-``prob_params_module``
-----------------------
-
-This module stores information about the domain and current level, and
-is periodically synced up with the C++ driver. The information
-available here is:
-
-   -  ``physbc_lo``, ``physbc_hi``: these are the boundary
-      condition types at the low and high ends of the domain, for each
-      coordinate direction. Integer keys, ``Interior``, ``Inflow``,
-      ``Outflow``, ``Symmetry``, ``SlipWall``, and
-      ``NoSlipWall`` allow you to interpret the values.
-
-   -  ``center`` is the center of the problem. Note—this is up
-      to the problem setup to define (in the ``probinit`` subroutine).
-      Alternately, it can be set at runtime via
-      ``castro.center``.
-
-      Usually ``center`` will be the physical center of the domain,
-      but not always. For instance, for axisymmetric problems,
-      center may be on the symmetry axis.
-
-      ``center`` is used in the multipole gravity, hybrid advection
-      algorithm, rotation sources, for the point mass gravity, in
-      defining the center of the sponge, and in deriving the radial
-      velocity.
-
-   -  ``coord_type``
-
-   -  ``dim``
-
-   -  ``dg``
-
-   -  *refining information*
-
-
-
 .. [1]
-   Note: some older code will use a special AMReX preprocessor macro,
-   ``BL_TO_FORTRAN``, defined in ``ArrayLim.H``, that converts
-   the C++ ``MultiFab`` into a Fortran array and its ``lo`` and ``hi`` indices.
-   Additionally, some older code will wrap the Fortran subroutine name
-   in an additional preprocessor macro, ``BL_FORT_PROC_CALL``
-   to handle the name mangling between Fortran and C. This later
-   macro is generally not needed any more because of Fortran 2003
-   interoperability with C (through the Fortran ``bind`` keyword).
-
-.. [2]
-   the way to read these complicated
-   C declarations is right-to-left. So ``const int* lo`` means
-   ``lo`` is a integer pointer to a memory space that is constant. See
-   https://isocpp.org/wiki/faq/const-correctness#ptr-to-const
-
-.. [3]
    for clarity and continuity in this
    documentation, some of the variable names have been changed
    compared to the actual code
 
-.. [4]
+.. [2]
    the integer values are defined in ``BC_TYPES.H``
 

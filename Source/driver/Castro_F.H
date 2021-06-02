@@ -24,13 +24,6 @@ extern "C"
 
   void ca_set_castro_method_params();
 
-  void ca_set_problem_params
-    (const int& dm,
-     const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_get_tagging_params(const int* name, const int* namlen);
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -46,19 +39,6 @@ extern "C"
      BL_FORT_FAB_ARG(state_new),
      const int* lo, const int* hi,
      const amrex::Real * dt);
-#endif
-
-
-
-
-/* sources */
-#include <Castro_sources_F.H>
-
-
-
-/* SCF */
-#ifdef GRAVITY
-#include <scf_relax_F.H>
 #endif
 
 #ifdef __cplusplus

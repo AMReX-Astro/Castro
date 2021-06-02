@@ -110,11 +110,10 @@ Gravity::read_params ()
 
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
-             (gravity::gravity_type != "MonopoleGrav") &&
-             (gravity::gravity_type != "PrescribedGrav") )
+             (gravity::gravity_type != "MonopoleGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
-                amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
+                amrex::Abort("Options are ConstantGrav, PoissonGrav, or MonopoleGrav");
              }
 
         if (  gravity::gravity_type == "ConstantGrav")
@@ -123,7 +122,7 @@ Gravity::read_params ()
               amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
         if (gravity::gravity_type == "PoissonGrav")
         {
           amrex::Abort(" gravity::gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity::gravity_type = MonopoleGrav");
@@ -137,7 +136,7 @@ Gravity::read_params ()
           amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
         }
 
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
         if (gravity::gravity_type == "MonopoleGrav" && dgeom.IsCartesian() )
         {
           amrex::Abort(" gravity::gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
@@ -302,12 +301,12 @@ Gravity::install_level (int                   level,
 
        const DistributionMapping& dm = level_data->DistributionMap();
 
-       grad_phi_prev[level].resize(BL_SPACEDIM);
-       for (int n=0; n<BL_SPACEDIM; ++n)
+       grad_phi_prev[level].resize(AMREX_SPACEDIM);
+       for (int n=0; n<AMREX_SPACEDIM; ++n)
            grad_phi_prev[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));
 
-       grad_phi_curr[level].resize(BL_SPACEDIM);
-       for (int n=0; n<BL_SPACEDIM; ++n)
+       grad_phi_curr[level].resize(AMREX_SPACEDIM);
+       for (int n=0; n<AMREX_SPACEDIM; ++n)
            grad_phi_curr[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
@@ -329,13 +328,13 @@ Gravity::install_level (int                   level,
 
     // Compute the maximum radius at which all the mass at that radius is in the domain,
     //   assuming that the "hi" side of the domain is away from the center.
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if (level == 0)
     {
         Real x = geom.ProbHi(0) - problem::center[0];
         Real y = geom.ProbHi(1) - problem::center[1];
         max_radius_all_in_domain = std::min(x,y);
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
         Real z = geom.ProbHi(2) - problem::center[2];
         max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
 #endif
@@ -399,7 +398,7 @@ Gravity::get_grad_phi_curr(int level)
 void
 Gravity::plus_grad_phi_curr(int level, Vector<std::unique_ptr<MultiFab> >& addend)
 {
-  for (int n = 0; n < BL_SPACEDIM; n++)
+  for (int n = 0; n < AMREX_SPACEDIM; n++)
     grad_phi_curr[level][n]->plus(*addend[n],0,1,0);
 }
 
@@ -409,7 +408,7 @@ Gravity::swapTimeLevels (int level)
     BL_PROFILE("Gravity::swapTimeLevels()");
     
     if (gravity::gravity_type == "PoissonGrav") {
-        for (int n=0; n < BL_SPACEDIM; n++) {
+        for (int n=0; n < AMREX_SPACEDIM; n++) {
             std::swap(grad_phi_prev[level][n], grad_phi_curr[level][n]);
             grad_phi_curr[level][n]->setVal(1.e50);
         }
@@ -448,8 +447,8 @@ Gravity::solve_for_phi (int               level,
         const auto& rhs = get_rhs(level, 1, is_new);
 
         Vector< Vector<MultiFab*> > grad_phi_p(1);
-        grad_phi_p[0].resize(BL_SPACEDIM);
-        for (int i = 0; i < BL_SPACEDIM ; i++) {
+        grad_phi_p[0].resize(AMREX_SPACEDIM);
+        for (int i = 0; i < AMREX_SPACEDIM ; i++) {
             grad_phi_p[0][i] = grad_phi[i];
         }
 
@@ -525,10 +524,10 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     Vector< Vector<std::unique_ptr<MultiFab> > > ec_gdPhi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-        ec_gdPhi[lev - crse_level].resize(BL_SPACEDIM);
+        ec_gdPhi[lev - crse_level].resize(AMREX_SPACEDIM);
 
         const DistributionMapping& dm = LevelData[lev]->DistributionMap();
-        for (int n = 0; n < BL_SPACEDIM; ++n) {
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
             ec_gdPhi[lev - crse_level][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n), dm, 1, 0));
             ec_gdPhi[lev - crse_level][n]->setVal(0.0);
         }
@@ -559,13 +558,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
         if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
          std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
       if ( gravity::direct_sum_bcs )
           fill_direct_sum_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       else {
           fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       }
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
       fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
 #else
       fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
@@ -627,7 +626,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
         LevelData[lev]->get_new_data(PhiGrav_Type).plus(*delta_phi[lev - crse_level], 0, 1, 0);
 
-        for (int n = 0; n < BL_SPACEDIM; n++)
+        for (int n = 0; n < AMREX_SPACEDIM; n++)
             grad_phi_curr[lev][n]->plus(*ec_gdPhi[lev - crse_level][n], 0, 1, 0);
 
         get_new_grav_vector(lev, LevelData[lev]->get_new_data(Gravity_Type),
@@ -700,8 +699,8 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
       std::cout << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level_in << std::endl;
 
     for (int lev = level; lev <= finest_level_in; lev++) {
-       BL_ASSERT(grad_phi_curr[lev].size()==BL_SPACEDIM);
-       for (int n=0; n<BL_SPACEDIM; ++n)
+       BL_ASSERT(grad_phi_curr[lev].size()==AMREX_SPACEDIM);
+       for (int n=0; n<AMREX_SPACEDIM; ++n)
        {
            grad_phi_curr[lev][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n),
                                                     LevelData[lev]->DistributionMap(),1,1));
@@ -824,7 +823,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
 
         const Vector<BCRec>& gp_bcs = LevelData[amr_lev]->get_desc_lst()[Gravity_Type].getBCs();
 
-        for (int n = 0; n < BL_SPACEDIM; ++n) {
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
             amrex::InterpFromCoarseLevel(*grad_phi[amr_lev][n], time, *grad_phi[amr_lev-1][n],
                                          0, 0, 1,
                                          parent->Geom(amr_lev-1), parent->Geom(amr_lev),
@@ -854,29 +853,24 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 
     // Note that grav_vector coming into this routine always has three components.
-    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
-    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // So we'll define a temporary MultiFab with AMREX_SPACEDIM dimensions.
+    // Then at the end we'll copy in all AMREX_SPACEDIM dimensions from this into
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
-    MultiFab grav(grids[level], dmap[level], BL_SPACEDIM, ng);
+    MultiFab grav(grids[level], dmap[level], AMREX_SPACEDIM, ng);
     grav.setVal(0.0,ng);
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the BL_SPACEDIM direction and zero in all others.
+       // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
 
-       grav.setVal(gravity::const_grav,BL_SPACEDIM-1,1,ng);
+       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
        const Real prev_time = LevelData[level]->get_state_data(State_Type).prevTime();
        make_radial_gravity(level,prev_time,radial_grav_old[level]);
        interpolate_monopole_grav(level,radial_grav_old[level],grav);
-
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-        MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
-      make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
@@ -891,18 +885,18 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     // Do the copy to the output vector.
 
     for (int dir = 0; dir < 3; dir++) {
-        if (dir < BL_SPACEDIM) {
+        if (dir < AMREX_SPACEDIM) {
             MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
         } else {
             grav_vector.setVal(0.,dir,1,ng);
         }
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if (gravity::gravity_type != "ConstantGrav") {
         // Fill ghost cells
         AmrLevel* amrlev = &parent->getLevel(level) ;
-        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
+        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,AMREX_SPACEDIM);
     }
 #endif
 
@@ -932,17 +926,17 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 
     // Note that grav_vector coming into this routine always has three components.
-    // So we'll define a temporary MultiFab with BL_SPACEDIM dimensions.
-    // Then at the end we'll copy in all BL_SPACEDIM dimensions from this into
+    // So we'll define a temporary MultiFab with AMREX_SPACEDIM dimensions.
+    // Then at the end we'll copy in all AMREX_SPACEDIM dimensions from this into
     // the outgoing grav_vector, leaving any higher dimensions unchanged.
 
-    MultiFab grav(grids[level],dmap[level],BL_SPACEDIM,ng);
+    MultiFab grav(grids[level],dmap[level],AMREX_SPACEDIM,ng);
     grav.setVal(0.0,ng);
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the BL_SPACEDIM direction
-       grav.setVal(gravity::const_grav,BL_SPACEDIM-1,1,ng);
+       // Set to constant value in the AMREX_SPACEDIM direction
+       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -950,11 +944,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
         const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
         make_radial_gravity(level,cur_time,radial_grav_new[level]);
         interpolate_monopole_grav(level,radial_grav_new[level],grav);
-
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-    MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
-    make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
@@ -969,18 +958,18 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     // Do the copy to the output vector.
 
     for (int dir = 0; dir < 3; dir++) {
-        if (dir < BL_SPACEDIM) {
+        if (dir < AMREX_SPACEDIM) {
             MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
         } else {
             grav_vector.setVal(0.,dir,1,ng);
         }
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if (gravity::gravity_type != "ConstantGrav" && ng>0) {
         // Fill ghost cells
         AmrLevel* amrlev = &parent->getLevel(level) ;
-        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
+        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,AMREX_SPACEDIM);
     }
 #endif
 
@@ -1195,8 +1184,8 @@ Gravity::create_comp_minus_level_grad_phi(int level,
     MultiFab::Copy(comp_minus_level_phi, comp_phi, 0, 0, 1, 0);
     comp_minus_level_phi.minus(parent->getLevel(level).get_old_data(PhiGrav_Type), 0, 1, 0);
 
-    comp_minus_level_grad_phi.resize(BL_SPACEDIM);
-    for (int n = 0; n < BL_SPACEDIM; ++n) {
+    comp_minus_level_grad_phi.resize(AMREX_SPACEDIM);
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         comp_minus_level_grad_phi[n].reset(new MultiFab(LevelData[level]->getEdgeBoxArray(n),
                                                         LevelData[level]->DistributionMap(), 1, 0));
         MultiFab::Copy(*comp_minus_level_grad_phi[n], *comp_gphi[n], 0, 0, 1, 0);
@@ -1223,8 +1212,8 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     for (int i = 0; i < crse_gphi_fine_BA.size(); ++i)
         crse_gphi_fine_BA.set(i,amrex::coarsen(grids[level+1][i],fine_ratio));
 
-    Vector<std::unique_ptr<MultiFab> > crse_gphi_fine(BL_SPACEDIM);
-    for (int n=0; n<BL_SPACEDIM; ++n)
+    Vector<std::unique_ptr<MultiFab> > crse_gphi_fine(AMREX_SPACEDIM);
+    for (int n=0; n<AMREX_SPACEDIM; ++n)
     {
         BoxArray eba = crse_gphi_fine_BA;
         eba.surroundingNodes(n);
@@ -1239,7 +1228,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     const Geometry& cgeom = parent->Geom(level);
 
-    for (int n = 0; n < BL_SPACEDIM; ++n)
+    for (int n = 0; n < AMREX_SPACEDIM; ++n)
     {
         grad_phi[level][n]->ParallelCopy(*crse_gphi_fine[n], cgeom.periodicity());
     }
@@ -1306,53 +1295,6 @@ Gravity::test_composite_phi (int crse_level)
         }
     }
     if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
-}
-
-void
-Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
-{
-    BL_PROFILE("Gravity::make_prescribed_grav()");
-    
-    const Real strt = ParallelDescriptor::second();
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                         BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
-    }
-
-    if (gravity::verbose)
-    {
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl << std::endl;
-#ifdef BL_LAZY
-        });
-#endif
-    }
 }
 
 void
@@ -1469,6 +1411,9 @@ Gravity::compute_radial_mass(const Box& bx,
                              Array4<Real const> const u,
                              RealVector& radial_mass,
                              RealVector& radial_vol,
+#ifdef GR_GRAV
+                             RealVector& radial_pres,
+#endif
                              int n1d, int level)
 {
     const Geometry& geom = parent->Geom(level);
@@ -1520,6 +1465,9 @@ Gravity::compute_radial_mass(const Box& bx,
 
     Real* const radial_mass_ptr = radial_mass.dataPtr();
     Real* const radial_vol_ptr = radial_vol.dataPtr();
+#ifdef GR_GRAV
+    Real* const radial_pres_ptr = radial_pres.dataPtr();
+#endif
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -1535,6 +1483,34 @@ Gravity::compute_radial_mass(const Box& bx,
 
         Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
         int index = static_cast<int>(r * drinv);
+
+        // We may be coming in here with a masked out zone (in a zone on a coarse
+        // level underlying a fine level). We don't want to be calling the EOS in
+        // this case, so we'll skip these masked out zones (which will have rho
+        // exactly equal to zero).
+
+        if (u(i,j,k,URHO) == 0.0_rt) return;
+
+#ifdef GR_GRAV
+        Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+        eos_t eos_state;
+
+        eos_state.rho = u(i,j,k,URHO);
+        eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+        eos_state.T   = u(i,j,k,UTEMP);
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+        }
+#if NAUX_NET > 0
+        for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+        }
+#endif
+
+        // Compute pressure from the EOS
+        eos(eos_input_re, eos_state);
+#endif
 
         if (index > n1d - 1) {
 
@@ -1586,6 +1562,9 @@ Gravity::compute_radial_mass(const Box& bx,
                         if (index <= n1d - 1) {
                             Gpu::Atomic::Add(&radial_mass_ptr[index], vol_frac * u(i,j,k,URHO));
                             Gpu::Atomic::Add(&radial_vol_ptr[index], vol_frac);
+#ifdef GR_GRAV
+                            Gpu::Atomic::Add(&radial_pres_ptr[index], vol_frac * eos_state.p);
+#endif
                         }
 
                     }
@@ -1611,12 +1590,12 @@ Gravity::init_multipole_grav()
     int lo_bc[3];
     int hi_bc[3];
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
     {
       lo_bc[dir] = phys_bc->lo(dir);
       hi_bc[dir] = phys_bc->hi(dir);
     }
-    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    for (int dir = AMREX_SPACEDIM; dir < 3; dir++)
     {
       lo_bc[dir] = -1;
       hi_bc[dir] = -1;
@@ -1774,7 +1753,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     const Real strt = ParallelDescriptor::second();
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     const int npts = numpts_at_level;
 #else
     const int npts = 1;
@@ -1784,7 +1763,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // We will initialize them to zero, and then
     // sum up the results over grids.
     // Note that since Boxes are defined with
-    // BL_SPACEDIM dimensions, we cannot presently
+    // AMREX_SPACEDIM dimensions, we cannot presently
     // use this array to fill the interior of the
     // domain in 2D, since we can only have one
     // radial index for calculating the multipole moments.
@@ -1812,7 +1791,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // full multipole gravity, not just BCs. At present this
     // does nothing.
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     int boundary_only = 1;
 #else
     const int boundary_only = 1;
@@ -2256,7 +2235,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
 }
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 void
 Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
@@ -2774,7 +2753,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 }
 #endif
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 void
 Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
@@ -2832,7 +2811,7 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
     auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
 
-    for (int idir = 0; idir < BL_SPACEDIM; ++idir) {
+    for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3077,23 +3056,17 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #ifdef _OPENMP
                                     priv_radial_mass[tid],
                                     priv_radial_vol[tid],
+#ifdef GR_GRAV
+                                    priv_radial_pres[tid],
+#endif
 #else
                                     radial_mass[lev],
                                     radial_vol[lev],
+#ifdef GR_GRAV
+                                    radial_pres[lev],
+#endif
 #endif
                                     n1d, lev);
-
-#ifdef GR_GRAV
-                ca_compute_avgpres(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                   dx, dr,
-                                   BL_TO_FORTRAN_ANYD(fab),
-#ifdef _OPENMP
-                                   priv_radial_pres[tid].dataPtr(),
-#else
-                                   radial_pres[lev].dataPtr(),
-#endif
-                                   ZFILL(geom.ProbLo()), n1d, gravity::drdxfac, lev);
-#endif
             }
 
 #ifdef _OPENMP
@@ -3223,16 +3196,15 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     for (int i = 0; i < n1d; i++)
         if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
-
-    // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
-    ca_integrate_gr_grav(radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
-                         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
-
-#else
-    // Integrate radially outward to define the gravity
-    ca_integrate_grav(radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
-                      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d);
 #endif
+
+    // Integrate radially outward to define the gravity
+    ca_integrate_grav(radial_mass_summed.dataPtr(), radial_den_summed.dataPtr(),
+                      radial_grav.dataPtr(),
+#ifdef GR_GRAV
+                      radial_pres_summed.dataPtr(),
+#endif
+                      &max_radius_all_in_domain, &dr, &n1d);
 
     if (gravity::verbose)
     {
@@ -3282,7 +3254,7 @@ Gravity::sanity_check (int level)
     if (level > 0  && !geom.isAllPeriodic())
     {
         Box shrunk_domain(geom.Domain());
-        for (int dir = 0; dir < BL_SPACEDIM; dir++)
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
         {
             if (!geom.isPeriodic(dir))
             {
@@ -3316,7 +3288,7 @@ Gravity::update_max_rhs()
 
     const Geometry& geom0 = parent->Geom(0);
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     if ( geom0.isAllPeriodic() )
     {
         for (int lev = 0; lev < nlevs; ++lev)
@@ -3329,7 +3301,7 @@ Gravity::update_max_rhs()
         rhs[lev]->mult(Ggravity);
     }
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
     if (geom0.IsSPHERICAL() || geom0.IsRZ() )
     {
         Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
@@ -3339,9 +3311,9 @@ Gravity::update_max_rhs()
             // We need to include this bit about the coefficients because
             // it's required by applyMetricTerms.
 
-            coeffs[lev].resize(BL_SPACEDIM);
+            coeffs[lev].resize(AMREX_SPACEDIM);
 
-            for (int i = 0; i < BL_SPACEDIM ; i++) {
+            for (int i = 0; i < AMREX_SPACEDIM ; i++) {
                 coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
                                                   IntVect::TheDimensionVector(i)),
                                                   dmap[lev], 1, 0));
@@ -3379,13 +3351,13 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
             amrex::Print() << " ... Making bc's for phi at level 0\n";
         }
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
         if ( gravity::direct_sum_bcs ) {
             fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
             fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
         }
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
         fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
 #else
         fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
