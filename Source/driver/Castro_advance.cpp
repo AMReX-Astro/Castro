@@ -183,7 +183,11 @@ Castro::initialize_do_advance(Real time)
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
+#ifndef MHD
+      // TODO: make this work with MHD. Unclear how to do because the
+      // magnetic field StateData doesn't have enough ghost zones.
       clean_state(Sborder, prev_time, NUM_GROW);
+#endif
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
