@@ -9,7 +9,6 @@
 #include <AMReX_buildInfo.H>
 
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 
 #include <fundamental_constants.H>
 

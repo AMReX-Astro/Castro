@@ -43,7 +43,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      Er,   Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
      Fi,   Fi_l1, Fi_l2, Fi_l3, Fi_h1, Fi_h2, Fi_h3, ifi, nfi, & 
      Fo,   Fo_l1, Fo_l2, Fo_l3, Fo_h1, Fo_h2, Fo_h3, ifo, nfo)
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
+  use state_indices_module, only : NVAR, URHO, UMX, UMY, UMZ
   use rad_params_module, only : ngroups, ng0, ng1, dlognu
   use amrex_fort_module, only : rt => amrex_real
   implicit none
