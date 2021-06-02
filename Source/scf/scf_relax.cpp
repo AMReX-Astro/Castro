@@ -347,8 +347,12 @@ Castro::do_hscf_solve()
             Real omega = sqrt(omegasq);
 
             // Rotational period is 2 pi / omega.
+            // Let's also be sure not to let the period
+            // change by too much in a single iteration.
 
-            rotational_period = 2.0 * M_PI / omega;
+            rotational_period = amrex::min(1.1_rt * rotational_period,
+                                           amrex::max(0.9_rt * rotational_period,
+                                                      2.0_rt * M_PI / omega));
 
         }
 
