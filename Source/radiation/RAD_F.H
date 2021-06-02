@@ -20,10 +20,6 @@
 extern "C"
 {
 #endif
-void ca_init_radhydro_pars
-    (const int & fspace_advection_type, const int & do_inelastic_scattering,
-     const int & comoving);
-
 void ca_initradconstants
   (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
    amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
