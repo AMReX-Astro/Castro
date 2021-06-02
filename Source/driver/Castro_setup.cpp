@@ -221,17 +221,13 @@ Castro::variableSetUp ()
       amrex::Print() << std::endl;
   }
 
-  // Read in the non-problem parameter input values to Fortran.
-  ca_set_castro_method_params();
-
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
   // block of the probin file)
   extern_init();
 
   // set small positive values of the "small" quantities if they are
-  // negative this mirrors the logic in ca_set_method_params for
-  // Fortran
+  // negative
   if (small_dens < 0.0_rt) {
     small_dens = 1.e-200_rt;
   }
@@ -250,7 +246,7 @@ Castro::variableSetUp ()
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
-  ca_microphysics_init();
+  ca_microphysics_init(small_dens, small_temp);
 #endif
 
   // now initialize the C++ Microphysics
@@ -318,19 +314,6 @@ Castro::variableSetUp ()
       NUM_GROW_SRC = 3;
   }
 #endif
-
-  const Real run_strt = ParallelDescriptor::second() ;
-
-  // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm);
-
-  Real run_stop = ParallelDescriptor::second() - run_strt;
-
-  ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
-
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
-  }
 
   const Geometry& dgeom = DefaultGeometry();
 
