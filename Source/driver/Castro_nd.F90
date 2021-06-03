@@ -19,13 +19,14 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
+subroutine ca_microphysics_init(small_dens_in, small_temp_in) bind(C, name="ca_microphysics_init")
 
   use microphysics_module
-  use meth_params_module, only: small_dens, small_temp
   implicit none
 
-  call microphysics_init(small_dens=small_dens, small_temp=small_temp)
+  real (kind=rt), intent(in), value :: small_dens_in, small_temp_in
+
+  call microphysics_init(small_dens=small_dens_in, small_temp=small_temp_in)
 
 end subroutine ca_microphysics_init
 
@@ -49,57 +50,3 @@ subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abo
 end subroutine ca_set_abort_on_failure
 #endif
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-subroutine ca_set_method_params(dm) &
-                                bind(C, name="ca_set_method_params")
-
-  use meth_params_module
-  use network, only : nspec, naux
-  use amrex_constants_module, only : ZERO, ONE
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: dm
-
-  integer :: ioproc
-
-
-  !---------------------------------------------------------------------
-  ! other initializations
-  !---------------------------------------------------------------------
-
-  ! This is a routine which links to the C++ ParallelDescriptor class
-
-  call bl_pd_is_ioproc(ioproc)
-
-  !---------------------------------------------------------------------
-  ! safety checks
-  !---------------------------------------------------------------------
-
-  if (small_dens <= 0.e0_rt) then
-     if (ioproc == 1) then
-        call bl_warning("Warning:: small_dens has not been set, defaulting to 1.e-200_rt.")
-     endif
-     small_dens = 1.e-200_rt
-  endif
-
-  if (small_temp <= 0.e0_rt) then
-     if (ioproc == 1) then
-        call bl_warning("Warning:: small_temp has not been set, defaulting to 1.e-200_rt.")
-     endif
-     small_temp = 1.e-200_rt
-  endif
-
-  if (small_pres <= 0.e0_rt) then
-     small_pres = 1.e-200_rt
-  endif
-
-  if (small_ener <= 0.e0_rt) then
-     small_ener = 1.e-200_rt
-  endif
-
-end subroutine ca_set_method_params

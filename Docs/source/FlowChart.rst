@@ -343,8 +343,8 @@ In the code, the objective is to evolve the state from the old time,
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho e)^\star &= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
           (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
