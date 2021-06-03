@@ -25,24 +25,36 @@ void problem_tagging(int i, int j, int k,
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
 
-    if (state(i,j,k,URHO) > problem::cutoff_density &&
-        state(i,j,k,UFS) / state(i,j,k,URHO) > problem::X_min) {
+    if (problem::tag_by_density) {
+        if (state(i,j,k,URHO) > problem::cutoff_density &&
+            state(i,j,k,UFS) / state(i,j,k,URHO) > problem::X_min) {
 
 #if AMREX_SPACEDIM == 2
-        Real dist = std::abs(loc[0] - problem::center[0]);
+            Real dist = std::abs(loc[0] - problem::center[0]);
 #else
-        Real dist = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
-                              (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]));
+            Real dist = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
+                                  (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]));
 #endif
-        if (level < problem::max_hse_tagging_level && dist < problem::x_refine_distance) {
-            tag(i,j,k) = TagBox::SET;
+            if (level < problem::max_hse_tagging_level && dist < problem::x_refine_distance) {
+                tag(i,j,k) = TagBox::SET;
+            }
+        }
+
+        if (state(i,j,k,URHO) > problem::cutoff_density) {
+            if (level < problem::max_base_tagging_level) {
+                tag(i,j,k) = TagBox::SET;
+            }
+        }
+
+    } else {
+
+        // tag everything below a certain height
+        if (loc[AMREX_SPACEDIM-1] < problem::refine_height) {
+            if (level < problem::max_base_tagging_level) {
+                tag(i,j,k) = TagBox::SET;
+            }
         }
     }
 
-    if (state(i,j,k,URHO) > problem::cutoff_density) {
-        if (level < problem::max_base_tagging_level) {
-            tag(i,j,k) = TagBox::SET;
-        }
-    }
 }
 #endif
