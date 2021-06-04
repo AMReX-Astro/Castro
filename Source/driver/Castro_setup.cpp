@@ -21,7 +21,6 @@
 #endif
 #include <eos.H>
 #include <ambient.H>
-#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -205,31 +204,22 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
-  // read the probdata parameters
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
-
-  // read the problem parameters into Fortran
-
-  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
-
-  // initialize the C++ values of the runtime parameters.  This
-  // will copy them from the Fortran read and also directly read
-  // any values that were set in the inputs file
+  // initialize the C++ values of the problem-specific runtime parameters.
 
   init_prob_parameters();
 
-  // now sync up the Fortran -- if a parameter was defined in C++, we need
-  // to pass it back to Fortran
+  // check to make sure that we didn't set any parameters that don't
+  // exist in C++ (like because of misspelling).  All of the problem.*
+  // parameters should have been accessed via parmparse at this point.
 
-  cxx_to_f90_prob_parameters();
-
-  // Read in the non-problem parameter input values to Fortran.
-  ca_set_castro_method_params();
+  if (ParmParse::hasUnusedInputs("problem")) {
+      amrex::Print() << "Warning: the following problem.* parameters are ignored\n";
+      auto unused = ParmParse::getUnusedInputs("problem"); 
+      for (auto p: unused) {
+          amrex::Print() << p << "\n";
+      }
+      amrex::Print() << std::endl;
+  }
 
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
@@ -237,8 +227,7 @@ Castro::variableSetUp ()
   extern_init();
 
   // set small positive values of the "small" quantities if they are
-  // negative this mirrors the logic in ca_set_method_params for
-  // Fortran
+  // negative
   if (small_dens < 0.0_rt) {
     small_dens = 1.e-200_rt;
   }
@@ -257,7 +246,7 @@ Castro::variableSetUp ()
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
-  ca_microphysics_init();
+  ca_microphysics_init(small_dens, small_temp);
 #endif
 
   // now initialize the C++ Microphysics
@@ -326,26 +315,9 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Real run_strt = ParallelDescriptor::second() ;
-
-  // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm);
-
-  Real run_stop = ParallelDescriptor::second() - run_strt;
-
-  ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
-
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
-  }
-
   const Geometry& dgeom = DefaultGeometry();
 
   const int coord_type = dgeom.Coord();
-
-  ca_set_problem_params(dm,
-                        coord_type,
-                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use

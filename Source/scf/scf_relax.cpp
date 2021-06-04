@@ -152,9 +152,9 @@ Castro::do_hscf_solve()
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
 
-    int j = 1;
+    int ctr = 1;
 
-    while (j <= scf_max_iterations) {
+    while (ctr <= scf_max_iterations) {
 
         Real time = getLevel(0).state[State_Type].curTime();
 
@@ -166,8 +166,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-
-            const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -255,12 +253,12 @@ Castro::do_hscf_solve()
 
                     Real r[3] = {0.0};
 
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
                     // Do a trilinear interpolation to find the contribution from
@@ -287,8 +285,8 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    Real phi_A = scale * phi_arr(i,j,k);
-                    Real psi_A = scale * psi_arr(i,j,k);
+                    Real dphi_A = scale * phi_arr(i,j,k);
+                    Real dpsi_A = scale * psi_arr(i,j,k);
 
                     rr[0] = std::abs(r[0] - scf_r_B[0]) / dx[0];
 #if AMREX_SPACEDIM >= 2
@@ -305,10 +303,10 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    Real phi_B = scale * phi_arr(i,j,k);
-                    Real psi_B = scale * psi_arr(i,j,k);
+                    Real dphi_B = scale * phi_arr(i,j,k);
+                    Real dpsi_B = scale * psi_arr(i,j,k);
 
-                    return {phi_A, psi_A, phi_B, psi_B};
+                    return {dphi_A, dpsi_A, dphi_B, dpsi_B};
                 });
             }
 
@@ -347,8 +345,12 @@ Castro::do_hscf_solve()
             Real omega = sqrt(omegasq);
 
             // Rotational period is 2 pi / omega.
+            // Let's also be sure not to let the period
+            // change by too much in a single iteration.
 
-            rotational_period = 2.0 * M_PI / omega;
+            rotational_period = amrex::min(1.1_rt * rotational_period,
+                                           amrex::max(0.9_rt * rotational_period,
+                                                      2.0_rt * M_PI / omega));
 
         }
 
@@ -356,8 +358,6 @@ Castro::do_hscf_solve()
         // potential, which will be used in the remaining steps below.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-
-            const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -406,12 +406,12 @@ Castro::do_hscf_solve()
 
                     Real r[3] = {0.0};
 
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
                     // Do a trilinear interpolation to find the contribution from
@@ -518,7 +518,7 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    Real Linf_norm = 0.0;
+                    Real norm = 0.0;
 
                     // We only want to call the EOS for zones with enthalpy > 0.
                     // For distances far enough from the center, the rotation
@@ -572,11 +572,11 @@ Castro::do_hscf_solve()
                         Real drho = std::abs(state(i,j,k,URHO) - old_rho) / old_rho;
 
                         if (state(i,j,k,URHO) / actual_rho_max > 1.0e-3_rt) {
-                            Linf_norm = drho;
+                            norm = drho;
                         }
                     }
 
-                    return {Linf_norm};
+                    return {norm};
                 });
 
             }
@@ -603,7 +603,9 @@ Castro::do_hscf_solve()
         // Since we've changed the density distribution on the grid, regrid.
 
         bool do_io = false;
-        parent->RegridOnly(time, do_io);
+        if (finest_level > 0) {
+            parent->RegridOnly(time, do_io);
+        }
 
         // Update the gravitational field -- only after we've completed cleaning up the state above.
 
@@ -646,15 +648,15 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    Real mass = 0.0, kin_eng = 0.0, pot_eng = 0.0, int_eng = 0.0;
+                    Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
                     if (state(i,j,k,URHO) > 0.0)
                     {
-                        mass = state(i,j,k,URHO) * dV;
+                        dM = state(i,j,k,URHO) * dV;
 
-                        kin_eng = phi_rot_arr(i,j,k) * mass;
+                        dK = phi_rot_arr(i,j,k) * dM;
 
-                        pot_eng = 0.5_rt * phi_arr(i,j,k) * mass;
+                        dU = 0.5_rt * phi_arr(i,j,k) * dM;
 
                         eos_t eos_state;
 
@@ -671,10 +673,10 @@ Castro::do_hscf_solve()
 
                         eos(eos_input_rt, eos_state);
 
-                        int_eng = eos_state.p * dV;
+                        dE = eos_state.p * dV;
                     }
 
-                    return {mass, kin_eng, pot_eng, int_eng};
+                    return {dM, dK, dU, dE};
                 });
 
             }
@@ -707,7 +709,7 @@ Castro::do_hscf_solve()
             // Grab the value for the solar mass.
 
             std::cout << std::endl << std::endl;
-            std::cout << "   Relaxation iterations completed: " << j << std::endl;
+            std::cout << "   Relaxation iterations completed: " << ctr << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
             std::cout << "   Rotational period (s): " << rotational_period << std::endl;
             std::cout << "   Kinetic energy: " << kin_eng << std::endl;
@@ -726,7 +728,7 @@ Castro::do_hscf_solve()
 
         if (is_relaxed == 1) break;
 
-        j++;
+        ctr++;
 
     }
 
