@@ -190,8 +190,6 @@ Castro::variableCleanUp ()
 
     desc_lst.clear();
 
-    ca_finalize_meth_params();
-
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
     // Fortran cleaning
     microphysics_finalize();
