@@ -100,7 +100,7 @@ integrator.atol_spec = 1.e-6
 integrator.retry_burn = 0
 integrator.abort_on_failure = 0
 
-integrator.jacobian = 0
+integrator.jacobian = 2
 
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
