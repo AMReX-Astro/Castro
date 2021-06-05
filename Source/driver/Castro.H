@@ -10,7 +10,6 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 #include <Castro_util.H>
 
 using namespace castro;
@@ -1420,8 +1419,6 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
 
     amrex::Real lastDt;

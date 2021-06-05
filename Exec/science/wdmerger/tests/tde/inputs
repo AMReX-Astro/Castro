@@ -1,5 +1,5 @@
 # Start with main wdmerger inputs
-FILE = ../../inputs_3d
+FILE = ../../inputs
 
 geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 geometry.prob_hi =  1.28e11  1.28e11  1.28e11
