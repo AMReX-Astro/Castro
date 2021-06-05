@@ -1,3 +1,10 @@
+# 21.07
+
+   * The sponge is now applied in a fully implicit manner at the end of
+     the CTU advance, rather than using a predictor-corrector approach
+     with time centering. This is more consistent with the original form
+     of the sponge in Castro. (#1876)
+
 # 21.06
 
    * Starting with this release, problem setups written in Fortran are
