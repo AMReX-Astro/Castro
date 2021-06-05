@@ -153,19 +153,6 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      // Check for CFL violations in S_new. The new-time state has seen
-      // the effect of the old-time source terms, so it is a first-order
-      // accurate estimate of whether the advance will violate the CFL
-      // criterion.
-      check_for_cfl_violation(S_new, dt);
-
-      // If we detect one, return immediately.
-      if (cfl_violation) {
-          status.success = false;
-          status.reason = "CFL violation";
-          return status;
-      }
-
       construct_ctu_hydro_source(time, dt);
 
 //      if (print_update_diagnostics) {
@@ -343,6 +330,20 @@ Castro::do_advance_ctu(Real time,
 #ifndef AMREX_USE_GPU
             check_for_nan(S_new);
 #endif
+
+        }
+        else {
+
+            // If we're not burning, just initialize the reactions data to zero.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+
+            MultiFab& R_old = get_old_data(Reactions_Type);
+            R_old.setVal(0.0, R_old.nGrow());
+
+            MultiFab& R_new = get_new_data(Reactions_Type);
+            R_new.setVal(0.0, R_new.nGrow());
 
         }
 
