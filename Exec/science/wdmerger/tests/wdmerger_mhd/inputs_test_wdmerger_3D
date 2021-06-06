@@ -74,7 +74,6 @@ castro.implicit_rotation_update = 1                # Implicit rotation coupling
 castro.ppm_type = 0                                # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
 castro.use_pslope = 0
 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
