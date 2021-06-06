@@ -4,10 +4,11 @@ stop_time =  3.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0        0
-geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0       0
 
 #if AMREX_SPACEDIM == 3
+  geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+
   geometry.prob_hi     = 2.048e5      2.048e5    2.56e4
   amr.n_cell           = 1024         1024        128
 
@@ -28,6 +29,8 @@ geometry.prob_lo     = 0       0       0
   castro.ambient_outflow_vel = 1
 
 #elif AMREX_SPACEDIM == 2
+  geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
+
   geometry.prob_hi     = 2.048e5      2.56e4
   amr.n_cell           = 1024         128
 
@@ -36,7 +39,7 @@ geometry.prob_lo     = 0       0       0
   # 1 = Inflow             4 = SlipWall
   # 2 = Outflow            5 = NoSlipWall
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-  castro.lo_bc       =  2   1
+  castro.lo_bc       =  3   1
   castro.hi_bc       =  2   2
 
   castro.yl_ext_bc_type = 1
@@ -171,3 +174,6 @@ integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 
 network.use_tables = 1
+
+integrator.retry_burn = 0
+integrator.abort_on_failure = 0
