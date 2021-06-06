@@ -205,29 +205,14 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
-  // now check the runtime parameters to warn / abort if the user set
-  // anything that isn't known to Castro
-  validate_runparams();
-
   // initialize the C++ values of the problem-specific runtime parameters.
 
   init_prob_parameters();
 
-  // check to make sure that we didn't set any parameters that don't
-  // exist in C++ (like because of misspelling).  All of the problem.*
-  // parameters should have been accessed via parmparse at this point.
+  // now check the runtime parameters to warn / abort if the user set
+  // anything that isn't known to Castro
 
-  if (ParmParse::hasUnusedInputs("problem")) {
-      amrex::Print() << "Warning: the following problem.* parameters are ignored\n";
-      auto unused = ParmParse::getUnusedInputs("problem"); 
-      for (auto p: unused) {
-          amrex::Print() << p << "\n";
-      }
-      amrex::Print() << std::endl;
-      if (abort_on_invalid_params) {
-          amrex::Error("Error: invalid parameters");
-      }
-  }
+  validate_runparams();
 
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern

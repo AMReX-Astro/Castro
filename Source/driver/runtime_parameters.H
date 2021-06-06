@@ -69,78 +69,37 @@ void
 validate_runparams()
 {
 
-    {
-        // "castro"
-        if (ParmParse::hasUnusedInputs("castro")) {
-            amrex::Print() << "Warning: the following castro.* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs("castro"); 
-            for (auto p: unused) {
-                amrex::Print() << p << "\n";
-            }
-            amrex::Print() << std::endl;
-            if (abort_on_invalid_params) {
-                amrex::Error("Error: invalid parameters");
-            }
-        }
-
-    }
-
+    amrex::Vector<std::string> check_namespaces = {"castro", "problem"};
 #ifdef AMREX_PARTICLES
-    {
-        // "particles"
-        if (ParmParse::hasUnusedInputs("particles")) {
-            amrex::Print() << "Warning: the following particles.* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs("particles"); 
-            for (auto p: unused) {
-                amrex::Print() << p << "\n";
-            }
-            amrex::Print() << std::endl;
-            if (abort_on_invalid_params) {
-                amrex::Error("Error: invalid parameters");
-            }
-        }
-
-    }
+    check_namespaces.push_back("particles");
 #endif
-
 #ifdef DIFFUSION
-    {
-        // "diffusion"
-        if (ParmParse::hasUnusedInputs("diffusion")) {
-            amrex::Print() << "Warning: the following diffusion.* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs("diffusion"); 
-            for (auto p: unused) {
-                amrex::Print() << p << "\n";
-            }
-            amrex::Print() << std::endl;
-            if (abort_on_invalid_params) {
-                amrex::Error("Error: invalid parameters");
-            }
-        }
-
-    }
+    check_namespaces.push_back("diffusion");
 #endif
-
 #ifdef GRAVITY
-    {
-        // "gravity"
-        if (ParmParse::hasUnusedInputs("gravity")) {
-            amrex::Print() << "Warning: the following gravity.* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs("gravity"); 
-            for (auto p: unused) {
-                amrex::Print() << p << "\n";
-            }
-            amrex::Print() << std::endl;
-            if (abort_on_invalid_params) {
-                amrex::Error("Error: invalid parameters");
-            }
-        }
-
-    }
+    check_namespaces.push_back("gravity");
 #endif
+
 
     // we don't validate radiation parameters yet, since a lot of the reads
     // are hardcoded into the radiation constructor
+
+    for (auto nm: check_namespaces)
+    {
+        // "castro"
+        if (ParmParse::hasUnusedInputs(nm)) {
+            amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
+            auto unused = ParmParse::getUnusedInputs(nm); 
+            for (auto p: unused) {
+                amrex::Print() << p << "\n";
+            }
+            amrex::Print() << std::endl;
+            if (abort_on_invalid_params) {
+                amrex::Error("Error: invalid parameters");
+            }
+        }
+
+    }
 
 }
 
