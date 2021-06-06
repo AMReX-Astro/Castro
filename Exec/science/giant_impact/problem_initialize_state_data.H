@@ -44,7 +44,7 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UMY) = problem::target_initial_velocity[1] * zone_state.rho;
         state(i,j,k,UMZ) = problem::target_initial_velocity[2] * zone_state.rho;
     }
-    else if (dist_impactor < problem::impactor_radius)
+    else if (dist_impactor < problem::impactor_radius && problem::impactor_mass > 0.0)
     {
         Real pos[3] = {loc[0] - problem::impactor_initial_center[0],
                        loc[1] - problem::impactor_initial_center[1],

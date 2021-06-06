@@ -55,11 +55,6 @@ void problem_initialize ()
                            target_comp, problem::initial_model_dx,
                            0);
 
-    if (problem::impactor_mass <= 0.0_rt) {
-        amrex::Error("Impactor mass must be positive");
-    }
-    problem::impactor_mass *= M_earth;
-
     amrex::Print() << std::endl;
 
     amrex::Print() << "Generated initial model for target of mass " << std::setprecision(3) << problem::target_mass / M_earth
@@ -76,17 +71,24 @@ void problem_initialize ()
     }
     impactor_comp[0] = 1.0_rt;
 
-    Real impactor_central_density;
+    if (problem::impactor_mass > 0.0_rt) {
+        problem::impactor_mass *= M_earth;
 
-    generate_initial_model(problem::impactor_mass, problem::impactor_temperature,
-                           impactor_central_density, problem::impactor_radius,
-                           impactor_comp, problem::initial_model_dx,
-                           1);
+        Real impactor_central_density;
 
-    amrex::Print() << "Generated initial model for impactor of mass " << std::setprecision(3) << problem::impactor_mass / M_earth
-                   << " earth masses, central density " << std::setprecision(3) << std::scientific << impactor_central_density
-                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::impactor_radius << " cm."
-                   << std::endl << std::endl;
+        generate_initial_model(problem::impactor_mass, problem::impactor_temperature,
+                               impactor_central_density, problem::impactor_radius,
+                               impactor_comp, problem::initial_model_dx,
+                               1);
+
+        amrex::Print() << "Generated initial model for impactor of mass " << std::setprecision(3) << problem::impactor_mass / M_earth
+                       << " earth masses, central density " << std::setprecision(3) << std::scientific << impactor_central_density
+                       << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::impactor_radius << " cm."
+                       << std::endl << std::endl;
+    }
+    else {
+        amrex::Print() << "No impactor provided; simulating target only." << std::endl << std::endl;
+    }
 
     // Set ambient properties
     
@@ -115,47 +117,50 @@ void problem_initialize ()
 
     // Set up the initial distances and velocities.
 
-    // Scale the initial distances by the radius of the target. This assumes that
-    // the target's radius is larger than the impactor's.
+    if (problem::impactor_mass > 0.0) {
 
-    AMREX_ALWAYS_ASSERT(problem::target_radius >= problem::impactor_radius);
+        // Scale the initial distances by the radius of the target. This assumes that
+        // the target's radius is larger than the impactor's.
 
-    Real initial_distance_x = problem::initial_distance * problem::target_radius;
-    Real initial_distance_y = problem::impact_parameter * problem::target_radius;
+        AMREX_ALWAYS_ASSERT(problem::target_radius >= problem::impactor_radius);
 
-    // Compute the initial velocity of the impactor with respect to the target.
-    // This has two components: the freefall velocity due to the gravitational
-    // force (assumed to have started acting at a distance of infinity) and also
-    // the initial velocity at infinity.
+        Real initial_distance_x = problem::initial_distance * problem::target_radius;
+        Real initial_distance_y = problem::impact_parameter * problem::target_radius;
 
-    Real total_mass = problem::target_mass + problem::impactor_mass;
-    Real v_ff = freefall_velocity(total_mass, initial_distance_x);
+        // Compute the initial velocity of the impactor with respect to the target.
+        // This has two components: the freefall velocity due to the gravitational
+        // force (assumed to have started acting at a distance of infinity) and also
+        // the initial velocity at infinity.
 
-    // The initial velocity is provided as a fraction of the escape velocity of the
-    // system, as defined by Meier, Reinhardt and Stadel (2021). This happens to be
-    // the same formula as the freefall velocity evaluated at a distance of the
-    // critical radius for impact (the sum of the target and impactor radii).
+        Real total_mass = problem::target_mass + problem::impactor_mass;
+        Real v_ff = freefall_velocity(total_mass, initial_distance_x);
 
-    Real critical_radius = problem::target_radius + problem::impactor_radius;
-    Real v_esc = freefall_velocity(total_mass, critical_radius);
+        // The initial velocity is provided as a fraction of the escape velocity of the
+        // system, as defined by Meier, Reinhardt and Stadel (2021). This happens to be
+        // the same formula as the freefall velocity evaluated at a distance of the
+        // critical radius for impact (the sum of the target and impactor radii).
 
-    Real impact_velocity = v_ff + problem::initial_velocity * v_esc;
+        Real critical_radius = problem::target_radius + problem::impactor_radius;
+        Real v_esc = freefall_velocity(total_mass, critical_radius);
 
-    // Set the velocity in the center of mass frame. Note that the fraction of the
-    // velocity for each object is inversely proportional to the fraction of the system
-    // mass it has.
+        Real impact_velocity = v_ff + problem::initial_velocity * v_esc;
 
-    problem::target_initial_velocity[0] = (problem::impactor_mass / total_mass) * impact_velocity;
-    problem::impactor_initial_velocity[0] = -(problem::target_mass / total_mass) * impact_velocity;
+        // Set the velocity in the center of mass frame. Note that the fraction of the
+        // velocity for each object is inversely proportional to the fraction of the system
+        // mass it has.
 
-    // Set the initial locations in the center of mass frame. As above, the less massive
-    // object will be further away from the center of mass.
+        problem::target_initial_velocity[0] = (problem::impactor_mass / total_mass) * impact_velocity;
+        problem::impactor_initial_velocity[0] = -(problem::target_mass / total_mass) * impact_velocity;
 
-    problem::target_initial_center[0] = -(problem::impactor_mass / total_mass) * initial_distance_x;
-    problem::impactor_initial_center[0] = (problem::target_mass / total_mass) * initial_distance_x;
+        // Set the initial locations in the center of mass frame. As above, the less massive
+        // object will be further away from the center of mass.
 
-    problem::target_initial_center[1] = -(problem::impactor_mass / total_mass) * initial_distance_y;
-    problem::impactor_initial_center[1] = (problem::target_mass / total_mass) * initial_distance_y;
+        problem::target_initial_center[0] = -(problem::impactor_mass / total_mass) * initial_distance_x;
+        problem::impactor_initial_center[0] = (problem::target_mass / total_mass) * initial_distance_x;
+
+        problem::target_initial_center[1] = -(problem::impactor_mass / total_mass) * initial_distance_y;
+        problem::impactor_initial_center[1] = (problem::target_mass / total_mass) * initial_distance_y;
+    }
 
     // Make sure the domain is big enough to hold both the target and impactor.
 
@@ -168,10 +173,12 @@ void problem_initialize ()
         amrex::Error("ERROR: The domain width is too small to include the target.");
     }
 
-    if (problem::impactor_initial_center[0] + problem::impactor_radius >= probhi[0] ||
-        problem::impactor_initial_center[1] + problem::impactor_radius >= probhi[1] ||
-        problem::impactor_initial_center[2] + problem::impactor_radius >= probhi[2]) {
-        amrex::Error("ERROR: The domain width is too small to include the impactor.");
+    if (problem::impactor_mass > 0.0) {
+        if (problem::impactor_initial_center[0] + problem::impactor_radius >= probhi[0] ||
+            problem::impactor_initial_center[1] + problem::impactor_radius >= probhi[1] ||
+            problem::impactor_initial_center[2] + problem::impactor_radius >= probhi[2]) {
+            amrex::Error("ERROR: The domain width is too small to include the impactor.");
+        }
     }
 
     amrex::Print() << "Target location: (" << std::setprecision(3) << std::scientific
@@ -186,19 +193,21 @@ void problem_initialize ()
                    << problem::target_initial_velocity[2] << ")"
                    << std::endl;
 
-    amrex::Print() << "Impactor location: (" << std::setprecision(3) << std::scientific
-                   << problem::impactor_initial_center[0] << ", "
-                   << problem::impactor_initial_center[1] << ", "
-                   << problem::impactor_initial_center[2] << ")"
-                   << std::endl;
+    if (problem::impactor_mass > 0.0) {
+        amrex::Print() << "Impactor location: (" << std::setprecision(3) << std::scientific
+                       << problem::impactor_initial_center[0] << ", "
+                       << problem::impactor_initial_center[1] << ", "
+                       << problem::impactor_initial_center[2] << ")"
+                       << std::endl;
 
-    amrex::Print() << "Impactor velocity: (" << std::setprecision(3) << std::scientific
-                   << problem::impactor_initial_velocity[0] << ", "
-                   << problem::impactor_initial_velocity[1] << ", "
-                   << problem::impactor_initial_velocity[2] << ")"
-                   << std::endl;
+        amrex::Print() << "Impactor velocity: (" << std::setprecision(3) << std::scientific
+                       << problem::impactor_initial_velocity[0] << ", "
+                       << problem::impactor_initial_velocity[1] << ", "
+                       << problem::impactor_initial_velocity[2] << ")"
+                       << std::endl;
 
-    amrex::Print() << std::endl;
+        amrex::Print() << std::endl;
+    }
 }
 
 #endif
