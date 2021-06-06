@@ -659,6 +659,13 @@ timestamp_density            int           1
 timestamp_temperature        int           0
 
 
+#-----------------------------------------------------------------------------
+# category: radiation
+#-----------------------------------------------------------------------------
+
+# do we enable radiation for a radiation-hydrodynamics run?
+do_radiation                 int           -1
+
 
 @namespace: gravity
 
