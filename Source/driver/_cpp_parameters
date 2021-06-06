@@ -625,6 +625,15 @@ store_omegadot               int            0
 
 
 #-----------------------------------------------------------------------------
+# category: radiation-hydro
+#-----------------------------------------------------------------------------
+
+# do we enable radiation for a radiation-hydrodynamics run?
+do_radiation                 int           -1
+
+
+
+#-----------------------------------------------------------------------------
 # category: particles
 #-----------------------------------------------------------------------------
 
@@ -658,13 +667,6 @@ timestamp_density            int           1
 # whether the local temperatures at given positions of particles are stored in output files
 timestamp_temperature        int           0
 
-
-#-----------------------------------------------------------------------------
-# category: radiation
-#-----------------------------------------------------------------------------
-
-# do we enable radiation for a radiation-hydrodynamics run?
-do_radiation                 int           -1
 
 
 @namespace: gravity
