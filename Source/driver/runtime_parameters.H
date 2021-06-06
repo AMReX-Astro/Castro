@@ -59,4 +59,48 @@ initialize_cpp_runparams()
 
 }
 
+
+///
+/// Initialize all of the runtime parameters defined in _cpp_parameters
+/// regardless of the namespace
+///
+AMREX_INLINE
+void
+validate_runparams()
+{
+
+    amrex::Vector<std::string> check_namespaces = {"castro", "problem"};
+#ifdef AMREX_PARTICLES
+    check_namespaces.push_back("particles");
+#endif
+#ifdef DIFFUSION
+    check_namespaces.push_back("diffusion");
+#endif
+#ifdef GRAVITY
+    check_namespaces.push_back("gravity");
+#endif
+
+
+    // we don't validate radiation parameters yet, since a lot of the reads
+    // are hardcoded into the radiation constructor
+
+    for (auto nm: check_namespaces)
+    {
+        // "castro"
+        if (ParmParse::hasUnusedInputs(nm)) {
+            amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
+            auto unused = ParmParse::getUnusedInputs(nm); 
+            for (auto p: unused) {
+                amrex::Print() << p << "\n";
+            }
+            amrex::Print() << std::endl;
+            if (abort_on_invalid_params) {
+                amrex::Error("Error: invalid parameters");
+            }
+        }
+
+    }
+
+}
+
 #endif
