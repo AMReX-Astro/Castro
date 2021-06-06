@@ -8,6 +8,7 @@
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
+#include <runtime_parameters.H>
 #ifdef RADIATION
 #include <Radiation.H>
 #include <RadDerive.H>
@@ -204,6 +205,10 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // now check the runtime parameters to warn / abort if the user set
+  // anything that isn't known to Castro
+  validate_runparams();
+
   // initialize the C++ values of the problem-specific runtime parameters.
 
   init_prob_parameters();
@@ -219,6 +224,9 @@ Castro::variableSetUp ()
           amrex::Print() << p << "\n";
       }
       amrex::Print() << std::endl;
+      if (abort_on_invalid_params) {
+          amrex::Error("Error: invalid parameters");
+      }
   }
 
   // Initialize the runtime parameters for any of the external
