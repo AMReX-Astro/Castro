@@ -623,6 +623,10 @@ reset_checkpoint_step        int           -1
 # enabled then more memory will be allocated to hold the results of the burn
 store_omegadot               int            0
 
+# Do we abort the run if the inputs file specifies a runtime parameter that we don't
+# know about?  Note: this will only take effect for those namespaces where 100%
+# of the runtime parameters are managed by the python scripts.
+abort_on_invalid_params      int            0
 
 #-----------------------------------------------------------------------------
 # category: particles
