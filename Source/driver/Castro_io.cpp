@@ -506,23 +506,6 @@ Castro::setPlotVariables ()
 #endif
 #endif
 
-  ParmParse pp("castro");
-
-  bool plot_X;
-
-  if (pp.query("plot_X",plot_X))
-  {
-      if (plot_X)
-      {
-          // Get the species names from the network model.
-          //
-          for (int i = 0; i < NumSpec; i++)
-          {
-              string spec_string = "X(" + short_spec_names_cxx[i] + ")";
-              parent->addDerivePlotVar(spec_string);
-          }
-      }
-  }
 }
 
 
