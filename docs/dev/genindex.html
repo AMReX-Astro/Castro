@@ -582,6 +582,8 @@
 </li>
       <li><a href="Hydrodynamics.html#index-0">castro.do_hydro</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
+      <li><a href="runtime_parameters.html#index-12">castro.do_radiation</a>
+</li>
       <li><a href="runtime_parameters.html#index-3">castro.do_react</a>
 </li>
       <li><a href="runtime_parameters.html#index-0">castro.do_reflux</a>
@@ -594,7 +596,7 @@
 </li>
       <li><a href="Hydrodynamics.html#index-0">castro.do_sponge</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">castro.do_tracer_particles</a>
+      <li><a href="runtime_parameters.html#index-13">castro.do_tracer_particles</a>
 </li>
       <li><a href="io.html#index-8">castro.domain_is_plane_parallel</a>, <a href="runtime_parameters.html#index-11">[1]</a>
 </li>
@@ -850,10 +852,10 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro5A_oldE">Castro::A_old (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro5A_oldE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">Castro::add_magnetic_e (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">Castro::add_magnetic_e (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">[1]</a>
+</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro7advanceEN5amrex4RealEN5amrex4RealEii">Castro::advance (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7advanceEN5amrex4RealEN5amrex4RealEii">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro11advance_auxEN5amrex4RealEN5amrex4RealE">Castro::advance_aux (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro11advance_auxEN5amrex4RealEN5amrex4RealE">[1]</a>
@@ -929,8 +931,6 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro21do_energy_diagnosticsEv">Castro::do_energy_diagnostics (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21do_energy_diagnosticsEv">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13do_hscf_solveEv">Castro::do_hscf_solve (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13do_hscf_solveEv">[1]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro12do_radiationE">Castro::do_radiation (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12do_radiationE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro10dt_advanceE">Castro::dt_advance (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro10dt_advanceE">[1]</a>
 </li>
@@ -1346,9 +1346,9 @@
 </li>
       <li><a href="class/classDiffusion.html#_CPPv49Diffusion">Diffusion (C++ class)</a>, <a href="file/Diffusion_8H.html#_CPPv49Diffusion">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">diffusion.mlmg_maxorder</a>
+      <li><a href="runtime_parameters.html#index-14">diffusion.mlmg_maxorder</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">diffusion.v</a>
+      <li><a href="runtime_parameters.html#index-14">diffusion.v</a>
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">Diffusion::applyop (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">[1]</a>
 </li>
@@ -1506,35 +1506,35 @@
       </ul></li>
       <li><a href="class/classGravity.html#_CPPv47Gravity">Gravity (C++ class)</a>, <a href="file/Gravity_8H.html#_CPPv47Gravity">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.const_grav</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.const_grav</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.direct_sum_bcs</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.direct_sum_bcs</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.do_composite_phi_correction</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.do_composite_phi_correction</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.drdxfac</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.drdxfac</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.get_g_from_phi</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.get_g_from_phi</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.gravity_type</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.gravity_type</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.max_multipole_order</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.max_multipole_order</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.max_solve_level</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.max_solve_level</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.mlmg_agglomeration</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.mlmg_agglomeration</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.mlmg_consolidation</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.mlmg_consolidation</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.mlmg_max_fmg_iter</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.mlmg_max_fmg_iter</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.mlmg_nsolve</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.mlmg_nsolve</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.no_composite</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.no_composite</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.no_sync</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.no_sync</a>
 </li>
-      <li><a href="runtime_parameters.html#index-14">gravity.v</a>
+      <li><a href="runtime_parameters.html#index-15">gravity.v</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity7abs_tolE">Gravity::abs_tol (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7abs_tolE">[1]</a>
 </li>
@@ -2062,21 +2062,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="build_system.html#index-20">parse_castro_params.py</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.particle_init_file</a>
+      <li><a href="runtime_parameters.html#index-16">particles.particle_init_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.particle_output_file</a>
+      <li><a href="runtime_parameters.html#index-16">particles.particle_output_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.particle_restart_file</a>
+      <li><a href="runtime_parameters.html#index-16">particles.particle_restart_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.restart_from_nonparticle_chkfile</a>
+      <li><a href="runtime_parameters.html#index-16">particles.restart_from_nonparticle_chkfile</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.timestamp_density</a>
+      <li><a href="runtime_parameters.html#index-16">particles.timestamp_density</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.timestamp_dir</a>
+      <li><a href="runtime_parameters.html#index-16">particles.timestamp_dir</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.timestamp_temperature</a>
+      <li><a href="runtime_parameters.html#index-16">particles.timestamp_temperature</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">particles.v</a>
+      <li><a href="runtime_parameters.html#index-16">particles.v</a>
 </li>
       <li><a href="file/Castro__mhd_8H.html#_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">plm (C++ function)</a>
 </li>
@@ -2148,9 +2148,9 @@
 </li>
       <li><a href="class/classRadiation.html#_CPPv49Radiation">Radiation (C++ class)</a>, <a href="file/Radiation_8H.html#_CPPv49Radiation">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-16">radiation.flatten_pp_threshold</a>
+      <li><a href="runtime_parameters.html#index-17">radiation.flatten_pp_threshold</a>
 </li>
-      <li><a href="runtime_parameters.html#index-16">radiation.prop_temp_floor</a>
+      <li><a href="runtime_parameters.html#index-17">radiation.prop_temp_floor</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation8absInTolE">Radiation::absInTol (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation8absInTolE">[1]</a>
 </li>
@@ -2482,21 +2482,21 @@
 </li>
       <li><a href="class/classRadSolve.html#_CPPv48RadSolve">RadSolve (C++ class)</a>, <a href="file/RadSolve_8H.html#_CPPv48RadSolve">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.abstol</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.abstol</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.alpha</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.alpha</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.beta</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.beta</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.level_solver_flag</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.level_solver_flag</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.maxiter</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.maxiter</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.reltol</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.reltol</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.use_hypre_nonsymmetric_terms</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.use_hypre_nonsymmetric_terms</a>
 </li>
-      <li><a href="runtime_parameters.html#index-17">radsolve.v</a>
+      <li><a href="runtime_parameters.html#index-18">radsolve.v</a>
 </li>
       <li><a href="class/classRadSolve.html#_CPPv4N8RadSolve24cellCenteredApplyMetricsEiRN5amrex8MultiFabE">RadSolve::cellCenteredApplyMetrics (C++ function)</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve24cellCenteredApplyMetricsEiRN5amrex8MultiFabE">[1]</a>
 </li>
