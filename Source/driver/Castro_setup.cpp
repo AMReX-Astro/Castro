@@ -209,11 +209,6 @@ Castro::variableSetUp ()
 
   init_prob_parameters();
 
-  // now check the runtime parameters to warn / abort if the user set
-  // anything that isn't known to Castro
-
-  validate_runparams();
-
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
   // block of the probin file)
