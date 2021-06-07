@@ -25,7 +25,7 @@ static int ispow2(int i)
 
 Real HypreMultiABec::flux_factor = 1.0;
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
 int HypreMultiABec::vl[2] = { 0, 0 };
 int HypreMultiABec::vh[2] = { 0, 0 };
 #endif
@@ -298,7 +298,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
       for (std::list<Box>::iterator it = bl.begin(); it != bl.end(); ++it) {
         aux[ori][i][j].reset(new AuxVarBox(*it));
         Box mask_box = *it;
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
           if (dir == ori.coordDir())
             continue;
           mask_box.grow(dir,1);
@@ -401,7 +401,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
         aux[ori][i][j].reset(new AuxVarBox(face & cgrids[i]));
 
         Box mask_box = aux[ori][i][j]->box();
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
           if (dir == ori.coordDir())
             continue;
           mask_box.grow(dir,1);
@@ -670,7 +670,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
 
   int nparts = fine_level - crse_level + 1;
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
 
   // Hypre doesn't support 1D directly, so we use 2D Hypre with
   // the second dimension collapsed.
@@ -681,7 +681,7 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
 
 #else
 
-  HYPRE_SStructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, nparts, &hgrid);
+  HYPRE_SStructGridCreate(MPI_COMM_WORLD, AMREX_SPACEDIM, nparts, &hgrid);
 
 #endif
 }
@@ -712,7 +712,7 @@ void HypreMultiABec::addLevel(int             level,
   dmap[level]  = _dmap;
   fine_ratio[level] = _fine_ratio;
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
 
   if (geom[level].isAnyPeriodic()) {
     BL_ASSERT(geom[level].isPeriodic(0));
@@ -729,8 +729,8 @@ void HypreMultiABec::addLevel(int             level,
 #else
 
   if (geom[level].isAnyPeriodic()) {
-    int is_periodic[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    int is_periodic[AMREX_SPACEDIM];
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       is_periodic[i] = 0;
       if (geom[level].isPeriodic(i)) {
         is_periodic[i] = geom[level].period(i);
@@ -800,9 +800,9 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
       for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
         cintrp(v).push(clevel, vc,     1.0);
       }
-#elif (BL_SPACEDIM == 1)
+#elif (AMREX_SPACEDIM == 1)
       cintrp(vf).push(clevel, vc, 1.0);
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
       if (msk(vf-vj1) != RadBndryData::not_covered &&
           msk(vf+vjr) == RadBndryData::not_covered) {
         // low direction not available, use linear interp upwards:
@@ -838,7 +838,7 @@ TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
         }
         //amrex::Error("Case not implemented");
       }
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
 
       // First do the jdir direction, including piecewise-constant term:
 
@@ -972,9 +972,9 @@ void HypreMultiABec::buildMatrixStructure()
     acoefs[level].reset(new MultiFab(grids[level], dmap[level], ncomp, ngrow));
     acoefs[level]->setVal(0.0);
 
-    bcoefs[level].reset(new Array<MultiFab, BL_SPACEDIM>);
+    bcoefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
 
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
       (*bcoefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
@@ -988,7 +988,7 @@ void HypreMultiABec::buildMatrixStructure()
 
   // Setup stencils:
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
@@ -999,13 +999,13 @@ void HypreMultiABec::buildMatrixStructure()
   int offsets[3][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0}};
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0},
                        { 0, -1},
                        { 0,  1}};
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
                        {-1,  0,  0},
                        { 1,  0,  0},
@@ -1016,13 +1016,13 @@ void HypreMultiABec::buildMatrixStructure()
 #endif
 
   BL_ASSERT(stencil == NULL);
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   HYPRE_SStructStencilCreate(2, 3, &stencil);
 #else
-  HYPRE_SStructStencilCreate(BL_SPACEDIM, 2 * BL_SPACEDIM + 1, &stencil);
+  HYPRE_SStructStencilCreate(AMREX_SPACEDIM, 2 * AMREX_SPACEDIM + 1, &stencil);
 #endif
 
-  for (int i = 0; i < 2 * BL_SPACEDIM + 1; i++) {
+  for (int i = 0; i < 2 * AMREX_SPACEDIM + 1; i++) {
     HYPRE_SStructStencilSetEntry(stencil, i, offsets[i], 0);
   }
 
@@ -1051,13 +1051,13 @@ void HypreMultiABec::buildMatrixStructure()
       vin = (ori.isLow() ? -vin : vin); // outward normal unit vector
       Real h = geom[level].CellSize(idir); // normal fine grid spacing
       IntVect ve; // default constructor initializes to zero
-#if (BL_SPACEDIM >= 2)
-      int jdir = (idir + 1) % BL_SPACEDIM;
+#if (AMREX_SPACEDIM >= 2)
+      int jdir = (idir + 1) % AMREX_SPACEDIM;
       IntVect vj1 = amrex::BASISV(jdir); // tangential unit vector
       IntVect vjr = rat * vj1;
       ve += (vjr - vj1);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
       int kdir = (idir + 2) % 3;
       IntVect vk1 = amrex::BASISV(kdir);
       IntVect vkr = rat * vk1;
@@ -1126,7 +1126,7 @@ void HypreMultiABec::buildMatrixStructure()
               int not_stencil = 1;
               if (levels[j] == level) {
                 IntVect d = cells[j] - v;
-                for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                   if (d == IntVect(offsets[k])) {
                     not_stencil = 0;
                   }
@@ -1172,13 +1172,13 @@ void HypreMultiABec::buildMatrixStructure()
       vin = (ori.isLow() ? -vin : vin); // outward normal unit vector
       Real h = geom[level].CellSize(idir); // normal fine grid spacing
       IntVect ve; // default constructor initializes to zero
-#if (BL_SPACEDIM >= 2)
-      int jdir = (idir + 1) % BL_SPACEDIM;
+#if (AMREX_SPACEDIM >= 2)
+      int jdir = (idir + 1) % AMREX_SPACEDIM;
       IntVect vj1 = amrex::BASISV(jdir); // tangential unit vector
       IntVect vjr = rat * vj1;
       ve += (vjr - vj1);
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
       int kdir = (idir + 2) % 3;
       IntVect vk1 = amrex::BASISV(kdir);
       IntVect vkr = rat * vk1;
@@ -1248,7 +1248,7 @@ void HypreMultiABec::buildMatrixStructure()
                 int not_stencil = 1;
                 if (levels[jj] == level-1) {
                   IntVect d = cells[jj] - vc;
-                  for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                  for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                     if (d == IntVect(offsets[k])) {
                       not_stencil = 0;
                     }
@@ -1343,6 +1343,8 @@ void HypreMultiABec::hmac (const Box& bx,
                            Array4<Real const> const& a,
                            Real alpha)
 {
+    BL_PROFILE("HypreMultiABec::hmac");
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -1362,6 +1364,8 @@ void HypreMultiABec::hmbc (const Box& bx,
                            Array4<Real const> const& b,
                            Real beta, const Real* dx, int n)
 {
+    BL_PROFILE("HypreMultiABec::hmbc");
+
     if (n == 0) {
 
         const Real fac = beta / (dx[0] * dx[0]);
@@ -1627,6 +1631,8 @@ HypreMultiABec::hmmat3 (const Box& bx,
                         const GeometryData& geomdata, Real c,
                         Array4<Real const> const& spa)
 {
+    BL_PROFILE("HypreMultiABec::hmmat3");
+
     bool xlo = false;
     bool ylo = false;
     bool zlo = false;
@@ -2175,7 +2181,7 @@ void HypreMultiABec::loadMatrix()
 {
   BL_PROFILE("HypreMultiABec::loadMatrix");
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
@@ -2186,13 +2192,13 @@ void HypreMultiABec::loadMatrix()
   int offsets[3][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0}};
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0},
                        { 0, -1},
                        { 0,  1}};
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
                        {-1,  0,  0},
                        { 1,  0,  0},
@@ -2202,7 +2208,7 @@ void HypreMultiABec::loadMatrix()
                        { 0,  0,  1}};
 #endif
 
-  const int size = 2 * BL_SPACEDIM + 1;
+  const int size = 2 * AMREX_SPACEDIM + 1;
   int i, idim;
 
   int stencil_indices[size];
@@ -2210,8 +2216,6 @@ void HypreMultiABec::loadMatrix()
   for (i = 0; i < size; i++) {
     stencil_indices[i] = i;
   }
-
-  Real foo = 1.e200;
 
   BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   FArrayBox smatfab;
@@ -2230,7 +2234,7 @@ void HypreMultiABec::loadMatrix()
 
       hmac(reg, matfab.array(), (*acoefs[level])[mfi].array(), alpha);
 
-      for (idim = 0; idim < BL_SPACEDIM; idim++) {
+      for (idim = 0; idim < AMREX_SPACEDIM; idim++) {
           hmbc(reg, matfab.array(), (*bcoefs[level])[idim][mfi].array(),
                beta, geom[level].CellSize(), idim);
       }
@@ -2365,13 +2369,13 @@ void HypreMultiABec::loadMatrix()
             Vector<Real> values;
             retval = entry(ori,i)(v).get_coeffs(values);
             BL_ASSERT(retval == 0);
-            int ientry = 2 * BL_SPACEDIM + 1;
+            int ientry = 2 * AMREX_SPACEDIM + 1;
             for (int j = 0; j < levels.size(); j++) {
               // identify stencil-like connections for separate treatment:
               int not_stencil = 1;
               if (levels[j] == level) {
                 IntVect d = cells[j] - v;
-                for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                   if (d == IntVect(offsets[k])) {
                     not_stencil = 0;
                     HYPRE_SStructMatrixAddToValues(A, part, getV1(v), 0,
@@ -2420,12 +2424,12 @@ void HypreMultiABec::loadMatrix()
       Real zfac = (-cfac / hc);               // factor for covered cell
       //cfac = 0.0;
       IntVect ve; // default constructor initializes to zero
-#if (BL_SPACEDIM >= 2)
-      int jdir = (idir + 1) % BL_SPACEDIM;
+#if (AMREX_SPACEDIM >= 2)
+      int jdir = (idir + 1) % AMREX_SPACEDIM;
       ve += (rat[jdir] - 1) * amrex::BASISV(jdir);
       cfac /= rat[jdir]; // will average over fine cells in tangential dir
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
       int kdir = (idir + 2) % 3;
       ve += (rat[kdir] - 1) * amrex::BASISV(kdir);
       cfac /= rat[kdir]; // will average over fine cells in tangential dir
@@ -2482,14 +2486,14 @@ void HypreMultiABec::loadMatrix()
               Vector<Real> values;
               retval = (*c_entry[level])(ori,i,j)(vc).get_coeffs(values);
               BL_ASSERT(retval == 0);
-              int ientry = 2 * BL_SPACEDIM + 1;
+              int ientry = 2 * AMREX_SPACEDIM + 1;
               for (int jj = 0; jj < levels.size(); jj++) {
                 // identify stencil-like connections for separate treatment:
                 int not_stencil = 1;
                 if (levels[jj] == -1) {
                   // connection to covered coarse cell to be zeroed out:
                   IntVect d = cells[jj] - vc;
-                  for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                  for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                     if (d == IntVect(offsets[k])) {
                       not_stencil = 0;
                       HYPRE_SStructMatrixSetValues(A, part-1, getV1(vc), 0,
@@ -2502,7 +2506,7 @@ void HypreMultiABec::loadMatrix()
                 if (levels[jj] == level-1) {
                   // other coarse-level entry, may or may not be in stencil:
                   IntVect d = cells[jj] - vc;
-                  for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                  for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                     if (d == IntVect(offsets[k])) {
                       not_stencil = 0;
                       HYPRE_SStructMatrixAddToValues(A, part-1, getV1(vc), 0,
@@ -2629,6 +2633,8 @@ void HypreMultiABec::loadLevelVectorX(int level,
                                       MultiFab& dest,
                                       int icomp)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorX");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2660,6 +2666,8 @@ void HypreMultiABec::loadLevelVectorB(int level,
                                       MultiFab& rhs, // will be altered
                                       BC_Mode inhom)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorB");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2738,12 +2746,16 @@ void HypreMultiABec::loadLevelVectorB(int level,
 
 void HypreMultiABec::finalizeVectors()
 {
+  BL_PROFILE("HypreMultiABec::finalizeVectors");
+
   HYPRE_SStructVectorAssemble(b);
   HYPRE_SStructVectorAssemble(x);
 }
 
 void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
+  BL_PROFILE("HypreMultiABec::setupSolver");
+
   reltol = _reltol;
   abstol = _abstol; // may be used to change tolerance for solve
 
@@ -2801,13 +2813,13 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       }
       else {
         prefinements[i][0] = fine_ratio[crse_level+i-1][0];
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
         prefinements[i][1] = 1;
         prefinements[i][2] = 1;
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
         prefinements[i][1] = fine_ratio[crse_level+i-1][1];
         prefinements[i][2] = 1;
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
         prefinements[i][1] = fine_ratio[crse_level+i-1][1];
         prefinements[i][2] = fine_ratio[crse_level+i-1][2];
 #endif
@@ -3032,7 +3044,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     // split solver
     ParmParse pp("hmabec");
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3081,7 +3093,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     int kdim = 5; pp.query("kdim", kdim);
     int split_iter  = 1; pp.query("split_iter",  split_iter);
     int struct_iter = 1; pp.query("struct_iter", struct_iter);
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3148,7 +3160,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_StructSolver& struct_solver = *(HYPRE_StructSolver*)&solver;
 
     ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3203,7 +3215,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     ParmParse pp("hmabec");
     int kdim = 5; pp.query("kdim", kdim);
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3408,7 +3420,7 @@ void HypreMultiABec::clearSolver()
   }
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3423,7 +3435,7 @@ void HypreMultiABec::clearSolver()
   }
   else if (solver_flag == 109) {
     ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3505,7 +3517,7 @@ void HypreMultiABec::solve()
       }
       else if (solver_flag == 108) {
         ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
         int struct_flag = 0;
 #else
         int struct_flag = 1;
@@ -3601,7 +3613,7 @@ void HypreMultiABec::solve()
     HYPRE_SStructVectorGetObject(b, (void**) &s_b);
     HYPRE_SStructVectorGetObject(x, (void**) &s_x);
     ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3732,7 +3744,7 @@ void HypreMultiABec::solve()
     }
     else if (solver_flag == 108) {
       ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
       int struct_flag = 0;
 #else
       int struct_flag = 1;
@@ -3779,6 +3791,8 @@ void HypreMultiABec::solve()
 
 void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 {
+  BL_PROFILE("HypreMultiABec::getSolution");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -3810,6 +3824,8 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
 Real HypreMultiABec::getAbsoluteResidual()
 {
+  BL_PROFILE("HypreMultiABec::getAbsoluteResidual");
+
   Real bnorm;
   hypre_SStructInnerProd((hypre_SStructVector *) b,
                          (hypre_SStructVector *) b,
@@ -3843,7 +3859,7 @@ Real HypreMultiABec::getAbsoluteResidual()
   }
   else if (solver_flag == 108) {
     ParmParse pp("hmabec");
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     int struct_flag = 0;
 #else
     int struct_flag = 1;
@@ -3960,6 +3976,8 @@ void HypreMultiABec::boundaryFlux(int level,
 
 void HypreMultiABec::getProduct(int level, MultiFab& product)
 {
+  BL_PROFILE("HypreMultiABec::getProduct");
+
   int part = level - crse_level;
 
   for (MFIter mfi(product); mfi.isValid(); ++mfi) {

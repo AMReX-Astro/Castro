@@ -1,3 +1,56 @@
+# 21.07
+
+   * Castro can now validate the runtime parameters set in the inputs
+     file or on the commandline by setting
+     castro.abort_on_invalid_params=1 (#1882)
+
+# 21.06
+
+   * Starting with this release, problem setups written in Fortran are
+     no longer supported and will no longer work. Please consult the
+     code documentation and example problem setups in Exec/ to understand
+     the new problem setup format. If you need help converting a Fortran
+     setup to C++, please file an issue. (#1728, #1732)
+
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
+   * Ambient parameters are now only accepted through the inputs file; the
+     &ambient namelist in the probin file is no longer read. (#1742)
+
+   * The update_sponge_params hook has been removed. (#1716)
+
+   * The Fortran problem-specific source file, ext_src_nd.F90, has been
+     removed. Problem-specific sources should be implemented in C++ in
+     problem_source.H. (#1856)
+
+   * Support for the legacy tagging scheme based on probin parameters (denerr,
+     tempgrad, etc.) has been removed. These can be replaced with equivalent
+     tagging criteria constructed in the inputs file; see the docs or examples
+     in Exec/ to see how to use `amr.refinement_indicators`. (#1834)
+
+   * The Fortran set_problem_tags hook has been removed. The C++ replacement
+     is `problem_tagging()` in `problem_tagging.H`. (#1828)
+
+   * The PrescribedGrav functionality has been removed (not replaced with a C++
+     implementation). If you want to obtain the same functionality, you can use
+     a problem-defined source term (look for problem_source in the documentation)
+     and make the appropriate modification for applying it directly to the state
+     (e.g. the momentum source term is rho * g). (#1854)
+
+   * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
+     an implementation of rbndry has been removed. (#1743)
+
+   * We no longer store Reactions_Type in checkpoint files.  This means
+     that newer versions of Castro will not restart from old version.
+     
+# 21.05
+
+   * The parameter use_eos_in_riemann was removed -- we found no
+     instances of it being used (#1623)
+
+   * The option castro.apply_sources_consecutively was removed (#1636)
+
 # 21.04
 
    * For simplified-SDC, we now correctly store only the reactive

@@ -24,7 +24,6 @@ castro.ppm_type = 0
 castro.allow_negative_energy = 0
 
 #MHD
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 # TIME STEP CONTROL
@@ -73,5 +72,13 @@ amr.plot_file       = sedov_3d_plt
 amr.plot_int        = 50
 amr.derive_plot_vars= density Temp pressure
 
-# PROBIN FILENAME
-amr.probin_file = probin.3d.mhd
+# PROBLEM PARAMETERS
+problem.r_init = 0.01
+problem.p_ambient = 1.e-5
+problem.exp_energy = 1.0
+problem.dens_ambient = 1.0
+problem.nsub = 10
+
+# EOS
+eos.eos_gamma = 1.4e0
+eos.eos_assume_neutral = 1

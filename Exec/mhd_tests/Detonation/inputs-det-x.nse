@@ -6,7 +6,7 @@ stop_time =  5e-5
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 1.6384e5 20480   
+geometry.prob_hi     = 256 32   
 amr.n_cell           = 256 32
 
 

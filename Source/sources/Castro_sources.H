@@ -138,19 +138,11 @@
     void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
                                           std::string source_name);
 
+
 ///
-/// Obtain the sum of all source terms.
+/// For simplified-SDC, compute -div{F} + 1/2 (S^n + S^{n+1})
 ///
-/// this computes advective_source + 1/2 (old source + new source)
-///
-/// @note the advective source is defined as \f$-\nabla\cdot F\f$
-///
-/// the time-centering is accomplished since new source is defined
-/// to be 1/2 (new source - old source) generally.
-///
-/// @param source       MultiFab of source terms to be summed
-///
-    void sum_of_sources(amrex::MultiFab& source);
+    void make_sdc_hydro_plus_sources(MultiFab& source, Real dt);
 
 
 ///
@@ -206,17 +198,6 @@
                       amrex::Array4<amrex::Real const> const state,
                       amrex::Array4<amrex::Real> const source,
                       amrex::Real dt, amrex::Real mult_factor);
-
-///
-/// Allocate sponge parameters
-///
-    static void sponge_init();
-
-
-///
-/// Deallocate sponge parameters
-///
-    static void sponge_finalize();
 
 #endif
 

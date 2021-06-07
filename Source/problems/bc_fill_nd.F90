@@ -1,7 +1,6 @@
 module bc_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use meth_params_module, only: NVAR
 
   implicit none
 

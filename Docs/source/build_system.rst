@@ -19,7 +19,7 @@ space for variables that are not used.
 General Build Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE
+.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_HYPRE
 
 These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
@@ -33,12 +33,6 @@ Most of these are parameters from AMReX.
     ``Base/``, ``AmrCore/``, ``Amr/``, and ``Boundary/``.  This defaults
     to ``TRUE`` and should be left set for Castro simulations.  The purpose
     of this flag is for unit tests that don't need all of AMReX.
-
-  * ``USE_SYSTEM_BLAS``: for the linear algebra routines provided by
-    BLAS, should we compile our own versions or should we use a system
-    library that provides the BLAS routines?  If we set
-    ``USE_SYSTEM_BLAS = TRUE``, then we need to provide the name on
-    the library in the ``BLAS_LIBRARY`` build parameter.
 
   * ``USE_MLMG``: use the AMReX multi-level multigrid solver for gravity
     and diffusion.  This should always be set to ``TRUE``.
@@ -247,8 +241,8 @@ This is the current build system process.
 
   .. index:: write_probin.py
 
-  * This writes the Fortran module that holds the Microphysics runtime
-    parameters, ``extern.F90``.  This is output in
+  * This writes the routines that manage the Microphysics runtime
+    parameters: ``extern_parameters.cpp``, ``extern_parameters.H``, and  ``extern.F90``.  This is output in
     ``tmp_build_dir/castro_sources/``.
 
   * The hook for this is in ``Make.Castro`` in the rule for ``extern.F90``
@@ -257,23 +251,21 @@ This is the current build system process.
 
   .. index:: parse_castro_params.py
 
-  * This writes the Fortran module ``meth_params.F90``, which defines all
+  * This writes the C++ header files that manage and read the runtime parameters and also
+    creates the Fortran module ``meth_params.F90``, which defines all
     of the runtime parameters available to Fortran, from the template
     ``meth_params.template`` in ``Source/driver``. The file is output in
-    ``tmp_build_dir/castro_sources/``. It also generates several C++
-    headers and snippets of .cpp files that define the variables, and
-    read them from the inputs file/command line, respectively, as well
-    as the code needed to set the Fortran data correctly once the inputs
-    have been read.
+    ``tmp_build_dir/castro_sources/``.  
 
   * The hook for this is in ``Make.Castro`` in the rule for ``meth_params.F90``
 
 * Problem-specific runtime parameters are parsed by ``write_probdata.py``
 
   * If the problem directory defines a ``_prob_params`` then it is parsed
-    and used to define the Fortran ``&fortin`` namelist that controls the
-    runtime parameters for problem initialization. Either way, the namelist
-    will include all variables in ``Castro/Source/problems/_default_prob_params``.
+    and used to C++ header and source files ``prob_parameters.H`` and ``prob_parameters.cpp``.
+    These handle reading the ``problem.*`` parameters from the inputs file.
+    Even without a problem-specific ``_prob_params``, all of the 
+    variables in ``Castro/Source/problems/_default_prob_params`` will be included.
 
   * The script ``Castro/Util/scripts/write_probdata.py`` is used
 

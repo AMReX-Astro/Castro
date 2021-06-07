@@ -2,7 +2,7 @@
   T_l = 4.d9
   T_r = 5.d7
 
-  dens_l = 4.236d7
+  dens_l = 1.0d7
   dens_r = 4.236d7
   cfrac = 0.d0
   

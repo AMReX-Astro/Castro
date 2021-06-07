@@ -1,9 +1,0 @@
-
-STEPS:
-
-1. Compile problem code executable in its original directory and copy it into exploration directory
-2. Modify the variables you want to test as you see fit in setup_explore.py
-3. Run setup_explore.py
-4. Run the problem code in each of the new directories
-5. Run process.py to generate .png images and write html
-6. Optional: You can use flamefront.py to generate a plot of a 1D slice of the plotfiles in a directory, plotted over time.
