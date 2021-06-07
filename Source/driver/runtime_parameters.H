@@ -81,8 +81,22 @@ validate_runparams()
     check_namespaces.push_back("gravity");
 #endif
 #ifdef RADIATION
-    check_namespaces.push_back("radiation");
+    //check_namespaces.push_back("radiation");  // this doesn't yet work because RadBndry isn't setup yet
     check_namespaces.push_back("radsolve");
+#endif
+
+    // now Microphysics
+
+    check_namespaces.push_back("eos");
+#ifdef REACTIONS
+    check_namespaces.push_back("network");
+    check_namespaces.push_back("integrator");
+#endif
+#ifdef RADIATION
+    check_namespaces.push_back("opacity");
+#endif
+#ifdef DIFFUSION
+    check_namespaces.push_back("conductivity");
 #endif
 
     for (auto nm: check_namespaces)
