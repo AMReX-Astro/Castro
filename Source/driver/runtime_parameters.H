@@ -61,8 +61,9 @@ initialize_cpp_runparams()
 
 
 ///
-/// Initialize all of the runtime parameters defined in _cpp_parameters
-/// regardless of the namespace
+/// Check to ensure that any runtime parameters set in inputs or on
+/// the command line are valid -- everything should have been accessed
+/// by now.
 ///
 AMREX_INLINE
 void
@@ -79,10 +80,10 @@ validate_runparams()
 #ifdef GRAVITY
     check_namespaces.push_back("gravity");
 #endif
-
-
-    // we don't validate radiation parameters yet, since a lot of the reads
-    // are hardcoded into the radiation constructor
+#ifdef RADIATION
+    check_namespaces.push_back("radiation");
+    check_namespaces.push_back("radsolve");
+#endif
 
     for (auto nm: check_namespaces)
     {

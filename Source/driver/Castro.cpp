@@ -716,6 +716,11 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
+    // now check the runtime parameters to warn / abort if the user set
+    // anything that isn't known to Castro
+
+    validate_runparams();
+
 }
 
 Castro::~Castro ()
