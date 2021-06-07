@@ -64,14 +64,35 @@ amr.plot_file       = det_x_plt  # root name of plotfile
 amr.plot_per = 1.e-9
 amr.derive_plot_vars = ALL
 
-<<<<<<< HEAD:Exec/mhd_tests/Detonation/inputs-det-x
-#PROBIN FILENAME
-amr.probin_file = probin-det-x
-=======
 # problem initialization
 
-problem.T0 = 4.e9
-problem.dT_fact = 0.2
-problem.rho0 = 5.e8
-problem.L_pert = 2.e7
->>>>>>> 14faaf285775fdb03f989f8ee5c09cb9c8553dbe:Exec/reacting_tests/nse_test/inputs.64
+problem.T_l = 4.423e9
+problem.T_r = 2.e8
+
+problem.dens_l = 4.236e7
+problem.dens_r = 4.236e7
+problem.cfrac = 1.e0
+
+problem.smallx = 1.e-10
+
+problem.idir = 1
+
+problem.w_T = 5.e-4
+problem.center_T = 1.e-1
+
+problem.vel = 2.876e8
+
+# refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 4.e9
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e8
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+
