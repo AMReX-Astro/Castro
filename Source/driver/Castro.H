@@ -1452,11 +1452,6 @@ protected:
 
 #ifdef RADIATION
 
-///
-/// permits radiation to be turned on and off without recompiling:
-///
-    static int do_radiation;
-
 
 ///
 /// There can be only one Radiation object, it covers all levels:
