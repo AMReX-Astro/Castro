@@ -33,7 +33,7 @@ def trend_line(c, t):
 
 truns = []
 
-data = np.loadtxt("scaling_20200613.txt")
+data = np.loadtxt("scaling_20210606.txt")
 
 for row in data:
     truns.append(ScalingRun(nodes=row[0], max_grid=row[1],
