@@ -111,6 +111,8 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+AMREX_NO_PROBINIT := TRUE
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
@@ -273,8 +275,6 @@ Blocs += $(foreach dir, $(Bdirs), $(TOP)/$(dir))
 #------------------------------------------------------------------------------
 # AMReX
 #------------------------------------------------------------------------------
-
-AMREX_NO_PROBINIT ?= TRUE
 
 # core AMReX directories -- note the Make.package for these adds these
 # directories into VPATH_LOCATIONS and INCLUDE_LOCATIONS for us, so we
