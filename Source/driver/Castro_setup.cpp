@@ -220,19 +220,19 @@ Castro::variableSetUp ()
   // set small positive values of the "small" quantities if they are
   // negative
   if (small_dens < 0.0_rt) {
-    small_dens = 1.e-200_rt;
+    small_dens = 1.e-100_rt;
   }
 
   if (small_temp < 0.0_rt) {
-    small_temp = 1.e-200_rt;
+    small_temp = 1.e-100_rt;
   }
 
   if (small_pres < 0.0_rt) {
-    small_pres = 1.e-200_rt;
+    small_pres = 1.e-100_rt;
   }
 
   if (small_ener < 0.0_rt) {
-    small_ener = 1.e-200_rt;
+    small_ener = 1.e-100_rt;
   }
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
