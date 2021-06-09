@@ -28,7 +28,7 @@ castro.sdc_solver = 2
 castro.sdc_solver_tol_dens = 1.e-5
 castro.sdc_solver_tol_spec = 1.e-5
 castro.sdc_solver_tol_ener = 1.e-5
-castro.sdc_use_analytic_jac = 0
+castro.sdc_newton_use_analytic_jac = 0
 
 castro.ppm_type = 0
 
