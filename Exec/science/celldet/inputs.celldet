@@ -71,19 +71,22 @@ amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 
-problem.T_l = 4.e9
-problem.T_r = 5.e7
+problem.T_l = 4.423e9
+problem.T_r = 2.e8
 
-problem.dens_l = 1.0e7
+problem.dens_l = 4.236e7
 problem.dens_r = 4.236e7
-problem.cfrac = 0.d0
-  
+problem.cfrac = 1.e0
+
 problem.smallx = 1.e-10
 
 problem.idir = 1
 
-problem.w_T = 2.e-3 
-problem.center_T = 0.1
+problem.w_T = 5.e-4
+problem.center_T = 1.e-1
+
+problem.vel = 2.876e8
+
 
 # refinement
 
