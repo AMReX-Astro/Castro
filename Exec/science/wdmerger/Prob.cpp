@@ -362,7 +362,7 @@ Castro::wd_update (Real time, Real dt)
 
     // For 1D we force the masses to remain constant
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     mass_P = old_mass_P;
     mass_S = old_mass_S;
 #endif
@@ -640,7 +640,7 @@ void Castro::check_to_stop(Real time, bool dump) {
         // Note that we don't want to use the following in 1D
         // since we're not simulating gravitationally bound systems.
 
-#if BL_SPACEDIM > 1
+#if AMREX_SPACEDIM > 1
         if (use_energy_stopping_criterion) {
 
             // For the collision problem, we know we are done when the total energy

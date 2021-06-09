@@ -15,6 +15,11 @@ amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
 amr.blocking_factor  = 8
 amr.max_grid_size    = 8
 
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.value_greater = 1.0e0
+amr.refine.denerr.field_name = density
+
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
@@ -49,5 +54,16 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 1        # timesteps between plotfiles
 amr.derive_plot_vars  = ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.density      = 1.0e3
+problem.diameter     = 2.0e0
+problem.ambient_dens = 1.0e-8
+
+# Problem 1 is the uniform sphere;
+# Problem 2 is the normalized uniform sphere;
+# Problem 3 is the uniform cube.
+
+problem.problem = 3
+
+# EOS
+eos.eos_assume_neutral = 1

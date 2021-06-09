@@ -12,9 +12,8 @@ using namespace amrex;
 
 void
 Castro::ctu_rad_consup(const Box& bx,
-                       Array4<Real> const& update,
+                       Array4<Real> const& U_new,
                        Array4<Real const> const& Erin,
-                       Array4<Real> const& uout,
                        Array4<Real> const& Erout,
                        Array4<Real const> const& radflux1,
                        Array4<Real const> const& qx,
@@ -68,8 +67,8 @@ Castro::ctu_rad_consup(const Box& bx,
   int limiter = Radiation::limiter;
   int closure = Radiation::closure;
 
-  // radiation energy update.  For the moment, we actually update things
-  // fully here, instead of creating a source term for the update
+  // radiation energy update. 
+
   amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
   {
@@ -85,23 +84,12 @@ Castro::ctu_rad_consup(const Box& bx,
          ) / vol(i,j,k);
   });
 
-  // Add gradp term to momentum equation -- only for axisymmetry coords
-  // (and only for the radial flux);  also add the radiation pressure gradient
-  // to the momentum for all directions
+  // add the radiation pressure gradient to the momentum for all
+  // directions
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
-
-    // pgdnv from the Riemann solver is only the gas contribution,
-    // not the radiation contribution.  Note that we've already included
-    // the gas pressure in the momentum flux for all Cartesian coordinate
-    // directions
-
-    Real dpdx = 0;
-    if (!mom_flux_has_p(0, 0, coord_type)) {
-      dpdx = (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES))/ dx[0];
-      update(i,j,k,UMX) -= dpdx;
-    }
 
     // radiation contribution -- this is sum{lambda E_r}
     Real dprdx = 0.0;
@@ -133,33 +121,33 @@ Castro::ctu_rad_consup(const Box& bx,
 #endif
     }
 
+
     // we now want to compute the change in the kinetic energy -- we
-    // base this off of uout, since that has the source terms in it.
-    // But note that this does not have the fluxes (since we are
-    // using update)
+    // base this off of S_new, since that already is updated with hydro
 
     // note, we need to include the Z component here too (even
     // for 1- and 2-d), since rotation might be in play
 
-    Real urho_new = uout(i,j,k,URHO) + dt * update(i,j,k,URHO);
+    Real urho_new = U_new(i,j,k,URHO);
 
     // this update includes the hydro fluxes and grad{p} from hydro
-    Real umx_new1 = uout(i,j,k,UMX) + dt * update(i,j,k,UMX);
-    Real umy_new1 = uout(i,j,k,UMY) + dt * update(i,j,k,UMY);
-    Real umz_new1 = uout(i,j,k,UMZ) + dt * update(i,j,k,UMZ);
+    Real umx_new1 = U_new(i,j,k,UMX);
+    Real umy_new1 = U_new(i,j,k,UMY);
+    Real umz_new1 = U_new(i,j,k,UMZ);
 
     Real ek1 = (umx_new1 * umx_new1 +
                 umy_new1 * umy_new1 +
                 umz_new1 * umz_new1) / (2.0_rt * urho_new);
 
-    // now add the radiation pressure gradient
-    update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx;
-    update(i,j,k,UMY) = update(i,j,k,UMY) - dprdy;
-    update(i,j,k,UMZ) = update(i,j,k,UMZ) - dprdz;
 
-    Real umx_new2 = umx_new1 - dt * dprdx;
-    Real umy_new2 = umy_new1 - dt * dprdy;
-    Real umz_new2 = umz_new1 - dt * dprdz;
+    // now add the radiation pressure gradient
+    U_new(i,j,k,UMX) -= dt * dprdx;
+    U_new(i,j,k,UMY) -= dt * dprdy;
+    U_new(i,j,k,UMZ) -= dt * dprdz;
+
+    Real umx_new2 = U_new(i,j,k,UMX);
+    Real umy_new2 = U_new(i,j,k,UMY);
+    Real umz_new2 = U_new(i,j,k,UMZ);
 
     Real ek2 = (umx_new2 * umx_new2 +
                 umy_new2 * umy_new2 +
@@ -167,8 +155,9 @@ Castro::ctu_rad_consup(const Box& bx,
 
     Real dek = ek2 - ek1;
 
-    // the update is a source / dt, so scale accordingly
-    update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek/dt;
+    // update the kinetic energy with the radiation contribution
+
+    U_new(i,j,k,UEDEN) = U_new(i,j,k,UEDEN) + dek;
 
     if (! comov) {
       // ! mixed-frame (single group only)

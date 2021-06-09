@@ -43,9 +43,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab& S_new = castro->get_new_data(State_Type);
   AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
 
-  Array<MultiFab, BL_SPACEDIM> lambda;
+  Array<MultiFab, AMREX_SPACEDIM> lambda;
   if (limiter > 0) {
-    for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+    for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
         lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
     }
 
@@ -72,7 +72,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
   }
   else {
-    for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+    for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
         lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
       lambda[idim].setVal(1./3.);
     }    
@@ -94,7 +94,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
   }
   MultiFab Er_old(grids, dmap , Er_new.nComp(), 0);
-  Er_old.copy(Er_new); 
+  MultiFab::Copy(Er_old, Er_new, 0, 0, Er_new.nComp(), 0);
   MultiFab Er_pi(grids,dmap,nGroups,1);
   MultiFab Er_star(grids, dmap, nGroups, 1);
   Er_pi.setBndry(-1.0); // later we may use it to compute limiter
@@ -151,7 +151,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   bool have_Sanchez_Pomraning = false;
   int lo_bc[3]={0}, hi_bc[3]={0};
-  for (int idim=0; idim<BL_SPACEDIM; idim++) {
+  for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
     if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
@@ -171,8 +171,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   FluxRegister* flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
   FluxRegister* flux_out = (level > 0) ? flux_trial[level].get() : nullptr;
 
-  Array<MultiFab, BL_SPACEDIM> Flux;
-  for (int n = 0; n < BL_SPACEDIM; n++) {
+  Array<MultiFab, AMREX_SPACEDIM> Flux;
+  for (int n = 0; n < AMREX_SPACEDIM; n++) {
       Flux[n].define(castro->getEdgeBoxArray(n), dmap, 1, 0);
   }
 
@@ -183,7 +183,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       flxcc = plotvar[level].get();
       icomp_flux = icomp_com_Fr;
   } else if (plot_lab_Er || plot_lab_flux) {
-      flxsave.reset(new MultiFab(grids, dmap, nGroups*BL_SPACEDIM, 0));
+      flxsave.reset(new MultiFab(grids, dmap, nGroups*AMREX_SPACEDIM, 0));
       flxcc = flxsave.get();
       icomp_flux = 0;
   } 

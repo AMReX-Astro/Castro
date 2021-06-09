@@ -3,9 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
-# system blas
-BLAS_LIBRARY ?= -lopenblas
-
 TOP := $(CASTRO_HOME)
 
 # Allow a problem setup to define a root location.
@@ -95,30 +92,26 @@ ifeq ($(USE_RAD), TRUE)
   USE_MLMG = TRUE
 endif
 
-ifeq ($(USE_SYSTEM_BLAS), TRUE)
-  LIBRARIES += $(BLAS_LIBRARY)
+ifeq ($(USE_MPI), TRUE)
+  # Use thread support in MPI to support asynchronous I/O
+  MPI_THREAD_MULTIPLE := TRUE
+  # But keep the suffix MPI, not MTMPI, for simplicity
+  MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
+endif
 
+ifeq ($(USE_GPU),TRUE)
   # We don't currently support host-side OpenMP being enabled
-  # when using CUDA. Throw an error to prevent this case.
+  # when using GPUs. Throw an error to prevent this case.
   ifeq ($(USE_OMP),TRUE)
-    $(error OpenMP is not supported by Castro when building with CUDA)
+    $(error OpenMP is not supported by Castro when building with GPU support)
   endif
 endif
 
-# Allow a problem to specify that we want to initialize
-# on the GPU if we're using CUDA. This is a subset of
-# dimension agnostic problems, and it requires a different
-# interface to initdata, so we want to define this even
-# if we're not using CUDA.
-
-ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-    DEFINES += -DGPU_COMPATIBLE_PROBLEM
-endif
+AMREX_NO_PROBINIT := TRUE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 

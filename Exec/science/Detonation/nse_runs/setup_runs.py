@@ -28,7 +28,7 @@ DO_STRANG_RUNS = 1
 DO_SIMPLE_SDC_RUNS = 1
 DO_TRUE_SDC_RUNS = 0
 
-COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled"] #, "nse19.tbl"]
+COMMON_FILES = ["helm_table.dat"] #, "nse19.tbl"]
 
 STRANG_EXEC = "./Castro1d.gnu.ex"
 NEEDED_STRANG_FILES = [STRANG_EXEC] + COMMON_FILES

@@ -22,6 +22,24 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 10000      # number of timesteps between checkpoints
@@ -33,8 +51,21 @@ amr.plot_int        = 10000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
 
-# PROBIN FILENAME
-amr.probin_file     = probin.common
+# EOS
+eos.eos_const_c_v = 3.0262923999999999e-14
+eos.eos_c_v_exp_m = 0.0e0
+eos.eos_c_v_exp_n = -3.0e0
+
+# OPACITY
+opacity.const_kappa_r = 1.9801980198019803e-31
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
+opacity.kappa_r_exp_p = 2.0e0
+
+opacity.const_kappa_p = 1.9801980198019803e-31
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
+opacity.kappa_p_exp_p = 2.0e0
 
 # VERBOSITY
 amr.v = 1

@@ -131,7 +131,7 @@ Castro::ctoprim(const Box& bx,
     }
 
     // get gamc, p, T, c, csml using q state
-    eos_t eos_state;
+    eos_rep_t eos_state;
     eos_state.T = q_arr(i,j,k,QTEMP);
     eos_state.rho = q_arr(i,j,k,QRHO);
     eos_state.e = q_arr(i,j,k,QREINT);
@@ -1093,7 +1093,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
     if (state_arr(i,j,k,URHO) < small_dens) {
 
 #ifndef AMREX_USE_GPU
-      if (verbose > 0) {
+      if (verbose > 1 ||
+          (verbose > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
@@ -1119,7 +1120,7 @@ Castro::do_enforce_minimum_density(const Box& bx,
         state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
       }
 
-      eos_t eos_state;
+      eos_re_t eos_state;
       eos_state.rho = small_dens;
       eos_state.T = small_temp;
       for (int n = 0; n < NumSpec; n++) {

@@ -67,5 +67,12 @@ amr.plot_file       = sedov_1d_sph_plt
 amr.plot_int        = 1000
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin.1d.sph
+# PROBLEM PARAMETERS
+problem.r_init = 0.01
+problem.p_ambient = 1.e-5
+problem.exp_energy = 1.0
+problem.dens_ambient = 1.0
+problem.nsub = 10
+
+# EOS
+eos.eos_assume_neutral = 1

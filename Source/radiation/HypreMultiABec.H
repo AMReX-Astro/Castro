@@ -255,7 +255,7 @@ class BndryAuxVar : public BndryAuxVarBase {
  protected:
 
   amrex::BoxArray            grids;
-  amrex::Vector<std::unique_ptr<AuxVarBox> >   aux[2*BL_SPACEDIM];
+  amrex::Vector<std::unique_ptr<AuxVarBox> >   aux[2*AMREX_SPACEDIM];
 };
 
 ///
@@ -381,10 +381,10 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
   void initialize_secondaries(Location loc);
 
   amrex::BoxArray                    cgrids, fgrids;
-  amrex::Vector< amrex::Vector<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
-  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::Mask> > >       msk[2*BL_SPACEDIM];
-  amrex::Vector< amrex::Vector<int> >                          fine_index[2*BL_SPACEDIM];
-  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::FArrayBox> > >  face_data[2*BL_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<AuxVarBox> > >  aux[2*AMREX_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::Mask> > >       msk[2*AMREX_SPACEDIM];
+  amrex::Vector< amrex::Vector<int> >                          fine_index[2*AMREX_SPACEDIM];
+  amrex::Vector< amrex::Vector<std::unique_ptr<amrex::FArrayBox> > >  face_data[2*AMREX_SPACEDIM];
 };
 
 ///
@@ -680,7 +680,7 @@ class HypreMultiABec {
   amrex::Vector< amrex::Vector<amrex::BoxArray> > subgrids;
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > acoefs;
-  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > bcoefs;
   amrex::Real alpha, beta;
   amrex::Real reltol, abstol;
 
@@ -736,7 +736,7 @@ class HypreMultiABec {
                                  const amrex::BoxArray& sgr,
                                  amrex::FArrayBox& f, int fcomp);
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   static int vl[2];
   static int vh[2];
 #endif
@@ -748,7 +748,7 @@ class HypreMultiABec {
 /// @param i
 ///
   static int* getV1(const amrex::IntVect& i) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     vl[0] = i[0];
     return vl;
 #else
@@ -765,7 +765,7 @@ class HypreMultiABec {
 /// @param i
 ///
   static int* getV2(const amrex::IntVect& i) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     vh[0] = i[0];
     return vh;
 #else
@@ -782,7 +782,7 @@ class HypreMultiABec {
 /// @param b
 ///
   static int* loV(const amrex::Box& b) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     vl[0] = b.smallEnd(0);
     return vl;
 #else
@@ -799,7 +799,7 @@ class HypreMultiABec {
 /// @param b
 ///
   static int* hiV(const amrex::Box& b) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     vh[0] = b.bigEnd(0);
     return vh;
 #else

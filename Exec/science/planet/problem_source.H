@@ -5,10 +5,6 @@
 
 using namespace amrex;
 
-constexpr Real p_orb_vel = 1.e-3_rt;
-constexpr Real p_radius = 1.e10_rt;
-constexpr Real beta = p_orb_vel * 2.0_rt / p_radius;
-
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_source (int i, int j, int k,
                      GeometryData const& geomdata,
@@ -24,6 +20,10 @@ void problem_source (int i, int j, int k,
     for (auto n = 0; n < NSRC; ++n) {
         src(i,j,k,n) = 0.0_rt;
     }
+
+    const Real p_orb_vel = 1.e-3_rt;
+    const Real p_radius = 1.e10_rt;
+    const Real beta = p_orb_vel * 2.0_rt / p_radius;
 
     auto y = problo[1] + dx[1]*(Real(j) + 0.5_rt) - center[1];
     auto ang_vel = 0.5 * beta * y;

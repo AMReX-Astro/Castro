@@ -7,7 +7,8 @@
 
 module constants_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use iso_c_binding, only : c_double
+  integer, parameter :: rt = c_double
 
   ! fundamental constants
   real(rt), parameter :: k_B      = 1.3806504e-16_rt   ! erg / K
@@ -42,8 +43,8 @@ module constants_module
   ! (i.e. the matter temperature will increase with time to the
   ! equilibrium temperature).
 
-  !real(rt), parameter :: rhoe_i = 1.e9_rt  ! erg / cm**3
-  real(rt), parameter :: rhoe_i = 1.e2_rt  ! erg / cm**3
+  real(rt), parameter :: rhoe_i = 1.e9_rt  ! erg / cm**3
+  !real(rt), parameter :: rhoe_i = 1.e2_rt  ! erg / cm**3
 
   ! we will specify the opacity as a constant kappa.  In Castro lingo,
   ! this is the Planck mean opacity, which appears in the source term.
@@ -53,6 +54,8 @@ module constants_module
 end module constants_module
 
 function f(x,beta,eta) result (fval)
+
+  use constants_module
 
   real(rt), intent(in)  :: x, beta, eta
   real(rt) :: fval

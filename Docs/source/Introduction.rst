@@ -109,5 +109,6 @@ throughout the code documentation and papers.
    +-----------------------+-----------------------+-----------------------+
 
 Physical constants, again using the CGS system are available
-in ``Castro/constants/constants_cgs.f90``
+in ``Microphysics/constants/``.
+
 
