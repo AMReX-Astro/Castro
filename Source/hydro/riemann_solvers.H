@@ -1380,12 +1380,12 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
 #ifndef AMREX_USE_GPU
   } else {
-    amrex::Error("ERROR: invalid value of riemann_solver");
+      amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
   }
 
-}
 
+}
 
 
 #endif
