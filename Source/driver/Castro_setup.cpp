@@ -271,6 +271,33 @@ Castro::variableSetUp ()
   small_dens = new_min_rho;
   EOSData::mindens = new_min_rho;
 
+  // Given small_temp and small_dens, compute small_pres
+  // and small_ener, assuming a more restrictive value is
+  // not already provided by the user. We'll arbitrarily
+  // set the mass fraction for this call, since we presumably
+  // don't need to be too accurate, we just need to set a
+  // reasonable floor.
+
+  eos_t eos_state;
+
+  eos_state.rho = castro::small_dens;
+  eos_state.T = castro::small_temp;
+  for (int n = 0; n < NumSpec; ++n) {
+      eos_state.xn[n] = 1.0_rt / NumSpec;
+  }
+#if NAUX_NET > 0
+  for (int n = 0; n < NumAux; ++n) {
+      // This value is arbitrary, we may want to fix this
+      // later if it causes a problem.
+      eos_state.aux[n] = 1.0_rt;
+  }
+#endif
+
+  eos(eos_input_rt, eos_state);
+
+  castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
+  castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
+
   // some consistency checks on the parameters
 #ifdef REACTIONS
 #ifdef TRUE_SDC
