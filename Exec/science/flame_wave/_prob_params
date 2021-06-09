@@ -5,9 +5,17 @@ x_half_max              real              1.2e5_rt                  y
 
 x_half_width            real              3.6e4_rt                  y
 
+# cutoff mass fraction of the first species for refinement
 X_min                   real              1.e-4_rt                  y
 
+# do we dynamically refine based on density? or based on height?
+tag_by_density          integer           1                         y
+
+# used for tagging if tag_by_density = 1
 cutoff_density          real              500.e0_rt                 y
+
+# used if we are refining based on height rather than density
+refine_height           real              3600                      y
 
 dx_model                real              10.0_rt                   y
 

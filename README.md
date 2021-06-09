@@ -119,8 +119,8 @@ status as a core developer.
 
 
 
-## Mailing list
+## Getting help
 
-You can subscribe to the castro-help mailing list at google groups:
+We use Github discussions for asking general questions about the code:
 
-https://groups.google.com/forum/#!forum/castro-help
+https://github.com/AMReX-Astro/Castro/discussions

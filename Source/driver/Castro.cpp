@@ -101,7 +101,6 @@ Diffusion*    Castro::diffusion  = 0;
 #endif
 
 #ifdef RADIATION
-int          Castro::do_radiation = -1;
 
 // the radiation object
 Radiation*   Castro::radiation = 0;
@@ -436,8 +435,6 @@ Castro::read_params ()
 #endif
 
 #ifdef RADIATION
-    pp.get("do_radiation",do_radiation);
-
     // Some radiation parameters are initialized here because they
     // may be used in variableSetUp, well before the call to the
     // Radiation constructor,
@@ -715,6 +712,11 @@ Castro::Castro (Amr&            papa,
       rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
+
+    // now check the runtime parameters to warn / abort if the user set
+    // anything that isn't known to Castro
+
+    validate_runparams();
 
 }
 
