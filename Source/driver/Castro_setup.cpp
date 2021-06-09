@@ -21,6 +21,9 @@
 #include <microphysics_F.H>
 #endif
 #include <eos.H>
+#ifdef NSE_THERMO
+#include <nse.H>
+#endif
 #include <ambient.H>
 
 using std::string;
