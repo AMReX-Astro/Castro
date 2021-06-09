@@ -273,12 +273,8 @@ Castro::variableSetUp ()
   for (int n = 0; n < NumSpec; ++n) {
       eos_state.xn[n] = 1.0_rt / NumSpec;
   }
-#if NAUX_NET > 0
-  for (int n = 0; n < NumAux; ++n) {
-      // This value is arbitrary, we may want to fix this
-      // later if it causes a problem.
-      eos_state.aux[n] = 1.0_rt;
-  }
+#ifdef NSE_THERMO
+  set_nse_aux_from_X(eos_state);
 #endif
 
   eos(eos_input_rt, eos_state);
