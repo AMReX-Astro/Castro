@@ -19,7 +19,6 @@ CEXE_headers += problem_rad_source.H
 ifeq ($(USE_MHD),TRUE)
   ca_F90EXE_sources += bc_fill_nd.F90
 endif
-ca_F90EXE_sources += Prob_nd.F90
 ifeq ($(USE_GRAV),TRUE)
   CEXE_sources += hse_fill.cpp
 endif

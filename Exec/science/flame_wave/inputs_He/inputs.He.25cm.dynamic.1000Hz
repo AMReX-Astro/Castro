@@ -1,29 +1,56 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 25
+max_step = 250000000
 stop_time =  3.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0        0
-geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0       0
-geometry.prob_hi     = 2.048e5      2.048e5    2.56e4
-amr.n_cell           = 1024         1024        128
 
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-# 0 = Interior           3 = Symmetry
-# 1 = Inflow             4 = SlipWall
-# 2 = Outflow            5 = NoSlipWall
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   2   1
-castro.hi_bc       =  2   2   2
+#if AMREX_SPACEDIM == 3
+  geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
-castro.zl_ext_bc_type = 1
-castro.hse_interp_temp = 1
-castro.hse_reflect_vels = 1
+  geometry.prob_hi     = 2.048e5      2.048e5    2.56e4
+  amr.n_cell           = 1024         1024        128
 
-castro.fill_ambient_bc = 1
-castro.ambient_fill_dir = 2
-castro.ambient_outflow_vel = 1
+  # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+  # 0 = Interior           3 = Symmetry
+  # 1 = Inflow             4 = SlipWall
+  # 2 = Outflow            5 = NoSlipWall
+  # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+  castro.lo_bc       =  2   2   1
+  castro.hi_bc       =  2   2   2
+
+  castro.zl_ext_bc_type = 1
+  castro.hse_interp_temp = 1
+  castro.hse_reflect_vels = 1
+
+  castro.fill_ambient_bc = 1
+  castro.ambient_fill_dir = 2
+  castro.ambient_outflow_vel = 1
+
+#elif AMREX_SPACEDIM == 2
+  geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
+
+  geometry.prob_hi     = 2.048e5      2.56e4
+  amr.n_cell           = 1024         128
+
+  # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+  # 0 = Interior           3 = Symmetry
+  # 1 = Inflow             4 = SlipWall
+  # 2 = Outflow            5 = NoSlipWall
+  # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+  castro.lo_bc       =  3   1
+  castro.hi_bc       =  2   2
+
+  castro.yl_ext_bc_type = 1
+  castro.hse_interp_temp = 1
+  castro.hse_reflect_vels = 1
+
+  castro.fill_ambient_bc = 1
+  castro.ambient_fill_dir = 1
+  castro.ambient_outflow_vel = 1
+
+#endif
 
 castro.domain_is_plane_parallel = 1
 
@@ -83,20 +110,26 @@ amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = flame_wave_1000Hz_25cm_3d_chk        # root name of checkpoint file
-amr.check_int       = -1        # number of timesteps between checkpoints
+amr.check_file      = flame_wave_1000Hz_25cm_chk        # root name of checkpoint file
+amr.check_int       = 1000        # number of timesteps between checkpoints
 amr.checkpoint_files_output = 1
 
 # PLOTFILES
-amr.plot_file        = flame_wave_1000Hz_25cm_3d_plt        # root name of plotfile
+amr.plot_file        = flame_wave_1000Hz_25cm_plt        # root name of plotfile
 amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 amr.plot_files_output = 1
 
-amr.small_plot_file        = flame_wave_1000Hz_25cm_3d_smallplt        # root name of plotfile
+amr.small_plot_file        = flame_wave_1000Hz_25cm_smallplt        # root name of plotfile
 amr.small_plot_per         = 5.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
-amr.derive_small_plot_vars = abar magvel enuc
+
+#if AMREX_SPACEDIM == 3
+  amr.derive_small_plot_vars = abar magvel enuc
+#elif AMREX_SPACEDIM == 2
+  amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
+#endif
+
 fab.format = NATIVE_32
 
 
@@ -125,6 +158,8 @@ problem.ash1_frac = 1.0
 
 problem.low_density_cutoff = 1.e-4
 
+problem.tag_by_density = 1
+
 problem.cutoff_density = 2.5e4
 problem.max_hse_tagging_level = 3
 problem.max_base_tagging_level = 2
@@ -139,3 +174,6 @@ integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 
 network.use_tables = 1
+
+integrator.retry_burn = 0
+integrator.abort_on_failure = 0

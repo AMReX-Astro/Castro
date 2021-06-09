@@ -35,7 +35,6 @@ castro.sum_interval   = 1       # timesteps between computing integrals
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 gravity.v             = 1       # verbosity in Gravity.cpp
-castro.print_energy_diagnostics = 1
 
 # REFINEMENT / REGRIDDING
 amr.max_level         = 0       # maximum level number allowed

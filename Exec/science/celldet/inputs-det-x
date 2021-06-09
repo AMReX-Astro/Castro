@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 15000
-stop_time =  0.08
+max_step = 100000000
+stop_time =  1.e-7
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1 1 1
+geometry.is_periodic = 0     0 
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 1.e8  1.e8  1.e8
-amr.n_cell           = 64    64    64
+geometry.prob_lo     = 0     0   
+geometry.prob_hi     = 256  32  
+amr.n_cell           = 20480  2560   
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -15,17 +15,21 @@ amr.n_cell           = 64    64    64
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   0   0
-castro.hi_bc       =  0   0   0
+castro.lo_bc       =  2   2 
+castro.hi_bc       =  2   2  
 
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
+castro.do_grav = 0
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
-castro.use_flattening = 1
+castro.transverse_reset_density = 1
+
+castro.mhd_plm_slope = 1
+castro.use_flattening = 0
 
 castro.riemann_solver = 0
 
@@ -33,9 +37,9 @@ castro.small_temp     = 1.e7
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
-castro.init_shrink    = 1.0     # scale back initial timestep
-castro.change_max     = 1.1     # scale back initial timestep
-castro.fixed_dt = 1.e-3
+castro.init_shrink    = 0.3     # scale back initial timestep
+castro.change_max     = 1.1    # scale back initial timestep
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -52,18 +56,43 @@ amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.checkpoint_files_output = 0
-amr.check_file      = nse_test_64_chk  # root name of checkpoint file
+amr.check_file      = det_x_chk  # root name of checkpoint file
 amr.check_int       = 300         # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = nse_test_64_plt  # root name of plotfile
-amr.plot_per = 0.24
+amr.plot_file       = det_x_plt  # root name of plotfile
+amr.plot_per = 1.e-9
 amr.derive_plot_vars = ALL
 
 # problem initialization
 
-problem.T0 = 4.e9
-problem.dT_fact = 0.2
-problem.rho0 = 5.e8
-problem.L_pert = 2.e7
+problem.T_l = 4.423e9
+problem.T_r = 2.e8
+
+problem.dens_l = 4.236e7
+problem.dens_r = 4.236e7
+problem.cfrac = 1.e0
+
+problem.smallx = 1.e-10
+
+problem.idir = 1
+
+problem.w_T = 5.e-4
+problem.center_T = 1.e-1
+
+problem.vel = 2.876e8
+
+# refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 4.e9
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e8
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+

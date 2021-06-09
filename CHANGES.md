@@ -1,3 +1,9 @@
+# 21.07
+
+   * Castro can now validate the runtime parameters set in the inputs
+     file or on the commandline by setting
+     castro.abort_on_invalid_params=1 (#1882)
+
 # 21.06
 
    * Starting with this release, problem setups written in Fortran are
