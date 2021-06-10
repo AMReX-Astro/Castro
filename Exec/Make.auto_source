@@ -88,7 +88,7 @@ test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 ifeq ($(USE_RAD), TRUE)
-  state_fort_opts = --ngroups $(NGROUPS) --with-fortran
+  state_fort_opts = --ngroups $(NGROUPS) --with_fortran
 else
   state_fort_opts =
 endif
@@ -98,7 +98,7 @@ $(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 $(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
-	$(CASTRO_HOME)/Source/driver/set_variables.py \
+	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \

@@ -313,7 +313,7 @@ def main():
                         help="the number of radiation groups")
     parser.add_argument("variables_file", type=str, nargs=1,
                         help="input variable definition file")
-    parser.add_argument("--with_fortran", type=int, default=0,
+    parser.add_argument("--with_fortran", action="store_true",
                         help="do we build the Fortran module?")
 
     args = parser.parse_args()
