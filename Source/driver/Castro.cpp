@@ -46,7 +46,9 @@
 #include <extern_parameters.H>
 #include <prob_parameters.H>
 
+#ifdef MICROPHYSICS_FORT
 #include <microphysics_F.H>
+#endif
 
 #include <problem_initialize.H>
 #include <problem_initialize_state_data.H>
@@ -191,7 +193,9 @@ Castro::variableCleanUp ()
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
     // Fortran cleaning
+#ifdef MICROPHYSICS_FORT
     microphysics_finalize();
+#endif
 #endif
 
     // C++ cleaning
