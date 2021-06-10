@@ -3,9 +3,9 @@
 """parse the _variables file and write a Fortran module and C++ header
 that defines the indices and size of state arrays.  We write:
 
-  * state_indices_nd.F90
-
   * state_indices.H
+
+  * (optionally) state_indices_nd.F90
 
 They both have the same information.  For the C++ header, the indices
 are all 0-based, so they will be one less than the Fortran indices.
@@ -140,7 +140,7 @@ class Counter:
 
 
 def doit(variables_file, odir, defines, nadv,
-         ngroups):
+         ngroups, do_fortran):
 
     # are we doing radiation?
     if not "RADIATION" in defines:
@@ -244,28 +244,29 @@ def doit(variables_file, odir, defines, nadv,
     # all these routines will live in a single file
 
     # first the Fortran
-    with open(os.path.join(odir, "state_indices_nd.F90"), "w") as f:
+    if do_fortran:
+        with open(os.path.join(odir, "state_indices_nd.F90"), "w") as f:
 
-        # first write out the counter sizes
-        f.write("module state_indices_module\n")
-        f.write("   use network, only : nspec, naux\n")
-        f.write("   implicit none\n\n")
-        f.write("   integer, parameter :: nadv = {}\n".format(nadv))
-        if ngroups is not None:
-            f.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
-        for ac in all_counters:
-            f.write("   {}\n".format(ac.get_f90_set_string()))
-        f.write("   integer, parameter :: npassive = nspec + naux + nadv\n")
+            # first write out the counter sizes
+            f.write("module state_indices_module\n")
+            f.write("   use network, only : nspec, naux\n")
+            f.write("   implicit none\n\n")
+            f.write("   integer, parameter :: nadv = {}\n".format(nadv))
+            if ngroups is not None:
+                f.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
+            for ac in all_counters:
+                f.write("   {}\n".format(ac.get_f90_set_string()))
+            f.write("   integer, parameter :: npassive = nspec + naux + nadv\n")
 
-        # we only loop over the default sets for setting indices, not the
-        # "adds to", so we don't set the same index twice
-        for s in unique_sets:
-            set_indices = [q for q in indices if q.iset == s]
-            f.write("\n   ! {}\n".format(s))
-            for i in set_indices:
-                f.write(i.get_f90_set_string(set_default=0))
+            # we only loop over the default sets for setting indices, not the
+            # "adds to", so we don't set the same index twice
+            for s in unique_sets:
+                set_indices = [q for q in indices if q.iset == s]
+                f.write("\n   ! {}\n".format(s))
+                for i in set_indices:
+                    f.write(i.get_f90_set_string(set_default=0))
 
-        f.write("\nend module state_indices_module\n")
+            f.write("\nend module state_indices_module\n")
 
 
     # now the C++
@@ -312,6 +313,9 @@ def main():
                         help="the number of radiation groups")
     parser.add_argument("variables_file", type=str, nargs=1,
                         help="input variable definition file")
+    parser.add_argument("--with_fortran", type=int, default=0,
+                        help="do we build the Fortran module?")
+
     args = parser.parse_args()
 
     if args.odir != "" and not os.path.isdir(args.odir):
@@ -323,7 +327,7 @@ def main():
             pass
 
     doit(args.variables_file[0], args.odir, args.defines, args.nadv,
-         args.ngroups)
+         args.ngroups, args.with_fortran)
 
 
 if __name__ == "__main__":
