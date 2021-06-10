@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>File Castro_F.H &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Castro_bc_fill_nd.H" href="Castro__bc__fill__nd_8H.html" />
+    <link rel="prev" title="File Castro.H" href="Castro_8H.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Castro__F_8H.html">main</a> | <a href="../file/Castro__F_8H.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__bc__fill__nd__F_8H.html">File Castro_bc_fill_nd_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8H.html">File Castro_diffusion.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8H.html">File Castro_rotation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sdc_8H.html">File Castro_sdc.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sdc__util_8H.html">File Castro_sdc_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__F_8H.html">File Gravity_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadDerive_8H.html">File RadDerive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadHydro_8H.html">File RadHydro.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter_8H.html">File filter.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__diagnostics_8H.html">File problem_diagnostics.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__emissivity_8H.html">File problem_emissivity.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__initialize_8H.html">File problem_initialize.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__initialize__mhd__data_8H.html">File problem_initialize_mhd_data.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__initialize__rad__data_8H.html">File problem_initialize_rad_data.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__initialize__state__data_8H.html">File problem_initialize_state_data.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__rad__source_8H.html">File problem_rad_source.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__source_8H.html">File problem_source.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+      <li>File Castro_F.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/file/Castro__F_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-f-h">
+<h1>File Castro_F.H<a class="headerlink" href="#file-castro-f-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420ca_microphysics_initK4RealK4Real">
+<span id="_CPPv320ca_microphysics_initK4RealK4Real"></span><span id="_CPPv220ca_microphysics_initK4RealK4Real"></span><span id="ca_microphysics_init__RealC.RealC"></span><span class="target" id="Castro__F_8H_1a46c430660d36a4d545429175f6fd6268"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_microphysics_init</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">small_dens_in</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">small_temp_in</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420ca_microphysics_initK4RealK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414ca_extern_initPKiPKi">
+<span id="_CPPv314ca_extern_initPKiPKi"></span><span id="_CPPv214ca_extern_initPKiPKi"></span><span id="ca_extern_init__iCP.iCP"></span><span class="target" id="Castro__F_8H_1a734e6b3a0afb817b940bb9bd87da64c5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_extern_init</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">namlen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_extern_initPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv423ca_set_abort_on_failurePi">
+<span id="_CPPv323ca_set_abort_on_failurePi"></span><span id="_CPPv223ca_set_abort_on_failurePi"></span><span id="ca_set_abort_on_failure__iP"></span><span class="target" id="Castro__F_8H_1a6104d3f1cee2594745087324f4fc9d23"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_set_abort_on_failure</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">abort_on_failure</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv423ca_set_abort_on_failurePi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv416ca_inelastic_sctPKiPKiF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D5EroutEFK18BL_FORT_FAB_ARG_3D7kappa_sERKN5amrex4RealE">
+<span id="_CPPv316ca_inelastic_sctPKiPKiF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D5EroutEFK18BL_FORT_FAB_ARG_3D7kappa_sERKN5amrex4RealE"></span><span id="_CPPv216ca_inelastic_sctPKiPKiF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D5EroutEFK18BL_FORT_FAB_ARG_3D7kappa_sERKN5amrex4RealE"></span><span class="target" id="Castro__F_8H_1a8f245117cb472a62cb98426a550e5f9f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_inelastic_sct</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">lo</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">hi</span></span>, <span class="n"><span class="pre">BL_FORT_FAB_ARG_3D</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">stateout</span></span><span class="p"><span class="pre">)</span></span>, <span class="n"><span class="pre">BL_FORT_FAB_ARG_3D</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">Erout</span></span><span class="p"><span class="pre">)</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">BL_FORT_FAB_ARG_3D</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">kappa_s</span></span><span class="p"><span class="pre">)</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_inelastic_sctPKiPKiF18BL_FORT_FAB_ARG_3D8stateoutEF18BL_FORT_FAB_ARG_3D5EroutEFK18BL_FORT_FAB_ARG_3D7kappa_sERKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv412ca_auxupdateF15BL_FORT_FAB_ARG9state_oldEF15BL_FORT_FAB_ARG9state_newEPKiPKiPKN5amrex4RealE">
+<span id="_CPPv312ca_auxupdateF15BL_FORT_FAB_ARG9state_oldEF15BL_FORT_FAB_ARG9state_newEPKiPKiPKN5amrex4RealE"></span><span id="_CPPv212ca_auxupdateF15BL_FORT_FAB_ARG9state_oldEF15BL_FORT_FAB_ARG9state_newEPKiPKiPKN5amrex4RealE"></span><span class="target" id="Castro__F_8H_1ab07d94a27bedd91ddb87559ffbc1085d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_auxupdate</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG"><span class="n"><span class="pre">BL_FORT_FAB_ARG</span></span></a><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">state_old</span></span><span class="p"><span class="pre">)</span></span>, <a class="reference internal" href="RAD__F_8H.html#_CPPv415BL_FORT_FAB_ARG6kapkap" title="BL_FORT_FAB_ARG"><span class="n"><span class="pre">BL_FORT_FAB_ARG</span></span></a><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">state_new</span></span><span class="p"><span class="pre">)</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">lo</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">hi</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_auxupdateF15BL_FORT_FAB_ARG9state_oldEF15BL_FORT_FAB_ARG9state_newEPKiPKiPKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1af7ad720cc0f4489861e23e8050ca3819"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">BL_FORT_FAB_ARG</span> <span class="pre">(state)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a9cab54cc9aa833537f3941229267b5eb"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">dx</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a7c5ec1b5d5041aa369fbc18a32b20358"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">xlo</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a6a64eddbd54ab271c2a1731bfcf0de8a"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">xhi</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1aa4d0170b3c31440d041d96723ce65e26"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">p0</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a2790cff8a3156682646330d33e4697f1"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">model</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1ab1e317671f2c7be1cd01e229a800e3f2"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">rho0</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a3f5ece81b2b3f0690bad84c539203cd1"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">tempbar</span> <span class="pre">(\\)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1aa7b15a954f715f102d8612df5d8d3ef0"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">BL_FORT_FAB_ARG_3D</span> <span class="pre">(magx)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1aff77b065b6ec9ad6749dd8881fee1c13"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">BL_FORT_FAB_ARG_3D</span> <span class="pre">(magy)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a6e01d89f63fa26b3ed93626ee229a226"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">BL_FORT_FAB_ARG_3D</span> <span class="pre">(magz)</span></span></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv42lo">
+<span id="_CPPv32lo"></span><span id="_CPPv22lo"></span><span id="lo__iCP"></span><span class="target" id="Castro__F_8H_1a37151ba7fd28e170760ddb7b80426cda"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">lo</span></span></span><a class="headerlink" href="#_CPPv42lo" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1ab2302905d112d08abf9db5a03ce15e1b"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">*</span> <span class="pre">hi</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a94e00f46c6b36dd4afb6060b0b62462f"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">MAESTRO_init_type</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a463f2d6dde9d410263093e35d3a4d156"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;</span> <span class="pre">dr</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a141cd0d3314cabd4f6951bcb7434a061"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">MAESTRO_npts_model</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a44ab8a430005f35e915cd438a6870aa3"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">level</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1aae63991ba8c97d303225e62839bb0020"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">model_size</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a92a1184139addd4a0255004099a1d6df"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">r_model_start</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1ad3807c2fbf81a9fcc3acd00004c67263"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;</span> <span class="pre">time</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a7588e5e266f61ab9e1e179e9e2230e46"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">nx</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a3edc7874ed7a6a3d172a625f8e98e2bc"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">ny</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="Castro__F_8H_1a677394ac49835e7ff2b421e474445544"></span><span class="sig-name descname"><span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;</span> <span class="pre">nz</span></span></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="Castro__bc__fill__nd_8H.html" class="btn btn-neutral float-right" title="File Castro_bc_fill_nd.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Castro_8H.html" class="btn btn-neutral float-left" title="File Castro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2018-2020, Castro development tem.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

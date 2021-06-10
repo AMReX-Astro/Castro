@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>File castro_limits.H &mdash; Castro  documentation</title>
+  <title>File Gravity_F.H &mdash; Castro  documentation</title>
   
 
   
@@ -40,8 +40,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File diffusion_util.H" href="diffusion__util_8H.html" />
-    <link rel="prev" title="File blackbody.H" href="blackbody_8H.html" /> 
+    <link rel="next" title="File Gravity_util.H" href="Gravity__util_8H.html" />
+    <link rel="prev" title="File Gravity.H" href="Gravity_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,7 +81,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/castro__limits_8H.html">main</a> | <a href="../file/castro__limits_8H.html">development</a>
+        Branch: <a href="../../file/Gravity__F_8H.html">main</a> | <a href="../file/Gravity__F_8H.html">development</a>
     </div>
 
         </div>
@@ -156,7 +156,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Gravity__F_8H.html">File Gravity_F.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Gravity_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
@@ -179,7 +179,7 @@
 <li class="toctree-l2"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File castro_limits.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
@@ -268,13 +268,13 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-      <li>File castro_limits.H</li>
+      <li>File Gravity_F.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/file/castro__limits_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Gravity__F_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -287,8 +287,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-castro-limits-h">
-<h1>File castro_limits.H<a class="headerlink" href="#file-castro-limits-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-gravity-f-h">
+<h1>File Gravity_F.H<a class="headerlink" href="#file-gravity-f-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv417ca_integrate_gravPKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
+<span id="_CPPv317ca_integrate_gravPKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv217ca_integrate_gravPKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="ca_integrate_grav__amrex::RealCP.amrex::RealCP.amrex::RealP.amrex::RealP.amrex::RealCP.amrex::RealCP.iCP"></span><span class="target" id="Gravity__F_8H_1abfe063bc69cbfbafb139bb2643dcc1c3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ca_integrate_grav</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">avgmass</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">avgden</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">radial_grav</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">radial_pres</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">max_radius</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">dr</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">numpts_1d</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417ca_integrate_gravPKN5amrex4RealEPKN5amrex4RealEPN5amrex4RealEPN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
 </div>
 
 
@@ -297,8 +305,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="diffusion__util_8H.html" class="btn btn-neutral float-right" title="File diffusion_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="blackbody_8H.html" class="btn btn-neutral float-left" title="File blackbody.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Gravity__util_8H.html" class="btn btn-neutral float-right" title="File Gravity_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Gravity_8H.html" class="btn btn-neutral float-left" title="File Gravity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
