@@ -20,7 +20,9 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#ifdef MICROPHYSICS_FORT
 #include <extern_parameters_F.H>
+#endif
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -3323,6 +3325,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
+#ifdef MICROPHYSICS_FORT
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
@@ -3332,15 +3335,17 @@ Castro::extern_init ()
 
   // read them in in Fortran from the probin file
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
+#endif
 
   // grab them from Fortran to C++; then read any C++ parameters directly
   // from inputs (via ParmParse)
   init_extern_parameters();
 
+#ifdef MICROPHYSICS_FORT
   // finally, update the Fortran side via ParmParse to override the
   // values of any parameters that were set in inputs
   update_fortran_extern_after_cxx();
-
+#endif
 
 }
 
