@@ -32,7 +32,7 @@ EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
 
 ifeq ($(USE_FORT_MICROPHYSICS), TRUE)
-   extern_fort_opts = -t $(EXTERN_TEMPLATE) -o $(MICROPHYSICS_AUTO_SOURCE_DIR)/extern.F90 -n extern --with_fortran
+   extern_fort_opts = -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern --with_fortran
 else
    extern_fort_opts =
 endif
