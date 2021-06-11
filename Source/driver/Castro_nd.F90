@@ -1,3 +1,4 @@
+#ifdef MICROPHYSICS_FORT
 subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
     ! initialize the external runtime parameters in
     ! extern_probin_module
@@ -14,6 +15,7 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
   call runtime_init(name,namlen)
 
 end subroutine ca_extern_init
+#endif
 
 ! :::
 ! ::: ----------------------------------------------------------------
