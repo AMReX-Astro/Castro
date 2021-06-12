@@ -20,8 +20,7 @@ CEXE_sources += extern_parameters.cpp
 CEXE_headers += extern_parameters.H
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
 EXTERN_TEMPLATE := $(MICROPHYSICS_HOME)/interfaces/extern_probin.template
 
@@ -64,8 +63,7 @@ PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
 
 # Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
 # on that; if it doesn't exist, it's ignored as a make target. The default
@@ -83,8 +81,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H: $(DEFAULT_PROB_PARAMETERS) $(wildca
 CEXE_headers += castro_params.H
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 
@@ -107,8 +104,7 @@ else
 endif
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
 	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
