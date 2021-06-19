@@ -3334,7 +3334,7 @@ Castro::extern_init ()
   }
 
   // read them in in Fortran from the probin file
-  ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
+  runtime_init(probin_file_name.dataPtr(),&probin_file_length);
 #endif
 
   // grab them from Fortran to C++; then read any C++ parameters directly
