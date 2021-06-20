@@ -30,7 +30,6 @@ CEXE_sources += Derive.cpp
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 
-ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 CEXE_headers      += math.H
 ifeq ($(USE_RAD), TRUE)
