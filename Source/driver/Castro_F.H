@@ -10,10 +10,6 @@ extern "C"
 #endif
 
 
-#ifdef REACTIONS
-  void ca_set_abort_on_failure(int * abort_on_failure);
-#endif
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
