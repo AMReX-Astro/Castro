@@ -1,22 +1,3 @@
-#ifdef MICROPHYSICS_FORT
-subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
-    ! initialize the external runtime parameters in
-    ! extern_probin_module
-    !
-    ! Binds to C function `ca_extern_init`
-
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: namlen
-  integer, intent(in) :: name(namlen)
-
-  call runtime_init(name,namlen)
-
-end subroutine ca_extern_init
-#endif
-
 
 #ifdef REACTIONS
 subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abort_on_failure")
