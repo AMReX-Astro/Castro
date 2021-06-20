@@ -38,6 +38,7 @@ endif
 
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
+$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
