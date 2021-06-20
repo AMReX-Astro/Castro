@@ -2,7 +2,6 @@
 #include <Castro_F.H>
 
 #include <Gravity.H>
-#include <Gravity_F.H>
 
 #include <AMReX_ParmParse.H>
 
