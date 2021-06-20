@@ -237,7 +237,7 @@ Castro::variableSetUp ()
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
-  ca_microphysics_init(small_dens, small_temp);
+  microphysics_initialize(small_temp, small_dens);
 #endif
 
   // now initialize the C++ Microphysics
