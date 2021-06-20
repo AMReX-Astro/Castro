@@ -63,9 +63,6 @@ USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
 
-# all Castro problems use a dimension-agnostic interface
-DIMENSION_AGNOSTIC = TRUE
-
 EBASE = Castro
 
 # EXTERN_CORE is simply a list of the directories we use in EOS,
@@ -291,7 +288,6 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_MLMG), TRUE)
-   DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
 endif
 
@@ -346,6 +342,26 @@ VPATH_LOCATIONS   += $(Blocs)
 #------------------------------------------------------------------------------
 
 include $(TOP)/Exec/Make.auto_source
+
+# we don't need Fortran microphysics (and any Fortran actually) if we
+# have a C++ network or general_null
+
+ifeq ($(USE_REACT),TRUE)
+  ifeq ($(findstring NETWORK_HAS_CXX_IMPLEMENTATION, $(DEFINES)),NETWORK_HAS_CXX_IMPLEMENTATION)
+     CXX_NET = TRUE
+  endif
+endif
+
+ifeq ($(NETWORK_DIR),general_null)
+  CXX_NET = TRUE
+endif
+
+ifneq ($(USE_RAD),TRUE)
+  ifeq ($(CXX_NET),TRUE)
+    BL_NO_FORT = TRUE
+    USE_FORT_MICROPHYSICS = FALSE
+  endif
+endif
 
 #------------------------------------------------------------------------------
 # finish up
