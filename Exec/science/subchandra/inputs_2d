@@ -68,7 +68,7 @@ amr.max_grid_size   = 128       # maximum grid size allowed -- used to control p
 amr.blocking_factor = 32       # block factor in grid generation
 
 amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 0       # control verbosity in Castro.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
@@ -95,3 +95,11 @@ amr.refine.denerr.value_greater = 1.0
 amr.refine.denerr.field_name = density
 amr.refine.denerr.max_level = 3
 
+# Microphysics
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+integrator.jacobian = 2
+
+integrator.retry_burn = 0
+integrator.abort_on_failure = 0
