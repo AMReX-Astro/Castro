@@ -161,8 +161,6 @@ endif
 ifeq ($(USE_MHD), TRUE)
   Bdirs += Source/mhd
   DEFINES += -DMHD
-else
-  Bdirs += Source/hydro
 endif
 
 ifeq ($(USE_GRAV), TRUE)
