@@ -51,7 +51,7 @@ castro.sum_interval   = 0       # timesteps between computing and printing volum
 castro.update_sources_after_reflux = 0
 
 castro.dtnuc_e = 0.25
-castro.dtnuc_X = 0.25
+#castro.dtnuc_X = 0.25
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
