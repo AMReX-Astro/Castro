@@ -283,7 +283,7 @@ Castro::actual_trans_single(const Box& bx,
 
             eos_rep_t eos_state;
 
-            eos_state.T = qo_arr(i,j,k,QTEMP);
+            eos_state.T = T_guess; // the input T may not be valid
             eos_state.rho = qo_arr(i,j,k,QRHO);
             eos_state.e = qo_arr(i,j,k,QREINT);
             for (int n = 0; n < NumSpec; n++) {
@@ -590,7 +590,7 @@ Castro::actual_trans_final(const Box& bx,
 
             eos_rep_t eos_state;
 
-            eos_state.T = qo_arr(i,j,k,QTEMP);
+            eos_state.T = T_guess; // the input T may not be valid
             eos_state.rho = qo_arr(i,j,k,QRHO);
             eos_state.e = qo_arr(i,j,k,QREINT);
             for (int n = 0; n < NumSpec; n++) {
