@@ -103,13 +103,6 @@ Castro::actual_trans_single(const Box& bx,
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -161,135 +154,63 @@ Castro::actual_trans_single(const Box& bx,
           kr += d;
         }
 
-        // Update all of the passively-advected quantities with the
-        // transverse term and convert back to the primitive quantity.
+        // construct the conserved variables
 
-#if AMREX_SPACEDIM == 2
-        const Real volinv = 1.0_rt / vol(il,jl,kl);
-#endif
+        Real U_int[NUM_STATE];
+
+        U_int[URHO] = q_arr(i,j,k,QRHO);
+        U_int[UMX] = U_int[URHO] * q_arr(i,j,k,QU);
+        U_int[UMY] = U_int[URHO] * q_arr(i,j,k,QV);
+        U_int[UMZ] = U_int[URHO] * q_arr(i,j,k,QW);
+        U_int[UEDEN] = U_int[URHO] * q_arr(i,j,k,QREINT) +
+            0.5_rt * (U_int[UMX] * U_int[UMX] +
+                      U_int[UMY] * U_int[UMY] +
+                      U_int[UMZ] * U_int[UMZ]) / U_int[URHO];
+        U_int[UEINT] = U_int[URHO] * q_arr(i,j,k,QREINT);
+
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
             int n = upassmap(ipassive);
             int nqp = qpassmap(ipassive);
 
-#if AMREX_SPACEDIM == 2
-            Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                                area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
-                                                               area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
-            qo_arr(i,j,k,nqp) = compu / rrnew;
-#else
-            Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
-            qo_arr(i,j,k,nqp) = compu / rrnew;
-#endif
+            U_int[n] = U_int[URHO] * q_arr(i,j,k,nqp);
         }
+
+        // TODO: how does the hybrid stuff fit in here?
+
+        // now do the transverse flux update
+
+#if AMREX_SPACEDIM == 2
+        const Real volinv = 1.0_rt / vol(il,jl,kl);
+#endif
+
+        for (int n = 0; n < NUM_STATE; n++) {
+
+#if AMREX_SPACEDIM == 2
+            U_int[n] += - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+                                 area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
+#else
+            U_int[n] += - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
+#endif
+
+        }
+
 
         Real pgp  = q_t(ir,jr,kr,GDPRES);
         Real pgm  = q_t(il,jl,kl,GDPRES);
         Real ugp  = q_t(ir,jr,kr,GDU+idir_t);
         Real ugm  = q_t(il,jl,kl,GDU+idir_t);
 
-#ifdef RADIATION
-        Real lambda[NGROUPS];
-        Real ergp[NGROUPS];
-        Real ergm[NGROUPS];
-
-        for (int g = 0; g < NGROUPS; ++g) {
-            lambda[g] = qaux_arr(il,jl,kl,QLAMS+g);
-            ergp[g] = q_t(ir,jr,kr,GDERADS+g);
-            ergm[g] = q_t(il,jl,kl,GDERADS+g);
-        }
-#endif
-
-        // we need to augment our conserved system with either a p
-        // equation or gammae (if we have ppm_predict_gammae = 1) to
-        // be able to deal with the general EOS
-
 #if AMREX_SPACEDIM == 2
-        Real dup = area_t(ir,jr,kr) * pgp * ugp - area_t(il,jl,kl) * pgm * ugm;
         Real du = area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm;
 #else
-        Real dup = pgp * ugp - pgm * ugm;
         Real du = ugp - ugm;
 #endif
         Real pav = 0.5_rt * (pgp + pgm);
-#ifdef RADIATION
-        Real uav = 0.5_rt * (ugp + ugm);
-#endif
-
-        // this is the gas gamma_1
-#ifdef RADIATION
-        Real gamc = qaux_arr(il,jl,kl,QGAMCG);
-#else
-        Real gamc = qaux_arr(il,jl,kl,QGAMC);
-#endif
-
-#ifdef RADIATION
-        Real lamge[NGROUPS];
-        Real luge[NGROUPS];
-        Real der[NGROUPS];
-
-        Real dmom = 0.0_rt;
-        Real dre = 0.0_rt;
-
-        for (int g = 0; g < NGROUPS; ++g) {
-            lamge[g] = lambda[g] * (ergp[g] - ergm[g]);
-            dmom += -cdtdx * lamge[g];
-            luge[g] = uav * lamge[g];
-            dre += -cdtdx * luge[g];
-        }
-
-        if (fspace_t == 1 && comov) {
-            for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
-                Real f1 = 0.5_rt * (1.0_rt - eddf);
-                der[g] = cdtdx * uav * f1 * (ergp[g] - ergm[g]);
-            }
-        }
-        else if (fspace_t == 2) {
-#if AMREX_SPACEDIM == 2
-            Real divu = (area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm) * volinv;
-            for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
-                Real f1 = 0.5_rt * (1.0_rt - eddf);
-                der[g] = -hdt * f1 * 0.5_rt * (ergp[g] + ergm[g]) * divu;
-            }
-#else
-            for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
-                Real f1 = 0.5_rt * (1.0_rt - eddf);
-                der[g] = cdtdx * f1 * 0.5_rt * (ergp[g] + ergm[g]) * (ugm - ugp);
-            }
-#endif
-        }
-        else { // mixed frame
-            for (int g = 0; g < NGROUPS; g++) {
-                der[g] = cdtdx * luge[g];
-            }
-        }
-#endif
-
-        // Convert to conservation form
-        Real rrn = q_arr(i,j,k,QRHO);
-        Real run = rrn * q_arr(i,j,k,QU);
-        Real rvn = rrn * q_arr(i,j,k,QV);
-        Real rwn = rrn * q_arr(i,j,k,QW);
-        Real ekenn = 0.5_rt * rrn * (q_arr(i,j,k,QU) * q_arr(i,j,k,QU) + q_arr(i,j,k,QV) * q_arr(i,j,k,QV) + q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
-        Real ren = q_arr(i,j,k,QREINT) + ekenn;
-#ifdef RADIATION
-        Real ern[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ern[g] = q_arr(i,j,k,QRAD+g);
-        }
-#endif
 
 #if AMREX_SPACEDIM == 2
-        // Add transverse predictor
-        Real rrnewn = rrn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
 
-        // Note that pressure may be treated specially here, depending on
-        // the geometry.  Our y-interface equation for (rho u) is:
+        // For the x-momentum, we need to consider the grad p term.
+        // Our y-interface equation for (rho u) is:
         //
         //  d(rho u)/dt + d(rho u v)/dy = - 1/r d(r rho u u)/dr - dp/dr
         //
@@ -298,140 +219,77 @@ Castro::actual_trans_single(const Box& bx,
         // are no area factors.  For this geometry, we do not
         // include p in our definition of the flux in the
         // x-direction, for we need to fix this now.
-        Real runewn = run - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMX) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,UMX)) * volinv;
+
         if (idir_t == 0 && !mom_flux_has_p(0, idir_t, coord)) {
-            runewn = runewn - cdtdx * (pgp - pgm);
-        }
-        Real rvnewn = rvn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMY) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,UMY)) * volinv;
-        Real rwnewn = rwn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMZ) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,UMZ)) * volinv;
-        Real renewn = ren - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEDEN) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,UEDEN)) * volinv;
-
-#ifdef RADIATION
-        if (idir_t == 0) {
-            Real lamge_sum = 0.0_rt;
-            for (int g = 0; g < NGROUPS; ++g)
-                lamge_sum = lamge_sum + lamge[g];
-
-            runewn = runewn - 0.5_rt * hdt * (area_t(ir,jr,kr) + area_t(il,jl,kl)) * lamge_sum * volinv;
-        }
-        else {
-            rvnewn = rvnewn + dmom;
-        }
-
-        renewn = renewn + dre;
-
-        Real ernewn[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ernewn[g] = ern[g] - hdt * (area_t(ir,jr,kr) * rflux_t(ir,jr,kr,g) -
-                                        area_t(il,jl,kl) * rflux_t(il,jl,kl,g)) * volinv + der[g];
+            U_int[UMX] += - cdtdx * (pgp - pgm);
         }
 #endif
 
+        // For the dual energy approach, we need to correct the
+        // internal energy equation with the p dV term
+
+#if AMREX_SPACEDIM == 2
+        U_int[UEINT] += - hdt * pav * du * volinv;
 #else
-        // Add transverse predictor
-        Real rrnewn = rrn - cdtdx * (flux_t(ir,jr,kr,URHO)  - flux_t(il,jl,kl,URHO));
-        Real runewn = run - cdtdx * (flux_t(ir,jr,kr,UMX)   - flux_t(il,jl,kl,UMX));
-        Real rvnewn = rvn - cdtdx * (flux_t(ir,jr,kr,UMY)   - flux_t(il,jl,kl,UMY));
-        Real rwnewn = rwn - cdtdx * (flux_t(ir,jr,kr,UMZ)   - flux_t(il,jl,kl,UMZ));
-        Real renewn = ren - cdtdx * (flux_t(ir,jr,kr,UEDEN) - flux_t(il,jl,kl,UEDEN));
-#ifdef RADIATION
-        runewn = runewn + dmom;
-        renewn = renewn + dre;
-        Real ernewn[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ernewn[g] = ern[g] - cdtdx * (rflux_t(ir,jr,kr,g) - rflux_t(il,jl,kl,g)) + der[g];
-        }
-#endif
+        U_int[UEINT] += - cdtdx * pav * du;
 #endif
 
         // Reset to original value if adding transverse terms made density negative
+
         bool reset_state = false;
         if (reset_density == 1 && rrnewn < 0.0_rt) {
-            rrnewn = rrn;
-            runewn = run;
-            rvnewn = rvn;
-            rwnewn = rwn;
-            renewn = ren;
-#ifdef RADIATION
-            for (int g = 0; g < NGROUPS; ++g) {
-                ernewn[g] = ern[g];
-            }
-#endif
             reset_state = true;
         }
 
-        // Convert back to primitive form
-        qo_arr(i,j,k,QRHO) = rrnewn;
-        Real rhoinv = 1.0_rt / rrnewn;
-        qo_arr(i,j,k,QU) = runewn * rhoinv;
-        qo_arr(i,j,k,QV) = rvnewn * rhoinv;
-        qo_arr(i,j,k,QW) = rwnewn * rhoinv;
+        if (! reset_state) {
 
-        // note: we run the risk of (rho e) being negative here
-        Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) * rhoinv;
-        qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
+            // Convert back to primitive form
 
-        if (!reset_state) {
-            // do the transverse terms for p, gamma, and rhoe, as necessary
+            qo_arr(i,j,k,QRHO) = U_int[URHO];
+            Real rhoinv = 1.0_rt / U_int[URHO];
 
-            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
-                // If it is negative, reset the internal energy by
-                // using the discretized expression for updating (rho e).
-#if AMREX_SPACEDIM == 2
-                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
-                                                            area_t(il,jl,kl) * flux_t(il,jl,kl,UEINT) +
-                                                            pav * du) * volinv;
-#else
-                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT) - cdtdx * (flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav * du);
-#endif
+            qo_arr(i,j,k,QU) = U_int[UMX] * rhoinv;
+            qo_arr(i,j,k,QV) = U_int[UMY] * rhoinv;
+            qo_arr(i,j,k,QW) = U_int[UMZ] * rhoinv;
+
+            Real kineng = 0.5_rt * qo_arr(i,j,k,QRHO) *
+                (qo_arr(i,j,k,QU) * qo_arr(i,j,k,QU) +
+                 qo_arr(i,j,k,QV) * qo_arr(i,j,k,QV) +
+                 qo_arr(i,j,k,QW) * qo_arr(i,j,k,QW));
+
+            if ((U_int[UEDEN] - kineng) > castro::dual_energy_eta1 * U_int[UEDEN]) {
+                qo_arr(i,j,k,QREINT) = (U_int[UEDEN] - kineng) * rhoinv;
+            } else {
+                qo_arr(i,j,k,QREINT) = U_int[UEINT] * rhoinv;
             }
 
-            // If (rho e) is negative by this point,
-            // set it back to the original interface state,
-            // which turns off the transverse correction.
-
-            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
-                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            // Load passively advected quatities into q
+            for (int ipassive = 0; ipassive < npassive; ipassive++) {
+                int n  = upassmap(ipassive);
+                int iq = qpassmap(ipassive);
+                qo_arr(i,j,k,iq) = U_int[n] * rhoinv;
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            eos_rep_t eos_state;
 
-            // Add the transverse term to the p evolution eq here.
-#if AMREX_SPACEDIM == 2
-            // the divergences here, dup and du, already have area factors
-            Real pnewn = q_arr(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
-#else
-            Real pnewn = q_arr(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
-#endif
-            qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
-
-        }
-        else {
-            qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
-            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
-        }
-
-#ifdef RADIATION
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QRAD + g) = ernewn[g];
-        }
-
-        qo_arr(i,j,k,QPTOT) = qo_arr(i,j,k,QPRES);
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QPTOT) += lambda[g] * ernewn[g];
-        }
-
-        qo_arr(i,j,k,QREITOT) = qo_arr(i,j,k,QREINT);
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD + g);
-        }
+            eos_state.T = qo_arr(i,j,k,QTEMP);
+            eos_state.rho = qo_arr(i,j,k,QRHO);
+            eos_state.e = qo_arr(i,j,k,QREINT);
+            for (int n = 0; n < NumSpec; n++) {
+                eos_state.xn[n]  = qo_arr(i,j,k,QFS+n);
+            }
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; n++) {
+                eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
+            }
 #endif
 
+            eos(eos_input_re, eos_state);
+
+            qo_arr(i,j,k,QTEMP) = eos_state.T;
+            qo_arr(i,j,k,QPRES) = eos_state.p;
+
+        }
     });
 
 }
