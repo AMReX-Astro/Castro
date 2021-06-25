@@ -185,6 +185,16 @@ Castro::actual_trans_single(const Box& bx,
 
         for (int n = 0; n < NUM_STATE; n++) {
 
+            if (n == UTEMP) {
+                continue;
+            }
+
+#ifdef SHOCK_VAR
+            if (n == USHK) {
+                continue;
+            }
+#endif
+
 #if AMREX_SPACEDIM == 2
             U_int[n] += - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
                                  area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
@@ -234,10 +244,11 @@ Castro::actual_trans_single(const Box& bx,
         U_int[UEINT] += - cdtdx * pav * du;
 #endif
 
-        // Reset to original value if adding transverse terms made density negative
+        // Reset to original value if adding transverse terms made
+        // density negative
 
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density == 1 && U_int[URHO] < 0.0_rt) {
             reset_state = true;
         }
 
@@ -288,6 +299,12 @@ Castro::actual_trans_single(const Box& bx,
 
             qo_arr(i,j,k,QTEMP) = eos_state.T;
             qo_arr(i,j,k,QPRES) = eos_state.p;
+
+        } else {
+
+            for (int n = 0; n < NQ; n++) {
+                qo_arr(i,j,k,n) = q_arr(i,j,k,n);
+            }
 
         }
     });
@@ -465,25 +482,48 @@ Castro::actual_trans_final(const Box& bx,
 
         }
 
-        // Update all of the passively-advected quantities with the
-        // transverse terms and convert back to the primitive quantity.
+        // construct the conserved variables
 
-        for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+        Real U_int[NUM_STATE];
+
+        U_int[URHO] = q_arr(i,j,k,QRHO);
+        U_int[UMX] = U_int[URHO] * q_arr(i,j,k,QU);
+        U_int[UMY] = U_int[URHO] * q_arr(i,j,k,QV);
+        U_int[UMZ] = U_int[URHO] * q_arr(i,j,k,QW);
+        U_int[UEDEN] = U_int[URHO] * q_arr(i,j,k,QREINT) +
+            0.5_rt * (U_int[UMX] * U_int[UMX] +
+                      U_int[UMY] * U_int[UMY] +
+                      U_int[UMZ] * U_int[UMZ]) / U_int[URHO];
+        U_int[UEINT] = U_int[URHO] * q_arr(i,j,k,QREINT);
+
+        for (int ipassive = 0; ipassive < npassive; ipassive++) {
             int n = upassmap(ipassive);
             int nqp = qpassmap(ipassive);
 
-            Real rrn = q_arr(i,j,k,QRHO);
-            Real compn = rrn * q_arr(i,j,k,nqp);
-            Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
-                                            flux_t1(il_t1,jl_t1,kl_t1,URHO))
-                              - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
-                                            flux_t2(il_t2,jl_t2,kl_t2,URHO));
-            Real compnn = compn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,n) -
-                                              flux_t1(il_t1,jl_t1,kl_t1,n))
-                                - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,n) -
-                                              flux_t2(il_t2,jl_t2,kl_t2,n));
+            U_int[n] = U_int[URHO] * q_arr(i,j,k,nqp);
+        }
 
-            qo_arr(i,j,k,nqp) = compnn / rrnewn;
+        // TODO: how does the hybrid stuff fit in here?
+
+        // now do the transverse flux update
+
+        for (int n = 0; n < NUM_STATE; n++) {
+
+            if (n == UTEMP) {
+                continue;
+            }
+
+#ifdef SHOCK_VAR
+            if (n == USHK) {
+                continue;
+            }
+#endif
+
+            U_int[n] += - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,n) -
+                                      flux_t1(il_t1,jl_t1,kl_t1,n))
+                        - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,n) -
+                                      flux_t2(il_t2,jl_t2,kl_t2,n));
+
         }
 
         // Add the transverse differences to the normal states for the
@@ -493,227 +533,87 @@ Castro::actual_trans_final(const Box& bx,
         Real pgt1m  = q_t1(il_t1,jl_t1,kl_t1,GDPRES);
         Real ugt1p  = q_t1(ir_t1,jr_t1,kr_t1,GDU+idir_t1);
         Real ugt1m  = q_t1(il_t1,jl_t1,kl_t1,GDU+idir_t1);
-#ifdef RADIATION
-        Real ergt1p[NGROUPS];
-        Real ergt1m[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ergt1p[g] = q_t1(ir_t1,jr_t1,kr_t1,GDERADS+g);
-            ergt1m[g] = q_t1(il_t1,jl_t1,kl_t1,GDERADS+g);
-        }
-#endif
 
         Real pgt2p  = q_t2(ir_t2,jr_t2,kr_t2,GDPRES);
         Real pgt2m  = q_t2(il_t2,jl_t2,kl_t2,GDPRES);
         Real ugt2p  = q_t2(ir_t2,jr_t2,kr_t2,GDU+idir_t2);
         Real ugt2m  = q_t2(il_t2,jl_t2,kl_t2,GDU+idir_t2);
-#ifdef RADIATION
-        Real ergt2p[NGROUPS];
-        Real ergt2m[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ergt2p[g] = q_t2(ir_t2,jr_t2,kr_t2,GDERADS+g);
-            ergt2m[g] = q_t2(il_t2,jl_t2,kl_t2,GDERADS+g);
-        }
-#endif
 
-        Real dupt1 = pgt1p * ugt1p - pgt1m * ugt1m;
         Real pt1av = 0.5_rt * (pgt1p + pgt1m);
         Real dut1 = ugt1p - ugt1m;
-#ifdef RADIATION
-        Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux_arr(iln,jln,kln,QGAMCG) - 1.0_rt));
-#else
-        Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux_arr(iln,jln,kln,QGAMC) - 1.0_rt));
-#endif
 
-        Real dupt2 = pgt2p * ugt2p - pgt2m * ugt2m;
         Real pt2av = 0.5_rt * (pgt2p + pgt2m);
         Real dut2 = ugt2p - ugt2m;
-#ifdef RADIATION
-        Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux_arr(iln,jln,kln,QGAMCG) - 1.0_rt));
-#else
-        Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux_arr(iln,jln,kln,QGAMC) - 1.0_rt));
-#endif
 
-#ifdef RADIATION
-        Real lambda[NGROUPS];
-        Real lget1[NGROUPS];
-        Real lget2[NGROUPS];
-        Real dmt1 = 0.0_rt;
-        Real dmt2 = 0.0_rt;
-        Real luget1[NGROUPS];
-        Real luget2[NGROUPS];
-        Real dre = 0.0_rt;
+        // For the dual energy approach, we need to correct the
+        // internal energy equation with the p dV term
 
-        for (int g = 0; g < NGROUPS; ++g) {
-            lambda[g] = qaux_arr(iln,jln,kln,QLAMS+g);
-            lget1[g] = lambda[g] * (ergt1p[g] - ergt1m[g]);
-            lget2[g] = lambda[g] * (ergt2p[g] - ergt2m[g]);
-            dmt1 -= cdtdx_t1 * lget1[g];
-            dmt2 -= cdtdx_t2 * lget2[g];
-            luget1[g] = 0.5_rt * (ugt1p + ugt1m) * lget1[g];
-            luget2[g] = 0.5_rt * (ugt2p + ugt2m) * lget2[g];
-            dre -= cdtdx_t1 * luget1[g] + cdtdx_t2 * luget2[g];
-        }
+        U_int[UEINT] += - cdtdx_t1 * pt1av * dut1 - cdtdx_t2 * pt2av * dut2;
 
-        Real der[NGROUPS];
+        // Reset to original value if adding transverse terms made
+        // density negative
 
-        if (fspace_t == 1 && comov) {
-            for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
-                Real f1 = 0.5_rt * (1.0_rt - eddf);
-                der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ugt1p + ugt1m) * (ergt1p[g] - ergt1m[g]) +
-                               cdtdx_t2 * 0.5_rt * (ugt2p + ugt2m) * (ergt2p[g] - ergt2m[g]));
-            }
-        }
-        else if (fspace_t == 2) {
-            for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
-                Real f1 = 0.5_rt * (1.0_rt - eddf);
-                der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ergt1p[g] + ergt1m[g]) * (ugt1m - ugt1p) +
-                               cdtdx_t2 * 0.5_rt * (ergt2p[g] + ergt2m[g]) * (ugt2m - ugt2p));
-            }
-        }
-        else { // mixed frame
-            for (int g = 0; g < NGROUPS; ++g) {
-                der[g] = cdtdx_t1 * luget1[g] + cdtdx_t2 * luget2[g];
-            }
-        }
-#endif
-
-        // Convert to conservation form
-        Real rrn = q_arr(i,j,k,QRHO);
-        Real run = rrn * q_arr(i,j,k,QU);
-        Real rvn = rrn * q_arr(i,j,k,QV);
-        Real rwn = rrn * q_arr(i,j,k,QW);
-        Real ekenn = 0.5_rt * rrn * (q_arr(i,j,k,QU) * q_arr(i,j,k,QU) + q_arr(i,j,k,QV) * q_arr(i,j,k,QV) + q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
-        Real ren = q_arr(i,j,k,QREINT) + ekenn;
-#ifdef RADIATION
-        Real ern[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ern[g] = q_arr(i,j,k,QRAD+g);
-        }
-#endif
-
-        // Add transverse predictor
-        Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,URHO))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,URHO));
-        Real runewn = run - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UMX) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,UMX))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UMX) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,UMX));
-        Real rvnewn = rvn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UMY) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,UMY))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UMY) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,UMY));
-        Real rwnewn = rwn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UMZ) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,UMZ))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UMZ) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,UMZ));
-        Real renewn = ren - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UEDEN) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,UEDEN))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UEDEN) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,UEDEN));
-#ifdef RADIATION
-        if (idir_n == 0) {
-            rvnewn = rvnewn + dmt1;
-            rwnewn = rwnewn + dmt2;
-        }
-        else if (idir_n == 1) {
-            runewn = runewn + dmt1;
-            rwnewn = rwnewn + dmt2;
-        }
-        else {
-            runewn = runewn + dmt1;
-            rvnewn = rvnewn + dmt2;
-        }
-        renewn = renewn + dre;
-
-        Real ernewn[NGROUPS];
-        for (int g = 0; g < NGROUPS; ++g) {
-            ernewn[g] = ern[g] - cdtdx_t1 * (rflux_t1(ir_t1,jr_t1,kr_t1,g) -
-                                             rflux_t1(il_t1,jl_t1,kl_t1,g))
-                               - cdtdx_t2 * (rflux_t2(ir_t2,jr_t2,kr_t2,g) -
-                                             rflux_t2(il_t2,jl_t2,kl_t2,g))
-                               + der[g];
-        }
-#endif
-
-        // Reset to original value if adding transverse terms
-        // made density negative
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
-            rrnewn = rrn;
-            runewn = run;
-            rvnewn = rvn;
-            rwnewn = rwn;
-            renewn = ren;
-#ifdef RADIATION
-            for (int g = 0; g < NGROUPS; ++g) {
-                ernewn[g] = ern[g];
-            }
-#endif
+        if (reset_density == 1 && U_int[URHO] < 0.0_rt) {
             reset_state = true;
         }
 
-        qo_arr(i,j,k,QRHO) = rrnewn;
-        qo_arr(i,j,k,QU) = runewn / rrnewn;
-        qo_arr(i,j,k,QV) = rvnewn / rrnewn;
-        qo_arr(i,j,k,QW) = rwnewn / rrnewn;
 
-        // note: we run the risk of (rho e) being negative here
-        Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) / rrnewn;
-        qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
+        if (! reset_state) {
 
-        if (!reset_state) {
-            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
-                // If it is negative, reset the internal energy by
-                // using the discretized expression for updating
-                // (rho e).
-                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT)
-                                 - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UEINT) -
-                                               flux_t1(il_t1,jl_t1,kl_t1,UEINT) + pt1av * dut1)
-                                 - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UEINT) -
-                                               flux_t2(il_t2,jl_t2,kl_t2,UEINT) + pt2av * dut2);
+            // Convert back to primitive form
+
+            qo_arr(i,j,k,QRHO) = U_int[URHO];
+            Real rhoinv = 1.0_rt / U_int[URHO];
+
+            qo_arr(i,j,k,QU) = U_int[UMX] * rhoinv;
+            qo_arr(i,j,k,QV) = U_int[UMY] * rhoinv;
+            qo_arr(i,j,k,QW) = U_int[UMZ] * rhoinv;
+
+            Real kineng = 0.5_rt * qo_arr(i,j,k,QRHO) *
+                (qo_arr(i,j,k,QU) * qo_arr(i,j,k,QU) +
+                 qo_arr(i,j,k,QV) * qo_arr(i,j,k,QV) +
+                 qo_arr(i,j,k,QW) * qo_arr(i,j,k,QW));
+
+            if ((U_int[UEDEN] - kineng) > castro::dual_energy_eta1 * U_int[UEDEN]) {
+                qo_arr(i,j,k,QREINT) = (U_int[UEDEN] - kineng) * rhoinv;
+            } else {
+                qo_arr(i,j,k,QREINT) = U_int[UEINT] * rhoinv;
             }
 
-            // If (rho e) is negative by this point,
-            // set it back to the original interface state,
-            // which turns off the transverse correction.
-
-            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
-                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            // Load passively advected quatities into q
+            for (int ipassive = 0; ipassive < npassive; ipassive++) {
+                int n  = upassmap(ipassive);
+                int iq = qpassmap(ipassive);
+                qo_arr(i,j,k,iq) = U_int[n] * rhoinv;
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            eos_rep_t eos_state;
 
-            // add the transverse term to the p evolution eq here
-            Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
-            qo_arr(i,j,k,QPRES) = pnewn;
-        }
-        else {
-            qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
-            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
-        }
-
-        qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);
-
-#ifdef RADIATION
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QRAD+g) = ernewn[g];
-        }
-
-        qo_arr(i,j,k,QPTOT) = qo_arr(i,j,k,QPRES);
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QPTOT) += lambda[g] * ernewn[g];
-        }
-
-        qo_arr(i,j,k,QREITOT) = qo_arr(i,j,k,QREINT);
-        for (int g = 0; g < NGROUPS; ++g) {
-            qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD+g);
-        }
+            eos_state.T = qo_arr(i,j,k,QTEMP);
+            eos_state.rho = qo_arr(i,j,k,QRHO);
+            eos_state.e = qo_arr(i,j,k,QREINT);
+            for (int n = 0; n < NumSpec; n++) {
+                eos_state.xn[n]  = qo_arr(i,j,k,QFS+n);
+            }
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; n++) {
+                eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
+            }
 #endif
+
+            eos(eos_input_re, eos_state);
+
+            qo_arr(i,j,k,QTEMP) = eos_state.T;
+            qo_arr(i,j,k,QPRES) = eos_state.p;
+
+        } else {
+
+            for (int n = 0; n < NQ; n++) {
+                qo_arr(i,j,k,n) = q_arr(i,j,k,n);
+            }
+
+        }
 
     });
 
