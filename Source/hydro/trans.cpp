@@ -196,8 +196,8 @@ Castro::actual_trans_single(const Box& bx,
 #endif
 
 #if AMREX_SPACEDIM == 2
-            U_int[n] += - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                 area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
+            U_int[n] += - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
+                                 area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
 #else
             U_int[n] += - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
 #endif
