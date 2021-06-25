@@ -162,11 +162,11 @@ Castro::actual_trans_single(const Box& bx,
         U_int[UMX] = U_int[URHO] * q_arr(i,j,k,QU);
         U_int[UMY] = U_int[URHO] * q_arr(i,j,k,QV);
         U_int[UMZ] = U_int[URHO] * q_arr(i,j,k,QW);
-        U_int[UEDEN] = U_int[URHO] * q_arr(i,j,k,QREINT) +
+        U_int[UEDEN] = q_arr(i,j,k,QREINT) +
             0.5_rt * (U_int[UMX] * U_int[UMX] +
                       U_int[UMY] * U_int[UMY] +
                       U_int[UMZ] * U_int[UMZ]) / U_int[URHO];
-        U_int[UEINT] = U_int[URHO] * q_arr(i,j,k,QREINT);
+        U_int[UEINT] = q_arr(i,j,k,QREINT);
 
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
             int n = upassmap(ipassive);
@@ -269,10 +269,12 @@ Castro::actual_trans_single(const Box& bx,
                  qo_arr(i,j,k,QW) * qo_arr(i,j,k,QW));
 
             if ((U_int[UEDEN] - kineng) > castro::dual_energy_eta1 * U_int[UEDEN]) {
-                qo_arr(i,j,k,QREINT) = (U_int[UEDEN] - kineng) * rhoinv;
+                qo_arr(i,j,k,QREINT) = U_int[UEDEN] - kineng;
             } else {
-                qo_arr(i,j,k,QREINT) = U_int[UEINT] * rhoinv;
+                qo_arr(i,j,k,QREINT) = U_int[UEINT];
             }
+
+            qo_arr(i,j,k,QREINT) = amrex::max(qo_arr(i,j,k,QREINT), small_dens * small_ener);
 
             // Load passively advected quatities into q
             for (int ipassive = 0; ipassive < npassive; ipassive++) {
@@ -285,7 +287,7 @@ Castro::actual_trans_single(const Box& bx,
 
             eos_state.T = T_guess; // the input T may not be valid
             eos_state.rho = qo_arr(i,j,k,QRHO);
-            eos_state.e = qo_arr(i,j,k,QREINT);
+            eos_state.e = qo_arr(i,j,k,QREINT) * rhoinv;
             for (int n = 0; n < NumSpec; n++) {
                 eos_state.xn[n]  = qo_arr(i,j,k,QFS+n);
             }
@@ -298,7 +300,7 @@ Castro::actual_trans_single(const Box& bx,
             eos(eos_input_re, eos_state);
 
             qo_arr(i,j,k,QTEMP) = eos_state.T;
-            qo_arr(i,j,k,QPRES) = eos_state.p;
+            qo_arr(i,j,k,QPRES) = amrex::max(eos_state.p, small_pres);
 
         } else {
 
@@ -490,11 +492,11 @@ Castro::actual_trans_final(const Box& bx,
         U_int[UMX] = U_int[URHO] * q_arr(i,j,k,QU);
         U_int[UMY] = U_int[URHO] * q_arr(i,j,k,QV);
         U_int[UMZ] = U_int[URHO] * q_arr(i,j,k,QW);
-        U_int[UEDEN] = U_int[URHO] * q_arr(i,j,k,QREINT) +
+        U_int[UEDEN] = q_arr(i,j,k,QREINT) +
             0.5_rt * (U_int[UMX] * U_int[UMX] +
                       U_int[UMY] * U_int[UMY] +
                       U_int[UMZ] * U_int[UMZ]) / U_int[URHO];
-        U_int[UEINT] = U_int[URHO] * q_arr(i,j,k,QREINT);
+        U_int[UEINT] = q_arr(i,j,k,QREINT);
 
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
             int n = upassmap(ipassive);
@@ -576,9 +578,9 @@ Castro::actual_trans_final(const Box& bx,
                  qo_arr(i,j,k,QW) * qo_arr(i,j,k,QW));
 
             if ((U_int[UEDEN] - kineng) > castro::dual_energy_eta1 * U_int[UEDEN]) {
-                qo_arr(i,j,k,QREINT) = (U_int[UEDEN] - kineng) * rhoinv;
+                qo_arr(i,j,k,QREINT) = U_int[UEDEN] - kineng;
             } else {
-                qo_arr(i,j,k,QREINT) = U_int[UEINT] * rhoinv;
+                qo_arr(i,j,k,QREINT) = U_int[UEINT];
             }
 
             // Load passively advected quatities into q
@@ -592,7 +594,7 @@ Castro::actual_trans_final(const Box& bx,
 
             eos_state.T = T_guess; // the input T may not be valid
             eos_state.rho = qo_arr(i,j,k,QRHO);
-            eos_state.e = qo_arr(i,j,k,QREINT);
+            eos_state.e = qo_arr(i,j,k,QREINT) * rhoinv;
             for (int n = 0; n < NumSpec; n++) {
                 eos_state.xn[n]  = qo_arr(i,j,k,QFS+n);
             }
@@ -605,7 +607,7 @@ Castro::actual_trans_final(const Box& bx,
             eos(eos_input_re, eos_state);
 
             qo_arr(i,j,k,QTEMP) = eos_state.T;
-            qo_arr(i,j,k,QPRES) = eos_state.p;
+            qo_arr(i,j,k,QPRES) = amrex::max(eos_state.p, small_pres);
 
         } else {
 
