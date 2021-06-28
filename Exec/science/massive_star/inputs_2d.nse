@@ -59,10 +59,10 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 100     # number of timesteps between checkpoints
+amr.check_int       = 10     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
-amr.plot_per = 0.01
+amr.plot_per = 0.1
 
 amr.max_grid_size   = 512       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -104,4 +104,5 @@ integrator.jacobian = 2
 
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
+network.nse_relax_factor = 0.9
 
