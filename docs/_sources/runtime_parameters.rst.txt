@@ -32,7 +32,7 @@ namespace: ``castro``
 
 **hydrodynamics**
 
-.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.mhd_limit_characteristic, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.pslope_cutoff_density, castro.limit_fluxes_on_small_dens, castro.limit_fluxes_on_large_vel, castro.speed_limit, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.ambient_density, castro.ambient_temp, castro.ambient_energy, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac, castro.use_axisymmetric_geom_source
+.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.mhd_limit_characteristic, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.pslope_cutoff_density, castro.limit_fluxes_on_small_dens, castro.limit_fluxes_on_large_vel, castro.speed_limit, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.ambient_density, castro.ambient_temp, castro.ambient_energy, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_newton_use_analytic_jac, castro.use_axisymmetric_geom_source
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -258,7 +258,7 @@ namespace: ``castro``
 | ``sdc_solve_for_rhoe``                 | do we solve for (rho e) or (rho E) in the SDC nonlinear | 1             |
 |                                        | solve?                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_use_analytic_jac``               | do we use the analytic or numerical Jacobian for the    | 1             |
+| ``sdc_newton_use_analytic_jac``        | do we use the analytic or numerical Jacobian for the    | 1             |
 |                                        | Newton-Raphson solver? for the VODE solver, we use      |               |
 |                                        | integrator.jacobian instead                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -571,7 +571,7 @@ namespace: ``castro``
 
 **diagnostics, I/O**
 
-.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step, castro.store_omegadot
+.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step, castro.store_omegadot, castro.abort_on_invalid_params
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -619,6 +619,26 @@ namespace: ``castro``
 | ``store_omegadot``                     | Do we store the species creation rates in the plotfile. | 0             |
 |                                        | Note, if this option is enabled then more memory will   |               |
 |                                        | be allocated to hold the results of the burn            |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``abort_on_invalid_params``            | Do we abort the run if the inputs file specifies a      | 0             |
+|                                        | runtime parameter that we don't know about?  Note: this |               |
+|                                        | will only take effect for those namespaces where 100%   |               |
+|                                        | of the runtime parameters are managed by the python     |               |
+|                                        | scripts.                                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
+**radiation-hydro**
+
+.. index:: castro.do_radiation
+
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_radiation``                       | do we enable radiation for a radiation-hydrodynamics    | -1            |
+|                                        | run?                                                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
