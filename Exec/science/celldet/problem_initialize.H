@@ -30,7 +30,7 @@ void problem_initialize ()
     int ifuel6 = network_spec_index(problem::fuel6_name);
     int iash6 = network_spec_index(problem::ash6_name);
 
-    if (iash1 < 0 && iash2 < 0 && iash3 < 0 && iash4 < 0) {
+    if (iash1 < 0 && iash2 < 0 && iash3 < 0 && iash4 < 0 && iash5 < 0 && iash6 < 0) {
         amrex::Error("no valid ash state defined");
     }
 
@@ -89,9 +89,6 @@ void problem_initialize ()
         problem::xn_ash[iash6] = problem::X_ash6;
     }
 
-    if (iash1 < 0 && iash2 < 0 && iash3 < 0 && iash4 < 0 && iash5 < 0 && iash6 < 0) {
-        amrex::Error("no valid ash state defined");
-    }
 
     // normalize
 
