@@ -81,7 +81,7 @@ castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_aprox19.6400"
+problem.model_name =  "15m_500_sec.aprox19.hse.6400"
 
 # refinement
 
