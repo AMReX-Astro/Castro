@@ -1419,8 +1419,6 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
 
     amrex::Real lastDt;
@@ -1453,11 +1451,6 @@ protected:
     static class Diffusion *diffusion;
 
 #ifdef RADIATION
-
-///
-/// permits radiation to be turned on and off without recompiling:
-///
-    static int do_radiation;
 
 
 ///

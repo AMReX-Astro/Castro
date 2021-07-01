@@ -36,6 +36,7 @@ CXX_HEADER = """
 #define problem_parameters_H
 #include <AMReX_BLFort.H>
 #include <AMReX_REAL.H>
+#include <AMReX_Vector.H>
 #include <network_properties.H>
 
 """

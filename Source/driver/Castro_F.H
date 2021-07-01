@@ -9,20 +9,6 @@ extern "C"
 {
 #endif
 
-  void ca_microphysics_init();
-
-  void ca_extern_init(const int* name, const int* namlen);
-
-#ifdef REACTIONS
-  void ca_set_abort_on_failure(int * abort_on_failure);
-#endif
-
-  void ca_set_method_params
-    (const int& dm);
-
-  void ca_finalize_meth_params();
-
-  void ca_set_castro_method_params();
 
 #ifdef RADIATION
   void ca_inelastic_sct

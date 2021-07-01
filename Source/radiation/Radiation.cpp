@@ -545,8 +545,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
       do_inelastic_scattering = 0;
   }
 
-  ca_init_radhydro_pars(fspace_advection_type, do_inelastic_scattering,
-                        comoving);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids, const DistributionMapping& dmap)

@@ -46,9 +46,6 @@ castro.use_stopping_criterion = 1
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
-# Fixed level 0 timestep; unused if < 0
-castro.fixed_dt = -1.0
-
 # Scale back initial timestep by this factor
 castro.init_shrink = 1.0
 
@@ -355,7 +352,7 @@ amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary
 # than the safe hydrodynamic timestep given the above
 # CFL value. This guarantees that we will retry on
 # all levels, at least in the first timestep.
-castro.fixed_dt = 0.08
+castro.fixed_dt = 0.25
 
 ############################################################################################
 # Problem parameters

@@ -6,16 +6,28 @@
 ############################################################################################
 
 # Non-periodic boundary conditions
-geometry.is_periodic = 0 0
+geometry.is_periodic = 0 0 0
 
-# Cartesian coordinate system
-geometry.coord_sys = 1
+#if AMREX_SPACEDIM == 3
 
-# Lower boundary limits in physical space
-geometry.prob_lo =   0.0e0 -5.12e9
+  # Cartesian coordinate system
+  geometry.coord_sys = 0
+
+  # Lower boundary limits in physical space
+  geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9
+
+#elif AMREX_SPACEDIM == 2
+
+  # Cartesian coordinate system
+  geometry.coord_sys = 1
+
+  # Lower boundary limits in physical space
+  geometry.prob_lo = 0.0e0 -5.12e9
+
+#endif
 
 # Upper boundary limits in physical space
-geometry.prob_hi =  5.12e9  5.12e9
+geometry.prob_hi =  5.12e9  5.12e9  5.12e9
 
 ############################################################################################
 # Boundary conditions
@@ -24,11 +36,20 @@ geometry.prob_hi =  5.12e9  5.12e9
 # 2 = Outflow            5 = NoSlipWall
 ############################################################################################
 
-# Boundary conditions on lo x, y, and z edges
-castro.lo_bc = 3 2
+#if AMREX_SPACEDIM == 3
+
+  # Boundary conditions on lo x, y, and z edges
+  castro.lo_bc = 2 2 2
+
+#elif AMREX_SPACEDIM == 2
+
+  # Boundary conditions on lo x, y, and z edges
+  castro.lo_bc = 3 2
+
+#endif
 
 # Boundary conditions on hi x, y, and z edges
-castro.hi_bc = 2 2
+castro.hi_bc = 2 2 2
 
 ############################################################################################ 
 # Timestepping
@@ -68,8 +89,17 @@ castro.retry_small_density_cutoff = 1.0e0
 # Resolution, gridding and AMR
 ############################################################################################
 
-# Number of cells on the coarse grid
-amr.n_cell = 128 256
+#if AMREX_SPACEDIM == 3
+
+  # Number of cells on the coarse grid
+  amr.n_cell = 256 256 256
+
+#elif AMREX_SPACEDIM == 2
+
+  # Number of cells on the coarse grid
+  amr.n_cell = 128 256
+
+#endif
 
 # Maximum level number allowed
 amr.max_level = 0
@@ -146,6 +176,9 @@ castro.cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
+
+# Whether to use the hybrid advection technique that conserves angular momentum
+castro.hybrid_hydro = 0
 
 # Reset (rho*e) if it goes negative in the transverse terms
 castro.transverse_reset_rhoe = 1
@@ -264,6 +297,9 @@ gravity.do_composite_phi_correction = 0
 
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
+
+# Whether to evolve state variables in the inertial or rotating frame
+castro.state_in_rotating_frame = 1
 
 ############################################################################################
 # Sponge

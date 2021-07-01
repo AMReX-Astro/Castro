@@ -33,7 +33,6 @@
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;
@@ -506,23 +505,6 @@ Castro::setPlotVariables ()
 #endif
 #endif
 
-  ParmParse pp("castro");
-
-  bool plot_X;
-
-  if (pp.query("plot_X",plot_X))
-  {
-      if (plot_X)
-      {
-          // Get the species names from the network model.
-          //
-          for (int i = 0; i < NumSpec; i++)
-          {
-              string spec_string = "X(" + short_spec_names_cxx[i] + ")";
-              parent->addDerivePlotVar(spec_string);
-          }
-      }
-  }
 }
 
 
@@ -793,18 +775,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
 #include <prob_job_info_tests.H>
 
+#include <extern_job_info_tests.H>
+
   jobInfoFile.close();
-
-  // now the external parameters
-  const int jobinfo_file_length = FullPathJobInfoFile.length();
-  Vector<int> jobinfo_file_name(jobinfo_file_length);
-
-  for (int i = 0; i < jobinfo_file_length; i++) {
-    jobinfo_file_name[i] = FullPathJobInfoFile[i];
-  }
-
-  runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
-
 
 }
 

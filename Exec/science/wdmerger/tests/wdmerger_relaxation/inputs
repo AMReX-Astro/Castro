@@ -1,4 +1,4 @@
-FILE = ../../inputs_3d
+FILE = ../../inputs
 
 stop_time = 12.0
 
