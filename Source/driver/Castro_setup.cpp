@@ -21,6 +21,9 @@
 #include <microphysics_F.H>
 #endif
 #include <eos.H>
+#ifdef NSE_THERMO
+#include <nse.H>
+#endif
 #include <ambient.H>
 
 using std::string;
@@ -217,24 +220,26 @@ Castro::variableSetUp ()
   // set small positive values of the "small" quantities if they are
   // negative
   if (small_dens < 0.0_rt) {
-    small_dens = 1.e-200_rt;
+    small_dens = 1.e-100_rt;
   }
 
   if (small_temp < 0.0_rt) {
-    small_temp = 1.e-200_rt;
+    small_temp = 1.e-100_rt;
   }
 
   if (small_pres < 0.0_rt) {
-    small_pres = 1.e-200_rt;
+    small_pres = 1.e-100_rt;
   }
 
   if (small_ener < 0.0_rt) {
-    small_ener = 1.e-200_rt;
+    small_ener = 1.e-100_rt;
   }
 
+#ifdef MICROPHYSICS_FORT
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
-  ca_microphysics_init(small_dens, small_temp);
+  microphysics_initialize(small_temp, small_dens);
+#endif
 #endif
 
   // now initialize the C++ Microphysics
@@ -259,18 +264,36 @@ Castro::variableSetUp ()
   small_dens = new_min_rho;
   EOSData::mindens = new_min_rho;
 
+  // Given small_temp and small_dens, compute small_pres
+  // and small_ener, assuming a more restrictive value is
+  // not already provided by the user. We'll arbitrarily
+  // set the mass fraction for this call, since we presumably
+  // don't need to be too accurate, we just need to set a
+  // reasonable floor.
+
+  eos_t eos_state;
+
+  eos_state.rho = castro::small_dens;
+  eos_state.T = castro::small_temp;
+  for (int n = 0; n < NumSpec; ++n) {
+      eos_state.xn[n] = 1.0_rt / NumSpec;
+  }
+#ifdef NSE_THERMO
+  set_nse_aux_from_X(eos_state);
+#endif
+
+  eos(eos_input_rt, eos_state);
+
+  castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
+  castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
+
   // some consistency checks on the parameters
 #ifdef REACTIONS
 #ifdef TRUE_SDC
-  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
     use_retry = 0;
-  }
-  if (!abort_on_failure) {
-    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
-   abort_on_failure = 1;
-   ca_set_abort_on_failure(&abort_on_failure);
   }
 #else
   if (!use_retry && !abort_on_failure) {

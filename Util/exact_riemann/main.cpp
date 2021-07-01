@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <riemann_F.H>
+#include <extern_parameters_F.H>
 
 int main(int argc, char *argv[]) {
 
@@ -18,7 +19,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "here" << std::endl;
 
-  ca_extern_init(probin_file_name.data(), &probin_file_length);
+  runtime_init(probin_file_name.data(), &probin_file_length);
 
   riemann_exact();
 
