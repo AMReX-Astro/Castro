@@ -23,7 +23,7 @@ castro.do_react = 0
 
 #TIME STEP CONTROL
 
-castro.cfl           = 0.95
+castro.cfl           = 0.6
 castro.init_shrink   = 1.0
 castro.changemax     = 1.1
 #castro.fixed_dt      = 
@@ -44,7 +44,7 @@ amr.max_grid_size   = 256           # maximum default value
 
 amr.refinement_indicators = presserr pressgrad
 
-amr.refine.presserr.value_greater = 1.71
+amr.refine.presserr.value_greater = 2
 amr.refine.presserr.field_name = pressure
 amr.refine.presserr.max_level = 3 #Since blocking_factor = 2**3, 3 is the max level chosen for refinement.
 

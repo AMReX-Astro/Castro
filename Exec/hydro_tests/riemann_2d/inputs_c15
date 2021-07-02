@@ -23,7 +23,7 @@ castro.do_react = 0
 
 #TIME STEP CONTROL
 
-castro.cfl           = 0.95
+castro.cfl           = 0.6
 castro.init_shrink   = 1.0
 castro.changemax     = 1.1
 #castro.fixed_dt      = 

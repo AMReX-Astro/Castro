@@ -36,6 +36,17 @@ void problem_initialize_state_data(int i, int j, int k,
 
 	//Now we want to fracture the domain in 4 regions as described in
 	//Liska & Wendroff (2003).
+	//
+	//In order to define the regions we use the following convention
+	//--------
+	// ---|----
+	// -2-|--1-
+	//----+----
+	//--3-|--4-
+	//---------
+	//Now, after setting the z-momentum component to zero:
+	state(i, j, k, UMZ) = 0.0;
+
 	if (xx < problem::center[0] && yy < problem::center[1])
 	{
 		//State in domain 3
@@ -43,8 +54,6 @@ void problem_initialize_state_data(int i, int j, int k,
 
 		state(i, j, k, UMX)    = state(i, j, k, URHO) * problem::ux_3;
 		state(i, j, k, UMY)    = state(i, j, k, URHO) * problem::uy_3;
-		state(i, j, k, UMZ) = 0.0;
-
 		state(i, j, k, UEINT)  = problem::p_3 / (eos_gamma - 1.0_rt);
 		state(i, j, k, UEDEN)  = problem::p_3 / (eos_gamma - 1.0_rt)
 			                     + 0.5 * problem::rho_3 * problem::ux_3 * problem::ux_3
@@ -60,7 +69,7 @@ void problem_initialize_state_data(int i, int j, int k,
 		state(i, j, k, UEINT) = problem::p_4 / (eos_gamma - 1.0_rt);
 
 		state(i, j, k, UEDEN) = problem::p_4 / (eos_gamma - 1.0_rt)
-			                     + 0.5 * problem::ux_4 * problem::ux_4;
+			                     + 0.5 * problem::rho_4 * problem::ux_4 * problem::ux_4
 					     + 0.5 * problem::rho_4 * problem::uy_4 * problem::uy_4;
 
 	} else if (xx < problem::center[0] && yy > problem::center[1])
@@ -89,6 +98,7 @@ void problem_initialize_state_data(int i, int j, int k,
 					     + 0.5 * problem::rho_1 * problem::uy_1 * problem::uy_1;
 	}
 
+	//We will consider only one specie.
 	state(i, j, k,UFS) = state(i,j,k,URHO);
 }
 
