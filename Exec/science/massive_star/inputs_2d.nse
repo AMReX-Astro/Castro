@@ -59,7 +59,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 10     # number of timesteps between checkpoints
+amr.check_int       = 100     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
 amr.plot_per = 0.1
