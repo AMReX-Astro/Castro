@@ -5,6 +5,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def find_r_for_rho(r, rho, rho_want):
+    idx = np.where(rho < rho_want)[0][0]
+    return r[idx]
+
+
 file = "../15m_500_sec.aprox19.hse.6400"
 
 data = np.loadtxt(file)
@@ -41,6 +46,15 @@ ax = fig.add_subplot(211)
 
 l1 = ax.plot(data[:,0], data[:,idens], label="density")
 l2 = ax.plot(data[:,0], data[:,itemp], label="temperature")
+
+# show where the refinement kicks in 
+rho_refine = 1.e4
+
+r_refine = find_r_for_rho(data[:,0], data[:,idens], rho_refine)
+
+print(r_refine)
+
+ax.axvline(r_refine, color="0.25", ls=":")
 
 ax.set_xscale("log")
 ax.set_yscale("log")
@@ -79,6 +93,8 @@ for n, var in enumerate(names):
             lw = 1
         ax.plot(data[:,0], data[:,n], label=var, lw=lw)
 
+
+ax.axvline(r_refine, color="0.25", ls=":")
 
 ax.set_xscale("log")
 ax.set_yscale("log")
