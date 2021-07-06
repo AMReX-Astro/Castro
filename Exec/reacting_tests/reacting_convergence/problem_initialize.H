@@ -95,6 +95,15 @@ void problem_initialize ()
         xn[ispec6] = problem::spec6_frac;
     }
 
+    // Normalize species 
+    auto sumX = 0.0_rt;
+    for (int n = 0; n < NumSpec; n++) {
+        sumX += xn[n];
+    }
+    for (int n = 0; n < NumSpec; n++) {
+        xn[n] /= sumX;
+    }
+
     eos_t eos_state;
 
     eos_state.rho = problem::rho0;
