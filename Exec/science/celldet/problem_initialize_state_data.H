@@ -42,7 +42,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
-=======
         problem::xn[n] = problem::xn_ash[n] + (problem::xn_fuel[n] - problem::xn_ash[n]) * (1.0_rt - sigma);
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * problem::xn[n];
     }
