@@ -6,7 +6,6 @@
 
 #ifdef GRAVITY
 #include <Gravity.H>
-#include <Gravity_F.H>
 #endif
 
 #ifdef ROTATION
