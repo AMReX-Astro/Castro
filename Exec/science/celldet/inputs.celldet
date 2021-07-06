@@ -86,10 +86,6 @@ problem.center_T = 1.e-1
 
 problem.vel = 2.876e8
 
-<<<<<<< HEAD:Exec/science/celldet/inputs.celldet
-
-=======
->>>>>>> 7bcddcc23b7c579f737c5c7feb713ec90bb77469:Exec/science/celldet/inputs.celldet
 
 # refinement
 
