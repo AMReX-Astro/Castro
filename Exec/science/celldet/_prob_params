@@ -6,8 +6,6 @@ dens_ash             real          1.e8_rt        y
 
 dens_fuel            real          1.e8_rt        y
 
-cfrac                real          0.5_rt         y
-
 ofrac                real          0.0_rt         y
 
 w_T                  real          5.e-4_rt       y

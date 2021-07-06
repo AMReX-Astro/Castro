@@ -71,21 +71,12 @@ amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 
-problem.T_l = 4.423e9
-problem.T_r = 2.e8
-<<<<<<< HEAD:Exec/science/celldet/inputs.celldet
+problem.T_ash = 4.423e9
+problem.T_fuel = 2.e8
 
-problem.dens_l = 4.236e7
-problem.dens_r = 1.e7
-problem.cfrac = 1.e0
+problem.dens_ash = 4.236e7
+problem.dens_fuel = 1.e7
 
-=======
-
-problem.dens_l = 4.236e7
-problem.dens_r = 4.236e7
-problem.cfrac = 1.e0
-
->>>>>>> 7bcddcc23b7c579f737c5c7feb713ec90bb77469:Exec/science/celldet/inputs.celldet
 problem.smallx = 1.e-10
 
 problem.idir = 1

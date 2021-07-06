@@ -34,19 +34,21 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,UTEMP) = problem::T_ash + (problem::T_fuel - problem::T_ash) * (1.0_rt - sigma);
 
+    Real xn[NumSpec] ;
+
     for (int n = 0; n < NumSpec; n++) {
-        problem::xn[n] = problem::xn_ash[n] + (problem::xn_fuel[n] - problem::xn_ash[n]) * (1.0_rt - sigma);
+        xn[n] = problem::xn_ash[n] + (problem::xn_fuel[n] - problem::xn_ash[n]) * (1.0_rt - sigma);
 }
 
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * problem::xn[n];
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
     }
 
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = problem::xn[n];
+        eos_state.xn[n] = xn[n];
     }
 
 #ifdef NSE_THERMO
