@@ -46,27 +46,13 @@ amr.refinement_indicators = presserr pressgrad
 
 amr.refine.denerr.max_level = 3  
 
-#amr.refine.velerr_x.value_greater = 0.02
-#amr.refine.velerr_x.field_name = x_velocity
-#amr.refine.velerr_x.max_level = 3
-
-#amr.refine.velerr_y.value_greater = 0.02
-#amr.refine.velerr_y.field_name = y_velocity
-#amr.refine.velerr_y.max_level = 3
-
-#amr.refine.velerr_z.value_greater = 0.02
-#amr.refine.velerr_z.field_name = z_velocity
-#amr.refine.velerr_z.max_level = 3
-
 amr.refine.presserr.value_greater = 3
 amr.refine.presserr.field_name = pressure
-amr.refine.presserr.max_level = 3  #Since blocking_factor = 2**3, 3 is the max level chosen for refinement.
-
+amr.refine.presserr.max_level = 3 
 
 amr.refine.pressgrad.gradient = 0.01
 amr.refine.pressgrad.field_name = pressure
 amr.refine.pressgrad.max_level = 3
-
 
 # PLOTFILES
 amr.plot_file        = plt_riemman2d_400

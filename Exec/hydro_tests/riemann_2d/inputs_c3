@@ -46,7 +46,7 @@ amr.refinement_indicators = presserr pressgrad
 
 amr.refine.presserr.value_greater = 3
 amr.refine.presserr.field_name = pressure
-amr.refine.presserr.max_level = 3 #Since blocking_factor = 2**3, 3 is the max level chosen for refinement.
+amr.refine.presserr.max_level = 3
 
 amr.refine.pressgrad.gradient = 0.01
 amr.refine.pressgrad.field_name = pressure
