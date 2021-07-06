@@ -58,6 +58,18 @@ problem.rho0 = 6.5e6
 problem.T0 = 2.85e9
 problem.dp_fact = 2.0
 problem.L_pert = 2.e7
+problem.spec1_name = "silicon-28"
+problem.spec2_name = "sulfur-32"
+problem.spec3_name = "argon-36"
+problem.spec4_name = "calcium-40"
+problem.spec5_name = "iron-54"
+problem.spec6_name = "nickel-56"
+problem.spec1_frac = 2.109417e-01
+problem.spec2_frac = 1.401981e-01
+problem.spec3_frac = 2.688594e-02
+problem.spec4_frac = 2.644551e-02
+problem.spec5_frac = 5.940484e-01
+problem.spec6_frac = 1.376063e-03
 
 # Refinement
 

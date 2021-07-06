@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 50000
+max_step = 500000
 stop_time = 0.06
 
 # PROBLEM SIZE & GEOMETRY
@@ -7,7 +7,7 @@ geometry.is_periodic =  1 1 1
 geometry.coord_sys   =  0       # 0 => cart
 geometry.prob_lo     =  0    0    0
 geometry.prob_hi     =  1.e8    1.e8    1.e8
-amr.n_cell           = 256 256 256
+amr.n_cell           = 512  512  512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -26,7 +26,7 @@ castro.do_react = 1
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
-castro.fixed_dt = 0.5e-4
+castro.fixed_dt = 0.25e-4
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -43,11 +43,11 @@ amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
-amr.check_file      = react_converge_256_chk   # root name of checkpoint file
+amr.check_file      = react_converge_512_chk   # root name of checkpoint file
 amr.check_int       = 100       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = react_converge_256_plt
+amr.plot_file       = react_converge_512_plt
 amr.plot_int        = -1
 amr.plot_per        = 0.24
 amr.derive_plot_vars=ALL
