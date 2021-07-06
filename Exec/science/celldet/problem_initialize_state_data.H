@@ -37,11 +37,16 @@ void problem_initialize_state_data (int i, int j, int k,
     Real xn[NumSpec] ;
 
     for (int n = 0; n < NumSpec; n++) {
+<<<<<<< HEAD
         xn[n] = problem::xn_ash[n] + (problem::xn_fuel[n] - problem::xn_ash[n]) * (1.0_rt - sigma);
 }
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
+=======
+        problem::xn[n] = problem::xn_ash[n] + (problem::xn_fuel[n] - problem::xn_ash[n]) * (1.0_rt - sigma);
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * problem::xn[n];
+>>>>>>> cff4ab0ffa9e10c81e2cbec9a2be8d68e661b136
     }
 
     eos_t eos_state;
