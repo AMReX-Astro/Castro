@@ -151,7 +151,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // network variables, X, T. e.  It does not have derivatives with
     // respect to density, so we'll have to compute those ourselves.
 
-    if (sdc_use_analytic_jac == 0) {
+    if (sdc_newton_use_analytic_jac == 0) {
         // note the numerical Jacobian will be returned in terms of X
         jac_info_t jac_info;
         jac_info.h = dt;

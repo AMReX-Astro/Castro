@@ -60,6 +60,12 @@ amr.blocking_factor = 64      # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 5
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = chk        # root name of checkpoint file
@@ -69,5 +75,25 @@ amr.check_int       = -1         # number of timesteps between checkpoints
 amr.plot_file       = plt        # root name of plotfile
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.boundary_type = 1
+
+problem.pert_factor = 8.1e-3
+problem.dens_base = 1.65e-3
+problem.pres_base = 1.65e6
+problem.r_pert_center = 0.7e0
+problem.pert_width = 0.025e0
+
+problem.do_isentropic = 1
+
+problem.dx_model = 0.00390625
+
+# EOS
+eos.species_a_name = "A"
+eos.species_a_gamma = 1.666e0
+
+eos.species_b_name = "B"
+eos.species_b_gamma = 1.4e0
+
+eos.species_c_name = "C"
+eos.species_c_gamma = 1.666e0

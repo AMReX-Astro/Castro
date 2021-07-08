@@ -16,8 +16,6 @@ USE_GRAV   = TRUE
 USE_MHD = FALSE
 
 
-GPU_COMPATIBLE_PROBLEM = TRUE
-
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 

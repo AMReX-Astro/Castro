@@ -12,7 +12,6 @@
 #include <Problem.H>
 
 #include <Gravity.H>
-#include <Gravity_F.H>
 
 #include <wdmerger_data.H>
 
@@ -208,7 +207,7 @@ Castro::sum_integrated_quantities ()
     vel_P_mag += std::pow( std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5 );
     vel_S_mag += std::pow( std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5 );
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     if (mass_P > 0.0) {
       vel_P_rad = (com_P[problem::axis_1 - 1] / com_P_mag) * vel_P[problem::axis_1 - 1] +
                   (com_P[problem::axis_2 - 1] / com_P_mag) * vel_P[problem::axis_2 - 1];
@@ -292,7 +291,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
 	     header << std::setw(datwidth) << "              INT. ENERGY"; ++n;
 	     header << std::setw(datwidth) << "                     MASS"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "                     XMOM"; ++n;
 	     header << std::setw(datwidth) << "                     YMOM"; ++n;
 	     header << std::setw(datwidth) << "                     ZMOM"; ++n;
@@ -310,7 +309,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "              ANG. MOM. R"; ++n;
 	     header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "                    X COM"; ++n;
 	     header << std::setw(datwidth) << "                    Y COM"; ++n;
 	     header << std::setw(datwidth) << "                    Z COM"; ++n;
@@ -357,7 +356,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[2];
 #endif
 #ifdef HYBRID_MOMENTUM
@@ -367,17 +366,17 @@ Castro::sum_integrated_quantities ()
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[2];
 #endif
 
@@ -464,7 +463,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "             PRIMARY MASS"; ++n;
 	     header << std::setw(datwidth) << "             PRIMARY MDOT"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY MAG COM"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "            PRIMARY X COM"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Y COM"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
@@ -475,7 +474,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "          PRIMARY MAG VEL"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY RAD VEL"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY ANG VEL"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "            PRIMARY X VEL"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Y VEL"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
@@ -514,7 +513,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
@@ -522,7 +521,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
@@ -558,7 +557,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "           SECONDARY MASS"; ++n;
 	     header << std::setw(datwidth) << "           SECONDARY MDOT"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY MAG COM"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "          SECONDARY X COM"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Y COM"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
@@ -569,7 +568,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "        SECONDARY MAG VEL"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY RAD VEL"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY ANG VEL"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "          SECONDARY X VEL"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Y VEL"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
@@ -608,7 +607,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
@@ -616,7 +615,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;

@@ -42,6 +42,24 @@ amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = sod_z_chk  # root name of checkpoint file
@@ -52,5 +70,18 @@ amr.plot_file       = sod_z_plt  # root name of plotfile
 amr.plot_int        = 40000          # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL # density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
-#PROBIN FILENAME
-amr.probin_file = probin-sod-z
+# PROBLEM PARAMETERS
+problem.p_l = 1.0e0
+problem.u_l = 0.0e0
+problem.rho_l = 1.0e0
+
+problem.p_r = 0.1e0
+problem.u_r = 0.0e0
+problem.rho_r = 0.125e0
+
+problem.idir = 3
+problem.frac = 0.5e0
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4

@@ -33,8 +33,27 @@ amr.derive_plot_vars = ALL
 #amr.plot_files_output = 0    # suppress plot files
 
 
-# PROBIN FILENAME
-amr.probin_file     = probin.common
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.8212111e-5
+problem.T_0 = 0.1e0
+problem.kappa_0 = 4.0628337e43
+problem.x_jump = 0.5e0
+
+# EOS
+eos.eos_const_c_v =  99968636.6828e0
+eos.eos_c_v_exp_m =  0.0e0
+eos.eos_c_v_exp_n =  0.0e0
+
+# OPACITY
+opacity.const_kappa_r =  4.0628337e43
+opacity.kappa_r_exp_m =  0.0e0
+opacity.kappa_r_exp_n =  0.0e0
+opacity.kappa_r_exp_p = -3.0e0
+
+opacity.const_kappa_p =  4.0628337e43
+opacity.kappa_p_exp_m =  0.0e0
+opacity.kappa_p_exp_n =  0.0e0
+opacity.kappa_p_exp_p = -3.0e0
 
 # VERBOSITY
 amr.v = 1

@@ -116,10 +116,10 @@ problems are:
      compared to a semi-analytic solution described in :cite:`lowrieedwards`.
    
    * ``RadFront``: This is the optically-thin streaming of a radiation front problem
-     demonstrated originally in Castro in :cite:`castroII`.
+     demonstrated originally in Castro in :cite:`CastroII`.
 
    * ``RadShestakovBolstad``: This is a linear multigroup diffusion test problem first described
-     by :cite:`SHESTAKOV2005` and demonstrated in Castro in :cite:`castroIII`.
+     by :cite:`SHESTAKOV2005` and demonstrated in Castro in :cite:`CastroIII`.
 
    * ``RadSourceTest``: Test the implementation of the source terms in the gray radiation
      solver.  This does the "relaxation to thermal equilibrium" test as

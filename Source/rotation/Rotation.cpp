@@ -79,8 +79,12 @@ Castro::fill_rotational_psi(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-
-    psi(i,j,k) = rotational_potential(r) / denom;
+    if (denom != 0.0) {
+        psi(i,j,k) = rotational_potential(r) / denom;
+    }
+    else {
+        psi(i,j,k) = 0.0;
+    }
 
   });
 }

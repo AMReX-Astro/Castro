@@ -31,7 +31,7 @@ void problem_initialize ()
 #endif
 
     // the conductivity is the physical quantity that appears in the
-    // diffusion term of the energy equation.  It is set in the probin
+    // diffusion term of the energy equation.  It is set in the inputs
     // file.  For this test problem, we want to set the diffusion
     // coefficient, D = k/(rho c_v), so the free parameter we have to
     // play with is rho.  Note that for an ideal gas, c_v does not depend

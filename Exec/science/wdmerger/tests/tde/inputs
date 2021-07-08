@@ -1,5 +1,5 @@
 # Start with main wdmerger inputs
-FILE = ../../inputs_3d
+FILE = ../../inputs
 
 geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 geometry.prob_hi =  1.28e11  1.28e11  1.28e11
@@ -37,3 +37,17 @@ amr.plot_per = 10.0
 amr.plot_int = -1
 amr.small_plot_per = 1.0
 amr.small_plot_int = -1
+
+problem.mass_P = 0.60
+problem.mass_S = -1.0
+
+problem.problem = 2
+
+problem.tde_separation = 8.0e0
+problem.tde_beta = 6.0e0
+
+problem.nsub = 16
+
+problem.max_stellar_tagging_level = 20
+problem.max_temperature_tagging_level = 0
+problem.stellar_density_threshold = 1.0e4

@@ -44,6 +44,10 @@ castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
+# SPONGE
+castro.sponge_upper_density = 1.e6
+castro.sponge_lower_density = 1.e4
+castro.sponge_timescale     = 1.e-5
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -67,5 +71,21 @@ amr.plot_file        = plt        # root name of plotfile
 amr.plot_per         = 0.5
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# Problem initialization
+
+problem.model_name =  "model.hse.cool.coulomb"
+
+problem.pert_temp_factor = 1.e0
+problem.pert_rad_factor = 1.e0
+
+# Refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 6.e8
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e9
+amr.refine.tempgrad.field_name = Temp

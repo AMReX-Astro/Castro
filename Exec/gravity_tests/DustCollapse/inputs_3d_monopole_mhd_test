@@ -25,7 +25,6 @@ castro.do_sponge     = 1
 castro.ppm_type      = 1
 
 # MHD
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 castro.do_grav       = 1
@@ -41,6 +40,11 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
+# SPONGE
+castro.sponge_lower_density = 1.0e-3
+castro.sponge_upper_density = 1.0e-3
+castro.sponge_timescale = 1.0e-3
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
@@ -54,6 +58,12 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 1.0e7
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.check_file      = chk_3d_  # root name of checkpoint file
 amr.check_int       = 100000        # number of timesteps between checkpoints
@@ -63,5 +73,17 @@ amr.plot_file       = plt_3d_  # root name of plotfile
 amr.plot_int        = 100000        # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 
-#PROBIN FILENAME
-amr.probin_file = probin.octant
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.e9
+problem.r_0   = 6.5e8
+problem.p_0   = 1.e15
+problem.rho_ambient = 1.0e-5
+problem.smooth_delta = 4.e6
+
+problem.center_x = 0.e0
+problem.center_y = 0.e0
+problem.center_z = 0.e0
+
+# EOS
+eos.eos_gamma = 1.66666
+eos.eos_assume_neutral = 1

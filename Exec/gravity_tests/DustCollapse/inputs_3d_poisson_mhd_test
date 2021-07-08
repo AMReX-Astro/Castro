@@ -35,7 +35,6 @@ castro.small_temp    = 1.e-3
 castro.small_dens    = 1.e-6
 
 # MHD 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 
@@ -43,6 +42,11 @@ castro.use_flattening = 0
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.03    # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
+
+# SPONGE
+castro.sponge_lower_density = 1.0e-3
+castro.sponge_upper_density = 1.0e-3
+castro.sponge_timescale = 1.0e-3
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -67,5 +71,17 @@ amr.plot_file       = plt_3d_  # root name of plotfile
 amr.plot_int        = 8        # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 
-#PROBIN FILENAME
-amr.probin_file = probin_3d_poisson_regtest
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.e9
+problem.r_0   = 3.5e8
+problem.p_0   = 1.e15
+problem.rho_ambient = 1.0e-5
+problem.smooth_delta = 4.e6
+
+problem.center_x = 7.5e8
+problem.center_y = 7.5e8
+problem.center_z = 7.5e8
+
+# EOS
+eos.eos_gamma = 1.66666
+eos.eos_assume_neutral = 1
