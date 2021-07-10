@@ -73,19 +73,18 @@ for i, f in enumerate(fields):
 
     plot = sp.plots[f]
     plot.figure = fig
-    #if i < len(fields)-1:
-    #    grid[i].axes.xaxis.offsetText.set_visible(False)
-    #print(type(grid[i].axes))
-    #grid[i].axes.ticklabel_format(axis='both', style='scientific', scilimits=(0,0))
-    grid[i].axes.xaxis.major.formatter._useMathText = True
-    grid[i].axes.yaxis.major.formatter._useMathText = True
-    grid[i].axes.xaxis.get_major_formatter().set_scientific(True)
     plot.axes = grid[i].axes
     plot.cax = grid.cbar_axes[i]
 
+    #if i < len(fields)-1:
+    #    grid[i].axes.xaxis.offsetText.set_visible(False)
+    #print(type(grid[i].axes))
+
     sp._setup_plots()
 
-fig.text(0.05, 0.05, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
+    sp.plots[f].axes.xaxis.set_major_locator(plt.MaxNLocator(4))
+
+fig.text(0.02, 0.02, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
 
 fig.set_size_inches(19.2, 10.8)
 fig.tight_layout()
