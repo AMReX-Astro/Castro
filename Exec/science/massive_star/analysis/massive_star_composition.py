@@ -99,10 +99,6 @@ slc = yt.SlicePlot(ds, "theta",
 res = (1024, 512)
 frb = slc.data_source.to_frb(width[0], res, height=width[1]) #width, res)#, center=center)
 
-print(frb[("boxlib", "density")].min(), frb["iron_group"].max())
-print(frb["si_group"].min(), frb["si_group"].max())
-print(frb["light_nuclei"].min(), frb["light_nuclei"].max())
-
 multi_image_composite("multi_channel1.png",
                       np.transpose(np.log10(frb["iron_group"])),
                       np.transpose(np.log10(frb["si_group"])),
