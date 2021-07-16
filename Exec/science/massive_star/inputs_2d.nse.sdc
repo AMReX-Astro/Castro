@@ -45,7 +45,7 @@ castro.sponge_upper_density = 1.e3
 castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.e-3
 
-castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep by this factor
 castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
@@ -75,7 +75,7 @@ amr.derive_plot_vars = ALL
 castro.small_dens   = 1.e-4
 castro.small_temp   = 1.e6
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 castro.use_retry = 1
 castro.max_subcycles = 16
 
@@ -94,13 +94,13 @@ amr.refine.denerr.field_name = density
 
 # Microphysics
 
-integrator.rtol_spec = 1.e-6
-integrator.atol_spec = 1.e-6
+integrator.rtol_spec = 1.e-5
+integrator.atol_spec = 1.e-5
 
 integrator.retry_burn = 0
 integrator.abort_on_failure = 0
 
-integrator.jacobian = 2
+integrator.jacobian = 3
 
 network.rho_nse = 2.e6
 network.T_nse = 3.e9

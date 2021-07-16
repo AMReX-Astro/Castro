@@ -43,6 +43,24 @@ void problem_initialize_state_data (int i, int j, int k,
 
     eos(eos_input_rt, eos_state);
 
+
+    // perturbuation on y axis
+
+    if (problem::pert_amplitude > 0.0_rt) {
+        Real pdist2 = x * x + (y - problem::pert_dist) * (y - problem::pert_dist);
+
+        Real T_new = state(i,j,k,UTEMP) *
+            (1.0_rt + problem::pert_amplitude * std::exp(-pdist2 / std::pow(problem::pert_radius, 2)));
+
+        eos_state.T = T_new;
+
+        eos(eos_input_tp, eos_state);
+
+        state(i,j,k,URHO) = eos_state.rho;
+        state(i,j,k,UTEMP) = T_new;
+
+    }
+
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
 
