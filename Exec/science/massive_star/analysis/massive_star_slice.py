@@ -60,7 +60,7 @@ for i, f in enumerate(fields):
         sp.set_cmap(f, "bwr")
     elif f == "MachNumber":
         sp.set_zlim(f, 1.e-4, 0.3)
-        sp.set_cmap(f, "plasma_r")
+        sp.set_cmap(f, "plasma")
 
     if f == "enuc":
         # now do a contour of density
