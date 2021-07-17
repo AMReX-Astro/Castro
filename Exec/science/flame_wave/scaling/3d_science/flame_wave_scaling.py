@@ -110,6 +110,8 @@ for f, year in files:
 
 fig, ax = plt.subplots(1)
 
+markers = {"2020": "s", "2021": "x"}
+
 for f, year in files:
 
     data = np.loadtxt(f)
@@ -120,7 +122,7 @@ for f, year in files:
     times = [q.time  for q in runs]
     std = [q.std for q in runs]
 
-    ax.scatter(nodes, times, label = year, marker="s")
+    ax.scatter(nodes, times, label = year, marker=markers[year])
 
     if year == "2020":
         c, t = trend_line(nodes, times)
