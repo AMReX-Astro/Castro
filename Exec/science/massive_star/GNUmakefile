@@ -15,6 +15,9 @@ USE_GRAV   = TRUE
 USE_REACT  = TRUE
 USE_NSE    = TRUE
 
+USE_FORT_MICROPHYSICS := FALSE
+BL_NO_FORT := TRUE
+
 USE_CXX_MODEL_PARSER = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
@@ -24,6 +27,8 @@ EOS_DIR     := helmholtz
 NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
+
+MAX_NPTS_MODEL = 16384
 
 Bpack   := ./Make.package
 Blocs   := .

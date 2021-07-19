@@ -10,7 +10,8 @@ def find_r_for_rho(r, rho, rho_want):
     return r[idx]
 
 
-file = "../15m_500_sec.aprox19.hse.6400"
+#file = "../15m_500_sec.aprox19.hse.6400"
+file = "../15m_500_sec.aprox19.hse.20km"
 
 data = np.loadtxt(file)
 

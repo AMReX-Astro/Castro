@@ -55,16 +55,17 @@ for i, f in enumerate(fields):
         sp.set_log(f, False)
         sp.set_cmap(f, "magma_r")
     elif f == "enuc":
-        sp.set_zlim(f, -3.e21, 3.e21)
+        sp.set_log(f, True, linthresh=1.e12)
+        sp.set_zlim(f, -1.e20, 1.e20)
         sp.set_cmap(f, "bwr")
     elif f == "MachNumber":
         sp.set_zlim(f, 1.e-4, 0.3)
-        sp.set_cmap(f, "plasma_r")
+        sp.set_cmap(f, "plasma")
 
-    #if f != "density":
-    #    # now do a contour of density
-    #    sp.annotate_contour("density", ncont=2, clim=(1.e2, 2.e6),
-    #                        plot_args={"colors": "0.5", "linewidths": 1, "linestyle": ":"})
+    if f == "enuc":
+        # now do a contour of density
+        sp.annotate_contour("in_nse", ncont=1, clim=(0.5, 0.5), take_log=False,
+                            plot_args={"colors": "k", "linewidths": 2})
 
     sp.set_axes_unit("cm")
 
@@ -73,19 +74,19 @@ for i, f in enumerate(fields):
 
     plot = sp.plots[f]
     plot.figure = fig
-    #if i < len(fields)-1:
-    #    grid[i].axes.xaxis.offsetText.set_visible(False)
-    #print(type(grid[i].axes))
-    #grid[i].axes.ticklabel_format(axis='both', style='scientific', scilimits=(0,0))
-    grid[i].axes.xaxis.major.formatter._useMathText = True
-    grid[i].axes.yaxis.major.formatter._useMathText = True
-    grid[i].axes.xaxis.get_major_formatter().set_scientific(True)
     plot.axes = grid[i].axes
     plot.cax = grid.cbar_axes[i]
 
+    #if i < len(fields)-1:
+    #    grid[i].axes.xaxis.offsetText.set_visible(False)
+    #print(type(grid[i].axes))
+
     sp._setup_plots()
 
-fig.text(0.05, 0.05, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
+    sp.plots[f].axes.xaxis.set_major_locator(plt.MaxNLocator(4))
+    sp.plots[f].axes.ticklabel_format(axis="both", style="scientific", scilimits=(0,0))
+
+fig.text(0.02, 0.02, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
 
 fig.set_size_inches(19.2, 10.8)
 fig.tight_layout()
