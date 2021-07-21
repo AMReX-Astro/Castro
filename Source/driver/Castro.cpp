@@ -20,7 +20,9 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#ifdef MICROPHYSICS_FORT
 #include <extern_parameters_F.H>
+#endif
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -46,7 +48,9 @@
 #include <extern_parameters.H>
 #include <prob_parameters.H>
 
+#ifdef MICROPHYSICS_FORT
 #include <microphysics_F.H>
+#endif
 
 #include <problem_initialize.H>
 #include <problem_initialize_state_data.H>
@@ -101,7 +105,6 @@ Diffusion*    Castro::diffusion  = 0;
 #endif
 
 #ifdef RADIATION
-int          Castro::do_radiation = -1;
 
 // the radiation object
 Radiation*   Castro::radiation = 0;
@@ -190,11 +193,11 @@ Castro::variableCleanUp ()
 
     desc_lst.clear();
 
-    ca_finalize_meth_params();
-
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
     // Fortran cleaning
+#ifdef MICROPHYSICS_FORT
     microphysics_finalize();
+#endif
 #endif
 
     // C++ cleaning
@@ -438,8 +441,6 @@ Castro::read_params ()
 #endif
 
 #ifdef RADIATION
-    pp.get("do_radiation",do_radiation);
-
     // Some radiation parameters are initialized here because they
     // may be used in variableSetUp, well before the call to the
     // Radiation constructor,
@@ -718,6 +719,11 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
+    // now check the runtime parameters to warn / abort if the user set
+    // anything that isn't known to Castro
+
+    validate_runparams();
+
 }
 
 Castro::~Castro ()
@@ -896,9 +902,6 @@ Castro::initMFs()
     }
 
     post_step_regrid = 0;
-
-    lastDtRetryLimited = false;
-    lastDtFromRetry = 1.e200;
 
     lastDt = 1.e200;
 
@@ -1447,8 +1450,6 @@ Castro::init (AmrLevel &old)
 
     keep_prev_state = oldlev->keep_prev_state;
 
-    lastDtRetryLimited = oldlev->lastDtRetryLimited;
-    lastDtFromRetry = oldlev->lastDtFromRetry;
     in_retry = oldlev->in_retry;
 
 }
@@ -1699,23 +1700,6 @@ Castro::computeNewDt (int                    finest_level,
 
           }
        }
-    }
-
-    //
-    // If we limited the last step by a retry,
-    // apply that here if the retry-recommended
-    // timestep is smaller than what we calculated.
-    //
-    for (int i = 0; i <= finest_level; ++i) {
-        if (getLevel(i).lastDtRetryLimited == 1) {
-            if (getLevel(i).lastDtFromRetry < dt_min[i]) {
-                if (verbose && ParallelDescriptor::IOProcessor()) {
-                    std::cout << " ... limiting dt at level " << i << " to: "
-                              << getLevel(i).lastDtFromRetry << " = retry-limited timestep\n";
-                }
-                dt_min[i] = getLevel(i).lastDtFromRetry;
-            }
-        }
     }
 
     //
@@ -3341,6 +3325,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
+#ifdef MICROPHYSICS_FORT
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
@@ -3349,16 +3334,18 @@ Castro::extern_init ()
   }
 
   // read them in in Fortran from the probin file
-  ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
+  runtime_init(probin_file_name.dataPtr(),&probin_file_length);
+#endif
 
   // grab them from Fortran to C++; then read any C++ parameters directly
   // from inputs (via ParmParse)
   init_extern_parameters();
 
+#ifdef MICROPHYSICS_FORT
   // finally, update the Fortran side via ParmParse to override the
   // values of any parameters that were set in inputs
   update_fortran_extern_after_cxx();
-
+#endif
 
 }
 

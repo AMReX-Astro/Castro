@@ -38,6 +38,7 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = interpolate(dist, model::ispec+n);
     }
 
+
     Real sumX = 0.0_rt;
     for (int n = 0; n < NumSpec; n++) {
         sumX += state(i,j,k,UFS+n);
@@ -46,6 +47,10 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,UFS+n) / sumX;
     }
 
+    // also get Ye from the model
+
+    state(i,j,k,UFX+AuxZero::iye) = interpolate(dist, model::iaux+AuxZero::iye);
+
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
@@ -53,16 +58,15 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-#ifdef NSE_THERMO
-    // set the aux quantities -- we need to do this if we are using the NSE network
-    // this will fill eos_state.aux[]
-    set_nse_aux_from_X(eos_state);
+    eos_state.aux[AuxZero::iye] = state(i,j,k,UFX+AuxZero::iye);
 
-    for (int n = 0; n < NumAux; n++) {
-        state(i,j,k,UFX+n) = eos_state.aux[n];
-    }
+    // now we use Ye if we are in NSE and use X if we are not.  In
+    // either case, we sync up the other composition variables.
 
-    if (in_nse(eos_state)) {
+    auto nse_check = in_nse(eos_state);
+
+    if (nse_check) {
+
         Real abar;
         Real dq;
         Real dyedt;
@@ -85,19 +89,29 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; n++) {
             state(i,j,k,UFS+n) = state(i,j,k,UFS+n) / sumX;
         }
+
+    } else {
+        // we are not in NSE, so set the aux quantities from X-- this
+        // will fill eos_state.aux[]
+
+        set_nse_aux_from_X(eos_state);
+
+        for (int n = 0; n < NumAux; n++) {
+            state(i,j,k,UFX+n) = eos_state.aux[n];
+        }
     }
-#endif
+
+    // now call the EOS -- reload the eos_state since composition may
+    // have changed
 
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n);
     }
-#ifdef NSE_THERMO
     for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state(i,j,k,UFX+n);
     }
-#endif
 
     eos(eos_input_rt, eos_state);
 

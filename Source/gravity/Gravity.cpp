@@ -8,7 +8,6 @@
 #include <AMReX_ParmParse.H>
 #include <Gravity.H>
 #include <Castro.H>
-#include <Gravity_F.H>
 #include <Castro_F.H>
 
 #include <AMReX_FillPatchUtil.H>
@@ -3199,12 +3198,80 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #endif
 
     // Integrate radially outward to define the gravity
-    ca_integrate_grav(radial_mass_summed.dataPtr(), radial_den_summed.dataPtr(),
-                      radial_grav.dataPtr(),
+
+    Real halfdr = 0.5_rt * dr;
+
+    Real mass_encl = 0.0_rt;
+    Real vol_total_i, vol_outer_shell, vol_upper_shell;
+
+    Real* const den = radial_den_summed.dataPtr();
+    Real* const mass = radial_mass_summed.dataPtr();
 #ifdef GR_GRAV
-                      radial_pres_summed.dataPtr(),
+    Real* const pres = radial_pres_summed.dataPtr();
 #endif
-                      &max_radius_all_in_domain, &dr, &n1d);
+    Real* const grav = radial_grav.dataPtr();
+
+    for (int i = 0; i < n1d; ++i) {
+        Real rlo = (static_cast<Real>(i)         ) * dr;
+        Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
+        Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
+
+        if (i == 0) {
+
+            // The mass at (i) is distributed into these two regions
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * rc * rc * rc;
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * (rhi * rhi * rhi - rc * rc * rc);
+            vol_total_i     = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = vol_outer_shell * mass[i] / vol_total_i;
+
+        }
+        else if (rc < max_radius_all_in_domain) {
+
+            // The mass at (i-1) is distributed into these two shells
+            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
+            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
+            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+
+            // The mass at (i)   is distributed into these two shells
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
+            vol_total_i          = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1] +
+                                    (vol_outer_shell / vol_total_i  ) * mass[i  ];
+
+        }
+        else {
+
+            // The mass at (i-1) is distributed into these two shells
+            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
+            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
+            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+
+            // The mass at (i)   is distributed into these two shells
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
+            vol_total_i          = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = mass_encl + vol_inner_shell * den[i-1] + vol_outer_shell * den[i];
+        }
+
+        grav[i] = -C::Gconst * mass_encl / (rc * rc);
+
+#ifdef GR_GRAV
+        // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
+
+        if (den[i] > 0.0_rt) {
+            Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
+            Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
+            Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+
+            grav[i] = grav[i] * ga * gb * gc;
+        }
+#endif
+
+    }
 
     if (gravity::verbose)
     {

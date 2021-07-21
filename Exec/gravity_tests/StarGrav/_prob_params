@@ -1,3 +1,9 @@
-model_name       character          ""        y
+model_name       character          ""          y
 
-m_0              real               1.e30_rt    y         
+m_0              real               1.e30_rt    y
+
+pert_dist        real               0.0         y
+
+pert_radius      real               0.0         y
+
+pert_amplitude   real               0.0         y

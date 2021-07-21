@@ -462,7 +462,7 @@ Castro::react_state(Real time, Real dt)
 
     if (print_update_diagnostics) {
 
-        Real e_added = reactions.sum(NumSpec + NumAux);
+        Real e_added = reactions.sum(0);
 
         if (e_added != 0.0)
             amrex::Print() << "... (rho e) added from burning: " << e_added * dt << std::endl << std::endl;

@@ -111,6 +111,8 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+AMREX_NO_PROBINIT := TRUE
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
@@ -159,8 +161,6 @@ endif
 ifeq ($(USE_MHD), TRUE)
   Bdirs += Source/mhd
   DEFINES += -DMHD
-else
-  Bdirs += Source/hydro
 endif
 
 ifeq ($(USE_GRAV), TRUE)

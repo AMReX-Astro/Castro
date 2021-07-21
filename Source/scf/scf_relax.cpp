@@ -167,8 +167,6 @@ Castro::do_hscf_solve()
 
             psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
 
-            const Real* dx = parent->Geom(lev).CellSize();
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -255,12 +253,12 @@ Castro::do_hscf_solve()
 
                     Real r[3] = {0.0};
 
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
                     // Do a trilinear interpolation to find the contribution from
@@ -347,8 +345,12 @@ Castro::do_hscf_solve()
             Real omega = sqrt(omegasq);
 
             // Rotational period is 2 pi / omega.
+            // Let's also be sure not to let the period
+            // change by too much in a single iteration.
 
-            rotational_period = 2.0 * M_PI / omega;
+            rotational_period = amrex::min(1.1_rt * rotational_period,
+                                           amrex::max(0.9_rt * rotational_period,
+                                                      2.0_rt * M_PI / omega));
 
         }
 
@@ -404,12 +406,12 @@ Castro::do_hscf_solve()
 
                     Real r[3] = {0.0};
 
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
                     // Do a trilinear interpolation to find the contribution from

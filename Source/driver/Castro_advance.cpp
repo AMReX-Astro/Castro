@@ -176,12 +176,18 @@ Castro::initialize_do_advance(Real time)
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
 #endif      
       // for the CTU unsplit method, we always start with the old
-      // state note: a clean_state has already been done on the old
-      // state in initialize_advance so we don't need to do another
-      // one here
+      // state note: although clean_state has already been done on
+      // the old state in initialize_advance, we still need to do
+      // another here to ensure the ghost zones are thermodynamically
+      // consistent
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
+      clean_state(
+#ifdef MHD
+                  Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                  Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -239,10 +245,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     keep_prev_state = false;
 
-    // Reset the retry timestep information.
+    // Reset the retry information.
 
-    lastDtRetryLimited = 0;
-    lastDtFromRetry = 1.e200;
     in_retry = false;
 
     if (use_post_step_regrid && level > 0) {

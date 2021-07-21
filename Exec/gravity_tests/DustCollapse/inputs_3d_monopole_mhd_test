@@ -25,7 +25,6 @@ castro.do_sponge     = 1
 castro.ppm_type      = 1
 
 # MHD
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 castro.do_grav       = 1
