@@ -425,10 +425,10 @@ Castro::react_state(Real time, Real dt)
 
                      // burn weights
                      if (jacobian == 1) {
-                         reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                      } else {
                          // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
-                         reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
                      }
 
                      if (store_omegadot) {
