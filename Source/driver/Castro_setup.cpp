@@ -451,20 +451,28 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  // Component  0                          is  rho_enuc = rho * (eout-ein)
-  // Component  1                          is  burn_weights ~ number of RHS calls
-  // Components 2:NumSpec+1                are rho * omegadot_i
-  // Components 2+NumSpec:NumSpec+NumAux+1 are rho * auxdot_i
+  // Component is  rho_enuc = rho * (eout-ein)
+  // next NumSpec are rho * omegadot_i
+  // next NumAux are rho * auxdot_i
+  // next 2 (Strang) or sdc_iters+1 (SDC) comps are burn_weights ~ number of RHS calls
   store_in_checkpoint = false;
 
-  int num_react = 2;
-#ifdef SIMPLIFIED_SDC
-  num_react += sdc_iters-1
-#endif
+  int num_react = 1;
 
   if (store_omegadot == 1) {
       num_react += NumSpec + NumAux;
   }
+
+#ifdef STRANG
+  if (store_burn_weights) {
+      num_react += 2;  // first and second Strang halves
+  }
+#endif
+#ifdef SIMPLIFIED_SDC
+  if (store_burn_weights) {
+      num_react += sdc_iters+1;  // 1 extra to account for extra iter after retry
+  }
+#endif
 
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, 0, num_react,
@@ -647,28 +655,17 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
-#ifdef SIMPLIFID_SDC
-  for (int n = 1; n < sdc_iters; n++) {
-      desc_lst.setComponent(Reactions_Type, 1, "burn_weights iter " + std::to_string(n+1), bc, genericBndryFunc); 
-  }
-#endif
-
-  int offset = 2
-#ifdef SIMPLIFIED_SDC
-  offset += sdc_iters-1
-#endif
 
   if (store_omegadot == 1) {
 
-      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      // Reactions_Type includes the species -- we put those after rho_enuc
       std::string name_react;
       for (int i = 0; i < NumSpec; ++i)
       {
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, offset+i, name_react, bc,genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+i, name_react, bc,genericBndryFunc);
       }
 #if NAUX_NET > 0
       std::string name_aux;
@@ -676,7 +673,28 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, offset+NumSpec+i, name_aux, bc, genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
+#endif
+  }
+
+  int offset = 1;
+  if (store_omegadot) {
+      offset += NumSpec+NumAux;
+  }
+
+  if (store_burn_weights) {
+
+#ifdef STRANG
+      desc_lst.setComponent(Reactions_Type, offset, "burn_weights_firsthalf",
+                            bc, genericBndryFunc); 
+      desc_lst.setComponent(Reactions_Type, offset+1, "burn_weights_secondhalf",
+                            bc, genericBndryFunc); 
+#endif
+#ifdef SIMPLIFIED_SDC
+      for (int n = 0; n < sdc_iters+1; n++) {
+          desc_lst.setComponent(Reactions_Type, offset+n, "burn_weights_iter_" + std::to_string(n+1),
+                                bc, genericBndryFunc); 
       }
 #endif
   }

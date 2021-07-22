@@ -8,7 +8,7 @@ using namespace amrex;
 // Strang version
 
 bool
-Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
+Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
     BL_PROFILE("Castro::react_state()");
 
@@ -56,6 +56,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
         amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
     }
 
+    int offset = 1;
+    if (store_omegadot) {
+        offset += NumSpec + NumAux;
+    }
+    
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -138,25 +143,30 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 if (reactions.contains(i,j,k)) {
 
                     reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
-                    if (jacobian == 1) {
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
-                    } else {
-                        // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
-                    }
 
                     if (store_omegadot == 1) {
                         if (reactions.contains(i,j,k)) {
                             for (int n = 0; n < NumSpec; ++n) {
-                                reactions(i,j,k,2+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
+                                reactions(i,j,k,1+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                             }
 #if NAUX_NET > 0
                             for (int n = 0; n < NumAux; ++n) {
-                                reactions(i,j,k,2+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
+                                reactions(i,j,k,1+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
                             }
 #endif
                         }
                     }
+
+                    if (store_burn_weights) {
+
+                        if (jacobian == 1) {
+                            reactions(i,j,k,offset+strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                        } else {
+                            // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
+                            reactions(i,j,k,offset+strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                        }
+                    }
+
                 }
 
                 // update the state
@@ -175,13 +185,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
             } else {
 
                 if (reactions.contains(i,j,k)) {
-                    reactions(i,j,k,0) = 0.0_rt;
-                    reactions(i,j,k,1) = 1.0_rt;
-
-                    if (store_omegadot == 1) {
-                        for (int n = 0; n < NumSpec + NumAux; ++n) {
-                            reactions(i,j,k,2+n) = 0.0_rt;
-                        }
+                    for (int n = 0; n < reactions.nComp(); n++) {
+                        reactions(i,j,k,n) = 0.0_rt;
                     }
                 }
 
@@ -300,6 +305,11 @@ Castro::react_state(Real time, Real dt)
     ReduceData<Real> reduce_data(reduce_op);
 
     using ReduceTuple = typename decltype(reduce_data)::Type;
+
+    int offset = 1;
+    if (store_omegadot) {
+        offset += NumSpec + NumAux;
+    }
 
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -423,25 +433,29 @@ Castro::react_state(Real time, Real dt)
                      // rho enuc
                      react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
 
-                     // burn weights
-                     if (jacobian == 1) {
-                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
-                     } else {
-                         // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
-                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
-                     }
-
                      if (store_omegadot) {
                          // rho omegadot_k
                          for (int n = 0; n < NumSpec; ++n) {
-                             react_src(i,j,k,2+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
+                             react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
                          }
 #if NAUX_NET > 0
                          // rho auxdot_k
                          for (int n = 0; n < NumAux; ++n) {
-                             react_src(i,j,k,2+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
+                             react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
                          }
 #endif
+                     }
+
+                     // burn weights
+
+                     if (store_burn_weights) {
+
+                         if (jacobian == 1) {
+                             react_src(i,j,k,offset+lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                         } else {
+                             // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
+                             react_src(i,j,k,offset+lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                         }
                      }
 
                  }
