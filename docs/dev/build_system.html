@@ -117,6 +117,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Build System Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#make-parameters">Make Parameters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general-build-parameters">General Build Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fortran-support">Fortran Support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parallelization-and-gpus">Parallelization and GPUs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#general-physics-parameters">General Physics Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#radiation-parameters">Radiation Parameters</a></li>
@@ -255,6 +256,22 @@ for radiation.  You need to specify the path to the Hypre library via either
 </ul>
 </div></blockquote>
 </div>
+<div class="section" id="fortran-support">
+<h3>Fortran Support<a class="headerlink" href="#fortran-support" title="Permalink to this headline">¶</a></h3>
+<p>Many problems can be built without Fortran.  The current exceptions
+are MHD, radiation, and anything using a pynucastro-generated network.
+These parameters control Fortran support:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">USE_FORT_MICROPHYSICS</span></code>: if set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, then Fortran
+versions of the EOS and burner interface will be compiled.  If you
+are not using a pynucastro network, then you can probably set this
+to <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BL_NO_FORT</span></code>: if set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, then no AMReX Fortran source will be built.
+This cannot currently be used for the MHD or radiation solvers.</p></li>
+</ul>
+</div></blockquote>
+</div>
 <div class="section" id="parallelization-and-gpus">
 <h3>Parallelization and GPUs<a class="headerlink" href="#parallelization-and-gpus" title="Permalink to this headline">¶</a></h3>
 <p id="index-1">The following parameters control how work is divided across nodes, cores, and GPUs.</p>
@@ -302,9 +319,7 @@ groups.  This is controlled by the <code class="docutils literal notranslate"><s
 <div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code>: use gravity (this could be constant or self-gravity)</p>
 </li>
-<li id="index-4"><p><code class="docutils literal notranslate"><span class="pre">USE_SELF_GRAV</span></code>: use self-gravity.  At the moment, this is always set
-if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code> is enabled.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_GR</span></code>: use a post-Newtonian approximation for GR gravity for the monopole
+<li id="index-4"><p><code class="docutils literal notranslate"><span class="pre">USE_GR</span></code>: use a post-Newtonian approximation for GR gravity for the monopole
 solver.</p>
 </li>
 <li id="index-5"><p><code class="docutils literal notranslate"><span class="pre">USE_POINTMASS</span></code>: include a pointmass source to the gravitational potential.</p>
@@ -328,8 +343,9 @@ parameters that come into play here are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">NETWORK_DIR</span></code>: the network to use.  This is expected to be a subdirectory
 in the Microphysics repo.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GENERAL_NET_INPUTS</span></code>: this is the text file that we read to define the
-composition if we are using the <code class="docutils literal notranslate"><span class="pre">general_null</span></code> network.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NETWORK_INPUTS</span></code>: this is the text file that we read to define the
+composition if we are using the <code class="docutils literal notranslate"><span class="pre">general_null</span></code> network (e.g., <code class="docutils literal notranslate"><span class="pre">gammalaw.net</span></code>).
+The build system will look for this file in the Microphysics repo.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">INTEGRATOR_DIR</span></code>: this is the ODE integrator to use to integrate the
 reaction system.  This is expected to be a subdirectory in the Microphysics
 repo.</p></li>
@@ -405,7 +421,7 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <li><p><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
 <ul id="index-17">
 <li><p>This processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
-<code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code> and <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
+<code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> (and  <code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code> if Fortran is enabled) into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
 <p>These are used to define the size of the various state arrays and
 the integer keys to index each state variable.</p>
@@ -414,7 +430,8 @@ the integer keys to index each state variable.</p>
 <li><p>You can test this portion of the build system by doing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_variables</span></code></p></li>
 </ul>
 </li>
-<li><p>(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> is created</p>
+<li><p>(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">network_properties.H</span></code> (and
+<code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> if Fortran is enabled) is created</p>
 <ul class="simple" id="index-18">
 <li><p>This is done by <code class="docutils literal notranslate"><span class="pre">write_network.py</span></code></p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package</span></code></p></li>
@@ -425,17 +442,15 @@ the integer keys to index each state variable.</p>
 <li><p>This writes the routines that manage the Microphysics runtime
 parameters: <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code>, and  <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code></p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code></p></li>
 </ul>
 </li>
 <li><p>Castro’s runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">parse_castro_params.py</span></code></p>
 <ul class="simple" id="index-20">
-<li><p>This writes the C++ header files that manage and read the runtime parameters and also
-creates the Fortran module <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code>, which defines all
-of the runtime parameters available to Fortran, from the template
-<code class="docutils literal notranslate"><span class="pre">meth_params.template</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/driver</span></code>. The file is output in
+<li><p>This writes the C++ header files that manage and read the runtime
+parameters.  These file are output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code></p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">castro_params.H</span></code></p></li>
 </ul>
 </li>
 <li><p>Problem-specific runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">write_probdata.py</span></code></p>
@@ -446,8 +461,8 @@ These handle reading the <code class="docutils literal notranslate"><span class=
 Even without a problem-specific <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>, all of the
 variables in <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/_default_prob_params</span></code> will be included.</p></li>
 <li><p>The script <code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/write_probdata.py</span></code> is used</p></li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> rule.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> file is output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_parameters.H</span></code> rule.</p></li>
+<li><p>These headers are output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 </ul>
 </li>
 <li><p>The Fortran dependencies file is created</p>
