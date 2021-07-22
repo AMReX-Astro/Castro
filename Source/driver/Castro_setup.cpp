@@ -451,17 +451,19 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  // Components 0:NumSpec-1                are rho * omegadot_i
-  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
-  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
-  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
+  // Component  0                          is  rho_enuc = rho * (eout-ein)
+  // Component  1                          is  burn_weights ~ number of RHS calls
+  // Components 2:NumSpec+1                are rho * omegadot_i
+  // Components 2+NumSpec:NumSpec+NumAux+1 are rho * auxdot_i
   store_in_checkpoint = false;
 
-  int num_react = 0;
+  int num_react = 2;
+#ifdef SIMPLIFIED_SDC
+  num_react += sdc_iters-1
+#endif
+
   if (store_omegadot == 1) {
-      num_react = NumSpec+NumAux+2;
-  } else {
-      num_react = 2;
+      num_react += NumSpec + NumAux;
   }
 
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
@@ -646,6 +648,16 @@ Castro::variableSetUp ()
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
   desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
+#ifdef SIMPLIFID_SDC
+  for (int n = 1; n < sdc_iters; n++) {
+      desc_lst.setComponent(Reactions_Type, 1, "burn_weights iter " + std::to_string(n+1), bc, genericBndryFunc); 
+  }
+#endif
+
+  int offset = 2
+#ifdef SIMPLIFIED_SDC
+  offset += sdc_iters-1
+#endif
 
   if (store_omegadot == 1) {
 
@@ -656,7 +668,7 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, offset+i, name_react, bc,genericBndryFunc);
       }
 #if NAUX_NET > 0
       std::string name_aux;
@@ -664,7 +676,7 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, offset+NumSpec+i, name_aux, bc, genericBndryFunc);
       }
 #endif
   }
