@@ -41,6 +41,23 @@ Most of these are parameters from AMReX.
     for radiation.  You need to specify the path to the Hypre library via either
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
 
+
+Fortran Support
+^^^^^^^^^^^^^^^
+
+Many problems can be built without Fortran.  The current exceptions
+are MHD, radiation, and anything using a pynucastro-generated network.
+These parameters control Fortran support:
+
+  * ``USE_FORT_MICROPHYSICS``: if set to ``TRUE``, then Fortran
+    versions of the EOS and burner interface will be compiled.  If you
+    are not using a pynucastro network, then you can probably set this
+    to ``FALSE``.
+
+  * ``BL_NO_FORT``: if set to ``TRUE``, then no AMReX Fortran source will be built.
+    This cannot currently be used for the MHD or radiation solvers.
+
+
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -98,9 +115,6 @@ Gravity Parameters
 
     .. index:: USE_GRAV
 
-  * ``USE_SELF_GRAV``: use self-gravity.  At the moment, this is always set
-    if ``USE_GRAV`` is enabled.
-
   * ``USE_GR``: use a post-Newtonian approximation for GR gravity for the monopole
     solver.
 
@@ -128,8 +142,9 @@ Microphysics Parameters
     * ``NETWORK_DIR``: the network to use.  This is expected to be a subdirectory
       in the Microphysics repo.
 
-    * ``GENERAL_NET_INPUTS``: this is the text file that we read to define the
-      composition if we are using the ``general_null`` network.
+    * ``NETWORK_INPUTS``: this is the text file that we read to define the
+      composition if we are using the ``general_null`` network (e.g., ``gammalaw.net``).
+      The build system will look for this file in the Microphysics repo.
 
     * ``INTEGRATOR_DIR``: this is the ODE integrator to use to integrate the 
       reaction system.  This is expected to be a subdirectory in the Microphysics
@@ -219,7 +234,7 @@ This is the current build system process.
   .. index:: set_variables.py, _variables, state_indices_nd.F90, state_indices.H
 
   * This processes the Castro ``_variables`` file and writes
-    ``state_indices_nd.F90`` and ``state_indices.H`` into the
+    ``state_indices.H`` (and  ``state_indices_nd.F90`` if Fortran is enabled) into the
     ``tmp_build_dir/castro_sources/`` directory.
 
     These are used to define the size of the various state arrays and
@@ -229,7 +244,8 @@ This is the current build system process.
 
   * You can test this portion of the build system by doing ``make test_variables``
 
-* (for ``general_null networks``), ``actual_network.F90`` is created
+* (for ``general_null networks``), ``network_properties.H`` (and
+  ``actual_network.F90`` if Fortran is enabled) is created
 
   .. index:: write_network.py
 
@@ -245,19 +261,17 @@ This is the current build system process.
     parameters: ``extern_parameters.cpp``, ``extern_parameters.H``, and  ``extern.F90``.  This is output in
     ``tmp_build_dir/castro_sources/``.
 
-  * The hook for this is in ``Make.Castro`` in the rule for ``extern.F90``
+  * The hook for this is in ``Make.auto_source`` in the rule for ``extern_parameters.H``
 
 * Castro's runtime parameters are parsed by ``parse_castro_params.py``
 
   .. index:: parse_castro_params.py
 
-  * This writes the C++ header files that manage and read the runtime parameters and also
-    creates the Fortran module ``meth_params.F90``, which defines all
-    of the runtime parameters available to Fortran, from the template
-    ``meth_params.template`` in ``Source/driver``. The file is output in
-    ``tmp_build_dir/castro_sources/``.  
+  * This writes the C++ header files that manage and read the runtime
+    parameters.  These file are output in
+    ``tmp_build_dir/castro_sources/``.
 
-  * The hook for this is in ``Make.Castro`` in the rule for ``meth_params.F90``
+  * The hook for this is in ``Make.auto_source`` in the rule for ``castro_params.H``
 
 * Problem-specific runtime parameters are parsed by ``write_probdata.py``
 
@@ -269,9 +283,9 @@ This is the current build system process.
 
   * The script ``Castro/Util/scripts/write_probdata.py`` is used
 
-  * The hook for this is in ``Make.auto_source`` in the ``prob_params_auto.F90`` rule.
+  * The hook for this is in ``Make.auto_source`` in the ``prob_parameters.H`` rule.
 
-  * The ``prob_params_auto.F90`` file is output into ``tmp_build_dir/castro_sources/``.
+  * These headers are output into ``tmp_build_dir/castro_sources/``.
 
 * The Fortran dependencies file is created
 
