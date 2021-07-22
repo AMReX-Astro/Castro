@@ -289,7 +289,6 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_MLMG), TRUE)
-   DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
 endif
 
