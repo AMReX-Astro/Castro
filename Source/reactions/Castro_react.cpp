@@ -138,7 +138,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 if (reactions.contains(i,j,k)) {
 
                     reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
-                    reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    if (jacobian == 1) {
+                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    } else {
+                        // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
+                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                    }
 
                     if (store_omegadot == 1) {
                         if (reactions.contains(i,j,k)) {
@@ -375,8 +380,6 @@ Castro::react_state(Real time, Real dt)
              // dual energy formalism: in doing EOS calls in the burn,
              // switch between e and (E - K) depending on (E - K) / E.
 
-             burn_state.T_from_eden = false;
-
              burn_state.i = i;
              burn_state.j = j;
              burn_state.k = k;
@@ -419,7 +422,12 @@ Castro::react_state(Real time, Real dt)
                      react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
 
                      // burn weights
-                     react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                     if (jacobian == 1) {
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                     } else {
+                         // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                     }
 
                      if (store_omegadot) {
                          // rho omegadot_k
