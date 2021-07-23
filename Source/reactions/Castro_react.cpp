@@ -380,8 +380,6 @@ Castro::react_state(Real time, Real dt)
              // dual energy formalism: in doing EOS calls in the burn,
              // switch between e and (E - K) depending on (E - K) / E.
 
-             burn_state.T_from_eden = false;
-
              burn_state.i = i;
              burn_state.j = j;
              burn_state.k = k;
