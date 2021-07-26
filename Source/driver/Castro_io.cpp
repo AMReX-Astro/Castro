@@ -927,9 +927,11 @@ Castro::plotFileOutput(const std::string& dir,
 #endif
 
 #ifdef REACTIONS
+#ifndef TRUE_SDC
     if (store_burn_weights) {
         n_data_items += Castro::burn_weight_names.size();
     }
+#endif
 #endif
 
     Real cur_time = state[State_Type].curTime();
@@ -977,11 +979,13 @@ Castro::plotFileOutput(const std::string& dir,
 #endif
 
 #ifdef REACTIONS
+#ifndef TRUE_SDC
         if (store_burn_weights) {
             for (auto name: Castro::burn_weight_names) {
                 os << name << '\n';
             }
         }
+#endif
 #endif
 
         os << AMREX_SPACEDIM << '\n';
@@ -1129,9 +1133,11 @@ Castro::plotFileOutput(const std::string& dir,
 #endif
 
 #ifdef REACTIONS
+#ifndef TRUE_SDC
     if (store_burn_weights) {
         MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
     }
+#endif
 #endif
 
     //
