@@ -454,7 +454,6 @@ Castro::variableSetUp ()
   // Component is  rho_enuc = rho * (eout-ein)
   // next NumSpec are rho * omegadot_i
   // next NumAux are rho * auxdot_i
-  // next 2 (Strang) or sdc_iters+1 (SDC) comps are burn_weights ~ number of RHS calls
   store_in_checkpoint = false;
 
   int num_react = 1;
@@ -462,17 +461,6 @@ Castro::variableSetUp ()
   if (store_omegadot == 1) {
       num_react += NumSpec + NumAux;
   }
-
-#ifdef STRANG
-  if (store_burn_weights) {
-      num_react += 2;  // first and second Strang halves
-  }
-#endif
-#ifdef SIMPLIFIED_SDC
-  if (store_burn_weights) {
-      num_react += sdc_iters+1;  // 1 extra to account for extra iter after retry
-  }
-#endif
 
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, 0, num_react,
@@ -678,23 +666,17 @@ Castro::variableSetUp ()
 #endif
   }
 
-  int offset = 1;
-  if (store_omegadot) {
-      offset += NumSpec+NumAux;
-  }
-
+  // names for the burn_weights that are manually added to the plotfile
+  
   if (store_burn_weights) {
 
 #ifdef STRANG
-      desc_lst.setComponent(Reactions_Type, offset, "burn_weights_firsthalf",
-                            bc, genericBndryFunc); 
-      desc_lst.setComponent(Reactions_Type, offset+1, "burn_weights_secondhalf",
-                            bc, genericBndryFunc); 
+      burn_weight_names.push_back("burn_weights_firsthalf");
+      burn_weight_names.push_back("burn_weights_secondhalf");
 #endif
 #ifdef SIMPLIFIED_SDC
       for (int n = 0; n < sdc_iters+1; n++) {
-          desc_lst.setComponent(Reactions_Type, offset+n, "burn_weights_iter_" + std::to_string(n+1),
-                                bc, genericBndryFunc); 
+          burn_weight_names.push_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }

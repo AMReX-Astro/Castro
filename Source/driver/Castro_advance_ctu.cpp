@@ -475,6 +475,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
         }
 #endif
 
+#ifdef REACTIONS
+        burn_weights.setVal(0.0);
+#endif
+
         // For simplified SDC, we'll have garbage data if we
         // attempt to use the lagged source terms (both reacting
         // and non-reacting) from the last timestep, since that

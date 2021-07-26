@@ -68,6 +68,10 @@ using namespace amrex;
 
 bool         Castro::signalStopJob = false;
 
+#ifdef REACTIONS
+std::vector<std::string> Castro::burn_weight_names;
+#endif
+
 std::vector<std::string> Castro::err_list_names;
 std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
@@ -868,6 +872,20 @@ Castro::initMFs()
 #endif
 
     }
+
+
+#ifdef REACTIONS
+    if (store_burn_weights) {
+#ifdef STRANG
+        // we have 2 components: first half and second half
+        burn_weights.define(grids, dmap, 2, 0);
+#endif
+#ifdef SIMPLIFIED_SDC
+        // we have a component for each sdc iteration + 1 extra for retries
+        burn_weights.define(grids, dmap, sdc_iters+1, 0);
+#endif
+    }
+#endif
 
     // Set the flux register scalings.
 
