@@ -70,7 +70,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
-        auto weights = burn_weights.array(mfi);
+        auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -311,7 +311,7 @@ Castro::react_state(Real time, Real dt)
         auto U_new = S_new.array(mfi);
         auto asrc = A_src.array(mfi);
         auto react_src = reactions.array(mfi);
-        auto weights = burn_weights.array(mfi);
+        auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         int lsdc_iteration = sdc_iteration;
 

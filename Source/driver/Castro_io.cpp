@@ -926,6 +926,12 @@ Castro::plotFileOutput(const std::string& dir,
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
 
+#ifdef REACTIONS
+    if (store_burn_weights) {
+        n_data_items += Castro::burn_weight_names.size();
+    }
+#endif
+
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -967,6 +973,14 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef RADIATION
         for (int i=0; i<Radiation::nplotvar; ++i) {
           os << Radiation::plotvar_names[i] << '\n';
+        }
+#endif
+
+#ifdef REACTIONS
+        if (store_burn_weights) {
+            for (auto name: Castro::burn_weight_names) {
+                os << name << '\n';
+            }
         }
 #endif
 
@@ -1111,6 +1125,12 @@ Castro::plotFileOutput(const std::string& dir,
     if (Radiation::nplotvar > 0) {
         MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
         cnt += Radiation::nplotvar;
+    }
+#endif
+
+#ifdef REACTIONS
+    if (store_burn_weights) {
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
     }
 #endif
 
