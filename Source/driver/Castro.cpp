@@ -884,6 +884,7 @@ Castro::initMFs()
         // we have a component for each sdc iteration + 1 extra for retries
         burn_weights.define(grids, dmap, sdc_iters+1, 0);
 #endif
+        burn_weights.setVal(0.0);
     }
 #endif
 
