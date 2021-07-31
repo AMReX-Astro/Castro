@@ -1,4 +1,4 @@
-# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+M# ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
@@ -10,7 +10,7 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 2         # spherical
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.75e10
+geometry.prob_hi   =  1.6384e10
 
 amr.n_cell         = 8192
 
@@ -78,7 +78,7 @@ castro.time_integration_method=3
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.8192"
+problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
 
 # refinement
 
