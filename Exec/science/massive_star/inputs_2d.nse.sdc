@@ -105,3 +105,4 @@ integrator.jacobian = 3
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
 
+network.nse_relax_factor = 0.9
