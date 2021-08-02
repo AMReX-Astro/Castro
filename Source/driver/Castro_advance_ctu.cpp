@@ -148,11 +148,13 @@ Castro::do_advance_ctu(Real time,
 
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
     // the SDC reactive source ghost cells on coarse levels might not
     // be in sync due to any average down done, so fill them here
 
     MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
 #endif
 
     // Do the hydro update.  We build directly off of Sborder, which
