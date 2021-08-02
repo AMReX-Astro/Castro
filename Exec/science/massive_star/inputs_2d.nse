@@ -10,7 +10,7 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.73205e10 1.73205e10
+geometry.prob_hi   =  1.6384e10  1.6384e10
 
 amr.n_cell         = 2048 2048
 
@@ -45,7 +45,7 @@ castro.sponge_upper_density = 1.e3
 castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.e-3
 
-castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep by this factor
 castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
@@ -62,7 +62,7 @@ amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 100     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
-amr.plot_per = 0.01
+amr.plot_per = 0.1
 
 amr.max_grid_size   = 512       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -81,7 +81,7 @@ castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_aprox19.6400"
+problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
 
 # refinement
 
@@ -105,3 +105,4 @@ integrator.jacobian = 2
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
 
+network.nse_relax_factor = 0.9
