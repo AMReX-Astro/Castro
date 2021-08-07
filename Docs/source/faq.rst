@@ -56,6 +56,8 @@ Compiling
 
    This will compile the code and report on any mismatched function signatures.
 
+.. _debugging_backtrace:
+
 Debugging
 =========
 
