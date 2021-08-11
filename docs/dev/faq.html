@@ -361,13 +361,17 @@ checkpoint interval parameters don’t require it?</em></p>
 </pre></div>
 </div>
 <p>This will force the code to output a checkpoint file that can be used
-to restart. Other options are plot_and_continue to output
-a plotfile, dump_and_stop to output a checkpoint file
-and halt the code, and stop_run to simply stop the code.
-Note that the parameter amr.message_int controls how often
-the existence of these files is checked; by default it is 10, so the
-check will be done at the end of every timestep that is a multiple of 10.
-Set that to 1 in your inputs file if you’d like it to check every timestep.</p>
+to restart. Other options are <code class="docutils literal notranslate"><span class="pre">plot_and_continue</span></code> to output
+a plotfile, <code class="docutils literal notranslate"><span class="pre">dump_and_stop</span></code> to output a checkpoint file
+and halt the code, and <code class="docutils literal notranslate"><span class="pre">stop_run</span></code> to simply stop the code.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parameter <code class="docutils literal notranslate"><span class="pre">amr.message_int</span></code> controls how often the
+existence of these files is checked; by default it is 10, so the
+check will be done at the end of every timestep that is a
+multiple of 10.  Set that to 1 in your inputs file if you’d like
+it to check every timestep.</p>
+</div>
 </li>
 <li><p><em>How can I output plotfiles in single precision?</em></p>
 <p>The AMReX runtime parameter:</p>
