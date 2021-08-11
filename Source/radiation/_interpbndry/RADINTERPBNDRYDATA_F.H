@@ -9,11 +9,11 @@
 
 #  define FORT_BDINTERPXLO  bdintrpxlo2
 #  define FORT_BDINTERPXHI  bdintrpxhi2
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo2
 #    define FORT_BDINTERPYHI  bdintrpyhi2
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo2
 #    define FORT_BDINTERPZHI  bdintrpzhi2
 #  endif
@@ -23,33 +23,33 @@
 #if defined(BL_FORT_USE_LOWERCASE)
 #  define FORT_BDINTERPXLO  bdintrpxlo2
 #  define FORT_BDINTERPXHI  bdintrpxhi2
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo2
 #    define FORT_BDINTERPYHI  bdintrpyhi2
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo2
 #    define FORT_BDINTERPZHI  bdintrpzhi2
 #  endif
 #elif defined(BL_FORT_USE_UPPERCASE)
 #  define FORT_BDINTERPXLO  BDINTRPXLO2
 #  define FORT_BDINTERPXHI  BDINTRPXHI2
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  BDINTRPYLO2
 #    define FORT_BDINTERPYHI  BDINTRPYHI2
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  BDINTRPZLO2
 #    define FORT_BDINTERPZHI  BDINTRPZHI2
 #  endif
 #elif defined(BL_FORT_USE_UNDERSCORE)
 #  define FORT_BDINTERPXLO  bdintrpxlo2_
 #  define FORT_BDINTERPXHI  bdintrpxhi2_
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo2_
 #    define FORT_BDINTERPYHI  bdintrpyhi2_
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo2_
 #    define FORT_BDINTERPZHI  bdintrpzhi2_
 #  endif
@@ -73,12 +73,12 @@ extern "C"
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
 
-#if (BL_SPACEDIM > 1)    
+#if (AMREX_SPACEDIM > 1)    
     BDInterpFunc FORT_BDINTERPYLO;
     BDInterpFunc FORT_BDINTERPYHI;
 #endif    
 
-#if (BL_SPACEDIM > 2)    
+#if (AMREX_SPACEDIM > 2)    
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif
@@ -98,11 +98,11 @@ extern "C"
 
 #  define FORT_BDINTERPXLO  bdintrpxlo
 #  define FORT_BDINTERPXHI  bdintrpxhi
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo
 #    define FORT_BDINTERPYHI  bdintrpyhi
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo
 #    define FORT_BDINTERPZHI  bdintrpzhi
 #  endif
@@ -112,33 +112,33 @@ extern "C"
 #if defined(BL_FORT_USE_LOWERCASE)
 #  define FORT_BDINTERPXLO  bdintrpxlo
 #  define FORT_BDINTERPXHI  bdintrpxhi
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo
 #    define FORT_BDINTERPYHI  bdintrpyhi
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo
 #    define FORT_BDINTERPZHI  bdintrpzhi
 #  endif
 #elif defined(BL_FORT_USE_UPPERCASE)
 #  define FORT_BDINTERPXLO  BDINTRPXLO
 #  define FORT_BDINTERPXHI  BDINTRPXHI
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  BDINTRPYLO
 #    define FORT_BDINTERPYHI  BDINTRPYHI
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  BDINTRPZLO
 #    define FORT_BDINTERPZHI  BDINTRPZHI
 #  endif
 #elif defined(BL_FORT_USE_UNDERSCORE)
 #  define FORT_BDINTERPXLO  bdintrpxlo_
 #  define FORT_BDINTERPXHI  bdintrpxhi_
-#  if (BL_SPACEDIM > 1)
+#  if (AMREX_SPACEDIM > 1)
 #    define FORT_BDINTERPYLO  bdintrpylo_
 #    define FORT_BDINTERPYHI  bdintrpyhi_
 #  endif
-#  if (BL_SPACEDIM > 2)
+#  if (AMREX_SPACEDIM > 2)
 #    define FORT_BDINTERPZLO  bdintrpzlo_
 #    define FORT_BDINTERPZHI  bdintrpzhi_
 #  endif
@@ -162,12 +162,12 @@ extern "C"
   BDInterpFunc FORT_BDINTERPXLO;
   BDInterpFunc FORT_BDINTERPXHI;
 
-#if (BL_SPACEDIM > 1)    
+#if (AMREX_SPACEDIM > 1)    
     BDInterpFunc FORT_BDINTERPYLO;
     BDInterpFunc FORT_BDINTERPYHI;
 #endif    
 
-#if (BL_SPACEDIM > 2)    
+#if (AMREX_SPACEDIM > 2)    
     BDInterpFunc FORT_BDINTERPZLO;
     BDInterpFunc FORT_BDINTERPZHI;
 #endif    

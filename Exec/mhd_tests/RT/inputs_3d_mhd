@@ -25,7 +25,6 @@ castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav = 1
 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 gravity.gravity_type = ConstantGrav
@@ -52,6 +51,12 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 5
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = chk        # root name of checkpoint file
@@ -63,5 +68,9 @@ amr.plot_int        = 200        # number of timesteps between plotfiles
 amr.plot_vars  =  density Temp
 amr.derive_plot_vars = x_velocity y_velocity z_velocity magvel magvort pressure
 
-#PROBIN FILENAME
-amr.probin_file = probin_3d_mhd
+# PROBLEM PARAMETERS
+problem.B_0 = 0.035
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.67

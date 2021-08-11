@@ -66,5 +66,45 @@ amr.plot_file       = det_x_plt  # root name of plotfile
 amr.plot_per = 5.e-6
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin-det-x.nse_disabled
+# problem initialization
+
+problem.T_l = 4.e9
+problem.T_r = 5.e7
+
+problem.dens = 2.e8
+problem.cfrac = 0.0
+  
+problem.smallx = 1.e-10
+
+problem.idir = 1
+
+problem.w_T = 5.e-4
+problem.center_T = 0.3
+
+# refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 4.e9
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e8
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+
+integrator.call_eos_in_rhs = 1
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+integrator.rtol_enuc = 1.e-6
+
+integrator.jacobian = 2
+integrator.ode_max_steps = 1500000
+
+integrator.retry_burn = 0
+integrator.abort_on_failure = 0
+
+network.rho_nse = 1.e10

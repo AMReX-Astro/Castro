@@ -4,13 +4,11 @@
 #include <AMReX_ArrayLim.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
-#  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
-#  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
 
@@ -22,10 +20,6 @@
 extern "C"
 {
 #endif
-void ca_init_radhydro_pars
-    (const int & fspace_advection_type, const int & do_inelastic_scattering,
-     const int & comoving);
-
 void ca_initradconstants
   (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
    amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
@@ -71,13 +65,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_set_dterm_face
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(Er),
-    const BL_FORT_FAB_ARG(dcoef), 
-    BL_FORT_FAB_ARG(dterm_face), 
-    const amrex::Real* dx, const int* idir);
-
   void ca_correct_dterm
     (D_DECL(BL_FORT_FAB_ARG(dfx),
             BL_FORT_FAB_ARG(dfy),
@@ -209,11 +196,6 @@ extern "C" {
   void rfface(BL_FORT_FAB_ARG(fine), 
               BL_FORT_FAB_ARG(crse), 
               const int& idim, const int* irat);
-
-  void FORT_RADBNDRY(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi),
-                     ARLIM_P(dlo), ARLIM_P(dhi), 
-                     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time,
-                     const int& dir, const int& face);
 
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),

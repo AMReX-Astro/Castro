@@ -90,7 +90,7 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 1;
@@ -148,7 +148,7 @@ Castro::initialize_do_advance(Real time)
         define_new_center(get_old_data(State_Type), time);
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 0;
        make_radial_data(is_new);
@@ -176,12 +176,18 @@ Castro::initialize_do_advance(Real time)
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
 #endif      
       // for the CTU unsplit method, we always start with the old
-      // state note: a clean_state has already been done on the old
-      // state in initialize_advance so we don't need to do another
-      // one here
+      // state note: although clean_state has already been done on
+      // the old state in initialize_advance, we still need to do
+      // another here to ensure the ghost zones are thermodynamically
+      // consistent
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
+      clean_state(
+#ifdef MHD
+                  Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                  Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -239,10 +245,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     keep_prev_state = false;
 
-    // Reset the retry timestep information.
+    // Reset the retry information.
 
-    lastDtRetryLimited = 0;
-    lastDtFromRetry = 1.e200;
     in_retry = false;
 
     if (use_post_step_regrid && level > 0) {
@@ -389,7 +393,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
     }
@@ -397,7 +401,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
         }
     }

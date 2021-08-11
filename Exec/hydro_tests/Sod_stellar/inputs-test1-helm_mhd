@@ -25,7 +25,6 @@ castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
 #MHD
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 castro.riemann_solver = 1
@@ -59,5 +58,16 @@ amr.plot_file       = test1_helm_plt  # root name of plotfile
 amr.plot_int        = 200          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
-#PROBIN FILENAME
-amr.probin_file = probin-test1-helm
+# PROBLEM PARAMETERS
+problem.T_l = 1.e8
+problem.u_l = 0.0e0
+problem.rho_l = 1.0e7
+
+problem.T_r = 1.e6
+problem.u_r = 0.0e0
+problem.rho_r = 1.e6
+
+problem.use_Tinit = 1
+
+problem.idir = 1
+problem.frac = 0.5e0

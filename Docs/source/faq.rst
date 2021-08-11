@@ -45,14 +45,6 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How do I use a system’s BLAS library instead of compiling and
-   linking the one that comes with the StarKiller microphysics?*
-
-   To use a system’s BLAS library, set the Make variable
-   ``USE_SYSTEM_BLAS`` to ``TRUE``. This will then look at
-   the Make variable ``BLAS_LIBRARY`` for the library to link
-   (defaults to ``-lopenblas``).
-
 #. *How can I check to make sure the function signatures defined
    in C are consistent with their implementations in Fortran?*
 
@@ -105,7 +97,7 @@ Debugging
    .. code:: c++
 
              std::ostringstream ss;
-             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             ss << "state.box() = " << state.box() << " cell = " << cell;
              BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
@@ -181,13 +173,18 @@ Managing Runs
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are plot_and_continue to output
-   a plotfile, dump_and_stop to output a checkpoint file
-   and halt the code, and stop_run to simply stop the code.
-   Note that the parameter amr.message_int controls how often
-   the existence of these files is checked; by default it is 10, so the
-   check will be done at the end of every timestep that is a multiple of 10.
-   Set that to 1 in your inputs file if you’d like it to check every timestep.
+   to restart. Other options are ``plot_and_continue`` to output
+   a plotfile, ``dump_and_stop`` to output a checkpoint file
+   and halt the code, and ``stop_run`` to simply stop the code.
+
+
+   .. note::
+
+      The parameter ``amr.message_int`` controls how often the
+      existence of these files is checked; by default it is 10, so the
+      check will be done at the end of every timestep that is a
+      multiple of 10.  Set that to 1 in your inputs file if you’d like
+      it to check every timestep.
 
 #. *How can I output plotfiles in single precision?*
 

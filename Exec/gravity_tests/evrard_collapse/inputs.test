@@ -39,7 +39,6 @@ castro.sum_interval   = 1       # timesteps between computing integrals
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 gravity.v             = 1       # verbosity in Gravity.cpp
-castro.print_energy_diagnostics = 1
 amr.data_log          = grid_diag.out
 
 # REFINEMENT / REGRIDDING
@@ -47,6 +46,11 @@ amr.max_level         = 1       # maximum level number allowed
 amr.ref_ratio         = 2
 amr.blocking_factor   = 8       # block factor in grid generation
 amr.max_grid_size     = 32
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.value_greater = 5.0e6
+amr.refine.denerr.field_name = density
 
 # CHECKPOINT FILES
 amr.check_file        = chk      # root name of checkpoint file
@@ -57,5 +61,5 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 0.1      # amount of simulation time between plotfiles
 amr.derive_plot_vars  = ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin.test
+# EOS
+eos.eos_assume_neutral = 1

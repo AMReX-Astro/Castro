@@ -16,6 +16,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
   use eos_type_module
   use network, only: nspec
   use riemann_support
+  use amrex_error_module, only: amrex_error
 
   implicit none
 
@@ -105,7 +106,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
   else
      ! we should average in this case
-     call castro_error("Not implemented")
+     call amrex_error("Not implemented")
 
   endif
 

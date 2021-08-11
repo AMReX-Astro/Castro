@@ -6,7 +6,6 @@
 
 #ifdef GRAVITY
 #include <Gravity.H>
-#include <Gravity_F.H>
 #endif
 
 #ifdef ROTATION
@@ -392,7 +391,7 @@ Castro::gwstrain (Real time,
     // and requires the state at other timesteps. See, e.g., Equation 5 of
     // Loren-Aguilar et al. 2005.
 
-    // It is a 3x3 rank-2 tensor, but AMReX expects IntVect() to use BL_SPACEDIM
+    // It is a 3x3 rank-2 tensor, but AMReX expects IntVect() to use AMREX_SPACEDIM
     // dimensions, so we add a redundant third index in 3D.
 
     Box bx( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(2, 2, 0)) );

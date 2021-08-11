@@ -241,7 +241,7 @@ subroutine ca_inelastic_sct(lo, hi, &
                             ks,ks_lo,ks_hi, &
                             dt) bind(C)
 
-  use meth_params_module, only: NVAR, UEDEN, UEINT, UTEMP
+  use state_indices_module, only: NVAR, UEDEN, UEINT, UTEMP
   use rad_params_module, only: ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
   use amrex_fort_module, only: rt => amrex_real

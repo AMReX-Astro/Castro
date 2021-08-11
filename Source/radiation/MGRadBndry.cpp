@@ -16,8 +16,8 @@ using namespace amrex;
 
 int         MGRadBndry::ngroups = 1;
 int         MGRadBndry::first = 1;
-Vector<int>  MGRadBndry::bcflag(2*BL_SPACEDIM);
-Vector< Vector<Real> > MGRadBndry::bcval(2*BL_SPACEDIM);
+Vector<int>  MGRadBndry::bcflag(2*AMREX_SPACEDIM);
+Vector< Vector<Real> > MGRadBndry::bcval(2*AMREX_SPACEDIM);
 Real        MGRadBndry::time = 0.0;
 int         MGRadBndry::correction = 0;
 
@@ -75,24 +75,24 @@ void MGRadBndry::init(const int _ngroups)
 
   ParmParse pp("radiation");
 
-  Vector<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
-  pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
-  pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
+  Vector<int> lo_bcflag(AMREX_SPACEDIM, 0), hi_bcflag(AMREX_SPACEDIM, 0);
+  pp.queryarr("lo_bcflag",lo_bcflag,0,AMREX_SPACEDIM);
+  pp.queryarr("hi_bcflag",hi_bcflag,0,AMREX_SPACEDIM);
 
-  Vector< Vector<Real> > lo_bcval(BL_SPACEDIM), hi_bcval(BL_SPACEDIM);
+  Vector< Vector<Real> > lo_bcval(AMREX_SPACEDIM), hi_bcval(AMREX_SPACEDIM);
   lo_bcval[0].resize(ngroups, 0.0);
   hi_bcval[0].resize(ngroups, 0.0);
   pp.queryarr("lo_bcval0", lo_bcval[0], 0, ngroups);
   pp.queryarr("hi_bcval0", hi_bcval[0], 0, ngroups);
 
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
   lo_bcval[1].resize(ngroups, 0.0);
   hi_bcval[1].resize(ngroups, 0.0);
   pp.queryarr("lo_bcval1", lo_bcval[1], 0, ngroups);
   pp.queryarr("hi_bcval1", hi_bcval[1], 0, ngroups);
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   lo_bcval[2].resize(ngroups, 0.0);
   hi_bcval[2].resize(ngroups, 0.0);
   pp.queryarr("lo_bcval2", lo_bcval[2], 0, ngroups);
@@ -226,18 +226,9 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
         if (bcflag[face] <= 1) {
           if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
               p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
-            if (p_bcflag == 0) {
               for(int igroup = 0; igroup < ngroups; igroup++) {
                   bndry[face][bi].setVal<RunOn::Host>(value_nu[igroup], igroup);
               }
-            }
-            else {
-              FArrayBox& bnd_fab = bndry[face][bi];
-              int iface = face.isLow() ? 0 : 1;
-
-              FORT_RADBNDRY(BL_TO_FORTRAN(bnd_fab), 
-                            ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time, dir, iface);
-            }
           }
         }
         else {

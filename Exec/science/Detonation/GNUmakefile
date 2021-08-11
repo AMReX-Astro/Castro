@@ -11,10 +11,9 @@ USE_MPI    = FALSE
 
 USE_REACT  = TRUE
 
+USE_FORT_MICROPHYSICS = FALSE
 
 CASTRO_HOME = ../../..
-
-GPU_COMPATIBLE_PROBLEM = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

@@ -10,7 +10,6 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 #include <Castro_util.H>
 
 using namespace castro;
@@ -728,7 +727,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
@@ -743,16 +742,6 @@ public:
 /// @param time         current time
 ///
     void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
-
-
-///
-/// Apply a given tagging function.
-///
-/// @param tags         TagBoxArray of tags
-/// @param time         current time
-/// @param j            integer
-///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
 
 ///
@@ -1195,9 +1184,9 @@ public:
     static amrex::Vector<std::string> source_names;
 
 ///
-/// Vector storing list of custom error tags.
+/// Vector storing list of error tags.
 ///
-    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -1312,7 +1301,7 @@ protected:
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
@@ -1322,7 +1311,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
@@ -1338,7 +1327,7 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif
@@ -1406,7 +1395,7 @@ protected:
 
 ///
 /// For initialization of the C++ values of the runtime parameters
-  static int do_init_probparams;
+  static int do_cxx_prob_initialize;
 
 
 ///
@@ -1417,11 +1406,6 @@ protected:
     //
     // Static data members.
     //
-
-#ifdef SPONGE
-#include <sponge_params.H>
-#endif
-
 
     static bool      signalStopJob;
     static int       radius_grow;
@@ -1435,8 +1419,6 @@ protected:
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
 
     amrex::Real lastDt;
@@ -1469,11 +1451,6 @@ protected:
     static class Diffusion *diffusion;
 
 #ifdef RADIATION
-
-///
-/// permits radiation to be turned on and off without recompiling:
-///
-    static int do_radiation;
 
 
 ///

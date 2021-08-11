@@ -147,22 +147,22 @@ Castro::do_advance_ctu(Real time,
     }
 
 
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+    // the SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here
+
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
+
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn
 
     if (do_hydro)
     {
 #ifndef MHD
-      // Check for CFL violations.
-      check_for_cfl_violation(S_old, dt);
-
-      // If we detect one, return immediately.
-      if (cfl_violation) {
-          status.success = false;
-          status.reason = "CFL violation";
-          return status;
-      }
-
       construct_ctu_hydro_source(time, dt);
 
 //      if (print_update_diagnostics) {
@@ -254,7 +254,7 @@ Castro::do_advance_ctu(Real time,
     // We need to make the new radial data now so that we can use it when we
     // FillPatch in creating the new source.
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
       int is_new = 1;
       make_radial_data(is_new);
@@ -340,6 +340,20 @@ Castro::do_advance_ctu(Real time,
 #ifndef AMREX_USE_GPU
             check_for_nan(S_new);
 #endif
+
+        }
+        else {
+
+            // If we're not burning, just initialize the reactions data to zero.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+
+            MultiFab& R_old = get_old_data(Reactions_Type);
+            R_old.setVal(0.0, R_old.nGrow());
+
+            MultiFab& R_new = get_new_data(Reactions_Type);
+            R_new.setVal(0.0, R_new.nGrow());
 
         }
 
@@ -457,7 +471,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
           mass_fluxes[dir]->setVal(0.0);
         }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
           P_radial.setVal(0.0);
         }
@@ -465,7 +479,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
-          for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
           }
         }
@@ -687,8 +701,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
-                lastDtRetryLimited = true;
-                lastDtFromRetry = dt_subcycle;
                 in_retry = true;
 
                 continue;

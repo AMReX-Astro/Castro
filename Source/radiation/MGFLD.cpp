@@ -442,7 +442,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            MultiFab& kappa_p, MultiFab& kappa_r,
                            MultiFab& etaT, MultiFab& eta1,
                            MultiFab& mugT,
-                           Array<MultiFab, BL_SPACEDIM>& lambda,
+                           Array<MultiFab, AMREX_SPACEDIM>& lambda,
                            RadSolve* solver, MGRadBndry& mgbd, 
                            const BoxArray& grids, int level, Real time, 
                            Real delta_t, Real ptc_tau)
@@ -548,8 +548,8 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   const DistributionMapping& dm = castro->DistributionMap();
 
   // B & C coefficients
-  Array<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  Array<MultiFab, AMREX_SPACEDIM> bcoefs, ccoefs, bcgrp;
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
     const BoxArray& edge_boxes = castro->getEdgeBoxArray(idim);
 
     bcoefs[idim].define(edge_boxes, dm, 1, 0);
@@ -564,7 +564,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
 
   for (int igroup = 0; igroup < nGroups; igroup++) {
-    for (int idim=0; idim<BL_SPACEDIM; idim++) {
+    for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
       solver->computeBCoeffs(bcgrp[idim], idim, kappa_r, igroup,
                             lambda[idim], igroup, c, geom);
       // metrics is already in bcgrp
@@ -630,7 +630,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
     }
   }
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
     solver->setLevelBCoeffs(level, bcoefs[idim], idim);
 
     if (nGroups > 1) {

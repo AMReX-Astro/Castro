@@ -479,7 +479,7 @@ public:
 /// @param Rcomp
 ///
   void scaledGradient(int level,
-                      amrex::Array<amrex::MultiFab, BL_SPACEDIM>& R,
+                      amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& R,
                       amrex::MultiFab& kappa_r, int kcomp,
                       amrex::MultiFab& Er, int igroup,
                       int limiter, int nGrow_Er=0, int Rcomp=0);
@@ -495,7 +495,7 @@ public:
 /// @param lamcomp
 ///
   void fluxLimiter(int level,
-                   amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                   amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda,
                    int limiter, int lamcomp=0);
 
 ///
@@ -748,7 +748,7 @@ public:
                   amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r,
                   amrex::MultiFab& etaT, amrex::MultiFab& eta1,
                   amrex::MultiFab& mugT,
-                  amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                  amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda,
                   RadSolve* solver, MGRadBndry& mgbd,
                   const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
 
@@ -863,7 +863,7 @@ public:
 /// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 ///
-  void save_lambda_in_plotvar(int level, const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda);
+  void save_lambda_in_plotvar(int level, const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda);
 
 ///
 /// @param level
@@ -885,7 +885,7 @@ public:
 /// @param iflx
 ///
   void save_lab_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-                                const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
+                                const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
                                 const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
 ///
@@ -898,7 +898,7 @@ public:
 /// @param iflx
 ///
   void save_com_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-                                const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
+                                const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
                                 const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
   amrex::Vector<amrex::Real> xnu, nugroup, dnugroup;
