@@ -35,7 +35,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = interpolate(dist, model::idens);
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(dist, model::ispec+n);
+        state(i,j,k,UFS+n) = amrex::max(interpolate(dist, model::ispec+n), small_x);
     }
 
 
@@ -78,7 +78,7 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFX+AuxZero::iabar) = abar;
         state(i,j,k,UFX+AuxZero::ibea) = dq;
         for (int n = 0; n < NumSpec; n++) {
-            state(i,j,k,UFS+n) = xn[n];
+            state(i,j,k,UFS+n) = amrex::max(xn[n], small_x);
         }
 
         // we just got new X's, so we need to re-renormalize them
