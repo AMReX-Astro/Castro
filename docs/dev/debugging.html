@@ -298,16 +298,16 @@ python3 run-clang-tidy.py -header-filter<span class="o">=</span><span class="s1"
 <h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this headline">¶</a></h3>
 <p>In the C++ code, you can check whether a FAB contains NaNs using
 the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">True</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">MFIter</span><span class="w"> </span><span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">);</span><span class="w"> </span><span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">mfi</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">bx</span> <span class="o">=</span> <span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Box</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span><span class="w"></span>
 
-  <span class="c1">// do some operations on S[mfi]</span>
+<span class="w">  </span><span class="c1">// do some operations on S[mfi]</span>
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box

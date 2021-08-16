@@ -295,11 +295,11 @@ example. You know the line <code class="docutils literal notranslate"><span clas
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
 it hits the segfault. Instead, you could</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">ss</span><span class="p">;</span>
-<span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;state.box() = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">state</span><span class="p">.</span><span class="n">box</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; cell = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">cell</span><span class="p">;</span>
-<span class="n">BL_BACKTRACE_PUSH</span><span class="p">(</span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">());</span> <span class="c1">// PUSH takes std::string</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span><span class="w"></span>
+<span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;state.box() = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">box</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; cell = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">cell</span><span class="p">;</span><span class="w"></span>
+<span class="n">BL_BACKTRACE_PUSH</span><span class="p">(</span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">());</span><span class="w"> </span><span class="c1">// PUSH takes std::string</span>
 
-<span class="n">Real</span> <span class="n">rho</span> <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>  <span class="c1">// state is a Fab, and cell is an IntVect.</span>
+<span class="n">Real</span><span class="w"> </span><span class="n">rho</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// state is a Fab, and cell is an IntVect.</span>
 </pre></div>
 </div>
 <p>The “print” prints to a stack of string, not stdout. When it hits
