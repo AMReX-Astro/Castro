@@ -73,10 +73,10 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-castro.small_dens   = 1.e-4
+castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
-castro.time_integration_method=3
+castro.time_integration_method = 3
 castro.use_retry = 1
 castro.max_subcycles = 16
 
@@ -108,5 +108,7 @@ integrator.jacobian = 3
 
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
+
+network.small_x = 1.e-10
 
 network.nse_relax_factor = 0.9
