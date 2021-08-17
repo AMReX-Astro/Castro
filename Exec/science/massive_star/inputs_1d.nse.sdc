@@ -3,7 +3,7 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 5000
+max_step = 50000
 stop_time = 400.0
 
 geometry.is_periodic = 0 0
