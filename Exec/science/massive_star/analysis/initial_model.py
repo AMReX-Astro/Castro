@@ -11,7 +11,8 @@ def find_r_for_rho(r, rho, rho_want):
 
 
 #file = "../15m_500_sec.aprox19.hse.6400"
-file = "../15m_500_sec.aprox19.hse.20km"
+file = "../15m_500_sec.aprox19.hse.20.0km"
+Lx = 1.6384e10
 
 data = np.loadtxt(file)
 
@@ -57,6 +58,8 @@ print(r_refine)
 
 ax.axvline(r_refine, color="0.25", ls=":")
 
+ax.axvline(Lx, color="0.25", ls="-")
+
 ax.set_xscale("log")
 ax.set_yscale("log")
 
@@ -96,6 +99,8 @@ for n, var in enumerate(names):
 
 
 ax.axvline(r_refine, color="0.25", ls=":")
+
+ax.axvline(Lx, color="0.25", ls="-")
 
 ax.set_xscale("log")
 ax.set_yscale("log")
