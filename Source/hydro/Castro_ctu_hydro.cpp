@@ -41,6 +41,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef SIMPLIFIED_SDC
+  MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+#endif
+
   // we will treat the hydro source as any other source term
 
 #ifdef RADIATION
@@ -314,24 +318,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       src_to_prim(qbx3, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
 
-#ifndef RADIATION
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-        // Add in the reactions source term; only done in simplified SDC.
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
-
-            if (do_react)
-              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx3, qbx3, 0, 0, NQSRC);
-
-        }
-#endif
-#endif
-#endif
-
-
       // work on the interface states
 
       qxm.resize(obx, NQ);
@@ -498,13 +484,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += pradial.nBytes();
 #endif
 
+#ifdef SIMPLIFIED_SDC
+      Array4<Real> const sdc_src_arr = SDC_react_source.array(mfi);
+#endif
+
 #if AMREX_SPACEDIM == 1
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      // if we are doing species sources, add them here
-
-      add_species_source_to_states(xbx, 0, dt,
-                                   qxm_arr, qxp_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_sources_to_states(xbx, 0, dt,
+                                qxm_arr, qxp_arr, sdc_source_arr);
 #endif
 
       // compute the fluxes through the x-interface
@@ -635,9 +623,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      add_species_source_to_states(xbx, 0, dt,
-                                   ql_arr, qr_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_source_to_states(xbx, 0, dt,
+                               ql_arr, qr_arr, sdc_src_arr);
 
 #endif
 
@@ -678,9 +666,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the y-interfaces
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      add_species_source_to_states(ybx, 1, dt,
-                                   ql_arr, qr_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_source_to_states(ybx, 1, dt,
+                               ql_arr, qr_arr, sdc_src_arr);
 
 #endif
 
@@ -1007,9 +995,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(xbx, qr.array());
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      add_species_source_to_states(xbx, 0, dt,
-                                   ql_arr, qr_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_source_to_states(xbx, 0, dt,
+                               ql_arr, qr_arr, sdc_src_arr);
 
 #endif
 
@@ -1085,9 +1073,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(ybx, qr.array());
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      add_species_source_to_states(ybx, 1, dt,
-                                   ql_arr, qr_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_source_to_states(ybx, 1, dt,
+                               ql_arr, qr_arr, sdc_src_arr);
 
 #endif
 
@@ -1165,9 +1153,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(zbx, qr.array());
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      add_species_source_to_states(zbx, 2, dt,
-                                   ql_arr, qr_arr, src_q_arr);
+#ifdef SIMPLIFIED_SDC
+      add_sdc_source_to_states(zbx, 2, dt,
+                               ql_arr, qr_arr, sdc_src_arr);
 
 #endif
 
