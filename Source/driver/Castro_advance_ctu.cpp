@@ -332,8 +332,12 @@ Castro::do_advance_ctu(Real time,
 
             // Compute the reactive source term for use in the next iteration.
 
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, time, dt);
+            if (add_sdc_react_source_to_advection) {
+                MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+                get_react_source_prim(SDC_react_new, time, dt);
+            } else {
+                SDC_react_new.setVal(0.0);
+            }
 
             // Check for NaN's.
 
