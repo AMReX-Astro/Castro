@@ -3,7 +3,7 @@
 stop_time = 0.25                            #stop_time
 
 #PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1    1    1         # 1 if its periodic and 0 otherwise
+geometry.is_periodic = 0    0    0         # 1 if its periodic and 0 otherwise
 geometry.coord_sys   = 0                   # 0 is cartesian
 geometry.prob_lo     = 0    0    0         # lowest boundary on each domain
 geometry.prob_hi     = 1    1    1         # highest boundary on each domain
@@ -20,6 +20,7 @@ castro.hi_bc         = 0  0  0
 #WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
+castro.riemann_solver = 1
 
 #TIME STEP CONTROL
 
