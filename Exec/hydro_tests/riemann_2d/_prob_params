@@ -1,0 +1,33 @@
+rho_1        real        1.5_rt        y
+
+rho_2        real        0.5323_rt     y
+
+rho_3        real        0.138_rt      y
+
+rho_4        real        0.5323_rt     y
+
+ux_1         real        0.0_rt        y
+
+ux_2         real        1.206_rt      y
+
+ux_3         real        1.206_rt      y
+
+ux_4         real        0.0_rt        y
+
+uy_1         real        0.0_rt        y
+
+uy_2         real        0.0_rt        y
+
+uy_3         real        1.206_rt      y
+
+uy_4         real        1.206_rt      y
+
+p_1          real        1.5_rt        y
+
+p_2          real        0.3_rt        y
+
+p_3          real        0.029_rt      y
+
+p_4          real        0.3_rt        y
+
+
