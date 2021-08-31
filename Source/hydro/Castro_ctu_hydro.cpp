@@ -492,7 +492,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef SIMPLIFIED_SDC
       add_sdc_sources_to_states(xbx, 0, dt,
-                                qxm_arr, qxp_arr, sdc_source_arr);
+                                qxm_arr, qxp_arr, sdc_src_arr);
 #endif
 
       // compute the fluxes through the x-interface
