@@ -1,4 +1,4 @@
-M# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
