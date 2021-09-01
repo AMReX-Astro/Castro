@@ -263,7 +263,7 @@ in C are consistent with their implementations in Fortran?</em></p>
 </ol>
 </div>
 <div class="section" id="debugging">
-<h2>Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h2>
+<span id="debugging-backtrace"></span><h2>Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p><em>Castro crashes with a floating point exception—how can
 I get more information?</em></p>
@@ -295,11 +295,11 @@ example. You know the line <code class="docutils literal notranslate"><span clas
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
 it hits the segfault. Instead, you could</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">ss</span><span class="p">;</span>
-<span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;state.box() = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">state</span><span class="p">.</span><span class="n">box</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; cell = &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">cell</span><span class="p">;</span>
-<span class="n">BL_BACKTRACE_PUSH</span><span class="p">(</span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">());</span> <span class="c1">// PUSH takes std::string</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span><span class="w"></span>
+<span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;state.box() = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">box</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; cell = &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">cell</span><span class="p">;</span><span class="w"></span>
+<span class="n">BL_BACKTRACE_PUSH</span><span class="p">(</span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">());</span><span class="w"> </span><span class="c1">// PUSH takes std::string</span>
 
-<span class="n">Real</span> <span class="n">rho</span> <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>  <span class="c1">// state is a Fab, and cell is an IntVect.</span>
+<span class="n">Real</span><span class="w"> </span><span class="n">rho</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span><span class="w">  </span><span class="c1">// state is a Fab, and cell is an IntVect.</span>
 </pre></div>
 </div>
 <p>The “print” prints to a stack of string, not stdout. When it hits
@@ -361,13 +361,17 @@ checkpoint interval parameters don’t require it?</em></p>
 </pre></div>
 </div>
 <p>This will force the code to output a checkpoint file that can be used
-to restart. Other options are plot_and_continue to output
-a plotfile, dump_and_stop to output a checkpoint file
-and halt the code, and stop_run to simply stop the code.
-Note that the parameter amr.message_int controls how often
-the existence of these files is checked; by default it is 10, so the
-check will be done at the end of every timestep that is a multiple of 10.
-Set that to 1 in your inputs file if you’d like it to check every timestep.</p>
+to restart. Other options are <code class="docutils literal notranslate"><span class="pre">plot_and_continue</span></code> to output
+a plotfile, <code class="docutils literal notranslate"><span class="pre">dump_and_stop</span></code> to output a checkpoint file
+and halt the code, and <code class="docutils literal notranslate"><span class="pre">stop_run</span></code> to simply stop the code.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parameter <code class="docutils literal notranslate"><span class="pre">amr.message_int</span></code> controls how often the
+existence of these files is checked; by default it is 10, so the
+check will be done at the end of every timestep that is a
+multiple of 10.  Set that to 1 in your inputs file if you’d like
+it to check every timestep.</p>
+</div>
 </li>
 <li><p><em>How can I output plotfiles in single precision?</em></p>
 <p>The AMReX runtime parameter:</p>

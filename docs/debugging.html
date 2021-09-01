@@ -119,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#using-the-compiler-and-other-tools">Using the compiler and other tools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#compiler-checks">Compiler checks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#check-for-invalid-floating-point-exceptions">Check for invalid floating point exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#make-sure-your-runtime-options-are-valid">Make sure your runtime options are valid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#valgrind">Valgrind</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#clang-tidy">Clang-tidy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#thread-sanitizer">Thread sanitizer</a></li>
@@ -250,6 +251,17 @@ NaN.  For optimized code, the same can be done by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amrex</span><span class="o">.</span><span class="n">fpe_trap_invalid</span><span class="o">=</span><span class="mi">1</span>
 </pre></div>
 </div>
+<p>If the code crashes, it will produce one or more <code class="docutils literal notranslate"><span class="pre">Backtrace.*</span></code>
+files.  Looking over these files should pinpoint where the FPE
+occurred allowing you to do further debugging.</p>
+<p>You can output more information into the <code class="docutils literal notranslate"><span class="pre">Backtrace.*</span></code> files by
+pushing it to the backtrace stack as described here:
+<a class="reference internal" href="faq.html#debugging-backtrace"><span class="std std-ref">Debugging</span></a>.</p>
+</div>
+<div class="section" id="make-sure-your-runtime-options-are-valid">
+<h3>Make sure your runtime options are valid<a class="headerlink" href="#make-sure-your-runtime-options-are-valid" title="Permalink to this headline">¶</a></h3>
+<p>Castro can validate the runtime options specified in the inputs file
+by running with <code class="docutils literal notranslate"><span class="pre">castro.abort_on_invalid_params</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
 </div>
 <div class="section" id="valgrind">
 <h3>Valgrind<a class="headerlink" href="#valgrind" title="Permalink to this headline">¶</a></h3>
@@ -286,16 +298,16 @@ python3 run-clang-tidy.py -header-filter<span class="o">=</span><span class="s1"
 <h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this headline">¶</a></h3>
 <p>In the C++ code, you can check whether a FAB contains NaNs using
 the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">True</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">MFIter</span><span class="w"> </span><span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">);</span><span class="w"> </span><span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">mfi</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">bx</span> <span class="o">=</span> <span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Box</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span><span class="w"></span>
 
-  <span class="c1">// do some operations on S[mfi]</span>
+<span class="w">  </span><span class="c1">// do some operations on S[mfi]</span>
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box

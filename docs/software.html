@@ -656,13 +656,13 @@ want to create a new</em> <code class="docutils literal notranslate"><span class
 hydrodynamic state that we use to kick-off the hydrodynamics
 advance.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Sborder</span></code> is declared in <code class="docutils literal notranslate"><span class="pre">Castro.H</span></code> simply as:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Multifab</span> <span class="n">Sborder</span><span class="p">;</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Multifab</span><span class="w"> </span><span class="n">Sborder</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>It is then allocated in <code class="docutils literal notranslate"><span class="pre">Castro::initialize_do_advance()</span></code></p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Sborder</span><span class="p">.</span><span class="n">define</span><span class="p">(</span><span class="n">grids</span><span class="p">,</span> <span class="n">NUM_STATE</span><span class="p">,</span> <span class="n">NUM_GROW</span><span class="p">,</span> <span class="n">Fab_allocate</span><span class="p">);</span>
-<span class="k">const</span> <span class="n">Real</span> <span class="n">prev_time</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">State_Type</span><span class="p">].</span><span class="n">prevTime</span><span class="p">();</span>
-<span class="n">expand_state</span><span class="p">(</span><span class="n">Sborder</span><span class="p">,</span> <span class="n">prev_time</span><span class="p">,</span> <span class="n">NUM_GROW</span><span class="p">);</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Sborder</span><span class="p">.</span><span class="n">define</span><span class="p">(</span><span class="n">grids</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_STATE</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_GROW</span><span class="p">,</span><span class="w"> </span><span class="n">Fab_allocate</span><span class="p">);</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="n">prev_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">[</span><span class="n">State_Type</span><span class="p">].</span><span class="n">prevTime</span><span class="p">();</span><span class="w"></span>
+<span class="n">expand_state</span><span class="p">(</span><span class="n">Sborder</span><span class="p">,</span><span class="w"> </span><span class="n">prev_time</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_GROW</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Note in the call to <code class="docutils literal notranslate"><span class="pre">.define()</span></code>, we tell AMReX to already
@@ -670,8 +670,8 @@ allocate the data regions for the <code class="docutils literal notranslate"><sp
 <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>.</p>
 <p>The actually filling of the ghost cells is done by
 <code class="docutils literal notranslate"><span class="pre">Castro::expand_state()</span></code>:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">AmrLevel</span><span class="o">::</span><span class="n">FillPatch</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">,</span> <span class="n">Sborder</span><span class="p">,</span> <span class="n">NUM_GROW</span><span class="p">,</span>
-                    <span class="n">prev_time</span><span class="p">,</span> <span class="n">State_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">NUM_STATE</span><span class="p">);</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">AmrLevel</span><span class="o">::</span><span class="n">FillPatch</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">Sborder</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_GROW</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="n">prev_time</span><span class="p">,</span><span class="w"> </span><span class="n">State_Type</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">NUM_STATE</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Here, we are filling the ng ghost cells of <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>
@@ -696,11 +696,11 @@ of the ghost cell filling, we pass in a reference to the <code class="docutils l
 need to ensure that the the time you are at is consistent with
 the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> ’s time. Here’s an example from the radiation
 portion of the code <code class="docutils literal notranslate"><span class="pre">MGFLDRadSolver.cpp</span></code>:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Real</span> <span class="n">time</span> <span class="o">=</span> <span class="n">castro</span><span class="o">-&gt;</span><span class="n">get_state_data</span><span class="p">(</span><span class="n">Rad_Type</span><span class="p">).</span><span class="n">curTime</span><span class="p">();</span>
-<span class="n">MultiFab</span><span class="o">&amp;</span> <span class="n">S_new</span> <span class="o">=</span> <span class="n">castro</span><span class="o">-&gt;</span><span class="n">get_new_data</span><span class="p">(</span><span class="n">State_Type</span><span class="p">);</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Real</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">castro</span><span class="o">-&gt;</span><span class="n">get_state_data</span><span class="p">(</span><span class="n">Rad_Type</span><span class="p">).</span><span class="n">curTime</span><span class="p">();</span><span class="w"></span>
+<span class="n">MultiFab</span><span class="o">&amp;</span><span class="w"> </span><span class="n">S_new</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">castro</span><span class="o">-&gt;</span><span class="n">get_new_data</span><span class="p">(</span><span class="n">State_Type</span><span class="p">);</span><span class="w"></span>
 
-<span class="n">AmrLevel</span><span class="o">::</span><span class="n">FillPatch</span><span class="p">(</span><span class="o">*</span><span class="n">castro</span><span class="p">,</span> <span class="n">S_new</span><span class="p">,</span> <span class="n">ngrow</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">State_Type</span><span class="p">,</span>
-                    <span class="mi">0</span><span class="p">,</span> <span class="n">S_new</span><span class="p">.</span><span class="n">nComp</span><span class="p">(),</span> <span class="mi">0</span><span class="p">);</span>
+<span class="n">AmrLevel</span><span class="o">::</span><span class="n">FillPatch</span><span class="p">(</span><span class="o">*</span><span class="n">castro</span><span class="p">,</span><span class="w"> </span><span class="n">S_new</span><span class="p">,</span><span class="w"> </span><span class="n">ngrow</span><span class="p">,</span><span class="w"> </span><span class="n">time</span><span class="p">,</span><span class="w"> </span><span class="n">State_Type</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">S_new</span><span class="p">.</span><span class="n">nComp</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>In this example, <code class="docutils literal notranslate"><span class="pre">S_new</span></code> is a pointer to the new-time-level
