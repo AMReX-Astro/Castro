@@ -32,6 +32,20 @@ in the ``GNUmakefile``.  To capture the NaNs, use the runtime parameter::
 
    amrex.fpe_trap_invalid=1
 
+If the code crashes, it will produce one or more ``Backtrace.*``
+files.  Looking over these files should pinpoint where the FPE
+occurred allowing you to do further debugging.
+
+You can output more information into the ``Backtrace.*`` files by
+pushing it to the backtrace stack as described here:
+:ref:`debugging_backtrace`.
+
+Make sure your runtime options are valid
+----------------------------------------
+
+Castro can validate the runtime options specified in the inputs file
+by running with ``castro.abort_on_invalid_params = 1``.
+
 
 Valgrind
 --------
