@@ -10,7 +10,7 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.73205e10 1.73205e10
+geometry.prob_hi   =  1.6384e10  1.6384e10
 
 amr.n_cell         = 2048 2048
 
@@ -72,7 +72,7 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-castro.small_dens   = 1.e-4
+castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
 castro.time_integration_method = 3
@@ -81,7 +81,7 @@ castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.6400"
+problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
 
 # refinement
 
@@ -105,3 +105,6 @@ integrator.jacobian = 3
 network.rho_nse = 2.e6
 network.T_nse = 3.e9
 
+network.small_x = 1.e-10
+
+network.nse_relax_factor = 0.9

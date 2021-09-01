@@ -141,8 +141,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                     if (jacobian == 1) {
                         reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                     } else {
-                        // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                        // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
                     }
 
                     if (store_omegadot == 1) {
@@ -425,8 +425,8 @@ Castro::react_state(Real time, Real dt)
                      if (jacobian == 1) {
                          react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                      } else {
-                         // the numerical Jacobian does a 1-sided diff, requiring NumSpec+1 RHS calls
-                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + (NumSpec+1) * burn_state.n_jac));
+                         // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
                      }
 
                      if (store_omegadot) {
