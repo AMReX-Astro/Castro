@@ -56,6 +56,8 @@ Compiling
 
    This will compile the code and report on any mismatched function signatures.
 
+.. _debugging_backtrace:
+
 Debugging
 =========
 
@@ -173,13 +175,18 @@ Managing Runs
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are plot_and_continue to output
-   a plotfile, dump_and_stop to output a checkpoint file
-   and halt the code, and stop_run to simply stop the code.
-   Note that the parameter amr.message_int controls how often
-   the existence of these files is checked; by default it is 10, so the
-   check will be done at the end of every timestep that is a multiple of 10.
-   Set that to 1 in your inputs file if you’d like it to check every timestep.
+   to restart. Other options are ``plot_and_continue`` to output
+   a plotfile, ``dump_and_stop`` to output a checkpoint file
+   and halt the code, and ``stop_run`` to simply stop the code.
+
+
+   .. note::
+
+      The parameter ``amr.message_int`` controls how often the
+      existence of these files is checked; by default it is 10, so the
+      check will be done at the end of every timestep that is a
+      multiple of 10.  Set that to 1 in your inputs file if you’d like
+      it to check every timestep.
 
 #. *How can I output plotfiles in single precision?*
 

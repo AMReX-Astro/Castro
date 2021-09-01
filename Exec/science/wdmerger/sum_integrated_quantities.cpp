@@ -12,7 +12,6 @@
 #include <Problem.H>
 
 #include <Gravity.H>
-#include <Gravity_F.H>
 
 #include <wdmerger_data.H>
 

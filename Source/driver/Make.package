@@ -1,7 +1,5 @@
 # these are the files that should be needed for any Castro build
 
-ca_F90EXE_sources += Castro_error_nd.F90
-
 CEXE_sources += Castro.cpp
 CEXE_sources += runparams_defaults.cpp
 CEXE_sources += Castro_advance.cpp
@@ -32,11 +30,11 @@ CEXE_sources += Derive.cpp
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 
-ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 CEXE_headers      += math.H
-ca_F90EXE_sources += meth_params_nd.F90
-ca_F90EXE_sources += state_indices_nd.F90
+ifeq ($(USE_RAD), TRUE)
+  ca_F90EXE_sources += state_indices_nd.F90
+endif
 
 NEED_MGUTIL =
 
@@ -53,7 +51,4 @@ ifdef NEED_MGUTIL
   CEXE_headers += MGutils.H
 endif
 
-ifeq ($(USE_MHD),TRUE)
-  ca_f90EXE_sources += filfc.f90
-endif
 CEXE_sources += timestep.cpp

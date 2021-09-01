@@ -3,7 +3,7 @@
 
 module rad_module
 
-  use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
+  use state_indices_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 

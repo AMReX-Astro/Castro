@@ -1,3 +1,23 @@
+# 21.09
+
+   * castro.source_term_predictor now works for simplified-SDC to
+     disable the source predictor for the hydrodynamics states to the
+     interface. (#1968)
+
+   * castro.add_sdc_react_source_to_advection was added to disable
+     react source to advection in simplified-SDC (#1969)
+
+# 21.07
+
+   * The sponge is now applied in a fully implicit manner at the end of
+     the CTU advance, rather than using a predictor-corrector approach
+     with time centering. This is more consistent with the original form
+     of the sponge in Castro. (#1876)
+
+   * Castro can now validate the runtime parameters set in the inputs
+     file or on the commandline by setting
+     castro.abort_on_invalid_params=1 (#1882)
+
 # 21.06
 
    * Starting with this release, problem setups written in Fortran are
