@@ -12,7 +12,6 @@
 #include <Problem.H>
 
 #include <Gravity.H>
-#include <Gravity_F.H>
 
 #include <wdmerger_data.H>
 
@@ -102,10 +101,6 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
 
-      // Update the local level we're on.
-
-      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
-
       // Get the current level from Castro
 
       Castro& ca_lev = getLevel(lev);
@@ -147,10 +142,6 @@ Castro::sum_integrated_quantities ()
 #endif
 
     }
-
-    // Return to the original level.
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     // Do the reductions.
 
@@ -216,7 +207,7 @@ Castro::sum_integrated_quantities ()
     vel_P_mag += std::pow( std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5 );
     vel_S_mag += std::pow( std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5 );
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
     if (mass_P > 0.0) {
       vel_P_rad = (com_P[problem::axis_1 - 1] / com_P_mag) * vel_P[problem::axis_1 - 1] +
                   (com_P[problem::axis_2 - 1] / com_P_mag) * vel_P[problem::axis_2 - 1];
@@ -264,23 +255,6 @@ Castro::sum_integrated_quantities ()
 
     }
 
-    // Calculate wall time for the step.
-
-    Real wall_time = 0.0;
-
-    if (time > 0.0)
-        wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
-
-    // Calculate GPU memory consumption.
-
-#ifdef AMREX_USE_GPU
-    Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
-
-    Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
-#endif
-
     // Write data out to the log.
 
     if ( amrex::ParallelDescriptor::IOProcessor() )
@@ -317,7 +291,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
 	     header << std::setw(datwidth) << "              INT. ENERGY"; ++n;
 	     header << std::setw(datwidth) << "                     MASS"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "                     XMOM"; ++n;
 	     header << std::setw(datwidth) << "                     YMOM"; ++n;
 	     header << std::setw(datwidth) << "                     ZMOM"; ++n;
@@ -335,7 +309,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "              ANG. MOM. R"; ++n;
 	     header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "                    X COM"; ++n;
 	     header << std::setw(datwidth) << "                    Y COM"; ++n;
 	     header << std::setw(datwidth) << "                    Z COM"; ++n;
@@ -382,7 +356,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << momentum[2];
 #endif
 #ifdef HYBRID_MOMENTUM
@@ -392,17 +366,17 @@ Castro::sum_integrated_quantities ()
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << angular_momentum[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[2];
 #endif
 
@@ -466,71 +440,6 @@ Castro::sum_integrated_quantities ()
 	 }
       }
 
-      // Information about the AMR driver.
-
-      if (parent->NumDataLogs() > 3) {
-
-	 std::ostream& log = parent->DataLog(3);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(fixwidth) << "                       DT"; ++n;
-	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
-             header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
-#ifdef AMREX_USE_GPU
-             header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
-             header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
-#endif
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i < 4; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::setw(intwidth) << 4; // Handle the finest lev column
-
-             for (int i = 5; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
-	   log << std::setw(intwidth)                                     << parent->finestLevel();
-           log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
-#ifdef AMREX_USE_GPU
-           log << std::setw(datwidth)                                     << gpu_size_used_MB;
-           log << std::setw(datwidth)                                     << gpu_size_free_MB;
-#endif
-
-	   log << std::endl;
-
-	 }
-
-      }
-
       // Primary star
 
       if (parent->NumDataLogs() > 4) {
@@ -554,7 +463,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "             PRIMARY MASS"; ++n;
 	     header << std::setw(datwidth) << "             PRIMARY MDOT"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY MAG COM"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "            PRIMARY X COM"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Y COM"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
@@ -565,7 +474,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "          PRIMARY MAG VEL"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY RAD VEL"; ++n;
 	     header << std::setw(datwidth) << "          PRIMARY ANG VEL"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "            PRIMARY X VEL"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Y VEL"; ++n;
 	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
@@ -604,7 +513,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
@@ -612,7 +521,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
@@ -648,7 +557,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "           SECONDARY MASS"; ++n;
 	     header << std::setw(datwidth) << "           SECONDARY MDOT"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY MAG COM"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "          SECONDARY X COM"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Y COM"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
@@ -659,7 +568,7 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "        SECONDARY MAG VEL"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY RAD VEL"; ++n;
 	     header << std::setw(datwidth) << "        SECONDARY ANG VEL"; ++n;
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	     header << std::setw(datwidth) << "          SECONDARY X VEL"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Y VEL"; ++n;
 	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
@@ -698,7 +607,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
@@ -706,7 +615,7 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;

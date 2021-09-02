@@ -111,7 +111,7 @@ Castro::actual_trans_single(const Box& bx,
 #endif
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
         // We are handling the states at the interface of
@@ -390,6 +390,14 @@ Castro::actual_trans_single(const Box& bx,
 #endif
             }
 
+            // If (rho e) is negative by this point,
+            // set it back to the original interface state,
+            // which turns off the transverse correction.
+
+            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            }
+
             // Pretend QREINT has been fixed and transverse_use_eos != 1.
             // If we are wrong, we will fix it later.
 
@@ -405,6 +413,7 @@ Castro::actual_trans_single(const Box& bx,
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
+            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
         }
 
 #ifdef RADIATION
@@ -517,7 +526,7 @@ Castro::actual_trans_final(const Box& bx,
 #endif
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
         // the normal state
@@ -810,6 +819,14 @@ Castro::actual_trans_final(const Box& bx,
                                                flux_t2(il_t2,jl_t2,kl_t2,UEINT) + pt2av * dut2);
             }
 
+            // If (rho e) is negative by this point,
+            // set it back to the original interface state,
+            // which turns off the transverse correction.
+
+            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            }
+
             // Pretend QREINT has been fixed and transverse_use_eos != 1.
             // If we are wrong, we will fix it later.
 
@@ -819,6 +836,7 @@ Castro::actual_trans_final(const Box& bx,
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
+            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
         }
 
         qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);

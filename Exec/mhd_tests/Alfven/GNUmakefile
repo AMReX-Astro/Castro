@@ -16,7 +16,7 @@ USE_MHD    = TRUE
 CASTRO_HOME  := ../../..
 
 # This sets the EOS directory in Castro/EOS
-EOS_DIR     := gamma_law_general
+EOS_DIR     := gamma_law
 
 # This sets the network directory in Castro/Networks
 NETWORK_DIR := general_null

@@ -5,7 +5,7 @@
 !! to initialize values of physical constants used by the
 !! radiation package.
 !! -----------------------------------------------------------
-subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_initradconstants")
+subroutine ca_initradconstants(p, c, h, k, s, a, m) bind(C, name="ca_initradconstants")
 
   use fundamental_constants_module, only: c_fcm=>c_light, h_fcm=>hplanck, &
                                           k_fcm=>k_B, s_fcm=>sigma_SB, a_fcm=>n_A, ev2erg_fcm=>ev2erg
@@ -19,7 +19,6 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   implicit none
 
   real(rt) :: p, c, h, k, s, a, m
-  integer :: J_is_used
 
   c = c_fcm
   h = h_fcm
@@ -53,19 +52,11 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   allocate(radtoE)
   allocate(etafactor)
 
-  if (J_is_used > 0) then
-     radtoE = 4.e0_rt*pi/clight
-     !           radtoJ = 1.0e0_rt
-     !           Etorad = 1.e0_rt/radtoE
-     !           radfluxtoF = 4.e0_rt*pi
-     etafactor = 1.e0_rt
-  else
-     radtoE = 1.0e0_rt
-     !           radtoJ = clight/(4.e0_rt*pi)
-     !           Etorad = 1.0e0_rt
-     !           radfluxtoF = 1.e0_rt
-     etafactor = 4.e0_rt*pi/clight
-  end if
+  radtoE = 1.0e0_rt
+  !           radtoJ = clight/(4.e0_rt*pi)
+  !           Etorad = 1.0e0_rt
+  !           radfluxtoF = 1.e0_rt
+  etafactor = 4.e0_rt*pi/clight
 
 end subroutine ca_initradconstants
 
@@ -250,7 +241,7 @@ subroutine ca_inelastic_sct(lo, hi, &
                             ks,ks_lo,ks_hi, &
                             dt) bind(C)
 
-  use meth_params_module, only: NVAR, UEDEN, UEINT, UTEMP
+  use state_indices_module, only: NVAR, UEDEN, UEINT, UTEMP
   use rad_params_module, only: ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
   use amrex_fort_module, only: rt => amrex_real

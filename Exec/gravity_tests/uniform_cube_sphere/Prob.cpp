@@ -2,14 +2,12 @@
 #include <Castro_F.H>
 
 #include <Gravity.H>
-#include <Gravity_F.H>
 
 #include <AMReX_ParmParse.H>
 
 #include <AMReX_buildInfo.H>
 
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 
 #include <fundamental_constants.H>
 
@@ -71,7 +69,7 @@ void Castro::problem_post_init()
                 // mass on the domain is what we intend it to be.
 
                 amrex::ParallelFor(box,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     if (problem::problem != 2) return;
 
@@ -156,7 +154,7 @@ void Castro::problem_post_init()
             // and the analytical solution.
 
             reduce_op.eval(box, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 Real radius = 0.5_rt * problem::diameter;
                 Real mass = (4.0_rt / 3.0_rt) * M_PI * radius * radius * radius * problem::density;

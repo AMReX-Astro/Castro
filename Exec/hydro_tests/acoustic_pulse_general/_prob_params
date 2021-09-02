@@ -10,4 +10,4 @@ s0             real            0.0_rt
 
 p0             real            1.0_rt
 
-xn_zone        real            0.0_rt        n        (nspec, network)
+xn_zone        real            0.0_rt        n        nspec

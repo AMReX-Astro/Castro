@@ -33,7 +33,7 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
   reduce_op.eval(bx, reduce_data,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
   {
 
     //sound speed for ideal mhd
@@ -60,7 +60,7 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
     Real coury = (cy + std::abs(q_arr(i,j,k,QV))) * dtdy;
     Real courz = (cz + std::abs(q_arr(i,j,k,QW))) * dtdz;
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (verbose == 1) {
 
       if (courx > 1.0_rt) {
@@ -120,15 +120,15 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
 
 
 void
-Castro::consup_mhd(const Box& bx,
-                   Array4<Real> const& update,
+Castro::consup_mhd(const Box& bx, const Real dt,
+                   Array4<Real> const& U_new,
                    Array4<Real const> const& flux0,
                    Array4<Real const> const& flux1,
                    Array4<Real const> const& flux2) {
 
-  // do the conservative update and store - div{F} in update.  Note,
-  // in contrast to the CTU hydro case, we don't add the pdivu term to
-  // (rho e) here, because we included that in the hydro source terms.
+  // do the conservative update.  Note, in contrast to the CTU hydro
+  // case, we don't add the pdivu term to (rho e) here, because we
+  // included that in the hydro source terms.
 
   const auto dx = geom.CellSizeArray();
 
@@ -141,22 +141,22 @@ Castro::consup_mhd(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
     if (n == UTEMP) {
-      update(i,j,k,n) = 0.0_rt;
+      U_new(i,j,k,n) = 0.0_rt;
 #ifdef SHOCK_VAR
     } else if (n == USHK) {
-      update(i,j,k,n) = 0.0_rt;
+      U_new(i,j,k,n) = 0.0_rt;
 #endif
     } else {
-      update(i,j,k,n) = (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv;
+      U_new(i,j,k,n) += dt * (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv;
 #if AMREX_SPACEDIM >= 2
-      update(i,j,k,n) += (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv;
+      U_new(i,j,k,n) += dt * (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv;
 #endif
 #if AMREX_SPACEDIM == 3
-      update(i,j,k,n) += (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
+      U_new(i,j,k,n) += dt * (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
 #endif
     }
 
@@ -173,7 +173,7 @@ Castro::PrimToCons(const Box& bx,
   // calculate the conserved variables from the primitive
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     u_arr(i,j,k,URHO) = q_arr(i,j,k,QRHO);
@@ -234,7 +234,7 @@ Castro::prim_half(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real divF[NUM_STATE+3];

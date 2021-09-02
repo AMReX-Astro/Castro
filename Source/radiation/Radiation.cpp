@@ -1,10 +1,9 @@
-
 #include <AMReX_LO_BCTYPES.H>
 #include <AMReX_ParmParse.H>
 #include <Radiation.H>
 #include <RadSolve.H>
 #include <rad_util.H>
-
+#include <filt_prim.H>
 #include <Castro_F.H>
 
 #include <RAD_F.H>
@@ -250,13 +249,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -273,13 +272,13 @@ void Radiation::read_static_params()
           dimname.push_back("y");
           dimname.push_back("z");
           if (!do_multigroup) {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   std::ostringstream ss;
                   ss << "Fr" << frame << dimname[idim];
                   plotvar_names.push_back(ss.str());
               }
           } else {
-              for (int idim=0; idim<BL_SPACEDIM; ++idim) {
+              for (int idim=0; idim<AMREX_SPACEDIM; ++idim) {
                   for (int g=0; g<nGroups; ++g) {
                       std::ostringstream ss;
                       ss << "Fr" << frame << g << dimname[idim];
@@ -309,10 +308,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   {
     Real stefbol;
 
-    int J_is_used = 0;
-
     ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg, J_is_used);
+                        Avogadro, convert_MeV_erg);
 
     aRad = 4.*stefbol/clight;
 
@@ -387,7 +384,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("update_limiter", update_limiter);
 
   dT  = 1.0;                 pp.query("delta_temp", dT);
-  surface_average = 2;       pp.query("surface_average", surface_average);
 
   // for inner iterations of neutrino J equation
   relInTol = 1.e-4;          pp.query("relInTol", relInTol);
@@ -438,17 +434,12 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   if (verbose > 2) {
     Vector<int> temp;
-    if (pp.queryarr("spot",temp,0,BL_SPACEDIM)) {
+    if (pp.queryarr("spot",temp,0,AMREX_SPACEDIM)) {
       IntVect tempi(temp);
       spot = tempi;
     }
     if (ParallelDescriptor::IOProcessor()) std::cout << "Spot: " << spot << std::endl;
   }
-
-  // This call stores the value of surface_average in the kavg
-  // routine.  The first three arguments are irrelevant here.
-  Real foo=0.0;
-  FORT_KAVG(foo, foo, foo, surface_average);
 
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
     std::cout << "Creating Radiation object" << std::endl;
@@ -473,7 +464,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "update_planck    = " << update_planck << std::endl;
     std::cout << "update_rosseland = " << update_rosseland << std::endl;
     std::cout << "delta_temp = " << dT << std::endl;
-    std::cout << "surface_average = " << surface_average << std::endl;
     std::cout << "underfac = " << underfac << std::endl;
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
@@ -517,10 +507,10 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   // incoming flux information in the RadBndry constructor.  we just
   // set the boundary condition type here:
 
-  Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-  pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-  for (int i = 0; i < BL_SPACEDIM; i++) {
+  Vector<int> lo_bc(AMREX_SPACEDIM), hi_bc(AMREX_SPACEDIM);
+  pp.getarr("lo_bc",lo_bc,0,AMREX_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc,0,AMREX_SPACEDIM);
+  for (int i = 0; i < AMREX_SPACEDIM; i++) {
     rad_bc.setLo(i,lo_bc[i]);
     rad_bc.setHi(i,hi_bc[i]);
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
@@ -555,8 +545,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
       do_inelastic_scattering = 0;
   }
 
-  ca_init_radhydro_pars(fspace_advection_type, do_inelastic_scattering,
-                        comoving);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids, const DistributionMapping& dmap)
@@ -850,7 +838,7 @@ void Radiation::compute_exchange(MultiFab& exch,
         Real lc = c;
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             exch_arr(i,j,k) = fkp_arr(i,j,k) * (4.e0_rt * lsigma * std::pow(exch_arr(i,j,k), 4) - lc * Er_arr(i,j,k));
         });
@@ -895,7 +883,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                 const Real dT_loc = dT;
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     Real rho = state_arr(i,j,k,URHO);
                     Real temp = state_arr(i,j,k,UTEMP) + dT_loc;
@@ -936,7 +924,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
             const Real fac2 = delta_t * c / dT;
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real d;
 
@@ -1003,7 +991,7 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
       auto frhoes_arr = frhoes[mfi].array();
 
       reduce_op.eval(bx, reduce_data,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
           Real chg = 0.e0_rt;
           Real tot = 0.e0_rt;
@@ -1150,7 +1138,7 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
         auto frhoes_arr = frhoes[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real kin = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
             state_arr(i,j,k,UEINT) = frhoes_arr(i,j,k);
@@ -1166,7 +1154,7 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
             {
                 Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = state_arr(i,j,k,URHO);
                 eos_state.T   = state_arr(i,j,k,UTEMP);
                 eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
@@ -1347,14 +1335,14 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
     if (need_old_data) {
       sold_tmp.define(grids, dmap, 1, n_grow);
       sold_tmp.setVal(0.0); // need legal numbers for linComb below
-      sold_tmp.copy(S_old, Rad, 0, 1);
+      MultiFab::Copy(sold_tmp, S_old, Rad, 0, 1, 0);
       sold_tmp.FillBoundary(geom.periodicity());
     }
 
     if (need_new_data) {
       snew_tmp.define(grids, dmap, 1, n_grow);
       snew_tmp.setVal(0.0); // need legal numbers for linComb below
-      snew_tmp.copy(S_new, Rad, 0, 1);
+      MultiFab::Copy(snew_tmp, S_new, Rad, 0, 1, 0);
       snew_tmp.FillBoundary(geom.periodicity());
     }
 
@@ -1388,7 +1376,7 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
     {
         Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_re_t eos_state;
         eos_state.rho = state_arr(i,j,k,URHO);
         eos_state.T   = temp_arr(i,j,k);
         for (int n = 0; n < NumSpec; ++n) {
@@ -1420,7 +1408,7 @@ void Radiation::get_frhoe(MultiFab& frhoe,
         auto state_arr = state[si].array();
 
         amrex::ParallelFor(reg,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             frhoe_arr(i,j,k) = state_arr(i,j,k,UEINT);
         });
@@ -1450,7 +1438,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         // Get T from rhoe; overwrite temp with T
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             if (temp_arr(i,j,k) <= 0.e0_rt)
             {
@@ -1460,7 +1448,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
             {
                 Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = state_arr(i,j,k,URHO);
                 eos_state.T   = state_arr(i,j,k,UTEMP);
                 eos_state.e   = temp_arr(i,j,k) * rhoInv;
@@ -1482,7 +1470,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         const Real nu = nugroup[igroup];
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rho = state_arr(i,j,k,URHO);
             Real temp = state_arr(i,j,k,UTEMP);
@@ -1504,7 +1492,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         int ncomp = temp[mfi].nComp();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             const Real temp_floor = 1.e-10_rt;
 
@@ -1559,7 +1547,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
           auto kpr = kappa_r[mfi].array();
 
           amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               // frhoe will be overwritten with temperature here
 
@@ -1571,7 +1559,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
               {
                   Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                  eos_t eos_state;
+                  eos_re_t eos_state;
                   eos_state.rho = state_arr(i,j,k,URHO);
                   eos_state.T   = state_arr(i,j,k,UTEMP);
                   eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
@@ -1640,7 +1628,7 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
       auto kpr = kappa_r[mfi].array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           state_arr(i,j,k,UTEMP) = temp_arr(i,j,k);
 
@@ -1683,7 +1671,7 @@ void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
       auto kpr = kappa_r[mfi].array();
 
       amrex::ParallelFor(kbox,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real rho = state_arr(i,j,k,URHO);
           Real temp = state_arr(i,j,k,UTEMP);
@@ -1718,7 +1706,7 @@ void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
   auto kpr = kappa_r.array();
 
   amrex::ParallelFor(kbox,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
       Real rho = state_arr(i,j,k,URHO);
       Real temp = state_arr(i,j,k,UTEMP);
@@ -2043,7 +2031,7 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
         // with piecewise-constant (area-adjusted)
         // interpolation with ratio given by ref_rat.
 
-        for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
           const Orientation lo_face(dir,Orientation::low);
           const Orientation hi_face(dir,Orientation::high);
 
@@ -2100,7 +2088,7 @@ void Radiation::reflux(int level)
 // Computes the scaled gradient for use in flux limiters
 
 void Radiation::scaledGradient(int level,
-                               Array<MultiFab, BL_SPACEDIM>& R,
+                               Array<MultiFab, AMREX_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
                                int limiter, int nGrow_Er, int Rcomp)
@@ -2163,7 +2151,7 @@ void Radiation::scaledGradient(int level,
               auto Er_arr = Erborder[mfi].array();
 
               amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                   Real dxInv[3] = {0.0};
 
@@ -2436,7 +2424,7 @@ void Radiation::scaledGradient(int level,
 // On output this will be overwritten with the flux limiter.
 
 void Radiation::fluxLimiter(int level,
-                            Array<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
     BL_PROFILE("Radiation:fluxLimiter");
@@ -2444,14 +2432,14 @@ void Radiation::fluxLimiter(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
             auto lambda_arr = lambda[idim][mfi].array(lamcomp);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k), limiter);
             });
@@ -2512,7 +2500,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             auto dcf_arr = dcf[mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 // Get T from rhoe
 
@@ -2524,7 +2512,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                 {
                     Real rhoInv = 1.e0_rt / S_arr(i,j,k,URHO);
 
-                    eos_t eos_state;
+                    eos_re_t eos_state;
                     eos_state.rho = S_arr(i,j,k,URHO);
                     eos_state.T   = S_arr(i,j,k,UTEMP);
                     eos_state.e   = S_arr(i,j,k,UEINT) * rhoInv;
@@ -2551,7 +2539,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             const Real nu = nugroup[igroup];
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real rho = S_arr(i,j,k,URHO);
                 Real temp = S_arr(i,j,k,UTEMP);
@@ -2619,7 +2607,7 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
         auto kr_arr = kr[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             dcf_arr(i,j,k) = 2.e0_rt * etainv_arr(i,j,k) * (kp_arr(i,j,k) / kr_arr(i,j,k));
         });
@@ -2644,44 +2632,12 @@ void Radiation::set_current_group(int igroup)
 void Radiation::filter_prim(int level, MultiFab& State)
 {
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
-  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom = parent->Geom(level);
-
-  const int*  domain_lo = geom.Domain().loVect();
-  const int*  domain_hi = geom.Domain().hiVect();
-  const Real* dx        = geom.CellSize();
-  const Real* prob_lo   = geom.ProbLo();
+  auto geomdata = geom.data();
 
   int ngrow = filter_prim_T;
   int ncomp = State.nComp();
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  MultiFab mask(grids,dmap,1,ngrow);
-  mask.setVal(-1.0,ngrow);
-  mask.setVal( 0.0,0);
-  mask.FillBoundary(geom.periodicity());
-
-  if (level < parent->finestLevel())
-  {
-      BoxArray baf = parent->boxArray(level+1);
-      baf.coarsen(parent->refRatio(level));
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(mask); mfi.isValid(); ++mfi)
-      {
-          FArrayBox& mask_fab = mask[mfi];
-          const Box& mask_box = mask_fab.box();
-
-          const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
-
-          for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
-          }
-      }
-  }
 
   FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,0,ncomp);
   MultiFab& S_fp = fpi.get_mf();
@@ -2693,16 +2649,19 @@ void Radiation::filter_prim(int level, MultiFab& State)
   {
       const Box& bx = mfi.tilebox();
 
-      const RealBox& gridloc = RealBox(bx, dx, prob_lo);
-      const Real* xlo = gridloc.lo();
+      auto S_fp_arr = S_fp[mfi].array();
+      auto State_arr = State[mfi].array();
 
-      ca_filt_prim(bx.loVect(), bx.hiVect(),
-                   BL_TO_FORTRAN( S_fp[mfi]),
-                   BL_TO_FORTRAN(State[mfi]),
-                   BL_TO_FORTRAN( mask[mfi]),
-                   &filter_prim_T, &filter_prim_S,
-                   domain_lo, domain_hi,
-                   dx, xlo, prob_lo,
-                   &time, &level);
+      int T = filter_prim_T;
+      int S = filter_prim_S;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          filt_prim(i, j, k,
+                    S_fp_arr, State_arr,
+                    T, S,
+                    geomdata, time);
+      });
   }
 }

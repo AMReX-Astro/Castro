@@ -49,7 +49,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domlo[0]-1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
 
                 Real dens_above = adv(domlo[0],j,k,URHO);
@@ -71,7 +71,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -146,7 +146,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                     if (! converged_hse) {
                         std::cout << "ii, j, k, domlo[0]: " << ii << " " << j << " " << k << " " << domlo[0] << std::endl;
                         std::cout << "p_want:    " << p_want << std::endl;
@@ -239,7 +239,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
 
                 Real dens_below = adv(domhi[0],j,k,URHO);
@@ -261,7 +261,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -331,7 +331,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "ii, j, k, domhi[0]: " << ii << " " << j << " " << k << " " << domhi[0] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -429,7 +429,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domlo[1]-1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
 
                 Real dens_above = adv(i,domlo[1],k,URHO);
@@ -451,7 +451,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -523,7 +523,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domlo[1]: " << i << " " << jj << " " << k << " " << domlo[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -617,7 +617,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domhi[1]+1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
 
                 Real dens_below = adv(i,domhi[1],k,URHO);
@@ -639,7 +639,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -709,7 +709,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domhi[1]: " << i << " " << jj << " " << k << " " << domhi[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -806,7 +806,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], hi[1], domlo[2]-1)));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
 
                 Real dens_above = adv(i,j,domlo[2],URHO);
@@ -828,7 +828,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -900,7 +900,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, j, kk, domlo[2]: " << i << " " << j << " " << kk << " " << domlo[2] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -986,7 +986,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     if (bcr[URHO].hi(2) == EXT_DIR && hi[2] > domhi[2]) {
 
         if (zr_ext_bc_type == EXT_HSE) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
             amrex::Error("ERROR: HSE boundaries not implemented for +Z");
 #endif
         }

@@ -1,3 +1,93 @@
+# 21.09
+
+   * castro.source_term_predictor now works for simplified-SDC to
+     disable the source predictor for the hydrodynamics states to the
+     interface. (#1968)
+
+   * castro.add_sdc_react_source_to_advection was added to disable
+     react source to advection in simplified-SDC (#1969)
+
+# 21.07
+
+   * The sponge is now applied in a fully implicit manner at the end of
+     the CTU advance, rather than using a predictor-corrector approach
+     with time centering. This is more consistent with the original form
+     of the sponge in Castro. (#1876)
+
+   * Castro can now validate the runtime parameters set in the inputs
+     file or on the commandline by setting
+     castro.abort_on_invalid_params=1 (#1882)
+
+# 21.06
+
+   * Starting with this release, problem setups written in Fortran are
+     no longer supported and will no longer work. Please consult the
+     code documentation and example problem setups in Exec/ to understand
+     the new problem setup format. If you need help converting a Fortran
+     setup to C++, please file an issue. (#1728, #1732)
+
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
+   * Ambient parameters are now only accepted through the inputs file; the
+     &ambient namelist in the probin file is no longer read. (#1742)
+
+   * The update_sponge_params hook has been removed. (#1716)
+
+   * The Fortran problem-specific source file, ext_src_nd.F90, has been
+     removed. Problem-specific sources should be implemented in C++ in
+     problem_source.H. (#1856)
+
+   * Support for the legacy tagging scheme based on probin parameters (denerr,
+     tempgrad, etc.) has been removed. These can be replaced with equivalent
+     tagging criteria constructed in the inputs file; see the docs or examples
+     in Exec/ to see how to use `amr.refinement_indicators`. (#1834)
+
+   * The Fortran set_problem_tags hook has been removed. The C++ replacement
+     is `problem_tagging()` in `problem_tagging.H`. (#1828)
+
+   * The PrescribedGrav functionality has been removed (not replaced with a C++
+     implementation). If you want to obtain the same functionality, you can use
+     a problem-defined source term (look for problem_source in the documentation)
+     and make the appropriate modification for applying it directly to the state
+     (e.g. the momentum source term is rho * g). (#1854)
+
+   * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
+     an implementation of rbndry has been removed. (#1743)
+
+   * We no longer store Reactions_Type in checkpoint files.  This means
+     that newer versions of Castro will not restart from old version.
+     
+# 21.05
+
+   * The parameter use_eos_in_riemann was removed -- we found no
+     instances of it being used (#1623)
+
+   * The option castro.apply_sources_consecutively was removed (#1636)
+
+# 21.04
+
+   * For simplified-SDC, we now correctly store only the reactive
+     part of the update for rho_enuc, enuc, and rho_omegadot
+     plotfile variables (#1602)
+
+# 21.02
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
+
+   * We can now set any of the Microphysics runtime parameters in the
+     inputs file instead of probin.  Each group of parameters has a
+     namesapce for the inputs file when set this way
+     (e.g. eos.use_coulomb = 1), and the C++ inputs value will take
+     precedence over the value set in probin if it is set in both
+     places. (#1527)
+
 # 21.01
 
    * The minimum C++ standard supported by Castro is now C++17. Most modern compilers

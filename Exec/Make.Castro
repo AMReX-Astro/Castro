@@ -3,9 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
-# system blas
-BLAS_LIBRARY ?= -lopenblas
-
 TOP := $(CASTRO_HOME)
 
 # Allow a problem setup to define a root location.
@@ -66,12 +63,6 @@ USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
 
-# hack for now -- CUDA processing doesn't respect functions blocked by
-# ifdefs, so we need to define EXTRA_THERMO
-ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DEXTRA_THERMO
-endif
-
 # all Castro problems use a dimension-agnostic interface
 DIMENSION_AGNOSTIC = TRUE
 
@@ -94,30 +85,33 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
 endif
 
-ifeq ($(USE_SYSTEM_BLAS), TRUE)
-  LIBRARIES += $(BLAS_LIBRARY)
+USE_MLMG = FALSE
+
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
+  USE_MLMG = TRUE
+endif
+
+ifeq ($(USE_MPI), TRUE)
+  # Use thread support in MPI to support asynchronous I/O
+  MPI_THREAD_MULTIPLE := TRUE
+  # But keep the suffix MPI, not MTMPI, for simplicity
+  MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
+endif
 
+ifeq ($(USE_GPU),TRUE)
   # We don't currently support host-side OpenMP being enabled
-  # when using CUDA. Throw an error to prevent this case.
+  # when using GPUs. Throw an error to prevent this case.
   ifeq ($(USE_OMP),TRUE)
-    $(error OpenMP is not supported by Castro when building with CUDA)
+    $(error OpenMP is not supported by Castro when building with GPU support)
   endif
 endif
 
-# Allow a problem to specify that we want to initialize
-# on the GPU if we're using CUDA. This is a subset of
-# dimension agnostic problems, and it requires a different
-# interface to initdata, so we want to define this even
-# if we're not using CUDA.
-
-ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-    DEFINES += -DGPU_COMPATIBLE_PROBLEM
-endif
+AMREX_NO_PROBINIT := TRUE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
@@ -143,7 +137,6 @@ ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
-USE_MLMG = FALSE
 
 
 #------------------------------------------------------------------------------
@@ -168,8 +161,6 @@ endif
 ifeq ($(USE_MHD), TRUE)
   Bdirs += Source/mhd
   DEFINES += -DMHD
-else
-  Bdirs += Source/hydro
 endif
 
 ifeq ($(USE_GRAV), TRUE)
@@ -213,11 +204,10 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
+  DEFINES += -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  DEFINES += -DTRUE_SDC
   Bdirs += Source/sdc
 endif
 
@@ -252,8 +242,6 @@ ifeq ($(USE_RAD), TRUE)
   Bdirs += Source/radiation Source/radiation/_interpbndry
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
-  USE_HYPRE := TRUE
-  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
@@ -301,7 +289,6 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_MLMG), TRUE)
-   DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
 endif
 
@@ -330,13 +317,6 @@ Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 # external libraries
 #------------------------------------------------------------------------------
 
-ifeq ($(USE_HYPRE), TRUE)
-  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-
-  LIBRARIES += -lHYPRE
-endif
-
 ifeq ($(USE_HDF5), TRUE)
   INCLUDE_LOCATIONS += $(HDF5_DIR)/include
   INCLUDE_LOCATIONS += $(HDF5_INCL)
@@ -351,16 +331,8 @@ endif
 
 include $(Bpack)
 
-ifeq ($(MEGA_FORTRAN), TRUE)
-   F90EXE_sources += mega_f.F90
-   #$(depEXETempDir)/f90.depends: mega_f.F90
-else
-   f90EXE_sources += $(ca_f90EXE_sources)
-   F90EXE_sources += $(ca_F90EXE_sources)
-endif
-
-mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
-	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
+f90EXE_sources += $(ca_f90EXE_sources)
+F90EXE_sources += $(ca_F90EXE_sources)
 
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)

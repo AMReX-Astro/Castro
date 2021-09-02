@@ -26,11 +26,11 @@ ic12                 integer       -1
 
 io16                 integer       -1
 
-xn                   real          0.0_rt         n     (nspec, network)
+xn                   real          0.0_rt         n     nspec
 
 ambient_dens         real         0.0_rt
 
-ambient_comp         real         0.0_rt          n     (nspec, network)
+ambient_comp         real         0.0_rt          n     nspec
 
 ambient_e_l          real         0.0_rt
 

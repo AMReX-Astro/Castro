@@ -5,8 +5,6 @@
 # Problem setup
 ############################################################################################
 
-amr.probin_file = probin_test_wdmerger_3D          # Name of the probin file
-
 max_step = 5                                       # Maximum coarse timestep
 
 geometry.is_periodic = 0 0 0                       # Non-periodic boundary conditions
@@ -49,6 +47,12 @@ amr.blocking_factor = 16                           # Grid sizes must be a multip
 
 amr.grid_eff = 0.9                                 # What constitutes an efficient grid
 
+amr.refinement_indicators = temperr
+
+amr.refine.temperr.max_level = 4
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.value_greater = 2.e8
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -70,9 +74,7 @@ castro.implicit_rotation_update = 1                # Implicit rotation coupling
 castro.ppm_type = 0                                # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
 castro.use_pslope = 0
 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-castro.apply_sources_consecutively = 1
 
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
 castro.grav_source_type = 1 #4                        # How to include the gravity source term in the hydro equations
@@ -91,6 +93,12 @@ castro.small_dens = 1.e-5                          # Minimum allowable density (
 castro.dual_energy_eta1 = 1.0e-3                   # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
 
+eos.use_eos_coulomb = 0
+eos.eos_input_is_constant = 1
+
+castro.ambient_temp = 1.0e7
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -100,6 +108,13 @@ gravity.max_multipole_order = 6                    # Multipole expansion include
 gravity.rel_tol = 1.e-10                           # Relative tolerance for multigrid solver
 gravity.no_sync = 1                                # Turn off sync solve for gravity after refluxing
 
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_radius = 3.840e9
+castro.sponge_upper_radius = 4.352e9
+castro.sponge_timescale    = 0.01e0
 
 ############################################################################################
 # Diagnostics and I/O
@@ -121,3 +136,27 @@ mg.v = 2                                           # Control verbosity in the mu
 #amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.90
+problem.mass_S = 0.90
+
+problem.problem = 1
+
+problem.roche_radius_factor = 1.0e0
+
+problem.stellar_temp = 1.0e7
+
+problem.relaxation_damping_factor = -1.0e-4
+problem.relaxation_density_cutoff = -1.0e10
+
+problem.orbital_eccentricity = 0.0e0
+problem.orbital_angle = 0.0e0
+
+problem.max_tagging_radius = 0.75e0
+problem.stellar_density_threshold = 1.0e0
+
+problem.smallu = 1.0e-12

@@ -38,9 +38,19 @@ amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 128     # block factor in grid generation
 amr.max_grid_size   = 128
 
+amr.refinement_indicators = dengrad_rel
+
+amr.refine.dengrad_rel.max_level = 20
+amr.refine.dengrad_rel.relative_gradient = 0.25
+amr.refine.dengrad_rel.field_name = density
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.plot_files_output = 0
 
-# PROBIN FILENAME
-amr.probin_file = probin.mini-Castro
+# PROBLEM PARAMETERS
+problem.r_init = 1.25e8
+problem.p_ambient = 1.e21
+problem.exp_energy = 1.e52
+problem.dens_ambient = 1.e4
+problem.nsub = 10

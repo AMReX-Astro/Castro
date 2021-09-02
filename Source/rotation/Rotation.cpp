@@ -15,7 +15,7 @@ Castro::fill_rotational_potential(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     GpuArray<Real, 3> r;
@@ -62,7 +62,7 @@ Castro::fill_rotational_psi(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     GpuArray<Real, 3> r;
@@ -79,8 +79,12 @@ Castro::fill_rotational_psi(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-
-    psi(i,j,k) = rotational_potential(r) / denom;
+    if (denom != 0.0) {
+        psi(i,j,k) = rotational_potential(r) / denom;
+    }
+    else {
+        psi(i,j,k) = 0.0;
+    }
 
   });
 }

@@ -31,7 +31,7 @@ Castro::fourth_interfaces(const Box& bx,
     // this loop is over interfaces
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       // interpolate to the edges -- this is a_{i-1/2}
@@ -95,7 +95,7 @@ Castro::fourth_interfaces(const Box& bx,
     // this loop is over interfaces
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       // interpolate to the edges
@@ -159,7 +159,7 @@ Castro::fourth_interfaces(const Box& bx,
     // this loop is over interfaces
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       // interpolate to the edges
@@ -252,7 +252,7 @@ Castro::states(const Box& bx,
     if (limit_fourth_order == 0) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
         al(i+1,j,k,ncomp) = a_int(i+1,j,k);
         ar(i,j,k,ncomp) = a_int(i,j,k);
@@ -266,7 +266,7 @@ Castro::states(const Box& bx,
       // i-1/2,R and i+1/2,L
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         al(i+1,j,k,ncomp) = a_int(i+1,j,k);
@@ -419,7 +419,7 @@ Castro::states(const Box& bx,
     if (limit_fourth_order == 0) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
         al(i,j+1,k,ncomp) = a_int(i,j+1,k);
         ar(i,j,k,ncomp) = a_int(i,j,k);
@@ -433,7 +433,7 @@ Castro::states(const Box& bx,
       // j-1/2,R and j+1/2,L
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
         al(i,j+1,k,ncomp) = a_int(i,j+1,k);
         ar(i,j,k,ncomp) = a_int(i,j,k);
@@ -584,7 +584,7 @@ Castro::states(const Box& bx,
     if (limit_fourth_order == 0) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
         al(i,j,k+1,ncomp) = a_int(i,j,k+1);
         ar(i,j,k,ncomp) = a_int(i,j,k);
@@ -596,7 +596,7 @@ Castro::states(const Box& bx,
       // k-1/2,R and k+1/2,L
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         al(i,j,k+1,ncomp) = a_int(i,j,k+1);
@@ -775,7 +775,7 @@ Castro::fourth_avisc(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real cmin;
@@ -858,7 +858,7 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     eos_t eos_state;

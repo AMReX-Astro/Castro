@@ -21,7 +21,7 @@ using std::string;
 using namespace amrex;
 
 #ifndef MHD
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 Real
 Castro::do_advance_sdc (Real time,
                         Real dt,
@@ -97,7 +97,7 @@ Castro::do_advance_sdc (Real time,
 #endif
 
       if (apply_sources()) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         if (sdc_order == 4) {
           // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
           // we'll use Sburn for this memory buffer at the moment
@@ -149,12 +149,6 @@ Castro::do_advance_sdc (Real time,
         }
 #endif
 
-        // store the result in sources_for_hydro -- this is what will
-        // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, old_source.nGrow());
-
-      } else {
-        sources_for_hydro.setVal(0.0, 0);
       }
 
       // Now compute the advective term for the current node -- this
@@ -221,7 +215,7 @@ Castro::do_advance_sdc (Real time,
       do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
 
       // we now have a new value of k_new[m+1], do a clean_state on it
-      clean_state(S_new, cur_time, 0);
+      clean_state(*(k_new[m+1]), cur_time, 0);
 
     }
 

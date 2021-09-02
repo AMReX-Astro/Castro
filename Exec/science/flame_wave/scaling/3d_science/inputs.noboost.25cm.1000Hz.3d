@@ -57,6 +57,9 @@ castro.react_rho_max = 5.e6
 
 castro.react_T_min = 6.e7
 
+castro.sponge_upper_density = 1.e2
+castro.sponge_lower_density = 1.e0
+castro.sponge_timescale     = 1.e-7
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -97,5 +100,40 @@ amr.plot_files_output = 0
 fab.format = NATIVE_32
 
 
-#PROBIN FILENAME
-amr.probin_file = probin.noboost.25cm.1000Hz
+# problem initialization
+
+problem.dtemp = 1.2e9
+problem.x_half_max = 4.096e4
+problem.x_half_width = 2048.0
+
+problem.dx_model = 25.0
+
+problem.dens_base = 3.43e6
+
+problem.T_star = 1.e8
+problem.T_hi = 2.e8
+problem.T_lo   = 8.e6
+
+problem.H_star = 2000.0
+problem.atm_delta  = 50.0
+
+problem.fuel1_name = "helium-4"
+problem.fuel1_frac = 1.0
+
+problem.ash1_name  = "nickel-56"
+problem.ash1_frac = 1.0
+
+problem.low_density_cutoff = 1.e-4
+
+problem.cutoff_density = 2.5e4
+problem.max_hse_tagging_level = 3
+problem.max_base_tagging_level = 2
+
+problem.X_min = 1.e-2
+
+problem.x_refine_distance = 9.216e4
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+
+network.use_tables = 1

@@ -45,14 +45,6 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How do I use a system’s BLAS library instead of compiling and
-   linking the one that comes with the StarKiller microphysics?*
-
-   To use a system’s BLAS library, set the Make variable
-   ``USE_SYSTEM_BLAS`` to ``TRUE``. This will then look at
-   the Make variable ``BLAS_LIBRARY`` for the library to link
-   (defaults to ``-lopenblas``).
-
 #. *How can I check to make sure the function signatures defined
    in C are consistent with their implementations in Fortran?*
 
@@ -63,6 +55,8 @@ Compiling
        make typecheck
 
    This will compile the code and report on any mismatched function signatures.
+
+.. _debugging_backtrace:
 
 Debugging
 =========
@@ -84,7 +78,7 @@ Debugging
    AMReX are controlled by AMReX(e.g., using interruption by the
    user, this was once used to find an MPI deadlock.) It also includes
    the ``AMREX_ASSERTION`` statements if ``USE_ASSERTION=TRUE`` or
-   DEBUG=TRUE.
+   ``DEBUG=TRUE``.
 
    The AMReX parameters that affect the behavior are:
 
@@ -94,27 +88,27 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, defining ``BACKTRACE=TRUE`` enables you
-   to get more information than the backtrace of the call stack info by
-   instrumenting the code. (This is in C code only). Here is an
+   For further capabilities, you can get 
+   more information than the backtrace of the call stack info by
+   instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
    causing a segfault. You could add a print statement before that.
    But it might print out thousands (or even millions) of line before
-   it hits the segfault. With ``BACKTRACE``, you could do
+   it hits the segfault. Instead, you could
 
-   ::
+   .. code:: c++
 
-             #ifdef AMREX_BACKTRACING
-                std::ostringstream ss;
-                ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
-                BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
-             #endif
+             std::ostringstream ss;
+             ss << "state.box() = " << state.box() << " cell = " << cell;
+             BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 
-   The “print” prints to a stack of string, not stdout. When it hits
+   The "print" prints to a stack of string, not stdout. When it hits
    the segfault, you will only see the last print out in the backtrace
    file (e.g. ``BackTrace.0``).
+
+   You may need to include the header ``AMReX_BLBackTrace.H``.
 
 #. *How can I monitor the state in a zone from the C side
    at various points in the evolution?*
@@ -181,13 +175,18 @@ Managing Runs
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are plot_and_continue to output
-   a plotfile, dump_and_stop to output a checkpoint file
-   and halt the code, and stop_run to simply stop the code.
-   Note that the parameter amr.message_int controls how often
-   the existence of these files is checked; by default it is 10, so the
-   check will be done at the end of every timestep that is a multiple of 10.
-   Set that to 1 in your inputs file if you’d like it to check every timestep.
+   to restart. Other options are ``plot_and_continue`` to output
+   a plotfile, ``dump_and_stop`` to output a checkpoint file
+   and halt the code, and ``stop_run`` to simply stop the code.
+
+
+   .. note::
+
+      The parameter ``amr.message_int`` controls how often the
+      existence of these files is checked; by default it is 10, so the
+      check will be done at the end of every timestep that is a
+      multiple of 10.  Set that to 1 in your inputs file if you’d like
+      it to check every timestep.
 
 #. *How can I output plotfiles in single precision?*
 

@@ -7,6 +7,41 @@
 
 using namespace amrex;
 
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+int
+check_trace_source(Array4<Real const> const& srcQ, const int idir,
+                   const int i, const int j, const int k, const int ncomp) {
+
+    int do_trace = 0;
+    if (idir == 0) {
+        for (int b = i-2; b <= i+2; b++) {
+            if (std::abs(srcQ(b,j,k,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    } else if (idir == 1) {
+        for (int b = j-2; b <= j+2; b++) {
+            if (std::abs(srcQ(i,b,k,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    } else {
+        for (int b = k-2; b <= k+2; b++) {
+            if (std::abs(srcQ(i,j,b,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    }
+
+    return do_trace;
+}
+
+
+
 ///
 /// Compute the coefficients of a parabolic reconstruction of the data in a zone.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
