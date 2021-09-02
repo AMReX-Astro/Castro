@@ -147,6 +147,16 @@ Castro::do_advance_ctu(Real time,
     }
 
 
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+    // the SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here
+
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
+
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn
 
@@ -323,7 +333,11 @@ Castro::do_advance_ctu(Real time,
             // Compute the reactive source term for use in the next iteration.
 
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, time, dt);
+            if (add_sdc_react_source_to_advection) {
+                get_react_source_prim(SDC_react_new, time, dt);
+            } else {
+                SDC_react_new.setVal(0.0);
+            }
 
             // Check for NaN's.
 
