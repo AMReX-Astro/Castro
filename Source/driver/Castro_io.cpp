@@ -33,7 +33,6 @@
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;
@@ -506,23 +505,6 @@ Castro::setPlotVariables ()
 #endif
 #endif
 
-  ParmParse pp("castro");
-
-  bool plot_X;
-
-  if (pp.query("plot_X",plot_X))
-  {
-      if (plot_X)
-      {
-          // Get the species names from the network model.
-          //
-          for (int i = 0; i < NumSpec; i++)
-          {
-              string spec_string = "X(" + short_spec_names_cxx[i] + ")";
-              parent->addDerivePlotVar(spec_string);
-          }
-      }
-  }
 }
 
 
@@ -791,19 +773,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   diffusion->output_job_info_params(jobInfoFile);
 #endif
 
+#include <prob_job_info_tests.H>
+
+#include <extern_job_info_tests.H>
+
   jobInfoFile.close();
-
-  // now the external parameters
-  const int jobinfo_file_length = FullPathJobInfoFile.length();
-  Vector<int> jobinfo_file_name(jobinfo_file_length);
-
-  for (int i = 0; i < jobinfo_file_length; i++) {
-    jobinfo_file_name[i] = FullPathJobInfoFile[i];
-  }
-
-  runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
-
-  prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
 }
 
@@ -952,6 +926,14 @@ Castro::plotFileOutput(const std::string& dir,
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
 
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        n_data_items += Castro::burn_weight_names.size();
+    }
+#endif
+#endif
+
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -994,6 +976,16 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i=0; i<Radiation::nplotvar; ++i) {
           os << Radiation::plotvar_names[i] << '\n';
         }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+        if (store_burn_weights) {
+            for (auto name: Castro::burn_weight_names) {
+                os << name << '\n';
+            }
+        }
+#endif
 #endif
 
         os << AMREX_SPACEDIM << '\n';
@@ -1138,6 +1130,15 @@ Castro::plotFileOutput(const std::string& dir,
         MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
         cnt += Radiation::nplotvar;
     }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
+        cnt += Castro::burn_weight_names.size();
+    }
+#endif
 #endif
 
     //

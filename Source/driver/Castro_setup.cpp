@@ -4,10 +4,10 @@
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
+#include <runtime_parameters.H>
 #ifdef RADIATION
 #include <Radiation.H>
 #include <RadDerive.H>
@@ -20,8 +20,10 @@
 #include <microphysics_F.H>
 #endif
 #include <eos.H>
+#ifdef NSE_THERMO
+#include <nse.H>
+#endif
 #include <ambient.H>
-#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -205,31 +207,9 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
-  // read the probdata parameters
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
-
-  // read the problem parameters into Fortran
-
-  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
-
-  // initialize the C++ values of the runtime parameters.  This
-  // will copy them from the Fortran read and also directly read
-  // any values that were set in the inputs file
+  // initialize the C++ values of the problem-specific runtime parameters.
 
   init_prob_parameters();
-
-  // now sync up the Fortran -- if a parameter was defined in C++, we need
-  // to pass it back to Fortran
-
-  cxx_to_f90_prob_parameters();
-
-  // Read in the non-problem parameter input values to Fortran.
-  ca_set_castro_method_params();
 
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
@@ -237,27 +217,28 @@ Castro::variableSetUp ()
   extern_init();
 
   // set small positive values of the "small" quantities if they are
-  // negative this mirrors the logic in ca_set_method_params for
-  // Fortran
+  // negative
   if (small_dens < 0.0_rt) {
-    small_dens = 1.e-200_rt;
+    small_dens = 1.e-100_rt;
   }
 
   if (small_temp < 0.0_rt) {
-    small_temp = 1.e-200_rt;
+    small_temp = 1.e-100_rt;
   }
 
   if (small_pres < 0.0_rt) {
-    small_pres = 1.e-200_rt;
+    small_pres = 1.e-100_rt;
   }
 
   if (small_ener < 0.0_rt) {
-    small_ener = 1.e-200_rt;
+    small_ener = 1.e-100_rt;
   }
 
+#ifdef MICROPHYSICS_FORT
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
-  ca_microphysics_init();
+  microphysics_initialize(small_temp, small_dens);
+#endif
 #endif
 
   // now initialize the C++ Microphysics
@@ -282,18 +263,36 @@ Castro::variableSetUp ()
   small_dens = new_min_rho;
   EOSData::mindens = new_min_rho;
 
+  // Given small_temp and small_dens, compute small_pres
+  // and small_ener, assuming a more restrictive value is
+  // not already provided by the user. We'll arbitrarily
+  // set the mass fraction for this call, since we presumably
+  // don't need to be too accurate, we just need to set a
+  // reasonable floor.
+
+  eos_t eos_state;
+
+  eos_state.rho = castro::small_dens;
+  eos_state.T = castro::small_temp;
+  for (int n = 0; n < NumSpec; ++n) {
+      eos_state.xn[n] = 1.0_rt / NumSpec;
+  }
+#ifdef NSE_THERMO
+  set_nse_aux_from_X(eos_state);
+#endif
+
+  eos(eos_input_rt, eos_state);
+
+  castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
+  castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
+
   // some consistency checks on the parameters
 #ifdef REACTIONS
 #ifdef TRUE_SDC
-  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
     use_retry = 0;
-  }
-  if (!abort_on_failure) {
-    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
-   abort_on_failure = 1;
-   ca_set_abort_on_failure(&abort_on_failure);
   }
 #else
   if (!use_retry && !abort_on_failure) {
@@ -326,26 +325,9 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Real run_strt = ParallelDescriptor::second() ;
-
-  // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm);
-
-  Real run_stop = ParallelDescriptor::second() - run_strt;
-
-  ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
-
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
-  }
-
   const Geometry& dgeom = DefaultGeometry();
 
   const int coord_type = dgeom.Coord();
-
-  ca_set_problem_params(dm,
-                        coord_type,
-                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
@@ -468,17 +450,15 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  // Components 0:NumSpec-1                are rho * omegadot_i
-  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
-  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
-  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
+  // Component is  rho_enuc = rho * (eout-ein)
+  // next NumSpec are rho * omegadot_i
+  // next NumAux are rho * auxdot_i
   store_in_checkpoint = false;
 
-  int num_react = 0;
+  int num_react = 1;
+
   if (store_omegadot == 1) {
-      num_react = NumSpec+NumAux+2;
-  } else {
-      num_react = 2;
+      num_react += NumSpec + NumAux;
   }
 
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
@@ -617,9 +597,9 @@ Castro::variableSetUp ()
 
 #ifdef MHD
   set_mag_field_bc(bc, phys_bc);
-  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
-  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
-  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, genericBndryFunc);
 #endif
 
 
@@ -662,18 +642,17 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
 
   if (store_omegadot == 1) {
 
-      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      // Reactions_Type includes the species -- we put those after rho_enuc
       std::string name_react;
       for (int i = 0; i < NumSpec; ++i)
       {
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+i, name_react, bc,genericBndryFunc);
       }
 #if NAUX_NET > 0
       std::string name_aux;
@@ -681,7 +660,22 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
+#endif
+  }
+
+  // names for the burn_weights that are manually added to the plotfile
+  
+  if (store_burn_weights) {
+
+#ifdef STRANG
+      burn_weight_names.push_back("burn_weights_firsthalf");
+      burn_weight_names.push_back("burn_weights_secondhalf");
+#endif
+#ifdef SIMPLIFIED_SDC
+      for (int n = 0; n < sdc_iters+1; n++) {
+          burn_weight_names.push_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }

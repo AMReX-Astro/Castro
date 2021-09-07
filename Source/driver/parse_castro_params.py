@@ -3,8 +3,7 @@
 """
 This script parses the list of C++ runtime parameters and writes the
 necessary header files and Fortran routines to make them available
-in Castro's C++ routines and (optionally) the Fortran routines
-through meth_params_module.
+in Castro's C++ routines.
 
 parameters have the format:
 
@@ -23,7 +22,7 @@ the first three (name, type, default) are mandatory:
 
 the next are optional:
 
-   need-in-fortran: if "y" then we do a pp.query() in meth_params_nd.F90
+   need-in-fortran: no longer used
 
    ifdef: only define this parameter if the name provided is #ifdef-ed
 
@@ -54,12 +53,6 @@ For a namespace, name, we write out:
      this tests the current value against the default and outputs
      into a file
 
-we write out a single copy of:
-
-  -- meth_params_nd.F90
-     does the parmparse query to override the default in Fortran,
-     and sets a number of other parameters specific to the F90 routines
-
 """
 
 import argparse
@@ -68,103 +61,12 @@ import sys
 
 import runtime_parameters as rp
 
-FWARNING = """
-! This file is automatically created by parse_castro_params.py at build time.
-! To update or add runtime parameters, please edit _cpp_parameters and rebuild.\n
-"""
-
 CWARNING = """
 // This file is automatically created by parse_castro_params.py at build time.
 // To update or add runtime parameters, please edit _cpp_parameters and rebuild.\n
 """
 
-def write_meth_module(plist, meth_template, out_directory):
-    """this writes the meth_params_module, starting with the meth_template
-       and inserting the runtime parameter declaration in the correct
-       place
-    """
-
-    try:
-        mt = open(meth_template, "r")
-    except IOError:
-        sys.exit("invalid template file")
-
-    try:
-        mo = open(f"{out_directory}/meth_params_nd.F90", "w")
-    except IOError:
-        sys.exit("unable to open meth_params_nd.F90 for writing")
-
-    mo.write(FWARNING)
-
-    param_decls = [p.get_f90_decl_string() for p in plist if p.in_fortran == 1]
-    params = [p for p in plist if p.in_fortran == 1]
-
-    decls = ""
-
-    for p in param_decls:
-        decls += f"  {p}"
-
-    for line in mt:
-        if line.find("@@f90_declarations@@") > 0:
-            mo.write(decls)
-
-        elif line.find("@@set_castro_params@@") >= 0:
-
-            namespaces = {q.namespace for q in params}
-            print("Fortran namespaces: ", namespaces)
-            for nm in namespaces:
-                params_nm = [q for q in params if q.namespace == nm]
-                ifdefs = {q.ifdef for q in params_nm}
-
-                for ifdef in ifdefs:
-                    if ifdef is None:
-                        for p in [q for q in params_nm if q.ifdef is None]:
-                            mo.write(p.get_f90_default_string())
-                    else:
-                        mo.write(f"#ifdef {ifdef}\n")
-                        for p in [q for q in params_nm if q.ifdef == ifdef]:
-                            mo.write(p.get_f90_default_string())
-                        mo.write("#endif\n")
-
-                mo.write("\n")
-
-                mo.write(f'    call amrex_parmparse_build(pp, "{nm}")\n')
-
-                for ifdef in ifdefs:
-                    if ifdef is None:
-                        for p in [q for q in params_nm if q.ifdef is None]:
-                            mo.write(p.get_query_string("F90"))
-                    else:
-                        mo.write(f"#ifdef {ifdef}\n")
-                        for p in [q for q in params_nm if q.ifdef == ifdef]:
-                            mo.write(p.get_query_string("F90"))
-                        mo.write("#endif\n")
-
-                mo.write('    call amrex_parmparse_destroy(pp)\n')
-
-                mo.write("\n\n")
-
-        elif line.find("@@free_castro_params@@") >= 0:
-
-            params_free = [q for q in params if q.in_fortran == 1]
-
-            for p in params_free:
-                if p.dtype != "string":
-                    mo.write(f"    if (allocated({p.name})) then\n")
-                    mo.write(f"        deallocate({p.name})\n")
-                    mo.write("    end if\n")
-
-            mo.write("\n\n")
-
-
-        else:
-            mo.write(line)
-
-    mo.close()
-    mt.close()
-
-
-def parse_params(infile, meth_template, out_directory):
+def parse_params(infile, out_directory):
 
     params = []
 
@@ -340,15 +242,10 @@ def parse_params(infile, meth_template, out_directory):
 
         jo.close()
 
-    # write the Fortran module
-    write_meth_module(params, meth_template, out_directory)
-
 
 def main():
     """the main driver"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", type=str, default=None,
-                        help="template for the meth_params module")
     parser.add_argument("-o", type=str, default=None,
                         help="output directory for the generated files")
     parser.add_argument("input_file", type=str, nargs=1,
@@ -356,7 +253,7 @@ def main():
 
     args = parser.parse_args()
 
-    parse_params(args.input_file[0], args.m, args.o)
+    parse_params(args.input_file[0], args.o)
 
 if __name__ == "__main__":
     main()

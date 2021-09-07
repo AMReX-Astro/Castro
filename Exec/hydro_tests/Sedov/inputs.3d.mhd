@@ -24,7 +24,6 @@ castro.ppm_type = 0
 castro.allow_negative_energy = 0
 
 #MHD
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 # TIME STEP CONTROL
