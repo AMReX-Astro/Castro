@@ -20,7 +20,9 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#ifdef MICROPHYSICS_FORT
 #include <extern_parameters_F.H>
+#endif
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -46,7 +48,9 @@
 #include <extern_parameters.H>
 #include <prob_parameters.H>
 
+#ifdef MICROPHYSICS_FORT
 #include <microphysics_F.H>
+#endif
 
 #include <problem_initialize.H>
 #include <problem_initialize_state_data.H>
@@ -101,7 +105,6 @@ Diffusion*    Castro::diffusion  = 0;
 #endif
 
 #ifdef RADIATION
-int          Castro::do_radiation = -1;
 
 // the radiation object
 Radiation*   Castro::radiation = 0;
@@ -192,7 +195,9 @@ Castro::variableCleanUp ()
 
 #if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
     // Fortran cleaning
+#ifdef MICROPHYSICS_FORT
     microphysics_finalize();
+#endif
 #endif
 
     // C++ cleaning
@@ -436,8 +441,6 @@ Castro::read_params ()
 #endif
 
 #ifdef RADIATION
-    pp.get("do_radiation",do_radiation);
-
     // Some radiation parameters are initialized here because they
     // may be used in variableSetUp, well before the call to the
     // Radiation constructor,
@@ -715,6 +718,11 @@ Castro::Castro (Amr&            papa,
       rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
+
+    // now check the runtime parameters to warn / abort if the user set
+    // anything that isn't known to Castro
+
+    validate_runparams();
 
 }
 
@@ -3406,6 +3414,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
+#ifdef MICROPHYSICS_FORT
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
@@ -3414,16 +3423,18 @@ Castro::extern_init ()
   }
 
   // read them in in Fortran from the probin file
-  ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
+  runtime_init(probin_file_name.dataPtr(),&probin_file_length);
+#endif
 
   // grab them from Fortran to C++; then read any C++ parameters directly
   // from inputs (via ParmParse)
   init_extern_parameters();
 
+#ifdef MICROPHYSICS_FORT
   // finally, update the Fortran side via ParmParse to override the
   // values of any parameters that were set in inputs
   update_fortran_extern_after_cxx();
-
+#endif
 
 }
 
@@ -3894,7 +3905,7 @@ Castro::create_source_corrector()
         source_corrector.mult(2.0 / lastDt, NUM_GROW_SRC);
 
     }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections && source_term_predictor == 1) {
 
         // If we're doing simplified SDC, time-center the source term (using the
         // current iteration's old sources and the last iteration's new
