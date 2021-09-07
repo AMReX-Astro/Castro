@@ -1,7 +1,7 @@
 # 21.10
 
    * The burn_weights are no longer stored by default in the plotfile.
-     Instead, they are not enabled by setting
+     Instead, they are now enabled by setting
      castro.store_burn_weights=1.  Additionally, they now give a better
      estimate of the cost for the numerical Jacobian (#1946, #1949)
 
