@@ -9,7 +9,8 @@
     bool react_state(amrex::MultiFab& state,
                      amrex::MultiFab& reactions,
                      amrex::Real time,
-                     amrex::Real dt);
+                     amrex::Real dt,
+                     const int strang_half);
 
 ///
 /// Simplified SDC version of react_state. Reacts the current state through a single timestep.

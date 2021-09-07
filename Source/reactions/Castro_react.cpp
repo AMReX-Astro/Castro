@@ -8,7 +8,7 @@ using namespace amrex;
 // Strang version
 
 bool
-Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
+Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
     BL_PROFILE("Castro::react_state()");
 
@@ -70,6 +70,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
+        auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -138,25 +139,30 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 if (reactions.contains(i,j,k)) {
 
                     reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
-                    if (jacobian == 1) {
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
-                    } else {
-                        // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
-                    }
 
                     if (store_omegadot == 1) {
                         if (reactions.contains(i,j,k)) {
                             for (int n = 0; n < NumSpec; ++n) {
-                                reactions(i,j,k,2+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
+                                reactions(i,j,k,1+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                             }
 #if NAUX_NET > 0
                             for (int n = 0; n < NumAux; ++n) {
-                                reactions(i,j,k,2+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
+                                reactions(i,j,k,1+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
                             }
 #endif
                         }
                     }
+
+                    if (store_burn_weights) {
+
+                        if (jacobian == 1) {
+                            weights(i,j,k,strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                        } else {
+                            // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                            weights(i,j,k,strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
+                        }
+                    }
+
                 }
 
                 // update the state
@@ -175,13 +181,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
             } else {
 
                 if (reactions.contains(i,j,k)) {
-                    reactions(i,j,k,0) = 0.0_rt;
-                    reactions(i,j,k,1) = 1.0_rt;
-
-                    if (store_omegadot == 1) {
-                        for (int n = 0; n < NumSpec + NumAux; ++n) {
-                            reactions(i,j,k,2+n) = 0.0_rt;
-                        }
+                    for (int n = 0; n < reactions.nComp(); n++) {
+                        reactions(i,j,k,n) = 0.0_rt;
                     }
                 }
 
@@ -310,6 +311,7 @@ Castro::react_state(Real time, Real dt)
         auto U_new = S_new.array(mfi);
         auto asrc = A_src.array(mfi);
         auto react_src = reactions.array(mfi);
+        auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         int lsdc_iteration = sdc_iteration;
 
@@ -362,84 +364,88 @@ Castro::react_state(Real time, Real dt)
                 do_burn = false;
             }
 
-             // Tell the integrator about the non-reacting source terms.
+            // Tell the integrator about the non-reacting source terms.
 
-             burn_state.ydot_a[SRHO] = asrc(i,j,k,URHO);
-             burn_state.ydot_a[SMX] = asrc(i,j,k,UMX);
-             burn_state.ydot_a[SMY] = asrc(i,j,k,UMY);
-             burn_state.ydot_a[SMZ] = asrc(i,j,k,UMZ);
-             burn_state.ydot_a[SEDEN] = asrc(i,j,k,UEDEN);
-             burn_state.ydot_a[SEINT] = asrc(i,j,k,UEINT);
-             for (int n = 0; n < NumSpec; n++) {
-                 burn_state.ydot_a[SFS+n] = asrc(i,j,k,UFS+n);
-             }
-             for (int n = 0; n < NumAux; n++) {
-                 burn_state.ydot_a[SFX+n] = asrc(i,j,k,UFX+n);
-             }
+            burn_state.ydot_a[SRHO] = asrc(i,j,k,URHO);
+            burn_state.ydot_a[SMX] = asrc(i,j,k,UMX);
+            burn_state.ydot_a[SMY] = asrc(i,j,k,UMY);
+            burn_state.ydot_a[SMZ] = asrc(i,j,k,UMZ);
+            burn_state.ydot_a[SEDEN] = asrc(i,j,k,UEDEN);
+            burn_state.ydot_a[SEINT] = asrc(i,j,k,UEINT);
+            for (int n = 0; n < NumSpec; n++) {
+                burn_state.ydot_a[SFS+n] = asrc(i,j,k,UFS+n);
+            }
+            for (int n = 0; n < NumAux; n++) {
+                burn_state.ydot_a[SFX+n] = asrc(i,j,k,UFX+n);
+            }
 
-             // dual energy formalism: in doing EOS calls in the burn,
-             // switch between e and (E - K) depending on (E - K) / E.
+            // dual energy formalism: in doing EOS calls in the burn,
+            // switch between e and (E - K) depending on (E - K) / E.
 
-             burn_state.i = i;
-             burn_state.j = j;
-             burn_state.k = k;
+            burn_state.i = i;
+            burn_state.j = j;
+            burn_state.k = k;
 
-             burn_state.sdc_iter = lsdc_iteration;
-             burn_state.num_sdc_iters = sdc_iters;
+            burn_state.sdc_iter = lsdc_iteration;
+            burn_state.num_sdc_iters = sdc_iters;
 
-             if (do_burn) {
-                 burner(burn_state, dt);
-             }
+            if (do_burn) {
+                burner(burn_state, dt);
+            }
 
-             // If we were unsuccessful, update the failure count.
+            // If we were unsuccessful, update the failure count.
 
-             if (!burn_state.success) {
-                 burn_failed = 1.0_rt;
-             }
+            if (!burn_state.success) {
+                burn_failed = 1.0_rt;
+            }
 
-             if (do_burn) {
+            if (do_burn) {
 
-                 // update the state data.
+                // update the state data.
 
-                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
-                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
-                 for (int n = 0; n < NumSpec; n++) {
-                     U_new(i,j,k,UFS+n) = burn_state.y[SFS+n];
-                 }
+                U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
+                U_new(i,j,k,UEINT) = burn_state.y[SEINT];
+                for (int n = 0; n < NumSpec; n++) {
+                    U_new(i,j,k,UFS+n) = burn_state.y[SFS+n];
+                }
 #if NAUX_NET > 0
-                 for (int n = 0; n < NumAux; n++) {
-                     U_new(i,j,k,UFX+n) = burn_state.y[SFX+n];
-                 }
+                for (int n = 0; n < NumAux; n++) {
+                    U_new(i,j,k,UFX+n) = burn_state.y[SFX+n];
+                }
 #endif
 
-                 if (react_src.contains(i,j,k)) {
-                     // store the reaction data for the plotfile.
-                     // Note, we want to just capture the reaction
-                     // portion here, so we subtract off the advective
-                     // part.
+                if (react_src.contains(i,j,k)) {
+                    // store the reaction data for the plotfile.
+                    // Note, we want to just capture the reaction
+                    // portion here, so we subtract off the advective
+                    // part.
 
-                     // rho enuc
-                     react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
+                    // rho enuc
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
 
-                     // burn weights
-                     if (jacobian == 1) {
-                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
-                     } else {
-                         // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
-                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
-                     }
-
-                     if (store_omegadot) {
-                         // rho omegadot_k
-                         for (int n = 0; n < NumSpec; ++n) {
-                             react_src(i,j,k,2+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
-                         }
+                    if (store_omegadot) {
+                        // rho omegadot_k
+                        for (int n = 0; n < NumSpec; ++n) {
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
+                        }
 #if NAUX_NET > 0
-                         // rho auxdot_k
-                         for (int n = 0; n < NumAux; ++n) {
-                             react_src(i,j,k,2+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
-                         }
+                        // rho auxdot_k
+                        for (int n = 0; n < NumAux; ++n) {
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
+                        }
 #endif
+                    }
+
+                    // burn weights
+
+                    if (store_burn_weights) {
+
+                         if (jacobian == 1) {
+                             weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                         } else {
+                             // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                             weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
+                         }
                      }
 
                  }
