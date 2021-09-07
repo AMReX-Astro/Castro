@@ -1136,6 +1136,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifndef TRUE_SDC
     if (store_burn_weights) {
         MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
+        cnt += Castro::burn_weight_names.size();
     }
 #endif
 #endif
