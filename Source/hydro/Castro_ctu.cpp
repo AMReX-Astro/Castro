@@ -456,10 +456,13 @@ Castro::add_species_source_to_states(const Box& bx, const int idir, const Real d
             } else {
                 qleft(i,j,k,n) += 0.5 * dt * src_q(i,j,k-1,n);
             }
-            qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
-
             qright(i,j,k,n) += 0.5 * dt * src_q(i,j,k,n);
-            qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+
+            if (n >= QFS && n <= QFS-1+NumSpec) {
+                // mass fractions should be in [0, 1]
+                qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
+                qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+            }
         }
 
     });
@@ -495,7 +498,7 @@ Castro::src_to_prim(const Box& bx, const Real dt,
               if (n == UMX || n == UMY || n == UMZ) {
                   srcU[n] += 0.5 * dt * src_corr(i,j,k,n);
               }
-          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections  && source_term_predictor == 1) {
               srcU[n] += src_corr(i,j,k,n);
           }
 #endif

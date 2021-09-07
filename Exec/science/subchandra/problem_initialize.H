@@ -41,6 +41,18 @@ void problem_initialize ()
 
     read_model_file(problem::model_name);
 
+    // find the distance (starting from the center) where the He layer begins
+
+    problem::R_He_base = 0.0;
+
+    for (int n = 0; n < model::npts; n++) {
+        if (model::profile(0).state(n, model::ispec+problem::ihe4) > 0.5_rt) {
+            problem::R_He_base = model::profile(0).r(n);
+            break;
+        }
+    }
+
+    amrex::Print() << "base of He layer found at " << problem::R_He_base << std::endl;
 }
 
 #endif

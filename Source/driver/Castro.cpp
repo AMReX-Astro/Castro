@@ -3835,7 +3835,7 @@ Castro::create_source_corrector()
         source_corrector.mult(2.0 / lastDt, NUM_GROW_SRC);
 
     }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections && source_term_predictor == 1) {
 
         // If we're doing simplified SDC, time-center the source term (using the
         // current iteration's old sources and the last iteration's new
