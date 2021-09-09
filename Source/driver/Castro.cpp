@@ -440,6 +440,12 @@ Castro::read_params ()
         amrex::Error();
       }
 
+    if (change_max <= 1.0)
+    {
+        std::cerr << "change_max must be greater than 1.0\n";
+        amrex::Error();
+    }
+
 #ifdef AMREX_PARTICLES
     read_particle_params();
 #endif

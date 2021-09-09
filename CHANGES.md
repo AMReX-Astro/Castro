@@ -5,6 +5,9 @@
      castro.store_burn_weights=1.  Additionally, they now give a better
      estimate of the cost for the numerical Jacobian (#1946, #1949)
 
+   * castro.change_max is now required to be greater than 1.0. To enforce
+     a timestep cap but still allow the timestep to decrease, use
+     castro.max_dt. (#1976)
 
 # 21.09
 
