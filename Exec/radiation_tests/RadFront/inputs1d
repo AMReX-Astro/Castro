@@ -80,7 +80,6 @@ castro.small_dens =1.0e-10
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.0e-9 
 
 castro.fixed_dt       = 1.3e-12
 
