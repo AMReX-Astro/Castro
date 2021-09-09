@@ -2901,6 +2901,59 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 }
 
 void
+Gravity::add_planegrav(int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass )
+{
+        BL_PROFILE("Gravity::add_planegrav()");
+    
+    const auto dx     = parent->Geom(level).CellSizeArray();
+    const auto problo = parent->Geom(level).ProbLoArray();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox();
+
+        Array4<Real> const grav_arr = grav_vector.array(mfi);
+        Array4<Real> const phi_arr = phi.array(mfi);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+            Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+            Real z = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[2] - problem::center[2];
+            Real rsq;
+
+            if(castro::point_mass_offset_is_true == 1){
+                Real star_radius = castro::point_mass_location_offset;
+            }
+
+            if(AMREX_SPACEDIM == 1){
+                variable_r = x,
+            } else if(AMREX_SPACEDIM ==2){
+                variable_r = y;
+            } else if(AMREX_SPACEDIM == 3){
+                variable_r = z;
+            }
+
+            total_radius = star_radius + variable_r;
+            total_radius_sq = total_radius * total_radius;
+            total_radius_inv = 1.0_rt / total_radius;
+
+            grav_array[0] = -C::Gconst * Castro::point_mass / total_radius_sq * (x/total_radius); 
+            grav_array[1] = -C::Gconst * Castro::point_mass / total_radius_sq * (y/total_radius);
+            grav_array[2] = -C::Gconst * Castro::point_mass / total_radius_sq * (z/total_radius);
+
+            if (phi_arr.contains(i,j,k)) {
+                phi_arr(i,j,k) -= C::Gconst * castro::point_mass / total_radius;
+            }
+        })
+    }
+}
+
+void
 Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
     BL_PROFILE("Gravity::add_pointmass_to_gravity()");
