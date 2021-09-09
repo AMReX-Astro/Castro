@@ -1,1 +1,4 @@
 model_name      character       ""     y
+perturb_model   int            0
+velpert_amplitude  real         1.e5
+velpert_scale   real            1.e7
