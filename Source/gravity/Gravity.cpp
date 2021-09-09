@@ -8,7 +8,6 @@
 #include <AMReX_ParmParse.H>
 #include <Gravity.H>
 #include <Castro.H>
-#include <Gravity_F.H>
 #include <Castro_F.H>
 
 #include <AMReX_FillPatchUtil.H>
@@ -110,11 +109,10 @@ Gravity::read_params ()
 
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
-             (gravity::gravity_type != "MonopoleGrav") &&
-             (gravity::gravity_type != "PrescribedGrav") )
+             (gravity::gravity_type != "MonopoleGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
-                amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
+                amrex::Abort("Options are ConstantGrav, PoissonGrav, or MonopoleGrav");
              }
 
         if (  gravity::gravity_type == "ConstantGrav")
@@ -873,11 +871,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
        make_radial_gravity(level,prev_time,radial_grav_old[level]);
        interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-        MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
-      make_prescribed_grav(level,time,grav,phi);
-
     } else if (gravity::gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
@@ -950,11 +943,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
         const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
         make_radial_gravity(level,cur_time,radial_grav_new[level]);
         interpolate_monopole_grav(level,radial_grav_new[level],grav);
-
-    } else if (gravity::gravity_type == "PrescribedGrav") {
-
-    MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
-    make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
@@ -1306,53 +1294,6 @@ Gravity::test_composite_phi (int crse_level)
         }
     }
     if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
-}
-
-void
-Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
-{
-    BL_PROFILE("Gravity::make_prescribed_grav()");
-    
-    const Real strt = ParallelDescriptor::second();
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-       const Box& bx = mfi.growntilebox();
-       ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                         BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
-    }
-
-    if (gravity::verbose)
-    {
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl << std::endl;
-#ifdef BL_LAZY
-        });
-#endif
-    }
 }
 
 void
@@ -3254,16 +3195,83 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     for (int i = 0; i < n1d; i++)
         if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
-
-    // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
-    ca_integrate_gr_grav(radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
-                         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
-
-#else
-    // Integrate radially outward to define the gravity
-    ca_integrate_grav(radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
-                      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d);
 #endif
+
+    // Integrate radially outward to define the gravity
+
+    Real halfdr = 0.5_rt * dr;
+
+    Real mass_encl = 0.0_rt;
+    Real vol_total_i, vol_outer_shell, vol_upper_shell;
+
+    Real* const den = radial_den_summed.dataPtr();
+    Real* const mass = radial_mass_summed.dataPtr();
+#ifdef GR_GRAV
+    Real* const pres = radial_pres_summed.dataPtr();
+#endif
+    Real* const grav = radial_grav.dataPtr();
+
+    for (int i = 0; i < n1d; ++i) {
+        Real rlo = (static_cast<Real>(i)         ) * dr;
+        Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
+        Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
+
+        if (i == 0) {
+
+            // The mass at (i) is distributed into these two regions
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * rc * rc * rc;
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * (rhi * rhi * rhi - rc * rc * rc);
+            vol_total_i     = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = vol_outer_shell * mass[i] / vol_total_i;
+
+        }
+        else if (rc < max_radius_all_in_domain) {
+
+            // The mass at (i-1) is distributed into these two shells
+            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
+            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
+            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+
+            // The mass at (i)   is distributed into these two shells
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
+            vol_total_i          = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1] +
+                                    (vol_outer_shell / vol_total_i  ) * mass[i  ];
+
+        }
+        else {
+
+            // The mass at (i-1) is distributed into these two shells
+            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
+            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
+            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+
+            // The mass at (i)   is distributed into these two shells
+            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
+            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
+            vol_total_i          = vol_outer_shell + vol_upper_shell;
+
+            mass_encl = mass_encl + vol_inner_shell * den[i-1] + vol_outer_shell * den[i];
+        }
+
+        grav[i] = -C::Gconst * mass_encl / (rc * rc);
+
+#ifdef GR_GRAV
+        // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
+
+        if (den[i] > 0.0_rt) {
+            Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
+            Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
+            Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+
+            grav[i] = grav[i] * ga * gb * gc;
+        }
+#endif
+
+    }
 
     if (gravity::verbose)
     {

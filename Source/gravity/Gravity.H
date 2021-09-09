@@ -347,15 +347,6 @@ public:
 ///
   void interpolate_monopole_grav(int level, RealVector& radial_grav, amrex::MultiFab& grav_vector);
 
-
-///
-/// @param level    Level index
-/// @param time     Current time
-/// @param grav     Gravitational acceleration
-/// @param phi      Gravitational potential
-///
-  void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
-
 ///
 /// Integrate radially outward to find radial mass distribution
 ///

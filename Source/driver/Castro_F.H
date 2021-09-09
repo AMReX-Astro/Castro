@@ -9,25 +9,6 @@ extern "C"
 {
 #endif
 
-  void ca_microphysics_init();
-
-  void ca_extern_init(const int* name, const int* namlen);
-
-#ifdef REACTIONS
-  void ca_set_abort_on_failure(int * abort_on_failure);
-#endif
-
-  void ca_set_method_params
-    (const int& dm);
-
-  void ca_finalize_meth_params();
-
-  void ca_set_castro_method_params();
-
-  void ca_set_problem_params
-    (const int& dm,
-     const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi);
 
 #ifdef RADIATION
   void ca_inelastic_sct
@@ -45,14 +26,6 @@ extern "C"
      const int* lo, const int* hi,
      const amrex::Real * dt);
 #endif
-
-
-
-
-/* sources */
-#include <Castro_sources_F.H>
-
-
 
 #ifdef __cplusplus
 }
