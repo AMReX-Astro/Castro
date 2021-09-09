@@ -166,9 +166,6 @@ void problem_initialize_state_data (int i, int j, int k,
             }
         }
 
-        // const auto velpert_r_outer = problem::velpert_radius;
-        // const Real velpert_r_inner = 0.0_rt;
-
         // set perturbational velocity to zero
         Real vpert[3];
 
@@ -226,13 +223,6 @@ void problem_initialize_state_data (int i, int j, int k,
         // add perturbational velocity to background velocity
         for (auto n = 0; n < 3; ++n) {
             vpert[n] *= problem::velpert_amplitude * state(i, j, k, UFS + isi28);
-                        // * 0.5_rt *
-                        // (1.0_rt + std::tanh((velpert_r_outer -
-                        //                     problem::velpert_steep - rloc) /
-                        //                     problem::velpert_steep)) * 0.5_rt *
-                        // (1.0_rt + std::tanh((rloc - velpert_r_inner -
-                        //                     problem::velpert_steep) /
-                        //                     problem::velpert_steep));
 
             state(i, j, k, UMX + n) += vpert[n];
         }
