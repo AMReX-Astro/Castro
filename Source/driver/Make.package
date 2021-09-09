@@ -51,7 +51,4 @@ ifdef NEED_MGUTIL
   CEXE_headers += MGutils.H
 endif
 
-ifeq ($(USE_MHD),TRUE)
-  ca_f90EXE_sources += filfc.f90
-endif
 CEXE_sources += timestep.cpp

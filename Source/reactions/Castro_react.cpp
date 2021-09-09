@@ -138,7 +138,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 if (reactions.contains(i,j,k)) {
 
                     reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
-                    reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    if (jacobian == 1) {
+                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    } else {
+                        // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
+                    }
 
                     if (store_omegadot == 1) {
                         if (reactions.contains(i,j,k)) {
@@ -375,8 +380,6 @@ Castro::react_state(Real time, Real dt)
              // dual energy formalism: in doing EOS calls in the burn,
              // switch between e and (E - K) depending on (E - K) / E.
 
-             burn_state.T_from_eden = false;
-
              burn_state.i = i;
              burn_state.j = j;
              burn_state.k = k;
@@ -419,7 +422,12 @@ Castro::react_state(Real time, Real dt)
                      react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
 
                      // burn weights
-                     react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                     if (jacobian == 1) {
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                     } else {
+                         // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
+                         react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
+                     }
 
                      if (store_omegadot) {
                          // rho omegadot_k
@@ -457,7 +465,7 @@ Castro::react_state(Real time, Real dt)
 
     if (print_update_diagnostics) {
 
-        Real e_added = reactions.sum(NumSpec + NumAux);
+        Real e_added = reactions.sum(0);
 
         if (e_added != 0.0)
             amrex::Print() << "... (rho e) added from burning: " << e_added * dt << std::endl << std::endl;
