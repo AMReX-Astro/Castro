@@ -700,7 +700,8 @@ that requested by the timestep estimators</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">change_max</span></code></p></td>
 <td><p>the maximum factor by which the timestep can increase
-or decrease from one step to the next</p></td>
+or decrease from one step to the next. Must be greater
+than 1.0—use max_dt to set a cap on the timestep.</p></td>
 <td><p>1.1</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
