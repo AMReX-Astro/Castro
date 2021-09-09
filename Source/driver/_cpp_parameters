@@ -483,6 +483,13 @@ point_mass_fix_solution      int           0                  n        GRAVITY
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
 
+# This integer is used to activate parallel plane 1/r**2 gravity.
+point mass_offset_is_true    int           0                  n        GRAVITY
+
+# Distance, shifted from the origin, and used to compute the gravity on
+# plane parallel due to the action of an star with a radius given by this offset. 
+
+point_mass_location_offset   Real          0.0                n        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: sponge
