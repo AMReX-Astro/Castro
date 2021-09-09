@@ -138,7 +138,7 @@ Castro::sum_integrated_quantities ()
 
 #ifdef ROTATION
       if (do_rotation)
-	rho_phirot += ca_lev.volProductSum("density", "phiRot", time, local_flag);
+	rho_phirot += ca_lev.volWgtSum("rho_phiRot", time, local_flag);
 #endif
 
     }
