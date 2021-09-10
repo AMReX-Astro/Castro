@@ -74,7 +74,7 @@ amr.derive_plot_vars = NONE
 
 # PROBLEM PARAMETERS
 problem.rho_0 = 1.0e7
-problem.p_0   = 1.0e8
+problem.p_0   = 1.0e16
 problem.rho_ambient = 1.0e-4
 problem.r_0   = 4.0e8
 problem.r_offset = 1.0e8
