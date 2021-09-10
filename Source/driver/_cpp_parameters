@@ -484,7 +484,7 @@ point_mass_fix_solution      int           0                  n        GRAVITY
 gw_dist                      Real          0.0                n        GRAVITY
 
 # This integer is used to activate parallel plane 1/r**2 gravity.
-point mass_offset_is_true    int           0                  n        GRAVITY
+point_mass_offset_is_true    int           0                  n        GRAVITY
 
 # Distance, shifted from the origin, and used to compute the gravity on
 # plane parallel due to the action of an star with a radius given by this offset. 
