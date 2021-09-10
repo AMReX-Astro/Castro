@@ -2950,12 +2950,8 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
             }
 
             grav_arr(i,j,k,0) += radial_force * (x * rinv);
-#if AMREX_SPACEDIM >= 2
             grav_arr(i,j,k,1) += radial_force * (y * rinv);
-#endif
-#if AMREX_SPACEDIM == 3
             grav_arr(i,j,k,2) += radial_force * (z * rinv);
-#endif
         });
     }
 }
