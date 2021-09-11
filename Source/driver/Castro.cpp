@@ -3007,6 +3007,11 @@ Castro::avgDown ()
   if (level == parent->finestLevel()) return;
 
   for (int k = 0; k < num_state_type; k++) {
+      if (k == Simplified_SDC_React_Type) {
+          // Simplified_SDC_React_Type is a time derivative and not
+          // really conserved, so we don't average down.
+          continue;
+      }
       avgDown(k);
   }
 
