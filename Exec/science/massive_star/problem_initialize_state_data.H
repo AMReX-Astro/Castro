@@ -131,6 +131,102 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
+    if (problem::perturb_model) {
+        // random numbers between -1 and 1
+        GpuArray<Real, 27> alpha;
+        GpuArray<Real, 27> beta;
+        GpuArray<Real, 27> gamma;
+
+        // random numbers between 0 and 2*pi
+        GpuArray<Real, 27> phix;
+        GpuArray<Real, 27> phiy;
+        GpuArray<Real, 27> phiz;
+
+        // compute the norm of k
+        GpuArray<Real, 27> normk;
+
+        for (int kk = 1; kk <= 3; ++kk) {
+            for (int jj = 1; jj <= 3; ++jj) {
+                for (int ii = 1; ii <= 3; ++ii) {
+                    const int n = ii - 1 + 3 * (jj - 1 + 3 * (kk - 1));
+
+                    alpha[n] = std::pow(0.5_rt, ii) * std::pow(0.7_rt, jj) * std::pow(0.3_rt, kk) * std::pow(-1.0_rt, ii);
+                    beta[n] = std::pow(0.5_rt, ii) * std::pow(0.3_rt, jj) * std::pow(0.7_rt, kk) * std::pow(-1.0_rt, jj);
+                    gamma[n] = std::pow(0.3_rt, ii) * std::pow(0.5_rt, jj) * std::pow(0.7_rt, kk) * std::pow(-1.0_rt, kk);
+
+                    phix[n] = std::pow(0.3_rt, ii) * std::pow(0.7_rt, jj) * std::pow(0.5_rt, kk);
+                    phix[n] *= 2.0_rt * M_PI;
+                    phiy[n] = std::pow(0.7_rt, ii) * std::pow(0.3_rt, jj) * std::pow(0.5_rt, kk);
+                    phiy[n] *= 2.0_rt * M_PI;
+                    phiz[n] = std::pow(0.7_rt, ii) * std::pow(0.5_rt, jj) * std::pow(0.3_rt, kk);
+                    phiz[n] *= 2.0_rt * M_PI;
+
+                    normk[n] = std::sqrt(Real(ii * ii) + Real(jj * jj) + Real(kk * kk));
+                }
+            }
+        }
+
+        // set perturbational velocity to zero
+        Real vpert[3];
+
+        for (auto n = 0; n < 3; ++n) {
+            vpert[n] = 0.0_rt;
+        }
+
+        // compute distance to the center of the star
+        Real rloc = std::sqrt(x * x + y * y + z * z);
+
+        // loop over the 27 combinations of Fourier components
+        for (int kk = 1; kk <= 3; ++kk) {
+            for (int jj = 1; jj <= 3; ++jj) {
+                for (int ii = 1; ii <= 3; ++ii) {
+                    // array index
+                    const int n = ii - 1 + 3 * (jj - 1 + 3 * (kk - 1));
+                    // compute cosines and sines
+                    Real cx = std::cos(2.0_rt * M_PI * Real(ii) *
+                                        (x + problem::center[0]) /
+                                        problem::velpert_scale + phix[n]);
+                    Real cy = std::cos(2.0_rt * M_PI * Real(jj) *
+                                        (y + problem::center[1]) / 
+                                        problem::velpert_scale + phiy[n]);
+                    Real cz = std::cos(2.0_rt * M_PI * Real(kk) *
+                                        (z + problem::center[2]) /
+                                        problem::velpert_scale + phiz[n]);
+
+                    Real sx = std::sin(2.0_rt * M_PI * Real(ii) *
+                                        (x + problem::center[0]) /
+                                        problem::velpert_scale + phix[n]);
+                    Real sy = std::sin(2.0_rt * M_PI * Real(jj) *
+                                        (y + problem::center[1]) /
+                                        problem::velpert_scale + phiy[n]);
+                    Real sz = std::sin(2.0_rt * M_PI * Real(kk) *
+                                        (z + problem::center[2]) /
+                                        problem::velpert_scale + phiz[n]);
+
+                    // compute contribution from perturbation velocity from each mode
+                    vpert[0] += (-gamma[n] * Real(jj) * cx * cz * sy +
+                                    beta[n] * Real(kk) * cx * cy * sz) / normk[n];
+
+                    vpert[1] += (gamma[n] * Real(ii) * cy * cz * sx -
+                                    alpha[n] * Real(kk) * cx * cy * sz) / normk[n];
+
+                    vpert[2] += (-beta[n] * Real(ii) * cy * cz * sx +
+                                    alpha[n] * Real(jj) * cx * cz * sy) / normk[n];
+                }
+            }
+        }
+
+        // convolve perturbation by Si28 mass fraction
+        const int isi28 = network_spec_index("silicon-28");
+
+        // apply the cutoff function to the perturbational velocity
+        // add perturbational velocity to background velocity
+        for (auto n = 0; n < 3; ++n) {
+            vpert[n] *= problem::velpert_amplitude * state(i, j, k, UFS + isi28);
+
+            state(i, j, k, UMX + n) += vpert[n];
+        }
+    }
 }
 
 #endif

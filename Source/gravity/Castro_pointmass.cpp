@@ -57,12 +57,21 @@ Castro::pointmass_update(Real time, Real dt)
                 const int box_size = 2;
 
                 int istart = amrex::max(icen - box_size, bx.smallEnd(0));
-                int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
-                int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
-
                 int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+#if AMREX_SPACEDIM >= 2
+                int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
                 int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+#else
+                int jstart = 0;
+                int jend = 0;
+#endif
+#if AMREX_SPACEDIM == 3
+                int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
                 int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+#else
+                int kstart = 0;
+                int kend = 0;
+#endif
 
                 Real delta_mass_tmp = 0.0_rt;
 
@@ -131,12 +140,23 @@ Castro::pointmass_update(Real time, Real dt)
                     const int box_size = 2;
 
                     int istart = amrex::max(icen - box_size, bx.smallEnd(0));
-                    int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
-                    int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
-
                     int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+
+#if AMREX_SPACEDIM >= 2
+                    int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
                     int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+#else
+                    int jstart = 0;
+                    int jend = 0;
+#endif
+
+# if AMREX_SPACEDIM == 3
+                    int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
                     int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+#else
+                    int kstart = 0;
+                    int kend = 0;
+#endif
 
                     if (i >= istart && i <= iend &&
                         j >= jstart && j <= jend &&

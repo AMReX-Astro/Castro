@@ -2924,8 +2924,17 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
             // Compute radial gravity due to a point mass at center[:].
 
             Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
             Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+            Real y = 0.0;
+#endif
+#if AMREX_SPACEDIM == 3
             Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+            Real z = 0.0;
+#endif
+
 
             Real rsq = x * x + y * y + z * z;
             Real radial_force = -C::Gconst * castro::point_mass / rsq;
