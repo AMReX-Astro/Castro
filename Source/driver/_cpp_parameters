@@ -327,7 +327,8 @@ cfl                          Real          0.8
 init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase or decrease from
-# one step to the next
+# one step to the next. Must be greater than 1.0---use max_dt to set a cap
+# on the timestep.
 change_max                   Real          1.1
 
 # enforce that the AMR plot interval must be hit exactly
@@ -483,6 +484,13 @@ point_mass_fix_solution      int           0                  n        GRAVITY
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
 
+# This integer is used to activate parallel plane 1/r**2 gravity.
+point_mass_offset_is_true    int           0                  n        GRAVITY
+
+# Distance, shifted from the origin, and used to compute the gravity on
+# plane parallel due to the action of an star with a radius given by this offset. 
+
+point_mass_location_offset   Real          0.0                n        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: sponge
@@ -624,9 +632,13 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
-# Do we store the species creation rates in the plotfile.  Note, if this option is
+# Do we store the species creation rates in the plotfile?  Note, if this option is
 # enabled then more memory will be allocated to hold the results of the burn
 store_omegadot               int            0
+
+# Do we store the burn weights as a diagnostic in the plotfile?    Note, if this option is
+# enabled then more memory will be allocated to hold the results of the burn
+store_burn_weights           int            0
 
 # Do we abort the run if the inputs file specifies a runtime parameter that we don't
 # know about?  Note: this will only take effect for those namespaces where 100%
