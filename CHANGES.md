@@ -18,6 +18,11 @@
    * castro.add_sdc_react_source_to_advection was added to disable
      react source to advection in simplified-SDC (#1969)
 
+   * _cpp_parameters and Gravity.cpp were modified to introduce parallel plane
+     gravity by setting the radius of the star by castro.point_mass_location_offset
+     and the integer castro.point_mass_offset_is_true == 1. By default, both parameters
+     are 0.0 and 0, respectively.
+
 # 21.07
 
    * The sponge is now applied in a fully implicit manner at the end of
