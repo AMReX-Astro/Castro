@@ -404,7 +404,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -461,6 +461,11 @@ namespace: ``castro``
 |                                        | castro.sum_interval > 0 and if set to a positive        |               |
 |                                        | number. A standard value in the literature is 10.0      |               |
 |                                        | (kpc).                                                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass_offset_is_true``          | This integer is used to activate parallel plane 1/r**2  | 0             |
+|                                        | gravity.                                                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``point_mass_location_offset``         |                                                         | 0.0           |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
