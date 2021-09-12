@@ -611,7 +611,7 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             auto geomdata = parent->Geom(lev).data();
-            const Real* dx = geomdata.CellSize();
+            const auto dx = parent->Geom(level).CellSizeArray();
 
             Real dV = dx[0];
 #if AMREX_SPACEDIM >= 2
