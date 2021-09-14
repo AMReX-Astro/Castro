@@ -1,76 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Setting Up Your Own Problem &mdash; Castro  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Outputting" href="io.html" />
     <link rel="prev" title="Timestepping and Retries" href="timestepping.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
-
-          
             <a href="index.html" class="icon icon-home"> Castro
-          
-
-          
-            
             <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,22 +37,11 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
     <div class="branch">
         Branch: <a href="../creating_a_problem.html">main</a> | <a href="./creating_a_problem.html">development</a>
     </div>
 
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
@@ -150,72 +98,31 @@
 <li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Castro</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Setting Up Your Own Problem</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/creating_a_problem.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="setting-up-your-own-problem">
+             
+  <section id="setting-up-your-own-problem">
 <h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this headline">¶</a></h1>
 <p>Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, …).  These groups are
@@ -245,7 +152,7 @@ AMReX’s behavior.</p></li>
 </div></blockquote>
 <p>The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.</p>
-<div class="section" id="runtime-parameters">
+<section id="runtime-parameters">
 <span id="index-0"></span><h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h2>
 <p>The problem-specific runtime parameters are defined in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.
 This has the form:</p>
@@ -273,8 +180,8 @@ variable from a different module to specify the size (for example,
 added.</p></li>
 </ul>
 <p>The variables will all be initialized for the GPU as well.</p>
-</div>
-<div class="section" id="problem-initialization">
+</section>
+<section id="problem-initialization">
 <h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
 <p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
@@ -311,8 +218,8 @@ The arguments passed are:</p>
 <p>Filling data is done by simply writing to <code class="docutils literal notranslate"><span class="pre">state(i,j,k,URHO)</span></code>, etc.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="boundary-conditions">
+</section>
+<section id="boundary-conditions">
 <span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <p id="index-2">Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
@@ -362,8 +269,8 @@ problem setup needs to fill the <code class="docutils literal notranslate"><span
 <code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> problem.</p>
 <p>The implementations of these boundary conditions is found in
 <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/Castro_bc_fill_nd.cpp</span></code>.</p>
-</div>
-<div class="section" id="optional-files">
+</section>
+<section id="optional-files">
 <h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this headline">¶</a></h2>
 <p>The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.</p>
@@ -409,8 +316,8 @@ of the flame speed is computed by integrating the mass of fuel on
 the grid.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="model-parser">
+</section>
+<section id="model-parser">
 <h2>Model Parser<a class="headerlink" href="#model-parser" title="Permalink to this headline">¶</a></h2>
 <p>Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The <code class="docutils literal notranslate"><span class="pre">model_parser.H</span></code> provides the functions that read in
@@ -461,55 +368,38 @@ function, e.g.,</p>
 addition to density, you can specify temperature (<code class="docutils literal notranslate"><span class="pre">model::itemp</span></code>),
 pressure (<code class="docutils literal notranslate"><span class="pre">model::ipres</span></code>), species (indexed from <code class="docutils literal notranslate"><span class="pre">model::ispec</span></code>),
 or an auxiliary quantity (indexed from <code class="docutils literal notranslate"><span class="pre">model::iaux</span></code>).</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="io.html" class="btn btn-neutral float-right" title="Outputting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="timestepping.html" class="btn btn-neutral float-left" title="Timestepping and Retries" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="io.html" class="btn btn-neutral float-right" title="Outputting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2018-2020, Castro development tem.
-
-    </p>
+    <p>&#169; Copyright 2018-2020, Castro development tem.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-    
+  </script>  
 
 
 </body>
