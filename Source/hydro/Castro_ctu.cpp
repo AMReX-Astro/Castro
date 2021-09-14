@@ -532,7 +532,7 @@ Castro::src_to_prim(const Box& bx, const Real dt,
               if (n == UMX || n == UMY || n == UMZ) {
                   srcU[n] += 0.5 * dt * src_corr(i,j,k,n);
               }
-          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections  && source_term_predictor == 1) {
               srcU[n] += src_corr(i,j,k,n);
           }
 #endif

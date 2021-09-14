@@ -1239,6 +1239,15 @@ protected:
 #endif
 
 
+#ifdef REACTIONS
+///
+/// Storage for the burn_weights
+///
+    amrex::MultiFab burn_weights;
+    static std::vector<std::string> burn_weight_names;
+#endif
+
+
 ///
 /// A state array with ghost zones.
 ///
