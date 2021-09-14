@@ -466,18 +466,6 @@ screen as Castro runs:
   * ``amr.run_log_terse``: name of the file to which certain
     (terser) output is written (text; not used if not set)
 
-  * ``amr.sum_interval``: if :math:`> 0`, how often (in level-0 time
-    steps) to compute and print integral quantities (Integer; default: -1)
-
-    The integral quantities include total mass, momentum and energy in
-    the domain every ``castro.sum_interval`` level-0 steps.  The print
-    statements have the form::
-
-           TIME= 1.91717746 MASS= 1.792410279e+34
-
-   for example. If this line is commented out then
-   it will not compute and print these quanitities.
-
   * ``castro.do_special_tagging``: allows the user to set a special
     flag based on user-specified criteria (0 or 1; default: 1)
 
@@ -515,6 +503,63 @@ only contains lines of the form::
 in which “10” is the number of steps taken, “0.2” is the
 simulation time, and “0.005” is the level-0 time step. This file
 can be plotted very easily to monitor the time step.
+
+
+
+Integral Diagnostics
+--------------------
+
+.. index:: castro.sum_interval, integral diagnostics
+
+Castro can calculate integrals of quantities on the grid and other
+global quantities and output them to both the screen and to a runtime
+file at regular intervals.  By default, this capability is off.  To
+enable it, one of the following runtime parameters can be set:
+
+  * ``castro.sum_interval``: if :math:`> 0`, how often (in level-0 time
+    steps) to compute and print integral quantities (Integer; default: -1)
+
+    The integral quantities include total mass, momentum and energy in
+    the domain every ``castro.sum_interval`` level-0 steps.  The print
+    statements have the form::
+
+           TIME= 1.91717746 MASS= 1.792410279e+34
+
+    for example.
+
+  * ``castro.sum_per``: how often in simulation time to output
+    integral quantities (this is used as an alternate to
+    ``castro.sum_interval``).
+
+By default, 4 output files are created:
+
+  * ``amr_diag.out`` : This includes timestep information, in the
+    following columns:
+
+    * timestep
+    * time
+    * dt
+    * finest level
+    * coarse timestep walltime
+
+  * ``gravity_diag.out`` : For problems with Poisson gravity, this
+    includes the gravitational wave amplitudes
+
+  * ``grid_diag.out`` : This includes integrals of the state data:
+
+    * time
+    * mass
+    * x-, y-, and z-momentum
+    * x-, y-, and z-angular momentum
+    * kinetic energy
+    * internal energy
+    * kinetic + internal energy
+    * gravitational potential energy
+    * total energy (including gravitational potential energy)
+
+  * ``species_diag.out`` : This contains the mass of each of the nuclear species on the grid.
+
+Some problems have custom versions of the diagnostics with additional information.
 
 
 .. _sec:parallel_io:
