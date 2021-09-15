@@ -54,11 +54,12 @@ using namespace amrex;
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
+// 11: PhiRot_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 10;
+    int current_version = 11;
 }
 
 // I/O routines for Castro

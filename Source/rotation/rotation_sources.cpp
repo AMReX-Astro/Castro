@@ -139,8 +139,6 @@ Castro::rsrc(const Box& bx,
 
 void
 Castro::corrrsrc(const Box& bx,
-                 Array4<Real const> const& phi_old,
-                 Array4<Real const> const& phi_new,
                  Array4<Real const> const& uold,
                  Array4<Real const> const& unew,
                  Array4<Real> const& source,
@@ -155,8 +153,6 @@ Castro::corrrsrc(const Box& bx,
   // prediction and add the time-level n+1 data.  This subroutine
   // exists outside of the Fortran module above because it needs to
   // be called directly from C++.
-
-  // phi_old and phi_new are used to compute the time centered rotational potential
 
   // uold and unew are the old and new time state data
 

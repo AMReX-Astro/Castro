@@ -76,9 +76,6 @@ enum StateType { State_Type = 0,
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
-#ifdef ROTATION
-                 PhiRot_Type,
-#endif
                  Source_Type,
 #ifdef REACTIONS
                  Reactions_Type,

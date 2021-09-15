@@ -1414,11 +1414,6 @@ Castro::initData ()
     MultiFab& source_new = get_new_data(Source_Type);
     source_new.setVal(0., source_new.nGrow());
 
-#ifdef ROTATION
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    phirot_new.setVal(0.);
-#endif
-
 #ifdef AMREX_PARTICLES
     if (level == 0) {
       init_particles();
@@ -2084,17 +2079,6 @@ Castro::post_restart ()
     }
 #endif
 
-#ifdef ROTATION
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation) {
-      Real cur_time = state[State_Type].curTime();
-      fill_rotation_field(phirot_new, S_new, cur_time);
-    }  else {
-      phirot_new.setVal(0.0);
-    }
-#endif
-
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0)
@@ -2292,17 +2276,6 @@ Castro::post_init (Real /*stop_time*/)
     }
 #endif
 
-#ifdef ROTATION
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation) {
-      Real cur_time = state[State_Type].curTime();
-      fill_rotation_field(phirot_new, S_new, cur_time);
-    }
-    else {
-      phirot_new.setVal(0.0);
-    }
-#endif
 
 #ifdef RADIATION
     if (do_radiation) {
@@ -2417,18 +2390,6 @@ Castro::post_grown_restart ()
           MultiFab& grav_new = getLevel(k).get_new_data(Gravity_Type);
           gravity->get_new_grav_vector(k,grav_new,cur_time);
        }
-    }
-#endif
-
-#ifdef ROTATION
-    MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation) {
-      Real cur_time = state[State_Type].curTime();
-      fill_rotation_field(phirot_new, S_new, cur_time);
-    }
-    else {
-      phirot_new.setVal(0.0);
     }
 #endif
 
