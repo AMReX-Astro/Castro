@@ -217,12 +217,11 @@ void problem_initialize_state_data (int i, int j, int k,
         }
 
         // convolve perturbation by Si28 mass fraction
-        const int isi28 = network_spec_index("silicon-28");
 
         // apply the cutoff function to the perturbational velocity
         // add perturbational velocity to background velocity
         for (auto n = 0; n < 3; ++n) {
-            vpert[n] *= problem::velpert_amplitude * state(i, j, k, UFS + isi28);
+            vpert[n] *= problem::velpert_amplitude * state(i, j, k, UFS + problem::isi28);
 
             state(i, j, k, UMX + n) += vpert[n];
         }

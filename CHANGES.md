@@ -9,6 +9,13 @@
      a timestep cap but still allow the timestep to decrease, use
      castro.max_dt. (#1976)
 
+   * Gravity was modified to introduce parallel plane gravity with a
+     point mass by setting the radius of the star by
+     castro.point_mass_location_offset and the integer
+     castro.point_mass_offset_is_true == 1. By default, both
+     parameters are 0.0 and 0, respectively.
+
+
 # 21.09
 
    * castro.source_term_predictor now works for simplified-SDC to

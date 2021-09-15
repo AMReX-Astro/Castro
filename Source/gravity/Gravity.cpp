@@ -2936,6 +2936,25 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
 #endif
 
 
+            if(castro::point_mass_offset_is_true == 1)
+            {
+                Real star_radius = castro::point_mass_location_offset;
+
+                if(AMREX_SPACEDIM == 1)
+                {
+                    x += star_radius;
+                } 
+                else if(AMREX_SPACEDIM ==2)
+                {
+                    y += star_radius;
+                } 
+                else if(AMREX_SPACEDIM == 3)
+                {
+                    z += star_radius;
+                }
+
+            }
+
             Real rsq = x * x + y * y + z * z;
             Real radial_force = -C::Gconst * castro::point_mass / rsq;
 
