@@ -46,8 +46,10 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
+#ifndef TRUE_SDC
 #ifdef REACTIONS
 #include <burner.H>
+#endif
 #endif
 
 #ifdef BL_LAZY
