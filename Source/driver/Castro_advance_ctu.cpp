@@ -24,11 +24,14 @@ Castro::do_advance_ctu(Real time,
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
 
+
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -288,7 +291,7 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-      clean_state(
+1      clean_state(
 #ifdef MHD
                   Bx_new, By_new, Bz_new,
 #endif                
@@ -407,7 +410,10 @@ Castro::do_advance_ctu(Real time,
 
     finalize_do_advance();
 
+#endif
+
     return status;
+
 }
 
 
