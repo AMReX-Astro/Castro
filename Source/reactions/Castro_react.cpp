@@ -404,8 +404,10 @@ Castro::react_state(Real time, Real dt)
                     dist = std::sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2]);
                 }
 
-                Real T = interpolate(dist, model::itemp);
+                burn_state.T_fixed = interpolate(dist, model::itemp);
 
+            } else {
+                burn_state.T_fixed = -1.e30_rt;
             }
 
             burn_state.rho = burn_state.y[SRHO];
