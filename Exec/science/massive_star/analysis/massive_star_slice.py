@@ -37,7 +37,7 @@ fig.set_size_inches(12.0, 9.0)
 
 width_frac = 0.1
 
-fields = ["Ye", "MachNumber", "enuc"]
+fields = ["Ye", "abar", "MachNumber", "enuc"]
 
 grid = ImageGrid(fig, 111, nrows_ncols=(1, len(fields)),
                  axes_pad=1.0, label_mode="L", cbar_mode="each", cbar_pad=0)
@@ -46,14 +46,17 @@ grid = ImageGrid(fig, 111, nrows_ncols=(1, len(fields)),
 for i, f in enumerate(fields):
 
     sp = yt.SlicePlot(ds, "theta", f,
-                      center=[xmin + 0.25*width_frac*L_x, yctr, 0.0*cm],
-                      width=[0.5*width_frac*L_x, width_frac*L_y, 0.0*cm], fontsize="12")
+                      center=[xmin + 0.5*width_frac*L_x, yctr, 0.0*cm],
+                      width=[width_frac*L_x, width_frac*L_y, 0.0*cm], fontsize="12")
     sp.set_buff_size((2400,2400))
 
     if f == "Ye":
         sp.set_zlim(f, 0.46, 0.5)
         sp.set_log(f, False)
         sp.set_cmap(f, "magma_r")
+    elif f == "abar":
+        sp.set_log(f, False)
+        sp.set_cmap(f, "viridis")
     elif f == "enuc":
         sp.set_log(f, True, linthresh=1.e12)
         sp.set_zlim(f, -1.e20, 1.e20)
