@@ -73,6 +73,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto reactions = r.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
+        const auto dx = geom.CellSizeArray();
+        const auto problo = geom.ProbLoArray();
+
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
@@ -99,8 +102,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
-                const auto dx = geom.CellSizeArray();
-                const auto problo = geom.ProbLoArray();
 
                 rr[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
@@ -343,6 +344,9 @@ Castro::react_state(Real time, Real dt)
 
         int lsdc_iteration = sdc_iteration;
 
+        const auto dx = geom.CellSizeArray();
+        const auto problo = geom.ProbLoArray();
+
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
@@ -385,8 +389,6 @@ Castro::react_state(Real time, Real dt)
 
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
-                const auto dx = geom.CellSizeArray();
-                const auto problo = geom.ProbLoArray();
 
                 rr[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
