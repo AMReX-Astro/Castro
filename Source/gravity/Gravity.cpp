@@ -3219,32 +3219,21 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
         Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
 
-        if (i == 0) {
+        // The mass at (i-1) is distributed into these two shells
+        Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
+        Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
+        Real vol_total_im1   = vol_total_i;       // This copies from the previous i
 
-            // The mass at (i) is distributed into these two regions
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * rc * rc * rc;
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * (rhi * rhi * rhi - rc * rc * rc);
-            vol_total_i     = vol_outer_shell + vol_upper_shell;
-
-            mass_encl = vol_outer_shell * mass[i] / vol_total_i;
-
+        if (i > 0) {
+            mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1];
         }
-        else {
 
-            // The mass at (i-1) is distributed into these two shells
-            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
-            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
-            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+        // The mass at (i)   is distributed into these two shells
+        vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
+        vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
+        vol_total_i          = vol_outer_shell + vol_upper_shell;
 
-            // The mass at (i)   is distributed into these two shells
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
-            vol_total_i          = vol_outer_shell + vol_upper_shell;
-
-            mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1] +
-                                    (vol_outer_shell / vol_total_i  ) * mass[i  ];
-
-        }
+        mass_encl = mass_encl + (vol_outer_shell / vol_total_i) * mass[i];
 
         grav[i] = -C::Gconst * mass_encl / (rc * rc);
 
