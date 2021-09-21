@@ -126,9 +126,6 @@ build_status:
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 
-# Castro uses a coarse grained OMP approach
-DEFINES += -DCRSEGRNDOMP
-
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
 
