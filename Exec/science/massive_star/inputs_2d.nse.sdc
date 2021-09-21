@@ -10,9 +10,9 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.6384e10  1.6384e10
+geometry.prob_hi   =  8.192e9  1.6384e10
 
-amr.n_cell         = 2048 2048
+amr.n_cell         = 1024 2048
 
 amr.max_level      = 1      # maximum level number allowed
 
@@ -48,7 +48,7 @@ castro.sponge_timescale     = 1.e-3
 castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep by this factor
 castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
-castro.sum_interval   = 0       # timesteps between computing and printing volume averages
+castro.sum_interval   = 1       # timesteps between computing and printing volume averages
 
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
@@ -72,6 +72,8 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
+castro.store_burn_weights = 1
+
 castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
@@ -82,6 +84,9 @@ castro.max_subcycles = 16
 # problem initialization
 
 problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
+
+problem.perturb_model = 1
+problem.velpert_amplitude = 5.e6
 
 # refinement
 
@@ -96,6 +101,8 @@ amr.refine.denerr.field_name = density
 
 integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
+integrator.rtol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-5
 
 integrator.retry_burn = 0
 integrator.abort_on_failure = 0
