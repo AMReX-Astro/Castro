@@ -28,7 +28,6 @@ int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
 #endif
-Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 
 // ************************************************************************************** //
@@ -324,24 +323,6 @@ Gravity::install_level (int                   level,
         }
 
     }
-
-    // Compute the maximum radius at which all the mass at that radius is in the domain,
-    //   assuming that the "hi" side of the domain is away from the center.
-#if (AMREX_SPACEDIM > 1)
-    if (level == 0)
-    {
-        Real x = geom.ProbHi(0) - problem::center[0];
-        Real y = geom.ProbHi(1) - problem::center[1];
-        max_radius_all_in_domain = std::min(x,y);
-#if (AMREX_SPACEDIM == 3)
-        Real z = geom.ProbHi(2) - problem::center[2];
-        max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
-#endif
-        if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
-            std::cout << "Maximum radius for which the mass is contained in the domain: "
-                      << max_radius_all_in_domain << std::endl;
-    }
-#endif
 
     finest_level_allocated = level;
 }
@@ -3165,12 +3146,6 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
 
-    // ***************************************************************** //
-    // Compute the average density to use at the radius above
-    //   max_radius_all_in_domain so we effectively count mass outside
-    //   the domain.
-    // ***************************************************************** //
-
     RealVector radial_vol_summed(n1d,0);
     RealVector radial_den_summed(n1d,0);
 
@@ -3254,7 +3229,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             mass_encl = vol_outer_shell * mass[i] / vol_total_i;
 
         }
-        else if (rc < max_radius_all_in_domain) {
+        else {
 
             // The mass at (i-1) is distributed into these two shells
             Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
@@ -3269,20 +3244,6 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1] +
                                     (vol_outer_shell / vol_total_i  ) * mass[i  ];
 
-        }
-        else {
-
-            // The mass at (i-1) is distributed into these two shells
-            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
-            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
-            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
-
-            // The mass at (i)   is distributed into these two shells
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
-            vol_total_i          = vol_outer_shell + vol_upper_shell;
-
-            mass_encl = mass_encl + vol_inner_shell * den[i-1] + vol_outer_shell * den[i];
         }
 
         grav[i] = -C::Gconst * mass_encl / (rc * rc);
