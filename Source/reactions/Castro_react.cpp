@@ -5,6 +5,8 @@
 using std::string;
 using namespace amrex;
 
+#ifndef TRUE_SDC
+
 // Strang version
 
 bool
@@ -624,3 +626,6 @@ Castro::valid_zones_to_burn(MultiFab& State)
     return false;
 
 }
+
+#endif
+
