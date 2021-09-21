@@ -2110,9 +2110,6 @@ Castro::postCoarseTimeStep (Real cumtime)
         gravity->set_mass_offset(cumtime, 0);
 #endif
 
-    // if we are doing drive_initial_convection, then
-    // check to see if we need to re-initialize the data
-    // here
 }
 
 void

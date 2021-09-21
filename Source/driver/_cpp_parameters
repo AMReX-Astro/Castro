@@ -413,7 +413,7 @@ drive_initial_convection_tmax   Real       1.e200             y
 
 # frequency with which to re-initialize the thermodynamic data while preserving
 # the velocity field during drive_initial_convection
-drive_initial_convection_reinit_periond   Real    1.e200      y
+drive_initial_convection_reinit_period   Real    1.e200      y
 
 #-----------------------------------------------------------------------------
 # category: diffusion
