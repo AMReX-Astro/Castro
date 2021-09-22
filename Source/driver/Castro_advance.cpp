@@ -337,6 +337,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
         if (reinit_dt < 0.0_rt) {
 
+          std::cout << "<<<<< drive initial convection reset >>>>" << std::endl;
+
             for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
             {
                 const Box& box     = mfi.validbox();
