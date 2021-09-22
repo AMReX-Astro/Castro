@@ -3025,10 +3025,20 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         int n1d = radial_mass[lev].size();
 
 #ifdef GR_GRAV
-        for (int i = 0; i < n1d; i++) radial_pres[lev][i] = 0.;
+        Real* const lev_pres = radial_pres[lev].dataPtr();
 #endif
-        for (int i = 0; i < n1d; i++) radial_vol[lev][i] = 0.;
-        for (int i = 0; i < n1d; i++) radial_mass[lev][i] = 0.;
+        Real* const lev_vol = radial_vol[lev].dataPtr();
+        Real* const lev_mass = radial_mass[lev].dataPtr();
+
+        amrex::ParallelFor(n1d,
+        [=] AMREX_GPU_DEVICE (int i)
+        {
+#ifdef GR_GRAV
+            lev_pres[i] = 0.;
+#endif
+            lev_vol[i] = 0.;
+            lev_mass[i] = 0.;
+        });
 
         const Geometry& geom = parent->Geom(lev);
         const Real* dx   = geom.CellSize();
@@ -3100,8 +3110,19 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         if (do_diag > 0)
         {
-            Real sum = 0.;
-            for (int i = 0; i < n1d; i++) sum += radial_mass[lev][i];
+            ReduceOps<ReduceOpSum> reduce_op;
+            ReduceData<Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
+
+            reduce_op.eval(n1d, reduce_data,
+            [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
+            {
+                return {lev_mass[i]};
+            });
+
+            ReduceTuple hv = reduce_data.value();
+            Real sum = amrex::get<0>(hv);
+
             sum_over_levels += sum;
         }
     }
@@ -3112,11 +3133,15 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     int n1d = radial_mass[level].size();
     RealVector radial_mass_summed(n1d,0);
 
+    Real* const level_mass = radial_mass[level].dataPtr();
+    Real* const mass_summed = radial_mass_summed.dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
     {
-        radial_mass_summed[i] = radial_mass[level][i];
-    }
+        mass_summed[i] = level_mass[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3125,20 +3150,35 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
+
+            Real* const lev_mass = radial_mass[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                   radial_mass_summed[ratio*i+n] += 1./double(ratio) * radial_mass[lev][i];
+                    mass_summed[ratio*i+n] += 1./double(ratio) * lev_mass[i];
                 }
-            }
+            });
         }
     }
 
     if (do_diag > 0 && ParallelDescriptor::IOProcessor())
     {
-        Real sum_added = 0.;
-        for (int i = 0; i < n1d; i++) sum_added += radial_mass_summed[i];
+        ReduceOps<ReduceOpSum> reduce_op;
+        ReduceData<Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
+        reduce_op.eval(n1d, reduce_data,
+        [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
+        {
+            return {mass_summed[i]};
+        });
+
+        ReduceTuple hv = reduce_data.value();
+        Real sum_added = amrex::get<0>(hv);
+
         std::cout << "Gravity::make_radial_gravity: Sum of combined mass " << sum_added << std::endl;
     }
 
@@ -3149,9 +3189,17 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     RealVector radial_vol_summed(n1d,0);
     RealVector radial_den_summed(n1d,0);
 
+    Real* const vol_summed = radial_vol_summed.dataPtr();
+    Real* const den_summed = radial_den_summed.dataPtr();
+
+    Real* const level_vol = radial_vol[level].dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
-         radial_vol_summed[i] =  radial_vol[level][i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        vol_summed[i] = level_vol[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3160,28 +3208,41 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
+
+            const Real* lev_vol = radial_vol[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                   radial_vol_summed[ratio*i+n]  += 1./double(ratio) * radial_vol[lev][i];
+                    vol_summed[ratio*i+n]  += 1./double(ratio) * lev_vol[i];
                 }
-            }
+            });
         }
     }
 
-    for (int i = 0; i < n1d; i++)
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
     {
-        radial_den_summed[i] = radial_mass_summed[i];
-        if (radial_vol_summed[i] > 0.) radial_den_summed[i]  /= radial_vol_summed[i];
-    }
+        den_summed[i] = mass_summed[i];
+        if (vol_summed[i] > 0.) {
+            den_summed[i] /= vol_summed[i];
+        }
+    });
 
 #ifdef GR_GRAV
     RealVector radial_pres_summed(n1d,0);
 
+    Real* const pres_summed = radial_pres_summed.dataPtr();
+    Real* const level_pres = radial_pres[level].dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
-        radial_pres_summed[i] = radial_pres[level][i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        pres_summed[i] = level_pres[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3190,14 +3251,26 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
-                for (int n = 0; n < ratio; n++)
-                   radial_pres_summed[ratio*i+n] += 1./double(ratio) * radial_pres[lev][i];
+
+            const Real* lev_pres = radial_pres[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
+            {
+                for (int n = 0; n < ratio; n++) {
+                    pres_summed[ratio*i+n] += 1./double(ratio) * lev_pres[i];
+                }
+            });
         }
     }
 
-    for (int i = 0; i < n1d; i++)
-        if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        if (vol_summed[i] > 0.) {
+            pres_summed[i] /= vol_summed[i];
+        }
+    });
 #endif
 
     // Integrate radially outward to define the gravity
