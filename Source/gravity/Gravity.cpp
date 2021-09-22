@@ -3214,45 +3214,64 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #endif
     Real* const grav = radial_grav.dataPtr();
 
-    for (int i = 0; i < n1d; ++i) {
+    // At a given radius r corresponding to an index i, the gravity is
+    // g(r) = -G * M(r) / r**2. The enclosed mass can be computed via
+    // an inclusive prefix sum, which yields the same result one would
+    // obtain with a serial calculation from 0 to i but with the ability
+    // to be parallelized. The first lambda returns the mass at radial
+    // zone index i (which includes the upper shell of zone i-1 and the
+    // lower shell of zone i) and the second lambda accepts the current
+    // enclosed mass as an argument and computes the gravity at the
+    // corresponding radius.
 
-        if (i > 0) {
-            // The mass at (i-1) is distributed into an upper and lower shell; the
-            // contribution to the mass at zone center i is from the upper shell.
-            Real rlo = (static_cast<Real>(i-1)         ) * dr;
-            Real rc  = (static_cast<Real>(i-1) + 0.5_rt) * dr;
-            Real rhi = (static_cast<Real>(i-1) + 1.0_rt) * dr;
+    Scan::PrefixSum<Real> (n1d,
+        [=] AMREX_GPU_DEVICE (int i) -> Real
+        {
+            Real dM = 0.0;
 
-            Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
+            if (i > 0) {
+                // The mass at (i-1) is distributed into an upper and lower shell; the
+                // contribution to the mass at zone center i is from the upper shell.
+                Real rlo = (static_cast<Real>(i-1)         ) * dr;
+                Real rc  = (static_cast<Real>(i-1) + 0.5_rt) * dr;
+                Real rhi = (static_cast<Real>(i-1) + 1.0_rt) * dr;
+
+                Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
+                Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+                dM = dM + (vol_shell / vol_zone) * mass[i-1];
+            }
+
+            Real rlo = (static_cast<Real>(i)         ) * dr;
+            Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
+            Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
+
+            // The mass at (i) is distributed into an upper and lower shell; the
+            // contribution to the mass at zone center i is from the lower shell.
+            Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
             Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
-            mass_encl = mass_encl + (vol_shell / vol_zone) * mass[i-1];
-        }
+            dM = dM + (vol_shell / vol_zone) * mass[i];
 
-        Real rlo = (static_cast<Real>(i)         ) * dr;
-        Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
-        Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
+            return dM;
+        },
+        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl)
+        {
+            Real rc = (static_cast<Real>(i) + 0.5_rt) * dr;
 
-        // The mass at (i) is distributed into an upper and lower shell; the
-        // contribution to the mass at zone center i is from the lower shell.
-        Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
-        Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
-        mass_encl = mass_encl + (vol_shell / vol_zone) * mass[i];
-
-        grav[i] = -C::Gconst * mass_encl / (rc * rc);
+            grav[i] = -C::Gconst * mass_encl / (rc * rc);
 
 #ifdef GR_GRAV
-        // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
+            // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
 
-        if (den[i] > 0.0_rt) {
-            Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-            Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
-            Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+            if (den[i] > 0.0_rt) {
+                Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
+                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
 
-            grav[i] = grav[i] * ga * gb * gc;
-        }
+                grav[i] = grav[i] * ga * gb * gc;
+            }
 #endif
-
-    }
+        },
+        Scan::Type::inclusive);
 
     if (gravity::verbose)
     {
