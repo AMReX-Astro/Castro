@@ -313,7 +313,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifndef MHD
 
     const Real cur_time = state[State_Type].curTime();
-    const Real dt_coarse = parent->dtLevel(0);
+    const Real dt_level = parent->dtLevel(level);
 
     if (drive_initial_convection && cur_time <= drive_initial_convection_tmax) {
 
@@ -337,7 +337,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
             reinit_dt = drive_initial_convection_reinit_period - dtMod;
         }
 
-        if (reinit_dt < dt_coarse) {
+        if (reinit_dt < dt_level) {
 
           amrex::Print() << "<<<<< drive initial convection reset >>>>" << std::endl;
 
