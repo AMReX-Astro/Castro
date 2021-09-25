@@ -367,7 +367,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
                     s(i,j,k,UMY) = s(i,j,k,URHO) * vy_orig;
                     s(i,j,k,UMZ) = s(i,j,k,URHO) * vz_orig;
 
-                    s(i,j,k,UEDEN) = s(i,j,k,UEINT) + s(i,j,k,URHO) *
+                    s(i,j,k,UEDEN) = s(i,j,k,UEINT) + 0.5_rt * s(i,j,k,URHO) *
                         (vx_orig * vx_orig + vy_orig * vy_orig + vz_orig * vz_orig);
 
                 });
