@@ -335,7 +335,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -375,6 +375,18 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``T_guess``                            | initial guess for the temperature when inverting the    | 1.e8          |
 |                                        | EoS (e.g. when calling eos_input_re)                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``drive_initial_convection``           | if set to 1, we interpolate from the initial model to   | 0             |
+|                                        | get the temperature used to call the burner.  This      |               |
+|                                        | prevents reactions from going nonlinear and running     |               |
+|                                        | away in place before a convective field is established. |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``drive_initial_convection_tmax``      | maximum time over which to do the                       | 1.e200        |
+|                                        | drive_initial_convection procedure                      |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``drive_initial_convection_reinit_period`` | frequency with which to re-initialize the thermodynamic | 1.e200        |
+|                                        | data while preserving the velocity field during         |               |
+|                                        | drive_initial_convection                                |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
