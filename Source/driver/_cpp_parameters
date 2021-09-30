@@ -403,6 +403,18 @@ disable_shock_burning        int           0
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
 
+# if set to 1, we interpolate from the initial model to get the temperature
+# used to call the burner.  This prevents reactions from going nonlinear
+# and running away in place before a convective field is established.
+drive_initial_convection     int           0                  y
+
+# maximum time over which to do the drive_initial_convection procedure
+drive_initial_convection_tmax   Real       1.e200             y
+
+# frequency with which to re-initialize the thermodynamic data while preserving
+# the velocity field during drive_initial_convection
+drive_initial_convection_reinit_period   Real    1.e200      y
+
 #-----------------------------------------------------------------------------
 # category: diffusion
 #-----------------------------------------------------------------------------

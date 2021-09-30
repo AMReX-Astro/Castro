@@ -1,28 +1,34 @@
 # 21.10
 
-   * The burn_weights are no longer stored by default in the plotfile.
+   * A new option, `castro.drive_initial_convection` was added that
+     uses the temperature interpolated from the initial model instead
+     of the value on the grid to call the reactions.  This helps
+     prevent a reactive zone from burning in place before a convective
+     velocity field is established to carry off the energy.
+
+   * The `burn_weights` are no longer stored by default in the plotfile.
      Instead, they are now enabled by setting
      castro.store_burn_weights=1.  Additionally, they now give a better
      estimate of the cost for the numerical Jacobian (#1946, #1949)
 
-   * castro.change_max is now required to be greater than 1.0. To enforce
+   * `castro.change_max` is now required to be greater than 1.0. To enforce
      a timestep cap but still allow the timestep to decrease, use
      castro.max_dt. (#1976)
 
    * Gravity was modified to introduce parallel plane gravity with a
      point mass by setting the radius of the star by
-     castro.point_mass_location_offset and the integer
-     castro.point_mass_offset_is_true == 1. By default, both
+     `castro.point_mass_location_offset` and the integer
+     `castro.point_mass_offset_is_true` == 1. By default, both
      parameters are 0.0 and 0, respectively.
 
 
 # 21.09
 
-   * castro.source_term_predictor now works for simplified-SDC to
+   * `castro.source_term_predictor` now works for simplified-SDC to
      disable the source predictor for the hydrodynamics states to the
      interface. (#1968)
 
-   * castro.add_sdc_react_source_to_advection was added to disable
+   * `castro.add_sdc_react_source_to_advection` was added to disable
      react source to advection in simplified-SDC (#1969)
 
 # 21.07
