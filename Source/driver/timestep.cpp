@@ -515,10 +515,11 @@ Castro::estdt_rad ()
     for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& tbox = mfi.tilebox();
+        const Box& vbox = mfi.validbox();
 
         FArrayBox gPr;
         gPr.resize(tbox);
-        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), tbox);
+        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), vbox);
 
         auto u = stateMF[mfi].array();
         auto gPr_arr = gPr.array();
