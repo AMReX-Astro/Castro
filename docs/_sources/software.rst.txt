@@ -294,10 +294,6 @@ The current ``StateData`` names Castro carries are:
    dimensionality (consistent with our choice of always carrying all 3
    velocity components).
 
--  ``PhiRot_Type`` : this is the rotational potential.
-   When rotation is enabled, this will store the effective potential
-   corresponding to the centrifugal force.
-
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
    ``State_Type`` variables.
