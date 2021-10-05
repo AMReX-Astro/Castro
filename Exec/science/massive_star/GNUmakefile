@@ -28,7 +28,7 @@ NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
 
-MAX_NPTS_MODEL = 16384
+MAX_NPTS_MODEL = 32768
 
 Bpack   := ./Make.package
 Blocs   := .

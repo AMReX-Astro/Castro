@@ -24,11 +24,14 @@ Castro::do_advance_ctu(Real time,
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
 
+
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -78,7 +81,7 @@ Castro::do_advance_ctu(Real time,
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         // The result of the reactions is added directly to Sborder.
-        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
+        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt, 0);
         clean_state(
 #ifdef MHD
                     Bx_old_tmp, By_old_tmp, Bz_old_tmp,
@@ -367,7 +370,7 @@ Castro::do_advance_ctu(Real time,
 
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
+        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt, 1);
         clean_state(
 #ifdef MHD
                     Bx_new, By_new, Bz_new,
@@ -407,7 +410,10 @@ Castro::do_advance_ctu(Real time,
 
     finalize_do_advance();
 
+#endif
+
     return status;
+
 }
 
 
@@ -487,6 +493,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
             rad_fluxes[dir]->setVal(0.0);
           }
         }
+#endif
+
+#ifdef REACTIONS
+        burn_weights.setVal(0.0);
 #endif
 
         // For simplified SDC, we'll have garbage data if we

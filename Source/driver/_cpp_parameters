@@ -327,7 +327,8 @@ cfl                          Real          0.8
 init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase or decrease from
-# one step to the next
+# one step to the next. Must be greater than 1.0---use max_dt to set a cap
+# on the timestep.
 change_max                   Real          1.1
 
 # enforce that the AMR plot interval must be hit exactly
@@ -401,6 +402,18 @@ disable_shock_burning        int           0
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
+
+# if set to 1, we interpolate from the initial model to get the temperature
+# used to call the burner.  This prevents reactions from going nonlinear
+# and running away in place before a convective field is established.
+drive_initial_convection     int           0                  y
+
+# maximum time over which to do the drive_initial_convection procedure
+drive_initial_convection_tmax   Real       1.e200             y
+
+# frequency with which to re-initialize the thermodynamic data while preserving
+# the velocity field during drive_initial_convection
+drive_initial_convection_reinit_period   Real    1.e200      y
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -631,9 +644,13 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
-# Do we store the species creation rates in the plotfile.  Note, if this option is
+# Do we store the species creation rates in the plotfile?  Note, if this option is
 # enabled then more memory will be allocated to hold the results of the burn
 store_omegadot               int            0
+
+# Do we store the burn weights as a diagnostic in the plotfile?    Note, if this option is
+# enabled then more memory will be allocated to hold the results of the burn
+store_burn_weights           int            0
 
 # Do we abort the run if the inputs file specifies a runtime parameter that we don't
 # know about?  Note: this will only take effect for those namespaces where 100%
