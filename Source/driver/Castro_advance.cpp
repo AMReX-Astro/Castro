@@ -483,7 +483,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #endif
 
 #ifdef REACTIONS
-    burn_weights.setVal(0.0);
+    if (store_burn_weights) {
+        burn_weights.setVal(0.0);
+    }
 #endif
 
 }
