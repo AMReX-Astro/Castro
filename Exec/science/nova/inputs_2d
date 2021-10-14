@@ -26,7 +26,7 @@ castro.do_hydro = 1
 castro.do_react = 1
 castro.add_ext_src = 0
 castro.do_grav = 1
-castro.do_sponge = 1
+castro.do_sponge = 0
 
 castro.ppm_type = 1
 castro.riemann_solver = 0
@@ -71,7 +71,7 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T5_Gconst_Snone.hse"
+problem.model_name =  "glasner_T5_dx_1.000km.hse"
 
 problem.apply_vel_field = 0
 problem.velpert_height_loc = 1.2e8
