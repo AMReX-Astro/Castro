@@ -6,10 +6,10 @@ amr.checkpoint_files_output = 1
 max_step = 500000
 stop_time = 3600
 
-geometry.is_periodic = 0 0
+geometry.is_periodic = 0 0 0
 geometry.coord_sys = 0         # r-z coordinates
 
-geometry.prob_lo   =  0.    0.
+geometry.prob_lo   =  0.    0.   0.
 geometry.prob_hi   =  1.6384e10 1.6384e10 1.6384e10
 
 amr.n_cell         = 1024 1024 1024
