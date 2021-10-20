@@ -140,13 +140,15 @@ Castro::sum_integrated_quantities ()
 #ifdef GRAVITY
             rho_phi    = foo[i++];
 
-            // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
-            // and -rho * phi + rho * E for externally-supplied gravity.
+            // Total energy is 1/2 * rho * phi + rho * E for self-gravity,
+            // and rho * phi + rho * E for externally-supplied gravity.
             std::string gravity_type = gravity->get_gravity_type();
-            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav")
-              total_energy = -0.5 * rho_phi + rho_E;
-            else
-              total_energy = -rho_phi + rho_E;
+            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav") {
+                total_energy = 0.5 * rho_phi + rho_E;
+            }
+            else {
+                total_energy = rho_phi + rho_E;
+            }
 #endif
 
             std::cout << '\n';
