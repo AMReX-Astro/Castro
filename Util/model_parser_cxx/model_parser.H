@@ -399,9 +399,13 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
             if (!converged_hse && (!fluff)) {
 
                 std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
-                std::cout << model.state(i, model::idens) << " " << model.state(i, model::itemp) << std::endl;
-                std::cout << p_want << " " << eos_state.p;
-                std::cout << drho << " " << model::hse_tol * model.state(i, model::idens);
+                std::cout << " rho = " << model.state(i, model::idens)
+                          << " temp = " << model.state(i, model::itemp)
+                          << " p_want = " << p_want
+                          << " p = " << eos_state.p
+                          << " drho = " << drho
+                          << " tol * dens = " << model::hse_tol * model.state(i, model::idens)
+                          << std::endl;
                 amrex::Error("Error: HSE non-convergence.");
 
             }
