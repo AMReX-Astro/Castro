@@ -224,6 +224,14 @@ Castro::sum_integrated_quantities ()
                data_log1 << std::fixed;
 
                data_log1 << std::setw(intwidth) <<  timestep;
+
+               if (time < 1.e-4_rt || time > 1.e4_rt) {
+                   data_log1 << std::scientific;
+               }
+               else {
+                   data_log1 << std::fixed;
+               }
+
                data_log1 << std::setw(fixwidth) <<  std::setprecision(datprecision) << time;
 
                data_log1 << std::scientific;
@@ -356,6 +364,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -452,6 +468,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -530,7 +554,18 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+
+            log << std::fixed;
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
