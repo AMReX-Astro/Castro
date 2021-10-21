@@ -221,8 +221,13 @@ Castro::sum_integrated_quantities ()
                }
 
                // Write the quantities at this time
+               data_log1 << std::fixed;
+
                data_log1 << std::setw(intwidth) <<  timestep;
                data_log1 << std::setw(fixwidth) <<  std::setprecision(datprecision) << time;
+
+               data_log1 << std::scientific;
+
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mass;
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[0];
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[1];
