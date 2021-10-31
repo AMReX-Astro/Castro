@@ -140,13 +140,15 @@ Castro::sum_integrated_quantities ()
 #ifdef GRAVITY
             rho_phi    = foo[i++];
 
-            // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
-            // and -rho * phi + rho * E for externally-supplied gravity.
+            // Total energy is 1/2 * rho * phi + rho * E for self-gravity,
+            // and rho * phi + rho * E for externally-supplied gravity.
             std::string gravity_type = gravity->get_gravity_type();
-            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav")
-              total_energy = -0.5 * rho_phi + rho_E;
-            else
-              total_energy = -rho_phi + rho_E;
+            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav") {
+                total_energy = 0.5 * rho_phi + rho_E;
+            }
+            else {
+                total_energy = rho_phi + rho_E;
+            }
 #endif
 
             std::cout << '\n';
@@ -175,31 +177,65 @@ Castro::sum_integrated_quantities ()
             if (data_log1.good()) {
 
                if (time == 0.0) {
-                   data_log1 << std::setw(datwidth) <<  "          time";
-                   data_log1 << std::setw(datwidth) <<  "          mass";
-                   data_log1 << std::setw(datwidth) <<  "          xmom";
-                   data_log1 << std::setw(datwidth) <<  "          ymom";
-                   data_log1 << std::setw(datwidth) <<  "          zmom";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom x";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom y";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom z";
+
+                   std::ostringstream header;
+
+                   int n = 0;
+
+                   header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                   header << std::setw(fixwidth) << "                     TIME"; ++n;
+                   header << std::setw(datwidth) << "                     MASS"; ++n;
+                   header << std::setw(datwidth) << "                     XMOM"; ++n;
+                   header << std::setw(datwidth) << "                     YMOM"; ++n;
+                   header << std::setw(datwidth) << "                     ZMOM"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. X"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. Y"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
+#if (AMREX_SPACEDIM == 3)
 #ifdef HYBRID_MOMENTUM
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom r";
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom l";
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom p";
+                   header << std::setw(datwidth) << "              HYB. MOM. R"; ++n;
+                   header << std::setw(datwidth) << "              HYB. MOM. L"; ++n;
+                   header << std::setw(datwidth) << "              HYB. MOM. P"; ++n;
 #endif
-                   data_log1 << std::setw(datwidth) <<  "         rho_K";
-                   data_log1 << std::setw(datwidth) <<  "         rho_e";
-                   data_log1 << std::setw(datwidth) <<  "         rho_E";
+#endif
+                   header << std::setw(datwidth) << "              KIN. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "              INT. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "               GAS ENERGY"; ++n;
 #ifdef GRAVITY
-                   data_log1 << std::setw(datwidth) <<  "       rho_phi";
-                   data_log1 << std::setw(datwidth) <<  "  total energy";
+                   header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "             TOTAL ENERGY"; ++n;
 #endif
+
+                   header << std::endl;
+
+                   data_log1 << std::setw(intwidth) << "#   COLUMN 1";
+                   data_log1 << std::setw(fixwidth) << "                        2";
+
+                   for (int i = 3; i <= n; ++i) {
+                       data_log1 << std::setw(datwidth) << i;
+                   }
+
                    data_log1 << std::endl;
+
+                   data_log1 << header.str();
                }
 
                // Write the quantities at this time
-               data_log1 << std::setw(datwidth) <<  time;
+               data_log1 << std::fixed;
+
+               data_log1 << std::setw(intwidth) <<  timestep;
+
+               if (time < 1.e-4_rt || time > 1.e4_rt) {
+                   data_log1 << std::scientific;
+               }
+               else {
+                   data_log1 << std::fixed;
+               }
+
+               data_log1 << std::setw(fixwidth) <<  std::setprecision(datprecision) << time;
+
+               data_log1 << std::scientific;
+
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mass;
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[0];
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[1];
@@ -328,6 +364,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -424,6 +468,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -502,7 +554,18 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+
+            log << std::fixed;
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
