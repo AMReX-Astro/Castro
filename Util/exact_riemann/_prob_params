@@ -1,0 +1,27 @@
+# name               data type             default                  in namelist?           size
+
+rho_l               real     1.0d0        y
+u_l                 real     0.0d0        y
+p_l                 real     1.0d0        y
+T_l                 real     1.0d0        y
+
+rho_r               real     0.125d0      y
+u_r                 real     0.0d0        y
+p_r                 real     0.1d0        y
+T_r                 real     1.0d0        y
+
+xmin                real     0.0d0        y
+xmax                real     1.0d0        y
+xjump               real     0.5d0        y
+
+t                   real     0.2d0        y
+
+npts                integer  128          y
+
+use_Tinit           integer  0            y
+
+initial_temp_guess  real     1.0d5        y
+
+riemann_max_iter    integer  10           y
+
+co_moving_frame     integer  0            y

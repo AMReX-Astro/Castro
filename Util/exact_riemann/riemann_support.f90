@@ -7,7 +7,7 @@ module riemann_support
   use eos_type_module
   use eos_module
   use network
-  use extern_probin_module, only: initial_temp_guess
+  use prob_params_module
 
   implicit none
 
