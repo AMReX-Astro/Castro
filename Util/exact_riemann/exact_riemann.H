@@ -100,11 +100,23 @@ exact_riemann() {
 
         if (i == 1) {
             ofile << "# i ";
-            ofile << std::setw(26) << "x" << "rho" << "u" << "p" << "T" << "e" << "gamma_1" << std::endl;
+            ofile << std::setw(26) << "x"
+                  << std::setw(26) << "rho"
+                  << std::setw(26) << "u"
+                  << std::setw(26) << "p"
+                  << std::setw(26) << "T"
+                  << std::setw(26) << "e"
+                  << std::setw(26) << "gamma_1" << std::endl;
         }
 
         ofile << std::setw(4) << i;
-        ofile << std::setw(26) << std::setprecision(12) << x << rho << u << p << eos_state.T << eos_state.e << eos_state.gam1 << std::endl;
+        ofile << std::setw(26) << std::setprecision(12) << x
+              << std::setw(26) << std::setprecision(12) << rho
+              << std::setw(26) << std::setprecision(12) << u
+              << std::setw(26) << std::setprecision(12) << p
+              << std::setw(26) << std::setprecision(12) << eos_state.T
+              << std::setw(26) << std::setprecision(12) << eos_state.e
+              << std::setw(26) << std::setprecision(12) << eos_state.gam1 << std::endl;
 
     }
 

@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
 
   // initialize the external runtime parameters in C++
 
+  init_prob_parameters();
+
   init_extern_parameters();
 
   // now initialize the C++ Microphysics

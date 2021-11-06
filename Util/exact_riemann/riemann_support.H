@@ -449,7 +449,7 @@ rarefaction_to_u(const Real rho_s, const Real u_s, const Real p_s, const Real* x
         }
 
         if (std::abs(du) < tol * std::abs(u)) {
-            finished = false;
+            finished = true;
         }
 
     }
