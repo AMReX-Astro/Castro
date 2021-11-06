@@ -1,6 +1,12 @@
 #ifndef EXACT_RIEMANN_H
 #define EXACT_RIEMANN_H
 
+#include <fstream>
+
+#include <riemann_sample.H>
+#include <riemann_star_state.H>
+#include <riemann_support.H>
+
 AMREX_INLINE
 void
 exact_riemann() {
@@ -15,63 +21,69 @@ exact_riemann() {
 
     // if we are using T as the independent variable (rather than p), then
     // get p now
-    if (use_Tinit) {
+    if (problem::use_Tinit) {
 
         eos_t eos_state;
-        eos_state.rho = rho_l;
-        eos_state.T = T_l;
+        eos_state.rho = problem::rho_l;
+        eos_state.T = problem::T_l;
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn[n];
         }
 
         eos(eos_input_rt, eos_state);
 
-        p_l = eos_state.p;
+        problem::p_l = eos_state.p;
 
-        eos_state.rho = rho_r;
-        eos_state.T = T_r;
+        eos_state.rho = problem::rho_r;
+        eos_state.T = problem::T_r;
 
         eos(eos_input_rt, eos_state);
 
-        p_r = eos_state.p;
+        problem::p_r = eos_state.p;
 
     }
 
-    if (co_moving_frame) {
-        Real W_avg = 0.5_rt * (u_l + u_r);
-        u_l -= W_avg;
-        u_r -= W_avg;
+    if (problem::co_moving_frame) {
+        Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
+        problem::u_l -= W_avg;
+        problem::u_r -= W_avg;
     }
 
-    riemann_star_state(rho_l, u_l, p_l, xn,
-                       rho_r, u_r, p_r, xn,
+    Real ustar, pstar, W_l, W_r;
+
+    riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
+                       problem::rho_r, problem::u_r, problem::p_r, xn,
                        ustar, pstar, W_l, W_r);
 
 
     // find the solution as a function of xi = x/t
-    ofstream ofile;
+    std::ofstream ofile;
     ofile.open("riemann.out");
 
     // This follows from the discussion around C&G Eq. 15
 
-    Real dx = (xmax - xmin) / static_cast<Real>(npts);
+    Real dx = (problem::xmax - problem::xmin) / static_cast<Real>(problem::npts);
 
     // loop over xi space
 
-    for (int i = 1; i <= npts; i++) {
+    for (int i = 1; i <= problem::npts; i++) {
 
         // compute xi = x/t -- this is the similarity variable for the
         // solution
-        Real x  = xmin + (static_cast<Real>(i) - 0.5_rt) * dx;
+        Real x  = problem::xmin + (static_cast<Real>(i) - 0.5_rt) * dx;
 
-        call riemann_sample(rho_l, u_l, p_l, rho_r, u_r, p_r, xn, xn,
-                            ustar, pstar, W_l, W_r,
-                            x, xjump, t,
-                            rho, u, p, xn_s);
+        Real rho, u, p, xn_s[NumSpec];
 
-        if (co_moving_frame) {
+        riemann_sample(problem::rho_l, problem::u_l, problem::p_l, xn,
+                       problem::rho_r, problem::u_r, problem::p_r, xn,
+                       ustar, pstar, W_l, W_r,
+                       x, problem::xjump, problem::t,
+                       rho, u, p, xn_s);
+
+        if (problem::co_moving_frame) {
+            Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
             u += W_avg;
-            x += t * W_avg;
+            x += problem::t * W_avg;
         }
 
         // get the thermodynamics for this state for output
@@ -80,9 +92,9 @@ exact_riemann() {
         eos_state.rho = rho;
         eos_state.p = p;
         for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn(n) = xn_s(n);
+            eos_state.xn[n] = xn_s[n];
         }
-        eos_state.T = initial_temp_guess;
+        eos_state.T = problem::initial_temp_guess;
 
         eos(eos_input_rp, eos_state);
 

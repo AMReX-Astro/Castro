@@ -22,7 +22,7 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_l[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -31,13 +31,12 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
     Real gammaE_l = p_l / (rho_l * eos_state.e) + 1.0_rt;
     Real gammaC_l = eos_state.gam1;
 
-    eos_t eos_state;
     eos_state.rho = rho_r;
     eos_state.p = p_r;
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_r[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -57,8 +56,8 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
 
     // alternative: two shock solver (see Toro 9.42)
 
-    Real W_l = rho_l * cs_l;
-    Real W_r = rho_r * cs_r;
+    W_l = rho_l * cs_l;
+    W_r = rho_r * cs_r;
 
     // prevent roundoff errors from giving us a pstar that is unphysical
     // if our input states are the same
@@ -80,26 +79,25 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
     // this procedure follows directly from Colella & Glaz 1985, section 1
 
     Real ustar_l, ustar_r;
-    int lwave, rwave;
-
     bool converged = false;
 
     int iter = 1;
-    while (! converged && iter < riemann_max_iter) {
+    while (! converged && iter < problem::riemann_max_iter) {
 
         // compute Z_l and Z_r -- the form of these depend on whether the
         // wave is a shock or a rarefaction
+
+        Real Z_l, Z_r;
 
         // left wave
 
         if (pstar - p_l > SMALL * p_l) {
             // left shock
             shock(pstar, rho_l, u_l, p_l, xn_l, gammaE_bar, gammaC_bar, Z_l, W_l);
-            lwave = SHOCK;
         } else {
             // left rarefaction
-            rarefaction(pstar, rho_l, u_l, p_l, xn_l, 1, Z_l, W_l);
-            lwave = RAREFACTION;
+            Real rhostar_dummy;
+            rarefaction(pstar, rho_l, u_l, p_l, xn_l, 1, Z_l, W_l, rhostar_dummy);
         }
 
         // right wave
@@ -107,11 +105,10 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
         if (pstar - p_r > SMALL * p_r) {
             // right shock
             shock(pstar, rho_r, u_r, p_r, xn_r, gammaE_bar, gammaC_bar, Z_r, W_r);
-            rwave = SHOCK;
         } else {
             // right rarefaction
-            rarefaction(pstar, rho_r, u_r, p_r, xn_r, 3, Z_r, W_r);
-            rwave = RAREFACTION;
+            Real rhostar_dummy;
+            rarefaction(pstar, rho_r, u_r, p_r, xn_r, 3, Z_r, W_r, rhostar_dummy);
         }
 
         ustar_l = u_l - (pstar - p_l) / W_l;
@@ -120,7 +117,7 @@ riemann_star_state(const Real rho_l, const Real u_l, const Real p_l, const Real*
         Real pstar_new = pstar - Z_l * Z_r * (ustar_r - ustar_l) / (Z_l + Z_r);
 
         std::cout << "done with iteration " << iter << std::endl;
-        std::cout << "ustar_l/r, pstar: " << ustar_l << " " << ustar_r << " " pstar_new << std::endl;
+        std::cout << "ustar_l/r, pstar: " << ustar_l << " " << ustar_r << " " << pstar_new << std::endl;
 
         // estimate the error in the current star solution
         Real err1 = std::abs(ustar_r - ustar_l);

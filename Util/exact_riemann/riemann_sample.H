@@ -1,6 +1,8 @@
 #ifndef RIEMANN_SAMPLE_MODULE_H
 #define RIEMANN_SAMPLE_MODULE_H
 
+#include <riemann_support.H>
+
 AMREX_INLINE
 void
 riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_l,
@@ -8,7 +10,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
                const Real ustar, const Real pstar,
                const Real W_l, const Real W_r,
                const Real x, const Real xjump, const Real time,
-               Real& rho, Real& u, Real* p, Real* xn) {
+               Real& rho, Real& u, Real& p, Real* xn) {
 
     // get the initial sound speeds
 
@@ -18,7 +20,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_l[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -29,7 +31,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_r[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -50,8 +52,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     Real chi = std::copysign(1.0_rt, xi - ustar);
 
     Real rho_s, u_s, p_s, W_s, cs_s;
-    Real xn[NumSpec];
-    Real uhat, xihat, uhat_star;
+    Real uhat_s, xihat, uhat_star;
 
     if (chi == -1.0_rt) {
         rho_s = rho_l;
@@ -123,7 +124,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 

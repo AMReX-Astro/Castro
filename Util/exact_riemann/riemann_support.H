@@ -1,15 +1,93 @@
 #ifndef RIEMANN_SUPPORT_H
 #define RIEMANN_SUPPORT_H
 
+#include <eos_type.H>
+#include <eos.H>
+
 const Real smallrho = 1.e-5_rt;
 const int max_iters = 100;
 const Real tol = 1.e-6_rt;
+
+
+AMREX_INLINE
+void
+W_s_shock(const Real W_s, const Real pstar, const Real rho_s, const Real p_s, const Real e_s, const Real* xn,
+          Real& rhostar_s, eos_t& eos_state, Real& f, Real& fprime) {
+
+    // we need rhostar -- get it from the R-H conditions
+
+    Real taustar_s = (1.0_rt / rho_s) - (pstar - p_s) / (W_s * W_s);
+    rhostar_s = 1.0_rt / taustar_s;
+
+    // get the thermodynamics
+
+    eos_state.rho = rhostar_s;
+    eos_state.p = pstar;
+    for (int n = 0; n < NumSpec; ++n) {
+        eos_state.xn[n] = xn[n];
+    }
+    eos_state.T = problem::initial_temp_guess;
+
+    eos(eos_input_rp, eos_state);
+
+    // compute the correction
+
+    f = W_s * W_s * (eos_state.e - e_s) - 0.5_rt * (pstar * pstar - p_s * p_s);
+
+    // we need de/drho at constant p -- this is not returned by the EOS
+
+    Real dedrho_p = eos_state.dedr - eos_state.dedT * eos_state.dpdr / eos_state.dpdT;
+
+    fprime = 2.0_rt * W_s * (eos_state.e - e_s) - 2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
+
+}
+
+
+AMREX_INLINE
+void
+newton_shock(Real& W_s, const Real pstar, const Real rho_s, const Real p_s, const Real e_s, const Real* xn,
+             Real* rhostar_hist, Real* Ws_hist,
+             eos_t& eos_state, bool& converged) {
+
+    // Newton iterations -- we are zeroing the energy R-H jump condition
+    // W^2 [e] = 1/2 [p^2]
+    //
+    // we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
+    //
+    // and then compute f'
+
+    converged = false;
+
+    int iter = 1;
+    while (! converged && iter < max_iters) {
+
+        Real rhostar_s, f, fprime;
+
+        W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn,
+                  rhostar_s, eos_state, f, fprime);
+
+        Real dW = -f / fprime;
+
+        if (std::abs(dW) < tol * W_s) {
+            converged = true;
+        }
+
+        W_s = amrex::min(2.0_rt * W_s, amrex::max(0.5_rt * W_s, W_s + dW));
+
+        // store some history
+
+        rhostar_hist[iter] = rhostar_s;
+        Ws_hist[iter] = W_s;
+
+        iter++;
+    }
+}
 
 AMREX_INLINE
 void
 shock(const Real pstar, const Real rho_s, const Real u_s, const Real p_s, const Real* xn,
       const Real gammaE_bar, const Real gammaC_bar,
-      Rea;& Z_s, Real& W_s) {
+      Real& Z_s, Real& W_s) {
 
 
     const Real tol_p = 1.e-6_rt;
@@ -31,7 +109,7 @@ shock(const Real pstar, const Real rho_s, const Real u_s, const Real p_s, const 
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -77,6 +155,7 @@ shock(const Real pstar, const Real rho_s, const Real u_s, const Real p_s, const 
 
     // newton
 
+    bool converged;
     newton_shock(W_s, pstar, rho_s, p_s, e_s, xn,
                  rhostar_hist, Ws_hist,
                  eos_state, converged);
@@ -123,76 +202,69 @@ shock(const Real pstar, const Real rho_s, const Real u_s, const Real p_s, const 
 
 AMREX_INLINE
 void
-newton_shock(Real& W_s, const Real pstar, const Real rho_s, const Real p_s, const Real e_s, const Real* xn,
-             Real* rhostar_hist, Real* Ws_hist,
-             eos_t& eos_state, bool& converged) {
+riemann_invariant_rhs(const Real p, const Real tau, const Real u, const Real* xn, const int iwave,
+                      Real& dtaudp, Real& dudp) {
 
-    // Newton iterations -- we are zeroing the energy R-H jump condition
-    // W^2 [e] = 1/2 [p^2]
-    //
-    // we write f(W) = W^2 (e(pstar, rhostar_s) - e_s) - (1/2)(pstar^2 - p_s)
-    //
-    // and then compute f'
+    // here, p is out independent variable, and tau, u are the
+    // dependent variables.  We return the derivatives of these
+    // wrt p for integration.
 
-    converged = false;
+    // get the thermodynamics
 
-    int iter = 1;
-    while (! converged && iter < max_iters) {
-
-        Real f, fprime;
-
-        W_s_shock(W_s, pstar, rho_s, p_s, e_s, xn, rhostar_s, eos_state,
-                  f, fprime);
-
-        Real dW = -f / fprime;
-
-        if (std::abs(dW) < tol * W_s) {
-            converged = true;
-        }
-
-        W_s = amrex::min(2.0_rt * W_s, amrex::max(0.5_rt * W_s, W_s + dW));
-
-        // store some history
-
-        rhostar_hist[iter] = rhostar_s;
-        Ws_hist[iter] = W_s;
-
-        iter++;
+    eos_t eos_state;
+    eos_state.rho = 1.0_rt / tau;
+    eos_state.p = p;
+    for (int n = 0; n < NumSpec; ++n) {
+        eos_state.xn[n] = xn[n];
     }
+    eos_state.T = problem::initial_temp_guess;
+
+    eos(eos_input_rp, eos_state);
+
+    Real C = std::sqrt(eos_state.gam1 * p / tau);
+
+    dtaudp = -1.0_rt / (C * C);
+
+    if (iwave == 1) {
+        dudp = -1.0_rt / C;
+    } else if (iwave == 3) {
+        dudp = 1.0_rt / C;
+    }
+
 }
 
 
 AMREX_INLINE
 void
-W_s_shock(const Real W_s, const Real pstar, const Real rho_s, const Real p_s, const Real e_s, const Real* xn,
-          Real& rhostar_s, Real& eos_state, Real& f, Real& fprime) {
+riemann_invariant_rhs2(const Real u, const Real tau, const Real p, const Real* xn, const int iwave,
+                       Real& dtaudu, Real& dpdu) {
 
-    // we need rhostar -- get it from the R-H conditions
-
-    Real taustar_s = (1.0_rt / rho_s) - (pstar - p_s) / (W_s * W_s);
-    rhostar_s = 1.0_rt / taustar_s;
+    // here, u is out independent variable, and tau, p are the
+    // dependent variables.  We return the derivatives of these
+    // wrt u for integration.
 
     // get the thermodynamics
 
-    eos_state.rho = rhostar_s;
-    eos_state.p = pstar;
+    eos_t eos_state;
+    eos_state.rho = 1.0_rt / tau;
+    eos_state.p = p;
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
-    // compute the correction
+    Real C = std::sqrt(eos_state.gam1 * p / tau);
 
-    f = W_s * W_s * (eos_state.e - e_s) - 0.5_rt * (pstar * pstar - p_s * p_s);
+    if (iwave == 3) {
+       dpdu = C;
+       dtaudu = -1.0_rt / C;
 
-    // we need de/drho at constant p -- this is not returned by the EOS
-
-    Real dedrho_p = eos_state.dedr - eos_state.dedT * eos_state.dpdr / eos_state.dpdT;
-
-    fprime = 2.0_rt * W_s * (eos_state.e - e_s) - 2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
-
+    } else if (iwave == 1) {
+        dpdu = -C;
+        dtaudu = 1.0_rt / C;
+    }
 }
 
 
@@ -244,7 +316,7 @@ rarefaction(const Real pstar, const Real rho_s, const Real u_s, const Real p_s,
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -284,8 +356,8 @@ rarefaction_to_u(const Real rho_s, const Real u_s, const Real p_s, const Real* x
     // dp/du = -C; dtau/du =  1/C   for the 3-wave
 
     Real tau = 1.0_rt / rho_s;
-    Real u = u_s;
-    Real p = p_s;
+    u = u_s;
+    p = p_s;
 
     // estimate
     // compute c
@@ -296,7 +368,7 @@ rarefaction_to_u(const Real rho_s, const Real u_s, const Real p_s, const Real* x
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = initial_temp_guess;
+    eos_state.T = problem::initial_temp_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -345,7 +417,7 @@ rarefaction_to_u(const Real rho_s, const Real u_s, const Real p_s, const Real* x
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn[n];
         }
-        eos_state.T = initial_temp_guess;
+        eos_state.T = problem::initial_temp_guess;
 
         eos(eos_input_rp, eos_state);
 
@@ -385,71 +457,4 @@ rarefaction_to_u(const Real rho_s, const Real u_s, const Real p_s, const Real* x
     rho = 1.0_rt / tau;
 }
 
-
-AMREX_INLINE
-void
-riemann_invariant_rhs(const Real p, const Real tau, const Real u, const Real* xn, const int iwave,
-                      Real& dtaudp, Real& dudp) {
-
-    // here, p is out independent variable, and tau, u are the
-    // dependent variables.  We return the derivatives of these
-    // wrt p for integration.
-
-    // get the thermodynamics
-
-    eos_t eos_state;
-    eos_state.rho = 1.0_rt / tau;
-    eos_state.p = p;
-    for (int n = 0; n < NumSpec; ++n) {
-        eos_state.xn[n] = xn[n];
-    }
-    eos_state.T = initial_temp_guess;
-
-    eos(eos_input_rp, eos_state);
-
-    Real C = std::sqrt(eos_state.gam1 * p / tau);
-
-    dtaudp = -1.0_rt / (C * C);
-
-    if (iwave == 1) {
-        dudp = -1.0_rt / C;
-    } else if (iwave == 3) {
-        dudp = 1.0_rt / C;
-    }
-
-}
-
-
-AMREX_INLINE
-void
-riemann_invariant_rhs2(const Real u, const Real tau, const Real p, const Real* xn, const int iwave,
-                       Real& dtaudu, Real& dpdu) {
-
-    // here, u is out independent variable, and tau, p are the
-    // dependent variables.  We return the derivatives of these
-    // wrt u for integration.
-
-    // get the thermodynamics
-
-    eos_t eos_state;
-    eos_state.rho = 1.0_rt / tau;
-    eos_state.p = p;
-    for (int n = 0; n < NumSpec; ++n) {
-        eos_state.xn[n] = xn[n];
-    }
-    eos_state.T = initial_temp_guess;
-
-    eos(eos_input_rp, eos_state);
-
-    Real C = std::sqrt(eos_state.gam1 * p / tau);
-
-    if (iwave == 3) {
-       dpdu = C;
-       dtaudu = -1.0_rt / C;
-
-    } else if (iwave == 1) {
-        dpdu = -C;
-        dtaudu = 1.0_rt / C;
-    }
-}
 #endif

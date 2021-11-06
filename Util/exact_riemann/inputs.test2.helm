@@ -1,20 +1,17 @@
-&PROBIN
-rho_l = 1.0d7
-u_l   = -1.0d8
-T_l   = 1.e8
+problem.rho_l = 1.0e7
+problem.u_l   = -1.0e8
+problem.T_l   = 1.e8
 
+problem.rho_r = 1.0e7
+problem.u_r   = 1.0e8
+problem.T_r   = 1.e8
 
-rho_r = 1.0d7
-u_r   = 1.0d8
-T_r   = 1.e8
+problem.use_Tinit = 1
 
-use_Tinit = T
+problem.xmin  = 0.0
+problem.xmax  = 1.0e5
+problem.xjump = 0.5e5
 
-xmin  = 0.0d0
-xmax  = 1.0d5
-xjump = 0.5d5
+problem.t     = 0.00008
 
-t     = 0.00008d0
-
-npts  = 128
-/
+problem.npts  = 128
