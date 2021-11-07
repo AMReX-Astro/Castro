@@ -66,6 +66,8 @@ exact_riemann() {
 
     // loop over xi space
 
+    std::cout << "evaluating at t = " << problem::t << std::endl;
+
     for (int i = 1; i <= problem::npts; i++) {
 
         // compute xi = x/t -- this is the similarity variable for the
