@@ -5,10 +5,10 @@ PROFILE          = FALSE
 DEBUG            = FALSE
 DIM              = 2
 
-COMP	         = gnu
+COMP	         = intel
 
-USE_MPI          = FALSE
-USE_OMP          = FALSE
+USE_MPI          = TRUE
+USE_OMP          = TRUE
 
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
