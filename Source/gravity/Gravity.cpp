@@ -28,7 +28,6 @@ int Gravity::test_solves  = 1;
 #else
 int Gravity::test_solves  = 0;
 #endif
-Real Gravity::max_radius_all_in_domain =  0.0;
 Real Gravity::mass_offset    =  0.0;
 
 // ************************************************************************************** //
@@ -324,24 +323,6 @@ Gravity::install_level (int                   level,
         }
 
     }
-
-    // Compute the maximum radius at which all the mass at that radius is in the domain,
-    //   assuming that the "hi" side of the domain is away from the center.
-#if (AMREX_SPACEDIM > 1)
-    if (level == 0)
-    {
-        Real x = geom.ProbHi(0) - problem::center[0];
-        Real y = geom.ProbHi(1) - problem::center[1];
-        max_radius_all_in_domain = std::min(x,y);
-#if (AMREX_SPACEDIM == 3)
-        Real z = geom.ProbHi(2) - problem::center[2];
-        max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
-#endif
-        if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
-            std::cout << "Maximum radius for which the mass is contained in the domain: "
-                      << max_radius_all_in_domain << std::endl;
-    }
-#endif
 
     finest_level_allocated = level;
 }
@@ -3044,10 +3025,20 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         int n1d = radial_mass[lev].size();
 
 #ifdef GR_GRAV
-        for (int i = 0; i < n1d; i++) radial_pres[lev][i] = 0.;
+        Real* const lev_pres = radial_pres[lev].dataPtr();
 #endif
-        for (int i = 0; i < n1d; i++) radial_vol[lev][i] = 0.;
-        for (int i = 0; i < n1d; i++) radial_mass[lev][i] = 0.;
+        Real* const lev_vol = radial_vol[lev].dataPtr();
+        Real* const lev_mass = radial_mass[lev].dataPtr();
+
+        amrex::ParallelFor(n1d,
+        [=] AMREX_GPU_DEVICE (int i)
+        {
+#ifdef GR_GRAV
+            lev_pres[i] = 0.;
+#endif
+            lev_vol[i] = 0.;
+            lev_mass[i] = 0.;
+        });
 
         const Geometry& geom = parent->Geom(lev);
         const Real* dx   = geom.CellSize();
@@ -3119,8 +3110,19 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         if (do_diag > 0)
         {
-            Real sum = 0.;
-            for (int i = 0; i < n1d; i++) sum += radial_mass[lev][i];
+            ReduceOps<ReduceOpSum> reduce_op;
+            ReduceData<Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
+
+            reduce_op.eval(n1d, reduce_data,
+            [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
+            {
+                return {lev_mass[i]};
+            });
+
+            ReduceTuple hv = reduce_data.value();
+            Real sum = amrex::get<0>(hv);
+
             sum_over_levels += sum;
         }
     }
@@ -3131,11 +3133,15 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     int n1d = radial_mass[level].size();
     RealVector radial_mass_summed(n1d,0);
 
+    Real* const level_mass = radial_mass[level].dataPtr();
+    Real* const mass_summed = radial_mass_summed.dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
     {
-        radial_mass_summed[i] = radial_mass[level][i];
-    }
+        mass_summed[i] = level_mass[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3144,20 +3150,35 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
+
+            Real* const lev_mass = radial_mass[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                   radial_mass_summed[ratio*i+n] += 1./double(ratio) * radial_mass[lev][i];
+                    mass_summed[ratio*i+n] += 1./double(ratio) * lev_mass[i];
                 }
-            }
+            });
         }
     }
 
     if (do_diag > 0 && ParallelDescriptor::IOProcessor())
     {
-        Real sum_added = 0.;
-        for (int i = 0; i < n1d; i++) sum_added += radial_mass_summed[i];
+        ReduceOps<ReduceOpSum> reduce_op;
+        ReduceData<Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
+        reduce_op.eval(n1d, reduce_data,
+        [=] AMREX_GPU_DEVICE (int i) -> ReduceTuple
+        {
+            return {mass_summed[i]};
+        });
+
+        ReduceTuple hv = reduce_data.value();
+        Real sum_added = amrex::get<0>(hv);
+
         std::cout << "Gravity::make_radial_gravity: Sum of combined mass " << sum_added << std::endl;
     }
 
@@ -3165,18 +3186,20 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     const Real* dx = geom.CellSize();
     Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
 
-    // ***************************************************************** //
-    // Compute the average density to use at the radius above
-    //   max_radius_all_in_domain so we effectively count mass outside
-    //   the domain.
-    // ***************************************************************** //
-
     RealVector radial_vol_summed(n1d,0);
     RealVector radial_den_summed(n1d,0);
 
+    Real* const vol_summed = radial_vol_summed.dataPtr();
+    Real* const den_summed = radial_den_summed.dataPtr();
+
+    Real* const level_vol = radial_vol[level].dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
-         radial_vol_summed[i] =  radial_vol[level][i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        vol_summed[i] = level_vol[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3185,28 +3208,41 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
+
+            const Real* lev_vol = radial_vol[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
             {
                 for (int n = 0; n < ratio; n++)
                 {
-                   radial_vol_summed[ratio*i+n]  += 1./double(ratio) * radial_vol[lev][i];
+                    vol_summed[ratio*i+n]  += 1./double(ratio) * lev_vol[i];
                 }
-            }
+            });
         }
     }
 
-    for (int i = 0; i < n1d; i++)
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
     {
-        radial_den_summed[i] = radial_mass_summed[i];
-        if (radial_vol_summed[i] > 0.) radial_den_summed[i]  /= radial_vol_summed[i];
-    }
+        den_summed[i] = mass_summed[i];
+        if (vol_summed[i] > 0.) {
+            den_summed[i] /= vol_summed[i];
+        }
+    });
 
 #ifdef GR_GRAV
     RealVector radial_pres_summed(n1d,0);
 
+    Real* const pres_summed = radial_pres_summed.dataPtr();
+    Real* const level_pres = radial_pres[level].dataPtr();
+
     // First add the contribution from this level
-    for (int i = 0; i < n1d; i++)
-        radial_pres_summed[i] = radial_pres[level][i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        pres_summed[i] = level_pres[i];
+    });
 
     // Now add the contribution from coarser levels
     if (level > 0)
@@ -3215,14 +3251,26 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         for (int lev = level-1; lev >= 0; lev--)
         {
             if (lev < level-1) ratio *= parent->refRatio(lev)[0];
-            for (int i = 0; i < n1d/ratio; i++)
-                for (int n = 0; n < ratio; n++)
-                   radial_pres_summed[ratio*i+n] += 1./double(ratio) * radial_pres[lev][i];
+
+            const Real* lev_pres = radial_pres[lev].dataPtr();
+
+            amrex::ParallelFor(n1d/ratio,
+            [=] AMREX_GPU_DEVICE (int i)
+            {
+                for (int n = 0; n < ratio; n++) {
+                    pres_summed[ratio*i+n] += 1./double(ratio) * lev_pres[i];
+                }
+            });
         }
     }
 
-    for (int i = 0; i < n1d; i++)
-        if (radial_vol_summed[i] > 0.) radial_pres_summed[i] /= radial_vol_summed[i];
+    amrex::ParallelFor(n1d,
+    [=] AMREX_GPU_DEVICE (int i)
+    {
+        if (vol_summed[i] > 0.) {
+            pres_summed[i] /= vol_summed[i];
+        }
+    });
 #endif
 
     // Integrate radially outward to define the gravity
@@ -3239,67 +3287,64 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #endif
     Real* const grav = radial_grav.dataPtr();
 
-    for (int i = 0; i < n1d; ++i) {
-        Real rlo = (static_cast<Real>(i)         ) * dr;
-        Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
-        Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
+    // At a given radius r corresponding to an index i, the gravity is
+    // g(r) = -G * M(r) / r**2. The enclosed mass can be computed via
+    // an inclusive prefix sum, which yields the same result one would
+    // obtain with a serial calculation from 0 to i but with the ability
+    // to be parallelized. The first lambda returns the mass at radial
+    // zone index i (which includes the upper shell of zone i-1 and the
+    // lower shell of zone i) and the second lambda accepts the current
+    // enclosed mass as an argument and computes the gravity at the
+    // corresponding radius.
 
-        if (i == 0) {
+    Scan::PrefixSum<Real> (n1d,
+        [=] AMREX_GPU_DEVICE (int i) -> Real
+        {
+            Real dM = 0.0;
 
-            // The mass at (i) is distributed into these two regions
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * rc * rc * rc;
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * (rhi * rhi * rhi - rc * rc * rc);
-            vol_total_i     = vol_outer_shell + vol_upper_shell;
+            if (i > 0) {
+                // The mass at (i-1) is distributed into an upper and lower shell; the
+                // contribution to the mass at zone center i is from the upper shell.
+                Real rlo = (static_cast<Real>(i-1)         ) * dr;
+                Real rc  = (static_cast<Real>(i-1) + 0.5_rt) * dr;
+                Real rhi = (static_cast<Real>(i-1) + 1.0_rt) * dr;
 
-            mass_encl = vol_outer_shell * mass[i] / vol_total_i;
+                Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
+                Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+                dM = dM + (vol_shell / vol_zone) * mass[i-1];
+            }
 
-        }
-        else if (rc < max_radius_all_in_domain) {
+            Real rlo = (static_cast<Real>(i)         ) * dr;
+            Real rc  = (static_cast<Real>(i) + 0.5_rt) * dr;
+            Real rhi = (static_cast<Real>(i) + 1.0_rt) * dr;
 
-            // The mass at (i-1) is distributed into these two shells
-            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
-            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
-            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
+            // The mass at (i) is distributed into an upper and lower shell; the
+            // contribution to the mass at zone center i is from the lower shell.
+            Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
+            Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+            dM = dM + (vol_shell / vol_zone) * mass[i];
 
-            // The mass at (i)   is distributed into these two shells
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
-            vol_total_i          = vol_outer_shell + vol_upper_shell;
+            return dM;
+        },
+        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl)
+        {
+            Real rc = (static_cast<Real>(i) + 0.5_rt) * dr;
 
-            mass_encl = mass_encl + (vol_inner_shell / vol_total_im1) * mass[i-1] +
-                                    (vol_outer_shell / vol_total_i  ) * mass[i  ];
-
-        }
-        else {
-
-            // The mass at (i-1) is distributed into these two shells
-            Real vol_lower_shell = vol_outer_shell;   // This copies from the previous i
-            Real vol_inner_shell = vol_upper_shell;   // This copies from the previous i
-            Real vol_total_im1   = vol_total_i;       // This copies from the previous i
-
-            // The mass at (i)   is distributed into these two shells
-            vol_outer_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rlo * rc + rlo * rlo);
-            vol_upper_shell = (4.0_rt / 3.0_rt * M_PI) * halfdr * (rc * rc + rhi * rc + rhi * rhi);
-            vol_total_i          = vol_outer_shell + vol_upper_shell;
-
-            mass_encl = mass_encl + vol_inner_shell * den[i-1] + vol_outer_shell * den[i];
-        }
-
-        grav[i] = -C::Gconst * mass_encl / (rc * rc);
+            grav[i] = -C::Gconst * mass_encl / (rc * rc);
 
 #ifdef GR_GRAV
-        // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
+            // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
 
-        if (den[i] > 0.0_rt) {
-            Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-            Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
-            Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+            if (den[i] > 0.0_rt) {
+                Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
+                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
 
-            grav[i] = grav[i] * ga * gb * gc;
-        }
+                grav[i] = grav[i] * ga * gb * gc;
+            }
 #endif
-
-    }
+        },
+        Scan::Type::inclusive);
 
     if (gravity::verbose)
     {

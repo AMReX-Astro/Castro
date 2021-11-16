@@ -440,14 +440,6 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, source_ng, NSRC,
                          interp, state_data_extrap, store_in_checkpoint);
 
-#ifdef ROTATION
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
-                         StateDescriptor::Point, 1, 1,
-                         interp, state_data_extrap,
-                         store_in_checkpoint);
-#endif
-
 
 #ifdef REACTIONS
   // Component is  rho_enuc = rho * (eout-ein)
@@ -618,12 +610,6 @@ Castro::variableSetUp ()
   set_z_vel_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,genericBndryFunc);
-#endif
-
-#ifdef ROTATION
-  set_scalar_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill

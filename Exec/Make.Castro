@@ -30,6 +30,24 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
+# only pynucastro nets or radiation builds need Fortran
+pynucastro_file_exists := $(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR))/pynucastro.net)
+ifeq ("$(pynucastro_file_exists)","")
+  # we are not using a pynucastro net
+  ifeq ($(USE_RAD), TRUE)
+    USE_FORT_MICROPHYSICS := TRUE
+    BL_NO_FORT := FALSE
+  else
+    USE_FORT_MICROPHYSICS := FALSE
+    BL_NO_FORT := TRUE
+  endif
+else
+  $(warning pynucastro network detected--enabling Fortran)
+  USE_FORT_MICROPHYSICS := TRUE
+  BL_NO_FORT := FALSE
+endif
+
+
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation
@@ -125,9 +143,6 @@ build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
-
-# Castro uses a coarse grained OMP approach
-DEFINES += -DCRSEGRNDOMP
 
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
