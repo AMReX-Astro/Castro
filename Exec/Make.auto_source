@@ -108,6 +108,7 @@ endif
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
@@ -155,6 +156,7 @@ ifdef BUILD_GIT_NAME
 endif
 
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
