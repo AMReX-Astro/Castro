@@ -104,7 +104,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii+1,j,k,UTEMP) - adv(ii+2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -290,7 +294,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii-1,j,k,UTEMP) - adv(ii-2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -481,7 +489,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj+1,k,UTEMP) - adv(i,jj+2,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -668,7 +680,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj-1,k,UTEMP) - adv(i,jj-2,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -858,7 +874,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,j,kk+1,UTEMP) - adv(i,j,kk+2,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
