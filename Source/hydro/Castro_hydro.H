@@ -56,20 +56,20 @@
 
 
 ///
-/// when using simplified-SDC, add the species source term predictor to
+/// when using simplified-SDC, add the SDC source term predictor to
 /// the interface states
 ///
-/// @param bx      the box to operate over
-/// @param idir    coordinate direction
-/// @param dt      timestep
-/// @param qleft   left state at the interface
-/// @param qright  right state at the interface
-/// @param src_q   primitive variable source array
+/// @param bx          the box to operate over
+/// @param idir        coordinate direction
+/// @param dt          timestep
+/// @param qleft       left state at the interface
+/// @param qright      right state at the interface
+/// @param sdc_source  primitive variable SDC source array
 ///
-    void add_species_source_to_states(const Box& bx, const int idir, const Real dt,
+    void add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
                                       Array4<Real> const& qleft,
                                       Array4<Real> const& qright,
-                                      Array4<Real const> const& src_q);
+                                      Array4<Real const> const& sdc_src);
 
 ///
 /// convert the conserved form of the source terms, S(U), into source terms

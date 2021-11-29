@@ -461,12 +461,13 @@ Castro::variableSetUp ()
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
+  // these are not traced, so we only need a single ghost cell
 
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW_SRC, NQSRC,
+                             StateDescriptor::Point, 1, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }

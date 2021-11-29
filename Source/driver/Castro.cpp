@@ -1021,7 +1021,7 @@ Castro::initData ()
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW_SRC);
+       react_src_new.setVal(0.0, react_src_new.nGrow());
    }
 #endif
 #endif
