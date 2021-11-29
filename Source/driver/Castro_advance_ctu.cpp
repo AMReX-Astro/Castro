@@ -24,11 +24,14 @@ Castro::do_advance_ctu(Real time,
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
 
+
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -407,7 +410,10 @@ Castro::do_advance_ctu(Real time,
 
     finalize_do_advance();
 
+#endif
+
     return status;
+
 }
 
 

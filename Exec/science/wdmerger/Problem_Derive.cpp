@@ -418,10 +418,29 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        der(i,j,k,0) = dat(i,j,k,0) + dat(i,j,k,1);
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc);
     });
 }
 
@@ -469,7 +488,11 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
                            (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + dat(i,j,k,0);
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+            loc[i] -= problem::center[i];
+        }
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc);
     });
 }
 
@@ -514,7 +537,11 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
                            (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + dat(i,j,k,0);
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+            loc[i] -= problem::center[i];
+        }
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc);
     });
 }
 
@@ -539,10 +566,29 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc);
     });
 }
 
@@ -602,8 +648,15 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                              (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
                              (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
+
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+            loc[i] -= problem::center[i];
+        }
+
+        Real phi_rot = rotational_potential(loc);
+
+        Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
+        Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;
 
         if (phi_p < 0.0_rt && phi_p < phi_s) {
             der(i,j,k,0) = 1.0_rt;
@@ -662,8 +715,14 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
                              (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
                              (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+            loc[i] -= problem::center[i];
+        }
+
+        Real phi_rot = rotational_potential(loc);
+
+        Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
+        Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;
 
         if (phi_s < 0.0_rt && phi_s < phi_p) {
             der(i,j,k,0) = 1.0_rt;
