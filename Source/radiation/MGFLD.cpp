@@ -1678,7 +1678,7 @@ void Radiation::inelastic_scattering(int level)
                 const auto Er_arr = Er_new[mfi].array();
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] (int i, int j, int k)
                 {
 
                     Real temp = state(i,j,k,UTEMP);
