@@ -1677,7 +1677,7 @@ void Radiation::inelastic_scattering(int level)
                 const auto kps_arr = kps.array();
                 const auto Er_arr = Er_new[mfi].array();
 
-                amrex::ParallelFor(bx,
+                amrex::LoopOnCpu(bx,
                 [=] (int i, int j, int k)
                 {
 
