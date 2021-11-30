@@ -1102,6 +1102,8 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
           const Box &reg = mfi.tilebox();
 
           c_v.resize(reg);
+          Elixir elix_c_v = c_v.elixir();
+
           get_c_v(c_v, temp[mfi], state[mfi], reg);
 
           const auto state_arr = state[mfi].array();
