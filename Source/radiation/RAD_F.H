@@ -143,17 +143,6 @@ extern "C" {
                  amrex::Real* exch, amrex::Real* dterm, 
                  const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void nceup(ARLIM_P(reglo), ARLIM_P(reghi), 
-             amrex::Real& relres, amrex::Real& absres,
-             BL_FORT_FAB_ARG(frhoes), 
-             amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
-             BL_FORT_FAB_ARG(er), 
-             amrex::Real* dflux_old, amrex::Real* dflux_new,
-             amrex::Real* temp, amrex::Real* fkp, amrex::Real* cv, 
-             BL_FORT_FAB_ARG(state), 
-             const amrex::Real& sigma, const amrex::Real& c,
-             const amrex::Real& delta_t, const amrex::Real& theta);
-
   void fkpn(const int* lo, const int* hi,
             BL_FORT_FAB_ARG_3D(fkp),       
             amrex::Real con, amrex::Real em, amrex::Real en,
