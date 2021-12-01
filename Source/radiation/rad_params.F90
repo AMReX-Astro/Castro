@@ -9,9 +9,10 @@ module rad_params_module
   ! radiation energy group information
 
   use amrex_fort_module, only: rt => amrex_real
-  use state_indices_module, only : ngroups
 
   implicit none
+
+  integer, parameter :: ngroups = NGROUPS
 
   integer, allocatable, save :: current_group, ng0, ng1
   real(rt), save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
