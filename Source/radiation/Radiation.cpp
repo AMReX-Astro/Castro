@@ -1048,7 +1048,7 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
       Real absolute_priv = 0.0;
       Real theta = 1.0;
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(eta,TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box &reg = mfi.tilebox();
           ceupdterm(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
                     relative_priv, absolute_priv,
