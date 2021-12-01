@@ -35,7 +35,6 @@ int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
-int Radiation::do_inelastic_scattering = 0;
 int Radiation::plot_lambda   = 0;
 int Radiation::plot_kappa_p  = 0;
 int Radiation::plot_kappa_r  = 0;
@@ -483,7 +482,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     }
     if (SolverType == MGFLDSolver) {
       std::cout << "fspace_advection_type = " << fspace_advection_type << std::endl;
-      std::cout << "do_inelastic_scattering = " << do_inelastic_scattering << std::endl;
     }
     if (SolverType == SGFLDSolver && comoving == 0) {
       std::cout << "Er_Lorentz_term = " << Er_Lorentz_term << std::endl;
@@ -537,13 +535,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_T_rat_level.resize(levels, 0.0);
 
   pp.query("pure_hydro", pure_hydro);
-
-  if (pure_hydro || limiter == 0) {
-      if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-          std::cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << std::endl;
-      }
-      do_inelastic_scattering = 0;
-  }
 
 }
 
