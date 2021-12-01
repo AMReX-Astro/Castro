@@ -35,6 +35,7 @@ USE_FORT_MICROPHYSICS := FALSE
 # only radiation builds need Fortran
 ifeq ($(USE_RAD), TRUE)
   BL_NO_FORT := FALSE
+  USE_FORT_MICROPHYSICS := TRUE
 else
   BL_NO_FORT := TRUE
 endif
