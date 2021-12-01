@@ -12,11 +12,12 @@ extern "C"
 
 #ifdef RADIATION
   void ca_inelastic_sct
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(Erout),
-     const BL_FORT_FAB_ARG_3D(kappa_s),
-     const amrex::Real& dt);
+    (const int i, const int j, const int k,
+     const amrex::Real temp,
+     amrex::Real* Erout,
+     const amrex::Real ks,
+     amrex::Real& dEr,
+     const amrex::Real dt);
 #endif
 
 #ifdef AUX_UPDATE
