@@ -1670,13 +1670,41 @@ void Radiation::inelastic_scattering(int level)
                 const Box& bx = mfi.tilebox();
 
                 kps.resize(bx,1); // we assume scattering is independent of nu
+                Elixir elix_kps = kps.elixir();
                 MGFLD_compute_scattering(kps, S_new[mfi]);
 
-                ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(kps),
-                                 dt);           
+                const auto state = S_new[mfi].array();
+                const auto kps_arr = kps.array();
+                const auto Er_arr = Er_new[mfi].array();
+
+                amrex::LoopOnCpu(bx,
+                [=] (int i, int j, int k)
+                {
+
+                    Real temp = state(i,j,k,UTEMP);
+                    Real ks = kps_arr(i,j,k);
+
+                    Real dEr = 0.0;
+
+                    Real Er[NGROUPS];
+                    for (int g = 0; g < NGROUPS; ++g) {
+                        Er[g] = Er_arr(i,j,k,g);
+                    }
+
+                    ca_inelastic_sct(i, j, k,
+                                     temp,
+                                     Er,
+                                     ks,
+                                     dEr,
+                                     dt);
+
+                    for (int g = 0; g < NGROUPS; ++g) {
+                        Er_arr(i,j,k,g) = Er[g];
+                    }
+                    state(i,j,k,UEINT) -= dEr;
+                    state(i,j,k,UEDEN) -= dEr;
+                });
+
             }
         }
 
