@@ -1156,8 +1156,8 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
 
   ReduceTuple hv = reduce_data.value();
 
-  relative = amrex::get<0>(hv);
-  absolute = amrex::get<1>(hv);
+  absolute = amrex::get<0>(hv);
+  relative = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);
