@@ -1,3 +1,12 @@
+# 21.12
+   * Tiling was added to main loop in MHD algorithm to enable 
+     scaling performance increase when using multiple threads
+     in with OpenMP. See issue #2038.
+
+   * `castro.hse_fixed_temp` was added to allow for a fixed temperature
+     at an HSE boundary. It can be enabled by setting it to a positive
+     value and setting castro.hse_interp_temp=0. (#2042)
+
 # 21.10
 
    * A new option, `castro.drive_initial_convection` was added that

@@ -96,10 +96,11 @@ test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
+
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 ifeq ($(USE_RAD), TRUE)
-  state_fort_opts = --ngroups $(NGROUPS) --with_fortran
+  state_fort_opts = --ngroups $(NGROUPS)
 else
   state_fort_opts =
 endif
@@ -108,6 +109,7 @@ endif
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
@@ -116,7 +118,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
            $(CASTRO_HOME)/Source/driver/_variables
 
 # for debugging
-test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90
+test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 
 #------------------------------------------------------------------------------
@@ -155,6 +157,7 @@ ifdef BUILD_GIT_NAME
 endif
 
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \

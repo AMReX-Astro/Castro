@@ -75,7 +75,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
       FArrayBox div;
 
-      for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
 
           const Box& bx = mfi.tilebox();

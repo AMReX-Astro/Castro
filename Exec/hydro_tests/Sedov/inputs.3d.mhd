@@ -20,11 +20,11 @@ castro.hi_bc       =  2   2   2
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
-castro.ppm_type = 0
+castro.ppm_type = 1
 castro.allow_negative_energy = 0
 
 #MHD
-castro.use_flattening = 0
+castro.use_flattening = 1
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5   # cfl number for hyperbolic system
@@ -70,7 +70,7 @@ amr.checkpoint_files_output = 0
 # PLOTFILES
 amr.plot_file       = sedov_3d_plt
 amr.plot_int        = 50
-amr.derive_plot_vars= density Temp pressure
+amr.derive_plot_vars= density Temp pressure B_x B_y B_z
 
 # PROBLEM PARAMETERS
 problem.r_init = 0.01

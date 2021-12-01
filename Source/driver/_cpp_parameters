@@ -219,8 +219,12 @@ zr_ext_bc_type               int          -1
 hse_zero_vels                int           0
 
 # if we are doing HSE boundary conditions, should we get the temperature
-# via interpolation (using model_parser) or hold it constant?
+# via interpolation (constant gradient) or hold it constant?
 hse_interp_temp              int           0
+
+# if we are doing HSE boundary conditions and holding the temperature constant,
+# then set it to a fixed value at the boundaries (only if positive)
+hse_fixed_temp               Real          -1.e200
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
