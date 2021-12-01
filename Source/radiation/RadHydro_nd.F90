@@ -6,7 +6,45 @@ module radhydro_nd_module
 
 contains
 
-  subroutine inelastic_scatter(temp, u, ks, dt, pt_index)
+
+subroutine ca_inelastic_sct(i, j, k, &
+                            temp, &
+                            Er, &
+                            ks, &
+                            dEr, &
+                            dt) bind(C, name="ca_inelastic_sct")
+
+  use rad_params_module, only: ngroups, nugroup, dlognu
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+  integer, intent(in), value :: i, j, k
+  real(rt), intent(in), value :: temp
+  real(rt), intent(inout) :: Er(0:ngroups-1)
+  real(rt), intent(in   ) :: ks
+  real(rt), intent(out) :: dEr
+  real(rt), intent(in), value :: dt
+
+  real(rt) :: Ertotold, Ertmp(0:ngroups-1)
+  real(rt) :: Erscale(0:ngroups-1)
+
+  Erscale = nugroup*dlognu
+
+  Ertmp = Er(:)
+  Ertotold = sum(Ertmp)
+  Ertmp = Ertmp / Erscale
+
+  call inelastic_scatter(temp, Ertmp, ks, dt)
+
+  Ertmp = Ertmp * Erscale
+  dEr = sum(Ertmp) - Ertotold
+  Er(:) = Ertmp
+
+end subroutine ca_inelastic_sct
+
+
+  subroutine inelastic_scatter(temp, u, ks, dt)
     ! reference: Larsen, Levermore, Pomraning, and Sanderson, 1985, JCP, 61, 359
 
     use rad_params_module, only: ngroups, xnu, nugroup, dlognu
@@ -18,7 +56,6 @@ contains
 
     real(rt), intent(in) :: temp, ks, dt
     real(rt), intent(inout) :: u(ngroups)
-    integer, intent(in), optional :: pt_index(:)
 
     integer :: i
     real(rt) :: theta, sigmadt
