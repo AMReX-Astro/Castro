@@ -32,9 +32,6 @@ CEXE_sources += Castro_generic_fill.cpp
 
 CEXE_headers      += Castro_util.H
 CEXE_headers      += math.H
-ifeq ($(USE_RAD), TRUE)
-  ca_F90EXE_sources += state_indices_nd.F90
-endif
 
 NEED_MGUTIL =
 
