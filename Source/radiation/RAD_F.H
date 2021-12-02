@@ -21,6 +21,8 @@ extern "C"
 {
 #endif
 
+void ca_init_fort_constants(const amrex::Real hplanck, const amrex::Real avogadro);
+
 void ca_initsinglegroup
   (const int& ngroups);
 

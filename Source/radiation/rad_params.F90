@@ -14,6 +14,8 @@ module rad_params_module
 
   integer, parameter :: ngroups = NGROUPS
 
+  real :: hplanck, avogadro
+
   integer, allocatable, save :: current_group, ng0, ng1
   real(rt), save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
                                  erg2rhoYe(:), lognugroup(:)

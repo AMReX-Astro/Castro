@@ -1,3 +1,19 @@
+subroutine ca_init_fort_constants(hplanck_in, avogadro_in) bind(C, name="ca_init_fort_constants")
+
+  use rad_params_module, only: hplanck, avogadro
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+  real(rt), intent(in) :: hplanck_in, avogadro_in
+
+  hplanck = hplanck_in
+  avogadro = avogadro_in
+
+end subroutine ca_init_fort_constants
+
+
+
 ! For single group, let set ngroups to 1.
 subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
 

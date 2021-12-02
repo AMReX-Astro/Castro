@@ -309,10 +309,12 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     clight = C::c_light;
     hPlanck = C::hplanck;
     kBoltz = C::k_B;
-    AAvogardo = C::n_A;
+    Avogadro = C::n_A;
     convert_MeV_erg = 1.e6_rt * C::ev2erg;
 
     aRad = 4.*C::sigma_SB / C::c_light;
+
+    ca_init_fort_constants(hPlanck, Avogadro);
 
     c        = clight;
     sigma    = C::sigma_SB;
