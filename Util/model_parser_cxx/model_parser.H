@@ -607,7 +607,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
             // yell if we didn't find the current variable
 
             if (!found_model && i == 0) {
-                amrex::Print() << "Warning variable not found: " << varnames_stored[j] << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] variable not found: " << varnames_stored[j] << std::endl;
             }
 
         } // end loop over nvars_model_file
@@ -616,31 +616,31 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
         if (i == 0) {
             if (!found_dens) {
-                amrex::Print() << "WARNING: density not provided in inputs file" << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] density not provided in inputs file" << ResetDisplay << std::endl;
             }
 
             if (!found_temp) {
-                amrex::Print() << "WARNING: temperature not provided in inputs file" << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] temperature not provided in inputs file" << ResetDisplay << std::endl;
             }
 
             if (!found_pres) {
-                amrex::Print() << "WARNING: pressure not provided in inputs file" << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] pressure not provided in inputs file" << ResetDisplay << std::endl;
             }
 
             if (!found_velr) {
-                amrex::Print() << "WARNING: velocity not provided in inputs file" << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] velocity not provided in inputs file" << ResetDisplay << std::endl;
             }
 
             for (int comp = 0; comp < NumSpec; comp++) {
                 if (!found_spec[comp]) {
-                    amrex::Print() << "WARNING: " << spec_names_cxx[comp] << " not provided in inputs file" << std::endl;
+                    amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] " << spec_names_cxx[comp] << " not provided in inputs file" << ResetDisplay << std::endl;
                 }
             }
 
 #if NAUX_NET > 0
             for (int comp = 0; comp < NumAux; comp++) {
                 if (!found_aux[comp]) {
-                    amrex::Print() << "WARNING: " << aux_names_cxx[comp] << " not provided in inputs file" << std::endl;
+                    amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] " << aux_names_cxx[comp] << " not provided in inputs file" << ResetDisplay << std::endl;
                 }
             }
 #endif
