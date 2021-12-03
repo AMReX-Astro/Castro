@@ -436,8 +436,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
+            std::cout << Font::Bold << FGColor::Red;
             std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
             std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << ResetDisplay;
             std::cout << std::endl;
         }
 
