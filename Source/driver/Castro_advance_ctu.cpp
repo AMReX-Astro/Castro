@@ -603,8 +603,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
-                      << " with dt = " << dt_subcycle << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+                      << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
@@ -692,7 +692,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << "  Subcycle completed" << std::endl << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Subcycle completed" << ResetDisplay << std::endl << std::endl;
         }
 
         // Set sdc_iters to its original value, in case we modified it above.
