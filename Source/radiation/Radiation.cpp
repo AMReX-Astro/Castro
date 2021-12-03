@@ -290,7 +290,7 @@ void Radiation::read_static_params()
       nplotvar = plotvar_names.size();
   }
 
-  std::cout << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
+  amrex::Print() << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
 
 }
 
