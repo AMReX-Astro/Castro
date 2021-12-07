@@ -607,7 +607,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
             // yell if we didn't find the current variable
 
             if (!found_model && i == 0) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] variable not found: " << varnames_stored[j] << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] variable not found: " << varnames_stored[j] << ResetDisplay << std::endl;
             }
 
         } // end loop over nvars_model_file
