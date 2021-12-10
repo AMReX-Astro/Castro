@@ -305,15 +305,19 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   do_sync = 1; pp.query("do_sync", do_sync);
 
   {
-    Real stefbol;
 
-    ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg);
+    clight = C::c_light;
+    hPlanck = C::hplanck;
+    kBoltz = C::k_B;
+    Avogadro = C::n_A;
+    convert_MeV_erg = 1.e6_rt * C::ev2erg;
 
-    aRad = 4.*stefbol/clight;
+    aRad = 4.*C::sigma_SB / C::c_light;
+
+    ca_init_fort_constants(hPlanck, Avogadro);
 
     c        = clight;
-    sigma    = stefbol;
+    sigma    = C::sigma_SB;
 
     if (!do_multigroup) {
         // In single group and abstract test problems we can play with

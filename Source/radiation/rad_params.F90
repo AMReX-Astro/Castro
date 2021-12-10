@@ -14,21 +14,10 @@ module rad_params_module
 
   integer, parameter :: ngroups = NGROUPS
 
+  real :: hplanck, avogadro
+
   integer, allocatable, save :: current_group, ng0, ng1
   real(rt), save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
                                  erg2rhoYe(:), lognugroup(:)
-
-  ! physical constants used for radiation
-  real(rt), allocatable :: pi, clight, hplanck, kboltz, stefbol, arad, avogadro
-  real(rt), allocatable :: Hz2MeV, mev2erg, tiny
-
-  ! In our current solvers, E is stored in rad.  (In the past, J was stored.)
-  ! So we use the following conversion factors to make sure the right variables are used
-  real(rt), allocatable :: radtoE  !, radtoJ, Etorad, radfluxtoF
-  real(rt), allocatable :: etafactor
-
-  ! (yes, I know pi isn't a physical constant)
-  ! (stefbol is derived from the other constants)
-  ! (tiny a generic very small quantity without units, currently 1.e-50_rt)
 
 end module rad_params_module
