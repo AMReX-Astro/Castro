@@ -32,15 +32,6 @@ CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
 USE_FORT_MICROPHYSICS := FALSE
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-  USE_FORT_MICROPHYSICS := TRUE
-else
-  BL_NO_FORT := TRUE
-endif
-
-
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation
