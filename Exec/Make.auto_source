@@ -10,19 +10,11 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 # Microphysics runtime parameters
 #------------------------------------------------------------------------------
 
-# runtime parameter support for extern/ routines
-ifeq ($(USE_FORT_MICROPHYSICS), TRUE)
-  F90EXE_sources += extern.F90
-  FEXE_headers += extern_parameters_F.H
-endif
-
 CEXE_sources += extern_parameters.cpp
 CEXE_headers += extern_parameters.H
 
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
-
-EXTERN_TEMPLATE := $(MICROPHYSICS_HOME)/interfaces/extern_probin.template
 
 # these are for finding runtime parameters
 EXTERN_SEARCH += $(EXTERN_CORE)
@@ -30,19 +22,11 @@ EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
 EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
 
-ifeq ($(USE_FORT_MICROPHYSICS), TRUE)
-   extern_fort_opts = -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern --with_fortran
-else
-   extern_fort_opts =
-endif
-
-
-$(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
-$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py $(extern_fort_opts) \
+	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
            --pa "$(EXTERN_PARAMETERS)"
 
