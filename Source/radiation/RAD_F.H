@@ -20,10 +20,8 @@
 extern "C"
 {
 #endif
-void ca_initradconstants
-  (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
-   amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
-   amrex::Real& mev2erg);
+
+void ca_init_fort_constants(const amrex::Real hplanck, const amrex::Real avogadro);
 
 void ca_initsinglegroup
   (const int& ngroups);

@@ -1,64 +1,18 @@
+subroutine ca_init_fort_constants(hplanck_in, avogadro_in) bind(C, name="ca_init_fort_constants")
 
-
-!! -----------------------------------------------------------
-!> @brief This routine is called at problem setup time and is used
-!! to initialize values of physical constants used by the
-!! radiation package.
-!! -----------------------------------------------------------
-subroutine ca_initradconstants(p, c, h, k, s, a, m) bind(C, name="ca_initradconstants")
-
-  use fundamental_constants_module, only: c_fcm=>c_light, h_fcm=>hplanck, &
-                                          k_fcm=>k_B, s_fcm=>sigma_SB, a_fcm=>n_A, ev2erg_fcm=>ev2erg
-  use rad_params_module, only: pi, clight, hplanck
-  use rad_params_module, only: kboltz, stefbol, arad, avogadro
-  use rad_params_module, only: Hz2MeV, mev2erg, tiny
-  use rad_params_module, only: radtoE  !, radtoJ, Etorad, radfluxtoF
-  use rad_params_module, only: etafactor
-  use amrex_fort_module, only : rt => amrex_real
+  use rad_params_module, only: hplanck, avogadro
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  real(rt) :: p, c, h, k, s, a, m
+  real(rt), intent(in) :: hplanck_in, avogadro_in
 
-  c = c_fcm
-  h = h_fcm
-  k = k_fcm
-  s = s_fcm
-  a = a_fcm
-  m = 1.e6_rt * ev2erg_fcm
+  hplanck = hplanck_in
+  avogadro = avogadro_in
 
-  allocate(pi)
-  allocate(clight)
-  allocate(hplanck)
-  allocate(kboltz)
-  allocate(stefbol)
-  allocate(arad)
-  allocate(avogadro)
-  allocate(Hz2MeV)
-  allocate(mev2erg)
-  allocate(tiny)
+end subroutine ca_init_fort_constants
 
-  pi       = p
-  clight   = c
-  hplanck  = h
-  kboltz   = k
-  stefbol  = s
-  arad     = 4.*stefbol/clight
-  avogadro = a
-  mev2erg  = m
-  Hz2MeV   = h / m
-  tiny     = 1.e-50_rt
 
-  allocate(radtoE)
-  allocate(etafactor)
-
-  radtoE = 1.0e0_rt
-  !           radtoJ = clight/(4.e0_rt*pi)
-  !           Etorad = 1.0e0_rt
-  !           radfluxtoF = 1.e0_rt
-  etafactor = 4.e0_rt*pi/clight
-
-end subroutine ca_initradconstants
 
 ! For single group, let set ngroups to 1.
 subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
