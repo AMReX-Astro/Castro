@@ -87,7 +87,7 @@ enum StateType { State_Type = 0,
                Mag_Type_y,
                Mag_Type_z,
 #endif
-#ifdef SIMPLIFIED_SDC
+#if defined(SIMPLIFIED_SDC) || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC)
 #ifdef REACTIONS
                  Simplified_SDC_React_Type
 #endif

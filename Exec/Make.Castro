@@ -39,6 +39,10 @@ else
   BL_NO_FORT := TRUE
 endif
 
+ifeq ($(USE_ALLOW_STRANG_RESTART_FROM_SDC),TRUE)
+  DEFINES += -DHACK_ALLOW_STRANG_RESTART_FROM_SDC -DPRIM_SPECIES_HAVE_SOURCES
+endif
+
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
