@@ -1017,12 +1017,10 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
-#ifdef SIMPLIFIED_SDC
+#if defined(SIMPLIFIED_SDC) || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC)
 #ifdef REACTIONS
-   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, react_src_new.nGrow());
-   }
+    MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
+    react_src_new.setVal(0.0, react_src_new.nGrow());
 #endif
 #endif
 
@@ -3930,13 +3928,11 @@ Castro::swap_state_time_levels(const Real dt)
         // this because we never need the old data, so we
         // don't want to allocate memory for it.
 
-#ifdef SIMPLIFIED_SDC
+#if defined(SIMPLIFIED_SDC) || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC)
 #ifdef REACTIONS
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
                 state[k].swapTimeLevels(0.0);
             }
-        }
 #endif
 #endif
 

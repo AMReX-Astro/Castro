@@ -463,7 +463,6 @@ Castro::variableSetUp ()
   // For simplified SDC, we want to store the reactions source.
   // these are not traced, so we only need a single ghost cell
 
-  BL_ASSERT(time_integration_method == SimplifiedSpectralDeferredCorrections || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC));
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, NQSRC,
@@ -667,17 +666,15 @@ Castro::variableSetUp ()
   }
 #endif
 
-#ifdef SIMPLIFIED_SDC
+#if defined(SIMPLIFIED_SDC) || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC)
 #ifdef REACTIONS
-  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      for (int i = 0; i < NQSRC; ++i) {
-          char buf[64];
-          sprintf(buf, "sdc_react_source_%d", i);
-          set_scalar_bc(bc,phys_bc);
-          replace_inflow_bc(bc);
+  for (int i = 0; i < NQSRC; ++i) {
+      char buf[64];
+      sprintf(buf, "sdc_react_source_%d", i);
+      set_scalar_bc(bc,phys_bc);
+      replace_inflow_bc(bc);
 
-          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
-      }
+      desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
   }
 #endif
 #endif
