@@ -35,7 +35,6 @@ int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
-int Radiation::do_inelastic_scattering = 0;
 int Radiation::plot_lambda   = 0;
 int Radiation::plot_kappa_p  = 0;
 int Radiation::plot_kappa_r  = 0;
@@ -290,7 +289,7 @@ void Radiation::read_static_params()
       nplotvar = plotvar_names.size();
   }
 
-  std::cout << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
+  amrex::Print() << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
 
 }
 
@@ -306,15 +305,19 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   do_sync = 1; pp.query("do_sync", do_sync);
 
   {
-    Real stefbol;
 
-    ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg);
+    clight = C::c_light;
+    hPlanck = C::hplanck;
+    kBoltz = C::k_B;
+    Avogadro = C::n_A;
+    convert_MeV_erg = 1.e6_rt * C::ev2erg;
 
-    aRad = 4.*stefbol/clight;
+    aRad = 4.*C::sigma_SB / C::c_light;
+
+    ca_init_fort_constants(hPlanck, Avogadro);
 
     c        = clight;
-    sigma    = stefbol;
+    sigma    = C::sigma_SB;
 
     if (!do_multigroup) {
         // In single group and abstract test problems we can play with
@@ -483,7 +486,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     }
     if (SolverType == MGFLDSolver) {
       std::cout << "fspace_advection_type = " << fspace_advection_type << std::endl;
-      std::cout << "do_inelastic_scattering = " << do_inelastic_scattering << std::endl;
     }
     if (SolverType == SGFLDSolver && comoving == 0) {
       std::cout << "Er_Lorentz_term = " << Er_Lorentz_term << std::endl;
@@ -537,13 +539,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_T_rat_level.resize(levels, 0.0);
 
   pp.query("pure_hydro", pure_hydro);
-
-  if (pure_hydro || limiter == 0) {
-      if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-          std::cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << std::endl;
-      }
-      do_inelastic_scattering = 0;
-  }
 
 }
 
@@ -1048,7 +1043,7 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
       Real absolute_priv = 0.0;
       Real theta = 1.0;
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(eta,TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box &reg = mfi.tilebox();
           ceupdterm(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
                     relative_priv, absolute_priv,
@@ -1085,42 +1080,79 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
 {
   BL_PROFILE("Radiation::nonconservative_energy_update");
 
-  relative = 0.0;
-  absolute = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const Real theta = 1.0;
+  const Real tiny = 1.e-50_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
       FArrayBox c_v;
 
       for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
           const Box &reg = mfi.tilebox();
 
           c_v.resize(reg);
+          Elixir elix_c_v = c_v.elixir();
+
           get_c_v(c_v, temp[mfi], state[mfi], reg);
 
-          nceup(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                relative_priv, absolute_priv,
-                BL_TO_FORTRAN(frhoes[mfi]),
-                frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-                BL_TO_FORTRAN(Er_new[mfi]),
-                dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-                temp[mfi].dataPtr(), fkp[mfi].dataPtr(), c_v.dataPtr(),
-                BL_TO_FORTRAN(state[mfi]),
-                sigma, c, delta_t, theta);
+          const auto state_arr = state[mfi].array();
+          const auto temp_arr = temp[mfi].array();
+          const auto fkp_arr = fkp[mfi].array();
+          const auto er_arr = Er_new[mfi].array();
+          const auto eta_arr = eta[mfi].array();
+          const auto etainv_arr = etainv[mfi].array();
+          const auto frhoem_arr = frhoem[mfi].array();
+          const auto frhoes_arr = frhoes[mfi].array();
+          const auto dfo_arr = dflux_old[mfi].array();
+          const auto dfn_arr = dflux_new[mfi].array();
+          const auto c_v_arr = c_v.array();
+
+          reduce_op.eval(reg, reduce_data,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+          {
+
+              Real chg = 0.e0_rt;
+              Real tot = 0.e0_rt;
+
+              Real frhocv = state_arr(i,j,k,URHO) * c_v_arr(i,j,k);
+
+              Real dbdt = 16.0_rt * C::sigma_SB * std::pow(temp_arr(i,j,k), 3);
+              Real b = 4.0_rt * C::sigma_SB * std::pow(temp_arr(i,j,k), 4);
+              Real exch = fkp_arr(i,j,k) * (b - C::c_light * er_arr(i,j,k));
+              Real tmp = eta_arr(i,j,k) * frhoes_arr(i,j,k) +
+                  etainv_arr(i,j,k) * (frhoem_arr(i,j,k) -
+                                       delta_t * ((1.0_rt - theta) * (dfo_arr(i,j,k) - dfn_arr(i,j,k)) + exch));
+
+              if (frhocv > tiny && tmp > frhoes_arr(i,j,k)) {
+                  Real db = (tmp - frhoes_arr(i,j,k)) * dbdt / frhocv;
+                  tmp = std::pow((b + db) / (4.0_rt * C::sigma_SB), 0.25_rt);
+                  tmp = frhoes_arr(i,j,k) + frhocv * (tmp - temp_arr(i,j,k));
+              }
+
+              chg = std::abs(tmp - frhoes_arr(i,j,k));
+              tot = std::abs(frhoes_arr(i,j,k));
+              frhoes_arr(i,j,k) = tmp;
+
+              Real absres = chg;
+              Real relres = chg / (tot + tiny);
+
+              return {absres, relres};
+          });
+
       }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceupdterm)
-#endif
-      {
-          relative = std::max(relative, relative_priv);
-          absolute = std::max(absolute, absolute_priv);
-      }
-  }
+
+  } // OpenMP
+
+  ReduceTuple hv = reduce_data.value();
+
+  absolute = amrex::get<0>(hv);
+  relative = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);

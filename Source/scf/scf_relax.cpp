@@ -2,6 +2,7 @@
 #include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <Gravity.H>
+#include <Rotation.H>
 
 using namespace amrex;
 
@@ -147,7 +148,6 @@ Castro::do_hscf_solve()
     Vector< std::unique_ptr<MultiFab> > enthalpy(n_levs);
     Vector< std::unique_ptr<MultiFab> > state_vec(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi(n_levs);
-    Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
 
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
@@ -194,7 +194,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
             state_vec[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
             phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-            phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
         }
 
         // Copy in the state data. Mask it out on coarse levels.
@@ -203,7 +202,6 @@ Castro::do_hscf_solve()
 
             MultiFab::Copy((*state_vec[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
             MultiFab::Copy((*phi[lev]), getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1, 0);
-            MultiFab::Copy((*phi_rot[lev]), getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
 
             if (lev < finest_level) {
                 const MultiFab& mask = getLevel(lev+1).build_fine_mask();
@@ -213,7 +211,6 @@ Castro::do_hscf_solve()
                 }
 
                 MultiFab::Multiply((*phi[lev]), mask, 0, 0, 1, 0);
-                MultiFab::Multiply((*phi_rot[lev]), mask, 0, 0, 1, 0);
             }
 
         }
@@ -354,25 +351,6 @@ Castro::do_hscf_solve()
 
         }
 
-        // With the updated period, we can construct the updated rotational
-        // potential, which will be used in the remaining steps below.
-
-        for (int lev = 0; lev <= finest_level; ++lev) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-            for (MFIter mfi((*phi_rot[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-                const Box& bx = mfi.tilebox();
-
-                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
-
-            }
-
-        }
-
-
 
         // Second step is to evaluate the Bernoulli constant.
 
@@ -394,7 +372,6 @@ Castro::do_hscf_solve()
                 const Box& bx = mfi.tilebox();
 
                 auto phi_arr = (*phi[lev])[mfi].array();
-                auto phi_rot_arr = (*phi_rot[lev])[mfi].array();
 
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -404,7 +381,7 @@ Castro::do_hscf_solve()
 
                     // The below assumes we are rotating on the z-axis.
 
-                    Real r[3] = {0.0};
+                    GpuArray<Real, 3> r = {0.0};
 
                     r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
@@ -437,7 +414,7 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    Real bernoulli = scale * (phi_arr(i,j,k) + phi_rot_arr(i,j,k));
+                    Real bernoulli = scale * (phi_arr(i,j,k) + rotational_potential(r));
 
                     return {bernoulli};
                 });
@@ -458,6 +435,8 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
+            auto geomdata = parent->Geom(lev).data();
+
             enthalpy[lev]->setVal(0.0);
 
 #ifdef _OPENMP
@@ -469,7 +448,6 @@ Castro::do_hscf_solve()
 
                 auto enthalpy_arr = (*enthalpy[lev])[mfi].array();
                 auto phi_arr = (*phi[lev])[mfi].array();
-                auto phi_rot_arr = (*phi_rot[lev])[mfi].array();
 
                 amrex::ParallelFor(bx,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k)
@@ -478,7 +456,20 @@ Castro::do_hscf_solve()
                     // enthalpy + gravitational potential + rotational potential = const
                     // We already have the constant, so our goal is to construct the enthalpy field.
 
-                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - phi_rot_arr(i,j,k);
+                    auto dx = geomdata.CellSize();
+                    auto problo = geomdata.ProbLo();
+
+                    GpuArray<Real, 3> r = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r);
                 });
 
             }
@@ -593,7 +584,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
             MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state_vec[lev]), 0, 0, NUM_STATE, 0);
             MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type), (*phi[lev]), 0, 0, 1, 0);
-            MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
         }
 
         for (int lev = finest_level-1; lev >= 0; --lev) {
@@ -620,7 +610,8 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            auto geomdata = parent->Geom(lev).data();
+            const auto dx = parent->Geom(level).CellSizeArray();
 
             Real dV = dx[0];
 #if AMREX_SPACEDIM >= 2
@@ -643,18 +634,29 @@ Castro::do_hscf_solve()
 
                 auto state = (*state_vec[lev])[mfi].array();
                 auto phi_arr = (*phi[lev])[mfi].array();
-                auto phi_rot_arr = (*phi_rot[lev])[mfi].array();
 
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
+                    auto problo = geomdata.ProbLo();
+
+                    GpuArray<Real, 3> r = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
                     if (state(i,j,k,URHO) > 0.0)
                     {
                         dM = state(i,j,k,URHO) * dV;
 
-                        dK = phi_rot_arr(i,j,k) * dM;
+                        dK = rotational_potential(r) * dM;
 
                         dU = 0.5_rt * phi_arr(i,j,k) * dM;
 

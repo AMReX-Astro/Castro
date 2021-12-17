@@ -435,31 +435,68 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
 
 void
-Castro::add_species_source_to_states(const Box& bx, const int idir, const Real dt,
-                                     Array4<Real> const& qleft,
-                                     Array4<Real> const& qright,
-                                     Array4<Real const> const& src_q)
+Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
+                                 Array4<Real> const& qleft,
+                                 Array4<Real> const& qright,
+                                 Array4<Real const> const& sdc_src)
 {
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
+        // of the state variables, only pressure, rhoe, and
+        // composition have source terms
+
+        Real p_old = qleft(i,j,k,QPRES);
+        Real rhoe_old = qleft(i,j,k,QREINT);
+
+        if (idir == 0) {
+            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i-1,j,k,QPRES);
+            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i-1,j,k,QREINT);
+        } else if (idir == 1) {
+            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j-1,k,QPRES);
+            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j-1,k,QREINT);
+        } else {
+            qleft(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j,k-1,QPRES);
+            qleft(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j,k-1,QREINT);
+        }
+
+        if (qleft(i,j,k,QPRES) < small_pres || qleft(i,j,k,QREINT) < small_dens * small_ener) {
+            qleft(i,j,k,QPRES) = p_old;
+            qleft(i,j,k,QREINT) = rhoe_old;
+        }
+
+        p_old = qright(i,j,k,QPRES);
+        rhoe_old = qright(i,j,k,QREINT);
+
+        qright(i,j,k,QPRES) += 0.5 * dt * sdc_src(i,j,k,QPRES);
+        qright(i,j,k,QREINT) += 0.5 * dt * sdc_src(i,j,k,QREINT);
+
+        if (qright(i,j,k,QPRES) < small_pres || qright(i,j,k,QREINT) < small_dens * small_ener) {
+            qright(i,j,k,QPRES) = p_old;
+            qright(i,j,k,QREINT) = rhoe_old;
+        }
+
+
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
             int n = qpassmap(ipassive);
 
             if (idir == 0) {
-                qleft(i,j,k,n) += 0.5 * dt * src_q(i-1,j,k,n);
+                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i-1,j,k,n);
             } else if (idir == 1) {
-                qleft(i,j,k,n) += 0.5 * dt * src_q(i,j-1,k,n);
+                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i,j-1,k,n);
             } else {
-                qleft(i,j,k,n) += 0.5 * dt * src_q(i,j,k-1,n);
+                qleft(i,j,k,n) += 0.5 * dt * sdc_src(i,j,k-1,n);
             }
-            qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
+            qright(i,j,k,n) += 0.5 * dt * sdc_src(i,j,k,n);
 
-            qright(i,j,k,n) += 0.5 * dt * src_q(i,j,k,n);
-            qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+            if (n >= QFS && n <= QFS-1+NumSpec) {
+                // mass fractions should be in [0, 1]
+                qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
+                qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+            }
         }
 
     });
@@ -495,7 +532,7 @@ Castro::src_to_prim(const Box& bx, const Real dt,
               if (n == UMX || n == UMY || n == UMZ) {
                   srcU[n] += 0.5 * dt * src_corr(i,j,k,n);
               }
-          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections  && source_term_predictor == 1) {
               srcU[n] += src_corr(i,j,k,n);
           }
 #endif

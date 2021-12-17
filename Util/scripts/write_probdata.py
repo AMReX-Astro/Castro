@@ -56,6 +56,8 @@ def get_next_line(fin):
         line = fin.readline()
         pos = line.find("#")
 
+    if pos == -1:
+        return line.strip()
     return line[:pos]
 
 

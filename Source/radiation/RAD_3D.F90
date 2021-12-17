@@ -3,7 +3,6 @@
 
 module rad_module
 
-  use state_indices_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -109,68 +108,6 @@ subroutine ceupdterm(DIMS(reg), relres, absres, &
      enddo
   enddo
 end subroutine ceupdterm
-
-! nonconservative form based on delta B
-subroutine nceup(DIMS(reg), relres, absres, &
-                 frhoes, DIMS(grd), &
-                 frhoem, eta, etainv, &
-                 er, DIMS(ebox), &
-                 dfo, dfn, temp, fkp, cv, &
-                 state, DIMS(sb), &
-                 sigma, c, dt, theta) bind(C, name="nceup")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(grd)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(ebox)
-  real(rt)         :: frhoes(DIMV(grd))
-  real(rt)         :: frhoem(DIMV(grd))
-  real(rt)         :: eta(DIMV(grd))
-  real(rt)         :: etainv(DIMV(grd))
-  real(rt)         :: er(DIMV(ebox))
-  real(rt)         :: dfo(DIMV(grd))
-  real(rt)         :: dfn(DIMV(grd))
-  real(rt)         :: temp(DIMV(grd))
-  real(rt)         :: fkp(DIMV(grd))
-  real(rt)         :: cv(DIMV(reg))
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: sigma, c, dt, theta, relres, absres
-  real(rt)         :: tmp, chg, tot, exch, b, db, dbdt, frhocv
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           chg = 0.e0_rt
-           tot = 0.e0_rt
-           frhocv = state(i,j,k, URHO) * cv(i,j,k)
-           dbdt = 16.e0_rt * sigma * temp(i,j,k)**3
-           b = 4.e0_rt * sigma * temp(i,j,k)**4
-           exch = fkp(i,j,k) * (b - c * er(i,j,k))
-           tmp = eta(i,j,k) * frhoes(i,j,k) + etainv(i,j,k) * &
-                (frhoem(i,j,k) - &
-                dt * ((1.e0_rt - theta) * &
-                (dfo(i,j,k) - dfn(i,j,k)) + &
-                exch))
-#if 1
-           if (frhocv > tiny .AND. tmp > frhoes(i,j,k)) then
-              db = (tmp - frhoes(i,j,k)) * dbdt / frhocv
-              if (b + db <= 0.e0_rt) then
-                 print *, i, j, k, b, db, b+db
-              endif
-              tmp = ((b + db) / (4.e0_rt * sigma))**0.25e0_rt
-              tmp = frhoes(i,j,k) + frhocv * (tmp - temp(i,j,k))
-           endif
-#endif
-           chg = abs(tmp - frhoes(i,j,k))
-           tot = abs(frhoes(i,j,k))
-           frhoes(i,j,k) = tmp
-           absres = max(absres, chg)
-           relres = max(relres, chg / (tot + tiny))
-        enddo
-     enddo
-  enddo
-end subroutine nceup
 
 subroutine rfface(fine, &
                   DIMS(fbox), &

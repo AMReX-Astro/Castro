@@ -24,6 +24,12 @@ void problem_initialize ()
         amrex::Error("ERROR: small_dens should be set lower than low_density_cutoff");
     }
 
+    // make sure hse_fixed_temp is the same as T_star, if it's specified
+
+    if (hse_fixed_temp > 0.0_rt && hse_fixed_temp != problem::T_star) {
+        amrex::Error("ERROR: hse_fixed_temp should be the same as T_star");
+    }
+
     // get the species indices
 
     bool species_defined = true;

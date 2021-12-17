@@ -4,7 +4,6 @@
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -441,27 +440,17 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, source_ng, NSRC,
                          interp, state_data_extrap, store_in_checkpoint);
 
-#ifdef ROTATION
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
-                         StateDescriptor::Point, 1, 1,
-                         interp, state_data_extrap,
-                         store_in_checkpoint);
-#endif
-
 
 #ifdef REACTIONS
-  // Components 0:NumSpec-1                are rho * omegadot_i
-  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
-  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
-  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
+  // Component is  rho_enuc = rho * (eout-ein)
+  // next NumSpec are rho * omegadot_i
+  // next NumAux are rho * auxdot_i
   store_in_checkpoint = false;
 
-  int num_react = 0;
+  int num_react = 1;
+
   if (store_omegadot == 1) {
-      num_react = NumSpec+NumAux+2;
-  } else {
-      num_react = 2;
+      num_react += NumSpec + NumAux;
   }
 
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
@@ -472,12 +461,13 @@ Castro::variableSetUp ()
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
+  // these are not traced, so we only need a single ghost cell
 
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW_SRC, NQSRC,
+                             StateDescriptor::Point, 1, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
@@ -600,9 +590,9 @@ Castro::variableSetUp ()
 
 #ifdef MHD
   set_mag_field_bc(bc, phys_bc);
-  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
-  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
-  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, genericBndryFunc);
 #endif
 
 
@@ -622,12 +612,6 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,genericBndryFunc);
 #endif
 
-#ifdef ROTATION
-  set_scalar_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-#endif
-
   // Source term array will use source fill
 
   Vector<BCRec> source_bcs(NSRC);
@@ -645,18 +629,17 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
 
   if (store_omegadot == 1) {
 
-      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      // Reactions_Type includes the species -- we put those after rho_enuc
       std::string name_react;
       for (int i = 0; i < NumSpec; ++i)
       {
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+i, name_react, bc,genericBndryFunc);
       }
 #if NAUX_NET > 0
       std::string name_aux;
@@ -664,7 +647,22 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
+#endif
+  }
+
+  // names for the burn_weights that are manually added to the plotfile
+  
+  if (store_burn_weights) {
+
+#ifdef STRANG
+      burn_weight_names.push_back("burn_weights_firsthalf");
+      burn_weight_names.push_back("burn_weights_secondhalf");
+#endif
+#ifdef SIMPLIFIED_SDC
+      for (int n = 0; n < sdc_iters+1; n++) {
+          burn_weight_names.push_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }

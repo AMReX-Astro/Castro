@@ -20,10 +20,8 @@
 extern "C"
 {
 #endif
-void ca_initradconstants
-  (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
-   amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
-   amrex::Real& mev2erg);
+
+void ca_init_fort_constants(const amrex::Real hplanck, const amrex::Real avogadro);
 
 void ca_initsinglegroup
   (const int& ngroups);
@@ -127,21 +125,6 @@ extern "C"
 #endif
 // </ MGFLD>
 
-BL_FORT_PROC_DECL(CA_COMPUTE_FCC, ca_compute_fcc)
-    (const int lo[], const int hi[], 
-     D_DECL(const BL_FORT_FAB_ARG(lamx),
-            const BL_FORT_FAB_ARG(lamy),
-            const BL_FORT_FAB_ARG(lamz)), int& nlam,
-     BL_FORT_FAB_ARG(fcc));
-
-BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
-    (const int lo[], const int hi[], const amrex::Real& flag,
-     const BL_FORT_FAB_ARG(Snew),
-     const BL_FORT_FAB_ARG(f),
-     const BL_FORT_FAB_ARG(Er), 
-     const BL_FORT_FAB_ARG(Fi), int& ifi, int& nfi, 
-     BL_FORT_FAB_ARG(Fo), int& ifo, int& nfo);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -157,17 +140,6 @@ extern "C" {
                  amrex::Real* dflux_old, amrex::Real* dflux_new,
                  amrex::Real* exch, amrex::Real* dterm, 
                  const amrex::Real& delta_t, const amrex::Real& theta);
-
-  void nceup(ARLIM_P(reglo), ARLIM_P(reghi), 
-             amrex::Real& relres, amrex::Real& absres,
-             BL_FORT_FAB_ARG(frhoes), 
-             amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
-             BL_FORT_FAB_ARG(er), 
-             amrex::Real* dflux_old, amrex::Real* dflux_new,
-             amrex::Real* temp, amrex::Real* fkp, amrex::Real* cv, 
-             BL_FORT_FAB_ARG(state), 
-             const amrex::Real& sigma, const amrex::Real& c,
-             const amrex::Real& delta_t, const amrex::Real& theta);
 
   void fkpn(const int* lo, const int* hi,
             BL_FORT_FAB_ARG_3D(fkp),       

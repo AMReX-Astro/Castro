@@ -24,11 +24,14 @@ Castro::do_advance_ctu(Real time,
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
 
+
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -78,7 +81,7 @@ Castro::do_advance_ctu(Real time,
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         // The result of the reactions is added directly to Sborder.
-        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
+        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt, 0);
         clean_state(
 #ifdef MHD
                     Bx_old_tmp, By_old_tmp, Bz_old_tmp,
@@ -146,6 +149,16 @@ Castro::do_advance_ctu(Real time,
 
     }
 
+
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+    // the SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here
+
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn
@@ -323,7 +336,11 @@ Castro::do_advance_ctu(Real time,
             // Compute the reactive source term for use in the next iteration.
 
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, time, dt);
+            if (add_sdc_react_source_to_advection) {
+                get_react_source_prim(SDC_react_new, time, dt);
+            } else {
+                SDC_react_new.setVal(0.0);
+            }
 
             // Check for NaN's.
 
@@ -353,7 +370,7 @@ Castro::do_advance_ctu(Real time,
 
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
+        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt, 1);
         clean_state(
 #ifdef MHD
                     Bx_new, By_new, Bz_new,
@@ -393,7 +410,10 @@ Castro::do_advance_ctu(Real time,
 
     finalize_do_advance();
 
+#endif
+
     return status;
+
 }
 
 
@@ -416,8 +436,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
+            std::cout << Font::Bold << FGColor::Red;
             std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
             std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << ResetDisplay;
             std::cout << std::endl;
         }
 
@@ -473,6 +495,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
             rad_fluxes[dir]->setVal(0.0);
           }
         }
+#endif
+
+#ifdef REACTIONS
+        burn_weights.setVal(0.0);
 #endif
 
         // For simplified SDC, we'll have garbage data if we
@@ -579,8 +605,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
-                      << " with dt = " << dt_subcycle << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+                      << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
@@ -668,7 +694,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << "  Subcycle completed" << std::endl << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Subcycle completed" << ResetDisplay << std::endl << std::endl;
         }
 
         // Set sdc_iters to its original value, in case we modified it above.

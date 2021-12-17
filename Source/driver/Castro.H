@@ -46,8 +46,10 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
+#ifndef TRUE_SDC
 #ifdef REACTIONS
 #include <burner.H>
+#endif
 #endif
 
 #ifdef BL_LAZY
@@ -75,9 +77,6 @@ enum StateType { State_Type = 0,
 #ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
-#endif
-#ifdef ROTATION
-                 PhiRot_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -1236,6 +1235,15 @@ protected:
 ///
     amrex::MultiFab comp_minus_level_phi;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
+#endif
+
+
+#ifdef REACTIONS
+///
+/// Storage for the burn_weights
+///
+    amrex::MultiFab burn_weights;
+    static std::vector<std::string> burn_weight_names;
 #endif
 
 

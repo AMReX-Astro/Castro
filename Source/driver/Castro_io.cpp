@@ -54,11 +54,12 @@ using namespace amrex;
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
+// 11: PhiRot_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 10;
+    int current_version = 11;
 }
 
 // I/O routines for Castro
@@ -926,6 +927,14 @@ Castro::plotFileOutput(const std::string& dir,
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
 
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        n_data_items += Castro::burn_weight_names.size();
+    }
+#endif
+#endif
+
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -968,6 +977,16 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i=0; i<Radiation::nplotvar; ++i) {
           os << Radiation::plotvar_names[i] << '\n';
         }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+        if (store_burn_weights) {
+            for (auto name: Castro::burn_weight_names) {
+                os << name << '\n';
+            }
+        }
+#endif
 #endif
 
         os << AMREX_SPACEDIM << '\n';
@@ -1112,6 +1131,15 @@ Castro::plotFileOutput(const std::string& dir,
         MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
         cnt += Radiation::nplotvar;
     }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
+        cnt += Castro::burn_weight_names.size();
+    }
+#endif
 #endif
 
     //

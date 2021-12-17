@@ -1027,7 +1027,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
 
     if (limiter == 0) {
 
-        amrex::ParallelFor(box,
+        amrex::ParallelFor(gPr.box(),
         [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
             gPr_arr(i,j,k) = 0.e0_rt;
@@ -1649,37 +1649,5 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 
             rhs_arr(i,j,k) *= dt / r;
         });
-    }
-}
-
-void Radiation::inelastic_scattering(int level)
-{
-    if (do_inelastic_scattering) {
-        Real dt = parent->dtLevel(level);
-        Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-        MultiFab& S_new = castro->get_new_data(State_Type);
-        MultiFab& Er_new = castro->get_new_data(Rad_Type);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        {
-            FArrayBox kps;
-            for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-            {
-                const Box& bx = mfi.tilebox();
-
-                kps.resize(bx,1); // we assume scattering is independent of nu
-                MGFLD_compute_scattering(kps, S_new[mfi]);
-
-                ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(kps),
-                                 dt);           
-            }
-        }
-
-        castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
     }
 }

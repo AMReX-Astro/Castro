@@ -41,7 +41,6 @@ public:
   static int comoving;
   static int Er_Lorentz_term;
   static int fspace_advection_type;
-  static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
   static int plot_lambda, plot_kappa_p, plot_kappa_r;
   static int plot_lab_Er, plot_lab_flux, plot_com_flux;
@@ -269,12 +268,6 @@ public:
 /// @param ncycle
 ///
   void MGFLD_implicit_update(int level, int iteration, int ncycle);
-
-
-///
-/// @param level
-///
-  void inelastic_scattering(int level);
 
 
 ///
@@ -883,10 +876,12 @@ public:
 /// @param Er
 /// @param F
 /// @param iflx
+/// @param lab_factor
 ///
-  void save_lab_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-                                const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
-                                const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
+  void save_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
+                            const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
+                            const amrex::MultiFab& Er, const amrex::MultiFab& F,
+                            int iflx, const amrex::Real lab_factor = 1.0);
 
 ///
 /// @param level
