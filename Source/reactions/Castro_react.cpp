@@ -148,6 +148,17 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
             burn_state.n_rhs = 0;
             burn_state.n_jac = 0;
 
+            // for diagnostics
+
+            burn_state.i = i;
+            burn_state.j = j;
+            burn_state.k = k;
+
+#ifdef NONAKA_PLOT
+            burn_state.level = level;
+            burn_state.reference_time = time;
+#endif
+
             // Don't burn if we're outside of the relevant (rho, T) range.
 
             if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
@@ -450,6 +461,11 @@ Castro::react_state(Real time, Real dt)
             burn_state.i = i;
             burn_state.j = j;
             burn_state.k = k;
+
+#ifdef NONAKA_PLOT
+            burn_state.level = level;
+            burn_state.reference_time = time;
+#endif
 
             burn_state.sdc_iter = lsdc_iteration;
             burn_state.num_sdc_iters = sdc_iters;
