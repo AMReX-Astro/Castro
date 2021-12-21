@@ -18,7 +18,7 @@
 // network you're actually using.
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUdt)
+void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUdt, const bool in_jacobian=false)
 {
 
     // note: dUdt is 1-based
