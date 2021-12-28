@@ -16,7 +16,7 @@ USE_CXX_MODEL_PARSER = TRUE
 CASTRO_HOME = ../../..
 
 EOS_DIR     = breakout
-NETWORK_DIR = general_null
+NETWORK_DIR := general_null
 NETWORK_INPUTS = breakout.net
 Opacity_dir = breakout
 
