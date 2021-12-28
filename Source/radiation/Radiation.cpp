@@ -1035,34 +1035,64 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
   relative = 0.0;
   absolute = 0.0;
 
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const Real theta = 1.0;
+  const Real tiny = 1.e-50_rt;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
+  for (MFIter mfi(eta,TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box &reg = mfi.tilebox();
 
-      for (MFIter mfi(eta,TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          const Box &reg = mfi.tilebox();
-          ceupdterm(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                    relative_priv, absolute_priv,
-                    BL_TO_FORTRAN(frhoes[mfi]),
-                    frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-                    dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-                    exch[mfi].dataPtr(), Dterm[mfi].dataPtr(), delta_t, theta);
-      }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceupdterm)
-#endif
+      const auto eta_arr = eta[mfi].array();
+      const auto etainv_arr = etainv[mfi].array();
+      const auto frhoem_arr = frhoem[mfi].array();
+      const auto exch_arr = exch[mfi].array();
+      const auto dfo = dflux_old[mfi].array();
+      const auto dfn = dflux_new[mfi].array();
+      const auto dterm_arr = Dterm[mfi].array();
+      auto frhoes_arr = frhoes[mfi].array();
+
+      reduce_op.eval(reg, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
-          relative = std::max(relative, relative_priv);
-          absolute = std::max(absolute, absolute_priv);
-      }
+
+          Real chg = 0.e0_rt;
+          Real tot = 0.e0_rt;
+
+          Real tmp = eta_arr(i,j,k) * frhoes_arr(i,j,k) +
+              etainv_arr(i,j,k) * (frhoem_arr(i,j,k) -
+                                   delta_t * ((1.e0_rt - theta) *
+                                              (dfo(i,j,k) - dfn(i,j,k)) +
+                                              exch_arr(i,j,k))) +
+              delta_t * dterm_arr(i,j,k);
+
+          chg = std::abs(tmp - frhoes_arr(i,j,k));
+          tot = std::abs(frhoes_arr(i,j,k));
+
+          frhoes_arr(i,j,k) = tmp;
+
+          Real absres = chg;
+          Real relres = chg / (tot + tiny);
+
+          return {relres, absres};
+
+      });
+
   }
+
+  ReduceTuple hv = reduce_data.value();
+
+  relative = amrex::get<0>(hv);
+  absolute = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);
+
 }
 
 void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
