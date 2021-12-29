@@ -157,6 +157,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #ifdef NONAKA_PLOT
             burn_state.level = level;
             burn_state.reference_time = time;
+            burn_state.strang_half = strang_half;
 #endif
 
             // Don't burn if we're outside of the relevant (rho, T) range.
