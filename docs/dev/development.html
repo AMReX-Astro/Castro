@@ -170,7 +170,7 @@ style guidelines.</p>
 <ul>
 <li><p>All C to Fortran interfaces should use the ISO C binding.  The
 Fortran subroutine should use</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name&quot;</span><span class="p">)</span>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name&quot;</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -225,15 +225,15 @@ with a brief inline description:</p>
 <ul>
 <li><p>Fortran functions should be documented by placing a comment block
 immediately after their prototype (i.e. <cite>without</cite> a line in betwen ) using the style:</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">foo</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
-  <span class="c">! Description of the function</span>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">foo</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="c">! Description of the function</span>
 
-  <span class="k">use </span><span class="n">some_module</span>
+<span class="w">  </span><span class="k">use </span><span class="n">some_module</span><span class="w"></span>
 
-  <span class="k">implicit none</span>
+<span class="w">  </span><span class="k">implicit none</span>
 
-<span class="k">  </span><span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">bar</span>   <span class="c">! Brief description of bar</span>
-  <span class="p">...</span>
+<span class="k">  </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">bar</span><span class="w">   </span><span class="c">! Brief description of bar</span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Documentation for modules should be similarly formatted, with the comment block again
