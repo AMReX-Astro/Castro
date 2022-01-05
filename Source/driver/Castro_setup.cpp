@@ -16,9 +16,6 @@
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-#include <microphysics_F.H>
-#endif
 #include <eos.H>
 #ifdef NSE_THERMO
 #include <nse.H>
