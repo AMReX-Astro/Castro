@@ -5,12 +5,10 @@
 
 #ifdef BL_FORT_USE_UNDERSCORE
 #  define   FORT_RADBNDRY2 rbndr2_
-#  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
 #  define   FORT_RADBNDRY2 RBNDR2
-#  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
 
 #endif
 
@@ -167,8 +165,6 @@ extern "C" {
 
   void bextrp(BL_FORT_FAB_ARG(f), 
               ARLIM_P(reglo), ARLIM_P(reghi));
-
-  void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
 #ifdef __cplusplus
 }
