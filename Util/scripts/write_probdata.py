@@ -94,8 +94,7 @@ def parse_param_file(params_list, param_file):
         default = fields[2]
 
         current_param = rp.Param(name, dtype, default,
-                                 namespace=namespace,
-                                 in_fortran=1)
+                                 namespace=namespace)
 
         # optional field: in namelist
         try:
@@ -200,7 +199,7 @@ def write_probin(prob_param_files, cxx_prefix):
         for p in params:
             if not p.is_array():
                 if p.in_namelist:
-                    fout.write(p.get_job_info_test(lang="C++"))
+                    fout.write(p.get_job_info_test())
 
     # now the C++ initialization routines
     ofile = f"{cxx_prefix}_parameters.cpp"
