@@ -8,9 +8,6 @@
 
 #include <extern_parameters.H>
 #include <prob_parameters.H>
-#ifdef MICROPHYSICS_FORT
-#include <microphysics_F.H>
-#endif
 #include <eos.H>
 #include <network.H>
 #include <castro_params.H>
