@@ -197,8 +197,6 @@ Castro::restart (Amr&     papa,
         problem_restart(dir);
     }
 
-    const Real* dx  = geom.CellSize();
-
     if ( (grown_factor > 1) && (parent->maxLevel() < 1) )
     {
        std::cout << "grown_factor is " << grown_factor << std::endl;
@@ -266,10 +264,7 @@ Castro::restart (Amr&     papa,
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 
-           const Real* prob_lo = geom.ProbLo();
            const Box& bx      = mfi.validbox();
-           const int* lo      = bx.loVect();
-           const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
 
@@ -296,8 +291,6 @@ Castro::restart (Amr&     papa,
 #if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
        int is_new = 1;
        make_radial_data(is_new);
     }

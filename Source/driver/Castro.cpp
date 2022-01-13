@@ -950,7 +950,6 @@ Castro::initData ()
     // Loop over grids, call FORTRAN function to init with data.
     //
     const Real* dx  = geom.CellSize();
-    const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1075,8 +1074,6 @@ Castro::initData ()
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
           const Box& box     = mfi.validbox();
-          const int* lo      = box.loVect();
-          const int* hi      = box.hiVect();
 
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
@@ -1382,8 +1379,6 @@ Castro::initData ()
 #ifdef GRAVITY
 #if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -2982,7 +2977,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rhoX_sum = 0.0_rt;
+#ifndef AMREX_USE_GPU
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+#endif
 
             for (int n = 0; n < NumSpec; ++n) {
 #ifndef AMREX_USE_GPU
@@ -3971,7 +3968,6 @@ Castro::make_radial_data(int is_new)
    Real  dr = dx[0];
 
    auto problo = geom.ProbLoArray();
-   auto probhi = geom.ProbHiArray();
 
    MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
    const int nc = S.nComp();

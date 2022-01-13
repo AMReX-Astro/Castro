@@ -344,8 +344,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
             for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
             {
                 const Box& box     = mfi.validbox();
-                const int* lo      = box.loVect();
-                const int* hi      = box.hiVect();
 
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();
