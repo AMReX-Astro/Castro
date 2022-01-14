@@ -61,19 +61,18 @@ These parameters control Fortran support:
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: USE_MPI, USE_OMP, USE_CUDA, USE_ACC
+.. index:: USE_MPI, USE_OMP, USE_CUDA, USE_HIP
 
 The following parameters control how work is divided across nodes, cores, and GPUs.
-
-  * ``USE_CUDA``: compile with GPU support using CUDA. 
-
-  * ``USE_ACC``: compile with OpenACC. Note: this is a work in
-    progress and should not be used presently.
-
 
   * ``USE_MPI``: compile with the MPI library to allow for distributed parallelism.
 
   * ``USE_OMP``: compile with OpenMP to allow for shared memory parallelism.
+
+  * ``USE_CUDA``: compile with NVIDIA GPU support using CUDA.
+
+  * ``USE_HIP``: compile with AMD GPU support using HIP.
+
 
 
 
