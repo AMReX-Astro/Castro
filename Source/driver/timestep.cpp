@@ -371,8 +371,6 @@ Castro::estdt_burning()
 
         const auto S = S_new[mfi].array();
 
-        const auto dx = geom.CellSizeArray();
-
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
 
@@ -426,7 +424,6 @@ Castro::estdt_burning()
             }
 
             Real e    = state.e;
-            Real T    = amrex::max(state.T, castro::small_temp);
             Real X[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
                 X[n] = amrex::max(state.xn[n], small_x);
