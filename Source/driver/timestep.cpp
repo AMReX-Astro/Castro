@@ -404,38 +404,38 @@ Castro::estdt_burning()
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
-            burn_t state;
+            burn_t burn_state;
 
-            state.rho = S(i,j,k,URHO);
-            state.T   = S(i,j,k,UTEMP);
-            state.e   = S(i,j,k,UEINT) * rhoInv;
+            burn_state.rho = S(i,j,k,URHO);
+            burn_state.T   = S(i,j,k,UTEMP);
+            burn_state.e   = S(i,j,k,UEINT) * rhoInv;
             for (int n = 0; n < NumSpec; ++n) {
-                state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+                burn_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
             }
 #if NAUX_NET > 0
             for (int n = 0; n < NumAux; ++n) {
-                state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+                burn_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
             }
 #endif
 
-            if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
-                state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
+            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                 return {1.e200_rt};
             }
 
-            Real e    = state.e;
+            Real e = burn_state.e;
             Real X[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
-                X[n] = amrex::max(state.xn[n], small_x);
+                X[n] = amrex::max(burn_state.xn[n], small_x);
             }
 
-            eos(eos_input_rt, state);
+            eos(eos_input_rt, burn_state);
 
 #ifdef STRANG
-            state.self_heat = true;
+            burn_state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;
-            actual_rhs(state, ydot);
+            actual_rhs(burn_state, ydot);
 
             Real dedt = ydot(net_ienuc);
             Real dXdt[NumSpec];
@@ -467,7 +467,7 @@ Castro::estdt_burning()
             // evaluate the NSE criterion based on the conserved state.
 
             eos_t eos_state;
-            burn_to_eos(state, eos_state);
+            burn_to_eos(burn_state, eos_state);
 
             if (!in_nse(eos_state)) {
 #endif

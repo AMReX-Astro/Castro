@@ -580,30 +580,30 @@ Castro::read_params ()
             info.SetMaxLevel(max_level);
         }
 
-        if (int nval = ppr.countval("value_greater")) {
+        if (ppr.countval("value_greater")) {
             Vector<Real> value;
-            ppr.getarr("value_greater", value, 0, nval);
+            ppr.getarr("value_greater", value, 0, ppr.countval("value_greater"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
         }
-        else if (int nval = ppr.countval("value_less")) {
+        else if (ppr.countval("value_less")) {
             Vector<Real> value;
-            ppr.getarr("value_less", value, 0, nval);
+            ppr.getarr("value_less", value, 0, ppr.countval("value_less"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
         }
-        else if (int nval = ppr.countval("gradient")) {
+        else if (ppr.countval("gradient")) {
             Vector<Real> value;
-            ppr.getarr("gradient", value, 0, nval);
+            ppr.getarr("gradient", value, 0, ppr.countval("gradient"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
         }
-        else if (int nval = ppr.countval("relative_gradient")) {
+        else if (ppr.countval("relative_gradient")) {
             Vector<Real> value;
-            ppr.getarr("relative_gradient", value, 0, nval);
+            ppr.getarr("relative_gradient", value, 0, ppr.countval("relative_gradient"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));

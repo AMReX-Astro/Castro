@@ -1389,10 +1389,10 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 void
 Gravity::compute_radial_mass(const Box& bx,
                              Array4<Real const> const u,
-                             RealVector& radial_mass,
-                             RealVector& radial_vol,
+                             RealVector& radial_mass_local,
+                             RealVector& radial_vol_local,
 #ifdef GR_GRAV
-                             RealVector& radial_pres,
+                             RealVector& radial_pres_local,
 #endif
                              int n1d, int level)
 {
@@ -1443,10 +1443,10 @@ Gravity::compute_radial_mass(const Box& bx,
     Real dy_frac = dx[1] / fac;
     Real dz_frac = dx[2] / fac;
 
-    Real* const radial_mass_ptr = radial_mass.dataPtr();
-    Real* const radial_vol_ptr = radial_vol.dataPtr();
+    Real* const radial_mass_ptr = radial_mass_local.dataPtr();
+    Real* const radial_vol_ptr = radial_vol_local.dataPtr();
 #ifdef GR_GRAV
-    Real* const radial_pres_ptr = radial_pres.dataPtr();
+    Real* const radial_pres_ptr = radial_pres_local.dataPtr();
 #endif
 
     amrex::ParallelFor(bx,
@@ -3326,19 +3326,19 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             return dM;
         },
-        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl)
+        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl_local)
         {
             Real rc = (static_cast<Real>(i) + 0.5_rt) * dr;
 
-            grav[i] = -C::Gconst * mass_encl / (rc * rc);
+            grav[i] = -C::Gconst * mass_encl_local / (rc * rc);
 
 #ifdef GR_GRAV
             // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
 
             if (den[i] > 0.0_rt) {
                 Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
-                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
+                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl_local / (rc * C::c_light * C::c_light));
 
                 grav[i] = grav[i] * ga * gb * gc;
             }

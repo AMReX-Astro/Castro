@@ -211,8 +211,8 @@ Castro::sum_integrated_quantities ()
                    data_log1 << std::setw(intwidth) << "#   COLUMN 1";
                    data_log1 << std::setw(fixwidth) << "                        2";
 
-                   for (int i = 3; i <= n; ++i) {
-                       data_log1 << std::setw(datwidth) << i;
+                   for (int icol = 3; icol <= n; ++icol) {
+                       data_log1 << std::setw(datwidth) << icol;
                    }
 
                    data_log1 << std::endl;
