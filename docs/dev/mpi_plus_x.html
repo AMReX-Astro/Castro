@@ -53,7 +53,11 @@
 <li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Running Options: CPUs and GPUs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#running-on-cpus">Running on CPUs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running-on-gpus">Running on GPUs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-gpus">Running on GPUs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nvidia-gpus">NVIDIA GPUs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amd-gpus">AMD GPUs</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#working-at-supercomputing-centers">Working at Supercomputing Centers</a></li>
 </ul>
 </li>
@@ -155,12 +159,6 @@ are used on GPUs as on CPUs.</p>
 <p>Almost all of Castro runs on GPUs, with the main exception being
 the true SDC solver (<code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>).</p>
 </div>
-<p>To enable GPU computing, compile with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MPI</span> <span class="o">=</span> <span class="n">TRUE</span>
-<span class="n">USE_OMP</span> <span class="o">=</span> <span class="n">FALSE</span>
-<span class="n">USE_CUDA</span> <span class="o">=</span> <span class="n">TRUE</span>
-</pre></div>
-</div>
 <p>When using GPUs, almost all of the computing is done on the GPUs.  In
 the MFIter loops over boxes, the loops put a single zone on each GPU
 thread, to take advantage of the massive parallelism.  The Microphysics
@@ -169,6 +167,30 @@ be run on the GPU.</p>
 <p>Best performance is obtained with bigger boxes, so setting
 <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">128</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span></code> can give
 good performance.</p>
+<section id="nvidia-gpus">
+<h3>NVIDIA GPUs<a class="headerlink" href="#nvidia-gpus" title="Permalink to this headline">¶</a></h3>
+<p>With NVIDIA GPUs, we use MPI+CUDA, compiled with GCC and the NVIDIA compilers.
+To enable this, compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MPI</span> <span class="o">=</span> <span class="n">TRUE</span>
+<span class="n">USE_OMP</span> <span class="o">=</span> <span class="n">FALSE</span>
+<span class="n">USE_CUDA</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+</section>
+<section id="amd-gpus">
+<h3>AMD GPUs<a class="headerlink" href="#amd-gpus" title="Permalink to this headline">¶</a></h3>
+<p>For AMD GPUs, we use MPI+HIP, compiled with the ROCm compilers.
+To enable this, compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MPI</span> <span class="o">=</span> <span class="n">TRUE</span>
+<span class="n">USE_OMP</span> <span class="o">=</span> <span class="n">FALSE</span>
+<span class="n">USE_HIP</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>AMD + HIP support is new and considered experimental.</p>
+</div>
+</section>
 </section>
 <section id="working-at-supercomputing-centers">
 <h2>Working at Supercomputing Centers<a class="headerlink" href="#working-at-supercomputing-centers" title="Permalink to this headline">¶</a></h2>

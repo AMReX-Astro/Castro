@@ -186,11 +186,10 @@ This cannot currently be used for the MHD or radiation solvers.</p></li>
 <p id="index-1">The following parameters control how work is divided across nodes, cores, and GPUs.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_CUDA</span></code>: compile with GPU support using CUDA.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_ACC</span></code>: compile with OpenACC. Note: this is a work in
-progress and should not be used presently.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_MPI</span></code>: compile with the MPI library to allow for distributed parallelism.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_OMP</span></code>: compile with OpenMP to allow for shared memory parallelism.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">USE_CUDA</span></code>: compile with NVIDIA GPU support using CUDA.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">USE_HIP</span></code>: compile with AMD GPU support using HIP.</p></li>
 </ul>
 </div></blockquote>
 </section>
