@@ -415,7 +415,7 @@ Castro::gwstrain (Real time,
 #endif
 	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	    const Box& bx = mfi.tilebox();
+	    const Box& box = mfi.tilebox();
 
             auto rho = (*mfrho).array(mfi);
             auto vol = volume.array(mfi);
@@ -438,7 +438,7 @@ Castro::gwstrain (Real time,
             auto Qtt_arr = Qtt.array();
 #endif
 
-            amrex::ParallelFor(bx,
+            amrex::ParallelFor(box,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Array2D<Real, 0, 2, 0, 2> dQtt{};
