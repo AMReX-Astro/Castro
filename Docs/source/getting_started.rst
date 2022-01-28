@@ -16,15 +16,20 @@ general requirements to build Castro are:
 
  * A C++17 (or later) compiler (e.g. gcc >= 7.0)
 
- * python (>= 3.6)
+ * python (>= 3.7)
 
  * GNU make (>= 3.82)
 
 GCC is the main compiler suite used by the developers.
 
-For running in parallel, an MPI library is required.  For running on GPUs,
-CUDA 11 or later is required.  More information on parallel builds
-is given in section :ref:`ch:mpiplusx`.
+For running in parallel, an MPI library is required.  For running on GPUs:
+
+* CUDA 11 or later is required for NVIDIA GPUs
+
+* ROCM 4.5 or later is required for AMD GPUs
+
+More information on parallel builds is given in section
+:ref:`ch:mpiplusx`.
 
 Downloading the Code
 ====================
