@@ -44,6 +44,10 @@ amr.refine.dengrad_rel.max_level = 20
 amr.refine.dengrad_rel.relative_gradient = 0.25
 amr.refine.dengrad_rel.field_name = density
 
+amr.refine.dengrad_rel.max_level = 20
+amr.refine.dengrad_rel.relative_gradient = 0.25
+amr.refine.dengrad_rel.field_name = Temp
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.plot_files_output = 0
