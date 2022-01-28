@@ -1,3 +1,10 @@
+# 22.02
+
+   * Microphysics has moved from Starkiller-Astro to AMReX-Astro.  The
+     git submodules have been updated accordingly.  The old URL should
+     redirect to the new location, but you are encouraged to change
+     the submodule URL if you use submodules.
+
 # 21.12
 
    * Tiling was added to main loop in MHD algorithm to enable 
