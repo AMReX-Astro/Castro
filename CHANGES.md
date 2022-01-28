@@ -3,7 +3,10 @@
    * Microphysics has moved from Starkiller-Astro to AMReX-Astro.  The
      git submodules have been updated accordingly.  The old URL should
      redirect to the new location, but you are encouraged to change
-     the submodule URL if you use submodules.
+     the submodule URL if you use submodules.  From the top-level Castro/
+     directory this can be done as:
+
+     git submodule set-url -- external/Microphysics/ https://github.com/AMReX-Astro/Microphysics.git
 
 # 21.12
 
