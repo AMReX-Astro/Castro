@@ -42,21 +42,6 @@ Most of these are parameters from AMReX.
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
 
 
-Fortran Support
-^^^^^^^^^^^^^^^
-
-Many problems can be built without Fortran.  The current exceptions
-are MHD, radiation, and anything using a pynucastro-generated network.
-These parameters control Fortran support:
-
-  * ``USE_FORT_MICROPHYSICS``: if set to ``TRUE``, then Fortran
-    versions of the EOS and burner interface will be compiled.  If you
-    are not using a pynucastro network, then you can probably set this
-    to ``FALSE``.
-
-  * ``BL_NO_FORT``: if set to ``TRUE``, then no AMReX Fortran source will be built.
-    This cannot currently be used for the MHD or radiation solvers.
-
 
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -233,7 +218,7 @@ This is the current build system process.
   .. index:: set_variables.py, _variables, state_indices_nd.F90, state_indices.H
 
   * This processes the Castro ``_variables`` file and writes
-    ``state_indices.H`` (and  ``state_indices_nd.F90`` if Fortran is enabled) into the
+    ``state_indices.H`` into the
     ``tmp_build_dir/castro_sources/`` directory.
 
     These are used to define the size of the various state arrays and
@@ -243,8 +228,7 @@ This is the current build system process.
 
   * You can test this portion of the build system by doing ``make test_variables``
 
-* (for ``general_null networks``), ``network_properties.H`` (and
-  ``actual_network.F90`` if Fortran is enabled) is created
+* (for ``general_null networks``), ``network_properties.H`` is created
 
   .. index:: write_network.py
 
@@ -285,15 +269,6 @@ This is the current build system process.
   * The hook for this is in ``Make.auto_source`` in the ``prob_parameters.H`` rule.
 
   * These headers are output into ``tmp_build_dir/castro_sources/``.
-
-* The Fortran dependencies file is created
-
-  * This creates the ``f90.depends`` file in the ``tmp_build_dir``
-
-  * The script ``amrex/Tools/F_scripts/dep.py`` is used
-
-  * The hook for this is in ``amrex/Tools/GNUMake/Make.rules`` in the
-    ``$(depEXETempDir)/f90.depends`` target
 
 * The C/C++ dependencies file is created
 

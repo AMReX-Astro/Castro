@@ -16,8 +16,6 @@ general requirements to build Castro are:
 
  * A C++17 (or later) compiler (e.g. gcc >= 7.0)
 
- * A Fortran 20xx compiler
-
  * python (>= 3.6)
 
  * GNU make (>= 3.82)
@@ -131,9 +129,8 @@ build the Sedov problem:
 
    * ``COMP = gnu``
 
-     This is the set of compilers. GNUu are a good default choice
-     (this will use g++ and gfortran). You can also choose ``pgi`` and
-     ``intel`` for example.
+     This is the set of compilers. GNU are a good default choice (this
+     will use g++). You can also choose ``intel`` for example.
 
      If you want to try other compilers than the GNU suite and they
      don’t work, please let us know.

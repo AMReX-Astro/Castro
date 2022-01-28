@@ -47,8 +47,7 @@ Here,
 
 The next columns are optional, but you need to fill in all of the
 information up to and including any of the optional columns you need
-(e.g., if you are going to provide the fortran name, you also need to
-provide "need in Fortran?" and "ifdef".
+(e.g., if you are going to provide "need in Fortran?" and "ifdef").
 
   * `need in Fortran?` is ``y`` if the runtime parameter should be
     made available in Fortran (through ``meth_params_module``).

@@ -37,8 +37,7 @@ Some general notes:
 Hydrodynamics Data Structures
 =============================
 
-Within the Fortran routines that implement the hydrodynamics, there are
-several main data structures that hold the state.
+There are several main data structures that hold the state.
 
 -  conserved state: these arrays generally begin with ``u``,
    e.g., ``uin``, ``uout``. The ``NVAR``
