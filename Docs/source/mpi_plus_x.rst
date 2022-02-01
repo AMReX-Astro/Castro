@@ -42,12 +42,6 @@ are used on GPUs as on CPUs.
    Almost all of Castro runs on GPUs, with the main exception being
    the true SDC solver (``USE_TRUE_SDC = TRUE``).
 
-To enable GPU computing, compile with::
-
-  USE_MPI = TRUE
-  USE_OMP = FALSE
-  USE_CUDA = TRUE
-
 When using GPUs, almost all of the computing is done on the GPUs.  In
 the MFIter loops over boxes, the loops put a single zone on each GPU
 thread, to take advantage of the massive parallelism.  The Microphysics
@@ -57,6 +51,32 @@ be run on the GPU.
 Best performance is obtained with bigger boxes, so setting
 ``amr.max_grid_size = 128`` and ``amr.blocking_factor = 32`` can give
 good performance.
+
+NVIDIA GPUs
+-----------
+
+With NVIDIA GPUs, we use MPI+CUDA, compiled with GCC and the NVIDIA compilers.
+To enable this, compile with::
+
+  USE_MPI = TRUE
+  USE_OMP = FALSE
+  USE_CUDA = TRUE
+
+
+AMD GPUs
+--------
+
+For AMD GPUs, we use MPI+HIP, compiled with the ROCm compilers.
+To enable this, compile with::
+
+  USE_MPI = TRUE
+  USE_OMP = FALSE
+  USE_HIP = TRUE
+
+
+.. note::
+
+   AMD + HIP support is new and considered experimental.
 
 
 Working at Supercomputing Centers

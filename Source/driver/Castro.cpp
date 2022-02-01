@@ -20,9 +20,6 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
-#ifdef MICROPHYSICS_FORT
-#include <extern_parameters_F.H>
-#endif
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -47,10 +44,6 @@
 
 #include <extern_parameters.H>
 #include <prob_parameters.H>
-
-#ifdef MICROPHYSICS_FORT
-#include <microphysics_F.H>
-#endif
 
 #include <problem_initialize.H>
 #include <problem_initialize_state_data.H>
@@ -196,13 +189,6 @@ Castro::variableCleanUp ()
 #endif
 
     desc_lst.clear();
-
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-    // Fortran cleaning
-#ifdef MICROPHYSICS_FORT
-    microphysics_finalize();
-#endif
-#endif
 
     // C++ cleaning
     eos_finalize();
@@ -594,30 +580,30 @@ Castro::read_params ()
             info.SetMaxLevel(max_level);
         }
 
-        if (int nval = ppr.countval("value_greater")) {
+        if (ppr.countval("value_greater")) {
             Vector<Real> value;
-            ppr.getarr("value_greater", value, 0, nval);
+            ppr.getarr("value_greater", value, 0, ppr.countval("value_greater"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
         }
-        else if (int nval = ppr.countval("value_less")) {
+        else if (ppr.countval("value_less")) {
             Vector<Real> value;
-            ppr.getarr("value_less", value, 0, nval);
+            ppr.getarr("value_less", value, 0, ppr.countval("value_less"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
         }
-        else if (int nval = ppr.countval("gradient")) {
+        else if (ppr.countval("gradient")) {
             Vector<Real> value;
-            ppr.getarr("gradient", value, 0, nval);
+            ppr.getarr("gradient", value, 0, ppr.countval("gradient"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
         }
-        else if (int nval = ppr.countval("relative_gradient")) {
+        else if (ppr.countval("relative_gradient")) {
             Vector<Real> value;
-            ppr.getarr("relative_gradient", value, 0, nval);
+            ppr.getarr("relative_gradient", value, 0, ppr.countval("relative_gradient"));
             std::string field;
             ppr.get("field_name", field);
             error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
@@ -964,7 +950,6 @@ Castro::initData ()
     // Loop over grids, call FORTRAN function to init with data.
     //
     const Real* dx  = geom.CellSize();
-    const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1089,8 +1074,6 @@ Castro::initData ()
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
           const Box& box     = mfi.validbox();
-          const int* lo      = box.loVect();
-          const int* hi      = box.hiVect();
 
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
@@ -1396,8 +1379,6 @@ Castro::initData ()
 #ifdef GRAVITY
 #if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -2996,7 +2977,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rhoX_sum = 0.0_rt;
+#ifndef AMREX_USE_GPU
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+#endif
 
             for (int n = 0; n < NumSpec; ++n) {
 #ifndef AMREX_USE_GPU
@@ -3400,27 +3383,9 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-#ifdef MICROPHYSICS_FORT
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
-
-  // read them in in Fortran from the probin file
-  runtime_init(probin_file_name.dataPtr(),&probin_file_length);
-#endif
-
   // grab them from Fortran to C++; then read any C++ parameters directly
   // from inputs (via ParmParse)
   init_extern_parameters();
-
-#ifdef MICROPHYSICS_FORT
-  // finally, update the Fortran side via ParmParse to override the
-  // values of any parameters that were set in inputs
-  update_fortran_extern_after_cxx();
-#endif
 
 }
 
@@ -4003,7 +3968,6 @@ Castro::make_radial_data(int is_new)
    Real  dr = dx[0];
 
    auto problo = geom.ProbLoArray();
-   auto probhi = geom.ProbHiArray();
 
    MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
    const int nc = S.nComp();

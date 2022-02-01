@@ -251,8 +251,6 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRAD_INTERP
 
   DEFINES += -DNGROUPS=$(NGROUPS)
-
-  EXTERN_CORE += $(TOP)/Util/LAPACK
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)

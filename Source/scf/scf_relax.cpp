@@ -112,7 +112,7 @@ Castro::do_hscf_solve()
 
             const Box& bx = mfi.tilebox();
 
-            auto state = state_new[mfi].array();
+            auto state_arr = state_new[mfi].array();
 
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -120,13 +120,13 @@ Castro::do_hscf_solve()
                 eos_t eos_state;
 
                 eos_state.rho = castro::scf_maximum_density;
-                eos_state.T   = state(i,j,k,UTEMP);
+                eos_state.T   = state_arr(i,j,k,UTEMP);
                 for (int n = 0; n < NumSpec; ++n) {
-                    eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
+                    eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
                 }
 #if NAUX_NET > 0
                 for (int n = 0; n < NumAux; ++n) {
-                    eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
+                    eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
                 }
 #endif
 
@@ -414,9 +414,9 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    Real bernoulli = scale * (phi_arr(i,j,k) + rotational_potential(r));
+                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r));
 
-                    return {bernoulli};
+                    return {bernoulli_zone};
                 });
 
             }
@@ -504,7 +504,7 @@ Castro::do_hscf_solve()
                 const Box& bx = mfi.tilebox();
 
                 auto enthalpy_arr = (*enthalpy[lev])[mfi].array();
-                auto state = (*state_vec[lev])[mfi].array();
+                auto state_arr = (*state_vec[lev])[mfi].array();
 
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -517,9 +517,9 @@ Castro::do_hscf_solve()
                     // spuriously negative. If the enthalpy is negative, we just
                     // leave the zone alone -- this should be ambient material.
 
-                    if (enthalpy_arr(i,j,k) > 0.0 && state(i,j,k,URHO) > 0.0) {
+                    if (enthalpy_arr(i,j,k) > 0.0 && state_arr(i,j,k,URHO) > 0.0) {
 
-                        Real old_rho = state(i,j,k,URHO);
+                        Real old_rho = state_arr(i,j,k,URHO);
 
                         // Rescale the enthalpy by the maximum allowed value.
 
@@ -527,32 +527,32 @@ Castro::do_hscf_solve()
 
                         eos_t eos_state;
 
-                        eos_state.rho = state(i,j,k,URHO); // Initial guess for the EOS
-                        eos_state.T   = state(i,j,k,UTEMP);
+                        eos_state.rho = state_arr(i,j,k,URHO); // Initial guess for the EOS
+                        eos_state.T   = state_arr(i,j,k,UTEMP);
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
+                            eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
                         }
 #if NAUX_NET > 0
                         for (int n = 0; n < NumAux; ++n) {
-                            eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
+                            eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
                         }
 #endif
                         eos_state.h   = enthalpy_arr(i,j,k);
 
                         eos(eos_input_th, eos_state);
 
-                        state(i,j,k,URHO)  = eos_state.rho;
-                        state(i,j,k,UTEMP) = eos_state.T;
-                        state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
+                        state_arr(i,j,k,URHO)  = eos_state.rho;
+                        state_arr(i,j,k,UTEMP) = eos_state.T;
+                        state_arr(i,j,k,UEINT) = state_arr(i,j,k,URHO) * eos_state.e;
                         for (int n = 0; n < NumSpec; ++n) {
-                            state(i,j,k,UFS+n) = state(i,j,k,URHO) * eos_state.xn[n];
+                            state_arr(i,j,k,UFS+n) = state_arr(i,j,k,URHO) * eos_state.xn[n];
                         }
 
-                        state(i,j,k,UMX) = 0.0;
-                        state(i,j,k,UMY) = 0.0;
-                        state(i,j,k,UMZ) = 0.0;
+                        state_arr(i,j,k,UMX) = 0.0;
+                        state_arr(i,j,k,UMY) = 0.0;
+                        state_arr(i,j,k,UMZ) = 0.0;
 
-                        state(i,j,k,UEDEN) = state(i,j,k,UEINT);
+                        state_arr(i,j,k,UEDEN) = state_arr(i,j,k,UEINT);
 
                         // Convergence test
 
@@ -560,9 +560,9 @@ Castro::do_hscf_solve()
                         // that is above a certain fraction of the peak, to avoid
                         // oscillations in low density zones stalling convergence.
 
-                        Real drho = std::abs(state(i,j,k,URHO) - old_rho) / old_rho;
+                        Real drho = std::abs(state_arr(i,j,k,URHO) - old_rho) / old_rho;
 
-                        if (state(i,j,k,URHO) / actual_rho_max > 1.0e-3_rt) {
+                        if (state_arr(i,j,k,URHO) / actual_rho_max > 1.0e-3_rt) {
                             norm = drho;
                         }
                     }
@@ -632,7 +632,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                auto state = (*state_vec[lev])[mfi].array();
+                auto state_arr = (*state_vec[lev])[mfi].array();
                 auto phi_arr = (*phi[lev])[mfi].array();
 
                 reduce_op.eval(bx, reduce_data,
@@ -652,9 +652,9 @@ Castro::do_hscf_solve()
                     r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-                    if (state(i,j,k,URHO) > 0.0)
+                    if (state_arr(i,j,k,URHO) > 0.0)
                     {
-                        dM = state(i,j,k,URHO) * dV;
+                        dM = state_arr(i,j,k,URHO) * dV;
 
                         dK = rotational_potential(r) * dM;
 
@@ -662,14 +662,14 @@ Castro::do_hscf_solve()
 
                         eos_t eos_state;
 
-                        eos_state.rho = state(i,j,k,URHO);
-                        eos_state.T   = state(i,j,k,UTEMP);
+                        eos_state.rho = state_arr(i,j,k,URHO);
+                        eos_state.T   = state_arr(i,j,k,UTEMP);
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
+                            eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
                         }
 #if NAUX_NET > 0
                         for (int n = 0; n < NumAux; ++n) {
-                            eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
+                            eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
                         }
 #endif
 

@@ -419,8 +419,6 @@ Castro::corrrsrc(const Box& bx,
       // For this source type, we first update the momenta
       // before we calculate the energy source term.
 
-      GpuArray<Real, 3> vnew;
-
       vnew[0] = snew[UMX] * rhoninv;
       vnew[1] = snew[UMY] * rhoninv;
       vnew[2] = snew[UMZ] * rhoninv;
@@ -433,7 +431,7 @@ Castro::corrrsrc(const Box& bx,
       Sr_new[1] = rhon * acc[1];
       Sr_new[2] = rhon * acc[2];
 
-      Real SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
+      SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
 
       SrEcorr = 0.5_rt * (SrE_new - SrE_old);
 

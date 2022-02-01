@@ -16,9 +16,6 @@
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-#include <microphysics_F.H>
-#endif
 #include <eos.H>
 #ifdef NSE_THERMO
 #include <nse.H>
@@ -302,8 +299,6 @@ Castro::variableSetUp ()
 #endif
 
 
-  const int dm = AMREX_SPACEDIM;
-
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
   // generally requires 4 ghost cells
@@ -326,8 +321,6 @@ Castro::variableSetUp ()
 #endif
 
   const Geometry& dgeom = DefaultGeometry();
-
-  const int coord_type = dgeom.Coord();
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
