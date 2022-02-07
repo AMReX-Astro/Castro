@@ -56,6 +56,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
+              'sphinx-prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
