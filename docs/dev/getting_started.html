@@ -161,14 +161,14 @@ is installed on your machine—we recommend version 1.7.x or higher.</p>
 <ol class="arabic">
 <li><p>Clone/fork the Castro repository from the AMReX-Astro GitHub
 organization, using either HTTP access:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">recursive</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Castro</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>or SSH access if you have an SSH key enabled with GitHub:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">recursive</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Castro</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">--recursive</span></code> option to <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span></code> is used to ensure
+<div class="highlight-default notranslate"><div class="highlight"><pre><style type="text/css">
+span.prompt1:before {
+  content: "$ ";
+}
+</style><span class="prompt1">git clone --recursive https://github.com/AMReX-Astro/Castro.git</span>
+</pre></div></div><p>or SSH access if you have an SSH key enabled with GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git clone --recursive git@github.com:AMReX-Astro/Castro.git</span>
+</pre></div></div><p>The <code class="docutils literal notranslate"><span class="pre">--recursive</span></code> option to <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span></code> is used to ensure
 that all of Castro’s dependencies are downloaded. Currently this
 requirement is for the AMReX mesh refinement framework, which is
 maintained in the AMReX-Codes organization on GitHub, and the
@@ -179,19 +179,15 @@ networks, and other microphysics needed to run Castro.</p>
 <p>If you forget to do a recursive clone, you can rectify the
 situation by running the following from the top-level of the Castro
 directory:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
-</pre></div>
-</div>
-<div class="admonition note">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git submodule update --init --recursive</span>
+</pre></div></div><div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>By default, you will be on the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch of the source.
 Development on Castro (and its primary dependencies, AMReX and
 Microphysics) is done in the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so you
 should work there if you want the latest source:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">development</span>
-</pre></div>
-</div>
-<p>The Castro team runs nightly regression testing on the
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git checkout development</span>
+</pre></div></div><p>The Castro team runs nightly regression testing on the
 <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so bugs are usually found and fixed
 relatively quickly, but it is generally less stable than staying
 on the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
@@ -200,32 +196,26 @@ on the <code class="docutils literal notranslate"><span class="pre">main</span><
 <li><p>We recommend setting the <code class="docutils literal notranslate"><span class="pre">CASTRO_HOME</span></code> environment
 variable to point to the path name where you have put Castro.
 Add the following to your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CASTRO_HOME</span><span class="o">=</span><span class="s2">&quot;/path/to/Castro/&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CASTRO_HOME</span><span class="o">=</span><span class="s2">&quot;/path/to/Castro/&quot;</span>
 </pre></div>
 </div>
 <p>(or use the analogous form for a different shell).</p>
 </li>
 <li><p>You can keep the code up to date with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">recurse</span><span class="o">-</span><span class="n">submodules</span>
-</pre></div>
-</div>
-<p>The recommended frequency for doing this is monthly, if you are on the
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git pull --recurse-submodules</span>
+</pre></div></div><p>The recommended frequency for doing this is monthly, if you are on the
 stable <code class="docutils literal notranslate"><span class="pre">main</span></code> branch of the code; we issue a new release of the code
 at the beginning of each month.</p>
 </li>
 <li><p><em>optional, for developers</em>: If you prefer, you can maintain AMReX and
 Microphysics as standalone repositories rather than as git submodules.
 To do so, you can clone them from GitHub using:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">amrex</span><span class="o">.</span><span class="n">git</span>
-<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>or via SSH as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">amrex</span><span class="o">.</span><span class="n">git</span>
-<span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>Then, set the <code class="docutils literal notranslate"><span class="pre">AMREX_HOME</span></code> environment variable to point to the
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git clone https://github.com/AMReX-Codes/amrex.git</span>
+<span class="prompt1">git clone https://github.com/AMReX-Astro/Microphysics.git</span>
+</pre></div></div><p>or via SSH as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git clone git@github.com:/AMReX-Codes/amrex.git</span>
+<span class="prompt1">git clone git@github.com:/AMReX-Astro/Microphysics.git</span>
+</pre></div></div><p>Then, set the <code class="docutils literal notranslate"><span class="pre">AMREX_HOME</span></code> environment variable to point to the
 <code class="docutils literal notranslate"><span class="pre">amrex/</span></code> directory, and the <code class="docutils literal notranslate"><span class="pre">MICROPHYSICS_HOME</span></code> environment
 variable to point to the <code class="docutils literal notranslate"><span class="pre">Microphysics/</span></code> directory. Castro will
 look there instead of in its local <code class="docutils literal notranslate"><span class="pre">external/</span></code> subdirectory.</p>
@@ -241,10 +231,8 @@ build the Sedov problem:</p>
 <ol class="arabic">
 <li><p>From the directory in which you checked out the Castro git repo,
 type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">Castro</span><span class="o">/</span><span class="n">Exec</span><span class="o">/</span><span class="n">hydro_tests</span><span class="o">/</span><span class="n">Sedov</span>
-</pre></div>
-</div>
-<p>This will put you into a directory in which you can run the Sedov
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1"><span class="nb">cd</span> Castro/Exec/hydro_tests/Sedov</span>
+</pre></div></div><p>This will put you into a directory in which you can run the Sedov
 problem in 1-d, 2-d or 3-d.</p>
 </li>
 <li><p>In <code class="docutils literal notranslate"><span class="pre">Sedov/</span></code>, edit the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>, and set</p>
@@ -287,10 +275,8 @@ of the code compiled with <code class="docutils literal notranslate"><span class
 <ol class="arabic">
 <li><p>Castro takes an input file that overrides the runtime parameter defaults.
 The code is run as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro2d</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="mf">.2</span><span class="n">d</span><span class="o">.</span><span class="n">cyl_in_cartcoords</span>
-</pre></div>
-</div>
-<p>This will run the 2-d cylindrical Sedov problem in Cartesian
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">./Castro2d.gnu.ex inputs.2d.cyl_in_cartcoords</span>
+</pre></div></div><p>This will run the 2-d cylindrical Sedov problem in Cartesian
 (<span class="math notranslate nohighlight">\(x\)</span>-<span class="math notranslate nohighlight">\(y\)</span> coordinates). You can see other possible
 options, which should be clear by the names of the inputs files.</p>
 </li>
@@ -325,20 +311,16 @@ provides a simple GUI that allows you to quickly visualize slices and
 the grid structure.</p>
 <ol class="arabic">
 <li><p>Get Amrvis:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">Amrvis</span>
-</pre></div>
-</div>
-<p>Then cd into <code class="docutils literal notranslate"><span class="pre">Amrvis/</span></code>, edit the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> there
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git clone https://github.com/AMReX-Codes/Amrvis</span>
+</pre></div></div><p>Then cd into <code class="docutils literal notranslate"><span class="pre">Amrvis/</span></code>, edit the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> there
 to set <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span> <span class="pre">2</span></code>, and again set <code class="docutils literal notranslate"><span class="pre">COMP</span></code> to compilers that
 you have. Leave <code class="docutils literal notranslate"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">FALSE</span></code>.</p>
 <p>Type <code class="docutils literal notranslate"><span class="pre">make</span></code> to build, resulting in an executable that
 looks like <code class="docutils literal notranslate"><span class="pre">amrvis2d...ex</span></code>.</p>
 <p>If you want to build amrvis with <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span> <span class="pre">3</span></code>, you must first
 download and build volpack:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">ccse</span><span class="o">.</span><span class="n">lbl</span><span class="o">.</span><span class="n">gov</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="n">Downloads</span><span class="o">/</span><span class="n">volpack</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>Then cd into <code class="docutils literal notranslate"><span class="pre">volpack/</span></code> and type <code class="docutils literal notranslate"><span class="pre">make</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">git clone https://ccse.lbl.gov/pub/Downloads/volpack.git</span>
+</pre></div></div><p>Then cd into <code class="docutils literal notranslate"><span class="pre">volpack/</span></code> and type <code class="docutils literal notranslate"><span class="pre">make</span></code>.</p>
 <p>Note: Amrvis requires the OSF/Motif libraries and headers. If you
 don’t have these you will need to install the development version
 of motif through your package manager.  On most Linux
@@ -350,7 +332,7 @@ distribution to distribution, but is straightforward.  <code class="docutils lit
 gives some functionality and will allow you to build the Amrvis
 executable, but Amrvis may not run properly.</p>
 <p>You may then want to create an alias to amrvis2d, for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">alias</span> <span class="n">amrvis2d</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">Amrvis</span><span class="o">/</span><span class="n">amrvis2d</span><span class="o">...</span><span class="n">ex</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span> <span class="nv">amrvis2d</span><span class="o">=</span>/tmp/Amrvis/amrvis2d...ex
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">/tmp/Amrvis/amrvis2d...ex</span></code> is the full path and name of
