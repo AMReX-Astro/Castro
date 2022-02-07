@@ -4,7 +4,7 @@ amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
 max_step = 500000
-stop_time = 3600
+stop_time = 360000
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -14,7 +14,7 @@ geometry.prob_hi   =  8.192e9  1.6384e10
 
 amr.n_cell         = 1024 2048
 
-amr.max_level      = 1      # maximum level number allowed
+amr.max_level      = 2      # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -45,7 +45,7 @@ castro.sponge_upper_density = 1.e3
 castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.e-3
 
-castro.cfl            = 0.2     # cfl number for hyperbolic system
+castro.cfl            = 0.4     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep by this factor
 castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 1       # timesteps between computing and printing volume averages
@@ -59,10 +59,10 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 100     # number of timesteps between checkpoints
+amr.check_int       = 50     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
-amr.plot_per = 0.1
+amr.plot_per = 0.2
 
 amr.max_grid_size   = 512       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -87,6 +87,12 @@ problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
 
 problem.perturb_model = 1
 problem.velpert_amplitude = 5.e6
+
+# convection
+
+castro.drive_initial_convection = 1
+castro.drive_initial_convection_reinit_period = 1
+castro.drive_initial_convection_tmax = 10
 
 # refinement
 
