@@ -5,7 +5,7 @@ Getting Started
 .. note::
 
    Castro has two source dependencies: `AMReX <https://github.com/AMReX-Codes/amrex>`_, the adaptive mesh
-   library, and `StarKiller Microphysics <https://github.com/starkiller-astro/Microphysics>`_, the collection of equations
+   library, and `Microphysics <https://github.com/AMReX-Astro/Microphysics>`_, the collection of equations
    of state, reaction networks, and other microphysics.  The
    instructions below describe how to get these dependencies automatically
    with Castro.
@@ -53,7 +53,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
    that all of Castro's dependencies are downloaded. Currently this
    requirement is for the AMReX mesh refinement framework, which is
    maintained in the AMReX-Codes organization on GitHub, and the
-   Microphysics repository from the starkiller-astro organization.
+   Microphysics repository from the AMReX-Astro organization.
    AMReX adds the necessary code for the driver code for the simulation,
    while Microphysics adds the equations of state, reaction
    networks, and other microphysics needed to run Castro.
@@ -109,14 +109,14 @@ is installed on your machine—we recommend version 1.7.x or higher.
    .. prompt:: bash
 
       git clone https://github.com/AMReX-Codes/amrex.git
-      git clone https://github.com/starkiller-astro/Microphysics.git
+      git clone https://github.com/AMReX-Astro/Microphysics.git
 
    or via SSH as:
 
    .. prompt:: bash
 
       git clone git@github.com:/AMReX-Codes/amrex.git
-      git clone git@github.com:/starkiller-astro/Microphysics.git
+      git clone git@github.com:/AMReX-Astro/Microphysics.git
 
    Then, set the ``AMREX_HOME`` environment variable to point to the
    ``amrex/`` directory, and the ``MICROPHYSICS_HOME`` environment
