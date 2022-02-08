@@ -140,6 +140,10 @@ ifdef BUILD_GIT_NAME
                        --build_git_dir "$(BUILD_GIT_DIR)"
 endif
 
+ifeq ($(USE_CUDA), TRUE)
+   CUDA_FLAGS := --CUDA_VERSION "$(nvcc_version)"
+endif
+
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
@@ -147,6 +151,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"

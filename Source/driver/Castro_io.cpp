@@ -588,7 +588,12 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   jobInfoFile << "\n";
-  
+
+#ifdef AMREX_USE_CUDA
+  jobInfoFile << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  jobInfoFile << "\n";
+#endif
+
   jobInfoFile << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   jobInfoFile << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
 
