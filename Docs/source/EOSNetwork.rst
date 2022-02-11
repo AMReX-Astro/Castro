@@ -94,7 +94,7 @@ will likely not converge. Usually a prior value of the temperature or
 density suffices if it’s available, but if not then use ``T_guess`` or
 ``small_dens``.
 
-The `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
+The `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
 repository is the collection of microphysics routines that are compatible with the
 AMReX-Astro codes. We refer you to the documentation in that repository for how to set it up
 and for information on the equations of state provided. That documentation
@@ -235,7 +235,7 @@ In normal operation in Castro  the integration occurs over a time interval
 of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
 
 If you are interested in using actual nuclear burning networks,
-you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
+you should download the `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
 repository. This is a collection of microphysics routines that are compatible with the
 AMReX Astro codes. We refer you to the documentation in that repository for how to set it up
 and for information on the networks provided. That documentation
