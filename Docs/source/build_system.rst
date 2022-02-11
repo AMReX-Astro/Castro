@@ -42,6 +42,16 @@ Most of these are parameters from AMReX.
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
 
 
+Fortran Support
+^^^^^^^^^^^^^^^
+
+Radiation currently needs Fortran support.  All of the other solvers
+and problem set ups do not require Fortran.  Fortran support in AMReX
+is enabled / disabled via:
+
+  * ``BL_NO_FORT``: if set to ``TRUE``, then no AMReX Fortran source will be built.
+    This cannot currently be used for the radiation solver.
+
 
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -215,7 +225,7 @@ This is the current build system process.
 
 * ``set_variables.py`` is called
 
-  .. index:: set_variables.py, _variables, state_indices_nd.F90, state_indices.H
+  .. index:: set_variables.py, _variables, state_indices.H
 
   * This processes the Castro ``_variables`` file and writes
     ``state_indices.H`` into the
@@ -224,7 +234,7 @@ This is the current build system process.
     These are used to define the size of the various state arrays and
     the integer keys to index each state variable.
 
-  * The hook for this is in ``Make.auto_source`` in the build rule for ``state_indices_nd.F90``
+  * The hook for this is in ``Make.auto_source`` in the build rule for ``state_indices.H``
 
   * You can test this portion of the build system by doing ``make test_variables``
 
@@ -241,7 +251,7 @@ This is the current build system process.
   .. index:: write_probin.py
 
   * This writes the routines that manage the Microphysics runtime
-    parameters: ``extern_parameters.cpp``, ``extern_parameters.H``, and  ``extern.F90``.  This is output in
+    parameters: ``extern_parameters.cpp`` and  ``extern_parameters.H``.  This is output in
     ``tmp_build_dir/castro_sources/``.
 
   * The hook for this is in ``Make.auto_source`` in the rule for ``extern_parameters.H``
@@ -269,6 +279,15 @@ This is the current build system process.
   * The hook for this is in ``Make.auto_source`` in the ``prob_parameters.H`` rule.
 
   * These headers are output into ``tmp_build_dir/castro_sources/``.
+
+* (if Fortran support is enabled) The Fortran dependencies file is created
+
+  * This creates the ``f90.depends`` file in the ``tmp_build_dir``
+
+  * The script ``amrex/Tools/F_scripts/dep.py`` is used
+
+  * The hook for this is in ``amrex/Tools/GNUMake/Make.rules`` in the
+    ``$(depEXETempDir)/f90.depends`` target
 
 * The C/C++ dependencies file is created
 
