@@ -3,6 +3,9 @@
 
 #include <Castro.H>
 #include <burn_type.H>
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <numerical_jacobian.H>
 
 

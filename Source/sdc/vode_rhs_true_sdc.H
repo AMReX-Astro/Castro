@@ -6,6 +6,9 @@
 #include <extern_parameters.H>
 
 #ifdef NETWORK_HAS_CXX_IMPLEMENTATION
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <actual_network.H>
 #include <actual_rhs.H>
 #else
