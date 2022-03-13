@@ -14,11 +14,9 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++17 (or later) compiler (e.g. gcc >= 7.0)
+ * A C++17 (or later) compiler (for GCC, we need >= 9.0 for CUDA compilation)
 
- * A Fortran 20xx compiler
-
- * python (>= 3.6)
+ * python (>= 3.7)
 
  * GNU make (>= 3.82)
 
