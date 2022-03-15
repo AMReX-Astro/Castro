@@ -1,4 +1,4 @@
-# 22.03
+# 22.04
 
    * Fixed an issue with monopole gravity where running with multiple
      MPI ranks in a GPU build could result in an incorrect gravitational
