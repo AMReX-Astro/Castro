@@ -161,14 +161,6 @@ all of the make variables are set to?</em></p>
 </div>
 <p>This will tell you the value of all the compilers and their options.</p>
 </li>
-<li><p><em>How can I check to make sure the function signatures defined
-in C are consistent with their implementations in Fortran?</em></p>
-<p>Use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">typecheck</span>
-</pre></div>
-</div>
-<p>This will compile the code and report on any mismatched function signatures.</p>
-</li>
 </ol>
 </section>
 <section id="debugging">
@@ -182,7 +174,7 @@ signals raised in both C++ and Fortran functions. Behind the
 scenes, this defines the <code class="docutils literal notranslate"><span class="pre">AMREX_TESTING</span></code> preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the <code class="docutils literal notranslate"><span class="pre">BLBackTrace::handler()</span></code>
-function to handle various signals raised in both C and Fortran
+function to handle various signals raised in both C++ and Fortran
 functions. This is a Linux/UNIX capability. This gives us a chance
 to print out backtrace information. The signals include seg fault,
 floating point exceptions (NaNs, divided by zero and overflow), and

@@ -207,7 +207,7 @@ each of these in the main source tree.
    provides the C++ code that defines these new plot variables. It
    does this by adding them to the ``derive_lst``—a list of
    derived variables that Castro knows about. When adding new
-   variables, a descriptive name, Fortran routine that does the
+   variables, a descriptive name, a C++ routine that does the
    deriving, and component of ``StateData`` are specified.
 
    The other two files provide the header and implementation of the

@@ -22,9 +22,14 @@ general requirements to build Castro are:
 
 GCC is the main compiler suite used by the developers.
 
-For running in parallel, an MPI library is required.  For running on GPUs,
-CUDA 11 or later is required.  More information on parallel builds
-is given in section :ref:`ch:mpiplusx`.
+For running in parallel, an MPI library is required.  For running on GPUs:
+
+* CUDA 11 or later is required for NVIDIA GPUs
+
+* ROCM 4.5 or later is required for AMD GPUs
+
+More information on parallel builds is given in section
+:ref:`ch:mpiplusx`.
 
 Downloading the Code
 ====================
@@ -147,9 +152,8 @@ build the Sedov problem:
 
    * ``COMP = gnu``
 
-     This is the set of compilers. GNUu are a good default choice
-     (this will use g++ and gfortran). You can also choose ``pgi`` and
-     ``intel`` for example.
+     This is the set of compilers. GNU are a good default choice (this
+     will use g++). You can also choose ``intel`` for example.
 
      If you want to try other compilers than the GNU suite and they
      don’t work, please let us know.

@@ -318,7 +318,7 @@ them to be stored. But you can specify a subset by name, e.g.:</p>
 variables to be stored in the plotfile. Derived variables are
 created only when the plotfile is being created, using the
 infrastructure provided by AMReX to register variables and the
-associated Fortran routine to do the deriving (<code class="docutils literal notranslate"><span class="pre">Derive_nd.F90</span></code>).</p>
+associated C++ routine to do the deriving.</p>
 <p>By default, no derived variables are stored. You can store all
 derived variables that Castro knows about by doing:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">derive_plot_vars</span> <span class="o">=</span> <span class="n">ALL</span>

@@ -45,17 +45,6 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How can I check to make sure the function signatures defined
-   in C are consistent with their implementations in Fortran?*
-
-   Use:
-
-   ::
-
-       make typecheck
-
-   This will compile the code and report on any mismatched function signatures.
-
 .. _debugging_backtrace:
 
 Debugging
@@ -70,7 +59,7 @@ Debugging
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C and Fortran
+   function to handle various signals raised in both C++ and Fortran
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
