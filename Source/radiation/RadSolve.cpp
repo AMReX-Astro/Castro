@@ -1143,26 +1143,6 @@ void RadSolve::restoreHypreMulti()
   }
 }
 
-void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Vector<Real>& r, Vector<Real>& s)
-{
-    const int I = (AMREX_SPACEDIM >= 2) ? 1 : 0;
-    if (geom.IsCartesian()) {
-        r.resize(reg.length(0), 1);
-        s.resize(reg.length(I), 1);
-    }
-    else if (geom.IsRZ()) {
-        geom.GetCellLoc(r, reg, 0);
-        s.resize(reg.length(I), 1);
-    }
-    else {
-        geom.GetCellLoc(r, reg, 0);
-        geom.GetCellLoc(s, reg, I);
-        const Real *dx = geom.CellSize();
-        sphc(r.dataPtr(), s.dataPtr(),
-             ARLIM(reg.loVect()), ARLIM(reg.hiVect()), dx);
-    }
-}
-        
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
                              Vector<Real>& r, Vector<Real>& s)
 {

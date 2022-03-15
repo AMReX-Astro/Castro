@@ -126,8 +126,6 @@ extern "C"
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void sphc(amrex::Real* r, amrex::Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const amrex::Real* dx);
-
   void sphe(amrex::Real* r, amrex::Real* s, const int& idim, 
             ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const amrex::Real* dx);
 
