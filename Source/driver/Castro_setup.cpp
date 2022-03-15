@@ -456,11 +456,14 @@ Castro::variableSetUp ()
   // For simplified SDC, we want to store the reactions source.
   // these are not traced, so we only need a single ghost cell
 
+  // note: this is of size NQ (and not NQSRC) because the species are
+  // always included
+
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, 1, NQSRC,
+                             StateDescriptor::Point, 1, NQ,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
