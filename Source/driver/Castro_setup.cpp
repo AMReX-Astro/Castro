@@ -667,7 +667,7 @@ Castro::variableSetUp ()
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      for (int i = 0; i < NQSRC; ++i) {
+      for (int i = 0; i < NQ; ++i) {
           char buf[64];
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
