@@ -25,6 +25,11 @@
 #include <Radiation.H>
 #endif
 
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
+
+
 using namespace amrex;
 
 Real
