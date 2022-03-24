@@ -231,13 +231,6 @@ Castro::variableSetUp ()
     small_ener = 1.e-100_rt;
   }
 
-#ifdef MICROPHYSICS_FORT
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-  // Initialize the Fortran Microphysics
-  microphysics_initialize(small_temp, small_dens);
-#endif
-#endif
-
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
   network_init();
