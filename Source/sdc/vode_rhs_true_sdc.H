@@ -5,14 +5,11 @@
 #include <burn_type.H>
 #include <extern_parameters.H>
 
-#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
 #include <actual_network.H>
 #include <actual_rhs.H>
-#else
-#include <fortran_to_cxx_actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
 
