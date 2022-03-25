@@ -572,8 +572,8 @@ Castro::src_to_prim(const Box& bx, const Real dt,
         int n = upassmap(ipassive);
         int iq = qpassmap(ipassive);
 
-       // we may not be including the ability to have species sources,
-       //  so check to make sure that we are < NQSRC
+        // note: this does not include any SDC sources -- those are
+        // computed and stored separately
         srcQ(i,j,k,iq) = (srcU[n] - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
           q_arr(i,j,k,QRHO);
       }
