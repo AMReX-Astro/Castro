@@ -7,7 +7,7 @@
 
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
-#endif
+#else
 #include <actual_network.H>
 #include <actual_rhs.H>
 #endif
