@@ -7,7 +7,7 @@
 #include <hybrid.H>
 #endif
 
-AMREX_GPU_HOST_DEVICE
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 dflux(const GpuArray<Real, NUM_STATE>& u,
       const GpuArray<Real, NQ>& q,
@@ -77,4 +77,36 @@ dflux(const GpuArray<Real, NUM_STATE>& u,
 
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void
+normalize_species_flux (int i, int j, int k, Array4<Real> const& flux)
+{
+    // Normalize the fluxes of the mass fractions so that
+    // they sum to 0. This is essentially the CMA procedure that is
+    // defined in Plewa & Muller, 1999, A&A, 342, 179.
+
+    Real sum = 0.0_rt;
+
+    for (int n = UFS; n < UFS+NumSpec; n++) {
+      sum += flux(i,j,k,n);
+    }
+
+    Real fac = 1.0_rt;
+
+    // We skip the normalization if the sum is zero or within epsilon.
+    // There can be numerical problems here if the density flux is
+    // approximately zero at the interface but not exactly, resulting in
+    // division by a small number and/or resulting in one of the species
+    // fluxes being negative because of roundoff error. There are also other
+    // terms like artificial viscosity which can cause these problems.
+    // So checking that sum is sufficiently large helps avoid this.
+
+    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * std::abs(flux(i,j,k,URHO))) {
+      fac = flux(i,j,k,URHO) / sum;
+    }
+
+    for (int n = UFS; n < UFS+NumSpec; n++) {
+      flux(i,j,k,n) = flux(i,j,k,n) * fac;
+    }
+}
 #endif

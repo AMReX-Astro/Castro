@@ -57,6 +57,8 @@
 
 #include <ambient.H>
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -2651,6 +2653,11 @@ Castro::reflux(int crse_level, int fine_level)
                             F(i,j,k,n) = 0.0;
                         }
                     }
+
+                    // The fluxes may also result in sum(X) != 1. Normalize them now.
+                    // This will be a non-conservative correction.
+
+                    normalize_species_flux(i, j, k, F);
                 });
             }
 
