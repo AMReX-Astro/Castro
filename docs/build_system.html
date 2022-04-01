@@ -167,17 +167,13 @@ for radiation.  You need to specify the path to the Hypre library via either
 </section>
 <section id="fortran-support">
 <h3>Fortran Support<a class="headerlink" href="#fortran-support" title="Permalink to this headline">¶</a></h3>
-<p>Many problems can be built without Fortran.  The current exceptions
-are MHD, radiation, and anything using a pynucastro-generated network.
-These parameters control Fortran support:</p>
+<p>Radiation currently needs Fortran support.  All of the other solvers
+and problem set ups do not require Fortran.  Fortran support in AMReX
+is enabled / disabled via:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_FORT_MICROPHYSICS</span></code>: if set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, then Fortran
-versions of the EOS and burner interface will be compiled.  If you
-are not using a pynucastro network, then you can probably set this
-to <code class="docutils literal notranslate"><span class="pre">FALSE</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">BL_NO_FORT</span></code>: if set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, then no AMReX Fortran source will be built.
-This cannot currently be used for the MHD or radiation solvers.</p></li>
+This cannot currently be used for the radiation solver.</p></li>
 </ul>
 </div></blockquote>
 </section>
@@ -329,17 +325,16 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <li><p><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
 <ul id="index-17">
 <li><p>This processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
-<code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> (and  <code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code> if Fortran is enabled) into the
+<code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
 <p>These are used to define the size of the various state arrays and
 the integer keys to index each state variable.</p>
 </li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code></p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code></p></li>
 <li><p>You can test this portion of the build system by doing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_variables</span></code></p></li>
 </ul>
 </li>
-<li><p>(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">network_properties.H</span></code> (and
-<code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> if Fortran is enabled) is created</p>
+<li><p>(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">network_properties.H</span></code> is created</p>
 <ul class="simple" id="index-18">
 <li><p>This is done by <code class="docutils literal notranslate"><span class="pre">write_network.py</span></code></p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package</span></code></p></li>
@@ -348,7 +343,7 @@ the integer keys to index each state variable.</p>
 <li><p>Runtime parameter files for the microphysics routines are parsed by <code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code></p>
 <ul class="simple" id="index-19">
 <li><p>This writes the routines that manage the Microphysics runtime
-parameters: <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code>, and  <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
+parameters: <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code> and  <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code>.  This is output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern_parameters.H</span></code></p></li>
 </ul>
@@ -373,7 +368,7 @@ variables in <code class="docutils literal notranslate"><span class="pre">Castro
 <li><p>These headers are output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 </ul>
 </li>
-<li><p>The Fortran dependencies file is created</p>
+<li><p>(if Fortran support is enabled) The Fortran dependencies file is created</p>
 <ul class="simple">
 <li><p>This creates the <code class="docutils literal notranslate"><span class="pre">f90.depends</span></code> file in the <code class="docutils literal notranslate"><span class="pre">tmp_build_dir</span></code></p></li>
 <li><p>The script <code class="docutils literal notranslate"><span class="pre">amrex/Tools/F_scripts/dep.py</span></code> is used</p></li>

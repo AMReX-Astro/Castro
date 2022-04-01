@@ -176,11 +176,11 @@ this as the “gas”.</p>
 </section>
 <section id="hydrodynamics-data-structures">
 <h2>Hydrodynamics Data Structures<a class="headerlink" href="#hydrodynamics-data-structures" title="Permalink to this headline">¶</a></h2>
-<p>Within the Fortran routines that implement the hydrodynamics, there are
+<p>Within the routines that implement the hydrodynamics, there are
 several main data structures that hold the state.</p>
 <ul>
 <li><p>conserved state: these arrays generally begin with <code class="docutils literal notranslate"><span class="pre">u</span></code>,
-e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
+e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code>
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 6</span></a>.</p>
 <span id="table-consints"></span><table class="docutils align-default" id="id19">

@@ -66,7 +66,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#statedata"><code class="docutils literal notranslate"><span class="pre">StateData</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mfiter"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#practical-details-in-working-with-tiling">Practical Details in Working with Tiling</a></li>
 </ul>
 </li>
@@ -83,12 +83,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#gravity-class"><code class="docutils literal notranslate"><span class="pre">Gravity</span></code> class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fortran-helper-modules">Fortran Helper Modules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#amrex-constants-module"><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fundamental-constants-module"><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#meth-params-module"><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code></a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
@@ -160,13 +154,11 @@
 <h2>Code structure<a class="headerlink" href="#code-structure" title="Permalink to this headline">¶</a></h2>
 <p>Castro is built upon the AMReX C++ framework. This provides
 high-level classes for managing an adaptive mesh refinement
-simulation, including the core data structures we will deal with. A
-key design pattern in AMReX is that the overall memory management
-and parallelization is done in the C++ layer, while the heavy
-computational work is done in Fortran kernels. AMReX provides
+simulation, including the core data structures we will deal with.
+AMReX provides
 convenient data structures that allow for this workflow—high level
-objects in C++ that communicate with Fortran through pointers to
-data regions that appear as multidimensional arrays.</p>
+objects in C++ that communicate with our computational kernels, with
+the data regions appearing as multidimensional arrays.</p>
 <p>Castro uses a structured-grid approach to hydrodynamics. We work
 with square/cubic zones that hold state variables (density, momentum,
 etc.) and compute the fluxes of these quantities through the
@@ -185,8 +177,7 @@ collection of boxes at the same resolution a <em>level</em>.</p>
 at used to communicate across nodes on a computer and OpenMP is used
 within a node, to loop over subregions of a box with different
 threads.</p>
-<p>The code structure in the Castro/ directory reflects the
-division between C++ and Fortran.</p>
+<p>The code structure in the Castro/ directory is:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Diagnostics/</span></code>: various analysis routines for specific problems</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Docs/</span></code>: you’re reading this now!</p></li>
@@ -205,7 +196,7 @@ division between C++ and Fortran.</p>
 submodules will be in this directory.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">paper/</span></code>: the JOSS paper source</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Source/</span></code>: source code. In this main directory is all of the
-code. Sources are mixed C++ and Fortran and are organized by topic
+code. Sources are organized by topic
 as:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">diffusion/</span></code> : thermal diffusion code</p></li>
@@ -267,16 +258,6 @@ same object in each instantiation of the <code class="docutils literal notransla
 <p>Floating point data in the C++ AMReX framework is declared as
 <code class="docutils literal notranslate"><span class="pre">Real</span></code>. This is typedef to either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">double</span></code> depending
 on the make variable <code class="docutils literal notranslate"><span class="pre">PRECISION</span></code>.</p>
-<p>The corresponding type for Fortran is provided by the
-<code class="docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> as <code class="docutils literal notranslate"><span class="pre">c_real</span></code>. We typically rename
-this to rt when using it. An example of a declaration of a
-parameter is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">amrex_fort_module</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">rt</span> <span class="o">=&gt;</span> <span class="n">amrex_real</span>
-<span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">)</span> <span class="p">::</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1.0e-10</span><span class="n">_rt</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> provides common constants that can
-be used in the code, like <code class="docutils literal notranslate"><span class="pre">ZERO</span></code>, <code class="docutils literal notranslate"><span class="pre">THIRD</span></code>, <code class="docutils literal notranslate"><span class="pre">ONE</span></code>, etc.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>single precision support in Castro is not yet complete. In
@@ -314,9 +295,8 @@ pointer to a data buffer. The real floating point data are stored as
 one-dimensional arrays in <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> es. The associated <code class="docutils literal notranslate"><span class="pre">Box</span></code> can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
-structures is that this data buffer can be sent to Fortran, where it
-will appear as a DIM+1 dimensional array (DIM space + 1
-component).</p>
+structures is that this data buffer can be cast a a DIM+1 dimensional array that
+we can easily fill in C++ kernels.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Castro is complied for a specific dimensionality.</p>
@@ -457,8 +437,8 @@ with the <code class="docutils literal notranslate"><span class="pre">StateData<
 at the new time.</p>
 </section>
 </section>
-<section id="mfiter-and-interacting-with-fortran">
-<h2><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran<a class="headerlink" href="#mfiter-and-interacting-with-fortran" title="Permalink to this headline">¶</a></h2>
+<section id="mfiter">
+<h2><code class="docutils literal notranslate"><span class="pre">MFIter</span></code><a class="headerlink" href="#mfiter" title="Permalink to this headline">¶</a></h2>
 <p>The process of looping over boxes at a given level of refinement and
 operating on their data is linked to how Castro achieves
 thread-level parallelism. The OpenMP approach in Castro has evolved
@@ -469,18 +449,18 @@ many-core processors in the next-generation of supercomputers.</p>
 is given in the AMReX documentation here: <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling">https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling</a></p>
 <section id="practical-details-in-working-with-tiling">
 <h3>Practical Details in Working with Tiling<a class="headerlink" href="#practical-details-in-working-with-tiling" title="Permalink to this headline">¶</a></h3>
-<p>With tiling, the OpenMP is now all in C++, and not in Fortran for all
-modules except reactions and <code class="docutils literal notranslate"><span class="pre">initdata</span></code>.</p>
+<p>With tiling, the OpenMP is now all at the loop over boxes and not in the computational
+kernels themselves.</p>
 <p>It is the responsibility of the coder to make sure that the routines
 within a tiled region are safe to use with OpenMP. In particular,
 note that:</p>
-<ul>
+<ul class="simple">
 <li><p>tile boxes are non-overlapping</p></li>
 <li><p>the union of tile boxes completely cover the valid region of the
 fab</p></li>
 <li><p>Consider working with a node-centered MultiFab, <code class="docutils literal notranslate"><span class="pre">ugdnv</span></code>, and
 a cell-centered <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> <code class="docutils literal notranslate"><span class="pre">s</span></code>:</p>
-<ul class="simple">
+<ul>
 <li><p>with <code class="docutils literal notranslate"><span class="pre">mfi(s)</span></code>, the tiles are based on the cell-centered
 index space. If you have an <span class="math notranslate nohighlight">\(8\times 8\)</span> box, then and 4 tiles,
 then your tiling boxes will range from <span class="math notranslate nohighlight">\(0\rightarrow 3\)</span>,
@@ -493,41 +473,7 @@ so your tiling boxes will range from <span class="math notranslate nohighlight">
 <li><p>When updating routines to work with tiling, we need to
 understand the distinction between the index-space of the entire box
 (which corresponds to the memory layout) and the index-space of the
-tile.</p>
-<ul>
-<li><p>In the C++ end, we pass (sometimes via the
-<code class="docutils literal notranslate"><span class="pre">BL_TO_FORTRAN()</span></code> macro) the <code class="docutils literal notranslate"><span class="pre">loVect</span></code> and <code class="docutils literal notranslate"><span class="pre">hiVect</span></code> of the
-entire box (including ghost cells). These are then used to
-allocate the array in Fortran as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">double</span> <span class="n">precision</span> <span class="p">::</span> <span class="n">a</span><span class="p">(</span><span class="n">a_l1</span><span class="p">:</span><span class="n">a_h1</span><span class="p">,</span> <span class="n">a_l2</span><span class="p">:</span><span class="n">a_h2</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>When tiling is used, we do not want to loop as do <code class="docutils literal notranslate"><span class="pre">a_l1</span></code>,
-<code class="docutils literal notranslate"><span class="pre">a_h1</span></code>, but instead we need to loop over the tiling region. The
-indices of the tiling region need to be passed into the Fortran
-routine separately, and they come from the <code class="docutils literal notranslate"><span class="pre">mfi.tilebox()</span></code>
-or <code class="docutils literal notranslate"><span class="pre">mfi.growntilebox()</span></code> statement.</p>
-</li>
-<li><p>In Fortran, when initializing an array to 0, do so only
-over the tile region, not for the entire box. For a Fortran array
-a, this means we cannot do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="mf">0.0</span>
-<span class="n">a</span><span class="p">(:,:,:,:)</span> <span class="o">=</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
-<p>but instead must do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="p">(</span><span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),:)</span> <span class="o">=</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
-<p>where <code class="docutils literal notranslate"><span class="pre">lo()</span></code> and <code class="docutils literal notranslate"><span class="pre">hi()</span></code> are the index-space for the tile box
-returned from <code class="docutils literal notranslate"><span class="pre">mfi.tilebox()</span></code> in C++ and passed into the Fortran
-routine.</p>
-</li>
-<li><p>Look at <code class="docutils literal notranslate"><span class="pre">r_old_s</span></code> in <code class="docutils literal notranslate"><span class="pre">Exec/gravity_tests/DustCollapse/probdata.f90</span></code> as an
-example of how to declare a <code class="docutils literal notranslate"><span class="pre">threadprivate</span></code> variable—this is then used
-in <code class="docutils literal notranslate"><span class="pre">sponge_nd.f90</span></code>.</p></li>
-</ul>
-</li>
+tile.</p></li>
 </ul>
 </section>
 </section>
@@ -700,7 +646,7 @@ variable is done in <code class="docutils literal notranslate"><span class="pre"
 such as <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>, <code class="docutils literal notranslate"><span class="pre">norm_vel_bc</span></code>, etc, which say which kind of
 bc to use on which kind of physical boundary.  Boundary conditions are
 set in functions like <code class="docutils literal notranslate"><span class="pre">set_scalar_bc</span></code>, which uses the <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>
-pre-defined arrays. We also specify the name of the Fortran routine
+pre-defined arrays. We also specify the name of the routine
 that is responsible for filling the data there (e.g., <code class="docutils literal notranslate"><span class="pre">hypfill</span></code>).  These
 routines are discussed more below.</p>
 <p>If you want to specify a value at a function (like at an inflow
@@ -806,28 +752,6 @@ information at each level through the parent <code class="docutils literal notra
 and gravitation acceleration for use in the hydrodynamic sources.
 Depending on the approximation used for gravity, this could mean
 calling the AMReX multigrid solvers to solve the Poisson equation.</p>
-</section>
-<section id="fortran-helper-modules">
-<h2>Fortran Helper Modules<a class="headerlink" href="#fortran-helper-modules" title="Permalink to this headline">¶</a></h2>
-<p>There are a number of modules that make data available to the Fortran
-side of Castroor perform other useful tasks.</p>
-<section id="amrex-constants-module">
-<h3><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code><a class="headerlink" href="#amrex-constants-module" title="Permalink to this headline">¶</a></h3>
-<p>This provides double precision constants as Fortran parameters, like
-<code class="docutils literal notranslate"><span class="pre">ZERO</span></code>, <code class="docutils literal notranslate"><span class="pre">HALF</span></code>, and <code class="docutils literal notranslate"><span class="pre">ONE</span></code>.</p>
-</section>
-<section id="fundamental-constants-module">
-<h3><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code><a class="headerlink" href="#fundamental-constants-module" title="Permalink to this headline">¶</a></h3>
-<p>This provides the CGS values of many physical constants.</p>
-</section>
-<section id="meth-params-module">
-<h3><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code><a class="headerlink" href="#meth-params-module" title="Permalink to this headline">¶</a></h3>
-<p>This module provides the integer keys used to access the state arrays
-for both the conserved variables (<code class="docutils literal notranslate"><span class="pre">URHO</span></code>, <code class="docutils literal notranslate"><span class="pre">UMX</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>)
-and primitive variables (<code class="docutils literal notranslate"><span class="pre">QRHO</span></code>, <code class="docutils literal notranslate"><span class="pre">QU</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>), as well as
-the number of scalar variables.</p>
-<p>It also provides the values of most of the <code class="docutils literal notranslate"><span class="pre">castro.*xxxx*</span></code>
-runtime parameters.</p>
 <dl class="footnote brackets">
 <dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>for clarity and continuity in this
@@ -838,7 +762,6 @@ compared to the actual code</p>
 <dd><p>the integer values are defined in <code class="docutils literal notranslate"><span class="pre">BC_TYPES.H</span></code></p>
 </dd>
 </dl>
-</section>
 </section>
 </section>
 

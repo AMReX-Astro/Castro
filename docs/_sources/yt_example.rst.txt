@@ -12,7 +12,7 @@
 .. code:: ipython3
 
     # load data from file
-    ds = yt.load('../../Exec/hydro_tests/Sedov/sedov_2d_cyl_in_cart_plt00150/')
+    ds = yt.load('../../Exec/hydro_tests/Sedov/sedov_2d_cyl_in_cart_plt00150/', hint="castro")
 
 
 .. parsed-literal::
