@@ -207,7 +207,7 @@ variables appear in the regular plotfile.
     variables to be stored in the plotfile. Derived variables are
     created only when the plotfile is being created, using the
     infrastructure provided by AMReX to register variables and the
-    associated Fortran routine to do the deriving (``Derive_nd.F90``).
+    associated C++ routine to do the deriving.
 
     By default, no derived variables are stored. You can store all
     derived variables that Castro knows about by doing::

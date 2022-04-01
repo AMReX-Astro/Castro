@@ -124,8 +124,6 @@ of each step.
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
 
-   -  Sync up the level information to the Fortran-side of Castro.
-
    -  Do any radiation initialization.
 
    -  Set the maximum density used for Poisson gravity tolerances.

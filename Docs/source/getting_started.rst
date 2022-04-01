@@ -14,19 +14,22 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++17 (or later) compiler (e.g. gcc >= 7.0)
+ * A C++17 (or later) compiler (for GCC, we need >= 9.0 for CUDA compilation)
 
- * A Fortran 20xx compiler
-
- * python (>= 3.6)
+ * python (>= 3.7)
 
  * GNU make (>= 3.82)
 
 GCC is the main compiler suite used by the developers.
 
-For running in parallel, an MPI library is required.  For running on GPUs,
-CUDA 11 or later is required.  More information on parallel builds
-is given in section :ref:`ch:mpiplusx`.
+For running in parallel, an MPI library is required.  For running on GPUs:
+
+* CUDA 11 or later is required for NVIDIA GPUs
+
+* ROCM 4.5 or later is required for AMD GPUs
+
+More information on parallel builds is given in section
+:ref:`ch:mpiplusx`.
 
 Downloading the Code
 ====================
@@ -149,9 +152,8 @@ build the Sedov problem:
 
    * ``COMP = gnu``
 
-     This is the set of compilers. GNUu are a good default choice
-     (this will use g++ and gfortran). You can also choose ``pgi`` and
-     ``intel`` for example.
+     This is the set of compilers. GNU are a good default choice (this
+     will use g++). You can also choose ``intel`` for example.
 
      If you want to try other compilers than the GNU suite and they
      don’t work, please let us know.

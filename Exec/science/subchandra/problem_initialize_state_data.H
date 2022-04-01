@@ -32,8 +32,15 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = interpolate(dist, model::idens);
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
-    for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(dist, model::ispec+n);
+    Real sumX{0.0_rt};
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) = amrex::min(1.0_rt, amrex::max(interpolate(dist, model::ispec+n), small_x));
+        sumX += state(i,j,k,UFS+n);
+    }
+
+    // normalize
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) /= sumX;
     }
 
     eos_t eos_state;

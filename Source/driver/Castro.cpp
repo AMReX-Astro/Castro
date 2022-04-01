@@ -2961,6 +2961,12 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 
     Real lsmall_x = small_x;
 
+    ReduceOps<ReduceOpMin, ReduceOpMax> reduce_op;
+    ReduceData<Real, Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+    const Real X_failure_tolerance = 1.e-2_rt;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2973,26 +2979,27 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // Ensure the species mass fractions are between small_x and 1,
         // then normalize them so that they sum to 1.
 
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoX_sum = 0.0_rt;
-#ifndef AMREX_USE_GPU
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
-#endif
+
+            Real minX = 1.0_rt;
+            Real maxX = 0.0_rt;
 
             for (int n = 0; n < NumSpec; ++n) {
-#ifndef AMREX_USE_GPU
-                const Real X_failure_tolerance = 1.e-2_rt;
-
                 // Abort if X is unphysically large.
                 Real X = u(i,j,k,UFS+n) * rhoInv;
 
+                minX = amrex::min(minX, X);
+                maxX = amrex::max(maxX, X);
+
                 if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+#ifndef AMREX_USE_GPU
                     std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << std::endl;
-                    amrex::Error("Invalid mass fraction in Castro::normalize_species()");
-                }
 #endif
+                }
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
                 rhoX_sum += u(i,j,k,UFS+n);
             }
@@ -3002,7 +3009,17 @@ Castro::normalize_species (MultiFab& S_new, int ng)
             for (int n = 0; n < NumSpec; ++n) {
                 u(i,j,k,UFS+n) *= fac;
             }
+
+            return {minX, maxX};
         });
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    Real minX = amrex::get<0>(hv);
+    Real maxX = amrex::get<1>(hv);
+
+    if (minX < -X_failure_tolerance || maxX > 1.0_rt + X_failure_tolerance) {
+        amrex::Error("Invalid mass fraction in Castro::normalize_species()");
     }
 }
 

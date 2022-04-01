@@ -1,3 +1,9 @@
+# 22.04
+
+   * Fixed an issue with monopole gravity where running with multiple
+     MPI ranks in a GPU build could result in an incorrect gravitational
+     field calculation. (#2091)
+
 # 22.02
 
    * Microphysics has moved from Starkiller-Astro to AMReX-Astro.  The

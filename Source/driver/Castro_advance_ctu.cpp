@@ -156,6 +156,7 @@ Castro::do_advance_ctu(Real time,
     // be in sync due to any average down done, so fill them here
 
     MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 #endif
 #endif
@@ -313,6 +314,9 @@ Castro::do_advance_ctu(Real time,
             // store the current conserved state (without burning) into
             // Simplified_SDC_React_Type -- this will be used after the burn
             // to figure out just the effect of reactions
+
+            // we are actually abusing this MF a bit, since it has NQ components,
+            // are we are storing NUM_STATE there now, so this assumes NQ >= NUM_STATE
 
             MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
             MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
