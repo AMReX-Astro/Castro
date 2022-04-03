@@ -1,5 +1,7 @@
 # 22.04
 
+   * We now abort on GPUs if species do not sum to 1 (#2099)
+
    * Fixed an issue with monopole gravity where running with multiple
      MPI ranks in a GPU build could result in an incorrect gravitational
      field calculation. (#2091)
