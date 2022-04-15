@@ -64,11 +64,9 @@ Castro::do_advance_ctu(Real time,
         create_source_corrector();
     }
 
-#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_old);
-#endif
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -238,11 +236,9 @@ Castro::do_advance_ctu(Real time,
 #endif
                 S_new, cur_time, 0);
 
-#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_new);
-#endif
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
@@ -348,9 +344,7 @@ Castro::do_advance_ctu(Real time,
 
             // Check for NaN's.
 
-#ifndef AMREX_USE_GPU
             check_for_nan(S_new);
-#endif
 
         }
         else {
