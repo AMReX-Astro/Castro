@@ -89,7 +89,7 @@ problem.R_pert = 1.e7
 
 amr.refinement_indicators = tempgrad denerr
 
-amr.refine.tempgrad.gradient = 100.0
+amr.refine.tempgrad.relative_gradient = 2.0
 amr.refine.tempgrad.field_name = Temp
 
 amr.refine.denerr.value_greater = 1.0
