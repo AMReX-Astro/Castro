@@ -4274,17 +4274,19 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
     ng = state_in.nGrow();
   }
 
-  if (state_in.contains_nan(URHO,state_in.nComp(),ng,true))
-    {
-      for (int i = 0; i < state_in.nComp(); i++)
-        {
-          if (state_in.contains_nan(URHO + i, 1, ng, true))
-            {
+  if (state_in.contains_nan(URHO,state_in.nComp(),ng,true)) {
+#ifdef AMREX_USE_GPU
+      std::string abort_string = std::string("State has NaNs in check_for_nan()");
+      amrex::Abort(abort_string.c_str());
+#else
+      for (int i = 0; i < state_in.nComp(); i++) {
+          if (state_in.contains_nan(URHO + i, 1, ng, true)) {
               std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
               amrex::Abort(abort_string.c_str());
-            }
-        }
-    }
+          }
+      }
+#endif
+  }
 }
 
 // Given State_Type state data, perform a number of cleaning steps to make
