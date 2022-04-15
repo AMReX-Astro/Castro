@@ -219,9 +219,6 @@ integrator.atol_spec = 1.0e-10
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.retry_burn = 1
-
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
 
