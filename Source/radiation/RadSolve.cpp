@@ -50,6 +50,8 @@ RadSolve::read_params ()
 {
     ParmParse pp("radsolve");
 
+#include <radsolve_queries.H>
+
     // Override some defaults manually.
 
     if (AMREX_SPACEDIM == 1) {
@@ -71,8 +73,6 @@ RadSolve::read_params ()
         Radiation::SolverType == Radiation::MGFLDSolver) {
         radsolve::abstol = 0.0;
     }
-
-#include <radsolve_queries.H>
 
     // Check for unsupported options.
 
