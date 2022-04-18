@@ -2997,7 +2997,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 
                 if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
 #ifndef AMREX_USE_GPU
-                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << std::endl;
+                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
 #endif
                 }
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
