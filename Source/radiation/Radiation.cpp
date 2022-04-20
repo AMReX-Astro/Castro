@@ -2660,8 +2660,8 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.growntilebox();
+    for (MFIter mfi(dcf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
         auto dcf_arr = dcf[mfi].array();
         auto etainv_arr = etainv[mfi].array();

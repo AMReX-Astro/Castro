@@ -99,5 +99,4 @@ network.use_tables = 1
 
 integrator.jacobian = 1
 
-integrator.retry_burn = 0
 integrator.abort_on_failure = 0

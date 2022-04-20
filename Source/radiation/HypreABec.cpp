@@ -1711,6 +1711,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = 0;
 
       AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = d_arr(i,j,k,icomp); });
+      Gpu::streamSynchronize();
     }
     Elixir f_elix = fnew.elixir();
 
@@ -1723,6 +1724,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Array4<Real> const f_arr = f->array();
 
     AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = r_arr(i,j,k,0); });
+    Gpu::streamSynchronize();
 
     // add b.c.'s to rhs
 
