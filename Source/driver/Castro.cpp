@@ -2604,7 +2604,6 @@ Castro::reflux(int crse_level, int fine_level)
                 auto U = crse_state[mfi].array();
                 auto V = crse_lev.volume[mfi].array();
                 auto F = temp_fluxes[mfi].array();
-                Real dt = parent->dtLevel(lev);
 
                 amrex::ParallelFor(nbx,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k)
@@ -2619,28 +2618,28 @@ Castro::reflux(int crse_level, int fine_level)
                     bool zero_flux = false;
 
                     if (bx.contains(i,j,k)) {
-                        if (U(i,j,k,URHO) + dt * F(i,j,k,URHO) / V(i,j,k) < castro::small_dens) {
+                        if (U(i,j,k,URHO) + F(i,j,k,URHO) / V(i,j,k) < castro::small_dens) {
                             zero_flux = true;
                         }
                     }
 
                     if (idir == 0) {
                         if (bx.contains(i-1,j,k)) {
-                            if (U(i-1,j,k,URHO) - dt * F(i,j,k,URHO) / V(i-1,j,k) < castro::small_dens) {
+                            if (U(i-1,j,k,URHO) - F(i,j,k,URHO) / V(i-1,j,k) < castro::small_dens) {
                                 zero_flux = true;
                             }
                         }
                     }
                     else if (idir == 1) {
                         if (bx.contains(i,j-1,k)) {
-                            if (U(i,j-1,k,URHO) - dt * F(i,j,k,URHO) / V(i,j-1,k) < castro::small_dens) {
+                            if (U(i,j-1,k,URHO) - F(i,j,k,URHO) / V(i,j-1,k) < castro::small_dens) {
                                 zero_flux = true;
                             }
                         }
                     }
                     else if (idir == 2) {
                         if (bx.contains(i,j,k-1)) {
-                            if (U(i,j,k-1,URHO) - dt * F(i,j,k,URHO) / V(i,j,k-1) < castro::small_dens) {
+                            if (U(i,j,k-1,URHO) - F(i,j,k,URHO) / V(i,j,k-1) < castro::small_dens) {
                                 zero_flux = true;
                             }
                         }
