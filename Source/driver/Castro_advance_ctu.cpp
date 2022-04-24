@@ -214,10 +214,8 @@ Castro::do_advance_ctu(Real time,
               for (int n = 0; n < NumSpec; ++n) {
                   Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
 
-                  // This tolerance should match what is used in normalize_species().
-                  const Real X_failure_tolerance = 1.e-2_rt;
-
-                  if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                  if (X < -castro::abundance_failure_tolerance ||
+                      X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                       std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                 << i << ", " << j << ", " << k
