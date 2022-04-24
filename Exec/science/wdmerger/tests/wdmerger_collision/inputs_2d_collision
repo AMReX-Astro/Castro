@@ -101,6 +101,14 @@ castro.state_interp_order = 0
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
 
+# Add refinement indicators
+amr.refinement_indicators = density
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e2
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -379,10 +387,8 @@ problem.orbital_angle = 0.0e0
 problem.axis_1 = 1
 problem.axis_2 = 2
 
-problem.max_stellar_tagging_level = 20
 problem.stellar_density_threshold = 1.0e2
 problem.max_tagging_radius = 0.75e0
-problem.roche_tagging_factor = 2.0e0
 
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0

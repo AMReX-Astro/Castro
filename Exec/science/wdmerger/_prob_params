@@ -179,10 +179,7 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 # Tagging criteria
 
-max_stellar_tagging_level       integer               20                       y
-stellar_density_threshold       real                  1.0e0_rt                 y
 max_tagging_radius              real                  0.75e0_rt                y
-roche_tagging_factor            real                  2.0e0_rt                 y
 
 
 
@@ -192,6 +189,8 @@ com_P                           real                  0.0e0_rt                 n
 com_S                           real                  0.0e0_rt                 n                      3
 vel_P                           real                  0.0e0_rt                 n                      3
 vel_S                           real                  0.0e0_rt                 n                      3
+
+stellar_density_threshold       real                  1.0e0_rt                 y
 
 
 
