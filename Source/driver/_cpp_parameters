@@ -167,9 +167,6 @@ pslope_cutoff_density        Real          -1.e20
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0
 
-# Should we limit the momentum fluxes so that we do not create large velocities?
-limit_fluxes_on_large_vel    int           0
-
 # Enforce the magnitude of the velocity to be no larger than this number (and
 # optionally limit the fluxes as well). Only applies if it is greater than 0.
 speed_limit                  Real          0.0

@@ -1,3 +1,7 @@
+# 22.05
+
+   * The option castro.limit_fluxes_on_large_vel has been removed. (#2132)
+
 # 22.04
 
    * We now abort on GPUs if species do not sum to 1 (#2099)
