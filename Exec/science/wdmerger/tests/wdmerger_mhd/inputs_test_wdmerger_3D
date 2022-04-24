@@ -158,5 +158,3 @@ problem.orbital_angle = 0.0e0
 
 problem.max_tagging_radius = 0.75e0
 problem.stellar_density_threshold = 1.0e0
-
-problem.smallu = 1.0e-12
