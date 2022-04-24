@@ -229,6 +229,13 @@ rho_global_max                  real                  0.0e0_rt                 n
 ts_te_global_max                real                  0.0e0_rt                 n
 
 
+# Criteria for stopping the simulation
+use_stopping_criterion          int                   1                        n
+use_energy_stopping_criterion   int                   0                        n
+ts_te_stopping_criterion        real                  1.e200_rt                n
+T_stopping_criterion            real                  1.e200_rt                n
+
+
 
 # Stores whether we assert that the simulation has completed.
 
