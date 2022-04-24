@@ -28,6 +28,4 @@ void set_small ();
 
 void set_star_data ();
 
-void update_center (Real time);
-
 #endif

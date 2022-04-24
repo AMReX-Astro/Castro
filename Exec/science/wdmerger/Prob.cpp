@@ -77,9 +77,6 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Update the problem center using the system bulk velocity
-    update_center(time);
-
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;

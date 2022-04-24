@@ -460,12 +460,6 @@ problem.axis_2 = 2
 problem.stellar_density_threshold = 1.0e0
 problem.max_tagging_radius = 0.75e0
 
-problem.bulk_velx = 0.0e0
-problem.bulk_vely = 0.0e0
-problem.bulk_velz = 0.0e0
-
-problem.smallu = 0.0e0
-
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0
 problem.center_fracz = 0.5e0

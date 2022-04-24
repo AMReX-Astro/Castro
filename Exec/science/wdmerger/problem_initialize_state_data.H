@@ -104,13 +104,11 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
 
-    // Set the velocities in each direction equal to the bulk
-    // velocity of the system. By default this is zero so that
-    // the system is at rest in our reference frame.
+    // Set the velocities in each direction to zero by default.
 
-    state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::bulk_velx + problem::smallu);
-    state(i,j,k,UMY) = state(i,j,k,URHO) * (problem::bulk_vely + problem::smallu);
-    state(i,j,k,UMZ) = state(i,j,k,URHO) * (problem::bulk_velz + problem::smallu);
+    state(i,j,k,UMX) = 0.0_rt;
+    state(i,j,k,UMY) = 0.0_rt;
+    state(i,j,k,UMZ) = 0.0_rt;
 
     for (int n = 0; n < 3; ++n) {
         loc[n] -= problem::center[n];

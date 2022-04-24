@@ -49,12 +49,6 @@ center_fracx                    real                  0.5e0_rt                 y
 center_fracy                    real                  0.5e0_rt                 y
 center_fracz                    real                  0.5e0_rt                 y
 
-# Bulk system motion
-
-bulk_velx                       real                  0.0e0_rt                 y
-bulk_vely                       real                  0.0e0_rt                 y
-bulk_velz                       real                  0.0e0_rt                 y
-
 # Whether we're doing an initialization or a restart
 
 init                            integer               1                        n
@@ -62,11 +56,6 @@ init                            integer               1                        n
 # Are we doing a single star simulation?
 
 single_star                     integer               0                        n
-
-
-
-# Smallest allowed velocity on the grid  
-smallu                          real                  0.e0_rt                  y
 
 
 
