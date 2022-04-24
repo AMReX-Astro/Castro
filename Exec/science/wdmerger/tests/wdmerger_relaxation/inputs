@@ -43,5 +43,4 @@ problem.relaxation_cutoff_time = -1.0e2
 problem.radial_damping_factor = 1.0e-1
 problem.initial_radial_velocity_factor = -1.0e-3
 
-problem.max_stellar_tagging_level = 20
 problem.stellar_density_threshold = 1.0e0

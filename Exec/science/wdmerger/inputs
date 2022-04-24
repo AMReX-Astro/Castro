@@ -132,7 +132,12 @@ castro.state_interp_order = 0
 castro.lin_limit_state_interp = 1
 
 # Add refinement indicators
-amr.refinement_indicators = temperature
+amr.refinement_indicators = density temperature
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e0
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8
@@ -455,10 +460,8 @@ problem.orbital_angle = 0.0e0
 problem.axis_1 = 1
 problem.axis_2 = 2
 
-problem.max_stellar_tagging_level = 20
 problem.stellar_density_threshold = 1.0e0
 problem.max_tagging_radius = 0.75e0
-problem.roche_tagging_factor = 2.0e0
 
 problem.bulk_velx = 0.0e0
 problem.bulk_vely = 0.0e0
