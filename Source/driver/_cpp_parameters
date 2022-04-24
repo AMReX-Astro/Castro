@@ -601,6 +601,11 @@ do_special_tagging           int           0
 
 spherical_star               int           0
 
+# Maximum radius from the center (in units of the domain width)
+# where tagging is allowed. The default choice implies no restriction.
+max_tagging_radius           real          10.0e0
+
+
 
 #-----------------------------------------------------------------------------
 # category: diagnostics, I/O

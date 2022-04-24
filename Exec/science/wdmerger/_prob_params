@@ -166,12 +166,6 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 
 
-# Tagging criteria
-
-max_tagging_radius              real                  0.75e0_rt                y
-
-
-
 # Stores the center of mass location of the stars throughout the run
 
 com_P                           real                  0.0e0_rt                 n                      3
