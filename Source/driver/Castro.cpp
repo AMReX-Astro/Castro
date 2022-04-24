@@ -3406,6 +3406,52 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
 
     }
 #endif
+
+    auto geomdata = geom.data();
+
+    // Allow the user to limit tagging outside of some distance from the problem center.
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+
+        auto tag = tags[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            const Real* problo = geomdata.ProbLo();
+            const Real* probhi = geomdata.ProbHi();
+            const Real* dx = geomdata.CellSize();
+
+            Real loc[3] = {0.0};
+
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#endif
+
+            Real r = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
+                               (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]) +
+                               (loc[2] - problem::center[2]) * (loc[2] - problem::center[2]));
+
+            Real max_dist_lo = 0.0;
+            Real max_dist_hi = 0.0;
+
+            for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+                max_dist_lo = amrex::max(max_dist_lo, std::abs(problo[dim] - problem::center[dim]));
+                max_dist_hi = amrex::max(max_dist_hi, std::abs(probhi[dim] - problem::center[dim]));
+            }
+
+            if (r > castro::max_tagging_radius * amrex::max(max_dist_lo, max_dist_hi)) {
+                tag(i,j,k) = TagBox::CLEAR;
+            }
+        });
+    }
 }
 
 

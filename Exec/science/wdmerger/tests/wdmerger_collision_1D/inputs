@@ -101,6 +101,9 @@ castro.state_interp_order = 0
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################

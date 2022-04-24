@@ -109,6 +109,9 @@ amr.refine.density.value_greater = 1.0e2
 amr.refine.density.field_name = density
 amr.refine.density.max_level = 20
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -388,7 +391,6 @@ problem.axis_1 = 1
 problem.axis_2 = 2
 
 problem.stellar_density_threshold = 1.0e2
-problem.max_tagging_radius = 0.75e0
 
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0

@@ -144,6 +144,9 @@ amr.refine.temperature.value_greater = 5.0e8
 amr.refine.temperature.field_name = Temp
 amr.refine.temperature.max_level = 0
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -461,7 +464,6 @@ problem.axis_1 = 1
 problem.axis_2 = 2
 
 problem.stellar_density_threshold = 1.0e0
-problem.max_tagging_radius = 0.75e0
 
 problem.bulk_velx = 0.0e0
 problem.bulk_vely = 0.0e0
