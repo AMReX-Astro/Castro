@@ -356,6 +356,9 @@ retry_subcycle_factor        Real          0.5
 # to the update was below this threshold.
 retry_small_density_cutoff   Real         -1.e200
 
+# Set the threshold for failing the species abundance validity check.
+abundance_failure_tolerance  Real          1.e-2
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 

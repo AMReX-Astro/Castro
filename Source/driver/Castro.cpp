@@ -2658,9 +2658,6 @@ Castro::reflux(int crse_level, int fine_level)
                 if (!zero_fluxes) {
                     Real rhoInvNew = 1.0_rt / (rho + drho);
 
-                    // This should match (or be more conservative than) normalize_species().
-                    const Real X_failure_tolerance = 1.e-2_rt;
-
                     for (int n = 0; n < NumSpec; ++n) {
                         Real rhoX = U(i,j,k,UFS+n);
                         Real drhoX = F_x(i,j,k,UFS+n) - F_x(i+1,j,k,UFS+n);
@@ -2674,7 +2671,8 @@ Castro::reflux(int crse_level, int fine_level)
 
                         Real XNew = (rhoX + drhoX) * rhoInvNew;
 
-                        if (XNew < -X_failure_tolerance || XNew > 1.0_rt + X_failure_tolerance) {
+                        if (XNew < -castro::abundance_failure_tolerance ||
+                            XNew > 1.0_rt + castro::abundance_failure_tolerance) {
                             zero_fluxes = true;
                             break;
                         }
@@ -3012,8 +3010,6 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     ReduceData<Real, Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    const Real X_failure_tolerance = 1.e-2_rt;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3042,7 +3038,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                 minX = amrex::min(minX, X);
                 maxX = amrex::max(maxX, X);
 
-                if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                if (X < -castro::abundance_failure_tolerance ||
+                    X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                     std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
 #endif
@@ -3065,7 +3062,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     Real minX = amrex::get<0>(hv);
     Real maxX = amrex::get<1>(hv);
 
-    if (minX < -X_failure_tolerance || maxX > 1.0_rt + X_failure_tolerance) {
+    if (minX < -castro::abundance_failure_tolerance ||
+        maxX > 1.0_rt + castro::abundance_failure_tolerance) {
         amrex::Error("Invalid mass fraction in Castro::normalize_species()");
     }
 }
