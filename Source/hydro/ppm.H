@@ -46,7 +46,7 @@ check_trace_source(Array4<Real const> const& srcQ, const int idir,
 /// Compute the coefficients of a parabolic reconstruction of the data in a zone.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
 ///
-/// @param s      Real[5] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
+/// @param s      Real[7] the state to be reconstructed in zones i-3, i-2, i-1, i, i+1, i+2, i+3
 /// @param flatn  The flattening coefficient
 /// @param sm     The value of the parabola on the left edge of the zone
 /// @param sp     The value of the parabola on the right edge of the zone

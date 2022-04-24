@@ -48,7 +48,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                   (idir == 1 && j == domhi[1]) ||
                                   (idir == 2 && k == domhi[2]));
 
-    Real s[5];
+    Real s[7];
     Real flat = flatn_arr(i,j,k);
 
     if (idir == 0) {
@@ -85,11 +85,11 @@ Castro::mol_plm_reconstruct(const Box& bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
-      Real s[5];
+      Real s[7];
       Real flat = flatn_arr(i,j,k);
 
-      Real trho[5];
-      Real src[5];
+      Real trho[7];
+      Real src[7];
 
       bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
                                     (idir == 1 && j == domlo[1]) ||
@@ -357,39 +357,30 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const& qm,
                             Array4<Real> const& qp) {
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
   amrex::ParallelFor(bx, NQ,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
-    Real s[5];
+    Real s[7];
     Real flat = flatn_arr(i,j,k);
     Real sm;
     Real sp;
 
-    if (idir == 0) {
-      s[im2] = q_arr(i-2,j,k,n);
-      s[im1] = q_arr(i-1,j,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i+1,j,k,n);
-      s[ip2] = q_arr(i+2,j,k,n);
+    load_stencil(q_arr, idir, i, j, k, n, s);
 
-    } else if (idir == 1) {
-      s[im2] = q_arr(i,j-2,k,n);
-      s[im1] = q_arr(i,j-1,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j+1,k,n);
-      s[ip2] = q_arr(i,j+2,k,n);
-
-    } else {
-      s[im2] = q_arr(i,j,k-2,n);
-      s[im1] = q_arr(i,j,k-1,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j,k+1,n);
-      s[ip2] = q_arr(i,j,k+2,n);
-
-    }
-
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
 
     if (idir == 0) {
       // right state at i-1/2
