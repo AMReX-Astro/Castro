@@ -338,4 +338,3 @@ problem.orbital_eccentricity = 0.0e0
 problem.orbital_angle = 0.0e0
 
 problem.max_stellar_tagging_level = 0
-problem.max_temperature_tagging_level = 0

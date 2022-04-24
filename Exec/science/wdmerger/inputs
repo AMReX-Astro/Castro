@@ -131,6 +131,14 @@ castro.state_interp_order = 0
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
 
+# Add refinement indicators
+amr.refinement_indicators = temperature
+
+# Temperature refinement criterion
+amr.refine.temperature.value_greater = 5.0e8
+amr.refine.temperature.field_name = Temp
+amr.refine.temperature.max_level = 0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -448,9 +456,7 @@ problem.axis_1 = 1
 problem.axis_2 = 2
 
 problem.max_stellar_tagging_level = 20
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e0
-problem.temperature_tagging_threshold = 5.0e8
 problem.max_tagging_radius = 0.75e0
 problem.roche_tagging_factor = 2.0e0
 
