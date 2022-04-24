@@ -41,7 +41,7 @@ castro.hi_bc = 2 2
 max_step = 1
 
 # Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
+problem.use_stopping_criterion = 1
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5

@@ -37,7 +37,7 @@ max_step = 10000000
 stop_time = 30.0
 
 # Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
+problem.use_stopping_criterion = 1
 
 # CFL number for hyperbolic system
 castro.cfl = 0.15
