@@ -380,9 +380,7 @@ problem.axis_1 = 1
 problem.axis_2 = 2
 
 problem.max_stellar_tagging_level = 20
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e2
-problem.temperature_tagging_threshold = 5.0e8
 problem.max_tagging_radius = 0.75e0
 problem.roche_tagging_factor = 2.0e0
 

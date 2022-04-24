@@ -77,18 +77,6 @@ void problem_tagging(int i, int j, int k,
 
         }
 
-        // Tag all zones at all levels that are hotter than a specified temperature threshold.
-
-        if (level < problem::max_temperature_tagging_level) {
-
-            if (state(i,j,k,UTEMP) > problem::temperature_tagging_threshold) {
-
-                tag(i,j,k) = TagBox::SET;
-
-            }
-
-        }
-
         // Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
         Real r = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
