@@ -356,6 +356,10 @@ retry_subcycle_factor        Real          0.5
 # to the update was below this threshold.
 retry_small_density_cutoff   Real         -1.e200
 
+# Do not abort for invalid species abundances if the zone's density is below
+# this threshold.
+invalid_species_rho_cutoff   Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
