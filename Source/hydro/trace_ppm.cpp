@@ -135,7 +135,7 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_pres = small_pres;
 
   // special care for the reflecting BCs
-  const int* lo_bc = phyc_bc.lo();
+  const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
   const auto domlo = geom.Domain().loVect3d();
