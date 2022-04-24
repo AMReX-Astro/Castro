@@ -2612,8 +2612,12 @@ Castro::reflux(int crse_level, int fine_level)
             auto U = crse_state[mfi].array();
             auto V = crse_lev.volume[mfi].array();
             auto F_x = (temp_fluxes[0])[mfi].array();
+#if AMREX_SPACEDIM >= 2
             auto F_y = (temp_fluxes[1])[mfi].array();
+#endif
+#if AMREX_SPACEDIM == 3
             auto F_z = (temp_fluxes[2])[mfi].array();
+#endif
             auto mask_arr = mask[mfi].array();
 
             // Loop over zones and check all adjacent fluxes to see whether
@@ -2638,9 +2642,14 @@ Castro::reflux(int crse_level, int fine_level)
                 bool zero_fluxes = false;
 
                 Real rho = U(i,j,k,URHO);
-                Real drho = (F_x(i,j,k,URHO) - F_x(i+1,j,k,URHO) +
-                             F_y(i,j,k,URHO) - F_y(i,j+1,k,URHO) +
-                             F_z(i,j,k,URHO) - F_z(i,j,k+1,URHO)) / V(i,j,k);
+                Real drho = F_x(i,j,k,URHO) - F_x(i+1,j,k,URHO);
+#if AMREX_SPACEDIM >= 2
+                drho += F_y(i,j,k,URHO) - F_y(i,j+1,k,URHO);
+#endif
+#if AMREX_SPACEDIM == 3
+                drho += F_z(i,j,k,URHO) - F_z(i,j,k+1,URHO);
+#endif
+                drho /= V(i,j,k);
 
                 if (rho + drho < castro::small_dens) {
                     zero_fluxes = true;
@@ -2654,9 +2663,14 @@ Castro::reflux(int crse_level, int fine_level)
 
                     for (int n = 0; n < NumSpec; ++n) {
                         Real rhoX = U(i,j,k,UFS+n);
-                        Real drhoX = (F_x(i,j,k,UFS+n) - F_x(i+1,j,k,UFS+n) +
-                                      F_y(i,j,k,UFS+n) - F_y(i,j+1,k,UFS+n) +
-                                      F_z(i,j,k,UFS+n) - F_z(i,j,k+1,UFS+n)) / V(i,j,k);
+                        Real drhoX = F_x(i,j,k,UFS+n) - F_x(i+1,j,k,UFS+n);
+#if AMREX_SPACEDIM >= 2
+                        drhoX += F_y(i,j,k,UFS+n) - F_y(i,j+1,k,UFS+n);
+#endif
+#if AMREX_SPACEDIM == 3
+                        drhoX += F_z(i,j,k,UFS+n) - F_z(i,j,k+1,UFS+n);
+#endif
+                        drhoX /= V(i,j,k);
 
                         Real XNew = (rhoX + drhoX) * rhoInvNew;
 
@@ -2672,10 +2686,14 @@ Castro::reflux(int crse_level, int fine_level)
                     for (int n = 0; n < NUM_STATE; ++n) {
                         F_x(i,  j,  k,  n) = 0.0;
                         F_x(i+1,j,  k,  n) = 0.0;
+#if AMREX_SPACEDIM >= 2
                         F_y(i,  j,  k,  n) = 0.0;
                         F_y(i,  j+1,k,  n) = 0.0;
+#endif
+#if AMREX_SPACEDIM == 3
                         F_z(i,  j,  k,  n) = 0.0;
                         F_z(i,  j,  k+1,n) = 0.0;
+#endif
                     }
                 }
             });
