@@ -356,6 +356,10 @@ Castro::actual_trans_single(const Box& bx,
             rvnewn = rvn;
             rwnewn = rwn;
             renewn = ren;
+            for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                int nqp = qpassmap(ipassive);
+                qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+            }
 #ifdef RADIATION
             for (int g = 0; g < NGROUPS; ++g) {
                 ernewn[g] = ern[g];
@@ -790,6 +794,10 @@ Castro::actual_trans_final(const Box& bx,
             rvnewn = rvn;
             rwnewn = rwn;
             renewn = ren;
+            for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                int nqp = qpassmap(ipassive);
+                qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+            }
 #ifdef RADIATION
             for (int g = 0; g < NGROUPS; ++g) {
                 ernewn[g] = ern[g];

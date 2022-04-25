@@ -9,9 +9,9 @@ import yt
 
 
 def doit(outfile="hse.png"):
-    low = yt.load("flame_wave_128_plt01600")
-    med = yt.load("flame_wave_256_plt03200")
-    high = yt.load("flame_wave_512_plt06400")
+    low = yt.load("flame_wave_128_plt01600", hint="castro")
+    med = yt.load("flame_wave_256_plt03200", hint="castro")
+    high = yt.load("flame_wave_512_plt06400", hint="castro")
 
     fig, ax = plt.subplots(1,1)
 
@@ -19,9 +19,9 @@ def doit(outfile="hse.png"):
 
         ray = ds.ray((0, 0, 0), (2.56e3, 0, 0))
 
-        isrt = np.argsort(ray["x"])
+        isrt = np.argsort(ray[("boxlib", "x")])
 
-        ax.plot(ray["x"][isrt], ray["magvel"][isrt], label=l)
+        ax.plot(ray[("boxlib", "x")][isrt], ray[("boxlib", "magvel")][isrt], label=l)
 
     ax.legend(frameon=False)
     ax.set_yscale("log")
