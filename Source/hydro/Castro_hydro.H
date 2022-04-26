@@ -119,6 +119,20 @@
                  amrex::Array4<amrex::Real> const& qaux_arr);
 
 ///
+/// for left / right interface states on a reflecting boundary, reflect the state
+/// inside the domain to the outside
+///
+/// @param bx      the box to operate over
+/// @param idir    coordinate direction
+/// @param qm      left states on the interfaces
+/// @param qp      right states on the interfaces
+///
+    void enforce_reflection_states(const amrex::Box& bx,
+                                   const int idir,
+                                   amrex::Array4<amrex::Real> const& qm,
+                                   amrex::Array4<amrex::Real> const& qp);
+
+///
 /// compute the flattening coefficient.  This is 0 if we are in a shock and
 /// 1 if we are not applying any flattening
 ///

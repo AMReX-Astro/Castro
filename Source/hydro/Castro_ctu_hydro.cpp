@@ -617,9 +617,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdy);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
       // solve the final Riemann problem axross the x-interfaces
 
@@ -628,6 +628,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                                ql_arr, qr_arr, sdc_src_arr);
 
 #endif
+
+      enforce_reflection_states(xbx, 0, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
@@ -659,9 +661,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdx);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 
       // solve the final Riemann problem axross the y-interfaces
@@ -671,6 +673,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                                ql_arr, qr_arr, sdc_src_arr);
 
 #endif
+
+      enforce_reflection_states(ybx, 1, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
@@ -991,9 +995,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdy, hdtdz);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
       add_sdc_source_to_states(xbx, 0, dt,
@@ -1069,9 +1073,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp1_arr,
                   hdtdx, hdtdz);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
       add_sdc_source_to_states(ybx, 1, dt,
@@ -1149,9 +1153,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdx, hdtdy);
 
-      reset_edge_state_thermo(zbx, ql.array());
+      reset_edge_state_thermo(zbx, ql_arr);
 
-      reset_edge_state_thermo(zbx, qr.array());
+      reset_edge_state_thermo(zbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
       add_sdc_source_to_states(zbx, 2, dt,
