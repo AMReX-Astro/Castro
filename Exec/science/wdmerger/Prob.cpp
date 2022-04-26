@@ -77,9 +77,6 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Update the problem center using the system bulk velocity
-    update_center(time);
-
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;
@@ -537,15 +534,6 @@ void Castro::problem_post_init() {
   using namespace wdmerger;
   using namespace problem;
 
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
-
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
   // This should generally be the last operation
@@ -561,15 +549,6 @@ void Castro::problem_post_restart() {
 
   using namespace wdmerger;
   using namespace problem;
-
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
 
   // Reset current values of extrema.
 
