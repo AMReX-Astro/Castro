@@ -173,6 +173,8 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, QRHO, s);
     ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
+    sm = amrex::max(lsmall_dens, sm);
+    sp = amrex::max(lsmall_dens, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_rho, Im_rho);
 
     // reconstruct normal velocity
@@ -194,6 +196,8 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
     ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
+    sm = amrex::max(lsmall_pres, sm);
+    sp = amrex::max(lsmall_pres, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
     // reconstruct rho e
@@ -203,6 +207,8 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, QREINT, s);
     ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
+    sm = amrex::max(lsmall_pres, sm);
+    sp = amrex::max(lsmall_pres, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_rhoe, Im_rhoe);
 
     // reconstruct transverse velocities
