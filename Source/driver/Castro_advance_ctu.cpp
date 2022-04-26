@@ -211,18 +211,22 @@ Castro::do_advance_ctu(Real time,
                   rho_check_failed = 1;
               }
 
-              for (int n = 0; n < NumSpec; ++n) {
-                  Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+              if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
 
-                  if (X < -castro::abundance_failure_tolerance ||
-                      X > 1.0_rt + castro::abundance_failure_tolerance) {
+                  for (int n = 0; n < NumSpec; ++n) {
+                      Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+
+                      if (X < -castro::abundance_failure_tolerance ||
+                          X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
-                      std::cout << "Invalid X[" << n << "] = " << X << " in zone "
-                                << i << ", " << j << ", " << k
-                                << " with density = " << rho << "\n";
+                          std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                    << i << ", " << j << ", " << k
+                                    << " with density = " << rho << "\n";
 #endif
-                      X_check_failed = 1;
+                          X_check_failed = 1;
+                      }
                   }
+
               }
 
               return {rho_check_failed, X_check_failed};
