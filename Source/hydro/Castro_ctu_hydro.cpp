@@ -1215,17 +1215,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    dt);
           }
 
-          if (limit_fluxes_on_large_vel == 1) {
-              limit_hydro_fluxes_on_large_vel
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   q.array(),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
-          }
-
           normalize_species_fluxes(nbx, flux_arr);
 
       }

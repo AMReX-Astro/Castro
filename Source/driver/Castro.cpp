@@ -2553,6 +2553,7 @@ Castro::reflux(int crse_level, int fine_level)
         reg = &getLevel(lev).flux_reg;
 
         Castro& crse_lev = getLevel(lev-1);
+        Castro& fine_lev = getLevel(lev);
 
         MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
@@ -2578,87 +2579,132 @@ Castro::reflux(int crse_level, int fine_level)
         // on the flux register data directly, and we will anyway need this copy of the flux
         // data in MultiFab form later.
 
+        // We also apply a similar check to ensure that 0 < X < 1 after the reflux.
+
+        MultiFab temp_fluxes[AMREX_SPACEDIM];
+
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-            MultiFab temp_fluxes(crse_lev.fluxes[idir]->boxArray(),
-                                 crse_lev.fluxes[idir]->DistributionMap(),
-                                 crse_lev.fluxes[idir]->nComp(), crse_lev.fluxes[idir]->nGrow());
+            temp_fluxes[idir].define(crse_lev.fluxes[idir]->boxArray(),
+                                     crse_lev.fluxes[idir]->DistributionMap(),
+                                     crse_lev.fluxes[idir]->nComp(), crse_lev.fluxes[idir]->nGrow());
 
-            temp_fluxes.setVal(0.0);
+            temp_fluxes[idir].setVal(0.0);
 
             // Start with a MultiFab version of the flux register.
 
             for (OrientationIter fi; fi; ++fi) {
                 const FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
-                    fs.copyTo(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
+                    fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
                 }
             }
 
-            // Now zero out any problematic flux corrections.
+        }
 
-            for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-                const Box& bx = mfi.tilebox();
-                const Box& nbx = amrex::surroundingNodes(bx, idir);
+        // Now zero out any problematic flux corrections.
 
-                auto U = crse_state[mfi].array();
-                auto V = crse_lev.volume[mfi].array();
-                auto F = temp_fluxes[mfi].array();
+        const MultiFab& mask = fine_lev.build_fine_mask();
 
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k)
-                {
-                    // Note in this check we will zero out the flux if either
-                    // the left or right zone would go negative due to this update.
-                    // Only one of the two zones would actually be updated (whichever
-                    // is the one not covered by the fine grid) but it is easier to
-                    // ignore that and just check both sides here instead of figuring
-                    // out which zone is the coarse-only zone.
+        for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
 
-                    bool zero_flux = false;
+            auto U = crse_state[mfi].array();
+            auto V = crse_lev.volume[mfi].array();
+            auto F_x = (temp_fluxes[0])[mfi].array();
+#if AMREX_SPACEDIM >= 2
+            auto F_y = (temp_fluxes[1])[mfi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+            auto F_z = (temp_fluxes[2])[mfi].array();
+#endif
+            auto mask_arr = mask[mfi].array();
 
-                    if (bx.contains(i,j,k)) {
-                        if (U(i,j,k,URHO) + F(i,j,k,URHO) / V(i,j,k) < castro::small_dens) {
-                            zero_flux = true;
+            // Loop over zones and check all adjacent fluxes to see whether
+            // the sum of them would cause a small/negative density or invalid X.
+            // If so, set all adjacent fluxes to zero. Note that in principle this
+            // could lead to a race condition when this loop runs in parallel, but
+            // in practice this should not be a real issue because any given flux
+            // correction should only be affecting one of the two zones on either
+            // side of its associated zone face; the other zone will be covered by
+            // the fine grid, and we mask out these zones.
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k)
+            {
+                // Skip zones which are covered by the fine grid (these can't be
+                // updated by the reflux).
+
+                if (mask_arr(i,j,k) == 0.0) {
+                    return;
+                }
+
+                bool zero_fluxes = false;
+
+                Real rho = U(i,j,k,URHO);
+                Real drho = F_x(i,j,k,URHO) - F_x(i+1,j,k,URHO);
+#if AMREX_SPACEDIM >= 2
+                drho += F_y(i,j,k,URHO) - F_y(i,j+1,k,URHO);
+#endif
+#if AMREX_SPACEDIM == 3
+                drho += F_z(i,j,k,URHO) - F_z(i,j,k+1,URHO);
+#endif
+                drho /= V(i,j,k);
+
+                if (rho + drho < castro::small_dens) {
+                    zero_fluxes = true;
+                }
+
+                if (!zero_fluxes) {
+                    Real rhoInvNew = 1.0_rt / (rho + drho);
+
+                    for (int n = 0; n < NumSpec; ++n) {
+                        Real rhoX = U(i,j,k,UFS+n);
+                        Real drhoX = F_x(i,j,k,UFS+n) - F_x(i+1,j,k,UFS+n);
+#if AMREX_SPACEDIM >= 2
+                        drhoX += F_y(i,j,k,UFS+n) - F_y(i,j+1,k,UFS+n);
+#endif
+#if AMREX_SPACEDIM == 3
+                        drhoX += F_z(i,j,k,UFS+n) - F_z(i,j,k+1,UFS+n);
+#endif
+                        drhoX /= V(i,j,k);
+
+                        Real XNew = (rhoX + drhoX) * rhoInvNew;
+
+                        if (XNew < -castro::abundance_failure_tolerance ||
+                            XNew > 1.0_rt + castro::abundance_failure_tolerance) {
+                            zero_fluxes = true;
+                            break;
                         }
                     }
 
-                    if (idir == 0) {
-                        if (bx.contains(i-1,j,k)) {
-                            if (U(i-1,j,k,URHO) - F(i,j,k,URHO) / V(i-1,j,k) < castro::small_dens) {
-                                zero_flux = true;
-                            }
-                        }
-                    }
-                    else if (idir == 1) {
-                        if (bx.contains(i,j-1,k)) {
-                            if (U(i,j-1,k,URHO) - F(i,j,k,URHO) / V(i,j-1,k) < castro::small_dens) {
-                                zero_flux = true;
-                            }
-                        }
-                    }
-                    else if (idir == 2) {
-                        if (bx.contains(i,j,k-1)) {
-                            if (U(i,j,k-1,URHO) - F(i,j,k,URHO) / V(i,j,k-1) < castro::small_dens) {
-                                zero_flux = true;
-                            }
-                        }
-                    }
+                }
 
-                    if (zero_flux) {
-                        for (int n = 0; n < NUM_STATE; ++n) {
-                            F(i,j,k,n) = 0.0;
-                        }
+                if (zero_fluxes) {
+                    for (int n = 0; n < NUM_STATE; ++n) {
+                        F_x(i,  j,  k,  n) = 0.0;
+                        F_x(i+1,j,  k,  n) = 0.0;
+#if AMREX_SPACEDIM >= 2
+                        F_y(i,  j,  k,  n) = 0.0;
+                        F_y(i,  j+1,k,  n) = 0.0;
+#endif
+#if AMREX_SPACEDIM == 3
+                        F_z(i,  j,  k,  n) = 0.0;
+                        F_z(i,  j,  k+1,n) = 0.0;
+#endif
                     }
-                });
-            }
+                }
+            });
+        }
+
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             // Update the flux register now that we may have modified some of the flux corrections.
 
             for (OrientationIter fi; fi; ++fi) {
                 FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
-                    fs.copyFrom(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
+                    fs.copyFrom(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
                 }
             }
 
@@ -2667,7 +2713,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (update_sources_after_reflux) {
 
-                MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes, 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
+                MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes[idir], 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
 
                 // The gravity and rotation source terms depend on the mass fluxes.
                 // These should be the same as the URHO component of the fluxes.
@@ -2964,8 +3010,6 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     ReduceData<Real, Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    const Real X_failure_tolerance = 1.e-2_rt;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2992,11 +3036,12 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                 Real X = u(i,j,k,UFS+n) * rhoInv;
 
                 // Only do the abort check if the density is greater than a user-defined cutoff.
-                if (u(i,j,k,URHO) >= castro::invalid_species_rho_cutoff) {
+                if (u(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
                     minX = amrex::min(minX, X);
                     maxX = amrex::max(maxX, X);
 
-                    if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                    if (X < -castro::abundance_failure_tolerance ||
+                        X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                         std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
 #endif
@@ -3021,7 +3066,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     Real minX = amrex::get<0>(hv);
     Real maxX = amrex::get<1>(hv);
 
-    if (minX < -X_failure_tolerance || maxX > 1.0_rt + X_failure_tolerance) {
+    if (minX < -castro::abundance_failure_tolerance ||
+        maxX > 1.0_rt + castro::abundance_failure_tolerance) {
         amrex::Error("Invalid mass fraction in Castro::normalize_species()");
     }
 }
@@ -3362,6 +3408,52 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
 
     }
 #endif
+
+    auto geomdata = geom.data();
+
+    // Allow the user to limit tagging outside of some distance from the problem center.
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+
+        auto tag = tags[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            const Real* problo = geomdata.ProbLo();
+            const Real* probhi = geomdata.ProbHi();
+            const Real* dx = geomdata.CellSize();
+
+            Real loc[3] = {0.0};
+
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#endif
+
+            Real r = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
+                               (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]) +
+                               (loc[2] - problem::center[2]) * (loc[2] - problem::center[2]));
+
+            Real max_dist_lo = 0.0;
+            Real max_dist_hi = 0.0;
+
+            for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+                max_dist_lo = amrex::max(max_dist_lo, std::abs(problo[dim] - problem::center[dim]));
+                max_dist_hi = amrex::max(max_dist_hi, std::abs(probhi[dim] - problem::center[dim]));
+            }
+
+            if (r > castro::max_tagging_radius * amrex::max(max_dist_lo, max_dist_hi)) {
+                tag(i,j,k) = TagBox::CLEAR;
+            }
+        });
+    }
 }
 
 
