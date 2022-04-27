@@ -82,5 +82,13 @@ amr.plot_per        = 5.0      # time between plotfiles
 amr.plot_vars = density xmom ymom rho_e rho_E Temp
 amr.derive_plot_vars = soundspeed entropy magvort divu eint_e magvel x_velocity y_velocity pressure MachNumber
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.p_ref   = 1.0e0
+problem.r_0     = 0.25e0
+problem.mach    = 0.0796e0
+problem.ratio_c = 0.15e0
+problem.r_circ  = 1.0e0
+
+# EOS
+eos.eos_gamma = 1.4e0
+eos.eos_assume_neutral = 1

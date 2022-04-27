@@ -53,6 +53,9 @@ amr.refine.temperr.max_level = 4
 amr.refine.temperr.field_name = Temp
 amr.refine.temperr.value_greater = 2.e8
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -74,7 +77,6 @@ castro.implicit_rotation_update = 1                # Implicit rotation coupling
 castro.ppm_type = 0                                # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
 castro.use_pslope = 0
 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
@@ -157,7 +159,4 @@ problem.relaxation_density_cutoff = -1.0e10
 problem.orbital_eccentricity = 0.0e0
 problem.orbital_angle = 0.0e0
 
-problem.max_tagging_radius = 0.75e0
 problem.stellar_density_threshold = 1.0e0
-
-problem.smallu = 1.0e-12

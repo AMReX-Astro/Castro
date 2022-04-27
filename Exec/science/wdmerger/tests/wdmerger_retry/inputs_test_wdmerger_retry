@@ -41,13 +41,10 @@ castro.hi_bc = 2 2
 max_step = 1
 
 # Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
+problem.use_stopping_criterion = 1
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5
-
-# Fixed level 0 timestep; unused if < 0
-castro.fixed_dt = -1.0
 
 # Scale back initial timestep by this factor
 castro.init_shrink = 1.0
@@ -94,6 +91,9 @@ castro.state_interp_order = 0
 
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -209,9 +209,6 @@ castro.react_rho_max = 1.0e12
 # Smallest allowable mass fraction
 network.small_x = 1.0e-12
 
-# Burn at constant volume
-integrator.do_constant_volume_burn = 1
-
 # Evaluate the RHS during the burn
 integrator.call_eos_in_rhs = 1
 
@@ -221,9 +218,6 @@ integrator.atol_spec = 1.0e-10
 
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
-
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.retry_burn = 1
 
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
@@ -355,7 +349,7 @@ amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary
 # than the safe hydrodynamic timestep given the above
 # CFL value. This guarantees that we will retry on
 # all levels, at least in the first timestep.
-castro.fixed_dt = 0.08
+castro.fixed_dt = 0.25
 
 ############################################################################################
 # Problem parameters
@@ -384,18 +378,7 @@ problem.orbital_angle = 0.0e0
 problem.axis_1 = 1
 problem.axis_2 = 2
 
-problem.max_stellar_tagging_level = 0
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e0
-problem.temperature_tagging_threshold = 5.0e8
-problem.max_tagging_radius = 0.75e0
-problem.roche_tagging_factor = 2.0e0
-
-problem.bulk_velx = 0.0e0
-problem.bulk_vely = 0.0e0
-problem.bulk_velz = 0.0e0
-
-problem.smallu = 0.0e0
 
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0

@@ -14,9 +14,6 @@ USE_ROTATION  = TRUE
 
 USE_HYBRID_MOMENTUM = TRUE
 
-
-GPU_COMPATIBLE_PROBLEM = TRUE
-
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 

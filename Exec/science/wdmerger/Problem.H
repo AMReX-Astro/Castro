@@ -61,3 +61,7 @@ void update_extrema(amrex::Real time);
 // Update relaxation process.
 
 void update_relaxation(amrex::Real time, amrex::Real dt);
+
+// Add some integrated quantities.
+
+void problem_sums();

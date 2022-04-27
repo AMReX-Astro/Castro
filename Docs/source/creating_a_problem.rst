@@ -4,7 +4,7 @@ Setting Up Your Own Problem
 
 Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, ...).  These groups are
-sub-directories under the `Castro/Exec/` directory.  Each problem is
+sub-directories under the ``Castro/Exec/`` directory.  Each problem is
 then placed in a sub-directory of the appropriate group (for example,
 ``Castro/Exec/hydro_tests/Sedov`` holds the Sedov test problem).
 
@@ -14,14 +14,15 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` OR ``problem_initialize.H`` and
+  * ``problem_initialize.H`` and
     ``problem_initialize_state_data.H`` : this holds the problem
-    initialization routines, which may be implemented either in Fortran
-    or in C++.
+    initialization routines.  MHD and radiation problems require
+    an additional file.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
-    ``probin`` file.
+    set in the inputs file as ``problem.param`` where ``param`` is
+    one of the parameters listed in ``_prob_params``.
 
   * ``Make.package`` : this is a makefile fragment that is included
     during the build process.  It tells the build system about any
@@ -29,11 +30,6 @@ of the groups and place in it the following files:
 
   * ``inputs`` : this is the main inputs file that controls Castro and
     AMReX's behavior.
-
-  * ``probin`` : this is the problem-specific inputs file that
-    contains Fortran namelists with problem parameters as well as any
-    paramters for external physics (e.g., from the StarKiller
-    Microphysics)
 
 The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.
@@ -58,12 +54,12 @@ Here:
 * `default` is the default value of the runtime parameter.  It may be
   overridden at runtime by reading from the namelist.
 
-* `namelist` indicates if the variable should be in the namelist and
-  controlled at runtime.  The namelist column should have a ``y`` if
-  you want the parameter to be read from the ``&fortin`` namelist in
-  the ``probin`` file at runtime.  If it is empty or marked with
-  ``n``, then the variable will still be put into the
-  ``probdata_module`` but it will not be initialized via the namelist.
+* `namelist` indicates if the variable should be able to be set as
+  a runtime parameter.  If it is empty or marked with
+  ``n``, then the variable will still be creates in the ``problem`` namespace,
+  but it will not be able to be set via the commandline or inputs file.
+  A common usage of this is to define global variables that might be set
+  at problem initialization that are used elsewhere in Castro.
 
 * `size` is for arrays, and gives their size.  It can be any integer
   or variable that is known to the ``probdata_module``.  If you need a
@@ -75,40 +71,33 @@ Here:
 The variables will all be initialized for the GPU as well.
 
 
-``Problem Initialization``
---------------------------
+Problem Initialization
+----------------------
 
-Here we describe the main problem initialization routines. There are
-two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
-and you can pick either but not both (C++ is recommended since eventually
-we will switch the whole code to C++).
+Here we describe the main problem initialization routines. 
 
-.. index:: probdata
+.. index:: initialize_problem
 
-* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
+* ``initialize_problem()``
 
-  This routine is primarily responsible for doing any one-time
+  This C++ routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
-  initial model through the ``model_parser_module``—see the
-  ``toy_convect`` problem setup for an example).
+  initial model through the ``model_parser.H`` functionality—see the
+  ``toy_convect`` problem setup for an example.
 
   This routine can also postprocess any of the parameters defined
-  in the ``_prob_params`` file, which are defined in ``probdata_module``.
+  in the ``_prob_params`` file, which are defined in ``problem`` namespace.
 
-  .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here (in C++, the ``center[]`` variable
-     from the ``problem`` namespace).  This is used to note the
+  .. note:: many problems set the value of the ``problem::center[]`` array
+     from the ``problem`` namespace.  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  In Fortran the arguments include the name and length of the probin file
-  as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``). The C++ version
-  accepts no arguments, but for example ``problo`` and ``probhi`` can
-  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  If you need coordinate information, it can be obtained 
+  by constructing a ``Geometry`` object using ``DefaultGeometry()``
   and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
@@ -145,11 +134,12 @@ The flag value 1 is traditionally named "inflow" by AMReX, but generally means t
 the boundary implementation is left to the user.  To tell Castro to use the
 hydrostatic boundary condition here, we set::
 
-   castro.yl_ext_bc_type = "hse"
+   castro.yl_ext_bc_type = 1
    castro.hse_interp_temp = 1
    castro.hse_reflect_vels = 1
 
-The first parameter tells Castro to use the HSE boundary condition.
+The first parameter tells Castro to use the HSE boundary condition for the lower
+y direction.
 In filling the ghost cells, hydrostatic equilibrum will be integrated
 from the last interior zone into the boundary.  We need one more
 equation for this integration, so we either interpolate the density or
@@ -201,30 +191,28 @@ each of these in the main source tree.
 
    The name of the checkpoint directory is passed in as an argument.
 
--  ``problem_tagging_nd.F90`` OR ``problem_tagging.H``
+-  ``problem_tagging.H``
 
    This implements problem-specific tagging for refinement, through a
-   subroutine ``set_problem_tags`` (Fortran) or function ``problem_tagging``
-   (C++). The full hydrodynamic state (State_Type) is passed in, and the
-   problem can mark zones for refinement by setting the tag variable for
-   a zone to set. An example is provided by the ``toy_convect``
+   the function ``problem_tagging``. The full hydrodynamic state (State_Type)
+   is passed in, and the problem can mark zones for refinement by setting the
+   tag variable for a zone to set. An example is provided by the ``toy_convect``
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
--  ``Problem_Derive_F.H``, ``Problem_Derives.H``, ``problem_derive_nd.f90``
+-  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derives.cpp``
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. ``Problem_Derives.H``
    provides the C++ code that defines these new plot variables. It
    does this by adding them to the ``derive_lst``—a list of
    derived variables that Castro knows about. When adding new
-   variables, a descriptive name, Fortran routine that does the
-   deriving, and component of ``StateData`` are specified.
+   variables, a descriptive name, a C++ routine that does the
+   deriving, and component of ``StateData`` are specified.
 
-   The Fortran routine that does the deriving is put in the
-   problem-specific ``problem_derive_nd.f90`` (and a prototype for
-   C++ is put in ``Problem_Derives.H``). A example is provided by
-   the ``reacting_bubble`` problem, which derives several new
+   The other two files provide the header and implementation of the
+   function that computes the derived variable.  A example is provided
+   by the ``reacting_bubble`` problem, which derives several new
    quantities (perturbations against a background one-dimensional
    model, in this case).
 

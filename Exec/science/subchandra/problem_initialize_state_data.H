@@ -32,8 +32,15 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = interpolate(dist, model::idens);
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
-    for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(dist, model::ispec+n);
+    Real sumX{0.0_rt};
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) = amrex::min(1.0_rt, amrex::max(interpolate(dist, model::ispec+n), small_x));
+        sumX += state(i,j,k,UFS+n);
+    }
+
+    // normalize
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) /= sumX;
     }
 
     eos_t eos_state;
@@ -66,14 +73,16 @@ void problem_initialize_state_data (int i, int j, int k,
 
     // perturbation is on the vertical-axis
 
+    Real pert_center = problem::R_pert + problem::R_He_base;
+
 #if AMREX_SPACEDIM == 1
-    Real r1 = std::sqrt((x - problem::R_pert) * (x - problem::R_pert)) /
+    Real r1 = std::sqrt((x - pert_center) * (x - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #elif AMREX_SPACEDIM == 2
-    Real r1 = std::sqrt(x * x + (y - problem::R_pert) * (y - problem::R_pert)) /
+    Real r1 = std::sqrt(x * x + (y - pert_center) * (y - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #else
-    Real r1 = std::sqrt(x * x + y * y + (z - problem::R_pert) * (z - problem::R_pert)) /
+    Real r1 = std::sqrt(x * x + y * y + (z - pert_center) * (z - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #endif
 

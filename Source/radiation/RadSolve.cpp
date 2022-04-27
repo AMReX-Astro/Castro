@@ -50,33 +50,16 @@ RadSolve::read_params ()
 {
     ParmParse pp("radsolve");
 
-    // Override some defaults manually.
-
-    if (BL_SPACEDIM == 1) {
-        // pfmg will not work in 1D
-        radsolve::level_solver_flag = 0;
-    }
-
-    if (Radiation::SolverType == Radiation::SGFLDSolver
-        && Radiation::Er_Lorentz_term) { 
-        radsolve::use_hypre_nonsymmetric_terms = 1;
-    }
-
-    if (Radiation::SolverType == Radiation::MGFLDSolver && 
-        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-        radsolve::use_hypre_nonsymmetric_terms = 1;
-    }
+#include <radsolve_queries.H>
 
     if (Radiation::SolverType == Radiation::SGFLDSolver ||
         Radiation::SolverType == Radiation::MGFLDSolver) {
         radsolve::abstol = 0.0;
     }
 
-#include <radsolve_queries.H>
-
     // Check for unsupported options.
 
-    if (BL_SPACEDIM == 1) {
+    if (AMREX_SPACEDIM == 1) {
         if (radsolve::level_solver_flag == 1) {
             amrex::Error("radsolve.level_solver_flag = 1 is not supported in 1D");
         }
@@ -88,6 +71,10 @@ RadSolve::read_params ()
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
         }
+
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            amrex::Error("To do Lorentz term implicitly use_hypre_nonsymmetric_terms must be 1.");
+        }
     }
 
     if (Radiation::SolverType == Radiation::MGFLDSolver && 
@@ -95,6 +82,10 @@ RadSolve::read_params ()
 
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        }
+
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            amrex::Error("When accelerate is 2, use_hypre_nonsymmetric_terms must be 1.");
         }
     }
 
@@ -253,7 +244,7 @@ void RadSolve::levelACoeffs(int level,
   }
 }
 
-void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int igroup, 
+void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int igroup, 
                          int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
@@ -271,7 +262,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
       spa[mfi].setVal<RunOn::Host>(1.e210,reg,0);
     
       bool nexttoboundary=false;
-      for (int idim=0; idim<BL_SPACEDIM; idim++) {
+      for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
           if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
               reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
               nexttoboundary=true;
@@ -342,7 +333,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
 }
 
 void RadSolve::levelBCoeffs(int level,
-                            Array<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
                             MultiFab& kappa_r, int kcomp,
                             Real c, int lamcomp)
 {
@@ -352,7 +343,7 @@ void RadSolve::levelBCoeffs(int level,
   auto geomdata = parent->Geom(level).data();
   auto dx = parent->Geom(level).CellSizeArray();
 
-  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
 
     MultiFab bcoefs(lambda[idim].boxArray(), lambda[idim].DistributionMap(), 1, 0);
 
@@ -423,7 +414,7 @@ void RadSolve::levelBCoeffs(int level,
   } // -->> over dimension
 }
 
-void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
+void RadSolve::levelDCoeffs(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda,
                             MultiFab& vel, MultiFab& dcf)
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
@@ -433,7 +424,7 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
     const auto dx = geom.CellSizeArray();
     const auto geomdata = geom.data();
 
-    for (int idim=0; idim<BL_SPACEDIM; idim++) {
+    for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
 
         MultiFab dcoefs(castro->getEdgeBoxArray(idim), dm, 1, 0);
 
@@ -653,7 +644,7 @@ void RadSolve::levelSolve(int level,
   }
 }
 
-void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDIM>& Flux,
+void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, AMREX_SPACEDIM>& Flux,
                                      MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
@@ -661,7 +652,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDI
     const Geometry& geom = parent->Geom(level);
     auto geomdata = geom.data();
 
-    for (int idim = 0; idim < BL_SPACEDIM; idim++)
+    for (int idim = 0; idim < AMREX_SPACEDIM; idim++)
     {
 #ifdef _OPENMP
 #pragma omp parallel
@@ -699,7 +690,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDI
 }
 
 void RadSolve::levelFlux(int level,
-                         Array<MultiFab, BL_SPACEDIM>& Flux,
+                         Array<MultiFab, AMREX_SPACEDIM>& Flux,
                          MultiFab& Er, int igroup)
 {
   BL_PROFILE("RadSolve::levelFlux");
@@ -715,7 +706,7 @@ void RadSolve::levelFlux(int level,
 
   auto dx = parent->Geom(level).CellSizeArray();
 
-  for (int n = 0; n < BL_SPACEDIM; n++) {
+  for (int n = 0; n < AMREX_SPACEDIM; n++) {
 
       const MultiFab *bp;
 
@@ -791,7 +782,7 @@ void RadSolve::levelFlux(int level,
 
 void RadSolve::levelFluxReg(int level,
                             FluxRegister* flux_in, FluxRegister* flux_out,
-                            const Array<MultiFab, BL_SPACEDIM>& Flux,
+                            const Array<MultiFab, AMREX_SPACEDIM>& Flux,
                             int igroup)
 {
   BL_PROFILE("RadSolve::levelFluxReg");
@@ -801,7 +792,7 @@ void RadSolve::levelFluxReg(int level,
   const Real volume = D_TERM(dx[0], * dx[1], * dx[2]);
 
   if (flux_in) {
-    for (int n = 0; n < BL_SPACEDIM; n++) {
+    for (int n = 0; n < AMREX_SPACEDIM; n++) {
       const Real scale = volume / dx[n];
       flux_in->CrseInit(Flux[n], n, 0, igroup, 1, scale);
     }
@@ -811,7 +802,7 @@ void RadSolve::levelFluxReg(int level,
       Orientation ori = face();
       (*flux_out)[ori].setVal(0.0, igroup, 1);
     }
-    for (int n = 0; n < BL_SPACEDIM; n++) {
+    for (int n = 0; n < AMREX_SPACEDIM; n++) {
       const Real scale = volume / dx[n];
       flux_out->FineAdd(Flux[n], n, 0, igroup, 1, scale);
     }
@@ -827,8 +818,8 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
-  Array<MultiFab, BL_SPACEDIM> Dterm_face;
-  for (int idim=0; idim<BL_SPACEDIM; idim++) {
+  Array<MultiFab, AMREX_SPACEDIM> Dterm_face;
+  for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
       Dterm_face[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
@@ -842,7 +833,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int n = 0; n < BL_SPACEDIM; n++) {
+  for (int n = 0; n < AMREX_SPACEDIM; n++) {
       const MultiFab *dp;
 
       dp = &hem->d2Coefficients(level, n);
@@ -1143,31 +1134,11 @@ void RadSolve::restoreHypreMulti()
   }
 }
 
-void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Vector<Real>& r, Vector<Real>& s)
-{
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (geom.IsCartesian()) {
-        r.resize(reg.length(0), 1);
-        s.resize(reg.length(I), 1);
-    }
-    else if (geom.IsRZ()) {
-        geom.GetCellLoc(r, reg, 0);
-        s.resize(reg.length(I), 1);
-    }
-    else {
-        geom.GetCellLoc(r, reg, 0);
-        geom.GetCellLoc(s, reg, I);
-        const Real *dx = geom.CellSize();
-        sphc(r.dataPtr(), s.dataPtr(),
-             ARLIM(reg.loVect()), ARLIM(reg.hiVect()), dx);
-    }
-}
-        
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
                              Vector<Real>& r, Vector<Real>& s)
 {
     const Box& reg = amrex::enclosedCells(edgebox);
-    const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
+    const int I = (AMREX_SPACEDIM >= 2) ? 1 : 0;
     if (geom.IsCartesian()) {
         r.resize(reg.length(0)+1, 1);
         s.resize(reg.length(I)+1, 1);

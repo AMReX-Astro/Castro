@@ -48,6 +48,9 @@ amr.refine.temperr.max_level = 4
 amr.refine.temperr.field_name = Temp
 amr.refine.temperr.value_greater = 2.0e8
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -139,7 +142,4 @@ problem.stellar_temp = 1.0e7
 problem.orbital_eccentricity = 0.0e0
 problem.orbital_angle = 0.0e0
 
-problem.max_tagging_radius = 0.75e0
 problem.stellar_density_threshold = 1.0e0
-
-problem.smallu = 1.0e-12

@@ -7,13 +7,11 @@ Code structure
 
 Castro is built upon the AMReX C++ framework. This provides
 high-level classes for managing an adaptive mesh refinement
-simulation, including the core data structures we will deal with. A
-key design pattern in AMReX is that the overall memory management
-and parallelization is done in the C++ layer, while the heavy
-computational work is done in Fortran kernels. AMReX provides
+simulation, including the core data structures we will deal with. 
+AMReX provides
 convenient data structures that allow for this workflow—high level
-objects in C++ that communicate with Fortran through pointers to
-data regions that appear as multidimensional arrays.
+objects in C++ that communicate with our computational kernels, with
+the data regions appearing as multidimensional arrays.
 
 Castro uses a structured-grid approach to hydrodynamics. We work
 with square/cubic zones that hold state variables (density, momentum,
@@ -35,8 +33,7 @@ at used to communicate across nodes on a computer and OpenMP is used
 within a node, to loop over subregions of a box with different
 threads.
 
-The code structure in the Castro/ directory reflects the
-division between C++ and Fortran.
+The code structure in the Castro/ directory is:
 
 -  ``Diagnostics/``: various analysis routines for specific problems
 
@@ -64,7 +61,7 @@ division between C++ and Fortran.
 -  ``paper/``: the JOSS paper source
 
 -  ``Source/``: source code. In this main directory is all of the
-   code. Sources are mixed C++ and Fortran and are organized by topic
+   code. Sources are organized by topic
    as:
 
    -  ``diffusion/`` : thermal diffusion code
@@ -144,17 +141,6 @@ Floating point data in the C++ AMReX framework is declared as
 ``Real``. This is typedef to either ``float`` or ``double`` depending
 on the make variable ``PRECISION``.
 
-The corresponding type for Fortran is provided by the
-``amrex_fort_module`` as ``c_real``. We typically rename
-this to rt when using it. An example of a declaration of a
-parameter is::
-
-      use amrex_fort_module, only : rt => amrex_real
-      real(rt) :: tol = 1.0e-10_rt
-
-The ``amrex_constants_module`` provides common constants that can
-be used in the code, like ``ZERO``, ``THIRD``, ``ONE``, etc.
-
 .. note :: single precision support in Castro is not yet complete. In
    particular, a lot of the supporting microphysics has not been updated.
 
@@ -192,9 +178,8 @@ pointer to a data buffer. The real floating point data are stored as
 one-dimensional arrays in ``FArrayBox`` es. The associated ``Box`` can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
-structures is that this data buffer can be sent to Fortran, where it
-will appear as a DIM+1 dimensional array (DIM space + 1
-component).
+structures is that this data buffer can be cast a a DIM+1 dimensional array that
+we can easily fill in C++ kernels.
 
 .. note:: Castro is complied for a specific dimensionality.
 
@@ -260,10 +245,11 @@ The current ``StateData`` names Castro carries are:
    referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
-   In Fortran, the components of a FAB derived from ``State_Type``
-   is indexed using the integer keys defined in ``Castro_nd.F90``
-   and stored in ``meth_params_module``, e.g., ``URHO``, ``UMX``,
-   ``UMY``, ...
+   We access this data using an AMReX ``Array4`` type which is
+   of the form ``data(i,j,k,n)``, where ``n`` is the component.
+   The integer keys used to index the components are defined
+   in ``Source/driver/_variables`` (e.g., ``URHO``, ``UMX``,
+   ``UMY``, ...)
 
    .. note:: regardless of dimensionality, we always carry around all
       three velocity components. The “out-of-plane” components will
@@ -292,10 +278,6 @@ The current ``StateData`` names Castro carries are:
    acceleration. There are always 3 components, regardless of the
    dimensionality (consistent with our choice of always carrying all 3
    velocity components).
-
--  ``PhiRot_Type`` : this is the rotational potential.
-   When rotation is enabled, this will store the effective potential
-   corresponding to the centrifugal force.
 
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
@@ -342,8 +324,8 @@ with the ``StateData`` using one of these keys. For instance::
 gets a pointer to the ``MultiFab`` containing the hydrodynamics state data
 at the new time.
 
-``MFIter`` and interacting with Fortran
-=======================================
+``MFIter``
+==========
 
 The process of looping over boxes at a given level of refinement and
 operating on their data is linked to how Castro achieves
@@ -359,8 +341,8 @@ is given in the AMReX documentation here: https://amrex-codes.github.io/amrex/do
 Practical Details in Working with Tiling
 ----------------------------------------
 
-With tiling, the OpenMP is now all in C++, and not in Fortran for all
-modules except reactions and ``initdata``.
+With tiling, the OpenMP is now all at the loop over boxes and not in the computational
+kernels themselves.
 
 It is the responsibility of the coder to make sure that the routines
 within a tiled region are safe to use with OpenMP. In particular,
@@ -388,37 +370,6 @@ note that:
    (which corresponds to the memory layout) and the index-space of the
    tile.
 
-   -  In the C++ end, we pass (sometimes via the
-      ``BL_TO_FORTRAN()`` macro) the ``loVect`` and ``hiVect`` of the
-      entire box (including ghost cells). These are then used to
-      allocate the array in Fortran as::
-
-            double precision :: a(a_l1:a_h1, a_l2:a_h2, ...)
-
-      When tiling is used, we do not want to loop as do ``a_l1``,
-      ``a_h1``, but instead we need to loop over the tiling region. The
-      indices of the tiling region need to be passed into the Fortran
-      routine separately, and they come from the ``mfi.tilebox()``
-      or ``mfi.growntilebox()`` statement.
-
-   -  In Fortran, when initializing an array to 0, do so only
-      over the tile region, not for the entire box. For a Fortran array
-      a, this means we cannot do::
-
-            a = 0.0
-            a(:,:,:,:) = 0.0
-
-      but instead must do::
-
-            a(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.0
-
-      where ``lo()`` and ``hi()`` are the index-space for the tile box
-      returned from ``mfi.tilebox()`` in C++ and passed into the Fortran
-      routine.
-
-   -  Look at ``r_old_s`` in ``Exec/gravity_tests/DustCollapse/probdata.f90`` as an
-      example of how to declare a ``threadprivate`` variable—this is then used
-      in ``sponge_nd.f90``.
 
 Boundaries: ``FillPatch`` and ``FillPatchIterator``
 ===================================================
@@ -491,7 +442,7 @@ let’s consider the following scenarios:
    first argument, which is the object that contains the relevant
    ``StateData`` —that is what the this pointer indicates.
    Finally, we are copying the ``State_Type`` data components 0 to
-   ``NUM_STATE`` [3]_.
+   ``NUM_STATE`` [1]_.
 
    The result of this operation is that ``Sborder`` will now have
    ``NUM_GROW`` ghost cells consistent with the ``State_Type``
@@ -596,7 +547,7 @@ Physical Boundaries
 
 .. index:: boundary conditions
 
-Physical boundary conditions are specified by an integer index [4]_ in
+Physical boundary conditions are specified by an integer index [2]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -622,7 +573,7 @@ variable is done in ``Castro_setup.cpp``. At the top we define arrays
 such as ``scalar_bc``, ``norm_vel_bc``, etc, which say which kind of
 bc to use on which kind of physical boundary.  Boundary conditions are
 set in functions like ``set_scalar_bc``, which uses the ``scalar_bc``
-pre-defined arrays. We also specify the name of the Fortran routine
+pre-defined arrays. We also specify the name of the routine
 that is responsible for filling the data there (e.g., ``hypfill``).  These
 routines are discussed more below.
 
@@ -697,107 +648,13 @@ and gravitation acceleration for use in the hydrodynamic sources.
 Depending on the approximation used for gravity, this could mean
 calling the AMReX multigrid solvers to solve the Poisson equation.
 
-Fortran Helper Modules
-======================
-
-There are a number of modules that make data available to the Fortran
-side of Castroor perform other useful tasks.
-
-``amrex_constants_module``
---------------------------
-
-This provides double precision constants as Fortran parameters, like
-``ZERO``, ``HALF``, and ``ONE``.
-
-``extern_probin_module``
-------------------------
-
-This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the ``_parameters`` files
-in the external sources, parse them for runtime parameters, and build
-the module.
-
-``fundamental_constants_module``
---------------------------------
-
-This provides the CGS values of many physical constants.
-
-
-``meth_params_module``
-----------------------
-
-This module provides the integer keys used to access the state arrays
-for both the conserved variables (``URHO``, ``UMX``, :math:`\ldots`)
-and primitive variables (``QRHO``, ``QU``, :math:`\ldots`), as well as
-the number of scalar variables.
-
-It also provides the values of most of the ``castro.*xxxx*``
-runtime parameters.
-
-
-
-.. _soft:prob_params:
-
-``prob_params_module``
-----------------------
-
-This module stores information about the domain and current level, and
-is periodically synced up with the C++ driver. The information
-available here is:
-
-   -  ``physbc_lo``, ``physbc_hi``: these are the boundary
-      condition types at the low and high ends of the domain, for each
-      coordinate direction. Integer keys, ``Interior``, ``Inflow``,
-      ``Outflow``, ``Symmetry``, ``SlipWall``, and
-      ``NoSlipWall`` allow you to interpret the values.
-
-   -  ``center`` is the center of the problem. Note—this is up
-      to the problem setup to define (in the ``probinit`` subroutine).
-      Alternately, it can be set at runtime via
-      ``castro.center``.
-
-      Usually ``center`` will be the physical center of the domain,
-      but not always. For instance, for axisymmetric problems,
-      center may be on the symmetry axis.
-
-      ``center`` is used in the multipole gravity, hybrid advection
-      algorithm, rotation sources, for the point mass gravity, in
-      defining the center of the sponge, and in deriving the radial
-      velocity.
-
-   -  ``coord_type``
-
-   -  ``dim``
-
-   -  ``dg``
-
-   -  *refining information*
-
 
 
 .. [1]
-   Note: some older code will use a special AMReX preprocessor macro,
-   ``BL_TO_FORTRAN``, defined in ``ArrayLim.H``, that converts
-   the C++ ``MultiFab`` into a Fortran array and its ``lo`` and ``hi`` indices.
-   Additionally, some older code will wrap the Fortran subroutine name
-   in an additional preprocessor macro, ``BL_FORT_PROC_CALL``
-   to handle the name mangling between Fortran and C. This later
-   macro is generally not needed any more because of Fortran 2003
-   interoperability with C (through the Fortran ``bind`` keyword).
-
-.. [2]
-   the way to read these complicated
-   C declarations is right-to-left. So ``const int* lo`` means
-   ``lo`` is a integer pointer to a memory space that is constant. See
-   https://isocpp.org/wiki/faq/const-correctness#ptr-to-const
-
-.. [3]
    for clarity and continuity in this
    documentation, some of the variable names have been changed
    compared to the actual code
 
-.. [4]
+.. [2]
    the integer values are defined in ``BC_TYPES.H``
 

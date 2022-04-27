@@ -15,7 +15,7 @@ from yt.units import cm, amu
 
 def doit(plotfiles):
 
-    ds = yt.load(plotfiles[0])
+    ds = yt.load(plotfiles[0], hint="castro")
 
     xmin = ds.domain_left_edge[0]
     xmax = 2*ds.domain_right_edge[0]/3
@@ -36,11 +36,11 @@ def doit(plotfiles):
 
     for i, pf in enumerate(plotfiles):
 
-        ds = yt.load(pf)
+        ds = yt.load(pf, hint="castro")
 
         field = "abar"
-        sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0],
-                          width=[L_x, L_y, 0.0], fontsize="9")
+        sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm],
+                          width=[L_x, L_y, 0.0*cm], fontsize="9")
         sp.set_buff_size((2400,2400))
 
         sp.set_zlim(field, 4, 8)
@@ -65,7 +65,7 @@ def doit(plotfiles):
     #fig.tight_layout()
     plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     #plt.margins(0.0)
-    fig.savefig("time_series.png", dpi=200)
+    fig.savefig("time_series.pdf")
 
 if __name__ == "__main__":
 

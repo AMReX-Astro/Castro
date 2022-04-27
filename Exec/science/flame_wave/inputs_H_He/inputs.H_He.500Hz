@@ -18,7 +18,7 @@ castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = 1
-castro.hse_interp_temp = 1
+castro.hse_interp_temp = 0
 castro.hse_reflect_vels = 1
 
 castro.fill_ambient_bc = 1
@@ -104,6 +104,7 @@ problem.dx_model = 30.e0
 
 problem.dens_base = 1.e6
 
+castro.hse_fixed_temp = 1.e8
 problem.T_star = 1.e8
 problem.T_hi = 2.e8
 problem.T_lo   = 8.e6
@@ -143,6 +144,5 @@ integrator.atol_spec = 1.e-6
 
 network.use_tables = 1
 
-integrator.retry_burn = 0
 integrator.abort_on_failure = 0
 

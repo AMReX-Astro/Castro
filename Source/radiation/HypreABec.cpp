@@ -23,13 +23,13 @@ static int ispow2(int i)
 
 Real HypreABec::flux_factor = 1.0;
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
 static int vl[2] = { 0, 0 };
 static int vh[2] = { 0, 0 };
 #endif
 
 static int* loV(const Box& b) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   vl[0] = b.smallEnd(0);
   return vl;
 #else
@@ -38,7 +38,7 @@ static int* loV(const Box& b) {
 }
 
 static int* hiV(const Box& b) {
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   vh[0] = b.bigEnd(0);
   return vh;
 #else
@@ -69,11 +69,11 @@ HypreABec::HypreABec(const BoxArray& grids,
   }
   bho = 0; // higher order boundaries don't work with symmetric matrices
 
-  for (int i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < AMREX_SPACEDIM; i++) {
     dx[i] = geom.CellSize(i);
   }
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
 
   // Hypre doesn't support 1D directly, so we use 2D Hypre with
   // the second dimension collapsed.
@@ -96,11 +96,11 @@ HypreABec::HypreABec(const BoxArray& grids,
 
 #else
 
-  HYPRE_StructGridCreate(MPI_COMM_WORLD, BL_SPACEDIM, &hgrid);
+  HYPRE_StructGridCreate(MPI_COMM_WORLD, AMREX_SPACEDIM, &hgrid);
 
   if (geom.isAnyPeriodic()) {
-    int is_periodic[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    int is_periodic[AMREX_SPACEDIM];
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       is_periodic[i] = 0;
       if (geom.isPeriodic(i)) {
         is_periodic[i] = geom.period(i);
@@ -128,7 +128,7 @@ HypreABec::HypreABec(const BoxArray& grids,
 
   HYPRE_StructGridAssemble(hgrid);
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   // if we were really 1D:
 /*
   int offsets[2][1] = {{-1},
@@ -137,35 +137,35 @@ HypreABec::HypreABec(const BoxArray& grids,
   // fake 1D as a 2D problem:
   int offsets[2][2] = {{-1,  0},
                        { 0,  0}};
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
   int offsets[3][2] = {{-1,  0},
                        { 0, -1},
                        { 0,  0}};
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
   int offsets[4][3] = {{-1,  0,  0},
                        { 0, -1,  0},
                        { 0,  0, -1},
                        { 0,  0,  0}};
 #endif
 
-#if   (BL_SPACEDIM == 1)
+#if   (AMREX_SPACEDIM == 1)
   int A_num_ghost[6] = { 1, 1, 0, 0, 0, 0 };
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
   //int A_num_ghost[4] = { 1, 1, 1, 1 };
   int A_num_ghost[6] = { 1, 1, 1, 1, 0, 0 };
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
   int A_num_ghost[6] = { 1, 1, 1, 1, 1, 1 };
 #endif
 
   HYPRE_StructStencil stencil;
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   HYPRE_StructStencilCreate(2, 2, &stencil);
 #else
-  HYPRE_StructStencilCreate(BL_SPACEDIM, BL_SPACEDIM + 1, &stencil);
+  HYPRE_StructStencilCreate(AMREX_SPACEDIM, AMREX_SPACEDIM + 1, &stencil);
 #endif
 
-  for (int i = 0; i < BL_SPACEDIM + 1; i++) {
+  for (int i = 0; i < AMREX_SPACEDIM + 1; i++) {
     HYPRE_StructStencilSetElement(stencil, i, offsets[i]);
   }
 
@@ -196,7 +196,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
  
-  for (int i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < AMREX_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
     bcoefs[i].reset(new MultiFab(edge_boxes, dmap, ncomp, ngrow));
@@ -922,7 +922,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
   const BoxArray& grids = acoefs->boxArray();
 
-  const int size = BL_SPACEDIM + 1;
+  const int size = AMREX_SPACEDIM + 1;
   int i, idim;
 
   int stencil_indices[size];
@@ -944,7 +944,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     hacoef(reg, matfab.array(), (*acoefs)[ai].array(), alpha);
 
-    for (idim = 0; idim < BL_SPACEDIM; ++idim) {
+    for (idim = 0; idim < AMREX_SPACEDIM; ++idim) {
         hbcoef(reg, matfab.array(), (*bcoefs[idim])[ai].array(), beta, dx, idim);
     }
 
@@ -1711,6 +1711,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = 0;
 
       AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = d_arr(i,j,k,icomp); });
+      Gpu::streamSynchronize();
     }
     Elixir f_elix = fnew.elixir();
 
@@ -1723,6 +1724,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Array4<Real> const f_arr = f->array();
 
     AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = r_arr(i,j,k,0); });
+    Gpu::streamSynchronize();
 
     // add b.c.'s to rhs
 

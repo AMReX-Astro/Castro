@@ -416,13 +416,13 @@ void Castro::ca_store_reaction_state(const Box& bx,
     if (store_omegadot) {
         AMREX_PARALLEL_FOR_4D(bx, NumSpec, i, j, k, n,
         {
-            R_store(i,j,k,2+n) = R_old(i,j,k,UFS+n);
+            R_store(i,j,k,1+n) = R_old(i,j,k,UFS+n);
         });
 
 #if NAUX_NET > 0
         AMREX_PARALLEL_FOR_4D(bx, NumAux, i, j, k, n,
         {
-            R_store(i,j,k,2+NumSpec+n) = R_old(i,j,k,UFX+n);
+            R_store(i,j,k,1+NumSpec+n) = R_old(i,j,k,UFX+n);
         });
 #endif
     }
@@ -430,7 +430,6 @@ void Castro::ca_store_reaction_state(const Box& bx,
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
         R_store(i,j,k,0) = R_old(i,j,k,UEDEN);
-        R_store(i,j,k,1) = 0.0; // we're not storing the weights
     });
 }
 

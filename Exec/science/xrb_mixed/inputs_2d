@@ -48,7 +48,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64 
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -72,7 +72,6 @@ problem.num_vortices = 16
 
 # MICROPHYSICS
 integrator.jacobian = 1
-integrator.do_constant_volume_burn = 0
 
 integrator.call_eos_in_rhs = 0
 

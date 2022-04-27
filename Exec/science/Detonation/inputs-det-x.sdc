@@ -28,7 +28,7 @@ castro.sdc_solver = 2
 castro.sdc_solver_tol_dens = 1.e-5
 castro.sdc_solver_tol_spec = 1.e-5
 castro.sdc_solver_tol_ener = 1.e-5
-castro.sdc_use_analytic_jac = 0
+castro.sdc_newton_use_analytic_jac = 0
 
 castro.ppm_type = 0
 
@@ -54,7 +54,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 

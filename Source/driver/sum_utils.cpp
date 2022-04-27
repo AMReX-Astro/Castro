@@ -6,7 +6,6 @@
 
 #ifdef GRAVITY
 #include <Gravity.H>
-#include <Gravity_F.H>
 #endif
 
 #ifdef ROTATION
@@ -392,7 +391,7 @@ Castro::gwstrain (Real time,
     // and requires the state at other timesteps. See, e.g., Equation 5 of
     // Loren-Aguilar et al. 2005.
 
-    // It is a 3x3 rank-2 tensor, but AMReX expects IntVect() to use BL_SPACEDIM
+    // It is a 3x3 rank-2 tensor, but AMReX expects IntVect() to use AMREX_SPACEDIM
     // dimensions, so we add a redundant third index in 3D.
 
     Box bx( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(2, 2, 0)) );
@@ -416,7 +415,7 @@ Castro::gwstrain (Real time,
 #endif
 	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	    const Box& bx = mfi.tilebox();
+	    const Box& box = mfi.tilebox();
 
             auto rho = (*mfrho).array(mfi);
             auto vol = volume.array(mfi);
@@ -439,7 +438,7 @@ Castro::gwstrain (Real time,
             auto Qtt_arr = Qtt.array();
 #endif
 
-            amrex::ParallelFor(bx,
+            amrex::ParallelFor(box,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Array2D<Real, 0, 2, 0, 2> dQtt{};

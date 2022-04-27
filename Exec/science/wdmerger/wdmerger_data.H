@@ -5,18 +5,10 @@
 #include <AMReX_REAL.H>
 
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
 
 namespace wdmerger
 {
-    // Input parameters
-
-    extern AMREX_GPU_MANAGED int use_stopping_criterion;
-    extern AMREX_GPU_MANAGED int use_energy_stopping_criterion;
-    extern AMREX_GPU_MANAGED amrex::Real ts_te_stopping_criterion;
-    extern AMREX_GPU_MANAGED amrex::Real T_stopping_criterion;
-
-    // Data we want to store, for interfacing with the Fortran
+    // Data we want to store over time
 
     // Rate of change of stellar masses
 
