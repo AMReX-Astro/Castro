@@ -3102,11 +3102,27 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #endif
         }
 
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            Gpu::prefetchToHost(radial_mass[lev].begin(), radial_mass[lev].end());
+            Gpu::prefetchToHost(radial_vol[lev].begin(), radial_vol[lev].end());
+#ifdef GR_GRAV
+            Gpu::prefetchToHost(radial_pres[lev].begin(), radial_pres[lev].end());
+#endif
+        }
+
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
 #ifdef GR_GRAV
         ParallelDescriptor::ReduceRealSum(radial_pres[lev].dataPtr()  ,n1d);
 #endif
+
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            Gpu::prefetchToDevice(radial_mass[lev].begin(), radial_mass[lev].end());
+            Gpu::prefetchToDevice(radial_vol[lev].begin(), radial_vol[lev].end());
+#ifdef GR_GRAV
+            Gpu::prefetchToDevice(radial_pres[lev].begin(), radial_pres[lev].end());
+#endif
+        }
 
         if (do_diag > 0)
         {

@@ -781,16 +781,6 @@
                                      amrex::Array4<amrex::Real const> const& area,
                                      amrex::Real dt);
 
-    void
-    limit_hydro_fluxes_on_large_vel(const amrex::Box& bx,
-                                    int idir,
-                                    amrex::Array4<amrex::Real const> const& u,
-                                    amrex::Array4<amrex::Real const> const& q,
-                                    amrex::Array4<amrex::Real const> const& vol,
-                                    amrex::Array4<amrex::Real> const& flux,
-                                    amrex::Array4<amrex::Real const> const& area,
-                                    amrex::Real dt);
-
     void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
                     amrex::Array4<amrex::Real const> const& qint,
