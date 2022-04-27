@@ -13,9 +13,9 @@ max_num_vortices    integer         10            n
 
 xloc_vortices       real            0.0_rt        n     10
 
-ih1		    integer         0             y
+ih1		    integer         0             n
 
-layer_h1_base       real            0.0_rt        y
+layer_h1_base       real            0.0_rt        n
 
 
 
