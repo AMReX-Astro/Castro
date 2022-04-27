@@ -341,9 +341,6 @@ DistributionMapping.efficiency = 0.9
 # Diagnostics and I/O
 ############################################################################################
 
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 1
-
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
 
