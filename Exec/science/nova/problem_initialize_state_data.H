@@ -71,11 +71,12 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
+
     //  Now add the velocity perturbation
     if (problem::apply_vel_field) {
 
         Real zdist = 0.0_rt;
-        Real ydist = y - problem::velpert_height_loc;
+        Real ydist = y - problem::layer_h1_base;
 
         Real upert[3] = {0.0_rt};
 

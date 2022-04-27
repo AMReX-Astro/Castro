@@ -85,6 +85,9 @@ castro.use_retry = 1
 # Skip retries for small density if the starting density was less than this threshold
 castro.retry_small_density_cutoff = 1.0e0
 
+# Don't abort for invalid X if the zone density is less than this threshold
+castro.abundance_failure_rho_cutoff = 1.0e0
+
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
@@ -205,8 +208,7 @@ castro.transverse_reset_density = 1
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
-# Explicitly limit fluxes to avoid large velocities
-castro.limit_fluxes_on_large_vel = 0
+# Set global simulation speed limit
 castro.speed_limit = 1.498962290e9 # 0.05c
 
 ############################################################################################
@@ -236,6 +238,9 @@ castro.ambient_temp = 1.0e7
 
 # Ambient density (g / cm**3)
 castro.ambient_density = 1.0e-4
+
+# Clamp temperature in ambient zones to its initial value
+castro.clamp_ambient_temp = 1
 
 ############################################################################################
 # Reactions/Network
@@ -334,9 +339,6 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 # Diagnostics and I/O
 ############################################################################################
-
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1

@@ -356,6 +356,10 @@ retry_small_density_cutoff   Real         -1.e200
 # Set the threshold for failing the species abundance validity check.
 abundance_failure_tolerance  Real          1.e-2
 
+# Do not abort for invalid species abundances if the zone's density is below
+# this threshold.
+abundance_failure_rho_cutoff Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
