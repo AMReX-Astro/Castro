@@ -240,6 +240,9 @@ castro.ambient_temp = 1.0e7
 # Ambient density (g / cm**3)
 castro.ambient_density = 1.0e-4
 
+# Clamp temperature in ambient zones to its initial value
+castro.clamp_ambient_temp = 1
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################
