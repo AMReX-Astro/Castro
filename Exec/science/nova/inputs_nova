@@ -5,7 +5,7 @@ max_step = 100000
 geometry.is_periodic = 1      0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0      0
-geometry.prob_hi     = 3.84e7 7.68e7
+geometry.prob_hi     = 2.0e7 4.0e7
 amr.n_cell           = 256    512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -32,12 +32,12 @@ castro.riemann_solver = 0
 
 castro.use_flattening = 1
 
-castro.small_temp = 1.0e6
+castro.small_temp = 5.0e5
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.34e7
 
-castro.react_rho_min = 1.0e-1
+castro.react_rho_min = 1.0e-5
 castro.react_T_min=1.0e6
 
 
@@ -56,8 +56,8 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 64     # block factor in grid generation
-amr.max_grid_size   = 128 
+amr.blocking_factor = 16     # block factor in grid generation
+amr.max_grid_size   = 256 
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -74,14 +74,12 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "model_hse1600"
+problem.model_name =  "glasner_T51600.hse"
 
 problem.apply_vel_field = 1
-problem.velpert_height_loc = 1.5e7
-problem.velpert_scale = 9.0e4
+problem.velpert_scale = 4.0e4
 problem.velpert_amplitude = 1.0e4
 problem.num_vortices = 2
-
 
 # Microphysics
 
