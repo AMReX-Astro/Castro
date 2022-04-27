@@ -167,9 +167,6 @@ pslope_cutoff_density        Real          -1.e20
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0
 
-# Should we limit the momentum fluxes so that we do not create large velocities?
-limit_fluxes_on_large_vel    int           0
-
 # Enforce the magnitude of the velocity to be no larger than this number (and
 # optionally limit the fluxes as well). Only applies if it is greater than 0.
 speed_limit                  Real          0.0
@@ -355,6 +352,13 @@ retry_subcycle_factor        Real          0.5
 # Skip retries for small (or negative) density if the zone's density prior
 # to the update was below this threshold.
 retry_small_density_cutoff   Real         -1.e200
+
+# Set the threshold for failing the species abundance validity check.
+abundance_failure_tolerance  Real          1.e-2
+
+# Do not abort for invalid species abundances if the zone's density is below
+# this threshold.
+abundance_failure_rho_cutoff Real         -1.e200
 
 # Regrid after every timestep.
 use_post_step_regrid         int           0
@@ -600,6 +604,11 @@ scf_max_iterations           int           30
 do_special_tagging           int           0
 
 spherical_star               int           0
+
+# Maximum radius from the center (in units of the domain width)
+# where tagging is allowed. The default choice implies no restriction.
+max_tagging_radius           real          10.0e0
+
 
 
 #-----------------------------------------------------------------------------

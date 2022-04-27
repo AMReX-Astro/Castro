@@ -14,16 +14,17 @@
 #endif
 
 #ifdef REACTIONS
-#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
 #include <actual_rhs.H>
-#else
-#include <fortran_to_cxx_actual_rhs.H>
-#endif
 #endif
 
 #ifdef RADIATION
 #include <Radiation.H>
 #endif
+
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
+
 
 using namespace amrex;
 
