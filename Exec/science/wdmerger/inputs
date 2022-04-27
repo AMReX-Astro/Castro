@@ -208,8 +208,7 @@ castro.transverse_reset_density = 1
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
-# Explicitly limit fluxes to avoid large velocities
-castro.limit_fluxes_on_large_vel = 0
+# Set global simulation speed limit
 castro.speed_limit = 1.498962290e9 # 0.05c
 
 ############################################################################################
