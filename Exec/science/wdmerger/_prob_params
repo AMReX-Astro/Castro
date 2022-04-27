@@ -1,4 +1,4 @@
-# name                          data type             default                  in namelist?           size
+# name                          data type             default                  in runtime params?     size
   
 # Initial stellar properties
 # Note that the envelope mass is included within the total mass of the star
@@ -213,10 +213,10 @@ ts_te_global_max                real                  0.0e0_rt                 n
 
 
 # Criteria for stopping the simulation
-use_stopping_criterion          int                   1                        n
-use_energy_stopping_criterion   int                   0                        n
-ts_te_stopping_criterion        real                  1.e200_rt                n
-T_stopping_criterion            real                  1.e200_rt                n
+use_stopping_criterion          int                   1                        y
+use_energy_stopping_criterion   int                   0                        y
+ts_te_stopping_criterion        real                  1.e200_rt                y
+T_stopping_criterion            real                  1.e200_rt                y
 
 
 
