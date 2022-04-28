@@ -631,6 +631,8 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     prev_state(num_state_type)
 {
+    BL_PROFILE("Castro::Castro()");
+
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
@@ -735,6 +737,8 @@ Castro::~Castro ()
 void
 Castro::buildMetrics ()
 {
+    BL_PROFILE("Castro::buildMetrics()");
+
     const int ngrd = grids.size();
 
     radius.resize(ngrd);
@@ -802,6 +806,8 @@ Castro::buildMetrics ()
 void
 Castro::initMFs()
 {
+    BL_PROFILE("Castro::initMFs()");
+
     fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -2454,6 +2460,7 @@ Castro::advance_aux(Real time, Real dt)
 
 void
 Castro::FluxRegCrseInit() {
+    BL_PROFILE("Castro::FluxRegCrseInit");
 
     if (level == parent->finestLevel()) {
       return;
@@ -3239,6 +3246,8 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
+    BL_PROFILE("Castro::allocOldData");
+
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
     MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
     for (int k = 0; k < num_state_type; k++)
@@ -3508,6 +3517,8 @@ Castro::reset_internal_energy(const Box& bx,
 #endif
                               Array4<Real> const u)
 {
+    BL_PROFILE("Castro::reset_internal_energy(Fab)");
+
     Real lsmall_temp = small_temp;
     Real ldual_energy_eta2 = dual_energy_eta2;
 
@@ -3576,7 +3587,7 @@ Castro::reset_internal_energy(
 
 {
 
-    BL_PROFILE("Castro::reset_internal_energy()");
+    BL_PROFILE("Castro::reset_internal_energy(MultiFab)");
 
     MultiFab old_state;
 
