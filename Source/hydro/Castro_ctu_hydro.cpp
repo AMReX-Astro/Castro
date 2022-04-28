@@ -322,7 +322,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
-      fab_size += shk.nBytes();
+      fab_size += qxm.nBytes();
 
       qxp.resize(obx, NQ);
       Elixir elix_qxp = qxp.elixir();
