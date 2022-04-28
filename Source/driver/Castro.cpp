@@ -2723,12 +2723,8 @@ Castro::reflux(int crse_level, int fine_level)
                 MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes[idir], 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
 
                 // The gravity and rotation source terms depend on the mass fluxes.
-                // These should be the same as the URHO component of the fluxes.
-                // This update must be a copy from the fluxes rather than an add
-                // from the flux register because the mass fluxes only represent
-                // the last subcycle of the previous timestep.
 
-                MultiFab::Copy(*crse_lev.mass_fluxes[idir], *crse_lev.fluxes[idir], URHO, 0, 1, 0);
+                MultiFab::Add(*crse_lev.mass_fluxes[idir], temp_fluxes[idir], URHO, 0, 1, 0);
             }
 
         }
