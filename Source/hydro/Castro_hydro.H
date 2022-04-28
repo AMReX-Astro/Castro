@@ -221,7 +221,6 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param flatn    flattening coefficient
 /// @param qaux_arr the auxillary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
@@ -235,7 +234,6 @@
 ///
     void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
                         amrex::Array4<amrex::Real const> const& q_arr,
-                        amrex::Array4<amrex::Real const> const& flatn,
                         amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
                         amrex::Array4<amrex::Real> const& qxm,
@@ -262,7 +260,6 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param flatn    flattening coefficient
 /// @param qaux_arr the auxillary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
@@ -276,7 +273,6 @@
 ///
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
                         amrex::Array4<amrex::Real const> const& q_arr,
-                        amrex::Array4<amrex::Real const> const& flatn,
                         amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
                         amrex::Array4<amrex::Real> const& qxm,
@@ -304,7 +300,6 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param flatn    flattening coefficient
 /// @param qaux_arr the auxillary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
@@ -318,7 +313,6 @@
 ///
     void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
                             amrex::Array4<amrex::Real const> const& q_arr,
-                            amrex::Array4<amrex::Real const> const& flatn,
                             amrex::Array4<amrex::Real const> const& qaux_arr,
                             amrex::Array4<amrex::Real const> const& srcQ,
                             amrex::Array4<amrex::Real> const& qxm,
@@ -610,7 +604,6 @@
 /// @param q_arr     primitive variable state
 /// @param qaux_arr  the auxillary state
 /// @param srcQ      primitive variable equation source terms
-/// @param flatn     flattening coefficient
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga     geometric factor dlog(area)
@@ -622,7 +615,6 @@
                    amrex::Array4<amrex::Real const> const& q_arr,
                    amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real const> const& srcQ,
-                   amrex::Array4<amrex::Real const> const& flatn,
                    amrex::Array4<amrex::Real> const& qm,
                    amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -640,7 +632,6 @@
 /// @param idir         coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr        primitive variable state
 /// @param qaux_arr     the auxillary state
-/// @param flatn_arr    flattening coefficient
 /// @param qm           left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp           right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga        geometric factor dlog(area)
@@ -652,7 +643,6 @@
                    const int idir,
                    amrex::Array4<amrex::Real const> const& q_arr,
                    amrex::Array4<amrex::Real const> const& qaux_arr,
-                   amrex::Array4<amrex::Real const> const& flatn_arr,
                    amrex::Array4<amrex::Real> const& qm,
                    amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -672,7 +662,6 @@
 /// @param q_arr     primitive variable state
 /// @param qaux_arr  the auxillary state
 /// @param srcQ      primitive variable equation source terms
-/// @param flatn     flattening coefficient
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga     geometric factor dlog(area)
@@ -684,7 +673,6 @@
                        amrex::Array4<amrex::Real const> const& q_arr,
                        amrex::Array4<amrex::Real const> const& qaux_arr,
                        amrex::Array4<amrex::Real const> const& srcQ,
-                       amrex::Array4<amrex::Real const> const& flatn,
                        amrex::Array4<amrex::Real> const& qm,
                        amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)

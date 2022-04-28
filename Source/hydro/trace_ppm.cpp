@@ -19,7 +19,6 @@ Castro::trace_ppm(const Box& bx,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real const> const& srcQ,
-                  Array4<Real const> const& flatn,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)

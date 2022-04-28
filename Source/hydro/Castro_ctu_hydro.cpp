@@ -87,10 +87,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     // we apply an Elixir to ensure that their memory is saved until it is no
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
-    FArrayBox flatn;
-#ifdef RADIATION
-    FArrayBox flatg;
-#endif
     FArrayBox shk;
     FArrayBox q, qaux;
     FArrayBox src_q;
@@ -141,16 +137,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       const Box& bx = mfi.tilebox();
 
       const Box& obx = amrex::grow(bx, 1);
-
-      flatn.resize(obx, 1);
-      Elixir elix_flatn = flatn.elixir();
-      fab_size += flatn.nBytes();
-
-#ifdef RADIATION
-      flatg.resize(obx, 1);
-      Elixir elix_flatg = flatg.elixir();
-      fab_size += flatg.nBytes();
-#endif
 
       // If we are oversubscribing the GPU, performance of the hydro will be constrained
       // due to its heavy memory requirements. We can help the situation by prefetching in
@@ -223,53 +209,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
 #endif
-
-      // compute the flattening coefficient
-
-      Array4<Real> const flatn_arr = flatn.array();
-#ifdef RADIATION
-      Array4<Real> const flatg_arr = flatg.array();
-#endif
-
-      if (first_order_hydro == 1) {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = 0.0;
-        });
-      } else if (use_flattening == 1) {
-
-        uflatten(obx, q_arr, flatn_arr, QPRES);
-
-#ifdef RADIATION
-        uflatten(obx, q_arr, flatg_arr, QPTOT);
-
-        Real flatten_pp_thresh = radiation::flatten_pp_threshold;
-
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
-
-          if (flatten_pp_thresh > 0.0) {
-            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
-                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
-
-              if (q_arr(i,j,k,QPRES) < flatten_pp_thresh * q_arr(i,j,k,QPTOT)) {
-                flatn_arr(i,j,k) = 0.0;
-              }
-            }
-          }
-        });
-#endif
-
-      } else {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = 1.0;
-        });
-      }
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
       const Box& gxbx = amrex::grow(xbx, 1);
@@ -369,7 +308,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
         ctu_plm_states(obx, bx,
                        q_arr,
-                       flatn_arr,
                        qaux_arr,
                        src_q_arr,
                        qxm_arr, qxp_arr,
@@ -388,7 +326,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef RADIATION
         ctu_ppm_rad_states(obx, bx,
-                           q_arr, flatn_arr, qaux_arr, src_q_arr,
+                           q_arr, qaux_arr, src_q_arr,
                            qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                            qym_arr, qyp_arr,
@@ -403,7 +341,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
 
         ctu_ppm_states(obx, bx,
-                       q_arr, flatn_arr, qaux_arr, src_q_arr,
+                       q_arr, qaux_arr, src_q_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,
