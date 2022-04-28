@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <flatten.H>
 
 using namespace amrex;
 
@@ -151,7 +152,21 @@ Castro::trace_ppm(const Box& bx,
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
     Real s[5];
-    Real flat = flatn(i,j,k);
+
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+#ifdef RADIATION
+        const int pres_comp = QPTOT;
+#else
+        const int pres_comp = QPRES;
+#endif
+        flat = hydro::flatten(i, j, k, q_arr, pres_comp);
+    }
+
     Real sm;
     Real sp;
 
