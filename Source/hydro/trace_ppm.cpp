@@ -159,12 +159,21 @@ Castro::trace_ppm(const Box& bx,
         flat = 0.0;
     }
     else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
 #ifdef RADIATION
-        const int pres_comp = QPTOT;
-#else
-        const int pres_comp = QPRES;
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
 #endif
-        flat = hydro::flatten(i, j, k, q_arr, pres_comp);
     }
 
     Real sm;
