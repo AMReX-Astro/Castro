@@ -1,6 +1,8 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 void

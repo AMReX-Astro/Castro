@@ -6,6 +6,8 @@
 #include <diffusion_util.H>
 #endif
 
+#include <advection_util.H>
+
 #include <fourth_center_average.H>
 
 using namespace amrex;
