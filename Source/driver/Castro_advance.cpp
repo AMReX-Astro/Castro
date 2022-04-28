@@ -505,7 +505,7 @@ Castro::finalize_advance()
     // the fluxes from the full timestep (this will be used
     // later during the reflux operation).
 
-    if (do_reflux && update_sources_after_reflux && level < parent->finestLevel()) {
+    if (do_reflux && update_sources_after_reflux) {
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
             MultiFab::Copy(*mass_fluxes[idir], *fluxes[idir], URHO, 0, 1, 0);
         }
