@@ -11,6 +11,8 @@
 #include <hybrid.H>
 #endif
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 void
@@ -316,7 +318,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const old_src_arr = old_source.array(mfi);
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      src_to_prim(qbx3, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+      amrex::ParallelFor(qbx3,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          hydro::src_to_prim(i, j, k, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+      });
 
       // work on the interface states
 
