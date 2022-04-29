@@ -83,9 +83,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   amrex::Error("USE_OMP=TRUE and USE_GPU=TRUE are not concurrently supported in Castro");
 #endif
 
-  // Set the tile size to a small number if we're about to tune it,
-  // and allow it to grow upward as needed.
-
 #ifdef AMREX_USE_GPU
    if (castro::hydro_memory_footprint_ratio > 0.0) {
        // If we haven't done any tuning yet, set the tile size to an arbitrary
