@@ -88,6 +88,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef AMREX_USE_GPU
    if (castro::hydro_memory_footprint_ratio > 0.0) {
+       // If we haven't done any tuning yet, set the tile size to an arbitrary
+       // small value to start with.
+
+       if (hydro_tile_size_has_been_tuned == 0) {
+           hydro_tile_size[0] = 16;
+#if AMREX_SPACEDIM >= 2
+           hydro_tile_size[1] = 16;
+#endif
+#if AMREX_SPACEDIM == 3
+           hydro_tile_size[2] = 16;
+#endif
+       }
+
        // Run through boxes on this level and see if any of them are
        // bigger than the biggest box from our previous tuning. If so,
        // we need to re-compute the tile size.
@@ -98,18 +111,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
            // Also, sum up the number of bytes in the state data.
            mf_size += S_new[mfi].nBytes();
-       }
-
-       if (hydro_tile_size_has_been_tuned == 0) {
-           // Reset hydro tile size to a fairly small value
-           // for the tuning process to work with.
-           hydro_tile_size[0] = 16;
-#if AMREX_SPACEDIM >= 2
-           hydro_tile_size[1] = 16;
-#endif
-#if AMREX_SPACEDIM == 3
-           hydro_tile_size[2] = 16;
-#endif
        }
    }
 #endif
