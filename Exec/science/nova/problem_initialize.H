@@ -27,12 +27,22 @@ void problem_initialize ()
         }
     }
 
-    // velocity perturbation stuff
+    // velocity perturbation x-axis vortex location
 
     Real offset = (probhi[0] - problo[0]) / problem::num_vortices;
 
     for (int i = 0; i < problem::num_vortices; i++) {
         problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
+    }
+
+    problem::ih1 = network_spec_index("hydrogen-1");
+    problem::layer_h1_base = 0.0_rt;
+
+    for (int n = 0; n < model::npts; n++) {
+        if (model::profile(0).state(n, model::ispec+problem::ih1) > 0.5_rt) {
+            problem::layer_h1_base = model::profile(0).r(n);
+            break;
+        }
     }
 }
 
