@@ -69,6 +69,41 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Record a running total of the number of bytes allocated as temporary Fab data.
+
+  size_t fab_size = 0;
+  size_t mf_size = 0;
+  IntVect maximum_tile_size{0};
+
+  // Our strategy for launching work on GPUs in the hydro is incompatible with OpenMP,
+  // throw an error if the user is trying this. If this were to ever change, it would
+  // require at minimum doing a safe atomic update on the running fab_size total.
+
+#if defined(AMREX_USE_OMP) && defined(AMREX_USE_GPU)
+  amrex::Error("USE_OMP=TRUE and USE_GPU=TRUE are not concurrently supported in Castro");
+#endif
+
+  // Set the tile size to a small number if we're about to tune it,
+  // and allow it to grow upward as needed.
+
+#ifdef AMREX_USE_GPU
+   if (castro::hydro_memory_footprint_ratio > 0.0 && hydro_tile_size_has_been_tuned == 0) {
+       hydro_tile_size[0] = 16;
+#if AMREX_SPACEDIM >= 2
+       hydro_tile_size[1] = 16;
+#endif
+#if AMREX_SPACEDIM == 3
+       hydro_tile_size[2] = 16;
+#endif
+
+       // Also, count the number of bytes in the state data.
+
+       for (MFIter mfi(S_new, false); mfi.isValid(); ++mfi) {
+           mf_size += S_new[mfi].nBytes();
+       }
+   }
+#endif
+
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp)
@@ -122,55 +157,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox qmyz, qpyz;
 #endif
 
-#ifdef AMREX_USE_GPU
-    size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
-    size_t current_size = starting_size;
-#endif
-
     MultiFab& old_source = get_old_data(Source_Type);
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      size_t fab_size = 0;
 
       // the valid region box
       const Box& bx = mfi.tilebox();
 
       const Box& obx = amrex::grow(bx, 1);
-
-      // If we are oversubscribing the GPU, performance of the hydro will be constrained
-      // due to its heavy memory requirements. We can help the situation by prefetching in
-      // all the data we will need, and then prefetching it out at the end. This at least
-      // improves performance by mitigating the number of unified memory page faults.
-
-      // An empirical threshold on NVIDIA GPUs is that we're probably oversubscribing if
-      // there are less than 10 MB left.
-
-      bool oversubscribed = false;
-
-#ifdef AMREX_USE_GPU
-      if (Gpu::Device::freeMemAvailable() < 10000000) {
-          oversubscribed = true;
-      }
-#endif
-
-      if (oversubscribed) {
-          volume[mfi].prefetchToDevice();
-          Sborder[mfi].prefetchToDevice();
-          S_new[mfi].prefetchToDevice();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToDevice();
-              (*fluxes[i])[mfi].prefetchToDevice();
-          }
-#if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToDevice();
-          P_radial[mfi].prefetchToDevice();
-#endif
-#ifdef RADIATION
-          Erborder[mfi].prefetchToDevice();
-          Er_new[mfi].prefetchToDevice();
-#endif
-      }
 
       // Compute the primitive variables (both q and qaux) from
       // the conserved variables.
@@ -1356,47 +1350,62 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } // idir loop
 
 #ifdef AMREX_USE_GPU
-      // Check if we're going to run out of memory in the next MFIter iteration.
-      // If so, do a synchronize here so that we don't oversubscribe GPU memory.
-      // Note that this will capture the case where we started with more memory
-      // than what the GPU has, on the logic that even in that case, it makes
-      // sense to not further pile on the oversubscription demands.
+      if (castro::hydro_memory_footprint_ratio > 0.0) {
 
-      // This could (and should) be generalized in the future to operate with
-      // more granularity than the MFIter loop boundary. We would have potential
-      // synchronization points prior to each of the above kernel launches, and
-      // we would check whether the sum of all previously allocated fabs would
-      // result in oversubscription, including any contributions from a partial
-      // MFIter loop. A further optimization would be to not apply a device
-      // synchronize, but rather to use CUDA events to poll on a check about
-      // whether enough memory has freed up to begin the next iteration, and then
-      // immediately proceed to the next kernel when there's enough space for it.
+          // If we're using the parameter that limits the memory footprint of the hydro,
+          // we need to tune the hydro tile size during the first timestep. We will record
+          // the total amount of additional memory allocated, relative to the size of S_new.
+          // Then we will reset the tile size so that it is no larger than the requested
+          // memory footprint.
 
-      current_size += fab_size;
-      if (current_size + fab_size >= Gpu::Device::totalGlobalMem()) {
-          Gpu::Device::synchronize();
-          current_size = starting_size;
-      }
+          // This could be generalized in the future to operate with more granularity
+          // than the MFIter loop boundary. We could have potential synchronization
+          // points prior to each of the above kernel launches.
+
+          maximum_tile_size[0] = amrex::max(maximum_tile_size[0], bx.bigEnd(0) - mfi.validbox().smallEnd(0) + 1);
+#if AMREX_SPACEDIM >= 2
+          maximum_tile_size[1] = amrex::max(maximum_tile_size[1], bx.bigEnd(1) - mfi.validbox().smallEnd(1) + 1);
+#endif
+#if AMREX_SPACEDIM ==3
+          maximum_tile_size[2] = amrex::max(maximum_tile_size[2], bx.bigEnd(2) - mfi.validbox().smallEnd(2) + 1);
 #endif
 
-      if (oversubscribed) {
-          volume[mfi].prefetchToHost();
-          Sborder[mfi].prefetchToHost();
-          S_new[mfi].prefetchToHost();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToHost();
-              (*fluxes[i])[mfi].prefetchToHost();
+          if (hydro_tile_size_has_been_tuned == 0) {
+
+              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size ||
+                  mfi.tileIndex() == mfi.length() - 1) {
+                  Gpu::synchronize();
+                  hydro_tile_size = maximum_tile_size;
+                  hydro_tile_size_has_been_tuned = 1;
+
+                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[0]);
+#if AMREX_SPACEDIM >= 2
+                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[2]);
+#endif
+
+                  if (verbose) {
+                      amrex::Print() << "...... Tuning hydro tile size to ["
+                                     << hydro_tile_size[0] << ", "
+                                     << hydro_tile_size[1] << ", "
+                                     << hydro_tile_size[2] << "] "
+                                     << "to satisfy castro.hydro_memory_footprint_ratio = "
+                                     << castro::hydro_memory_footprint_ratio
+                                     << std::endl << std::endl;
+                  }
+              }
+
           }
-#if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToHost();
-          P_radial[mfi].prefetchToHost();
-#endif
-#ifdef RADIATION
-          Erborder[mfi].prefetchToHost();
-          Er_new[mfi].prefetchToHost();
-#endif
-      }
+          else {
+              // If we have already tuned the parameter, then synchronize each iteration,
+              // because we will already be running at the target tile size.
 
+              Gpu::synchronize();
+          }
+      }
+#endif
 
     } // MFIter loop
 
