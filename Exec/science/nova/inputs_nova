@@ -36,7 +36,6 @@ gravity.const_grav   = -7.34e8
 castro.react_rho_min = 1.0e2
 castro.react_T_min = 5.0e6
 
-
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 #castro.init_shrink    = 0.1   # scale back initial timestep
@@ -46,6 +45,7 @@ castro.change_max     = 1.1     # max time step growth
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
+
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 2       # maximum level number allowed

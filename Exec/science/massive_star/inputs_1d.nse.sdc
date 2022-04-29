@@ -101,7 +101,6 @@ integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-5
 
-integrator.retry_burn = 0
 integrator.abort_on_failure = 0
 
 integrator.jacobian = 3

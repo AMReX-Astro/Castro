@@ -5,7 +5,7 @@ subroutine ca_init_fort_constants(hplanck_in, avogadro_in) bind(C, name="ca_init
 
   implicit none
 
-  real(rt), intent(in) :: hplanck_in, avogadro_in
+  real(rt), intent(in), value :: hplanck_in, avogadro_in
 
   hplanck = hplanck_in
   avogadro = avogadro_in
