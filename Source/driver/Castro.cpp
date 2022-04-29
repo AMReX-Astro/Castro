@@ -134,6 +134,10 @@ IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
+// this records whether we have done tuning on the hydro tile size
+int          Castro::hydro_tile_size_has_been_tuned = 0;
+Long         Castro::largest_box_from_hydro_tile_size_tuning = 0;
+
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
 

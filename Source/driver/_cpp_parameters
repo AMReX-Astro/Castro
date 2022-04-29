@@ -300,6 +300,21 @@ use_axisymmetric_geom_source int           1
 # used in the advective source construction?
 add_sdc_react_source_to_advection  int     1
 
+# In GPU builds, the hydro advance typically results in a large amount of extra
+# temporary memory allocated due to the large tile sizes that are used for computational
+# efficiency. If you want to constrain the code's GPU memory footprint at the expense
+# of throughput, set the following parameter to some number greater than 0. This controls
+# the ratio of additional extra memory that can be allocated by the hydro relative to the
+# size of the base state (indirectly, by controlling the hydro tile size and then
+# synchronizing each time the amount of currently allocated fab memory reaches the
+# target limit). Choosing a value only slightly larger than 0 means that you want very
+# little additional memory allocated, and you will take a relatively large performance
+# hit, while choosing a value much greater than 1.0 would result in maximum throughput
+# but also maximum memory footprint. You will likely have to experimentally find a good
+# ratio for your use case, but a ratio around 2.0 - 4.0 is likely to yield a reasonable
+# balance between memory footprint and throughput. Note: the first timestep will be very
+# slow when using this option.
+hydro_memory_footprint_ratio       real    -1.0
 
 #-----------------------------------------------------------------------------
 # category: timestep control
