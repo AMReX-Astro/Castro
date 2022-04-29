@@ -1371,13 +1371,30 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
           if (hydro_tile_size_has_been_tuned == 0) {
-
-              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size ||
-                  mfi.tileIndex() == mfi.length() - 1) {
+              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size) {
+                  // If we reached the memory limit, set the tile size to the current
+                  // maximum tile size.
                   Gpu::synchronize();
                   hydro_tile_size = maximum_tile_size;
                   hydro_tile_size_has_been_tuned = 1;
+              }
+              else if (mfi.tileIndex() == mfi.length() - 1) {
+                  // If we reached the last tile and we haven't gone over the
+                  // memory limit, effectively disable tiling.
+                  hydro_tile_size[0] = 1024;
+#if AMREX_SPACEDIM >= 2
+                  hydro_tile_size[1] = 1024;
+#endif
+#if AMREX_SPACEDIM == 3
+                  hydro_tile_size[2] = 1024;
+#endif
+                  hydro_tile_size_has_been_tuned = 1;
+              }
 
+              if (hydro_tile_size_has_been_tuned == 1) {
+                  // Note: not every rank will necessarily get to this reduction
+                  // in the same iteration, but every rank will get to it eventually,
+                  // so this is safe to do.
                   ParallelDescriptor::ReduceIntMin(hydro_tile_size[0]);
 #if AMREX_SPACEDIM >= 2
                   ParallelDescriptor::ReduceIntMin(hydro_tile_size[1]);
@@ -1387,7 +1404,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
                   if (verbose) {
-                      amrex::Print() << "...... Tuning hydro tile size to ["
+                      amrex::Print() << "...... Setting hydro tile size to ["
                                      << hydro_tile_size[0] << ", "
                                      << hydro_tile_size[1] << ", "
                                      << hydro_tile_size[2] << "] "
@@ -1396,13 +1413,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                                      << std::endl << std::endl;
                   }
               }
-
           }
           else {
-              // If we have already tuned the parameter, then synchronize each iteration,
-              // because we will already be running at the target tile size.
+              // If we have already tuned the parameter, then synchronize each time the
+              // outstanding number of active bytes is larger than our ratio.
 
-              Gpu::synchronize();
+              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size) {
+                  Gpu::synchronize();
+
+                  // Reset the counter for the next sequence of tiles.
+                  fab_size = 0;
+              }
           }
       }
 #endif

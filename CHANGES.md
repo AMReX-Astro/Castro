@@ -1,7 +1,7 @@
 # 22.05
 
    * A new option castro.hydro_memory_footprint_ratio has been added which
-     can help limit the amount of RAM used in GPU builds. (#2153)
+     can help limit the amount of memory used in GPU builds. (#2153)
 
    * In #1379, for the 21.04 release, Castro added a check that issued
      an abort if any species mass fraction was found to be invalid (defined
