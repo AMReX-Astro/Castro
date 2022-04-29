@@ -1482,6 +1482,7 @@ protected:
     static amrex::IntVect no_tile_size;
 
     static int hydro_tile_size_has_been_tuned;
+    static Long largest_box_from_hydro_tile_size_tuning;
 
     static int SDC_Source_Type;
     static int num_state_type;

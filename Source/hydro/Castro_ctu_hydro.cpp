@@ -87,19 +87,29 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // and allow it to grow upward as needed.
 
 #ifdef AMREX_USE_GPU
-   if (castro::hydro_memory_footprint_ratio > 0.0 && hydro_tile_size_has_been_tuned == 0) {
-       hydro_tile_size[0] = 16;
+   if (castro::hydro_memory_footprint_ratio > 0.0) {
+       // Run through boxes on this level and see if any of them are
+       // bigger than the biggest box from our previous tuning. If so,
+       // we need to re-compute the tile size.
+       for (MFIter mfi(S_new, false); mfi.isValid(); ++mfi) {
+           if (mfi.validbox().numPts() > largest_box_from_hydro_tile_size_tuning) {
+               hydro_tile_size_has_been_tuned = 0;
+           }
+
+           // Also, sum up the number of bytes in the state data.
+           mf_size += S_new[mfi].nBytes();
+       }
+
+       if (hydro_tile_size_has_been_tuned == 0) {
+           // Reset hydro tile size to a fairly small value
+           // for the tuning process to work with.
+           hydro_tile_size[0] = 16;
 #if AMREX_SPACEDIM >= 2
-       hydro_tile_size[1] = 16;
+           hydro_tile_size[1] = 16;
 #endif
 #if AMREX_SPACEDIM == 3
-       hydro_tile_size[2] = 16;
+           hydro_tile_size[2] = 16;
 #endif
-
-       // Also, count the number of bytes in the state data.
-
-       for (MFIter mfi(S_new, false); mfi.isValid(); ++mfi) {
-           mf_size += S_new[mfi].nBytes();
        }
    }
 #endif
@@ -1352,25 +1362,30 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef AMREX_USE_GPU
       if (castro::hydro_memory_footprint_ratio > 0.0) {
 
-          // If we're using the parameter that limits the memory footprint of the hydro,
-          // we need to tune the hydro tile size during the first timestep. We will record
-          // the total amount of additional memory allocated, relative to the size of S_new.
-          // Then we will reset the tile size so that it is no larger than the requested
-          // memory footprint.
+          if (hydro_tile_size_has_been_tuned == 0) {
 
-          // This could be generalized in the future to operate with more granularity
-          // than the MFIter loop boundary. We could have potential synchronization
-          // points prior to each of the above kernel launches.
+              // Keep a running record of the largest box we've encountered.
 
-          maximum_tile_size[0] = amrex::max(maximum_tile_size[0], bx.bigEnd(0) - mfi.validbox().smallEnd(0) + 1);
+              largest_box_from_hydro_tile_size_tuning = amrex::max(largest_box_from_hydro_tile_size_tuning,
+                                                                   mfi.validbox().numPts());
+
+              // If we're tuning the hydro tile size during this timestep, we will record
+              // the total amount of additional memory allocated, relative to the size of S_new.
+              // Then we will reset the tile size so that it is no larger than the requested
+              // memory footprint.
+
+              // This could be generalized in the future to operate with more granularity
+              // than the MFIter loop boundary. We could have potential synchronization
+              // points prior to each of the above kernel launches.
+
+              maximum_tile_size[0] = amrex::max(maximum_tile_size[0], bx.bigEnd(0) - mfi.validbox().smallEnd(0) + 1);
 #if AMREX_SPACEDIM >= 2
-          maximum_tile_size[1] = amrex::max(maximum_tile_size[1], bx.bigEnd(1) - mfi.validbox().smallEnd(1) + 1);
+              maximum_tile_size[1] = amrex::max(maximum_tile_size[1], bx.bigEnd(1) - mfi.validbox().smallEnd(1) + 1);
 #endif
 #if AMREX_SPACEDIM ==3
-          maximum_tile_size[2] = amrex::max(maximum_tile_size[2], bx.bigEnd(2) - mfi.validbox().smallEnd(2) + 1);
+              maximum_tile_size[2] = amrex::max(maximum_tile_size[2], bx.bigEnd(2) - mfi.validbox().smallEnd(2) + 1);
 #endif
 
-          if (hydro_tile_size_has_been_tuned == 0) {
               if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size) {
                   // If we reached the memory limit, set the tile size to the current
                   // maximum tile size.
@@ -1391,28 +1406,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   hydro_tile_size_has_been_tuned = 1;
               }
 
-              if (hydro_tile_size_has_been_tuned == 1) {
-                  // Note: not every rank will necessarily get to this reduction
-                  // in the same iteration, but every rank will get to it eventually,
-                  // so this is safe to do.
-                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[0]);
-#if AMREX_SPACEDIM >= 2
-                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[1]);
-#endif
-#if AMREX_SPACEDIM == 3
-                  ParallelDescriptor::ReduceIntMin(hydro_tile_size[2]);
-#endif
-
-                  if (verbose) {
-                      amrex::Print() << "...... Setting hydro tile size to ["
-                                     << hydro_tile_size[0] << ", "
-                                     << hydro_tile_size[1] << ", "
-                                     << hydro_tile_size[2] << "] "
-                                     << "to satisfy castro.hydro_memory_footprint_ratio = "
-                                     << castro::hydro_memory_footprint_ratio
-                                     << std::endl << std::endl;
-                  }
-              }
           }
           else {
               // If we have already tuned the parameter, then synchronize each time the
