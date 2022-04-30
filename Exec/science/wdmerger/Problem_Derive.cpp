@@ -596,13 +596,6 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                        const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    // Create a mask for all zones considered to be within the primary star.
-    // It uses the same prescription as above for the effective potential of the
-    // star, and uses the stellar density threshold input parameter to determine
-    // what parts of the domain should be considered stellar material.
-    // The convention will be that the mask is positive (1) for zones inside the
-    // star and negative (-1) for zones outside the star.
-
     auto const rho = datfab.array();
     auto const mask = derfab.array();
 
@@ -620,8 +613,6 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
                          const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    // Same as above, but for the secondary.
-
     auto const rho = datfab.array();
     auto const mask = derfab.array();
 
