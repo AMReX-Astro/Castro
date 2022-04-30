@@ -4167,18 +4167,12 @@ Castro::make_radial_data(int is_new)
    ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
    ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
 
-   int first = 0;
-   int np_max = 0;
    for (int i = 0; i < numpts_1d; i++) {
        if (radial_vol[i] > 0.)
        {
            for (int j = 0; j < nc; j++) {
                radial_state[nc*i+j] /= radial_vol[i];
            }
-       }
-       else if (first == 0) {
-           np_max = i;
-           first  = 1;
        }
    }
 
