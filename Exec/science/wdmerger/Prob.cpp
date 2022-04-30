@@ -139,17 +139,13 @@ Castro::wd_update (Real time, Real dt)
       BL_ASSERT(mfpmask != nullptr);
       BL_ASSERT(mfsmask != nullptr);
 
-      if (lev < parent->finestLevel())
-      {
-          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-
-          MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+      bool mask_available = true;
+      if (lev == parent->finestLevel()) {
+          mask_available = false;
       }
+
+      MultiFab tmp_mf;
+      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -162,6 +158,7 @@ Castro::wd_update (Real time, Real dt)
           auto pmask = (*mfpmask)[mfi].array();
           auto smask = (*mfsmask)[mfi].array();
           auto vol   = c_lev.volume[mfi].array();
+          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
           const Box& box  = mfi.tilebox();
 
@@ -202,10 +199,18 @@ Castro::wd_update (Real time, Real dt)
                   }
               }
 
-              Real dm = rho(i,j,k) * vol(i,j,k);
+              Real maskFactor = 1.0;
+
+              if (mask_available) {
+                  maskFactor = level_mask(i,j,k);
+              }
+
+              Real dm = rho(i,j,k) * vol(i,j,k) * maskFactor;
 
               Real dmSymmetric = dm;
-              GpuArray<Real, 3> momSymmetric{xmom(i,j,k), ymom(i,j,k), zmom(i,j,k)};
+              GpuArray<Real, 3> momSymmetric{xmom(i,j,k) * maskFactor,
+                                             ymom(i,j,k) * maskFactor,
+                                             zmom(i,j,k) * maskFactor};
 
               if (coord_type == 0) {
 
@@ -235,12 +240,12 @@ Castro::wd_update (Real time, Real dt)
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
 
-              if (pmask(i,j,k) > 0.0_rt) {
+              if (pmask(i,j,k) * maskFactor > 0.0_rt) {
 
                   primary_factor = 1.0_rt;
 
               }
-              else if (smask(i,j,k) > 0.0_rt) {
+              else if (smask(i,j,k) * maskFactor > 0.0_rt) {
 
                   secondary_factor = 1.0_rt;
 
@@ -431,19 +436,19 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
       BL_ASSERT(mfpmask != nullptr);
       BL_ASSERT(mfsmask != nullptr);
 
-      if (lev < parent->finestLevel())
-      {
-	  const MultiFab& mask = c_lev.getLevel(lev+1).build_fine_mask();
-	  MultiFab::Multiply(*mf,      mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+      bool mask_available = true;
+      if (lev == parent->finestLevel()) {
+          mask_available = false;
       }
+
+      MultiFab tmp_mf;
+      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
       ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
       ReduceData<Real, Real> reduce_data(reduce_op);
       using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
       for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
@@ -451,6 +456,7 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
           auto pmask = (*mfpmask)[mfi].array();
           auto smask = (*mfsmask)[mfi].array();
           auto vol   = c_lev.volume[mfi].array();
+          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
 	  const Box& box  = mfi.tilebox();
 
@@ -466,14 +472,19 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
 
-              if (rho(i,j,k) > rho_cutoff) {
+              Real maskFactor = 1.0;
+              if (mask_available) {
+                  maskFactor = level_mask(i,j,k);
+              }
 
-                  if (pmask(i,j,k) > 0.0_rt) {
+              if (rho(i,j,k) * maskFactor > rho_cutoff) {
+
+                  if (pmask(i,j,k) * maskFactor > 0.0_rt) {
 
                       primary_factor = 1.0_rt;
 
                   }
-                  else if (smask(i,j,k) > 0.0_rt) {
+                  else if (smask(i,j,k) * maskFactor > 0.0_rt) {
 
                       secondary_factor = 1.0_rt;
 
@@ -481,7 +492,8 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
               }
 
-              return {vol(i,j,k) * primary_factor, vol(i,j,k) * secondary_factor};
+              return {vol(i,j,k) * maskFactor * primary_factor,
+                      vol(i,j,k) * maskFactor * secondary_factor};
           });
 
       }
@@ -773,20 +785,59 @@ void Castro::update_extrema(Real time) {
       auto ts_te = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
 #endif
 
-      if (lev < finest_level) {
-          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-          MultiFab::Multiply(*T, mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*rho, mask, 0, 0, 1, 0);
-#ifdef REACTIONS
-          MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
-#endif
+      bool mask_available = true;
+      if (lev == parent->finestLevel()) {
+          mask_available = false;
       }
 
-      T_curr_max = std::max(T_curr_max, T->max(0, 0, local_flag));
-      rho_curr_max = std::max(rho_curr_max, rho->max(0, 0, local_flag));
+      MultiFab tmp_mf;
+      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
+      ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+      ReduceData<Real, Real, Real> reduce_data(reduce_op);
+      using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(*T, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+
+          auto T_arr = (*T)[mfi].array();
+          auto rho_arr = (*rho)[mfi].array();
 #ifdef REACTIONS
-      ts_te_curr_max = std::max(ts_te_curr_max, ts_te->max(0, 0, local_flag));
+          auto ts_te_arr = (*ts_te)[mfi].array();
+#endif
+
+          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+
+          reduce_op.eval(bx, reduce_data,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+          {
+              Real maskFactor = 1.0;
+              if (mask_available) {
+                  maskFactor = level_mask(i,j,k);
+              }
+
+              Real T = T_arr(i,j,k) * maskFactor;
+              Real rho = rho_arr(i,j,k) * maskFactor;
+#ifdef REACTIONS
+              Real ts_te = ts_te_arr(i,j,k) * maskFactor;
+#else
+              Real ts_te = 0.0_rt;
+#endif
+
+              return {T, rho, ts_te};
+          });
+
+      }
+
+      ReduceTuple hv = reduce_data.value();
+
+      T_curr_max = amrex::max(T_curr_max, amrex::get<0>(hv));
+      rho_curr_max = amrex::max(rho_curr_max, amrex::get<1>(hv));
+#ifdef REACTIONS
+      ts_te_curr_max = amrex::max(ts_te_curr_max, amrex::get<2>(hv));
 #endif
 
     }
@@ -868,8 +919,24 @@ Castro::update_relaxation(Real time, Real dt) {
 
         if (lev < parent->finestLevel()) {
             const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-            for (int n = 0; n < NUM_STATE; ++n)
-                MultiFab::Multiply(*force[lev], mask, 0, n, 1, 0);
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(*force[lev], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+                const Box& bx = mfi.tilebox();
+
+                auto F = (*force[lev])[mfi].array();
+                auto m = mask[mfi].array();
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                {
+                    for (int n = 0; n < NUM_STATE; ++n) {
+                        F(i,j,k,n) *= m(i,j,k);
+                    }
+                });
+            }
         }
 
     }
