@@ -603,64 +603,16 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     // The convention will be that the mask is positive (1) for zones inside the
     // star and negative (-1) for zones outside the star.
 
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
+    auto const rho = datfab.array();
+    auto const mask = derfab.array();
 
-    const auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        // By default, assume we're not inside the star.
-
-        der(i,j,k,0) = -1.0_rt;
-
-        // Don't do anything here if the star no longer exists,
-        // or if it never existed.
-
-        if (problem::mass_P <= 0.0_rt) return;
-
-        GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
-#else
-        loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
-#else
-        loc[2] = 0.0_rt;
-#endif
-
-        // Ignore zones whose density is too low.
-
-        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
-
-        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
-                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
-                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
-
-        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
-                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
-                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
-
-
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            loc[i] -= problem::center[i];
-        }
-
-        Real phi_rot = rotational_potential(loc);
-
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;
-
-        if (phi_p < 0.0_rt && phi_p < phi_s) {
-            der(i,j,k,0) = 1.0_rt;
-        }
+        const bool is_primary = true;
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
     });
 }
 
@@ -670,62 +622,15 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
 {
     // Same as above, but for the secondary.
 
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
+    auto const rho = datfab.array();
+    auto const mask = derfab.array();
 
-    const auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        // By default, assume we're not inside the star.
-
-        der(i,j,k,0) = -1.0_rt;
-
-        // Don't do anything here if the star no longer exists,
-        // or if it never existed.
-
-        if (problem::mass_S <= 0.0_rt) return;
-
-        GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
-#else
-        loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
-#else
-        loc[2] = 0.0_rt;
-#endif
-
-        // Ignore zones whose density is too low.
-
-        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
-
-        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
-                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
-                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
-
-        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
-                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
-                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
-
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            loc[i] -= problem::center[i];
-        }
-
-        Real phi_rot = rotational_potential(loc);
-
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;
-
-        if (phi_s < 0.0_rt && phi_s < phi_p) {
-            der(i,j,k,0) = 1.0_rt;
-        }
+        bool is_primary = false;
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
     });
 }
