@@ -33,8 +33,7 @@ Running on GPUs
 ===============
 
 Castro's compute kernels can run on GPUs and this is the preferred way
-to run on supercomputers with GPUs.  At the moment, offloading is
-handled using CUDA and managed memory.  The exact same compute kernels
+to run on supercomputers with GPUs.  The exact same compute kernels
 are used on GPUs as on CPUs.
 
 .. note::
@@ -43,14 +42,48 @@ are used on GPUs as on CPUs.
    the true SDC solver (``USE_TRUE_SDC = TRUE``).
 
 When using GPUs, almost all of the computing is done on the GPUs.  In
-the MFIter loops over boxes, the loops put a single zone on each GPU
-thread, to take advantage of the massive parallelism.  The Microphysics
-in StarKiller also takes advantage of GPUs, so entire simulations can
-be run on the GPU.
+the ``MFIter`` loops over boxes, the loops put a single zone on each
+GPU thread, to take advantage of the massive parallelism.  The
+Microphysics routines (EOS, nuclear reaction networks, etc.) also take
+advantage of GPUs, so entire simulations can be run on the GPU.
 
 Best performance is obtained with bigger boxes, so setting
 ``amr.max_grid_size = 128`` and ``amr.blocking_factor = 32`` can give
 good performance.
+
+
+
+Castro / AMReX have an option to use managed memory for the GPU --
+this means that the data will automatically be migrated from host to
+device (and vice versa) as needed, whenever a page fault is
+encountered.  This can be enabled via:
+``amrex.the_arena_is_managed=1``.
+
+By default, Castro will abort if it runs out of GPU memory.  You can
+disable this via ``amrex.abort_on_out_of_gpu_memory=0`` -- together
+with running with managed memory, this can allow the memory to be
+swapped off of the GPU to make more room available.  This is not
+recommended -- oversubscribing the GPU memory will severely impact
+performance.
+
+.. index:: castro.hydro_memory_footprint_ratio
+
+The CTU hydrodynamics scheme creates a lot of temporary ``FAB`` 's
+when doing the update.  This can lead to the code oversubscribing the
+GPU memory during the hydro advance.  To alleviate this, Castro can
+break a box into tiles and work on one tile at a time (this is the
+approach we use with OpenMP).  In the hydro solver, this is controlled
+by ``hydro_tile_size``.  By setting
+``castro.hydro_memory_footprint_ratio`` to a number > 0, Castro will
+dynamically estimate a good tile size to use for the hydro during the
+first timestep and then use this subsequently.  This larger the
+number, the more local memory we will allow the hydro solver to use
+(generally this means a larger ``hydro_tile_size``).  This can allow
+you to run a problem on a smaller number of GPUs if the hydro
+temporary memory was the cause of oversubscription.  Current
+recommendations are to try ``castro.hydro_memory_footprint_ratio``
+between ``2.0`` and ``4.0``.
+
 
 NVIDIA GPUs
 -----------
