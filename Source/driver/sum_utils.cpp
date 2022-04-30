@@ -396,7 +396,7 @@ Castro::gwstrain (Real time,
 
     Box bx( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(2, 2, 0)) );
 
-    FArrayBox Qtt(bx);
+    FArrayBox Qtt(bx, 1, The_Managed_Arena());
 
     Qtt.setVal<RunOn::Device>(0.0);
 
@@ -404,7 +404,7 @@ Castro::gwstrain (Real time,
     int nthreads = omp_get_max_threads();
     Vector< std::unique_ptr<FArrayBox> > priv_Qtt(nthreads);
     for (int i=0; i<nthreads; i++) {
-	priv_Qtt[i].reset(new FArrayBox(bx));
+	priv_Qtt[i].reset(new FArrayBox(bx, 1, The_Managed_Arena()));
     }
 #pragma omp parallel
 #endif
@@ -569,6 +569,8 @@ Castro::gwstrain (Real time,
 #endif
 
     // Now, do a global reduce over all processes.
+
+    Qtt.prefetchToHost();
 
     if (!local) {
         amrex::ParallelDescriptor::ReduceRealSum(Qtt.dataPtr(),bx.numPts());
