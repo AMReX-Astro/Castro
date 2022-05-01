@@ -15,16 +15,19 @@
 using namespace amrex;
 
 Real
-Castro::volWgtSum (const std::string& name,
-                   Real               time,
-                   bool               local,
-                   bool               finemask)
+Castro::volWgtSum (const std::string& name, Real time, bool local, bool finemask)
 {
-    BL_PROFILE("Castro::volWgtSum()");
-
     auto mf = derive(name, time, 0);
 
     BL_ASSERT(mf);
+
+    return volWgtSum(*mf, 0, local, finemask);
+}
+
+Real
+Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
+{
+    BL_PROFILE("Castro::volWgtSum()");
 
     bool mask_available = level < parent->finestLevel() && finemask;
 
@@ -38,9 +41,9 @@ Castro::volWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
-    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        auto const& fab = (*mf).array(mfi);
+        auto const& fab = mf[mfi].array(comp);
         auto const& vol = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
 
@@ -71,71 +74,19 @@ Castro::volWgtSum (const std::string& name,
 }
 
 Real
-Castro::volWgtSquaredSum (const std::string& name,
-                          Real               time,
-                          bool               local)
+Castro::locWgtSum (const std::string& name, Real time, int idir, bool local)
 {
-    BL_PROFILE("Castro::volWgtSquaredSum()");
-
     auto mf = derive(name, time, 0);
 
     BL_ASSERT(mf);
 
-    bool mask_available = level < parent->finestLevel();
-
-    MultiFab tmp_mf;
-    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
-
-    ReduceOps<ReduceOpSum> reduce_op;
-    ReduceData<Real> reduce_data(reduce_op);
-    using ReduceTuple = typename decltype(reduce_data)::Type;
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif    
-    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        auto const& fab = (*mf).array(mfi);
-        auto const& vol = volume.array(mfi);
-        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
-        const Box& box = mfi.tilebox();
-
-        //
-        // Note that this routine will do a volume weighted sum of
-        // whatever quantity is passed in, not strictly the "mass".
-        //
-
-        reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-        {
-            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
-
-            return {fab(i,j,k) * fab(i,j,k) * vol(i,j,k) * maskFactor};
-        });
-
-    }
-
-    ReduceTuple hv = reduce_data.value();
-    Real sum = amrex::get<0>(hv);
-
-    if (!local)
-        ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
+    return locWgtSum(*mf, 0, idir, local);
 }
 
 Real
-Castro::locWgtSum (const std::string& name,
-                   Real               time,
-                   int                idir,
-                   bool               local)
+Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
 {
     BL_PROFILE("Castro::locWgtSum()");
-
-    auto mf = derive(name, time, 0);
-
-    BL_ASSERT(mf);
 
     bool mask_available = level < parent->finestLevel();
 
@@ -152,9 +103,9 @@ Castro::locWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
-    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        auto const& fab = (*mf).array(mfi);
+        auto const& fab = mf[mfi].array(comp);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
@@ -211,17 +162,26 @@ Castro::locWgtSum (const std::string& name,
 }
 
 Real
-Castro::volProductSum (const std::string& name1, 
+Castro::volProductSum (const std::string& name1,
                        const std::string& name2,
                        Real time, bool local)
 {
-    BL_PROFILE("Castro::volProductSum()");
-
     auto mf1 = derive(name1, time, 0);
     auto mf2 = derive(name2, time, 0);
 
     BL_ASSERT(mf1);
     BL_ASSERT(mf2);
+
+    return volProductSum(*mf1, *mf2, 0, 0, local);
+}
+
+Real
+Castro::volProductSum (const MultiFab& mf1,
+                       const MultiFab& mf2,
+                       int comp1, int comp2,
+                       bool local)
+{
+    BL_PROFILE("Castro::volProductSum()");
 
     bool mask_available = level < parent->finestLevel();
 
@@ -235,10 +195,10 @@ Castro::volProductSum (const std::string& name1,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
-    for (MFIter mfi(*mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        auto const& fab1 = (*mf1).array(mfi);
-        auto const& fab2 = (*mf2).array(mfi);
+        auto const& fab1 = mf1[mfi].array(comp1);
+        auto const& fab2 = mf2[mfi].array(comp2);
         auto const& vol  = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
