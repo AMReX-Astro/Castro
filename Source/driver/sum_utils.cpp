@@ -26,11 +26,10 @@ Castro::volWgtSum (const std::string& name,
 
     BL_ASSERT(mf);
 
-    if (level < parent->finestLevel() && finemask)
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
+    bool mask_available = level < parent->finestLevel() && finemask;
+
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -43,6 +42,7 @@ Castro::volWgtSum (const std::string& name,
     {
         auto const& fab = (*mf).array(mfi);
         auto const& vol = volume.array(mfi);
+        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
 
         const Box& box = mfi.tilebox();
 
@@ -54,7 +54,9 @@ Castro::volWgtSum (const std::string& name,
         reduce_op.eval(box, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
-            return {fab(i,j,k) * vol(i,j,k)};
+            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
+            return {fab(i,j,k) * vol(i,j,k) * maskFactor};
         });
 
     }
@@ -79,11 +81,10 @@ Castro::volWgtSquaredSum (const std::string& name,
 
     BL_ASSERT(mf);
 
-    if (level < parent->finestLevel())
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
+    bool mask_available = level < parent->finestLevel();
+
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -96,6 +97,7 @@ Castro::volWgtSquaredSum (const std::string& name,
     {
         auto const& fab = (*mf).array(mfi);
         auto const& vol = volume.array(mfi);
+        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
 
@@ -107,7 +109,9 @@ Castro::volWgtSquaredSum (const std::string& name,
         reduce_op.eval(box, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
-            return {fab(i,j,k) * fab(i,j,k) * vol(i,j,k)};
+            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
+            return {fab(i,j,k) * fab(i,j,k) * vol(i,j,k) * maskFactor};
         });
 
     }
@@ -133,11 +137,10 @@ Castro::locWgtSum (const std::string& name,
 
     BL_ASSERT(mf);
 
-    if (level < parent->finestLevel())
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
+    bool mask_available = level < parent->finestLevel();
+
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -152,6 +155,7 @@ Castro::locWgtSum (const std::string& name,
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = (*mf).array(mfi);
+        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
 
@@ -163,6 +167,8 @@ Castro::locWgtSum (const std::string& name,
         reduce_op.eval(box, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
+            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
             Real loc[3];
 
             loc[0] = problo[0] + (0.5_rt + i) * dx[0];
@@ -182,13 +188,13 @@ Castro::locWgtSum (const std::string& name,
             Real ds;
 
             if (idir == 0) { // sum(mass * x)
-                ds = fab(i,j,k) * loc[0];
+                ds = fab(i,j,k) * maskFactor * loc[0];
             }
             else if (idir == 1) { // sum(mass * y)
-                ds = fab(i,j,k) * loc[1];
+                ds = fab(i,j,k) * maskFactor * loc[1];
             }
             else { // sum(mass * z)
-                ds = fab(i,j,k) * loc[2];
+                ds = fab(i,j,k) * maskFactor * loc[2];
             }
 
             return {ds};
@@ -217,12 +223,10 @@ Castro::volProductSum (const std::string& name1,
     BL_ASSERT(mf1);
     BL_ASSERT(mf2);
 
-    if (level < parent->finestLevel())
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf1, mask, 0, 0, 1, 0);
-        MultiFab::Multiply(*mf2, mask, 0, 0, 1, 0);
-    }
+    bool mask_available = level < parent->finestLevel();
+
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -236,13 +240,16 @@ Castro::volProductSum (const std::string& name1,
         auto const& fab1 = (*mf1).array(mfi);
         auto const& fab2 = (*mf2).array(mfi);
         auto const& vol  = volume.array(mfi);
+        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
-            return {fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k)};
+            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
+            return {fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k) * maskFactor};
         });
     }
 
@@ -267,11 +274,10 @@ Castro::locSquaredSum (const std::string& name,
 
     BL_ASSERT(mf);
 
-    if (level < parent->finestLevel())
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
+    bool mask_available = level < parent->finestLevel();
+
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -286,12 +292,15 @@ Castro::locSquaredSum (const std::string& name,
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = (*mf).array(mfi);
+        auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
+            Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
             Real loc[3];
 
             loc[0] = problo[0] + (0.5_rt + i) * dx[0];
@@ -311,16 +320,16 @@ Castro::locSquaredSum (const std::string& name,
             Real ds;
 
             if (idir == 0) { // sum(mass * x^2)
-                ds = fab(i,j,k) * loc[0] * loc[0];
+                ds = fab(i,j,k) * maskFactor * loc[0] * loc[0];
             }
             else if (idir == 1) { // sum(mass * y^2)
-                ds = fab(i,j,k) * loc[1] * loc[1];
+                ds = fab(i,j,k) * maskFactor * loc[1] * loc[1];
             }
             else if (idir == 2) { // sum(mass * z^2)
-                ds = fab(i,j,k) * loc[2] * loc[2];
+                ds = fab(i,j,k) * maskFactor * loc[2] * loc[2];
             }
             else { // sum(mass * r^2)
-                ds = fab(i,j,k) * (loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
+                ds = fab(i,j,k) * maskFactor * (loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
             }
 
             return {ds};
@@ -372,18 +381,10 @@ Castro::gwstrain (Real time,
     BL_ASSERT(mfgravy != nullptr);
     BL_ASSERT(mfgravz != nullptr);
 
-    if (level < parent->finestLevel())
-    {
-	const MultiFab& mask = getLevel(level+1).build_fine_mask();
+    bool mask_available = level < parent->finestLevel();
 
-	MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfgravx, mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfgravy, mask, 0, 0, 1, 0);
-	MultiFab::Multiply(*mfgravz, mask, 0, 0, 1, 0);
-    }
+    MultiFab tmp_mf;
+    const MultiFab& mask_mf = mask_available ? getLevel(level+1).build_fine_mask() : tmp_mf;
 
     // Qtt stores the second time derivative of the quadrupole moment.
     // We calculate it directly rather than computing the quadrupole moment
@@ -425,6 +426,7 @@ Castro::gwstrain (Real time,
             auto gravx = (*mfgravx).array(mfi);
             auto gravy = (*mfgravy).array(mfi);
             auto gravz = (*mfgravz).array(mfi);
+            auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
 
             // Calculate the second time derivative of the quadrupole moment tensor,
             // according to the formula in Equation 6.5 of Blanchet, Damour and Schafer 1990.
@@ -441,6 +443,8 @@ Castro::gwstrain (Real time,
             amrex::ParallelFor(box,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+                Real maskFactor = mask_available ? mask(i,j,k) : 1.0_rt;
+
                 Array2D<Real, 0, 2, 0, 2> dQtt{};
 
                 GpuArray<Real, 3> r;
@@ -451,7 +455,7 @@ Castro::gwstrain (Real time,
                 }
 
                 Real rhoInv;
-                if (rho(i,j,k) > 0.0_rt) {
+                if (rho(i,j,k) * maskFactor > 0.0_rt) {
                     rhoInv = 1.0_rt / rho(i,j,k);
                 } else {
                     rhoInv = 0.0_rt;
@@ -475,9 +479,9 @@ Castro::gwstrain (Real time,
                 // frame depending on where we are in the orbit.
 
                 GpuArray<Real, 3> vel;
-                vel[0] = xmom(i,j,k) * rhoInv;
-                vel[1] = ymom(i,j,k) * rhoInv;
-                vel[2] = zmom(i,j,k) * rhoInv;
+                vel[0] = xmom(i,j,k) * maskFactor * rhoInv;
+                vel[1] = ymom(i,j,k) * maskFactor * rhoInv;
+                vel[2] = zmom(i,j,k) * maskFactor * rhoInv;
 
                 GpuArray<Real, 3> inertial_vel{vel};
 #ifdef ROTATION
@@ -485,9 +489,9 @@ Castro::gwstrain (Real time,
 #endif
 
                 GpuArray<Real, 3> g;
-                g[0] = gravx(i,j,k);
-                g[1] = gravy(i,j,k);
-                g[2] = gravz(i,j,k);
+                g[0] = gravx(i,j,k) * maskFactor;
+                g[1] = gravy(i,j,k) * maskFactor;
+                g[2] = gravz(i,j,k) * maskFactor;
 
                 // We need to rotate the gravitational field to be consistent with the rotated position.
 
@@ -498,7 +502,7 @@ Castro::gwstrain (Real time,
 
                 // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
 
-                Real dM = 2.0_rt * rho(i,j,k) * vol(i,j,k);
+                Real dM = 2.0_rt * rho(i,j,k) * vol(i,j,k) * maskFactor;
 
                 if (AMREX_SPACEDIM == 3) {
 
