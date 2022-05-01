@@ -412,8 +412,9 @@ Castro::sum_integrated_quantities ()
         // Integrated mass of all species on the domain
 
         for (int lev = 0; lev <= finest_level; ++lev) {
+            MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
             for (int i = 0; i < NumSpec; ++i) {
-                species_mass[i] += getLevel(lev).volWgtSum("rho_" + species_names[i], time, local_flag) / C::M_solar;
+                species_mass[i] += getLevel(lev).volWgtSum(S_new, UFS + i, local_flag) / C::M_solar;
             }
         }
 
