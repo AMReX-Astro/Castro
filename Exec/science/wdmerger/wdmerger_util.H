@@ -41,7 +41,7 @@ void set_star_data ();
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real stellar_mask (int i, int j, int k,
                    const amrex::GeometryData& geomdata,
-                   Array4<Real> const rho,
+                   Array4<Real const> const rho,
                    bool is_primary = true)
 {
     // By default, assume we're not inside the star.

@@ -596,8 +596,8 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                        const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    auto const rho = datfab.array();
-    auto const mask = derfab.array();
+    Array4<Real const> const rho = datfab.array();
+    Array4<Real> const mask = derfab.array();
 
     const auto geomdata = geom.data();
 
@@ -613,8 +613,8 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
                          const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    auto const rho = datfab.array();
-    auto const mask = derfab.array();
+    Array4<Real const> const rho = datfab.array();
+    Array4<Real> const mask = derfab.array();
 
     const auto geomdata = geom.data();
 
