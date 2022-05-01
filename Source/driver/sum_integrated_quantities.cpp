@@ -14,8 +14,9 @@ using namespace amrex;
 void
 Castro::sum_integrated_quantities ()
 {
-
     if (verbose <= 0) return;
+
+    BL_PROFILE("Castro::sum_integrated_quantities()");
 
     bool local_flag = true;
 
@@ -51,34 +52,38 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
+        MultiFab& S_new = ca_lev.get_new_data(State_Type);
+#ifdef GRAVITY
+        MultiFab& phi_new = ca_lev.get_new_data(PhiGrav_Type);
+#endif
 
-        mass   += ca_lev.volWgtSum("density", time, local_flag);
-        mom[0] += ca_lev.volWgtSum("xmom", time, local_flag);
-        mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
-        mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        mass   += ca_lev.volWgtSum(S_new, URHO, local_flag);
+        mom[0] += ca_lev.volWgtSum(S_new, UMX, local_flag);
+        mom[1] += ca_lev.volWgtSum(S_new, UMY, local_flag);
+        mom[2] += ca_lev.volWgtSum(S_new, UMZ, local_flag);
 
         ang_mom[0] += ca_lev.volWgtSum("angular_momentum_x", time, local_flag);
         ang_mom[1] += ca_lev.volWgtSum("angular_momentum_y", time, local_flag);
         ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
 
 #ifdef HYBRID_MOMENTUM
-        hyb_mom[0] += ca_lev.volWgtSum("rmom", time, local_flag);
-        hyb_mom[1] += ca_lev.volWgtSum("lmom", time, local_flag);
-        hyb_mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, time, local_flag);
+        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, time, local_flag);
+        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, time, local_flag);
 #endif
 
         if (show_center_of_mass) {
-           com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
-           com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
-           com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
+           com[0] += ca_lev.locWgtSum(S_new, URHO, 0, local_flag);
+           com[1] += ca_lev.locWgtSum(S_new, URHO, 1, local_flag);
+           com[2] += ca_lev.locWgtSum(S_new, URHO, 2, local_flag);
         }
 
-       rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
+       rho_e += ca_lev.volWgtSum(S_new, UEINT, local_flag);
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
-       rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
+       rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
 #ifdef GRAVITY
         if (gravity->get_gravity_type() == "PoissonGrav")
-               rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
+            rho_phi += ca_lev.volProductSum(S_new, phi_new, URHO, 0, local_flag);
 #endif
 
     }
@@ -407,8 +412,9 @@ Castro::sum_integrated_quantities ()
         // Integrated mass of all species on the domain
 
         for (int lev = 0; lev <= finest_level; ++lev) {
+            MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
             for (int i = 0; i < NumSpec; ++i) {
-                species_mass[i] += getLevel(lev).volWgtSum("rho_" + species_names[i], time, local_flag) / C::M_solar;
+                species_mass[i] += getLevel(lev).volWgtSum(S_new, UFS + i, local_flag) / C::M_solar;
             }
         }
 
