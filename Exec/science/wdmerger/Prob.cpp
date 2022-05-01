@@ -738,8 +738,6 @@ void Castro::update_extrema(Real time) {
 
     // Compute extrema
 
-    bool local_flag = true;
-
     T_curr_max     = 0.0;
     rho_curr_max   = 0.0;
     ts_te_curr_max = 0.0;
@@ -1253,8 +1251,6 @@ Castro::problem_sums ()
 
     if (level > 0) return;
 
-    bool local_flag = true;
-
     int finest_level  = parent->finestLevel();
     Real time         = state[State_Type].curTime();
     Real dt           = parent->dtLevel(0);
@@ -1263,35 +1259,9 @@ Castro::problem_sums ()
 
     int timestep = parent->levelSteps(0);
 
-    Real mass                 = 0.0;
-    Real momentum[3]          = { 0.0 };
-    Real angular_momentum[3]  = { 0.0 };
-    Real hybrid_momentum[3]   = { 0.0 };
-    Real rho_E                = 0.0;
-    Real rho_e                = 0.0;
-    Real rho_K                = 0.0;
-    Real rho_phi              = 0.0;
-    Real rho_phirot           = 0.0;
-
-    // Total energy on the grid, including decomposition
-    // into the various components.
-
-    Real gravitational_energy = 0.0;
-    Real kinetic_energy       = 0.0;
-    Real gas_energy           = 0.0;
-    Real rotational_energy    = 0.0;
-    Real internal_energy      = 0.0;
-    Real total_energy         = 0.0;
-    Real total_E_grid         = 0.0;
-
     // Mass transfer rate
 
     Real mdot = 0.5 * (std::abs(mdot_P) + std::abs(mdot_S));
-
-    // Center of mass of the system.
-
-    Real com[3]       = { 0.0 };
-    Real com_vel[3]   = { 0.0 };
 
     // Distance between the WDs.
 
@@ -1315,9 +1285,6 @@ Castro::problem_sums ()
     Real vel_P_phi = 0.0;
     Real vel_S_phi = 0.0;
 
-    std::string name1;
-    std::string name2;
-
     int dataprecision = 16; // Number of digits after the decimal point, for float data
 
     int datwidth      = 25; // Floating point data in scientific notation
@@ -1325,110 +1292,6 @@ Castro::problem_sums ()
     int intwidth      = 12; // Integer data
 
     wd_dist_init[problem::axis_1 - 1] = 1.0;
-
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
-
-      // Get the current level from Castro
-
-      Castro& ca_lev = getLevel(lev);
-
-      for ( int i = 0; i < 3; i++ ) {
-        com[i] += ca_lev.locWgtSum("density", time, i, local_flag);
-      }
-
-      // Calculate total mass, momentum, angular momentum, and energy of system.
-
-      mass += ca_lev.volWgtSum("density", time, local_flag);
-
-      momentum[0] += ca_lev.volWgtSum("inertial_momentum_x", time, local_flag);
-      momentum[1] += ca_lev.volWgtSum("inertial_momentum_y", time, local_flag);
-      momentum[2] += ca_lev.volWgtSum("inertial_momentum_z", time, local_flag);
-
-      angular_momentum[0] += ca_lev.volWgtSum("inertial_angular_momentum_x", time, local_flag);
-      angular_momentum[1] += ca_lev.volWgtSum("inertial_angular_momentum_y", time, local_flag);
-      angular_momentum[2] += ca_lev.volWgtSum("inertial_angular_momentum_z", time, local_flag);
-
-#ifdef HYBRID_MOMENTUM
-      hybrid_momentum[0] += ca_lev.volWgtSum("rmom", time, local_flag);
-      hybrid_momentum[1] += ca_lev.volWgtSum("lmom", time, local_flag);
-      hybrid_momentum[2] += ca_lev.volWgtSum("pmom", time, local_flag);
-#endif
-
-      rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
-      rho_K += ca_lev.volWgtSum("kineng",time, local_flag);
-      rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
-
-#ifdef GRAVITY
-      if (do_grav)
-        rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
-#endif
-
-#ifdef ROTATION
-      if (do_rotation)
-	rho_phirot += ca_lev.volWgtSum("rho_phiRot", time, local_flag);
-#endif
-
-    }
-
-    // Do the reductions.
-
-    int nfoo_sum = 18;
-
-    amrex::Vector<Real> foo_sum(nfoo_sum);
-
-    foo_sum[0] = mass;
-
-    for (int i = 0; i < 3; i++) {
-      foo_sum[i+1]  = com[i];
-      foo_sum[i+4]  = momentum[i];
-      foo_sum[i+7]  = angular_momentum[i];
-      foo_sum[i+10] = hybrid_momentum[i];
-    }
-
-    foo_sum[13] = rho_E;
-    foo_sum[14] = rho_K;
-    foo_sum[15] = rho_e;
-    foo_sum[16] = rho_phi;
-    foo_sum[17] = rho_phirot;
-
-    amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
-
-    mass = foo_sum[0];
-
-    for (int i = 0; i < 3; i++) {
-      com[i]              = foo_sum[i+1];
-      momentum[i]         = foo_sum[i+4];
-      angular_momentum[i] = foo_sum[i+7];
-      hybrid_momentum[i]  = foo_sum[i+10];
-    }
-
-    rho_E      = foo_sum[13];
-    rho_K      = foo_sum[14];
-    rho_e      = foo_sum[15];
-    rho_phi    = foo_sum[16];
-    rho_phirot = foo_sum[17];
-
-    // Complete calculations for energy and momenta
-
-    gravitational_energy = rho_phi;
-    if (gravity->get_gravity_type() == "PoissonGrav")
-      gravitational_energy *= 0.5; // avoids double counting
-    internal_energy = rho_e;
-    kinetic_energy = rho_K;
-    gas_energy = rho_E;
-    rotational_energy = rho_phirot;
-    total_E_grid = gravitational_energy + rho_E;
-    total_energy = total_E_grid + rotational_energy;
-
-    // Complete calculations for center of mass quantities
-
-    for ( int i = 0; i < 3; i++ ) {
-
-      com[i]       = com[i] / mass;
-      com_vel[i]   = momentum[i] / mass;
-
-    }
 
     com_P_mag += std::pow( std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5 );
     com_S_mag += std::pow( std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5 );
