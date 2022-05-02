@@ -483,14 +483,6 @@ rotation_include_centrifugal int           1                  n        ROTATION
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  n        ROTATION
 
-# Which reference frame to measure the state variables with respect to.
-# The standard in the literature when using a rotating reference frame
-# is to measure the state variables with respect to an observer fixed
-# in that rotating frame. If this option is disabled by setting it to 0,
-# the state variables will be measured with respect to an observer fixed
-# in the inertial frame (but the frame will still rotate).
-state_in_rotating_frame     int           1                  n        ROTATION
-
 # determines how the rotation source terms are added to the momentum and
 # energy equations
 rot_source_type              int           4                  n        ROTATION

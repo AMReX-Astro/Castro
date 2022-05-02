@@ -68,9 +68,6 @@ The main parameters that affect rotation are:
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
 
--  ``castro.state_in_rotating_frame`` : whether state
-   variables are measured in the rotating frame (default: 1)
-
 -  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
 
