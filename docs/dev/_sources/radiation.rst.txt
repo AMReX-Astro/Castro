@@ -56,7 +56,7 @@ replacing ``/path/to/Hypre/install`` with the target location
 where you want the Hypre files to be installed.
 ::
 
-   HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+   CUDA_HOME=$OLCF_CUDA_ROOT HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
    make install
 
 Then, when you are building Castro, you would build with

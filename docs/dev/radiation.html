@@ -196,8 +196,8 @@ should load the <code class="docutils literal notranslate"><span class="pre">gcc
 then do the following from the Hypre <code class="docutils literal notranslate"><span class="pre">src/</span></code> directory,
 replacing <code class="docutils literal notranslate"><span class="pre">/path/to/Hypre/install</span></code> with the target location
 where you want the Hypre files to be installed.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HYPRE_CUDA_SM</span><span class="o">=</span><span class="mi">70</span> <span class="n">CXX</span><span class="o">=</span><span class="n">mpicxx</span> <span class="n">CC</span><span class="o">=</span><span class="n">mpicc</span> <span class="n">FC</span><span class="o">=</span><span class="n">mpifort</span> <span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">Hypre</span><span class="o">/</span><span class="n">install</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">MPI</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">cuda</span> <span class="o">--</span><span class="n">enable</span><span class="o">-</span><span class="n">unified</span><span class="o">-</span><span class="n">memory</span>
-<span class="n">make</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CUDA_HOME=$OLCF_CUDA_ROOT HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+make install
 </pre></div>
 </div>
 <p>Then, when you are building Castro, you would build with
