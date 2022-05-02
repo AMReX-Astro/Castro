@@ -848,48 +848,37 @@ on and off</p></td>
 and off</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">state_in_rotating_frame</span></code></p></td>
-<td><p>Which reference frame to measure the state variables with
-respect to. The standard in the literature when using a
-rotating reference frame is to measure the state variables
-with respect to an observer fixed in that rotating frame.
-If this option is disabled by setting it to 0, the state
-variables will be measured with respect to an observer
-fixed in the inertial frame (but the frame will still
-rotate).</p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rot_source_type</span></code></p></td>
 <td><p>determines how the rotation source terms are added to the
 momentum and energy equations</p></td>
 <td><p>4</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">implicit_rotation_update</span></code></p></td>
 <td><p>we can do a implicit solution of the rotation update to
 allow for better coupling of the Coriolis terms</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></p></td>
 <td><p>the coordinate axis (<span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(y=2\)</span>, <span class="math notranslate nohighlight">\(z=3\)</span>)
 for the rotation vector</p></td>
 <td><p>3</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></p></td>
 <td><p>include a central point mass</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass</span></code></p></td>
 <td><p>mass of the point mass</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code></p></td>
 <td><p>if we have a central point mass, we can prevent mass from
 building up in the zones adjacent to it by keeping their
 density constant and adding their mass to the point mass
 object</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gw_dist</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gw_dist</span></code></p></td>
 <td><p>Distance (in kpc) used for calculation of the gravitational
 wave amplitude (this wil be calculated along all three
 coordinate axes). Only relevant if castro.sum_interval &gt; 0
@@ -897,12 +886,12 @@ and if set to a positive number. A standard value in the
 literature is 10.0 (kpc).</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code></p></td>
 <td><p>This integer is used to activate parallel plane 1/r**2
 gravity.</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code></p></td>
 <td></td>
 <td><p>0.0</p></td>
 </tr>

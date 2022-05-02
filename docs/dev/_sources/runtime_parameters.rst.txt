@@ -430,7 +430,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -453,15 +453,6 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``rotation_include_coriolis``              | permits the Coriolis terms in the rotation to be turned on  | 1             |
 |                                            | and off                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``state_in_rotating_frame``                | Which reference frame to measure the state variables with   | 1             |
-|                                            | respect to. The standard in the literature when using a     |               |
-|                                            | rotating reference frame is to measure the state variables  |               |
-|                                            | with respect to an observer fixed in that rotating frame.   |               |
-|                                            | If this option is disabled by setting it to 0, the state    |               |
-|                                            | variables will be measured with respect to an observer      |               |
-|                                            | fixed in the inertial frame (but the frame will still       |               |
-|                                            | rotate).                                                    |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``rot_source_type``                        | determines how the rotation source terms are added to the   | 4             |
 |                                            | momentum and energy equations                               |               |
