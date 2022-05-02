@@ -919,6 +919,22 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro9volWgtSumERK8MultiFabibb">
+<span id="_CPPv3N6Castro9volWgtSumERK8MultiFabibb"></span><span id="_CPPv2N6Castro9volWgtSumERK8MultiFabibb"></span><span id="Castro::volWgtSum__MultiFabCR.i.b.b"></span><span class="target" id="classCastro_1a6bd8e66825a5b295ecc6fae6ef52f544"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">volWgtSum</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">local</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">finemask</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro9volWgtSumERK8MultiFabibb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Volume weighted sum of given quantity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mf</strong> – MultiFab containing quantity </p></li>
+<li><p><strong>comp</strong> – integer index of quantity in MultiFab </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<li><p><strong>finemask</strong> – boolean, should we build a mask to exclude finer levels? </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb">
 <span id="_CPPv3N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb"></span><span id="_CPPv2N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb"></span><span id="Castro::volWgtSum__ssCR.amrex::Real.b.b"></span><span class="target" id="classCastro_1a3e457aa8e25326d7b86b051b46fa4b46"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">volWgtSum</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">local</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">finemask</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Volume weighted sum of given quantity</p>
@@ -935,14 +951,15 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb">
-<span id="_CPPv3N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb"></span><span id="_CPPv2N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volWgtSquaredSum__ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a63511f083e6de17c619f47696396e51c"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">volWgtSquaredSum</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">local</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Volume weight sum of (given quantity) squared</p>
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro9locWgtSumERK8MultiFabiib">
+<span id="_CPPv3N6Castro9locWgtSumERK8MultiFabiib"></span><span id="_CPPv2N6Castro9locWgtSumERK8MultiFabiib"></span><span id="Castro::locWgtSum__MultiFabCR.i.i.b"></span><span class="target" id="classCastro_1a7858e066d61a4692c102e02104cb42d9"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">locWgtSum</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">idir</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">local</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro9locWgtSumERK8MultiFabiib" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sum weighted by volume multiplied by distance from center in given direction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – Name of quantity </p></li>
-<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>mf</strong> – MultiFab containing quantity </p></li>
+<li><p><strong>comp</strong> – integer index of quantity in MultiFab </p></li>
+<li><p><strong>idir</strong> – Axis along which to compute distance from center </p></li>
 <li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
@@ -959,6 +976,23 @@
 <li><p><strong>name</strong> – Name of quantity </p></li>
 <li><p><strong>time</strong> – current time </p></li>
 <li><p><strong>idir</strong> – Axis along which to compute distance from center </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro13volProductSumERK8MultiFabRK8MultiFabiib">
+<span id="_CPPv3N6Castro13volProductSumERK8MultiFabRK8MultiFabiib"></span><span id="_CPPv2N6Castro13volProductSumERK8MultiFabRK8MultiFabiib"></span><span id="Castro::volProductSum__MultiFabCR.MultiFabCR.i.i.b"></span><span class="target" id="classCastro_1a8171de8ea74f9fab811915e32e45d4f9"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">volProductSum</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mf1</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mf2</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp1</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">comp2</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">local</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro13volProductSumERK8MultiFabRK8MultiFabiib" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Volume weighted sum of the product of two quantities</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mf1</strong> – MultiFab containing first quantity </p></li>
+<li><p><strong>mf2</strong> – MultiFab containing second quantity </p></li>
+<li><p><strong>comp1</strong> – integer index of quantity in first MultiFab </p></li>
+<li><p><strong>comp2</strong> – integer index of quantity in second MultiFab </p></li>
 <li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
@@ -1136,7 +1170,7 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv3N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::enforce_consistent_e__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a982af13433c9fafdcdb3beaaf56fe865"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">enforce_consistent_e</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Bx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">By</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Bz</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">S</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Enforces (\  E =  e + {1}{2}  (u^2 + v^2 + w^2) )</p>
+<dd><p>Enforces \f(\ \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2) \f)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>S</strong> – State </p>
@@ -1824,6 +1858,16 @@
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro12no_tile_sizeE">
 <span id="_CPPv3N6Castro12no_tile_sizeE"></span><span id="_CPPv2N6Castro12no_tile_sizeE"></span><span id="Castro::no_tile_size__amrex::IntVect"></span><span class="target" id="classCastro_1a24c3612ddc0c618ba600c9aa341fd87c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">IntVect</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">no_tile_size</span></span></span><a class="headerlink" href="#_CPPv4N6Castro12no_tile_sizeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro30hydro_tile_size_has_been_tunedE">
+<span id="_CPPv3N6Castro30hydro_tile_size_has_been_tunedE"></span><span id="_CPPv2N6Castro30hydro_tile_size_has_been_tunedE"></span><span id="Castro::hydro_tile_size_has_been_tuned__i"></span><span class="target" id="classCastro_1a22af0a8f0be664b82de091e64d2570ed"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydro_tile_size_has_been_tuned</span></span></span><a class="headerlink" href="#_CPPv4N6Castro30hydro_tile_size_has_been_tunedE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro39largest_box_from_hydro_tile_size_tuningE">
+<span id="_CPPv3N6Castro39largest_box_from_hydro_tile_size_tuningE"></span><span id="_CPPv2N6Castro39largest_box_from_hydro_tile_size_tuningE"></span><span id="Castro::largest_box_from_hydro_tile_size_tuning__Long"></span><span class="target" id="classCastro_1af12e9e857640f879c5041451919e67a3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">Long</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">largest_box_from_hydro_tile_size_tuning</span></span></span><a class="headerlink" href="#_CPPv4N6Castro39largest_box_from_hydro_tile_size_tuningE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">

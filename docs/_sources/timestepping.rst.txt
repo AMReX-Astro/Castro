@@ -227,13 +227,15 @@ A retry can be triggered by a number of conditions:
 
   * A negative density is encountered
 
+  * The mass fractions fall outside of :math:`[0, 1]` -- we use
+    ``castro.abundance_failure_tolerance`` with a default value of
+    ``0.01`` to trigger the retry.
+
   * Integration failure in the burner
 
-    Note: this requires that the following be set in your ``&extern``
-    namelist::
+    Note: this requires that the following be set in your ``inputs``:
 
-      retry_burn = F
-      abort_on_failure = F
+      integrator.abort_on_failure = F
 
     This instructs the integration routine in Microphysics to not
     abort when the integration fails, but instead to tell the calling
@@ -242,7 +244,7 @@ A retry can be triggered by a number of conditions:
 
     .. note::
 
-       The combination of ``use_retry = 0`` and ``abort_on_failure = F``
+       The combination of ``castro.use_retry = 0`` and ``integrator.abort_on_failure = F``
        is unsafe and not supported.
 
        For true SDC, we disable retry and reset ``abort_on_failure`` to

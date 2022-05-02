@@ -132,6 +132,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filter_8H.html">File filter.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="flatten_8H.html">File flatten.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
@@ -199,10 +200,23 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="advection__util_8H_1afbcd4da676b67548f1911e99ca401711"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">void</span> <span class="pre">dflux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;u,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NQ</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">int</span> <span class="pre">dir,</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;idx,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux)</span></span></dt>
+<span class="target" id="advection__util_8H_1a2acb8d081bada15e9d42a51d83c047ac"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">dflux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;u,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NQ</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">int</span> <span class="pre">dir,</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;idx,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux)</span></span></dt>
 <dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv45hydro">
+<span id="_CPPv35hydro"></span><span id="_CPPv25hydro"></span><span id="hydro"></span><span class="target" id="namespacehydro"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydro</span></span></span><a class="headerlink" href="#_CPPv45hydro" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespacehydro_1ace45ee0d16cce2c93a2c3ed3ed2722f8"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">src_to_prim</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;q_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;old_src,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;src_corr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;srcQ)</span></span></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 
 
