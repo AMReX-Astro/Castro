@@ -39,12 +39,6 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
-#ifdef RADIATION
-  int is_comoving = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
-#endif
-
 #ifdef ROTATION
   GeometryData geomdata = geom.data();
 #endif
@@ -176,7 +170,6 @@ Castro::ctoprim(const Box& bx,
     Real ctot;
     Real gamc_tot;
     compute_ptot_ctot(lams, qs,
-                      is_comoving, limiter, closure,
                       qaux_arr(i,j,k,QCG),
                       ptot, ctot, gamc_tot);
 
