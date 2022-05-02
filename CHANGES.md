@@ -1,3 +1,9 @@
+# 22.06
+
+   * The option castro.state_in_rotating_frame has been removed. The default
+     behavior continues to be that when rotation is being used, fluid variables
+     are measured with respect to the rotating frame. (#2172)
+
 # 22.05
 
    * A new option castro.hydro_memory_footprint_ratio has been added which
