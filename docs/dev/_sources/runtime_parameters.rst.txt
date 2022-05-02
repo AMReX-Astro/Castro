@@ -801,7 +801,7 @@ namespace: ``particles``
 namespace: ``radiation``
 ------------------------
 
-.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold
+.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold, radiation.comoving, radiation.closure, radiation.limiter, radiation.fspace_advection_type
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -810,6 +810,17 @@ namespace: ``radiation``
 | ``prop_temp_floor``                        |                                                             | 0.0           |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``flatten_pp_threshold``                   |                                                             | -1.0          |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``comoving``                               | are we in a comoving reference frame?                       | 1             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``closure``                                | which closure relation to use 0: f = lambda 1: f = 1/3 2: f | 3             |
+|                                            | = 1 - 2 * lambda 3: f = lambda + (lambda * R)^2 4: f = 1/3  |               |
+|                                            | + 2/3 (lambda * R)^2                                        |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``limiter``                                | which limiter to use 0: no limiter 2: Lev-Pom limiter 12:   | 2             |
+|                                            | Bruenn 22: square root 32: Minerbo                          |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``fspace_advection_type``                  | frequency space advection type                              | 2             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 
