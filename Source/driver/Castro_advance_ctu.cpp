@@ -333,16 +333,6 @@ Castro::do_advance_ctu(Real time,
 
         if (do_react) {
 
-            // store the current conserved state (without burning) into
-            // Simplified_SDC_React_Type -- this will be used after the burn
-            // to figure out just the effect of reactions
-
-            // we are actually abusing this MF a bit, since it has NQ components,
-            // are we are storing NUM_STATE there now, so this assumes NQ >= NUM_STATE
-
-            MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
-            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
-
             // Do the ODE integration to capture the reaction source terms.
 
             bool burn_success = react_state(time, dt);
@@ -358,15 +348,6 @@ Castro::do_advance_ctu(Real time,
             MultiFab& S_new = get_new_data(State_Type);
 
             clean_state(S_new, time + dt, S_new.nGrow());
-
-            // Compute the reactive source term for use in the next iteration.
-
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            if (add_sdc_react_source_to_advection) {
-                get_react_source_prim(SDC_react_new, time, dt);
-            } else {
-                SDC_react_new.setVal(0.0);
-            }
 
             // Check for NaN's.
 
