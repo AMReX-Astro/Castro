@@ -125,27 +125,37 @@ def doit(variables_file, odir, defines, nadv):
             else:
 
                 # this splits the line into separate fields.  A field is a
-                # single word or a pair in parentheses like "(a, b)"
-                fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
+                # single word or, for the "also adds to" section, a group in []
+                fields = re.findall(r'[\w-]+|\[.*?\]', line)
 
                 name = fields[0]
                 var = fields[1]
-                adds_to = fields[2]
+                adds_to_temp = fields[2]
                 count = fields[3]
                 ifdef = fields[4]
 
                 # we may be fed a pair of the form (SET, DEFINE),
                 # in which case we only add to SET if we define
                 # DEFINE
-                if adds_to.startswith("("):
-                    add_set, define = split_pair(adds_to)
-                    if not define in defines:
+                if adds_to_temp.startswith("["):
+                    # now split it into entities that are either single
+                    # (counter, ifdef) or just (counter)
+                    subfields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', adds_to_temp)
+
+                    # loop over the subfields and build a list of tuples
+                    adds_to = []
+                    for s in subfields:
+                        if s.startswith("("):
+                            counter, define = re.findall(r'[\w]+', s)
+                            if define in defines:
+                                adds_to.append(counter)
+                        else:
+                            adds_to.append(s)
+                else:
+                    if adds_to_temp == "None":
                         adds_to = None
                     else:
-                        adds_to = add_set
-
-                if adds_to == "None":
-                    adds_to = None
+                        adds_to = [adds_to_temp]
 
                 # only recognize the index if we defined any required preprocessor variable
                 if ifdef == "None" or ifdef in defines:
@@ -170,7 +180,13 @@ def doit(variables_file, odir, defines, nadv):
         set_indices = [q for q in indices if q.iset == s]
 
         # these indices may also add to other counters
-        adds_to = {q.adds_to for q in set_indices if q.adds_to is not None}
+        adds_to = []
+        for q in set_indices:
+            if q.adds_to is not None:
+                for v in q.adds_to:
+                    adds_to.append(v)
+
+        adds_to = set(adds_to)
 
         # initialize the counters
         counter_main = Counter(default_set[s])
@@ -187,9 +203,9 @@ def doit(variables_file, odir, defines, nadv):
 
             # increment the counters
             counter_main.add_index(i)
-            if i.adds_to is not None:
+            if i.adds_to:
                 for ca in counter_adds:
-                    if ca.name == i.adds_to:
+                    if ca.name in i.adds_to:
                         ca.add_index(i)
 
 
