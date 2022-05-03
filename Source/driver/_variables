@@ -16,9 +16,9 @@
    energy-density         UEDEN     NSRC                                  1                 None
    internal-energy        UEINT     NSRC                                  1                 None
    temperature            UTEMP     NSRC                                  1                 None
-   advected               UFA       NONE                                  NumAdv            None
-   species                UFS       NONE                                  NumSpec           None
-   auxiliary              UFX       NONE                                  NumAux            None
+   advected               UFA       None                                  NumAdv            None
+   species                UFS       None                                  NumSpec           None
+   auxiliary              UFX       None                                  NumAux            None
    shock                  USHK      None                                  1                 SHOCK_VAR
 
 
@@ -35,9 +35,9 @@
    B-y                    QMAGY     NQSRC                                   1                 MHD
    B-z                    QMAGZ     NQSRC                                   1                 MHD
    temperature            QTEMP     NQSRC                                   1                 None
-   advected               QFA       NONE                                    NumAdv            None
-   species                QFS       NONE                                    NumSpec           None
-   auxiliary              QFX       NONE                                    NumAux            None
+   advected               QFA       None                                    NumAdv            None
+   species                QFS       None                                    NumSpec           None
+   auxiliary              QFX       None                                    NumAux            None
    total-pressure         QPTOT     None                                    1                 RADIATION
    total-pressure         QPTOT     None                                    1                 MHD
    total-reint            QREITOT   None                                    1                 RADIATION
