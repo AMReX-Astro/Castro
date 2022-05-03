@@ -72,17 +72,6 @@ void src_to_prim(int i, int j, int k, const Real dt,
       (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
       rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-      int n = upassmap(ipassive);
-      int iq = qpassmap(ipassive);
-
-      // note: this does not include any SDC sources -- those are
-      // computed and stored separately
-      srcQ(i,j,k,iq) = (srcU[n] - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
-        q_arr(i,j,k,QRHO);
-    }
-#endif
 }
 
 ///
