@@ -320,12 +320,6 @@ Castro::react_state(Real time, Real dt)
 
     const int ng = S_new.nGrow();
 
-    // Create a MultiFab with all of the non-reacting source terms.
-    // This is the term A = -div{F} + 0.5 * (old_source + new_source)
-
-    MultiFab A_src(grids, dmap, NUM_STATE, ng);
-    make_sdc_hydro_plus_sources(A_src, dt);
-
     MultiFab& reactions = get_new_data(Reactions_Type);
 
     reactions.setVal(0.0, reactions.nGrow());
@@ -346,7 +340,6 @@ Castro::react_state(Real time, Real dt)
 
         auto U_old = S_old.array(mfi);
         auto U_new = S_new.array(mfi);
-        auto asrc = A_src.array(mfi);
         auto react_src = reactions.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
@@ -431,20 +424,42 @@ Castro::react_state(Real time, Real dt)
                 do_burn = false;
             }
 
-            // Tell the integrator about the non-reacting source terms.
+            // Tell the integrator about the non-reacting source terms,
+            // which are advective_source + 1/2 (old source + new source).
+            //
+            // We have the following:
+            //
+            // U_new:      U^n - dt div{F} + dt/2 (S^n + S^{n+1})
+            // U_old:      U^n
+            //
+            // So we can compute:
+            //
+            //   (1 / dt) * (U_new - U_old)
+            //
+            // To get the non-reacting sources:
+            //
+            //   -div{F} + (1/2) (S^n + S^{n+1})
 
-            burn_state.ydot_a[SRHO] = asrc(i,j,k,URHO);
-            burn_state.ydot_a[SMX] = asrc(i,j,k,UMX);
-            burn_state.ydot_a[SMY] = asrc(i,j,k,UMY);
-            burn_state.ydot_a[SMZ] = asrc(i,j,k,UMZ);
-            burn_state.ydot_a[SEDEN] = asrc(i,j,k,UEDEN);
-            burn_state.ydot_a[SEINT] = asrc(i,j,k,UEINT);
+            Real dtInv = 1.0_rt / dt;
+            Real asrc[NUM_STATE];
+            for (int n = 0; n < NUM_STATE; ++n) {
+                asrc[n] = (U_new(i,j,k,n) - U_old(i,j,k,n)) * dtInv;
+            }
+
+            burn_state.ydot_a[SRHO] = asrc[URHO];
+            burn_state.ydot_a[SMX] = asrc[UMX];
+            burn_state.ydot_a[SMY] = asrc[UMY];
+            burn_state.ydot_a[SMZ] = asrc[UMZ];
+            burn_state.ydot_a[SEDEN] = asrc[UEDEN];
+            burn_state.ydot_a[SEINT] = asrc[UEINT];
             for (int n = 0; n < NumSpec; n++) {
-                burn_state.ydot_a[SFS+n] = asrc(i,j,k,UFS+n);
+                burn_state.ydot_a[SFS+n] = asrc[UFS+n];
             }
+#if NAUX_NET > 0
             for (int n = 0; n < NumAux; n++) {
-                burn_state.ydot_a[SFX+n] = asrc(i,j,k,UFX+n);
+                burn_state.ydot_a[SFX+n] = asrc[UFX+n];
             }
+#endif
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -493,17 +508,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc[UEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc[UFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc[UFX+n];
                         }
 #endif
                     }

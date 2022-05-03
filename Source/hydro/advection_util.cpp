@@ -39,16 +39,6 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
-#ifdef RADIATION
-  int is_comoving = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
-#endif
-
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
-
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -97,24 +87,6 @@ Castro::ctoprim(const Box& bx,
     } else {
       q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
     }
-
-    // If we're advecting in the rotating reference frame,
-    // then subtract off the rotation component here.
-
-#ifdef ROTATION
-    if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-      GpuArray<Real, 3> vel;
-      for (int n = 0; n < 3; n++) {
-        vel[n] = uin(i,j,k,UMX+n) * rhoinv;
-      }
-
-      inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-      q_arr(i,j,k,QU) = vel[0];
-      q_arr(i,j,k,QV) = vel[1];
-      q_arr(i,j,k,QW) = vel[2];
-    }
-#endif
 
     q_arr(i,j,k,QTEMP) = uin(i,j,k,UTEMP);
 #ifdef RADIATION
@@ -176,7 +148,6 @@ Castro::ctoprim(const Box& bx,
     Real ctot;
     Real gamc_tot;
     compute_ptot_ctot(lams, qs,
-                      is_comoving, limiter, closure,
                       qaux_arr(i,j,k,QCG),
                       ptot, ctot, gamc_tot);
 

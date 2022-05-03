@@ -977,7 +977,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     BL_ASSERT(ngrow == 4);
   }
 
-  if (limiter == 0) {
+  if (radiation::limiter == 0) {
 
     lamborder.setVal(1./3., ngrow);
 
@@ -1009,7 +1009,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
         (BL_TO_FORTRAN(Er_wide[mfi]), 
          BL_TO_FORTRAN(kpr[mfi]),
          BL_TO_FORTRAN(lamborder[mfi]), 
-         dx, &ngrow, &limiter, &filter_lambda_T, &filter_lambda_S);
+         dx, &ngrow, &radiation::limiter, &filter_lambda_T, &filter_lambda_S);
     }
 
     if (filter_lambda_T) {
@@ -1025,7 +1025,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
     auto gPr_arr = gPr.array();
     auto Er_arr = Er.array();
 
-    if (limiter == 0) {
+    if (radiation::limiter == 0) {
 
         amrex::ParallelFor(gPr.box(),
         [=] AMREX_GPU_DEVICE (int i, int j, int k)
@@ -1108,8 +1108,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
 #endif
 
         amrex::ParallelFor(gPr.box(),
-        [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
-        AMREX_GPU_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
             gPr_arr(i,j,k) = 0.0_rt;
 
@@ -1457,11 +1456,11 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
                 Real gE = std::sqrt(gE1 * gE1 + gE2 * gE2 + gE3 * gE3);
 
                 Real r = gE / (kappa_r_arr(i,j,k,g) * amrex::max(Er_arr(i,j,k,g), 1.e-50_rt));
-                Real lam = FLDlambda(r, limiter);
+                Real lam = FLDlambda(r);
 
                 Real gamr;
-                if (comoving == 1) {
-                    Real f = Edd_factor(lam, limiter, closure);
+                if (radiation::comoving == 1) {
+                    Real f = Edd_factor(lam);
                     gamr = (3.0_rt - f) / 2.0_rt;
                 }
                 else {

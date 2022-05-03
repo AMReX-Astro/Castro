@@ -134,7 +134,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     // If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
 
-    if (((castro::do_rotation != 1) || ((castro::do_rotation == 1) && (castro::state_in_rotating_frame != 1))) && (problem::problem == 1)) {
+    if (castro::do_rotation != 1 && problem::problem == 1) {
 
         GpuArray<Real, 3> rot_loc = {loc[0], loc[1], loc[2]};
 
