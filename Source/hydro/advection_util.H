@@ -7,6 +7,10 @@
 #include <hybrid.H>
 #endif
 
+#ifdef RADIATION
+#include <rad_util.H>
+#endif
+
 namespace hydro {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -159,15 +163,15 @@ void conservative_to_primitive(int i, int j, int k,
     q(QTEMP) = uin(i,j,k,UTEMP);
 #ifdef RADIATION
     for (int g = 0; g < NGROUPS; g++) {
-      q(QRAD+g) = Erin(i,j,k,g);
+        q(QRAD+g) = Erin(i,j,k,g);
     }
 #endif
 
-    // Load passively advected quatities into q
+    // Load passively advected quantities into q
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upassmap(ipassive);
-      int iq = qpassmap(ipassive);
-      q(iq) = uin(i,j,k,n) * rhoinv;
+        int n  = upassmap(ipassive);
+        int iq = qpassmap(ipassive);
+        q(iq) = uin(i,j,k,n) * rhoinv;
     }
 
     // get gamc, p, T, c, csml using q state
@@ -180,7 +184,7 @@ void conservative_to_primitive(int i, int j, int k,
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = q(QFX+n);
+        eos_state.aux[n] = q(QFX+n);
     }
 #endif
 
@@ -195,9 +199,9 @@ void conservative_to_primitive(int i, int j, int k,
 
 #ifdef MHD
     q(QPTOT) = q(QPRES) +
-      0.5_rt * (q(QMAGX) * q(QMAGX) +
-                q(QMAGY) * q(QMAGY) +
-                q(QMAGZ) * q(QMAGZ));
+               0.5_rt * (q(QMAGX) * q(QMAGX) +
+                         q(QMAGY) * q(QMAGY) +
+                         q(QMAGZ) * q(QMAGZ));
 #endif
 
 #ifdef RADIATION
@@ -206,11 +210,11 @@ void conservative_to_primitive(int i, int j, int k,
 
     Real lams[NGROUPS];
     for (int g = 0; g < NGROUPS; g++) {
-      lams[g] = lam(i,j,k,g);
+        lams[g] = lam(i,j,k,g);
     }
     Real qs[NQ];
     for (int n = 0; n < NQ; n++) {
-      qs[n] = q(n);
+        qs[n] = q(n);
     }
     Real ptot;
     Real ctot;
@@ -226,8 +230,8 @@ void conservative_to_primitive(int i, int j, int k,
 
     q(QREITOT) = q(QREINT);
     for (int g = 0; g < NGROUPS; g++) {
-      qaux(QLAMS+g) = lam(i,j,k,g);
-      q(QREITOT) += q(QRAD+g);
+        qaux(QLAMS+g) = lam(i,j,k,g);
+        q(QREITOT) += q(QRAD+g);
     }
 #else
     qaux(QGAMC) = eos_state.gam1;
