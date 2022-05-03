@@ -1127,20 +1127,16 @@ sums (for runtime diagnostics)</p></td>
 runtime diagnostics)</p></td>
 <td><p>-1.0e0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></p></td>
-<td><p>display center of mass diagnostics</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
 <td><p>a string describing the simulation that will be copied into
 the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</p></td>
 <td><p>“Castro”</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
 <td><p>write a final plotfile and checkpoint upon completion</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
 <td><p>Do we want to reset the time in the checkpoint? This ONLY
 takes effect if amr.regrid_on_restart = 1 and
 amr.checkpoint_on_restart = 1, (which require that max_step
@@ -1148,7 +1144,7 @@ and stop_time be less than the value in the checkpoint) and
 you set it to value greater than this default value.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
 <td><p>Do we want to reset the number of steps in the checkpoint?
 This ONLY takes effect if amr.regrid_on_restart = 1 and
 amr.checkpoint_on_restart = 1, (which require that max_step
@@ -1156,19 +1152,19 @@ and stop_time be less than the value in the checkpoint) and
 you set it to value greater than this default value.</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">store_omegadot</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">store_omegadot</span></code></p></td>
 <td><p>Do we store the species creation rates in the plotfile?
 Note, if this option is enabled then more memory will be
 allocated to hold the results of the burn</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">store_burn_weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">store_burn_weights</span></code></p></td>
 <td><p>Do we store the burn weights as a diagnostic in the
 plotfile?    Note, if this option is enabled then more
 memory will be allocated to hold the results of the burn</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">abort_on_invalid_params</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abort_on_invalid_params</span></code></p></td>
 <td><p>Do we abort the run if the inputs file specifies a runtime
 parameter that we don’t know about?  Note: this will only
 take effect for those namespaces where 100% of the runtime
