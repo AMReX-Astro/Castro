@@ -43,7 +43,7 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     state(i,j,k,URHO)  = zone_state.rho;
-    state(i,j,k,UMX)   = problem::wd_speed;
+    state(i,j,k,UMX)   = zone_state.rho * problem::wd_speed;
     state(i,j,k,UMY)   = 0.0_rt;
     state(i,j,k,UMZ)   = 0.0_rt;
     state(i,j,k,UTEMP) = zone_state.T;
