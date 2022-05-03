@@ -568,7 +568,7 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
-.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star, castro.show_center_of_mass
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star
 
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
@@ -596,8 +596,6 @@ runtime parameters for hydrodynamics:
    cells that are inside the domain to define a radial function. This
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
-
--  ``castro.show_center_of_mass``: (0 or 1; default: 0)
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 

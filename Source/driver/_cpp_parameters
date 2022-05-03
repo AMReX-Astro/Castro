@@ -642,9 +642,6 @@ sum_interval                 int           -1
 # how often (simulation time) to compute integral sums (for runtime diagnostics)
 sum_per                      Real          -1.0e0
 
-# display center of mass diagnostics
-show_center_of_mass          int           0
-
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
 job_name                     string        "Castro"
