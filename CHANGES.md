@@ -1,5 +1,9 @@
 # 22.06
 
+   * The option castro.show_center_of_mass has been removed. If castro.v = 1
+     and castro.sum_interval > 0, then the center of mass will automatically
+     be included with the other diagnostic sums that are displayed. (#2176)
+
    * The option castro.state_in_rotating_frame has been removed. The default
      behavior continues to be that when rotation is being used, fluid variables
      are measured with respect to the rotating frame. (#2172)
