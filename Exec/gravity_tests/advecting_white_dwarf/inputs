@@ -178,6 +178,9 @@ castro.job_name = advecting_white_dwarf
 amr.v = 1
 castro.v = 1
 
+# Sum interval
+castro.sum_interval = 1
+
 # Whether or not to output plotfiles
 amr.plot_files_output = 1
 
