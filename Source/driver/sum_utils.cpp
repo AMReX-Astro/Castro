@@ -106,6 +106,7 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
+        auto const& vol = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
     
         const Box& box = mfi.tilebox();
@@ -139,13 +140,13 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
             Real ds;
 
             if (idir == 0) { // sum(mass * x)
-                ds = fab(i,j,k) * maskFactor * loc[0];
+                ds = fab(i,j,k) * vol(i,j,k) * maskFactor * loc[0];
             }
             else if (idir == 1) { // sum(mass * y)
-                ds = fab(i,j,k) * maskFactor * loc[1];
+                ds = fab(i,j,k) * vol(i,j,k) * maskFactor * loc[1];
             }
             else { // sum(mass * z)
-                ds = fab(i,j,k) * maskFactor * loc[2];
+                ds = fab(i,j,k) * vol(i,j,k) * maskFactor * loc[2];
             }
 
             return {ds};
