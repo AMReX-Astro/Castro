@@ -115,7 +115,7 @@ void conservative_to_primitive(int i, int j, int k,
                                Array4<Real const> const& Erin,
                                Array4<Real const> const& lam,
 #endif
-                               T q, U qaux)
+                               T& q, U& qaux)
 {
 #ifndef AMREX_USE_GPU
     if (uin(i,j,k,URHO) <= 0.0_rt) {
