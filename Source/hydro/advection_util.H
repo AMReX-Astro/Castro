@@ -58,7 +58,7 @@ void src_to_prim(int i, int j, int k, const Real dt,
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = U_arr(i,j,k,QFX+n) * rhoinv;
+      eos_state.aux[n] = U_arr(i,j,k,UFX+n) * rhoinv;
     }
 #endif
 
