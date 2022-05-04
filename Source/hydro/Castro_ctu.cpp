@@ -152,6 +152,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 #ifdef RADIATION
 void
 Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
+                           Array4<Real const> const& U_arr,
                            Array4<Real const> const& q_arr,
                            Array4<Real const> const& qaux_arr,
                            Array4<Real const> const& srcQ,
