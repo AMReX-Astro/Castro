@@ -15,6 +15,7 @@ namespace hydro {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void src_to_prim(int i, int j, int k, const Real dt,
+                 Array4<Real const> const& U_arr,
                  Array4<Real const> const& q_arr,
                  Array4<Real const> const& old_src,
 #ifndef TRUE_SDC
@@ -53,11 +54,11 @@ void src_to_prim(int i, int j, int k, const Real dt,
     eos_state.rho = q_arr(i,j,k,QRHO);
     eos_state.e = q_arr(i,j,k,QREINT) * rhoinv;
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
+      eos_state.xn[n]  = U_arr(i,j,k,UFS+n) * rhoinv;
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = q_arr(i,j,k,QFX+n);
+      eos_state.aux[n] = U_arr(i,j,k,QFX+n) * rhoinv;
     }
 #endif
 
