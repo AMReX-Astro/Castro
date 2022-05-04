@@ -1,4 +1,17 @@
+# 22.06
+
+   * The option castro.show_center_of_mass has been removed. If castro.v = 1
+     and castro.sum_interval > 0, then the center of mass will automatically
+     be included with the other diagnostic sums that are displayed. (#2176)
+
+   * The option castro.state_in_rotating_frame has been removed. The default
+     behavior continues to be that when rotation is being used, fluid variables
+     are measured with respect to the rotating frame. (#2172)
+
 # 22.05
+
+   * A new option castro.hydro_memory_footprint_ratio has been added which
+     can help limit the amount of memory used in GPU builds. (#2153)
 
    * In #1379, for the 21.04 release, Castro added a check that issued
      an abort if any species mass fraction was found to be invalid (defined

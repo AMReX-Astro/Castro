@@ -103,13 +103,6 @@ Castro::actual_trans_single(const Box& bx,
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -239,24 +232,24 @@ Castro::actual_trans_single(const Box& bx,
             dre += -cdtdx * luge[g];
         }
 
-        if (fspace_t == 1 && comov) {
+        if (radiation::fspace_advection_type == 1 && radiation::comoving) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = cdtdx * uav * f1 * (ergp[g] - ergm[g]);
             }
         }
-        else if (fspace_t == 2) {
+        else if (radiation::fspace_advection_type == 2) {
 #if AMREX_SPACEDIM == 2
             Real divu = (area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm) * volinv;
             for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = -hdt * f1 * 0.5_rt * (ergp[g] + ergm[g]) * divu;
             }
 #else
             for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = cdtdx * f1 * 0.5_rt * (ergp[g] + ergm[g]) * (ugm - ugp);
             }
@@ -522,13 +515,6 @@ Castro::actual_trans_final(const Box& bx,
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -702,17 +688,17 @@ Castro::actual_trans_final(const Box& bx,
 
         Real der[NGROUPS];
 
-        if (fspace_t == 1 && comov) {
+        if (radiation::fspace_advection_type == 1 && radiation::comoving) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ugt1p + ugt1m) * (ergt1p[g] - ergt1m[g]) +
                                cdtdx_t2 * 0.5_rt * (ugt2p + ugt2m) * (ergt2p[g] - ergt2m[g]));
             }
         }
-        else if (fspace_t == 2) {
+        else if (radiation::fspace_advection_type == 2) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ergt1p[g] + ergt1m[g]) * (ugt1m - ugt1p) +
                                cdtdx_t2 * 0.5_rt * (ergt2p[g] + ergt2m[g]) * (ugt2m - ugt2p));

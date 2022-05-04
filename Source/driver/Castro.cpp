@@ -134,6 +134,10 @@ IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
+// this records whether we have done tuning on the hydro tile size
+int          Castro::hydro_tile_size_has_been_tuned = 0;
+Long         Castro::largest_box_from_hydro_tile_size_tuning = 0;
+
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
 
@@ -406,14 +410,6 @@ Castro::read_params ()
         std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
         amrex::Error();
       }
-
-#ifdef ROTATION
-    if (dgeom.IsRZ() && state_in_rotating_frame == 0 && use_axisymmetric_geom_source)
-    {
-        std::cerr << "use_axisymmetric_geom_source is not compatible with state_in_rotating_frame=0\n";
-        amrex::Error();
-    }
-#endif
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) {
@@ -4163,18 +4159,12 @@ Castro::make_radial_data(int is_new)
    ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
    ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
 
-   int first = 0;
-   int np_max = 0;
    for (int i = 0; i < numpts_1d; i++) {
        if (radial_vol[i] > 0.)
        {
            for (int j = 0; j < nc; j++) {
                radial_state[nc*i+j] /= radial_vol[i];
            }
-       }
-       else if (first == 0) {
-           np_max = i;
-           first  = 1;
        }
    }
 
@@ -4194,7 +4184,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     BoxArray ba(bx);
     int owner = ParallelDescriptor::IOProcessorNumber();
     DistributionMapping dm { Vector<int>(1,owner) };
-    MultiFab mf(ba,dm,1,0);
+    MultiFab mf(ba, dm, 1, 0, MFInfo().SetArena(The_Managed_Arena()));
 
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
