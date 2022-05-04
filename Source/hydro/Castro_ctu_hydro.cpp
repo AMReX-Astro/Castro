@@ -316,7 +316,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (ppm_type == 0) {
 
         ctu_plm_states(obx, bx,
-                       U_arr,
+                       U_old_arr,
                        q_arr,
                        qaux_arr,
                        src_q_arr,
@@ -336,7 +336,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef RADIATION
         ctu_ppm_rad_states(obx, bx,
-                           U_arr, q_arr, qaux_arr, src_q_arr,
+                           U_old_arr, q_arr, qaux_arr, src_q_arr,
                            qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                            qym_arr, qyp_arr,
@@ -351,7 +351,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
 
         ctu_ppm_states(obx, bx,
-                       U_arr, q_arr, qaux_arr, src_q_arr,
+                       U_old_arr, q_arr, qaux_arr, src_q_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,

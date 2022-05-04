@@ -16,6 +16,7 @@ using namespace amrex;
 void
 Castro::trace_ppm_rad(const Box& bx,
                       const int idir,
+                      Array4<Real const> const& U_arr,
                       Array4<Real const> const& q_arr,
                       Array4<Real const> const& qaux_arr,
                       Array4<Real const> const& srcQ,
@@ -311,7 +312,7 @@ Castro::trace_ppm_rad(const Box& bx,
     // do the passives separately
 
     // the passive stuff is the same regardless of the tracing
-  
+
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
       int n = qpassmap(ipassive);
@@ -493,7 +494,7 @@ Castro::trace_ppm_rad(const Box& bx,
       Real drhoe_g = rhoe_g_ref - Ip[QREINT][1] - hdt*Ip_src[QREINT][1];
 
       Real der[NGROUPS];
-      for (int g = 0; g < NGROUPS; g++) { 
+      for (int g = 0; g < NGROUPS; g++) {
         der[g]  = er_ref[g]  - Ip[QRAD+g][1];
       }
 
@@ -671,7 +672,7 @@ Castro::trace_ppm_rad(const Box& bx,
           qm(i+1,j,k,QRAD+g) += sourcer[g];
         }
         qm(i+1,j,k,QPTOT) = qm(i+1,j,k,QPTOT) + sourcp;
-        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT); 
+        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT);
         for (int g = 0; g < NGROUPS; g++) {
           qm(i+1,j,k,QPTOT) += lamm[g]*sourcer[g];
           qm(i+1,j,k,QREITOT) += qm(i+1,j,k,QRAD+g);
