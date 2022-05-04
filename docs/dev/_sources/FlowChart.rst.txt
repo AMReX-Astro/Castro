@@ -63,7 +63,7 @@ The time-integration method used is controlled by
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
-    method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
+    method to work.
 
 .. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
