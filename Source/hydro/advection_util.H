@@ -104,7 +104,7 @@ void conservative_to_primitive(int i, int j, int k,
                                Array4<Real const> const& Erin,
                                Array4<Real const> const& lam,
 #endif
-                               T& q, U& qaux)
+                               T& q, U& qaux, const bool fill_passives)
 {
 #ifndef AMREX_USE_GPU
     if (uin(i,j,k,URHO) <= 0.0_rt) {
@@ -156,11 +156,13 @@ void conservative_to_primitive(int i, int j, int k,
     }
 #endif
 
-    // Load passively advected quantities into q
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-        int n  = upassmap(ipassive);
-        int iq = qpassmap(ipassive);
-        q(iq) = uin(i,j,k,n) * rhoinv;
+    if (fill_passives) {
+        // Load passively advected quantities into q
+        for (int ipassive = 0; ipassive < npassive; ipassive++) {
+            int n  = upassmap(ipassive);
+            int iq = qpassmap(ipassive);
+            q(iq) = uin(i,j,k,n) * rhoinv;
+        }
     }
 
     // get gamc, p, T, c, csml using q state
@@ -169,11 +171,11 @@ void conservative_to_primitive(int i, int j, int k,
     eos_state.rho = q(QRHO);
     eos_state.e = q(QREINT);
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n]  = q(QFS+n);
+      eos_state.xn[n]  = uin(i,j,k,UFS+n) * rhoinv;
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = q(QFX+n);
+        eos_state.aux[n] = uin(i,j,k,UFX+n) * rhoinv;
     }
 #endif
 
