@@ -7,17 +7,15 @@
 
 The indices are all 0-based.
 
+For the adds-to column, we can take a list of counters or tuples, e.g.,
+  [N1, (N2, DEFINE)]
+where we only add to N2 is DEFINE is defined as a preprocessor variable.
 """
 
 import argparse
 import os
 import re
 
-
-def split_pair(pair_string):
-    """given an option of the form "(val1, val2)", split it into val1 and
-    val2"""
-    return pair_string.replace("(", "").replace(")", "").replace(" ", "").split(",")
 
 class Index:
     """an index that we want to set"""
@@ -163,7 +161,6 @@ def doit(variables_file, odir, defines, nadv):
                                          iset=current_set, also_adds_to=adds_to,
                                          count=count))
 
-
     # find the set of set names
     unique_sets = {q.iset for q in indices}
 
@@ -207,7 +204,6 @@ def doit(variables_file, odir, defines, nadv):
                 for ca in counter_adds:
                     if ca.name in i.adds_to:
                         ca.add_index(i)
-
 
         # store the counters for later writing
         all_counters += [counter_main]
