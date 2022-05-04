@@ -342,7 +342,7 @@ Castro::trace_plm(const Box& bx, const int idir,
           (idir == 2 && k >= vlo[2])) {
 
         Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
-        qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dX;
+        qp(i,j,k,n) = s[i0] + 0.5_rt*(-1.0_rt - spzero)*dX;
       }
 
       // Left state
@@ -350,11 +350,11 @@ Castro::trace_plm(const Box& bx, const int idir,
       Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dX;
 
       if (idir == 0 && i <= vhi[0]) {
-        qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;
+        qm(i+1,j,k,n) = s[i0] + acmpleft;
       } else if (idir == 1 && j <= vhi[1]) {
-        qm(i,j+1,k,n) = q_arr(i,j,k,n) + acmpleft;
+        qm(i,j+1,k,n) = s[i0] + acmpleft;
       } else if (idir == 2 && k <= vhi[2]) {
-        qm(i,j,k+1,n) = q_arr(i,j,k,n) + acmpleft;
+        qm(i,j,k+1,n) = s[i0] + acmpleft;
       }
 
     }
