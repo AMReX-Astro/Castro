@@ -204,29 +204,7 @@ Castro::trace_ppm_rad(const Box& bx,
     for (int n = 0; n < NQ; n++) {
       if (n == QTEMP) continue;
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,n);
-        s[im1] = q_arr(i-1,j,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i+1,j,k,n);
-        s[ip2] = q_arr(i+2,j,k,n);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,n);
-        s[im1] = q_arr(i,j-1,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j+1,k,n);
-        s[ip2] = q_arr(i,j+2,k,n);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,n);
-        s[im1] = q_arr(i,j,k-1,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j,k+1,n);
-        s[ip2] = q_arr(i,j,k+2,n);
-
-      }
-
+      load_stencil(q_arr, idir, i, j, k, n, s);
       ppm_reconstruct(s, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
@@ -270,31 +248,9 @@ Castro::trace_ppm_rad(const Box& bx,
 
       if (do_trace) {
 
-        if (idir == 0) {
-          s[im2] = srcQ(i-2,j,k,n);
-          s[im1] = srcQ(i-1,j,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i+1,j,k,n);
-          s[ip2] = srcQ(i+2,j,k,n);
-
-        } else if (idir == 1) {
-          s[im2] = srcQ(i,j-2,k,n);
-          s[im1] = srcQ(i,j-1,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j+1,k,n);
-          s[ip2] = srcQ(i,j+2,k,n);
-
-        } else {
-          s[im2] = srcQ(i,j,k-2,n);
-          s[im1] = srcQ(i,j,k-1,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j,k+1,n);
-          s[ip2] = srcQ(i,j,k+2,n);
-
-        }
-
-        ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
+          load_stencil(srcQ, idir, i, j, k, n, s);
+          ppm_reconstruct(s, flat, sm, sp);
+          ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
         Ip_src[n][0] = 0.0_rt;
