@@ -482,7 +482,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 amrex::ParallelFor(qbx,
                 [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
-                    hydro::src_to_prim(i, j, k, dt, q_arr, source_in_arr, src_q_arr);
+                    hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
                 });
 
                 mol_plm_reconstruct(obx, idir,
