@@ -17,6 +17,7 @@ void
 Castro::trace_ppm_rad(const Box& bx,
                       const int idir,
                       Array4<Real const> const& U_arr,
+                      Array4<Real const> const& rho_inv_arr,
                       Array4<Real const> const& q_arr,
                       Array4<Real const> const& qaux_arr,
                       Array4<Real const> const& srcQ,
@@ -201,10 +202,25 @@ Castro::trace_ppm_rad(const Box& bx,
     Real Im[NQ][3];
 
 
-    for (int n = 0; n < NQ; n++) {
+    // do the non-passives first
+
+    for (int n = 0; n < NQTHERM; n++) {
       if (n == QTEMP) continue;
 
       load_stencil(q_arr, idir, i, j, k, n, s);
+      ppm_reconstruct(s, flat, sm, sp);
+      ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
+
+    }
+
+    // now the passives
+
+    for (int ipassive = 0; n < npassive ++ipassive) {
+
+      int n = qpassmap(ipassive);
+      int nc = upassmap(ipassive);
+
+      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
       ppm_reconstruct(s, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
