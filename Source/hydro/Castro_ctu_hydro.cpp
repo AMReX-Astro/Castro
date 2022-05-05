@@ -183,10 +183,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       const Box& qbx = amrex::grow(bx, NUM_GROW);
       const Box& qbx3 = amrex::grow(bx, 3);
 
+#ifdef RADIATION
+      q.resize(qbx, NQ);
+#else
       // note: we won't store the passives in q, so we'll compute their
       // primitive versions on demand as needed
-
       q.resize(qbx, NQTHERM);
+#endif
       Elixir elix_q = q.elixir();
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
