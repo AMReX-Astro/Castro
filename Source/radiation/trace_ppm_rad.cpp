@@ -215,7 +215,7 @@ Castro::trace_ppm_rad(const Box& bx,
 
     // now the passives
 
-    for (int ipassive = 0; n < npassive ++ipassive) {
+    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
 
       int n = qpassmap(ipassive);
       int nc = upassmap(ipassive);
