@@ -40,30 +40,30 @@ load_stencil(Array4<Real const> const& q_arr, const int idir,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-load_passive_stencil(Array4<Real const> const& U_arr, const Real rho_inv, const int idir,
+load_passive_stencil(Array4<Real const> const& U_arr, const int idir,
                      const int i, const int j, const int k, const int ncomp,
                      Real* s) {
 
     if (idir == 0) {
-        s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv;
-        s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv;
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv;
-        s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv;
-        s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv;
+        s[im2] = U_arr(i-2,j,k,ncomp) / U_arr(i-2,j,k,URHO);
+        s[im1] = U_arr(i-1,j,k,ncomp) / U_arr(i-1,j,k,URHO);
+        s[i0]  = U_arr(i,j,k,ncomp) / U_arr(i,j,k,URHO);
+        s[ip1] = U_arr(i+1,j,k,ncomp) / U_arr(i+1,j,k,URHO);
+        s[ip2] = U_arr(i+2,j,k,ncomp) / U_arr(i+2,j,k,URHO);
 
       } else if (idir == 1) {
-        s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv;
-        s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv;
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv;
-        s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv;
-        s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv;
+        s[im2] = U_arr(i,j-2,k,ncomp) / U_arr(i,j-2,k,URHO);
+        s[im1] = U_arr(i,j-1,k,ncomp) / U_arr(i,j-1,k,URHO);
+        s[i0]  = U_arr(i,j,k,ncomp) / U_arr(i,j,k,URHO);
+        s[ip1] = U_arr(i,j+1,k,ncomp) / U_arr(i,j+1,k,URHO);
+        s[ip2] = U_arr(i,j+2,k,ncomp) / U_arr(i,j+2,k,URHO);
 
       } else {
-        s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv;
-        s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv;
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv;
-        s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv;
-        s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv;
+        s[im2] = U_arr(i,j,k-2,ncomp) / U_arr(i,j,k-2,URHO);
+        s[im1] = U_arr(i,j,k-1,ncomp) / U_arr(i,j,k-1,URHO);
+        s[i0]  = U_arr(i,j,k,ncomp) / U_arr(i,j,k,URHO);
+        s[ip1] = U_arr(i,j,k+1,ncomp) / U_arr(i,j,k+1,URHO);
+        s[ip2] = U_arr(i,j,k+2,ncomp) / U_arr(i,j,k+2,URHO);
 
       }
 

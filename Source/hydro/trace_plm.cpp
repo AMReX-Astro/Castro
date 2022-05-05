@@ -325,15 +325,13 @@ Castro::trace_plm(const Box& bx, const int idir,
     }
 #endif
 
-    double rho_inv = 1.0 / rho;
-
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int nc = upassmap(ipassive);
       int n = qpassmap(ipassive);
 
       // get the slope
 
-      load_passive_stencil(U_arr, rho_inv, idir, i, j, k, nc, s);
+      load_passive_stencil(U_arr, idir, i, j, k, nc, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state
