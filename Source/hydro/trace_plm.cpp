@@ -17,6 +17,7 @@ using namespace amrex;
 void
 Castro::trace_plm(const Box& bx, const int idir,
                   Array4<Real const> const& U_arr,
+                  Array4<Real const> const& rho_inv_arr,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real> const& qm,
@@ -331,7 +332,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // get the slope
 
-      load_passive_stencil(U_arr, idir, i, j, k, nc, s);
+      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state
