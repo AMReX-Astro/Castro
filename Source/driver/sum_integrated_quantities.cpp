@@ -43,6 +43,10 @@ Castro::sum_integrated_quantities ()
     Real total_energy = 0.0;
 #endif
 
+    Real T_max       = 0.0;
+    Real rho_max     = 0.0;
+    Real ts_te_max   = 0.0;
+
     int datprecision = 16;
 
     int datwidth     = 25; // Floating point data in scientific notation
@@ -55,6 +59,9 @@ Castro::sum_integrated_quantities ()
         MultiFab& S_new = ca_lev.get_new_data(State_Type);
 #ifdef GRAVITY
         MultiFab& phi_new = ca_lev.get_new_data(PhiGrav_Type);
+#endif
+#ifdef REACTIONS
+        MultiFab& R_new = ca_lev.get_new_data(Reactions_Type);
 #endif
 
         mass   += ca_lev.volWgtSum(S_new, URHO, local_flag);
@@ -76,12 +83,107 @@ Castro::sum_integrated_quantities ()
         com[1] += ca_lev.locWgtSum(S_new, URHO, 1, local_flag);
         com[2] += ca_lev.locWgtSum(S_new, URHO, 2, local_flag);
 
-       rho_e += ca_lev.volWgtSum(S_new, UEINT, local_flag);
-       rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
-       rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
+        rho_e += ca_lev.volWgtSum(S_new, UEINT, local_flag);
+        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
+        rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
 #ifdef GRAVITY
         if (gravity->get_gravity_type() == "PoissonGrav")
             rho_phi += ca_lev.volProductSum(S_new, phi_new, URHO, 0, local_flag);
+#endif
+
+        // Compute extrema
+
+#ifdef REACTIONS
+        auto dx = ca_lev.geom.CellSizeArray();
+
+        Real dd = 0.0_rt;
+#if AMREX_SPACEDIM == 1
+        dd = dx[0];
+#elif AMREX_SPACEDIM == 2
+        dd = amrex::min(dx[0], dx[1]);
+#else
+        dd = amrex::min(dx[0], dx[1], dx[2]);
+#endif
+#endif
+
+        bool mask_available = true;
+        if (lev == parent->finestLevel()) {
+            mask_available = false;
+        }
+
+        MultiFab tmp_mf;
+        const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
+
+        ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+        ReduceData<Real, Real, Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto U = S_new[mfi].array();
+#ifdef REACTIONS
+            auto R = R_new[mfi].array();
+#endif
+
+            auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+
+            reduce_op.eval(bx, reduce_data,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+            {
+                Real maskFactor = 1.0;
+                if (mask_available) {
+                    maskFactor = level_mask(i,j,k);
+                }
+
+                Real T = U(i,j,k,UTEMP) * maskFactor;
+                Real rho = U(i,j,k,URHO) * maskFactor;
+                Real ts_te = 0.0_rt;
+
+#ifdef REACTIONS
+                Real enuc = std::abs(R(i,j,k,0)) / U(i,j,k,URHO);
+
+                if (enuc > 1.e-100_rt && maskFactor == 1.0) {
+
+                    Real rhoInv = 1.0_rt / rho;
+
+                    // Calculate sound speed
+                    eos_rep_t eos_state;
+                    eos_state.rho = rho;
+                    eos_state.T   = T;
+                    eos_state.e   = U(i,j,k,UEINT) * rhoInv;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        eos_state.xn[n] = U(i,j,k,UFS+n) * rhoInv;
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        eos_state.aux[n] = U(i,j,k,UFX+n) * rhoInv;
+                    }
+#endif
+
+                    eos(eos_input_re, eos_state);
+
+                    Real t_e = eos_state.e / enuc;
+                    Real t_s = dd / eos_state.cs;
+
+                    ts_te = t_s / t_e;
+                }
+#endif
+
+                return {T, rho, ts_te};
+            });
+
+        }
+
+        ReduceTuple hv = reduce_data.value();
+
+        T_max = amrex::max(T_max, amrex::get<0>(hv));
+        rho_max = amrex::max(rho_max, amrex::get<1>(hv));
+#ifdef REACTIONS
+        ts_te_max = amrex::max(ts_te_max, amrex::get<2>(hv));
 #endif
 
     }
@@ -115,11 +217,17 @@ Castro::sum_integrated_quantities ()
                           rho_e, rho_K, rho_E};
 #endif
 
+        const int nfoo_max = 3;
+
+        Real foo_max[nfoo_max] = {T_max, rho_max, ts_te_max};
+
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
 
         ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
+
+        ParallelDescriptor::ReduceRealMax(foo_max, nfoo_max, ParallelDescriptor::IOProcessorNumber());
 
         if (ParallelDescriptor::IOProcessor()) {
 
@@ -161,6 +269,11 @@ Castro::sum_integrated_quantities ()
                 com_vel[idir] = mom[idir] / mass;
             }
 
+            i = 0;
+            T_max     = foo_max[i++];
+            rho_max   = foo_max[i++];
+            ts_te_max = foo_max[i++];
+
             std::cout << '\n';
             std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
             std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
@@ -189,6 +302,12 @@ Castro::sum_integrated_quantities ()
 
             std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
             std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
+
+            std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
+            std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
+#ifdef REACTION
+            std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
+#endif
 
             std::ostream& data_log1 = *Castro::data_logs[0];
 
@@ -229,6 +348,11 @@ Castro::sum_integrated_quantities ()
                    header << std::setw(datwidth) << "     CENTER OF MASS X-VEL"; ++n;
                    header << std::setw(datwidth) << "     CENTER OF MASS Y-VEL"; ++n;
                    header << std::setw(datwidth) << "     CENTER OF MASS Z-VEL"; ++n;
+                   header << std::setw(datwidth) << "      MAXIMUM TEMPERATURE"; ++n;
+                   header << std::setw(datwidth) << "          MAXIMUM DENSITY"; ++n;
+#ifdef REACTIONS
+                   header << std::setw(datwidth) << "        MAXIMUM T_S / T_E"; ++n;
+#endif
 
                    header << std::endl;
 
@@ -285,6 +409,11 @@ Castro::sum_integrated_quantities ()
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[0];
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[1];
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[2];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << T_max;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_max;
+#ifdef REACTIONS
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ts_te_max;
+#endif
 
                data_log1 << std::endl;
 

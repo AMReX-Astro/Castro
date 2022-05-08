@@ -61,9 +61,6 @@ max_step = 10000000
 # Simulation time to stop at
 stop_time = 100.0
 
-# Whether to use our custom stopping criteria
-problem.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -417,7 +414,7 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = star_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 ############################################################################################
 # Problem parameters
