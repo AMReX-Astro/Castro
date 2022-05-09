@@ -10,16 +10,6 @@ extern "C"
 #endif
 
 
-#ifdef RADIATION
-  void ca_inelastic_sct
-    (const int i, const int j, const int k,
-     const amrex::Real temp,
-     amrex::Real* Erout,
-     const amrex::Real ks,
-     amrex::Real& dEr,
-     const amrex::Real dt);
-#endif
-
 #ifdef AUX_UPDATE
   void ca_auxupdate
     (BL_FORT_FAB_ARG(state_old),
@@ -52,16 +42,6 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
    const amrex::Real model[], const int& model_size, const int& MAESTRO_npts_model,
    const amrex::Real dx[], const amrex::Real& dr, const amrex::Real xlo[], const amrex::Real xhi[],
    const int& r_model_start);
-#endif
-
-#ifdef MHD
-BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
-  (const int& level, const amrex::Real& time,
-   const int* lo, const int* hi,
-   const int& nx, BL_FORT_FAB_ARG_3D(magx),
-   const int& ny, BL_FORT_FAB_ARG_3D(magy),
-   const int& nz, BL_FORT_FAB_ARG_3D(magz),
-   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
 #endif

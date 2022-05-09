@@ -5,7 +5,7 @@ Getting Started
 .. note::
 
    Castro has two source dependencies: `AMReX <https://github.com/AMReX-Codes/amrex>`_, the adaptive mesh
-   library, and `StarKiller Microphysics <https://github.com/starkiller-astro/Microphysics>`_, the collection of equations
+   library, and `Microphysics <https://github.com/AMReX-Astro/Microphysics>`_, the collection of equations
    of state, reaction networks, and other microphysics.  The
    instructions below describe how to get these dependencies automatically
    with Castro.
@@ -14,19 +14,22 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++17 (or later) compiler (e.g. gcc >= 7.0)
+ * A C++17 (or later) compiler (for GCC, we need >= 9.0 for CUDA compilation)
 
- * A Fortran 20xx compiler
-
- * python (>= 3.6)
+ * python (>= 3.7)
 
  * GNU make (>= 3.82)
 
 GCC is the main compiler suite used by the developers.
 
-For running in parallel, an MPI library is required.  For running on GPUs,
-CUDA 11 or later is required.  More information on parallel builds
-is given in section :ref:`ch:mpiplusx`.
+For running in parallel, an MPI library is required.  For running on GPUs:
+
+* CUDA 11 or later is required for NVIDIA GPUs
+
+* ROCM 4.5 or later is required for AMD GPUs
+
+More information on parallel builds is given in section
+:ref:`ch:mpiplusx`.
 
 Downloading the Code
 ====================
@@ -37,37 +40,45 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
 
 #. Clone/fork the Castro repository from the AMReX-Astro GitHub
-   organization, using either HTTP access::
+   organization, using either HTTP access:
 
-       git clone --recursive https://github.com/AMReX-Astro/Castro.git
+   .. prompt:: bash
 
-   or SSH access if you have an SSH key enabled with GitHub::
+      git clone --recursive https://github.com/AMReX-Astro/Castro.git
 
-       git clone --recursive git@github.com:AMReX-Astro/Castro.git
+   or SSH access if you have an SSH key enabled with GitHub:
+
+   .. prompt:: bash
+
+      git clone --recursive git@github.com:AMReX-Astro/Castro.git
 
    The ``--recursive`` option to ``git clone`` is used to ensure
    that all of Castro's dependencies are downloaded. Currently this
    requirement is for the AMReX mesh refinement framework, which is
    maintained in the AMReX-Codes organization on GitHub, and the
-   Microphysics repository from the starkiller-astro organization.
+   Microphysics repository from the AMReX-Astro organization.
    AMReX adds the necessary code for the driver code for the simulation,
    while Microphysics adds the equations of state, reaction
    networks, and other microphysics needed to run Castro.
 
    If you forget to do a recursive clone, you can rectify the
    situation by running the following from the top-level of the Castro
-   directory::
+   directory:
 
-       git submodule update --init --recursive
+   .. prompt:: bash
+
+      git submodule update --init --recursive
 
    .. note::
 
       By default, you will be on the ``main`` branch of the source.
       Development on Castro (and its primary dependencies, AMReX and
       Microphysics) is done in the ``development`` branch, so you
-      should work there if you want the latest source::
+      should work there if you want the latest source:
 
-        git checkout development
+      .. prompt:: bash
+
+         git checkout development
 
       The Castro team runs nightly regression testing on the
       ``development`` branch, so bugs are usually found and fixed
@@ -76,15 +87,19 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
-   Add the following to your ``.bashrc``::
+   Add the following to your ``.bashrc``:
 
-       export CASTRO_HOME="/path/to/Castro/"
+   .. code:: bash
+
+      export CASTRO_HOME="/path/to/Castro/"
 
    (or use the analogous form for a different shell).
 
-#. You can keep the code up to date with::
+#. You can keep the code up to date with:
 
-       git pull --recurse-submodules
+   .. prompt:: bash
+
+      git pull --recurse-submodules
 
    The recommended frequency for doing this is monthly, if you are on the
    stable ``main`` branch of the code; we issue a new release of the code
@@ -92,15 +107,19 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
 #. *optional, for developers*: If you prefer, you can maintain AMReX and
    Microphysics as standalone repositories rather than as git submodules.
-   To do so, you can clone them from GitHub using::
+   To do so, you can clone them from GitHub using:
 
-       git clone https://github.com/AMReX-Codes/amrex.git
-       git clone https://github.com/starkiller-astro/Microphysics.git
+   .. prompt:: bash
 
-   or via SSH as::
+      git clone https://github.com/AMReX-Codes/amrex.git
+      git clone https://github.com/AMReX-Astro/Microphysics.git
 
-       git clone git@github.com:/AMReX-Codes/amrex.git
-       git clone git@github.com:/starkiller-astro/Microphysics.git
+   or via SSH as:
+
+   .. prompt:: bash
+
+      git clone git@github.com:/AMReX-Codes/amrex.git
+      git clone git@github.com:/AMReX-Astro/Microphysics.git
 
    Then, set the ``AMREX_HOME`` environment variable to point to the
    ``amrex/`` directory, and the ``MICROPHYSICS_HOME`` environment
@@ -116,9 +135,11 @@ Castro executable in the problem sub-directory. Here we’ll
 build the Sedov problem:
 
 #. From the directory in which you checked out the Castro git repo,
-   type::
+   type:
 
-       cd Castro/Exec/hydro_tests/Sedov
+   .. prompt:: bash
+
+      cd Castro/Exec/hydro_tests/Sedov
 
    This will put you into a directory in which you can run the Sedov
    problem in 1-d, 2-d or 3-d.
@@ -131,9 +152,8 @@ build the Sedov problem:
 
    * ``COMP = gnu``
 
-     This is the set of compilers. GNUu are a good default choice
-     (this will use g++ and gfortran). You can also choose ``pgi`` and
-     ``intel`` for example.
+     This is the set of compilers. GNU are a good default choice (this
+     will use g++). You can also choose ``intel`` for example.
 
      If you want to try other compilers than the GNU suite and they
      don’t work, please let us know.
@@ -165,9 +185,11 @@ Running the Code
 ================
 
 #. Castro takes an input file that overrides the runtime parameter defaults.
-   The code is run as::
+   The code is run as:
 
-       ./Castro2d.gnu.ex inputs.2d.cyl_in_cartcoords
+   .. prompt:: bash
+
+      ./Castro2d.gnu.ex inputs.2d.cyl_in_cartcoords
 
    This will run the 2-d cylindrical Sedov problem in Cartesian
    (:math:`x`-:math:`y` coordinates). You can see other possible
@@ -216,9 +238,11 @@ Amrvis is a tool developed at LBNL to visualize AMReX data.  It
 provides a simple GUI that allows you to quickly visualize slices and
 the grid structure.
 
-#. Get Amrvis::
+#. Get Amrvis:
 
-       git clone https://github.com/AMReX-Codes/Amrvis
+   .. prompt:: bash
+
+      git clone https://github.com/AMReX-Codes/Amrvis
 
    Then cd into ``Amrvis/``, edit the ``GNUmakefile`` there
    to set ``DIM = 2``, and again set ``COMP`` to compilers that
@@ -228,9 +252,11 @@ the grid structure.
    looks like ``amrvis2d...ex``.
 
    If you want to build amrvis with ``DIM = 3``, you must first
-   download and build volpack::
+   download and build volpack:
 
-       git clone https://ccse.lbl.gov/pub/Downloads/volpack.git
+   .. prompt:: bash
+
+      git clone https://ccse.lbl.gov/pub/Downloads/volpack.git
 
    Then cd into ``volpack/`` and type ``make``.
 
@@ -245,9 +271,11 @@ the grid structure.
    gives some functionality and will allow you to build the Amrvis
    executable, but Amrvis may not run properly.
 
-   You may then want to create an alias to amrvis2d, for example::
+   You may then want to create an alias to amrvis2d, for example:
 
-       alias amrvis2d=/tmp/Amrvis/amrvis2d...ex
+   .. code:: bash
+
+      alias amrvis2d=/tmp/Amrvis/amrvis2d...ex
 
    where ``/tmp/Amrvis/amrvis2d...ex`` is the full path and name of
    the Amrvis executable.

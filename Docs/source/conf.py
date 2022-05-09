@@ -56,6 +56,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
+              'sphinx-prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -79,7 +80,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = 'Castro'
-copyright = '2018-2020, Castro development tem'
+copyright = '2018-2022, Castro development team'
 author = 'Castro development team'
 
 html_logo = "castro_logo_hot_200.png"

@@ -45,35 +45,29 @@ Most of these are parameters from AMReX.
 Fortran Support
 ^^^^^^^^^^^^^^^
 
-Many problems can be built without Fortran.  The current exceptions
-are MHD, radiation, and anything using a pynucastro-generated network.
-These parameters control Fortran support:
-
-  * ``USE_FORT_MICROPHYSICS``: if set to ``TRUE``, then Fortran
-    versions of the EOS and burner interface will be compiled.  If you
-    are not using a pynucastro network, then you can probably set this
-    to ``FALSE``.
+Radiation currently needs Fortran support.  All of the other solvers
+and problem set ups do not require Fortran.  Fortran support in AMReX
+is enabled / disabled via:
 
   * ``BL_NO_FORT``: if set to ``TRUE``, then no AMReX Fortran source will be built.
-    This cannot currently be used for the MHD or radiation solvers.
+    This cannot currently be used for the radiation solver.
 
 
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: USE_MPI, USE_OMP, USE_CUDA, USE_ACC
+.. index:: USE_MPI, USE_OMP, USE_CUDA, USE_HIP
 
 The following parameters control how work is divided across nodes, cores, and GPUs.
-
-  * ``USE_CUDA``: compile with GPU support using CUDA. 
-
-  * ``USE_ACC``: compile with OpenACC. Note: this is a work in
-    progress and should not be used presently.
-
 
   * ``USE_MPI``: compile with the MPI library to allow for distributed parallelism.
 
   * ``USE_OMP``: compile with OpenMP to allow for shared memory parallelism.
+
+  * ``USE_CUDA``: compile with NVIDIA GPU support using CUDA.
+
+  * ``USE_HIP``: compile with AMD GPU support using HIP.
+
 
 
 
@@ -231,21 +225,20 @@ This is the current build system process.
 
 * ``set_variables.py`` is called
 
-  .. index:: set_variables.py, _variables, state_indices_nd.F90, state_indices.H
+  .. index:: set_variables.py, _variables, state_indices.H
 
   * This processes the Castro ``_variables`` file and writes
-    ``state_indices.H`` (and  ``state_indices_nd.F90`` if Fortran is enabled) into the
+    ``state_indices.H`` into the
     ``tmp_build_dir/castro_sources/`` directory.
 
     These are used to define the size of the various state arrays and
     the integer keys to index each state variable.
 
-  * The hook for this is in ``Make.auto_source`` in the build rule for ``state_indices_nd.F90``
+  * The hook for this is in ``Make.auto_source`` in the build rule for ``state_indices.H``
 
   * You can test this portion of the build system by doing ``make test_variables``
 
-* (for ``general_null networks``), ``network_properties.H`` (and
-  ``actual_network.F90`` if Fortran is enabled) is created
+* (for ``general_null networks``), ``network_properties.H`` is created
 
   .. index:: write_network.py
 
@@ -258,7 +251,7 @@ This is the current build system process.
   .. index:: write_probin.py
 
   * This writes the routines that manage the Microphysics runtime
-    parameters: ``extern_parameters.cpp``, ``extern_parameters.H``, and  ``extern.F90``.  This is output in
+    parameters: ``extern_parameters.cpp`` and  ``extern_parameters.H``.  This is output in
     ``tmp_build_dir/castro_sources/``.
 
   * The hook for this is in ``Make.auto_source`` in the rule for ``extern_parameters.H``
@@ -287,7 +280,7 @@ This is the current build system process.
 
   * These headers are output into ``tmp_build_dir/castro_sources/``.
 
-* The Fortran dependencies file is created
+* (if Fortran support is enabled) The Fortran dependencies file is created
 
   * This creates the ``f90.depends`` file in the ``tmp_build_dir``
 

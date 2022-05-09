@@ -284,7 +284,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
 
-    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+    if (level == 0 && do_grav && gravity->get_gravity_type() == "PoissonGrav") {
         gravity->update_max_rhs();
     }
 #endif
@@ -344,8 +344,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
             for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
             {
                 const Box& box     = mfi.validbox();
-                const int* lo      = box.loVect();
-                const int* hi      = box.hiVect();
 
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();

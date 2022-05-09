@@ -32,9 +32,7 @@ int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
-int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
-int Radiation::fspace_advection_type = 2;
 int Radiation::plot_lambda   = 0;
 int Radiation::plot_kappa_p  = 0;
 int Radiation::plot_kappa_r  = 0;
@@ -54,8 +52,6 @@ int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
 int Radiation::filter_prim_T = 4;
 int Radiation::filter_prim_S = 0;
-int Radiation::limiter = -1;
-int Radiation::closure = -1;
 
 // These physical constants get their values in the Radiation constructor:
 Real Radiation::convert_MeV_erg = 0.0;
@@ -108,16 +104,9 @@ void Radiation::read_static_params()
     pp.query("rad_hydro_combined", rad_hydro_combined);
   }
 
-  if (SolverType == MGFLDSolver) {
-    comoving = 1;
-    fspace_advection_type = 2;
-    pp.query("fspace_advection_type", fspace_advection_type);
-  }
-  else if (SolverType == SGFLDSolver) {
-    comoving = 1;
-    fspace_advection_type = 1;
-    pp.query("comoving", comoving);
-    if (comoving) {
+  if (SolverType == SGFLDSolver) {
+    radiation::fspace_advection_type = 1;
+    if (radiation::comoving) {
       Er_Lorentz_term = 0;
     }
     else {
@@ -182,7 +171,7 @@ void Radiation::read_static_params()
   pp.query("plot_lambda", plot_lambda);
   pp.query("plot_kappa_p", plot_kappa_p);
   pp.query("plot_kappa_r", plot_kappa_r);
-  if (comoving) pp.query("plot_lab_Er", plot_lab_Er);
+  if (radiation::comoving) pp.query("plot_lab_Er", plot_lab_Er);
   pp.query("plot_lab_flux", plot_lab_flux);
   pp.query("plot_com_flux", plot_com_flux);
 
@@ -191,10 +180,7 @@ void Radiation::read_static_params()
       if (plot_lambda) {
           icomp_lambda = plotvar_names.size();
 
-          int limiter = 2;
-          pp.query("limiter", limiter);
-
-          if (!do_multigroup || limiter == 0) {
+          if (!do_multigroup || radiation::limiter == 0) {
               plotvar_names.push_back("lambda");
           } else {
               for (int g=0; g<nGroups; ++g) {
@@ -353,18 +339,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   miniter  =  1;             pp.query("miniter", miniter);
   convergence_check_type = 0;
   pp.query("convergence_check_type", convergence_check_type);
-  limiter  = 2;              pp.query("limiter", limiter);
-  if (SolverType == SGFLDSolver && limiter == 1) {
+  if (SolverType == SGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("SGFLDSolver does not support limiter = 1");
   }
-  if (SolverType == MGFLDSolver && limiter == 1) {
+  if (SolverType == MGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
-  closure = 3;
-  pp.query("closure", closure);
-
-  ca_initfluxlimiter(&limiter, &closure);
+  ca_initfluxlimiter(&radiation::limiter, &radiation::closure);
 
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
@@ -461,8 +443,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "maxInIter = " << maxInIter << std::endl;
     std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
     std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
-    std::cout << "limiter  = " << limiter << std::endl;
-    std::cout << "closure  = " << closure << std::endl;
+    std::cout << "limiter  = " << radiation::limiter << std::endl;
+    std::cout << "closure  = " << radiation::closure << std::endl;
     std::cout << "update_limiter   = " << update_limiter << std::endl;
     std::cout << "update_planck    = " << update_planck << std::endl;
     std::cout << "update_rosseland = " << update_rosseland << std::endl;
@@ -482,12 +464,12 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     }
     if (SolverType == MGFLDSolver || SolverType == SGFLDSolver) {
       std::cout << "rad_hydro_combined = " << rad_hydro_combined << std::endl;
-      std::cout << "comoving = " << comoving << std::endl;
+      std::cout << "comoving = " << radiation::comoving << std::endl;
     }
     if (SolverType == MGFLDSolver) {
-      std::cout << "fspace_advection_type = " << fspace_advection_type << std::endl;
+      std::cout << "fspace_advection_type = " << radiation::fspace_advection_type << std::endl;
     }
-    if (SolverType == SGFLDSolver && comoving == 0) {
+    if (SolverType == SGFLDSolver && radiation::comoving == 0) {
       std::cout << "Er_Lorentz_term = " << Er_Lorentz_term << std::endl;
     }
   }
@@ -2153,14 +2135,14 @@ void Radiation::scaledGradient(int level,
                                Array<MultiFab, AMREX_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
-                               int limiter, int nGrow_Er, int Rcomp)
+                               int nGrow_Er, int Rcomp)
 {
   BL_PROFILE("Radiation::scaledGradient");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
   MultiFab Erbtmp;
   if (nGrow_Er == 0) { // default value
-    if (limiter > 0) {
+    if (radiation::limiter > 0) {
       const BoxArray& grids = parent->boxArray(level);
       const DistributionMapping& dmap = parent->DistributionMap(level);
       Erbtmp.define(grids,dmap,1,1);
@@ -2192,7 +2174,7 @@ void Radiation::scaledGradient(int level,
 
           auto R_arr = R[idim][mfi].array(Rcomp);
 
-          if (limiter == 0) {
+          if (radiation::limiter == 0) {
 
               R[idim][mfi].setVal<RunOn::Device>(0.0, Rcomp);
 
@@ -2201,9 +2183,9 @@ void Radiation::scaledGradient(int level,
 
               int include_cross_terms = 0;
 
-              if (limiter == 1) {
+              if (radiation::limiter == 1) {
                   include_cross_terms = 0;
-              } else if (limiter == 2) {
+              } else if (radiation::limiter == 2) {
                   include_cross_terms = 1;
               } else {
                   amrex::Abort("Unknown limiter");
@@ -2487,7 +2469,7 @@ void Radiation::scaledGradient(int level,
 
 void Radiation::fluxLimiter(int level,
                             Array<MultiFab, AMREX_SPACEDIM>& lambda,
-                            int limiter, int lamcomp)
+                            int lamcomp)
 {
     BL_PROFILE("Radiation:fluxLimiter");
 
@@ -2503,7 +2485,7 @@ void Radiation::fluxLimiter(int level,
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
-                lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k), limiter);
+                lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k));
             });
         }
     }
@@ -2660,8 +2642,8 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.growntilebox();
+    for (MFIter mfi(dcf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
         auto dcf_arr = dcf[mfi].array();
         auto etainv_arr = etainv[mfi].array();

@@ -16,9 +16,6 @@
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-#include <microphysics_F.H>
-#endif
 #include <eos.H>
 #ifdef NSE_THERMO
 #include <nse.H>
@@ -234,13 +231,6 @@ Castro::variableSetUp ()
     small_ener = 1.e-100_rt;
   }
 
-#ifdef MICROPHYSICS_FORT
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-  // Initialize the Fortran Microphysics
-  microphysics_initialize(small_temp, small_dens);
-#endif
-#endif
-
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
   network_init();
@@ -298,11 +288,13 @@ Castro::variableSetUp ()
   if (!use_retry && !abort_on_failure) {
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
+  if (use_retry && abort_on_failure) {
+      amrex::Warning("use_retry = 1, so disabling abort_on_failure");
+      abort_on_failure = 0;
+  }
 #endif
 #endif
 
-
-  const int dm = AMREX_SPACEDIM;
 
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
@@ -326,8 +318,6 @@ Castro::variableSetUp ()
 #endif
 
   const Geometry& dgeom = DefaultGeometry();
-
-  const int coord_type = dgeom.Coord();
 
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
@@ -463,11 +453,14 @@ Castro::variableSetUp ()
   // For simplified SDC, we want to store the reactions source.
   // these are not traced, so we only need a single ghost cell
 
-  store_in_checkpoint = true;
-  desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                         StateDescriptor::Point, 1, NQSRC,
-                         interp, state_data_extrap, store_in_checkpoint);
+  // note: this is of size NQ (and not NQSRC) because the species are
+  // always included
 
+
+      store_in_checkpoint = true;
+      desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
+                             StateDescriptor::Point, 1, NQ,
+                             interp, state_data_extrap, store_in_checkpoint);
 
 #endif
 #endif
@@ -668,14 +661,14 @@ Castro::variableSetUp ()
 
 #if defined(SIMPLIFIED_SDC) || defined(HACK_ALLOW_STRANG_RESTART_FROM_SDC)
 #ifdef REACTIONS
-  for (int i = 0; i < NQSRC; ++i) {
-      char buf[64];
-      sprintf(buf, "sdc_react_source_%d", i);
-      set_scalar_bc(bc,phys_bc);
-      replace_inflow_bc(bc);
+      for (int i = 0; i < NQ; ++i) {
+          char buf[64];
+          sprintf(buf, "sdc_react_source_%d", i);
+          set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
 
-      desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
-  }
+          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
+      }
 #endif
 #endif
 

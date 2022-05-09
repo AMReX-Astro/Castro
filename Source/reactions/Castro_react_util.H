@@ -3,6 +3,10 @@
 
 #include <Castro.H>
 #include <burn_type.H>
+#include <actual_network.H> //this is needed to get the definition of NEW_NETWORK_IMPLEMENTATION
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <numerical_jacobian.H>
 
 

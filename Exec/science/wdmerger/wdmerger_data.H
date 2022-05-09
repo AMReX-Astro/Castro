@@ -8,14 +8,7 @@
 
 namespace wdmerger
 {
-    // Input parameters
-
-    extern AMREX_GPU_MANAGED int use_stopping_criterion;
-    extern AMREX_GPU_MANAGED int use_energy_stopping_criterion;
-    extern AMREX_GPU_MANAGED amrex::Real ts_te_stopping_criterion;
-    extern AMREX_GPU_MANAGED amrex::Real T_stopping_criterion;
-
-    // Data we want to store, for interfacing with the Fortran
+    // Data we want to store over time
 
     // Rate of change of stellar masses
 
@@ -36,12 +29,6 @@ namespace wdmerger
 
     extern AMREX_GPU_MANAGED amrex::Real rho_avg_P;
     extern AMREX_GPU_MANAGED amrex::Real rho_avg_S;
-
-    // Current values of the above extrema
-
-    extern AMREX_GPU_MANAGED amrex::Real T_curr_max;
-    extern AMREX_GPU_MANAGED amrex::Real rho_curr_max;
-    extern AMREX_GPU_MANAGED amrex::Real ts_te_curr_max;
 }
 
 #endif

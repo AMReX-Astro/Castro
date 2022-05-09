@@ -83,21 +83,14 @@ test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
-ifeq ($(USE_RAD), TRUE)
-  state_fort_opts = --ngroups $(NGROUPS)
-else
-  state_fort_opts =
-endif
-
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
+	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
-           --ngroups $(NGROUPS) \
            --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
 
@@ -140,6 +133,10 @@ ifdef BUILD_GIT_NAME
                        --build_git_dir "$(BUILD_GIT_DIR)"
 endif
 
+ifeq ($(USE_CUDA), TRUE)
+   CUDA_FLAGS := --CUDA_VERSION "$(nvcc_version)"
+endif
+
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
@@ -147,6 +144,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"

@@ -1389,10 +1389,10 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 void
 Gravity::compute_radial_mass(const Box& bx,
                              Array4<Real const> const u,
-                             RealVector& radial_mass,
-                             RealVector& radial_vol,
+                             RealVector& radial_mass_local,
+                             RealVector& radial_vol_local,
 #ifdef GR_GRAV
-                             RealVector& radial_pres,
+                             RealVector& radial_pres_local,
 #endif
                              int n1d, int level)
 {
@@ -1443,10 +1443,10 @@ Gravity::compute_radial_mass(const Box& bx,
     Real dy_frac = dx[1] / fac;
     Real dz_frac = dx[2] / fac;
 
-    Real* const radial_mass_ptr = radial_mass.dataPtr();
-    Real* const radial_vol_ptr = radial_vol.dataPtr();
+    Real* const radial_mass_ptr = radial_mass_local.dataPtr();
+    Real* const radial_vol_ptr = radial_vol_local.dataPtr();
 #ifdef GR_GRAV
-    Real* const radial_pres_ptr = radial_pres.dataPtr();
+    Real* const radial_pres_ptr = radial_pres_local.dataPtr();
 #endif
 
     amrex::ParallelFor(bx,
@@ -1996,39 +1996,105 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     // Now, do a global reduce over all processes.
 
+    Real* qL0_ptr = qL0.dataPtr();
+    Real* qLC_ptr = qLC.dataPtr();
+    Real* qLS_ptr = qLS.dataPtr();
+
+    // Create temporary pinned host containers in case we need them.
+
+    FArrayBox qL0_host(The_Pinned_Arena());
+    FArrayBox qLC_host(The_Pinned_Arena());
+    FArrayBox qLS_host(The_Pinned_Arena());
+
     if (!ParallelDescriptor::UseGpuAwareMpi()) {
-        qL0.prefetchToHost();
-        qLC.prefetchToHost();
-        qLS.prefetchToHost();
+        if (The_Arena() == The_Managed_Arena()) {
+            qL0.prefetchToHost();
+            qLC.prefetchToHost();
+            qLS.prefetchToHost();
+        }
+        else if (The_Arena() == The_Device_Arena()) {
+            qL0_host.resize(boxq0);
+            qLC_host.resize(boxqC);
+            qLS_host.resize(boxqS);
+
+            qL0_host.copy<RunOn::Device>(qL0, boxq0);
+            qLC_host.copy<RunOn::Device>(qLC, boxqC);
+            qLS_host.copy<RunOn::Device>(qLS, boxqS);
+
+            qL0_ptr = qL0_host.dataPtr();
+            qLC_ptr = qLC_host.dataPtr();
+            qLS_ptr = qLS_host.dataPtr();
+        }
     }
 
-    ParallelDescriptor::ReduceRealSum(qL0.dataPtr(),boxq0.numPts());
-    ParallelDescriptor::ReduceRealSum(qLC.dataPtr(),boxqC.numPts());
-    ParallelDescriptor::ReduceRealSum(qLS.dataPtr(),boxqS.numPts());
+    Gpu::synchronize();
+
+    ParallelDescriptor::ReduceRealSum(qL0_ptr, boxq0.numPts());
+    ParallelDescriptor::ReduceRealSum(qLC_ptr, boxqC.numPts());
+    ParallelDescriptor::ReduceRealSum(qLS_ptr, boxqS.numPts());
 
     if (!ParallelDescriptor::UseGpuAwareMpi()) {
-        qL0.prefetchToDevice();
-        qLC.prefetchToDevice();
-        qLS.prefetchToDevice();
+        if (The_Arena() == The_Managed_Arena()) {
+            qL0.prefetchToDevice();
+            qLC.prefetchToDevice();
+            qLS.prefetchToDevice();
+        }
+        else if (The_Arena() == The_Device_Arena()) {
+            qL0.copy<RunOn::Device>(qL0_host, boxq0);
+            qLC.copy<RunOn::Device>(qLC_host, boxqC);
+            qLS.copy<RunOn::Device>(qLS_host, boxqS);
+        }
     }
 
     if (boundary_only != 1) {
 
-      if (!ParallelDescriptor::UseGpuAwareMpi()) {
-          qU0.prefetchToHost();
-          qUC.prefetchToHost();
-          qUS.prefetchToHost();
-      }
+        Real* qU0_ptr = qU0.dataPtr();
+        Real* qUC_ptr = qUC.dataPtr();
+        Real* qUS_ptr = qUS.dataPtr();
 
-      ParallelDescriptor::ReduceRealSum(qU0.dataPtr(),boxq0.numPts());
-      ParallelDescriptor::ReduceRealSum(qUC.dataPtr(),boxqC.numPts());
-      ParallelDescriptor::ReduceRealSum(qUS.dataPtr(),boxqS.numPts());
+        FArrayBox qU0_host(The_Pinned_Arena());
+        FArrayBox qUC_host(The_Pinned_Arena());
+        FArrayBox qUS_host(The_Pinned_Arena());
 
-      if (!ParallelDescriptor::UseGpuAwareMpi()) {
-          qU0.prefetchToDevice();
-          qUC.prefetchToDevice();
-          qUS.prefetchToDevice();
-      }
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            if (The_Arena() == The_Managed_Arena()) {
+                qU0.prefetchToHost();
+                qUC.prefetchToHost();
+                qUS.prefetchToHost();
+            }
+            else if (The_Arena() == The_Device_Arena()) {
+                qU0_host.resize(boxq0);
+                qUC_host.resize(boxqC);
+                qUS_host.resize(boxqS);
+
+                qU0_host.copy<RunOn::Device>(qU0, boxq0);
+                qUC_host.copy<RunOn::Device>(qUC, boxqC);
+                qUS_host.copy<RunOn::Device>(qUS, boxqS);
+
+                qU0_ptr = qU0_host.dataPtr();
+                qUC_ptr = qUC_host.dataPtr();
+                qUS_ptr = qUS_host.dataPtr();
+            }
+        }
+
+        Gpu::synchronize();
+
+        ParallelDescriptor::ReduceRealSum(qU0_ptr, boxq0.numPts());
+        ParallelDescriptor::ReduceRealSum(qUC_ptr, boxqC.numPts());
+        ParallelDescriptor::ReduceRealSum(qUS_ptr, boxqS.numPts());
+
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            if (The_Arena() == The_Managed_Arena()) {
+                qU0.prefetchToDevice();
+                qUC.prefetchToDevice();
+                qUS.prefetchToDevice();
+            }
+            else if (The_Arena() == The_Device_Arena()) {
+                qU0.copy<RunOn::Device>(qU0_host, boxq0);
+                qUC.copy<RunOn::Device>(qUC_host, boxqC);
+                qUS.copy<RunOn::Device>(qUS_host, boxqS);
+            }
+        }
 
     }
 
@@ -3102,11 +3168,27 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #endif
         }
 
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            Gpu::prefetchToHost(radial_mass[lev].begin(), radial_mass[lev].end());
+            Gpu::prefetchToHost(radial_vol[lev].begin(), radial_vol[lev].end());
+#ifdef GR_GRAV
+            Gpu::prefetchToHost(radial_pres[lev].begin(), radial_pres[lev].end());
+#endif
+        }
+
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
 #ifdef GR_GRAV
         ParallelDescriptor::ReduceRealSum(radial_pres[lev].dataPtr()  ,n1d);
 #endif
+
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            Gpu::prefetchToDevice(radial_mass[lev].begin(), radial_mass[lev].end());
+            Gpu::prefetchToDevice(radial_vol[lev].begin(), radial_vol[lev].end());
+#ifdef GR_GRAV
+            Gpu::prefetchToDevice(radial_pres[lev].begin(), radial_pres[lev].end());
+#endif
+        }
 
         if (do_diag > 0)
         {
@@ -3326,19 +3408,19 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             return dM;
         },
-        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl)
+        [=] AMREX_GPU_DEVICE (int i, Real const& mass_encl_local)
         {
             Real rc = (static_cast<Real>(i) + 0.5_rt) * dr;
 
-            grav[i] = -C::Gconst * mass_encl / (rc * rc);
+            grav[i] = -C::Gconst * mass_encl_local / (rc * rc);
 
 #ifdef GR_GRAV
             // Tolman-Oppenheimer-Volkoff (TOV) post-Newtonian correction
 
             if (den[i] > 0.0_rt) {
                 Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl * C::c_light * C::c_light));
-                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl / (rc * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
+                Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl_local / (rc * C::c_light * C::c_light));
 
                 grav[i] = grav[i] * ga * gb * gc;
             }

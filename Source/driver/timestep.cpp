@@ -14,16 +14,17 @@
 #endif
 
 #ifdef REACTIONS
-#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
 #include <actual_rhs.H>
-#else
-#include <fortran_to_cxx_actual_rhs.H>
-#endif
 #endif
 
 #ifdef RADIATION
 #include <Radiation.H>
 #endif
+
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
+
 
 using namespace amrex;
 
@@ -32,10 +33,6 @@ Castro::estdt_cfl(const Real time)
 {
 
   // Courant-condition limited timestep
-
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
 
   const auto dx = geom.CellSizeArray();
 
@@ -79,21 +76,6 @@ Castro::estdt_cfl(const Real time)
       Real ux = u(i,j,k,UMX) * rhoInv;
       Real uy = u(i,j,k,UMY) * rhoInv;
       Real uz = u(i,j,k,UMZ) * rhoInv;
-
-#ifdef ROTATION
-      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        GpuArray<Real, 3> vel;
-        vel[0] = ux;
-        vel[1] = uy;
-        vel[2] = uz;
-
-        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-        ux = vel[0];
-        uy = vel[1];
-        uz = vel[2];
-      }
-#endif
 
       Real c = eos_state.cs;
 
@@ -371,8 +353,6 @@ Castro::estdt_burning()
 
         const auto S = S_new[mfi].array();
 
-        const auto dx = geom.CellSizeArray();
-
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
 
@@ -406,39 +386,38 @@ Castro::estdt_burning()
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
-            burn_t state;
+            burn_t burn_state;
 
-            state.rho = S(i,j,k,URHO);
-            state.T   = S(i,j,k,UTEMP);
-            state.e   = S(i,j,k,UEINT) * rhoInv;
+            burn_state.rho = S(i,j,k,URHO);
+            burn_state.T   = S(i,j,k,UTEMP);
+            burn_state.e   = S(i,j,k,UEINT) * rhoInv;
             for (int n = 0; n < NumSpec; ++n) {
-                state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+                burn_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
             }
 #if NAUX_NET > 0
             for (int n = 0; n < NumAux; ++n) {
-                state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+                burn_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
             }
 #endif
 
-            if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
-                state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
+            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                 return {1.e200_rt};
             }
 
-            Real e    = state.e;
-            Real T    = amrex::max(state.T, castro::small_temp);
+            Real e = burn_state.e;
             Real X[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
-                X[n] = amrex::max(state.xn[n], small_x);
+                X[n] = amrex::max(burn_state.xn[n], small_x);
             }
 
-            eos(eos_input_rt, state);
+            eos(eos_input_rt, burn_state);
 
 #ifdef STRANG
-            state.self_heat = true;
+            burn_state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;
-            actual_rhs(state, ydot);
+            actual_rhs(burn_state, ydot);
 
             Real dedt = ydot(net_ienuc);
             Real dXdt[NumSpec];
@@ -470,7 +449,7 @@ Castro::estdt_burning()
             // evaluate the NSE criterion based on the conserved state.
 
             eos_t eos_state;
-            burn_to_eos(state, eos_state);
+            burn_to_eos(burn_state, eos_state);
 
             if (!in_nse(eos_state)) {
 #endif

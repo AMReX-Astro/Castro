@@ -151,9 +151,6 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
         ca_get_dlognu(dlognu.begin());
     }
 
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -192,7 +189,7 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
                                                   lamz(i,j,k,ilam) + lamz(i,j,k+1,ilam));
 #endif
 
-                Eddf(g) = Edd_factor(lamcc, limiter, closure);
+                Eddf(g) = Edd_factor(lamcc);
             }
 
             int ifix = iflx;

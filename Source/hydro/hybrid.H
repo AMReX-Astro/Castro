@@ -31,11 +31,7 @@ void linear_to_hybrid(const GpuArray<Real, 3>& loc,
     // Note that we expect the linear momentum to be consistent
     // with which frame we're measuring the fluid quantities in.
     // So we're effectively always using the first form of those
-    // equalities, not the second. If state_in_rotating_frame = 1,
-    // then we're not including the centrifugal term in the angular
-    // momentum anyway, and if state_in_rotating_frame = 0, then
-    // the linear momenta are already expressed in the inertial frame,
-    // so we don't need to explicitly take rotation into account.
+    // equalities, not the second.
 
     hybrid_mom[0] = linear_mom[0] * (loc[0] * RInv) + linear_mom[1] * (loc[1] * RInv);
     hybrid_mom[1] = linear_mom[1] * loc[0] - linear_mom[0] * loc[1];
