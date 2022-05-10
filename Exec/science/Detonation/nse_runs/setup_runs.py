@@ -7,9 +7,9 @@ import shlex
 from multiprocessing import Pool
 
 # parameters for all methods
-CFL = [0.8, 0.4, 0.2]
+CFL = [0.8, 0.2]
 NZONES = [512, 1024, 2048] #, 1024, 2048] #, 8192]
-DTNUC_E = [1.0, 0.25] #, 0.1]
+DTNUC_E = [1.e200, 0.5] # 1.0, 0.25] #, 0.1]
 
 # simplified SDC parameters
 SDC_ITERS = [2, 3]

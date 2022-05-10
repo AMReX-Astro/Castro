@@ -1,18 +1,16 @@
-&PROBIN
-rho_l = 1.0d0
-u_l   = 0.0d0
-p_l   = 1.0d0
+problem.rho_l = 1.0
+problem.u_l   = 0.0
+problem.p_l   = 1.0
 
+problem.rho_r = 0.125
+problem.u_r   = 0.0
+problem.p_r   = 0.1
 
-rho_r = 0.125d0
-u_r   = 0.0d0
-p_r   = 0.1d0
+problem.xmin  = 0.0
+problem.xmax  = 1.0
+problem.xjump = 0.5
 
-xmin  = 0.0d0
-xmax  = 1.0d0
-xjump = 0.5d0
+problem.t     = 0.2
 
-t     = 0.2d0
+problem.npts  = 128
 
-npts  = 128
-/

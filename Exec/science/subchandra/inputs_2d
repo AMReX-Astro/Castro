@@ -3,14 +3,14 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 1000
+max_step = 100000
 stop_time = 1.0
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.25e9 2.5e9
+geometry.prob_hi   =  1.024e9 2.048e9
 
 amr.n_cell         = 256 512
 
@@ -50,7 +50,7 @@ castro.change_max     = 1.025    # factor by which dt is allowed to change each 
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
 castro.update_sources_after_reflux = 0
 
-castro.dtnuc_e = 0.25
+#castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
@@ -71,13 +71,14 @@ amr.v               = 1       # control verbosity in Amr.cpp
 castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
+castro.store_burn_weights = 1
 
 castro.small_dens   = 1.e-5
 castro.small_temp   = 1.e5
 
 # problem parameters
 
-problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.C.2560"
+problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.C.5.000km"
 
 problem.pert_temp_factor = 80.0
 problem.pert_rad_factor = 8
@@ -88,7 +89,7 @@ problem.R_pert = 1.e7
 
 amr.refinement_indicators = tempgrad denerr
 
-amr.refine.tempgrad.gradient = 100.0
+amr.refine.tempgrad.relative_gradient = 2.0
 amr.refine.tempgrad.field_name = Temp
 
 amr.refine.denerr.value_greater = 1.0
@@ -101,5 +102,4 @@ integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.jacobian = 2
 
-integrator.retry_burn = 0
 integrator.abort_on_failure = 0

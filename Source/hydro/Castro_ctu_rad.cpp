@@ -39,8 +39,6 @@ Castro::ctu_rad_consup(const Box& bx,
 
   GpuArray<Real, NGROUPS> Erscale = {0.0};
 
-  int fspace_type = Radiation::fspace_advection_type;
-
   GpuArray<Real, NGROUPS> dlognu = {0.0};
 
   GpuArray<Real, NGROUPS> nugroup = {0.0};
@@ -51,7 +49,7 @@ Castro::ctu_rad_consup(const Box& bx,
     ca_get_nugroup(nugroup.begin());
     ca_get_dlognu(dlognu.begin());
 
-    if (fspace_type == 1) {
+    if (radiation::fspace_advection_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
       }
@@ -62,10 +60,6 @@ Castro::ctu_rad_consup(const Box& bx,
     }
   }
 
-
-  int comov = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
 
   // radiation energy update. 
 
@@ -159,7 +153,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
     U_new(i,j,k,UEDEN) = U_new(i,j,k,UEDEN) + dek;
 
-    if (! comov) {
+    if (!radiation::comoving) {
       // ! mixed-frame (single group only)
       Erout(i,j,k,0) = Erout(i,j,k,0) - dek;
     }
@@ -169,7 +163,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
   // Add radiation source terms to rho*u, rhoE, and Er
 
-  if (comov) {
+  if (radiation::comoving) {
 
     ReduceOps<ReduceOpMax> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -209,7 +203,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
       Real divu = dudx[0] + dudy[1] + dudz[2];
 
-      // Note that for single group, fspace_type is always 1
+      // Note that for single group, fspace_advection_type is always 1
       Real af[NGROUPS];
 
       for (int g = 0; g < NGROUPS; g++) {
@@ -247,21 +241,21 @@ Castro::ctu_rad_consup(const Box& bx,
                 qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.0_rt;
 #endif
 
-        Real Eddf = Edd_factor(lamc, limiter, closure);
+        Real Eddf = Edd_factor(lamc);
         Real f1 = (1.0_rt - Eddf) * 0.5_rt;
         Real f2 = (3.0_rt * Eddf - 1.0_rt) * 0.5_rt;
         af[g] = -(f1*divu + f2*nnColonDotGu);
 
-        if (fspace_type == 1) {
-          Real Eddfxp = Edd_factor(qx(i+1,j,k,GDLAMS+g), limiter, closure);
-          Real Eddfxm = Edd_factor(qx(i,j,k,GDLAMS+g), limiter, closure);
+        if (radiation::fspace_advection_type == 1) {
+          Real Eddfxp = Edd_factor(qx(i+1,j,k,GDLAMS+g));
+          Real Eddfxm = Edd_factor(qx(i,j,k,GDLAMS+g));
 #if AMREX_SPACEDIM >= 2
-          Real Eddfyp = Edd_factor(qy(i,j+1,k,GDLAMS+g), limiter, closure);
-          Real Eddfym = Edd_factor(qy(i,j,k,GDLAMS+g), limiter, closure);
+          Real Eddfyp = Edd_factor(qy(i,j+1,k,GDLAMS+g));
+          Real Eddfym = Edd_factor(qy(i,j,k,GDLAMS+g));
 #endif
 #if AMREX_SPACEDIM == 3
-          Real Eddfzp = Edd_factor(qz(i,j,k+1,GDLAMS+g), limiter, closure);
-          Real Eddfzm = Edd_factor(qz(i,j,k,GDLAMS+g), limiter, closure);
+          Real Eddfzp = Edd_factor(qz(i,j,k+1,GDLAMS+g));
+          Real Eddfzm = Edd_factor(qz(i,j,k,GDLAMS+g));
 #endif
 
           Real f1xp = 0.5_rt * (1.0_rt - Eddfxp);

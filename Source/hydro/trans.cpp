@@ -395,13 +395,6 @@ Castro::actual_trans_final(const Box& bx,
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -559,7 +552,6 @@ Castro::actual_trans_final(const Box& bx,
         if (reset_density == 1 && U_int[URHO] < 0.0_rt) {
             reset_state = true;
         }
-
 
         if (! reset_state) {
 

@@ -34,7 +34,6 @@ import runtime_parameters as rp
 CXX_HEADER = """
 #ifndef problem_parameters_H
 #define problem_parameters_H
-#include <AMReX_BLFort.H>
 #include <AMReX_REAL.H>
 #include <AMReX_Vector.H>
 #include <network_properties.H>
@@ -94,8 +93,7 @@ def parse_param_file(params_list, param_file):
         default = fields[2]
 
         current_param = rp.Param(name, dtype, default,
-                                 namespace=namespace,
-                                 in_fortran=1)
+                                 namespace=namespace)
 
         # optional field: in namelist
         try:
@@ -200,7 +198,7 @@ def write_probin(prob_param_files, cxx_prefix):
         for p in params:
             if not p.is_array():
                 if p.in_namelist:
-                    fout.write(p.get_job_info_test(lang="C++"))
+                    fout.write(p.get_job_info_test())
 
     # now the C++ initialization routines
     ofile = f"{cxx_prefix}_parameters.cpp"
@@ -225,9 +223,7 @@ def write_probin(prob_param_files, cxx_prefix):
 
 
         # now write the parmparse code to get the value from the C++
-        # inputs.  This will overwrite the Fortran value.
-
-        fout.write("    // get the value from the inputs file (this overwrites the Fortran value)\n\n")
+        # inputs.
 
         # open namespace
         fout.write("    {\n")

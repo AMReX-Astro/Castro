@@ -30,6 +30,16 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
+USE_FORT_MICROPHYSICS := FALSE
+
+# only radiation builds need Fortran
+ifeq ($(USE_RAD), TRUE)
+  BL_NO_FORT := FALSE
+else
+  BL_NO_FORT := TRUE
+endif
+
+
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation
@@ -126,9 +136,6 @@ build_status:
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 
-# Castro uses a coarse grained OMP approach
-DEFINES += -DCRSEGRNDOMP
-
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
 
@@ -204,7 +211,7 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
+  DEFINES += -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -244,8 +251,6 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRAD_INTERP
 
   DEFINES += -DNGROUPS=$(NGROUPS)
-
-  EXTERN_CORE += $(TOP)/Util/LAPACK
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -354,7 +359,6 @@ clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
-	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
 # can get rid of explicitly removing them (this is for backwards compatability)

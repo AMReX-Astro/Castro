@@ -13,6 +13,8 @@
 #include <cmath>
 #include <climits>
 
+#include <problem_initialize_state_data.H>
+
 using std::string;
 using namespace amrex;
 
@@ -282,7 +284,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
 
-    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+    if (level == 0 && do_grav && gravity->get_gravity_type() == "PoissonGrav") {
         gravity->update_max_rhs();
     }
 #endif
@@ -302,13 +304,84 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
+    MultiFab& S_old = get_old_data(State_Type);
+
+    // if we are doing drive_initial_convection, check to see if we
+    // need to reinitialize the thermodynamic data (while keeping the
+    // velocity unchanged)
+
+#ifndef MHD
+
+    const Real cur_time = state[State_Type].curTime();
+    const Real dt_level = parent->dtLevel(level);
+
+    if (drive_initial_convection && cur_time <= drive_initial_convection_tmax) {
+
+        // Calculate the new dt by comparing to the dt needed to get
+        // to the next multiple of drive_initial_convection_reinit_period
+
+        const Real dtMod = std::fmod(cur_time, drive_initial_convection_reinit_period);
+
+        Real reinit_dt;
+
+        // Note that if we are just about exactly on a multiple of
+        // drive_initial_convection_reinit_period, then we need to be
+        // careful to avoid floating point issues.
+
+
+        if (std::abs(dtMod - drive_initial_convection_reinit_period) <=
+            std::numeric_limits<Real>::epsilon() * cur_time) {
+                reinit_dt = drive_initial_convection_reinit_period +
+                    (drive_initial_convection_reinit_period - dtMod);
+        } else {
+            reinit_dt = drive_initial_convection_reinit_period - dtMod;
+        }
+
+        if (reinit_dt < dt_level) {
+
+          amrex::Print() << "<<<<< drive initial convection reset >>>>" << std::endl;
+
+            for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+            {
+                const Box& box     = mfi.validbox();
+
+                auto s = S_old[mfi].array();
+                auto geomdata = geom.data();
+
+                amrex::ParallelFor(box,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                {
+                    // redo the problem initialization.  We want to preserve
+                    // the current velocity though, so save that and then
+                    // restore it afterwards.
+
+                    Real vx_orig = s(i,j,k,UMX) / s(i,j,k,URHO);
+                    Real vy_orig = s(i,j,k,UMY) / s(i,j,k,URHO);
+                    Real vz_orig = s(i,j,k,UMZ) / s(i,j,k,URHO);
+
+                    problem_initialize_state_data(i, j, k, s, geomdata);
+
+                    s(i,j,k,UMX) = s(i,j,k,URHO) * vx_orig;
+                    s(i,j,k,UMY) = s(i,j,k,URHO) * vy_orig;
+                    s(i,j,k,UMZ) = s(i,j,k,URHO) * vz_orig;
+
+                    s(i,j,k,UEDEN) = s(i,j,k,UEINT) + 0.5_rt * s(i,j,k,URHO) *
+                        (vx_orig * vx_orig + vy_orig * vy_orig + vz_orig * vz_orig);
+
+                });
+            }
+
+        }
+    }
+#endif
+
+
     // Ensure data is valid before beginning advance. This addresses
     // the fact that we may have new data on this level that was interpolated
     // from a coarser level, and the interpolation in general cannot be
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    MultiFab& S_old = get_old_data(State_Type);
     clean_state(
 #ifdef MHD
                  get_old_data(Mag_Type_x),
@@ -408,7 +481,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #endif
 
 #ifdef REACTIONS
-    burn_weights.setVal(0.0);
+    if (store_burn_weights) {
+        burn_weights.setVal(0.0);
+    }
 #endif
 
 }

@@ -66,13 +66,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const auto domlo = geom.Domain().loVect3d();
     const auto domhi = geom.Domain().hiVect3d();
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -99,8 +92,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                            qint, flx,
 #ifdef RADIATION
                            rflx,
-                           fspace_t, comov,
-                           limiter, closure,
 #endif
                            qgdnv, store_full_state);
 

@@ -14,8 +14,9 @@ using namespace amrex;
 void
 Castro::sum_integrated_quantities ()
 {
-
     if (verbose <= 0) return;
+
+    BL_PROFILE("Castro::sum_integrated_quantities()");
 
     bool local_flag = true;
 
@@ -51,34 +52,36 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
+        MultiFab& S_new = ca_lev.get_new_data(State_Type);
+#ifdef GRAVITY
+        MultiFab& phi_new = ca_lev.get_new_data(PhiGrav_Type);
+#endif
 
-        mass   += ca_lev.volWgtSum("density", time, local_flag);
-        mom[0] += ca_lev.volWgtSum("xmom", time, local_flag);
-        mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
-        mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        mass   += ca_lev.volWgtSum(S_new, URHO, local_flag);
+        mom[0] += ca_lev.volWgtSum(S_new, UMX, local_flag);
+        mom[1] += ca_lev.volWgtSum(S_new, UMY, local_flag);
+        mom[2] += ca_lev.volWgtSum(S_new, UMZ, local_flag);
 
         ang_mom[0] += ca_lev.volWgtSum("angular_momentum_x", time, local_flag);
         ang_mom[1] += ca_lev.volWgtSum("angular_momentum_y", time, local_flag);
         ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
 
 #ifdef HYBRID_MOMENTUM
-        hyb_mom[0] += ca_lev.volWgtSum("rmom", time, local_flag);
-        hyb_mom[1] += ca_lev.volWgtSum("lmom", time, local_flag);
-        hyb_mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, time, local_flag);
+        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, time, local_flag);
+        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, time, local_flag);
 #endif
 
-        if (show_center_of_mass) {
-           com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
-           com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
-           com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
-        }
+        com[0] += ca_lev.locWgtSum(S_new, URHO, 0, local_flag);
+        com[1] += ca_lev.locWgtSum(S_new, URHO, 1, local_flag);
+        com[2] += ca_lev.locWgtSum(S_new, URHO, 2, local_flag);
 
-       rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
+       rho_e += ca_lev.volWgtSum(S_new, UEINT, local_flag);
        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
-       rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
+       rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
 #ifdef GRAVITY
         if (gravity->get_gravity_type() == "PoissonGrav")
-               rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
+            rho_phi += ca_lev.volProductSum(S_new, phi_new, URHO, 0, local_flag);
 #endif
 
     }
@@ -88,19 +91,21 @@ Castro::sum_integrated_quantities ()
 
 #ifdef HYBRID_MOMENTUM
 #ifdef GRAVITY
+       const int nfoo = 17;
+#else
+       const int nfoo = 16;
+#endif
+#else
+#ifdef GRAVITY
        const int nfoo = 14;
 #else
        const int nfoo = 13;
 #endif
-#else
-#ifdef GRAVITY
-       const int nfoo = 11;
-#else
-       const int nfoo = 10;
-#endif
 #endif
 
-        Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
+        Real foo[nfoo] = {mass, mom[0], mom[1], mom[2],
+                          com[0], com[1], com[2],
+                          ang_mom[0], ang_mom[1], ang_mom[2],
 #ifdef HYBRID_MOMENTUM
                           hyb_mom[0], hyb_mom[1], hyb_mom[2],
 #endif
@@ -116,9 +121,6 @@ Castro::sum_integrated_quantities ()
 
         ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
 
-        if (show_center_of_mass)
-            ParallelDescriptor::ReduceRealSum(com, 3, ParallelDescriptor::IOProcessorNumber());
-
         if (ParallelDescriptor::IOProcessor()) {
 
             int i = 0;
@@ -126,6 +128,9 @@ Castro::sum_integrated_quantities ()
             mom[0]     = foo[i++];
             mom[1]     = foo[i++];
             mom[2]     = foo[i++];
+            com[0]     = foo[i++];
+            com[1]     = foo[i++];
+            com[2]     = foo[i++];
             ang_mom[0] = foo[i++];
             ang_mom[1] = foo[i++];
             ang_mom[2] = foo[i++];
@@ -140,14 +145,21 @@ Castro::sum_integrated_quantities ()
 #ifdef GRAVITY
             rho_phi    = foo[i++];
 
-            // Total energy is -1/2 * rho * phi + rho * E for self-gravity,
-            // and -rho * phi + rho * E for externally-supplied gravity.
+            // Total energy is 1/2 * rho * phi + rho * E for self-gravity,
+            // and rho * phi + rho * E for externally-supplied gravity.
             std::string gravity_type = gravity->get_gravity_type();
-            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav")
-              total_energy = -0.5 * rho_phi + rho_E;
-            else
-              total_energy = -rho_phi + rho_E;
+            if (gravity_type == "PoissonGrav" || gravity_type == "MonopoleGrav") {
+                total_energy = 0.5 * rho_phi + rho_E;
+            }
+            else {
+                total_energy = rho_phi + rho_E;
+            }
 #endif
+
+            for (int idir = 0; idir < 3; idir++) {
+                com[idir]     = com[idir] / mass;
+                com_vel[idir] = mom[idir] / mass;
+            }
 
             std::cout << '\n';
             std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
@@ -169,37 +181,85 @@ Castro::sum_integrated_quantities ()
             std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
             std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';
 #endif
+            std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
+
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
+
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
 
             std::ostream& data_log1 = *Castro::data_logs[0];
 
             if (data_log1.good()) {
 
                if (time == 0.0) {
-                   data_log1 << std::setw(datwidth) <<  "          time";
-                   data_log1 << std::setw(datwidth) <<  "          mass";
-                   data_log1 << std::setw(datwidth) <<  "          xmom";
-                   data_log1 << std::setw(datwidth) <<  "          ymom";
-                   data_log1 << std::setw(datwidth) <<  "          zmom";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom x";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom y";
-                   data_log1 << std::setw(datwidth) <<  "     ang mom z";
+
+                   std::ostringstream header;
+
+                   int n = 0;
+
+                   header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                   header << std::setw(fixwidth) << "                     TIME"; ++n;
+                   header << std::setw(datwidth) << "                     MASS"; ++n;
+                   header << std::setw(datwidth) << "                     XMOM"; ++n;
+                   header << std::setw(datwidth) << "                     YMOM"; ++n;
+                   header << std::setw(datwidth) << "                     ZMOM"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. X"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. Y"; ++n;
+                   header << std::setw(datwidth) << "              ANG. MOM. Z"; ++n;
+#if (AMREX_SPACEDIM == 3)
 #ifdef HYBRID_MOMENTUM
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom r";
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom l";
-                   data_log1 << std::setw(datwidth) <<  "     hyb mom p";
+                   header << std::setw(datwidth) << "              HYB. MOM. R"; ++n;
+                   header << std::setw(datwidth) << "              HYB. MOM. L"; ++n;
+                   header << std::setw(datwidth) << "              HYB. MOM. P"; ++n;
 #endif
-                   data_log1 << std::setw(datwidth) <<  "         rho_K";
-                   data_log1 << std::setw(datwidth) <<  "         rho_e";
-                   data_log1 << std::setw(datwidth) <<  "         rho_E";
+#endif
+                   header << std::setw(datwidth) << "              KIN. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "              INT. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "               GAS ENERGY"; ++n;
 #ifdef GRAVITY
-                   data_log1 << std::setw(datwidth) <<  "       rho_phi";
-                   data_log1 << std::setw(datwidth) <<  "  total energy";
+                   header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
+                   header << std::setw(datwidth) << "             TOTAL ENERGY"; ++n;
 #endif
+                   header << std::setw(datwidth) << "     CENTER OF MASS X-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Y-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Z-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS X-VEL"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Y-VEL"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Z-VEL"; ++n;
+
+                   header << std::endl;
+
+                   data_log1 << std::setw(intwidth) << "#   COLUMN 1";
+                   data_log1 << std::setw(fixwidth) << "                        2";
+
+                   for (int icol = 3; icol <= n; ++icol) {
+                       data_log1 << std::setw(datwidth) << icol;
+                   }
+
                    data_log1 << std::endl;
+
+                   data_log1 << header.str();
                }
 
                // Write the quantities at this time
-               data_log1 << std::setw(datwidth) <<  time;
+               data_log1 << std::fixed;
+
+               data_log1 << std::setw(intwidth) <<  timestep;
+
+               if (time < 1.e-4_rt || time > 1.e4_rt) {
+                   data_log1 << std::scientific;
+               }
+               else {
+                   data_log1 << std::fixed;
+               }
+
+               data_log1 << std::setw(fixwidth) <<  std::setprecision(datprecision) << time;
+
+               data_log1 << std::scientific;
+
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mass;
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[0];
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[1];
@@ -219,24 +279,15 @@ Castro::sum_integrated_quantities ()
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
 #endif
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[2];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[2];
+
                data_log1 << std::endl;
 
-            }
-
-            if (show_center_of_mass) {
-                for (int idir = 0; idir <= 2; idir++) {
-                  com[idir]     = com[idir] / mass;
-                  com_vel[idir] = mom[idir] / mass;
-                }
-
-                std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
-
-                std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
-
-                std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
             }
         }
 #ifdef BL_LAZY
@@ -328,6 +379,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -363,8 +422,9 @@ Castro::sum_integrated_quantities ()
         // Integrated mass of all species on the domain
 
         for (int lev = 0; lev <= finest_level; ++lev) {
+            MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
             for (int i = 0; i < NumSpec; ++i) {
-                species_mass[i] += getLevel(lev).volWgtSum("rho_" + species_names[i], time, local_flag) / C::M_solar;
+                species_mass[i] += getLevel(lev).volWgtSum(S_new, UFS + i, local_flag) / C::M_solar;
             }
         }
 
@@ -424,6 +484,14 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
 
             log << std::scientific;
@@ -502,7 +570,18 @@ Castro::sum_integrated_quantities ()
             log << std::fixed;
 
             log << std::setw(intwidth)                                    << timestep;
+
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
+                log << std::scientific;
+            }
+            else {
+                log << std::fixed;
+            }
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+
+            log << std::fixed;
+
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;

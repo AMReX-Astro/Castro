@@ -24,11 +24,14 @@ Castro::do_advance_ctu(Real time,
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
 
+
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -61,11 +64,9 @@ Castro::do_advance_ctu(Real time,
         create_source_corrector();
     }
 
-#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_old);
-#endif
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -153,6 +154,7 @@ Castro::do_advance_ctu(Real time,
     // be in sync due to any average down done, so fill them here
 
     MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 #endif
 #endif
@@ -172,57 +174,83 @@ Castro::do_advance_ctu(Real time,
       construct_ctu_mhd_source(time, dt);
 #endif
 
-      // Check for small/negative densities.
-      // If we detect one, return immediately.
+      // Check for small/negative densities and X > 1 or X < 0.
+      // If we detect this, return immediately.
 
-      Real minimum_density = S_new.min(URHO);
+      ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+      ReduceData<int, int> reduce_data(reduce_op);
+      using ReduceTuple = typename decltype(reduce_data)::Type;
 
-      if (minimum_density < small_dens) {
-          // Obtain the location of the zone with minimum density.
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
 
-          IntVect min_index = S_new.minIndex(URHO, 0);
+          auto S_old_arr = S_old.array(mfi);
+          auto S_new_arr = S_new.array(mfi);
 
-          // Determine its density prior to the update.
+          reduce_op.eval(bx, reduce_data,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+          {
+              int rho_check_failed = 0;
+              int X_check_failed = 0;
 
-          Real starting_density = 0.0_rt;
+              Real rho = S_new_arr(i,j,k,URHO);
+              Real rhoInv = 1.0_rt / rho;
 
-          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-              if (S_new[mfi].box().contains(min_index)) {
-                  starting_density = S_old[mfi](min_index, URHO);
-                  break;
+              // Optionally, the user can ignore this if the starting
+              // density is lower than a certain threshold. This is useful
+              // if the minimum density occurs in material that is not
+              // dynamically important; in that case, a density reset suffices.
+
+              if (S_old_arr(i,j,k,URHO) >= retry_small_density_cutoff && rho < small_dens) {
+#ifndef AMREX_USE_GPU
+                  std::cout << "Invalid density = " << rho << " at index " << i << ", " << j << ", " << k << "\n";
+#endif
+                  rho_check_failed = 1;
               }
-          }
 
-          ParallelDescriptor::ReduceRealMax(starting_density);
+              if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
 
-          // Optionally, the user can ignore this if the starting
-          // density is lower than a certain threshold. This is useful
-          // if the minimum density occurs in material that is not
-          // dynamically important; in that case, a density reset suffices.
+                  for (int n = 0; n < NumSpec; ++n) {
+                      Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
 
-          if (starting_density >= retry_small_density_cutoff) {
-              status.success = false;
+                      if (X < -castro::abundance_failure_tolerance ||
+                          X > 1.0_rt + castro::abundance_failure_tolerance) {
+#ifndef AMREX_USE_GPU
+                          std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                    << i << ", " << j << ", " << k
+                                    << " with density = " << rho << "\n";
+#endif
+                          X_check_failed = 1;
+                      }
+                  }
 
-              if (minimum_density < 0.0_rt) {
-                  status.reason = "negative density";
               }
-              else {
-                  status.reason = "small density";
-              }
 
-              // Add some diagnostic information to the stdout
-              // so the user has an idea of what went wrong: the
-              // new minimum density, the index it is located at,
-              // and the density before the update.
+              return {rho_check_failed, X_check_failed};
+          });
 
-              std::ostringstream ss;
-              ss << std::scientific;
-              ss << " (density = " << minimum_density << " at index " << min_index << ";";
-              ss << " started at " << starting_density << ")";
-              status.reason += ss.str();
+      }
 
-              return status;
-          }
+      ReduceTuple hv = reduce_data.value();
+      int rho_check_failed = amrex::get<0>(hv);
+      int X_check_failed = amrex::get<1>(hv);
+
+      ParallelDescriptor::ReduceIntMax(rho_check_failed);
+      ParallelDescriptor::ReduceIntMax(X_check_failed);
+
+      if (rho_check_failed == 1) {
+          status.success = false;
+          status.reason = "invalid density";
+          return status;
+      }
+
+      if (X_check_failed == 1) {
+          status.success = false;
+          status.reason = "invalid X";
+          return status;
       }
     }
 
@@ -234,11 +262,9 @@ Castro::do_advance_ctu(Real time,
 #endif
                 S_new, cur_time, 0);
 
-#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_new);
-#endif
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
@@ -311,6 +337,9 @@ Castro::do_advance_ctu(Real time,
             // Simplified_SDC_React_Type -- this will be used after the burn
             // to figure out just the effect of reactions
 
+            // we are actually abusing this MF a bit, since it has NQ components,
+            // are we are storing NUM_STATE there now, so this assumes NQ >= NUM_STATE
+
             MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
             MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
 
@@ -341,9 +370,7 @@ Castro::do_advance_ctu(Real time,
 
             // Check for NaN's.
 
-#ifndef AMREX_USE_GPU
             check_for_nan(S_new);
-#endif
 
         }
         else {
@@ -407,7 +434,10 @@ Castro::do_advance_ctu(Real time,
 
     finalize_do_advance();
 
+#endif
+
     return status;
+
 }
 
 
@@ -430,8 +460,10 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
+            std::cout << Font::Bold << FGColor::Red;
             std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
             std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << ResetDisplay;
             std::cout << std::endl;
         }
 
@@ -597,8 +629,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
-                      << " with dt = " << dt_subcycle << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+                      << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
@@ -686,7 +718,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << "  Subcycle completed" << std::endl << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Subcycle completed" << ResetDisplay << std::endl << std::endl;
         }
 
         // Set sdc_iters to its original value, in case we modified it above.

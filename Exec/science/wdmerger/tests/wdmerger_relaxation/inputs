@@ -13,7 +13,6 @@ amr.max_grid_size = 128
 amr.blocking_factor = 16
 
 castro.do_rotation = 1
-castro.state_in_rotating_frame = 1
 
 amr.check_int = -1
 amr.check_per = -1.0
@@ -43,5 +42,4 @@ problem.relaxation_cutoff_time = -1.0e2
 problem.radial_damping_factor = 1.0e-1
 problem.initial_radial_velocity_factor = -1.0e-3
 
-problem.max_stellar_tagging_level = 20
 problem.stellar_density_threshold = 1.0e0

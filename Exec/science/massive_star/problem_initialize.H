@@ -38,6 +38,8 @@ void problem_initialize ()
     problem::center[2] = 0.5_rt * (problo[2] + probhi[2]);
 #endif
 
+    problem::isi28 = network_spec_index("silicon-28");
+
 }
 
 #endif
