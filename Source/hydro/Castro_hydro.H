@@ -624,6 +624,33 @@
                    const amrex::Real dt);
 
 ///
+/// A variant of trace_ppm that works with the (rho, u, T) eigensystem.
+///
+/// @param bx        the box to operate over
+/// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param q_arr     primitive variable state
+/// @param qaux_arr  the auxillary state
+/// @param srcQ      primitive variable equation source terms
+/// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
+/// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
+/// @param dloga     geometric factor dlog(area)
+/// @param vbx       the valid region box (excluding ghost cells)
+/// @param dt        timestep
+///
+    void trace_ppm_T(const amrex::Box& bx,
+                     const int idir,
+                     amrex::Array4<amrex::Real const> const& q_arr,
+                     amrex::Array4<amrex::Real const> const& qaux_arr,
+                     amrex::Array4<amrex::Real const> const& srcQ,
+                     amrex::Array4<amrex::Real> const& qm,
+                     amrex::Array4<amrex::Real> const& qp,
+#if (AMREX_SPACEDIM < 3)
+                     amrex::Array4<amrex::Real const> const& dloga,
+#endif
+                     const amrex::Box& vbx,
+                     const amrex::Real dt);
+
+///
 /// Reconstruct the primtive state as pieceeise linear, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.

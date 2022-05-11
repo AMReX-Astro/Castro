@@ -34,6 +34,7 @@ CEXE_headers += slope.H
 CEXE_headers += reconstruction.H
 CEXE_sources += trace_plm.cpp
 CEXE_sources += trace_ppm.cpp
+CEXE_sources += trace_ppm_T.cpp
 
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += fourth_order.cpp

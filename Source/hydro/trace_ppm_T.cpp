@@ -7,21 +7,23 @@
 #include <ppm.H>
 #include <flatten.H>
 
+#include <network.H>
+
 using namespace amrex;
 
 void
-Castro::trace_ppm(const Box& bx,
-                  const int idir,
-                  Array4<Real const> const& q_arr,
-                  Array4<Real const> const& qaux_arr,
-                  Array4<Real const> const& srcQ,
-                  Array4<Real> const& qm,
-                  Array4<Real> const& qp,
+Castro::trace_ppm_T(const Box& bx,
+                    const int idir,
+                    Array4<Real const> const& q_arr,
+                    Array4<Real const> const& qaux_arr,
+                    Array4<Real const> const& srcQ,
+                    Array4<Real> const& qm,
+                    Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                  Array4<Real const> const& dloga,
+                    Array4<Real const> const& dloga,
 #endif
-                  const Box& vbx,
-                  const Real dt) {
+                    const Box& vbx,
+                    const Real dt) {
 
   // here, lo and hi are the range we loop over -- this can include ghost cells
   // vlo and vhi are the bounds of the valid box (no ghost cells)
@@ -429,7 +431,7 @@ Castro::trace_ppm(const Box& bx,
       Real T_ref = Ip_T[2];
 
       rho_ref = amrex::max(rho_ref, lsmall_dens);
-      T_ref = amrex::max(p_ref, lsmall_temp);
+      T_ref = amrex::max(T_ref, lsmall_temp);
 
 
       // *m are the jumps carried by u-c
@@ -440,7 +442,7 @@ Castro::trace_ppm(const Box& bx,
       Real dTm  = T_ref - Ip_T[0];
 
       Real drho = rho_ref - Ip_rho[1] - hdt * Ip_src_rho[1];
-      Real dptot = T_ref - Ip_T[1];
+      Real dT = T_ref - Ip_T[1];
 
       Real drhop = rho_ref - Ip_rho[2] - hdt * Ip_src_rho[2];
       Real dup = un_ref - Ip_un_2 - hdt * Ip_src_un_2;
@@ -496,6 +498,8 @@ Castro::trace_ppm(const Box& bx,
     }
 
     // geometry source terms
+    // TODO: what is the geometry term for temperature?
+
 #if (AMREX_SPACEDIM < 3)
     // these only apply for x states (idir = 0)
     if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
@@ -525,6 +529,68 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     // now compute the interface states for p and (rho e) via the EOS
+
+    if ((idir == 0 && i >= vlo[0]) ||
+        (idir == 1 && j >= vlo[1]) ||
+        (idir == 2 && k >= vlo[2])) {
+
+        eos_state.rho = qp(i,j,k,QRHO);
+        eos_state.T = qp(i,j,k,QTEMP);
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = qp(i,j,k,QFS+n);
+        }
+
+        eos(eos_input_rt, eos_state);
+
+        qp(i,j,k,QREINT) = qp(i,j,k,QRHO) * eos_state.e;
+        qp(i,j,k,QPRES) = amrex::max(lsmall_pres, eos_state.p);
+
+    }
+
+    if ((idir == 0 && i <= vhi[0]) ||
+        (idir == 1 && j <= vhi[1]) ||
+        (idir == 2 && k <= vhi[2])) {
+
+        if (idir == 0) {
+            eos_state.rho = qm(i+1,j,k,QRHO);
+            eos_state.T = qm(i+1,j,k,QTEMP);
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = qm(i+1,j,k,QFS+n);
+            }
+
+            eos(eos_input_rt, eos_state);
+
+            qm(i+1,j,k,QREINT) = qm(i+1,j,k,QRHO) * eos_state.e;
+            qm(i+1,j,k,QPRES) = amrex::max(lsmall_pres, eos_state.p);
+
+        } else if (idir == 1) {
+            eos_state.rho = qm(i,j+1,k,QRHO);
+            eos_state.T = qm(i,j+1,k,QTEMP);
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = qm(i,j+1,k,QFS+n);
+            }
+
+            eos(eos_input_rt, eos_state);
+
+            qm(i,j+1,k,QREINT) = qm(i,j+1,k,QRHO) * eos_state.e;
+            qm(i,j+1,k,QPRES) = amrex::max(lsmall_pres, eos_state.p);
+
+        } else if (idir == 2) {
+            eos_state.rho = qm(i,j,k+1,QRHO);
+            eos_state.T = qm(i,j,k+1,QTEMP);
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = qm(i,j,k+1,QFS+n);
+            }
+
+            eos(eos_input_rt, eos_state);
+
+            qm(i,j,k+1,QREINT) = qm(i,j,k+1,QRHO) * eos_state.e;
+            qm(i,j,k+1,QPRES) = amrex::max(lsmall_pres, eos_state.p);
+
+        }
+
+    }
+
 
   });
 }
