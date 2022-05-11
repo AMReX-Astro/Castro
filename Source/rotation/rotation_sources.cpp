@@ -63,25 +63,21 @@ Castro::rsrc(const Box& bx,
     snew[UMZ] += dt * src[UMZ];
 
 #ifdef HYBRID_MOMENTUM
-    if (state_in_rotating_frame == 1) {
+    GpuArray<Real, 3> linear_momentum;
+    linear_momentum[0] = src[UMX];
+    linear_momentum[1] = src[UMY];
+    linear_momentum[2] = src[UMZ];
 
-      GpuArray<Real, 3> linear_momentum;
-      linear_momentum[0] = src[UMX];
-      linear_momentum[1] = src[UMY];
-      linear_momentum[2] = src[UMZ];
+    GpuArray<Real, 3> hybrid_source;
+    set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
-      GpuArray<Real, 3> hybrid_source;
-      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
+    snew[UMR] += dt * hybrid_source[0];
+    snew[UML] += dt * hybrid_source[1];
+    snew[UMP] += dt * hybrid_source[2];
 
-      snew[UMR] += dt * hybrid_source[0];
-      snew[UML] += dt * hybrid_source[1];
-      snew[UMP] += dt * hybrid_source[2];
-
-      src[UMR] = hybrid_source[0];
-      src[UML] = hybrid_source[1];
-      src[UMP] = hybrid_source[2];
-
-    }
+    src[UMR] = hybrid_source[0];
+    src[UML] = hybrid_source[1];
+    src[UMP] = hybrid_source[2];
 #endif
 
     // Kinetic energy source: this is v . the momentum source.
@@ -195,26 +191,9 @@ Castro::corrrsrc(const Box& bx,
 
     if (rotation_include_coriolis == 1) {
 
-      // If the state variables are in the inertial frame, then we are doing
-      // an implicit solve using (dt / 2) multiplied by the standard Coriolis term.
-      // If not, then the rotation source term to the linear momenta (Equations 16
-      // and 17 in Byerly et al., 2014) still retains a Coriolis-like form, with
-      // the only difference being that the magnitude is half as large. Consequently
-      // we can still do an implicit solve in that case.
-
-      if (state_in_rotating_frame == 1) {
-
         for (int idir = 0; idir < 3; idir++) {
           dt_omega[idir] = dt * omega[idir];
         }
-
-      } else {
-
-        for (int idir = 0; idir < 3; idir++) {
-          dt_omega[idir] = 0.5_rt * dt * omega[idir];
-        }
-
-      }
 
     } else {
 
@@ -381,27 +360,22 @@ Castro::corrrsrc(const Box& bx,
     snew[UMZ] += dt * src[UMZ];
 
 #ifdef HYBRID_MOMENTUM
-    // The source terms vanish if the state variables are measured in the
-    // inertial frame; see wdmerger paper III.
+    GpuArray<Real, 3> hybrid_source;
 
-    if (state_in_rotating_frame == 1) {
-      GpuArray<Real, 3> hybrid_source;
+    GpuArray<Real, 3> linear_momentum;
+    linear_momentum[0] = src[UMX];
+    linear_momentum[1] = src[UMY];
+    linear_momentum[2] = src[UMZ];
 
-      GpuArray<Real, 3> linear_momentum;
-      linear_momentum[0] = src[UMX];
-      linear_momentum[1] = src[UMY];
-      linear_momentum[2] = src[UMZ];
+    set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
-      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
+    snew[UMR] += dt * hybrid_source[0];
+    snew[UML] += dt * hybrid_source[1];
+    snew[UMP] += dt * hybrid_source[2];
 
-      snew[UMR] += dt * hybrid_source[0];
-      snew[UML] += dt * hybrid_source[1];
-      snew[UMP] += dt * hybrid_source[2];
-
-      src[UMR] = hybrid_source[0];
-      src[UML] = hybrid_source[1];
-      src[UMP] = hybrid_source[2];
-    }
+    src[UMR] = hybrid_source[0];
+    src[UML] = hybrid_source[1];
+    src[UMP] = hybrid_source[2];
 #endif
 
     // Correct energy

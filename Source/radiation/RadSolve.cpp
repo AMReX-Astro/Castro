@@ -50,29 +50,12 @@ RadSolve::read_params ()
 {
     ParmParse pp("radsolve");
 
-    // Override some defaults manually.
-
-    if (AMREX_SPACEDIM == 1) {
-        // pfmg will not work in 1D
-        radsolve::level_solver_flag = 0;
-    }
-
-    if (Radiation::SolverType == Radiation::SGFLDSolver
-        && Radiation::Er_Lorentz_term) { 
-        radsolve::use_hypre_nonsymmetric_terms = 1;
-    }
-
-    if (Radiation::SolverType == Radiation::MGFLDSolver && 
-        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-        radsolve::use_hypre_nonsymmetric_terms = 1;
-    }
+#include <radsolve_queries.H>
 
     if (Radiation::SolverType == Radiation::SGFLDSolver ||
         Radiation::SolverType == Radiation::MGFLDSolver) {
         radsolve::abstol = 0.0;
     }
-
-#include <radsolve_queries.H>
 
     // Check for unsupported options.
 
@@ -88,6 +71,10 @@ RadSolve::read_params ()
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
         }
+
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            amrex::Error("To do Lorentz term implicitly use_hypre_nonsymmetric_terms must be 1.");
+        }
     }
 
     if (Radiation::SolverType == Radiation::MGFLDSolver && 
@@ -95,6 +82,10 @@ RadSolve::read_params ()
 
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        }
+
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            amrex::Error("When accelerate is 2, use_hypre_nonsymmetric_terms must be 1.");
         }
     }
 
@@ -295,8 +286,6 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
           auto lmz = lambda[2][mfi].array();
 #endif
 
-          int limiter = Radiation::limiter;
-
           amrex::ParallelFor(reg,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
@@ -321,7 +310,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
                          lmz(i,j,k,igroup) + lmz(i  ,j  ,k+1,igroup)) / 6.e0_rt;
 #endif
 
-                  spa_arr(i,j,k) = FLDalpha(lam, limiter);
+                  spa_arr(i,j,k) = FLDalpha(lam);
               }
           });
       }

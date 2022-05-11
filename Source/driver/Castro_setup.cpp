@@ -288,6 +288,10 @@ Castro::variableSetUp ()
   if (!use_retry && !abort_on_failure) {
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
+  if (use_retry && abort_on_failure) {
+      amrex::Warning("use_retry = 1, so disabling abort_on_failure");
+      abort_on_failure = 0;
+  }
 #endif
 #endif
 

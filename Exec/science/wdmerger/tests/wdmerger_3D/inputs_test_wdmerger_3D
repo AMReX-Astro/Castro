@@ -54,6 +54,9 @@ amr.blocking_factor = 16                           # Grid sizes must be a multip
 
 amr.grid_eff = 0.9                                 # What constitutes an efficient grid
 
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -130,7 +133,7 @@ castro.v = 1                                       # Control verbosity in Castro
 gravity.v = 1                                      # Control verbosity in Gravity.cpp
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE
 
@@ -153,7 +156,4 @@ problem.relaxation_density_cutoff = 1.0e10
 problem.orbital_eccentricity = 0.0e0
 problem.orbital_angle = 0.0e0
 
-problem.max_tagging_radius = 0.75e0
 problem.stellar_density_threshold = 1.0e0
-
-problem.smallu = 1.0e-12

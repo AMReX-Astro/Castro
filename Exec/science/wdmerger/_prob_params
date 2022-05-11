@@ -1,4 +1,4 @@
-# name                          data type             default                  in namelist?           size
+# name                          data type             default                  in runtime params?     size
   
 # Initial stellar properties
 # Note that the envelope mass is included within the total mass of the star
@@ -49,12 +49,6 @@ center_fracx                    real                  0.5e0_rt                 y
 center_fracy                    real                  0.5e0_rt                 y
 center_fracz                    real                  0.5e0_rt                 y
 
-# Bulk system motion
-
-bulk_velx                       real                  0.0e0_rt                 y
-bulk_vely                       real                  0.0e0_rt                 y
-bulk_velz                       real                  0.0e0_rt                 y
-
 # Whether we're doing an initialization or a restart
 
 init                            integer               1                        n
@@ -62,11 +56,6 @@ init                            integer               1                        n
 # Are we doing a single star simulation?
 
 single_star                     integer               0                        n
-
-
-
-# Smallest allowed velocity on the grid  
-smallu                          real                  0.e0_rt                  y
 
 
 
@@ -177,23 +166,14 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 
 
-# Tagging criteria
-
-max_stellar_tagging_level       integer               20                       y
-max_temperature_tagging_level   integer               20                       y
-stellar_density_threshold       real                  1.0e0_rt                 y
-temperature_tagging_threshold   real                  5.0e8_rt                 y
-max_tagging_radius              real                  0.75e0_rt                y
-roche_tagging_factor            real                  2.0e0_rt                 y
-
-
-
 # Stores the center of mass location of the stars throughout the run
 
 com_P                           real                  0.0e0_rt                 n                      3
 com_S                           real                  0.0e0_rt                 n                      3
 vel_P                           real                  0.0e0_rt                 n                      3
 vel_S                           real                  0.0e0_rt                 n                      3
+
+stellar_density_threshold       real                  1.0e0_rt                 y
 
 
 
@@ -222,27 +202,6 @@ initial_radial_velocity_factor  real                 -1.0e-3_rt                y
 
 t_ff_P                          real                  0.0e0_rt                 n
 t_ff_S                          real                  0.0e0_rt                 n
-
-
-
-# Global extrema
-
-T_global_max                    real                  0.0e0_rt                 n
-rho_global_max                  real                  0.0e0_rt                 n
-ts_te_global_max                real                  0.0e0_rt                 n
-
-
-
-# Stores whether we assert that the simulation has completed.
-
-jobIsDone                       integer               0                        n
-
-
-
-# Auxiliary data for determining whether the job is done.
-
-num_previous_ener_timesteps     integer               5                        n
-total_ener_array                real                  0.0e0_rt                 n                      5
 
 
 

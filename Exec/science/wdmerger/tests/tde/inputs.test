@@ -36,9 +36,6 @@ max_step = 10000000
 # Simulation time to stop at
 stop_time = 30.0
 
-# Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.15
 
@@ -72,6 +69,14 @@ amr.max_grid_size = 32
 
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 16
+
+# Add refinement indicators
+amr.refinement_indicators = density
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e4
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
 
 ############################################################################################
 # Physics to include
@@ -212,7 +217,7 @@ amr.plot_vars = ALL
 amr.derive_plot_vars = enuc rho_phiGrav angular_momentum_x angular_momentum_y angular_momentum_z
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out
 
 ############################################################################################
 # Problem parameters
@@ -228,6 +233,4 @@ problem.tde_beta = 6.0e0
 
 problem.nsub = 16
 
-problem.max_stellar_tagging_level = 20
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e0

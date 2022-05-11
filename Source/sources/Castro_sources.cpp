@@ -463,43 +463,6 @@ Castro::print_all_source_changes(Real dt, bool is_new)
     evaluate_and_print_source_change(source, dt, source_name);
 }
 
-// Obtain the sum of all source terms.
-
-void
-Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
-{
-  BL_PROFILE("Castro::make_sdc_hydro_plus_sources()");
-
-  // this computes advective_source + 1/2 (old source + new source)
-  //
-  //
-  // we have the following:
-  //
-  // S_new :      U^n - dt div{F} + dt/2 (S^n + S^{n+1})
-  // S_old:       U^n
-  //
-  // so we can compute:
-  //
-  //   (1 / dt) * (S_new - S_old)
-  //
-  // to get:
-  //
-  //     -div{F} + (1/2) (S^n + S^{n+1})
-  //
-
-  int ng = source.nGrow();
-
-  source.setVal(0.0, ng);
-
-  MultiFab& S_old = get_old_data(State_Type);
-  MultiFab& S_new = get_new_data(State_Type);
-
-  MultiFab::Add(source, S_new, 0, 0, S_new.nComp(), ng);
-  MultiFab::Subtract(source, S_old, 0, 0, S_old.nComp(), ng);
-  source.mult(1.0_rt / dt, ng);
-
-}
-
 // Obtain the effective source term due to reactions on the primitive variables.
 // This is done with simplified_SDC
 

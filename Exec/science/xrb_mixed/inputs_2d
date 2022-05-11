@@ -72,7 +72,6 @@ problem.num_vortices = 16
 
 # MICROPHYSICS
 integrator.jacobian = 1
-integrator.do_constant_volume_burn = 0
 
 integrator.call_eos_in_rhs = 0
 

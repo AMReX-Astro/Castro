@@ -34,7 +34,6 @@ import runtime_parameters as rp
 CXX_HEADER = """
 #ifndef problem_parameters_H
 #define problem_parameters_H
-#include <AMReX_BLFort.H>
 #include <AMReX_REAL.H>
 #include <AMReX_Vector.H>
 #include <network_properties.H>
@@ -224,9 +223,7 @@ def write_probin(prob_param_files, cxx_prefix):
 
 
         # now write the parmparse code to get the value from the C++
-        # inputs.  This will overwrite the Fortran value.
-
-        fout.write("    // get the value from the inputs file (this overwrites the Fortran value)\n\n")
+        # inputs.
 
         # open namespace
         fout.write("    {\n")
