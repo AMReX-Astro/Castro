@@ -467,7 +467,7 @@ Castro::trace_ppm_T(const Box& bx,
       if (idir == 0) {
         qm(i+1,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i+1,j,k,QUN) = un_ref + (alphap - alpham) * cc / rho;
-        qp(i+1,j,k,QTEMP) = amrex::max(lsmall_temp,
+        qm(i+1,j,k,QTEMP) = amrex::max(lsmall_temp,
                                        T_ref + (alphap + alpham) * (cc * cc - eos_state.dpdr) / eos_state.dpdT + alpha0r * eos_state.dpdr / eos_state.dpdT);
 
         // transverse velocities
@@ -477,7 +477,7 @@ Castro::trace_ppm_T(const Box& bx,
       } else if (idir == 1) {
         qm(i,j+1,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j+1,k,QUN) = un_ref + (alphap - alpham) * cc / rho;
-        qp(i,j+1,k,QTEMP) = amrex::max(lsmall_temp,
+        qm(i,j+1,k,QTEMP) = amrex::max(lsmall_temp,
                                        T_ref + (alphap + alpham) * (cc * cc - eos_state.dpdr) / eos_state.dpdT + alpha0r * eos_state.dpdr / eos_state.dpdT);
 
         // transverse velocities
@@ -487,7 +487,7 @@ Castro::trace_ppm_T(const Box& bx,
       } else if (idir == 2) {
         qm(i,j,k+1,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j,k+1,QUN) = un_ref + (alphap - alpham) * cc / rho;
-        qp(i,j,k+1,QTEMP) = amrex::max(lsmall_temp,
+        qm(i,j,k+1,QTEMP) = amrex::max(lsmall_temp,
                                        T_ref + (alphap + alpham) * (cc * cc - eos_state.dpdr) / eos_state.dpdT + alpha0r * eos_state.dpdr / eos_state.dpdT);
 
         // transverse velocities
