@@ -114,35 +114,65 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
     if (idir == 0) {
-      trace_ppm(bx,
-                idir,
-                q_arr, qaux_arr, srcQ,
-                qxm, qxp,
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        q_arr, qaux_arr, srcQ,
+                        qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                        dloga,
 #endif
-                vbx, dt);
+                        vbx, dt);
+
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      q_arr, qaux_arr, srcQ,
+                      qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                      dloga,
+#endif
+                      vbx, dt);
+        }
 
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
-      trace_ppm(bx,
-                idir,
-                q_arr, qaux_arr, srcQ,
-                qym, qyp,
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        q_arr, qaux_arr, srcQ,
+                        qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                        dloga,
 #endif
-                vbx, dt);
+                        vbx, dt);
 #endif
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      q_arr, qaux_arr, srcQ,
+                      qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                      dloga,
+#endif
+                      vbx, dt);
+        }
 
 #if AMREX_SPACEDIM == 3
     } else {
-      trace_ppm(bx,
-                idir,
-                q_arr, qaux_arr, srcQ,
-                qzm, qzp,
-                vbx, dt);
-
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        q_arr, qaux_arr, srcQ,
+                        qzm, qzp,
+                        vbx, dt);
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      q_arr, qaux_arr, srcQ,
+                      qzm, qzp,
+                      vbx, dt);
+        }
 #endif
     }
   }
