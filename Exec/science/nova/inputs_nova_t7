@@ -36,7 +36,7 @@ castro.use_flattening = 1
 
 castro.small_temp = 1.0e6
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -7.34e8
+gravity.const_grav   = -7.06e8
 castro.react_rho_min = 1.0e2
 castro.react_T_min = 5.0e6
 
@@ -52,7 +52,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 2       # maximum level number allowed
+amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 64     # block factor in grid generation
@@ -93,7 +93,7 @@ amr.refinement_indicators = dengrad tempgrad
 
 amr.refine.dengrad.gradient = 30.0
 amr.refine.dengrad.field_name = density
-amr.refine.dengrad.max_level = 2
+amr.refine.dengrad.max_level = 1
 
 #amr.refine.denerr.value_greater = 0.1
 #amr.refine.denerr.field_name = density
@@ -101,7 +101,7 @@ amr.refine.dengrad.max_level = 2
 
 amr.refine.tempgrad.gradient = 20000.0
 amr.refine.tempgrad.field_name = Temp
-amr.refine.tempgrad.max_level = 2
+amr.refine.tempgrad.max_level = 1
 
 #amr.refine.temperr.value_greater = 1.e6
 #amr.refine.temperr.field_name = Temp
