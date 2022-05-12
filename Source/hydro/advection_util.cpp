@@ -546,17 +546,6 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     Real density_floor = small_dens * density_floor_tolerance;
 
-    // We apply this flux limiter on a per-edge basis. So we can guarantee
-    // that any individual flux cannot cause a small density in one step,
-    // but with the above floor we cannot guarantee that the sum of the
-    // fluxes will enforce this constraint. The only way to guarantee that
-    // is if the density floor is increased by a factor of the number of
-    // edges, so that even if all edges are summed together, the density
-    // will still be at the floor. So we multiply the floor by a factor of
-    // 2 (two edges in each dimension) and a factor of AMREX_SPACEDIM.
-
-    density_floor *= AMREX_SPACEDIM * 2;
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -592,15 +581,31 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         Real drhoL = flux_coefL * flux(i,j,k,URHO);
 
         // Limit all fluxes such that the zone does not go negative in density.
+        // We apply this flux limiter on a per-edge basis. So we can guarantee
+        // that any individual flux cannot cause a small density in one step,
+        // but with the above floor we cannot guarantee that the sum of the
+        // fluxes will enforce this constraint. A simple way to guarantee that
+        // is to note that in the worst case, all six faces adjacent to a zone
+        // could be evacuating that zone (more generally, 2 * AMREX_SPACEDIM).
+        // So instead of checking whether rho + drho is less than the floor,
+        // we can check whether rho + 6 * drho is less than the floor, and
+        // strengthen the limiter by that same factor of 6, so that even in the
+        // worst case, the zone will remain positive. This is simple to implement
+        // at the risk of being overly aggressive on flux limiting. A more
+        // sophisticated version of this might check the ratio of the fluxes
+        // (or, similarly, the ratio of the edge velocities coming from the
+        // Riemann solver) and scale the larger fluxes more strongly than the
+        // weaker fluxes, and perhaps only consider fluxes that subtract from
+        // the zone, but this would also be more complicated to implement.
 
-        if (rhoR + drhoR < density_floor) {
-            Real limiting_factor = std::abs((density_floor - rhoR) / drhoR);
+        if (rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
+            Real limiting_factor = std::abs((density_floor - rhoR) / (2 * AMREX_SPACEDIM * drhoR));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
-        else if (rhoL - drhoL < density_floor) {
-            Real limiting_factor = std::abs((density_floor - rhoL) / drhoL);
+        else if (rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
+            Real limiting_factor = std::abs((density_floor - rhoL) / (2 * AMREX_SPACEDIM * drhoL));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }

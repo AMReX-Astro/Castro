@@ -19,7 +19,9 @@ COMP ?= gnu
 
 EOS_DIR ?= helmholtz
 
-NETWORK_DIR ?= aprox13
+NETWORK_DIR ?= general_null
+
+NETWORK_INPUTS = ignition.net
 
 PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/gravity_tests/advecting_white_dwarf
 

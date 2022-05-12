@@ -23,12 +23,12 @@ void problem_initialize ()
     // Arbitrarily set the composition of the star to 50/50 C/O.
 
     Real core_comp[NumSpec] = {0.0_rt};
-    core_comp[Species::C12] = 0.5_rt;
-    core_comp[Species::O16] = 0.5_rt;
+    core_comp[Species::C12-1] = 0.5_rt;
+    core_comp[Species::O16-1] = 0.5_rt;
 
     Real envelope_comp[NumSpec] = {0.0_rt};
-    envelope_comp[Species::C12] = 0.5_rt;
-    envelope_comp[Species::O16] = 0.5_rt;
+    envelope_comp[Species::C12-1] = 0.5_rt;
+    envelope_comp[Species::O16-1] = 0.5_rt;
 
     Real envelope_mass = 0.0_rt;
 
