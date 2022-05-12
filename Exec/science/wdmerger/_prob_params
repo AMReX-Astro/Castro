@@ -1,4 +1,4 @@
-# name                          data type             default                  in namelist?           size
+# name                          data type             default                  in runtime params?     size
   
 # Initial stellar properties
 # Note that the envelope mass is included within the total mass of the star
@@ -202,34 +202,6 @@ initial_radial_velocity_factor  real                 -1.0e-3_rt                y
 
 t_ff_P                          real                  0.0e0_rt                 n
 t_ff_S                          real                  0.0e0_rt                 n
-
-
-
-# Global extrema
-
-T_global_max                    real                  0.0e0_rt                 n
-rho_global_max                  real                  0.0e0_rt                 n
-ts_te_global_max                real                  0.0e0_rt                 n
-
-
-# Criteria for stopping the simulation
-use_stopping_criterion          int                   1                        n
-use_energy_stopping_criterion   int                   0                        n
-ts_te_stopping_criterion        real                  1.e200_rt                n
-T_stopping_criterion            real                  1.e200_rt                n
-
-
-
-# Stores whether we assert that the simulation has completed.
-
-jobIsDone                       integer               0                        n
-
-
-
-# Auxiliary data for determining whether the job is done.
-
-num_previous_ener_timesteps     integer               5                        n
-total_ener_array                real                  0.0e0_rt                 n                      5
 
 
 

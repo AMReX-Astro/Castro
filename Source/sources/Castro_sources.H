@@ -139,11 +139,6 @@
                                           std::string source_name);
 
 
-///
-/// For simplified-SDC, compute -div{F} + 1/2 (S^n + S^{n+1})
-///
-    void make_sdc_hydro_plus_sources(MultiFab& source, Real dt);
-
 
 ///
 /// Center source terms in time, storing in ``S_new``

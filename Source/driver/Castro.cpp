@@ -134,6 +134,10 @@ IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
 
+// this records whether we have done tuning on the hydro tile size
+int          Castro::hydro_tile_size_has_been_tuned = 0;
+Long         Castro::largest_box_from_hydro_tile_size_tuning = 0;
+
 // this will be reset upon restart
 Real         Castro::previousCPUTimeUsed = 0.0;
 
@@ -407,14 +411,6 @@ Castro::read_params ()
         amrex::Error();
       }
 
-#ifdef ROTATION
-    if (dgeom.IsRZ() && state_in_rotating_frame == 0 && use_axisymmetric_geom_source)
-    {
-        std::cerr << "use_axisymmetric_geom_source is not compatible with state_in_rotating_frame=0\n";
-        amrex::Error();
-    }
-#endif
-
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) {
       do_reflux = 0;
@@ -631,6 +627,8 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     prev_state(num_state_type)
 {
+    BL_PROFILE("Castro::Castro()");
+
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
@@ -735,6 +733,8 @@ Castro::~Castro ()
 void
 Castro::buildMetrics ()
 {
+    BL_PROFILE("Castro::buildMetrics()");
+
     const int ngrd = grids.size();
 
     radius.resize(ngrd);
@@ -802,6 +802,8 @@ Castro::buildMetrics ()
 void
 Castro::initMFs()
 {
+    BL_PROFILE("Castro::initMFs()");
+
     fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -2454,6 +2456,7 @@ Castro::advance_aux(Real time, Real dt)
 
 void
 Castro::FluxRegCrseInit() {
+    BL_PROFILE("Castro::FluxRegCrseInit");
 
     if (level == parent->finestLevel()) {
       return;
@@ -3035,15 +3038,19 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                 // Abort if X is unphysically large.
                 Real X = u(i,j,k,UFS+n) * rhoInv;
 
-                minX = amrex::min(minX, X);
-                maxX = amrex::max(maxX, X);
+                // Only do the abort check if the density is greater than a user-defined cutoff.
+                if (u(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+                    minX = amrex::min(minX, X);
+                    maxX = amrex::max(maxX, X);
 
-                if (X < -castro::abundance_failure_tolerance ||
-                    X > 1.0_rt + castro::abundance_failure_tolerance) {
+                    if (X < -castro::abundance_failure_tolerance ||
+                        X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
-                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+                        std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
 #endif
+                    }
                 }
+
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
                 rhoX_sum += u(i,j,k,UFS+n);
             }
@@ -3235,6 +3242,8 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
+    BL_PROFILE("Castro::allocOldData");
+
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
     MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
     for (int k = 0; k < num_state_type; k++)
@@ -3504,6 +3513,8 @@ Castro::reset_internal_energy(const Box& bx,
 #endif
                               Array4<Real> const u)
 {
+    BL_PROFILE("Castro::reset_internal_energy(Fab)");
+
     Real lsmall_temp = small_temp;
     Real ldual_energy_eta2 = dual_energy_eta2;
 
@@ -3572,7 +3583,7 @@ Castro::reset_internal_energy(
 
 {
 
-    BL_PROFILE("Castro::reset_internal_energy()");
+    BL_PROFILE("Castro::reset_internal_energy(MultiFab)");
 
     MultiFab old_state;
 
@@ -4148,18 +4159,12 @@ Castro::make_radial_data(int is_new)
    ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
    ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
 
-   int first = 0;
-   int np_max = 0;
    for (int i = 0; i < numpts_1d; i++) {
        if (radial_vol[i] > 0.)
        {
            for (int j = 0; j < nc; j++) {
                radial_state[nc*i+j] /= radial_vol[i];
            }
-       }
-       else if (first == 0) {
-           np_max = i;
-           first  = 1;
        }
    }
 
@@ -4179,7 +4184,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     BoxArray ba(bx);
     int owner = ParallelDescriptor::IOProcessorNumber();
     DistributionMapping dm { Vector<int>(1,owner) };
-    MultiFab mf(ba,dm,1,0);
+    MultiFab mf(ba, dm, 1, 0, MFInfo().SetArena(The_Managed_Arena()));
 
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);

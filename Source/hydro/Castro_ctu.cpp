@@ -89,7 +89,6 @@ Castro::consup_hydro(const Box& bx,
 void
 Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                        Array4<Real const> const& q_arr,
-                       Array4<Real const> const& flatn,
                        Array4<Real const> const& qaux_arr,
                        Array4<Real const> const& srcQ,
                        Array4<Real> const& qxm,
@@ -117,7 +116,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     if (idir == 0) {
         trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ, flatn,
+                q_arr, qaux_arr, srcQ,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -130,7 +129,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ, flatn,
+                q_arr, qaux_arr, srcQ,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -144,7 +143,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ, flatn,
+                q_arr, qaux_arr, srcQ,
                 qzm, qzp,
                 vbx, dt);
 
@@ -160,7 +159,6 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 void
 Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                            Array4<Real const> const& q_arr,
-                           Array4<Real const> const& flatn,
                            Array4<Real const> const& qaux_arr,
                            Array4<Real const> const& srcQ,
                            Array4<Real> const& qxm,
@@ -185,7 +183,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ, flatn,
+                    q_arr, qaux_arr, srcQ,
                     qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                     dloga,
@@ -196,7 +194,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ, flatn,
+                    q_arr, qaux_arr, srcQ,
                     qym, qyp,
 #if AMREX_SPACEDIM <= 2
                     dloga,
@@ -208,7 +206,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ, flatn,
+                    q_arr, qaux_arr, srcQ,
                     qzm, qzp,
                     vbx, dt);
 
@@ -222,7 +220,6 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 void
 Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real const> const& q_arr,
-                       Array4<Real const> const& flatn_arr,
                        Array4<Real const> const& qaux_arr,
                        Array4<Real const> const& srcQ,
                        Array4<Real> const& qxm,
@@ -263,7 +260,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
     if (idir == 0) {
       trace_plm(bx, 0,
-                q_arr, qaux_arr, flatn_arr,
+                q_arr, qaux_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -273,7 +270,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_plm(bx, 1,
-                q_arr, qaux_arr, flatn_arr,
+                q_arr, qaux_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -284,7 +281,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM == 3
     } else {
       trace_plm(bx, 2,
-                q_arr, qaux_arr, flatn_arr,
+                q_arr, qaux_arr,
                 qzm, qzp,
                 srcQ, vbx, dt);
 #endif
@@ -506,84 +503,5 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
         }
 
     });
-
-}
-
-void
-Castro::src_to_prim(const Box& bx, const Real dt,
-                    Array4<Real const> const& q_arr,
-                    Array4<Real const> const& old_src,
-#ifndef TRUE_SDC
-                    Array4<Real const> const& src_corr,
-#endif
-                    Array4<Real> const& srcQ)
-{
-
-  amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-  {
-
-      for (int n = 0; n < NQSRC; ++n) {
-        srcQ(i,j,k,n) = 0.0_rt;
-      }
-
-      // the conserved source may have a predictor that time-centers it
-
-      Real srcU[NSRC] = {0.0_rt};
-
-      for (int n = 0; n < NSRC; n++) {
-
-#ifndef TRUE_SDC
-          if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-              if (n == UMX || n == UMY || n == UMZ) {
-                  srcU[n] += 0.5 * dt * src_corr(i,j,k,n);
-              }
-          } else if (time_integration_method == SimplifiedSpectralDeferredCorrections  && source_term_predictor == 1) {
-              srcU[n] += src_corr(i,j,k,n);
-          }
-#endif
-
-          srcU[n] += old_src(i,j,k,n);
-      }
-
-      Real rhoinv = 1.0_rt / q_arr(i,j,k,QRHO);
-
-      // get the needed derivatives
-      eos_rep_t eos_state;
-      eos_state.T = q_arr(i,j,k,QTEMP);
-      eos_state.rho = q_arr(i,j,k,QRHO);
-      eos_state.e = q_arr(i,j,k,QREINT) * rhoinv;
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
-      }
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = q_arr(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_re, eos_state);
-
-      srcQ(i,j,k,QRHO) = srcU[URHO];
-      srcQ(i,j,k,QU) = (srcU[UMX] - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QV) = (srcU[UMY] - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QW) = (srcU[UMZ] - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QREINT) = srcU[UEINT];
-      srcQ(i,j,k,QPRES ) = eos_state.dpde *
-        (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
-        rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
-
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-        int n = upassmap(ipassive);
-        int iq = qpassmap(ipassive);
-
-        // note: this does not include any SDC sources -- those are
-        // computed and stored separately
-        srcQ(i,j,k,iq) = (srcU[n] - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
-          q_arr(i,j,k,QRHO);
-      }
-#endif
-  });
 
 }

@@ -13,7 +13,6 @@ amr.max_grid_size = 128
 amr.blocking_factor = 16
 
 castro.do_rotation = 1
-castro.state_in_rotating_frame = 1
 
 amr.check_int = -1
 amr.check_per = -1.0

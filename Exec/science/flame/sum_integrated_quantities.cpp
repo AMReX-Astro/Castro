@@ -42,11 +42,9 @@ Castro::sum_integrated_quantities ()
       mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
       mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
 
-      if (show_center_of_mass) {
-        com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
-        com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
-        com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
-      }
+      com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
+      com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
+      com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
 
       rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
       rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
@@ -73,8 +71,7 @@ Castro::sum_integrated_quantities ()
 
           ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
 
-          if (show_center_of_mass)
-	    ParallelDescriptor::ReduceRealSum(com, 3, ParallelDescriptor::IOProcessorNumber());
+          ParallelDescriptor::ReduceRealSum(com, 3, ParallelDescriptor::IOProcessorNumber());
 
           ParallelDescriptor::ReduceRealMax(T_max);
           ParallelDescriptor::ReduceRealMin(T_min);
@@ -146,22 +143,19 @@ Castro::sum_integrated_quantities ()
 
 	    }
 
-
-	    if (show_center_of_mass) {
-              for (int i = 0; i <= 2; i++) {
+            for (int i = 0; i <= 2; i++) {
                 com[i]     = com[i] / mass;
                 com_vel[i] = mom[i] / mass;
-              }
+            }
 
-              std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
-              std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
 
-              std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
-              std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
 
-              std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
-              std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
-	    }
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
           }
 #ifdef BL_LAZY
 	});

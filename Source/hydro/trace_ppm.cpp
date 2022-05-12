@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <flatten.H>
 
 using namespace amrex;
 
@@ -18,7 +19,6 @@ Castro::trace_ppm(const Box& bx,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real const> const& srcQ,
-                  Array4<Real const> const& flatn,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -160,11 +160,33 @@ Castro::trace_ppm(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
+
     Real s[7];
-    Real flat = flatn(i,j,k);
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
+#ifdef RADIATION
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
+#endif
+    }
+
     Real sm;
     Real sp;
-
 
     // reconstruct density
 
@@ -352,10 +374,6 @@ Castro::trace_ppm(const Box& bx,
 
     Real Ip_passive;
     Real Im_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-    Real Ip_src_passive;
-    Real Im_src_passive;
-#endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
@@ -365,13 +383,6 @@ Castro::trace_ppm(const Box& bx,
         load_stencil(q_arr, idir, i, j, k, n, s);
         ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
-
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        // if we turned this on, don't bother to check if it source is non-zero -- just trace
-        load_stencil(srcQ, idir, i, j, k, n, s);
-        ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
-        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_passive, Im_src_passive);
-#endif
 
         // Plus state on face i
 
@@ -389,29 +400,15 @@ Castro::trace_ppm(const Box& bx,
             // projecting, the reference state doesn't matter
 
             qp(i,j,k,n) = Im_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qp(i,j,k,n) += 0.5_rt * dt * Im_src_passive;
-#endif
         }
 
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
             qm(i+1,j,k,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
-
         } else if (idir == 1 && j <= vhi[1]) {
             qm(i,j+1,k,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
-
         } else if (idir == 2 && k <= vhi[2]) {
             qm(i,j,k+1,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
         }
     }
 
