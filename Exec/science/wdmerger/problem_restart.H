@@ -24,25 +24,6 @@ void problem_restart (std::string checkpoint_dir)
 
 
 
-    if (problem::problem == 1) {
-
-        std::ifstream rotation;
-        rotation.open(checkpoint_dir + "/Rotation", std::ios::in);
-
-        if (rotation.is_open()) {
-            rotation >> castro::rotational_period;
-            amrex::Print() << "  Based on the checkpoint, updating the rotational period to "
-                           << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
-            rotation.close();
-        }
-        else {
-            castro::rotational_period = -1.0;
-        }
-
-    }
-
-
-
     std::ifstream relaxation;
     relaxation.open(checkpoint_dir + "/Relaxation", std::ios::in);
 
