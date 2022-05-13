@@ -188,6 +188,24 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
+#ifdef ROTATION
+    if (do_rotation && level == 0)
+    {
+        // get current value of the rotation period
+        std::ifstream RotationFile;
+        std::string FullPathRotationFile = parent->theRestartFile();
+        FullPathRotationFile += "/Rotation";
+        RotationFile.open(FullPathRotationFile.c_str(), std::ios::in);
+
+        if (RotationFile.is_open()) {
+            RotationFile >> castro::rotational_period;
+            amrex::Print() << "  Based on the checkpoint, setting the rotational period to "
+                           << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
+            RotationFile.close();
+        }
+    }
+#endif
+
     if (level == 0)
     {
         // get problem-specific stuff -- note all processors do this,
@@ -455,6 +473,23 @@ Castro::checkPoint(const std::string& dir,
 
             PMFile.close();
 
+        }
+#endif
+
+#ifdef ROTATION
+        if (do_rotation) {
+            // store current value of the rotation period
+            std::ofstream RotationFile;
+            std::string FullPathRotationFile = dir;
+            FullPathRotationFile += "/Rotation";
+            RotationFile.open(FullPathRotationFile.c_str(), std::ios::out);
+
+            RotationFile << std::scientific;
+            RotationFile.precision(19);
+
+            RotationFile << std::setw(30) << castro::rotational_period << std::endl;
+
+            RotationFile.close();
         }
 #endif
 
