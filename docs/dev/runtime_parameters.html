@@ -629,16 +629,21 @@ decrease from one step to the next. Must be greater than
 1.0—use max_dt to set a cap on the timestep.</p></td>
 <td><p>1.1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">check_dt_after_advance</span></code></p></td>
+<td><p>whether to check that we took a valid timestep after the
+advance</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
 <td><p>enforce that the AMR plot interval must be hit exactly</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></p></td>
 <td><p>enforce that the AMR small plot interval must be hit
 exactly</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></p></td>
 <td><p>Retry a timestep if it violated the timestep-limiting
 criteria or other checks (negative density, burn failure)
 over the course of an advance. The criteria will suggest a
@@ -647,36 +652,36 @@ subcycled timesteps on the same level until we reach the
 original target time.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
 <td><p>When performing a retry, the factor to multiply the current
 timestep by when trying again.</p></td>
 <td><p>0.5</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_small_density_cutoff</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_small_density_cutoff</span></code></p></td>
 <td><p>Skip retries for small (or negative) density if the zone’s
 density prior to the update was below this threshold.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_tolerance</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_tolerance</span></code></p></td>
 <td><p>Set the threshold for failing the species abundance
 validity check.</p></td>
 <td><p>1.e-2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_rho_cutoff</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_rho_cutoff</span></code></p></td>
 <td><p>Do not abort for invalid species abundances if the zone’s
 density is below this threshold.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
 <td><p>Regrid after every timestep.</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
 <td><p>Do not permit more subcycled timesteps than this parameter.
 Set to a negative value to disable this criterion.</p></td>
 <td><p>10</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
 <td><p>Number of iterations for the simplified SDC advance.</p></td>
 <td><p>2</p></td>
 </tr>

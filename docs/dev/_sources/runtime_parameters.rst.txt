@@ -289,7 +289,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.check_dt_after_advance, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -317,6 +317,9 @@ namespace: ``castro``
 | ``change_max``                             | the maximum factor by which the timestep can increase or    | 1.1           |
 |                                            | decrease from one step to the next. Must be greater than    |               |
 |                                            | 1.0---use max_dt to set a cap on the timestep.              |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``check_dt_after_advance``                 | whether to check that we took a valid timestep after the    | 1             |
+|                                            | advance                                                     |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``plot_per_is_exact``                      | enforce that the AMR plot interval must be hit exactly      | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
