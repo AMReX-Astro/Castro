@@ -347,6 +347,9 @@ init_shrink                  Real          1.0
 # on the timestep.
 change_max                   Real          1.1
 
+# whether to check that we took a valid timestep after the advance
+check_dt_after_advance       int           1
+
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
 

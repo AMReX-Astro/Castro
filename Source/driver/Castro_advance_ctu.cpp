@@ -405,12 +405,16 @@ Castro::do_advance_ctu(Real time,
     // whereas in computeNewDt change_max prevents the timestep from growing
     // too much. The same reasoning applies for the other timestep limiters.
 
-    Real new_dt = estTimeStep();
+    if (castro::check_dt_after_advance) {
 
-    if (castro::change_max * new_dt < dt) {
-        status.success = false;
-        status.reason = "timestep validity check failed";
-        return status;
+        Real new_dt = estTimeStep();
+
+        if (castro::change_max * new_dt < dt) {
+            status.success = false;
+            status.reason = "timestep validity check failed";
+            return status;
+        }
+
     }
 
     finalize_do_advance();
