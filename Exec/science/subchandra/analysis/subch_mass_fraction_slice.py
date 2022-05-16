@@ -48,7 +48,6 @@ for i, f in enumerate(fields):
 
     sp.set_zlim(f, 0.01, 1.0)
     sp.set_log(f, True)#False)
-    sp.set_cmap(f, "inferno_r")
 
     #if f != "density":
     #    # now do a contour of density
