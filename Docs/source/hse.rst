@@ -20,7 +20,7 @@ Reconstruction
 Piecewise linear
 ----------------
 
-.. index:: castro.use_pslope
+.. index:: castro.use_pslope, castro.pslope_cutoff_density
 
 
 Piecewise linear reconstruction can be used with both CTU and
@@ -53,8 +53,13 @@ construct the total slope (including the hydrostatic part) as:
 
    \Delta p_i = \Delta \tilde{p}_i + \rho_i g_i \Delta x
 
+.. note::
+
+   This can be disabled at low densities by setting ``castro.pslope_cutoff_density``.
+
 The remainder of the PLM algorithm is unchanged.  Since this was just
 the reconstruction part, this step is identical between CTU and true-SDC.
+
 
 
 PPM
@@ -88,6 +93,8 @@ error).  Only the normal velocity is treated specially.
 
 HSE
 ---
+
+.. index:: castro.hse_zero_vels, castro.hse_reflect_vels, castro.hse_interp_temp, castro.hse_fixed_temp
 
 For hydrostatic boundary conditions, we follow the method from
 :cite:`ppm-hse`.  Essentially, this starts with the last
