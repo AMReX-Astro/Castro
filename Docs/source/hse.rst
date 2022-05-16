@@ -90,7 +90,39 @@ HSE
 ---
 
 For hydrostatic boundary conditions, we follow the method from
-:cite:`ppm-hse`.
+:cite:`ppm-hse`.  Essentially, this starts with the last
+zone inside of the boundary and integrates HSE into the ghost cells,
+keeping the density either constant or extrapolating it.  Together
+the discretized HSE equation and the EOS yield the density and pressure
+in the ghost cells.
+
+To enable this, we set the appropriate boundary's ``xl_ext_bc_type``, ``xr_ext_bc_type``,
+``yl_ext_bc_type``, ``yr_ext_bc_type``, ``zl_ext_bc_type``,
+``zr_ext_bc_type`` to ``1``.
+
+We then control the behavior via the following options.
+
+For the velocity, we have:
+
+* ``hse_zero_vels`` : all 3 components of the velocity in the ghost
+  cell are set to ``0``.
+
+* ``hse_reflect_vels`` : the normal velocity is reflected and the transverse
+  velocity components are given a zero gradient.
+
+If neither of these are set, then all components of the velocity are
+simply given a zero gradient.
+
+The temperature in the ghost cells is controlled by:
+
+* ``hse_interp_temp`` : if this is set to ``1``, then we fill the
+  temperatures in the ghost cells via linear extrapolation, using the
+  2 interior zones just inside the domain.  Otherwise, we take the
+  temperature in the ghost cells to be constant.
+
+* ``hse_fixed_temp`` : if this is positive, then we set the
+  temperature in the ghost cells to the value specified.  This
+  requires ``hse_interp_temp = 0``.
 
 
 
