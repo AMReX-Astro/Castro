@@ -135,9 +135,10 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 dloga,
 #endif
                 vbx, dt);
-#endif
 
       enforce_reflect_states(bx, 1, qym, qyp);
+#endif
+
 
 #if AMREX_SPACEDIM == 3
     } else {
@@ -283,9 +284,9 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 dloga,
 #endif
                 srcQ, vbx, dt);
-#endif
 
       enforce_reflect_states(bx, 1, qym, qyp);
+#endif
 
 #if AMREX_SPACEDIM == 3
     } else {
