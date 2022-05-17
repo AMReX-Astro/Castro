@@ -158,10 +158,10 @@ ppm_reconstruct(const Real* s,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_reconstruct_hse(const Real* rho, const Real* p, const Real* src, const Real flatn,
-                    bool lo_bc_test, bool hi_bc_test,
-                    const Real dx,
-                    Real& sm, Real& sp) {
+ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const Real flatn,
+                         bool lo_bc_test, bool hi_bc_test,
+                         const Real dx,
+                         Real& sm, Real& sp) {
 
     Real p0;
     Real pp1;
@@ -219,7 +219,7 @@ ppm_reconstruct_hse(const Real* rho, const Real* p, const Real* src, const Real 
   // Compute van Leer slopes
 
   Real dsl = 2.0_rt * (pm1 - pm2);
-  Real dsr = 2.0_rt * (pi0 - pm1);
+  Real dsr = 2.0_rt * (p0 - pm1);
 
   Real dsvl_l = 0.0_rt;
   if (dsl*dsr > 0.0_rt) {
