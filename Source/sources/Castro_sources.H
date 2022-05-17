@@ -306,15 +306,3 @@
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
                           amrex::MultiFab& S, amrex::MultiFab& ext_src);
-
-
-#ifdef REACTIONS
-///
-/// Obtain the effective source term due to reactions on the primitive variables
-///
-/// @param source   MultiFab to save source term to
-/// @param dt       timestep
-///
-    void get_react_source_prim(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
-#endif
-
