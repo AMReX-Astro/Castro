@@ -163,11 +163,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
                          const Real dx,
                          Real& sm, Real& sp) {
 
-    Real p0;
-    Real pp1;
-    Real pm1;
-    Real pp2;
-    Real pm2;
+    Real tp[5];
 
     if (rho[i0] >= pslope_cutoff_density) {
 
@@ -189,119 +185,43 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
 
         // subtract off the hydrostatic pressure
 
-        p0 = 0.0_rt;
-        pp1 = p[ip1] - pp1_hse;
-        pp2 = p[ip2] - pp2_hse;
+        tp[i0] = 0.0_rt;
+        tp[ip1] = p[ip1] - pp1_hse;
+        tp[ip2] = p[ip2] - pp2_hse;
 
-        pm1 = p[im1] - pm1_hse;
-        pm2 = p[im2] - pm2_hse;
+        tp[im1] = p[im1] - pm1_hse;
+        tp[im2] = p[im2] - pm2_hse;
 
         if (lo_bc_test) {
-            pm1 = 0.0_rt;  // HSE is perfectly satisfied
-            pm2 = 0.0_rt;
+            tp[im1] = 0.0_rt;  // HSE is perfectly satisfied
+            tp[im2] = 0.0_rt;
         }
 
         if (hi_bc_test) {
-            pp1 = 0.0_rt;
-            pp2 = 0.0_rt;
+            tp[ip1] = 0.0_rt;
+            tp[ip2] = 0.0_rt;
         }
     } else {
 
         // don't subtract off HSE
 
-        pm2 = p[im2];
-        pm1 = p[im1];
-        p0 = p[i0];
-        pp1 = p[ip1];
-        pp2 = p[ip2];
+        tp[im2] = p[im2];
+        tp[im1] = p[im1];
+        tp[i0] = p[i0];
+        tp[ip1]= p[ip1];
+        tp[ip2] = p[ip2];
     }
 
-  // Compute van Leer slopes
-
-  Real dsl = 2.0_rt * (pm1 - pm2);
-  Real dsr = 2.0_rt * (p0 - pm1);
-
-  Real dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (p0 - pm2);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  dsl = 2.0_rt * (p0 - pm1);
-  dsr = 2.0_rt * (pp1 - p0);
-
-  Real dsvl_r = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (pp1 - pm1);
-    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  // Interpolate s to edges
-
-  sm = 0.5_rt * (p0 + pm1) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
-
-  // Make sure sedge lies in between adjacent cell-centered values
-
-  sm = amrex::max(sm, amrex::min(p0, pm1));
-  sm = amrex::min(sm, amrex::max(p0, pm1));
+    ppm_reconstruct(tp, flatn, sm, sp);
 
 
-  // Compute van Leer slopes
+    // now correct sm and sp to be back to the full pressure by
+    // adding in the hydrostatic pressure at the interface
 
-  dsl = 2.0_rt * (p0 - pm1);
-  dsr = 2.0_rt * (pp1 - p0);
-
-  dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (pp1 - pm1);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  dsl = 2.0_rt * (pp1 - p0);
-  dsr = 2.0_rt * (pp2 - pp1);
-
-  dsvl_r = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (pp2 - p0);
-    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  // Interpolate s to edges
-
-  sp = 0.5_rt * (pp1 + p0) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
-
-  // Make sure sedge lies in between adjacent cell-centered values
-
-  sp = amrex::max(sp, amrex::min(pp1, p0));
-  sp = amrex::min(sp, amrex::max(pp1, p0));
-
-
-  // Flatten the parabola
-
-  sm = flatn * sm + (1.0_rt - flatn) * p0;
-  sp = flatn * sp + (1.0_rt - flatn) * p0;
-
-  // Modify using quadratic limiters -- note this version of the limiting comes
-  // from Colella and Sekora (2008), not the original PPM paper.
-
-  if ((sp - p0) * (p0 - sm) <= 0.0_rt) {
-    sp = p0;
-    sm = p0;
-
-  } else if (std::abs(sp - p0) >= 2.0_rt * std::abs(sm - p0)) {
-    sp = 3.0_rt * p0 - 2.0_rt * sm;
-
-  } else if (std::abs(sm - p0) >= 2.0_rt * std::abs(sp - p0)) {
-    sm = 3.0_rt * p0 - 2.0_rt * sp;
-  }
-
-  // now correct sm and sp to be back to the full pressure by
-  // adding in the hydrostatic pressure at the interface
-
-  if (rho[i0] >= pslope_cutoff_density) {
-      sp += 0.5 * dx * rho[i0] * src[i0];
-      sm -= 0.5 * dx * rho[i0] * src[i0];
-  }
+    if (rho[i0] >= pslope_cutoff_density) {
+        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
+        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
+    }
 
 }
 
