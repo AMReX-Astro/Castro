@@ -103,6 +103,10 @@ keeping the density either constant or extrapolating it.  Together
 the discretized HSE equation and the EOS yield the density and pressure
 in the ghost cells.
 
+.. warning::
+
+   The HSE boundary condition only works with constant gravity at the moment.
+
 To enable this, we set the appropriate boundary's ``xl_ext_bc_type``, ``xr_ext_bc_type``,
 ``yl_ext_bc_type``, ``yr_ext_bc_type``, ``zl_ext_bc_type``,
 ``zr_ext_bc_type`` to ``1``.
