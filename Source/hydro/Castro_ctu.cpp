@@ -123,6 +123,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 #endif
                 vbx, dt);
 
+      enforce_reflect_states(bx, 0, qxm, qxp;)
+
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_ppm(bx,
@@ -135,6 +137,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 vbx, dt);
 #endif
 
+      enforce_reflect_states(bx, 1, qym, qyp);
+
 #if AMREX_SPACEDIM == 3
     } else {
       trace_ppm(bx,
@@ -143,6 +147,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qzm, qzp,
                 vbx, dt);
 
+      enforce_reflect_states(bx, 2, qzm, qzp);
 #endif
     }
   }
@@ -184,6 +189,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 #endif
                     vbx, dt);
 
+      enforce_reflect_states(bx, 0, qxm, qxp);
+
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_ppm_rad(bx,
@@ -196,6 +203,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     vbx, dt);
 #endif
 
+      enforce_reflect_states(bx, 1, qym, qyp);
+
 #if AMREX_SPACEDIM == 3
     } else {
       trace_ppm_rad(bx,
@@ -203,6 +212,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     q_arr, qaux_arr, srcQ,
                     qzm, qzp,
                     vbx, dt);
+
+      enforce_reflect_states(bx, 2, qzm, qzp);
 
 #endif
     }
@@ -261,6 +272,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #endif
                 srcQ, vbx, dt);
 
+      enforce_reflect_states(bx, 0, qxm, qxp);
+
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_plm(bx, 1,
@@ -272,14 +285,30 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 srcQ, vbx, dt);
 #endif
 
+      enforce_reflect_states(bx, 1, qym, qyp);
+
 #if AMREX_SPACEDIM == 3
     } else {
       trace_plm(bx, 2,
                 q_arr, qaux_arr,
                 qzm, qzp,
                 srcQ, vbx, dt);
+
+      enforce_reflect_states(bx, 2, qzm, qzp);
 #endif
     }
+}
+
+
+///
+/// For a reflecting boundary, we simply reflect the interface state
+/// just inside the domain to overwrite the state on the same
+/// interface but just outside the domain.  This ensures that the flux
+/// through the reflecting boundary is zero.
+///
+Castro::enforce_reflect_states(const Box& bx, const int idir,
+                               Array4<Real> const& qm,
+                               Array4<Real> const& qp) {
 
     // special care for reflecting BCs
     const int* lo_bc = phys_bc.lo();
@@ -291,143 +320,53 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
     bool lo_bc_test = lo_bc[idir] == Symmetry;
     bool hi_bc_test = hi_bc[idir] == Symmetry;
 
-    // we have to do this after the loops above, since here we will
-    // consider interfaces, not zones
+    // normal velocity
+    const int QUN = QU + idir;
 
-    if (idir == 0) {
-      if (lo_bc_test) {
+    // this is a loop over interfaces
 
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-
-          // reset the left state at domlo(0) if needed -- it is outside the domain
-          if (i == domlo[0]) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QU) {
-                qxm(i,j,k,QU) = -qxp(i,j,k,QU);
-              } else {
-                qxm(i,j,k,n) = qxp(i,j,k,n);
-              }
-            }
-          }
-        });
-
-      }
-
-
-      if (hi_bc_test) {
+    if (lo_bc_test) {
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
-          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-          if (i == domhi[0]+1) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QU) {
-                qxp(i,j,k,QU) = -qxm(i,j,k,QU);
-              } else {
-                qxp(i,j,k,n) = qxm(i,j,k,n);
-              }
+            // reset the left state at domlo(0) if needed -- it is outside the domain
+            if (idir == 0 && i == domlo[0] ||
+                idir == 1 && j == domlo[1] ||
+                idir == 2 && k == domlo[2]) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qm(i,j,k,QUN) = -qp(i,j,k,QUN);
+                    } else {
+                        qm(i,j,k,n) = qp(i,j,k,n);
+                    }
+                }
             }
-          }
         });
+    }
 
-      }
-
-#if AMREX_SPACEDIM >= 2
-    } else if (idir == 1) {
-
-      if (lo_bc_test) {
+    if (hi_bc_test) {
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
-          // reset the left state at domlo(0) if needed -- it is outside the domain
-          if (j == domlo[1]) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QV) {
-                qym(i,j,k,QV) = -qyp(i,j,k,QV);
-              } else {
-                qym(i,j,k,n) = qyp(i,j,k,n);
-              }
+            // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+            if (idir == 0 && i == domhi[0]+1 ||
+                idir == 1 && j == domhi[1]+1 ||
+                idir == 2 && k == domhi[2]+1) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qp(i,j,k,QUN) = -qm(i,j,k,QUN);
+                    } else {
+                        qp(i,j,k,n) = qm(i,j,k,n);
+                    }
+                }
             }
-          }
         });
-
-      }
-
-
-      if (hi_bc_test) {
-
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-
-          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-          if (j == domhi[1]+1) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QV) {
-                qyp(i,j,k,QV) = -qym(i,j,k,QV);
-              } else {
-                qyp(i,j,k,n) = qym(i,j,k,n);
-              }
-            }
-          }
-        });
-
-      }
-
-#endif
-#if AMREX_SPACEDIM == 3
-    } else {
-
-      if (lo_bc_test) {
-
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-
-          // reset the left state at domlo(0) if needed -- it is outside the domain
-          if (k == domlo[2]) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QW) {
-                qzm(i,j,k,QW) = -qzp(i,j,k,QW);
-              } else {
-                qzm(i,j,k,n) = qzp(i,j,k,n);
-              }
-            }
-          }
-        });
-
-      }
-
-
-      if (hi_bc_test) {
-
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-
-          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-          if (k == domhi[2]+1) {
-            for (int n = 0; n < NQ; n++) {
-              if (n == QW) {
-                qzp(i,j,k,QW) = -qzm(i,j,k,QW);
-              } else {
-                qzp(i,j,k,n) = qzm(i,j,k,n);
-              }
-            }
-          }
-        });
-
-      }
-#endif
 
     }
-  }
 }
 
 
