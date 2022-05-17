@@ -165,7 +165,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
 
     Real tp[5];
 
-    if (rho[i0] >= pslope_cutoff_density) {
+    if (use_pslope && rho[i0] >= pslope_cutoff_density) {
 
         Real p0_hse;
         Real pp1_hse;
@@ -218,7 +218,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
     // now correct sm and sp to be back to the full pressure by
     // adding in the hydrostatic pressure at the interface
 
-    if (rho[i0] >= pslope_cutoff_density) {
+    if (use_pslope && rho[i0] >= pslope_cutoff_density) {
         sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
         sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
     }
