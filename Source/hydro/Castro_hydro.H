@@ -769,6 +769,19 @@
                                      amrex::Array4<amrex::Real const> const& area,
                                      amrex::Real dt);
 
+
+
+///
+/// For a reflecting boundary, we simply reflect the interface state
+/// just inside the domain to overwrite the state on the same
+/// interface but just outside the domain.  This ensures that the flux
+/// through the reflecting boundary is zero.
+///
+   void enforce_reflect_states(const amrex::Box& bx, const int idir,
+                               amrex::Array4<amrex::Real> const& qm,
+                               amrex::Array4<amrex::Real> const& qp);
+
+
     void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
                     amrex::Array4<amrex::Real const> const& qint,

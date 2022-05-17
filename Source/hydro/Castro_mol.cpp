@@ -51,27 +51,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     Real s[5];
     Real flat = flatn_arr(i,j,k);
 
-    if (idir == 0) {
-      s[im2] = q_arr(i-2,j,k,n);
-      s[im1] = q_arr(i-1,j,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i+1,j,k,n);
-      s[ip2] = q_arr(i+2,j,k,n);
-
-    } else if (idir == 1) {
-      s[im2] = q_arr(i,j-2,k,n);
-      s[im1] = q_arr(i,j-1,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j+1,k,n);
-      s[ip2] = q_arr(i,j+2,k,n);
-
-    } else {
-      s[im2] = q_arr(i,j,k-2,n);
-      s[im1] = q_arr(i,j,k-1,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j,k+1,n);
-      s[ip2] = q_arr(i,j,k+2,n);
-    }
+    load_stencil(q_arr, idir, i, j, k, n, s);
 
     // normal velocity?
     bool vtest = n == QU+idir;
@@ -99,63 +79,9 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                     (idir == 1 && j == domhi[1]) ||
                                     (idir == 2 && k == domhi[2]));
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,QPRES);
-        s[im1] = q_arr(i-1,j,k,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i+1,j,k,QPRES);
-        s[ip2] = q_arr(i+2,j,k,QPRES);
-
-        trho[im2] = q_arr(i-2,j,k,QRHO);
-        trho[im1] = q_arr(i-1,j,k,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i+1,j,k,QRHO);
-        trho[ip2] = q_arr(i+2,j,k,QRHO);
-
-        src[im2] = src_q_arr(i-2,j,k,QU);
-        src[im1] = src_q_arr(i-1,j,k,QU);
-        src[i0]  = src_q_arr(i,j,k,QU);
-        src[ip1] = src_q_arr(i+1,j,k,QU);
-        src[ip2] = src_q_arr(i+2,j,k,QU);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,QPRES);
-        s[im1] = q_arr(i,j-1,k,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i,j+1,k,QPRES);
-        s[ip2] = q_arr(i,j+2,k,QPRES);
-
-        trho[im2] = q_arr(i,j-2,k,QRHO);
-        trho[im1] = q_arr(i,j-1,k,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i,j+1,k,QRHO);
-        trho[ip2] = q_arr(i,j+2,k,QRHO);
-
-        src[im2] = src_q_arr(i,j-2,k,QV);
-        src[im1] = src_q_arr(i,j-1,k,QV);
-        src[i0]  = src_q_arr(i,j,k,QV);
-        src[ip1] = src_q_arr(i,j+1,k,QV);
-        src[ip2] = src_q_arr(i,j+2,k,QV);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,QPRES);
-        s[im1] = q_arr(i,j,k-1,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i,j,k+1,QPRES);
-        s[ip2] = q_arr(i,j,k+2,QPRES);
-
-        trho[im2] = q_arr(i,j,k-2,QRHO);
-        trho[im1] = q_arr(i,j,k-1,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i,j,k+1,QRHO);
-        trho[ip2] = q_arr(i,j,k+2,QRHO);
-
-        src[im2] = src_q_arr(i,j,k-2,QW);
-        src[im1] = src_q_arr(i,j,k-1,QW);
-        src[i0]  = src_q_arr(i,j,k,QW);
-        src[ip1] = src_q_arr(i,j,k+1,QW);
-        src[ip2] = src_q_arr(i,j,k+2,QW);
-      }
+      load_stencil(q_arr, idir, i, j, k, QPRES, s);
+      load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+      load_stencil(src_q_arr, idir, i, j, k, QU+idir, src);
 
       Real dp = dq(i,j,k,QPRES);
       pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
@@ -212,140 +138,8 @@ Castro::mol_plm_reconstruct(const Box& bx,
   // we have to do this after the loops above, since here we will
   // consider interfaces, not zones
 
-  if (idir == 0) {
-    if (lo_symm) {
+  enforce_reflect_states(bx, idir, qm, qp);
 
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the left state at domlo(0) if needed -- it is outside the domain
-       if (i == domlo[0]) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QU) {
-             qm(i,j,k,QU) = -qp(i,j,k,QU);
-           } else {
-             qm(i,j,k,n) = qp(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-
-    if (hi_symm) {
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-       if (i == domhi[0]+1) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QU) {
-             qp(i,j,k,QU) = -qm(i,j,k,QU);
-           } else {
-             qp(i,j,k,n) = qm(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-#if AMREX_SPACEDIM >= 2
-  } else if (idir == 1) {
-
-    if (lo_symm) {
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the left state at domlo(0) if needed -- it is outside the domain
-       if (j == domlo[1]) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QV) {
-             qm(i,j,k,QV) = -qp(i,j,k,QV);
-           } else {
-             qm(i,j,k,n) = qp(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-
-    if (hi_symm) {
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-       if (j == domhi[1]+1) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QV) {
-             qp(i,j,k,QV) = -qm(i,j,k,QV);
-           } else {
-             qp(i,j,k,n) = qm(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-#endif
-#if AMREX_SPACEDIM == 3
-  } else {
-
-    if (lo_symm) {
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the left state at domlo(0) if needed -- it is outside the domain
-       if (k == domlo[2]) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QW) {
-             qm(i,j,k,QW) = -qp(i,j,k,QW);
-           } else {
-             qm(i,j,k,n) = qp(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-
-    if (hi_symm) {
-
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
-
-       // reset the right state at domhi(0)+1 if needed -- it is outside the domain
-       if (k == domhi[2]+1) {
-         for (int n = 0; n < NQ; n++) {
-           if (n == QW) {
-             qp(i,j,k,QW) = -qm(i,j,k,QW);
-           } else {
-             qp(i,j,k,n) = qm(i,j,k,n);
-           }
-         }
-       }
-      });
-
-    }
-
-#endif
-
-  }
 }
 
 
@@ -366,29 +160,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sm;
     Real sp;
 
-    if (idir == 0) {
-      s[im2] = q_arr(i-2,j,k,n);
-      s[im1] = q_arr(i-1,j,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i+1,j,k,n);
-      s[ip2] = q_arr(i+2,j,k,n);
-
-    } else if (idir == 1) {
-      s[im2] = q_arr(i,j-2,k,n);
-      s[im1] = q_arr(i,j-1,k,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j+1,k,n);
-      s[ip2] = q_arr(i,j+2,k,n);
-
-    } else {
-      s[im2] = q_arr(i,j,k-2,n);
-      s[im1] = q_arr(i,j,k-1,n);
-      s[i0]  = q_arr(i,j,k,n);
-      s[ip1] = q_arr(i,j,k+1,n);
-      s[ip2] = q_arr(i,j,k+2,n);
-
-    }
-
+    load_stencil(q_arr, idir, i, j, k, n, s);
     ppm_reconstruct(s, flat, sm, sp);
 
     if (idir == 0) {
@@ -415,6 +187,13 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     }
 
   });
+
+  // special care for reflecting BCs
+
+  // we have to do this after the loops above, since here we will
+  // consider interfaces, not zones
+
+  enforce_reflect_states(bx, idir, qm, qp);
 
 }
 
