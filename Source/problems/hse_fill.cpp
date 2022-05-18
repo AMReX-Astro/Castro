@@ -184,8 +184,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                           int ioff = domlo[0]-ii-1;
                           adv(ii,j,k,UMX) = -dens_zone * (adv(domlo[0]+ioff,j,k,UMX) / adv(domlo[0]+ioff,j,k,URHO));
 
-                          adv(ii,j,k,UMY) = -dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
-                          adv(ii,j,k,UMZ) = -dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
+                          adv(ii,j,k,UMY) = dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
+                          adv(ii,j,k,UMZ) = dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
                       } else {
                           // zero gradient
                           adv(ii,j,k,UMX) = dens_zone * (adv(domlo[0],j,k,UMX) / dens_base);
@@ -373,8 +373,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int ioff = ii-domhi[0]-1;
                            adv(ii,j,k,UMX) = -dens_zone * (adv(domhi[0]-ioff,j,k,UMX) / adv(domhi[0]-ioff,j,k,URHO));
 
-                           adv(ii,j,k,UMY) = -dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
-                           adv(ii,j,k,UMZ) = -dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
+                           adv(ii,j,k,UMY) = dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
+                           adv(ii,j,k,UMZ) = dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(ii,j,k,UMX) = dens_zone * (adv(domhi[0],j,k,UMX) / dens_base);
@@ -569,8 +569,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = domlo[1]-jj-1;
                            adv(i,jj,k,UMY) = -dens_zone*(adv(i,domlo[1]+joff,k,UMY) / adv(i,domlo[1]+joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domlo[1],k,UMX) / dens_base);
@@ -759,8 +759,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = jj-domhi[1]-1;
                            adv(i,jj,k,UMY) = -dens_zone * (adv(i,domhi[1]-joff,k,UMY) / adv(i,domhi[1]-joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
@@ -954,8 +954,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int koff = domlo[2]-kk-1;
                            adv(i,j,kk,UMZ) = -dens_zone * (adv(i,j,domlo[2]+koff,UMZ) / adv(i,j,domlo[2]+koff,URHO));
 
-                           adv(i,j,kk,UMX) = -dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
-                           adv(i,j,kk,UMY) = -dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
+                           adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
+                           adv(i,j,kk,UMY) = dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);

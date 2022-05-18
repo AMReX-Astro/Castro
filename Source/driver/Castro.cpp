@@ -575,6 +575,11 @@ Castro::read_params ()
             ppr.get("max_level", max_level);
             info.SetMaxLevel(max_level);
         }
+        if (ppr.countval("volume_weighting") > 0) {
+            int volume_weighting;
+            ppr.get("volume_weighting", volume_weighting);
+            info.SetVolumeWeighting(volume_weighting);
+        }
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
