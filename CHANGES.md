@@ -13,7 +13,7 @@
      (castro.ppm_type = 0) implementation.  Since that method is not the
      default, it is unlikely that this has been used.  This change is being
      done to allow for a PPM implementation to be added without changing
-     the default behavior of that method.
+     the default behavior of that method. (#2205)
 
 # 22.05
 
