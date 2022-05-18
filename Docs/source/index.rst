@@ -36,6 +36,7 @@ https://github.com/amrex-astro/Castro
    build_system
    debugging
    Hydrodynamics
+   hse
    mhd
    gravity
    diffusion
