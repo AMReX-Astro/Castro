@@ -8,6 +8,13 @@
      behavior continues to be that when rotation is being used, fluid variables
      are measured with respect to the rotating frame. (#2172)
 
+   * The default for use_pslope has been changed to 0 -- disabling this.
+     use_pslope enables reconstruction that knows about HSE for the PLM
+     (castro.ppm_type = 0) implementation.  Since that method is not the
+     default, it is unlikely that this has been used.  This change is being
+     done to allow for a PPM implementation to be added without changing
+     the default behavior of that method.
+
 # 22.05
 
    * A new option castro.hydro_memory_footprint_ratio has been added which
