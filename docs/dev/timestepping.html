@@ -306,7 +306,7 @@ level-1 step, and take 2 timesteps at level-3 for each level-2 step.</p>
 </section>
 <section id="retry-mechanism">
 <span id="ch-retry"></span><span id="index-0"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Permalink to this headline">¶</a></h2>
-<p>Castro’s Strang CTU solver has a retry mechanism that can discard a
+<p id="index-1">Castro’s Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
 It is enabled by setting:</p>
@@ -325,15 +325,17 @@ beyond <code class="docutils literal notranslate"><span class="pre">16</span></c
 <blockquote>
 <div><ul>
 <li><p>Exceeding the CFL condition for a level</p></li>
-<li><p>A negative density is encountered</p></li>
+<li><p>A negative density is encountered.  This check can be disabled
+in low density regions by setting <code class="docutils literal notranslate"><span class="pre">castro.retry_small_density_cutoff</span></code> to the density below which we silently reset the density to
+<code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>.</p></li>
 <li><p>The mass fractions fall outside of <span class="math notranslate nohighlight">\([0, 1]\)</span> – we use
 <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_tolerance</span></code> with a default value of
 <code class="docutils literal notranslate"><span class="pre">0.01</span></code> to trigger the retry.</p></li>
 <li><p>Integration failure in the burner</p>
 <p>Note: this requires that the following be set in your <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
-<blockquote>
-<div><p>integrator.abort_on_failure = F</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">integrator</span><span class="o">.</span><span class="n">abort_on_failure</span> <span class="o">=</span> <span class="n">F</span>
+</pre></div>
+</div>
 <p>This instructs the integration routine in Microphysics to not
 abort when the integration fails, but instead to tell the calling
 Castro routine that the integration failed so Castro can handle
