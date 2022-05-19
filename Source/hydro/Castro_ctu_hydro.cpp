@@ -583,7 +583,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #endif
 
-      enforce_reflection_states(xbx, 0, ql_arr, qr_arr);
+      enforce_reflect_states(xbx, 0, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
@@ -629,7 +629,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 #endif
 
-      enforce_reflection_states(ybx, 1, ql_arr, qr_arr);
+      enforce_reflect_states(ybx, 1, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,

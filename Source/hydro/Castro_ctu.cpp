@@ -151,7 +151,6 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
       enforce_reflect_states(bx, 2, qzm, qzp);
 #endif
     }
-
   }
 }
 
