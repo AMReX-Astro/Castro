@@ -134,7 +134,7 @@ namespace: ``castro``
 |                                            | update the internal energy variable UEINT to match E - K.   |               |
 |                                            | Below this, UEINT remains unchanged.                        |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 1             |
+| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 0             |
 |                                            | :math:`(\rho g)` from the pressure before limiting?  This   |               |
 |                                            | is a well-balanced method that does well with HSE           |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
