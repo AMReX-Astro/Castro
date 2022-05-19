@@ -205,6 +205,8 @@ which will subcycle twice at every level (except level 0).
 Retry Mechanism
 ---------------
 
+.. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.retry_small_density_cutoff, castro.small_dens
+
 Castro's Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
@@ -225,7 +227,9 @@ A retry can be triggered by a number of conditions:
 
   * Exceeding the CFL condition for a level
 
-  * A negative density is encountered
+  * A negative density is encountered.  This check can be disabled
+    in low density regions by setting ``castro.retry_small_density_cutoff`` to the density below which we silently reset the density to
+    ``castro.small_dens``.
 
   * The mass fractions fall outside of :math:`[0, 1]` -- we use
     ``castro.abundance_failure_tolerance`` with a default value of
@@ -233,7 +237,7 @@ A retry can be triggered by a number of conditions:
 
   * Integration failure in the burner
 
-    Note: this requires that the following be set in your ``inputs``:
+    Note: this requires that the following be set in your ``inputs``::
 
       integrator.abort_on_failure = F
 
