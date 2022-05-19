@@ -81,10 +81,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#hse">HSE</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#interface-states-at-reflecting-boundary">Interface states at reflecting boundary</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#plm">PLM</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#interface-states-at-reflecting-boundary">Interface states at reflecting boundary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-problems">Test problems</a></li>
 </ul>
 </li>
@@ -242,15 +239,13 @@ requires <code class="docutils literal notranslate"><span class="pre">hse_interp
 </section>
 <section id="interface-states-at-reflecting-boundary">
 <h2>Interface states at reflecting boundary<a class="headerlink" href="#interface-states-at-reflecting-boundary" title="Permalink to this headline">¶</a></h2>
-<section id="plm">
-<h3>PLM<a class="headerlink" href="#plm" title="Permalink to this headline">¶</a></h3>
-<p>When using PLM, with both the CTU and true-SDC method, since we did a
-special construction for the normal velocity at reflecting boundaries,
-we enforce the reflecting condition on the interface states directly
-by reflecting the state just inside the domain to overwrite the state
-on the reflecting boundary just outside of the domain.  This is done
-for all variables (flipping the sign on the normal velocity state).</p>
-</section>
+<p>For all methods, we enforce the reflecting condition on the interface
+states directly by reflecting the state just inside the domain to
+overwrite the state on the reflecting boundary just outside of the
+domain.  This is done for all variables (flipping the sign on the
+normal velocity state).  This is especially important for
+reconstruction that used a one-sided stencil (like the 4th order
+method).</p>
 </section>
 <section id="test-problems">
 <h2>Test problems<a class="headerlink" href="#test-problems" title="Permalink to this headline">¶</a></h2>
