@@ -118,7 +118,6 @@
                  amrex::Array4<amrex::Real> const& q_arr,
                  amrex::Array4<amrex::Real> const& qaux_arr);
 
-
 ///
 /// compute the flattening coefficient.  This is 0 if we are in a shock and
 /// 1 if we are not applying any flattening
