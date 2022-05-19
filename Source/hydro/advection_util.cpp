@@ -736,7 +736,7 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
-            // reset the left state at domlo(0) if needed -- it is outside the domain
+            // reset the left state at domlo if needed -- it is outside the domain
             if (idir == 0 && i == domlo[0] ||
                 idir == 1 && j == domlo[1] ||
                 idir == 2 && k == domlo[2]) {
@@ -757,7 +757,7 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
-            // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+            // reset the right state at domhi+1 if needed -- it is outside the domain
             if (idir == 0 && i == domhi[0]+1 ||
                 idir == 1 && j == domhi[1]+1 ||
                 idir == 2 && k == domhi[2]+1) {
