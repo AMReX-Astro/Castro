@@ -103,6 +103,10 @@ keeping the density either constant or extrapolating it.  Together
 the discretized HSE equation and the EOS yield the density and pressure
 in the ghost cells.
 
+.. warning::
+
+   The HSE boundary condition only works with constant gravity at the moment.
+
 To enable this, we set the appropriate boundary's ``xl_ext_bc_type``, ``xr_ext_bc_type``,
 ``yl_ext_bc_type``, ``yr_ext_bc_type``, ``zl_ext_bc_type``,
 ``zr_ext_bc_type`` to ``1``.
@@ -136,16 +140,13 @@ The temperature in the ghost cells is controlled by:
 Interface states at reflecting boundary
 =======================================
 
-PLM
----
-
-When using PLM, with both the CTU and true-SDC method, since we did a
-special construction for the normal velocity at reflecting boundaries,
-we enforce the reflecting condition on the interface states directly
-by reflecting the state just inside the domain to overwrite the state
-on the reflecting boundary just outside of the domain.  This is done
-for all variables (flipping the sign on the normal velocity state).
-
+For all methods, we enforce the reflecting condition on the interface
+states directly by reflecting the state just inside the domain to
+overwrite the state on the reflecting boundary just outside of the
+domain.  This is done for all variables (flipping the sign on the
+normal velocity state).  This is especially important for
+reconstruction that used a one-sided stencil (like the 4th order
+method).
 
 
 Test problems

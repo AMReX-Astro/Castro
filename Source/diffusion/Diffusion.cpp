@@ -19,6 +19,8 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+    AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
+
     make_mg_bc();
 }
 

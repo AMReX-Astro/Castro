@@ -76,6 +76,8 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+     AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
+
      Density = _Density;
      read_params();
      finest_level_allocated = -1;
