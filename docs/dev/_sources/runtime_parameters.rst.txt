@@ -289,7 +289,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.check_dt_after_advance, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.check_dt_after_advance, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters, castro.stopping_criterion_field, castro.stopping_criterion_value
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -351,6 +351,11 @@ namespace: ``castro``
 |                                            | Set to a negative value to disable this criterion.          |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``sdc_iters``                              | Number of iterations for the simplified SDC advance.        | 2             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``stopping_criterion_field``               | Field to use for determining whether to stop the            | ""            |
+|                                            | simulation.                                                 |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``stopping_criterion_value``               | Threshold value for determining whether to stop.            | 1.e200        |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 

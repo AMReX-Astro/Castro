@@ -269,10 +269,10 @@ and halt the code, and <code class="docutils literal notranslate"><span class="p
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The parameter <code class="docutils literal notranslate"><span class="pre">amr.message_int</span></code> controls how often the
-existence of these files is checked; by default it is 10, so the
-check will be done at the end of every timestep that is a
-multiple of 10.  Set that to 1 in your inputs file if you’d like
-it to check every timestep.</p>
+existence of these files is checked; by default it is 1, so the
+check will be done at the end of every timestep, but you can
+set it to some other integer to check only timesteps that are a
+multiple of that number.</p>
 </div>
 </li>
 <li><p><em>How can I output plotfiles in single precision?</em></p>
