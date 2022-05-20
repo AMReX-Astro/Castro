@@ -15,6 +15,9 @@
      done to allow for a PPM implementation to be added without changing
      the default behavior of that method. (#2205)
 
+   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+     extended to PPM (#2203)
+     
 # 22.05
 
    * A new option castro.hydro_memory_footprint_ratio has been added which
