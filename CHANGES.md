@@ -1,5 +1,9 @@
 # 22.06
 
+   * castro.stopping_criterion_field and castro.stopping_criterion_value have
+     been added; these allow you to stop the simulation once a certain threshold
+     has been exceeded (for example, if the temperature gets too hot). (#2209)
+
    * The option castro.show_center_of_mass has been removed. If castro.v = 1
      and castro.sum_interval > 0, then the center of mass will automatically
      be included with the other diagnostic sums that are displayed. (#2176)
