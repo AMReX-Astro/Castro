@@ -172,10 +172,10 @@ Managing Runs
    .. note::
 
       The parameter ``amr.message_int`` controls how often the
-      existence of these files is checked; by default it is 10, so the
-      check will be done at the end of every timestep that is a
-      multiple of 10.  Set that to 1 in your inputs file if you’d like
-      it to check every timestep.
+      existence of these files is checked; by default it is 1, so the
+      check will be done at the end of every timestep, but you can
+      set it to some other integer to check only timesteps that are a
+      multiple of that number.
 
 #. *How can I output plotfiles in single precision?*
 
