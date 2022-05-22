@@ -392,9 +392,6 @@ castro.output_at_completion = 0
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
