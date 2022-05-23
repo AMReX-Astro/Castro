@@ -233,13 +233,15 @@ A retry can be triggered by a number of conditions:
 
   * The mass fractions fall outside of :math:`[0, 1]` -- we use
     ``castro.abundance_failure_tolerance`` with a default value of
-    ``0.01`` to trigger the retry.
+    ``0.01`` to trigger the retry.  This check can be disabled at low
+    densities by setting ``castro.abundance_failure_rho_cutoff`` to
+    the density below which we want to silently renormalize the species.
 
   * Integration failure in the burner
 
     Note: this requires that the following be set in your ``inputs``::
 
-      integrator.abort_on_failure = F
+      integrator.abort_on_failure = 0
 
     This instructs the integration routine in Microphysics to not
     abort when the integration fails, but instead to tell the calling
