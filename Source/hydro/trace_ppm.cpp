@@ -360,6 +360,9 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_passive;
     Real Im_passive;
 
+    double summ{0.0};
+    double sump{0.0};
+
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
         int n = qpassmap(ipassive);
@@ -385,16 +388,58 @@ Castro::trace_ppm(const Box& bx,
             // projecting, the reference state doesn't matter
 
             qp(i,j,k,n) = Im_passive;
+
+            if (n >= QFS && n < QFS+NumSpec) {
+                qp(i,j,k,n) =  amrex::max(0.0_rt, amrex::min(1.0_rt, qp(i,j,k,n)));
+                sump += qp(i,j,k,n);
+            }
         }
 
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
             qm(i+1,j,k,n) = Ip_passive;
+            if (n >= QFS && n < QFS+NumSpec) {
+                qm(i+1,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qm(i+1,j,k,n)));
+                summ += qm(i+1,j,k,n);
+            }
         } else if (idir == 1 && j <= vhi[1]) {
             qm(i,j+1,k,n) = Ip_passive;
+            if (n >= QFS && n < QFS+NumSpec) {
+                qm(i,j+1,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qm(i,j+1,k,n)));
+                summ += qm(i,j+1,k,n);
+            }
         } else if (idir == 2 && k <= vhi[2]) {
             qm(i,j,k+1,n) = Ip_passive;
+            if (n >= QFS && n < QFS+NumSpec) {
+                qm(i,j,k+1,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qm(i,j,k+1,n)));
+                summ += qm(i+1,j,k,n);
+            }
         }
+    }
+
+    // check the species -- if we are near a discontinuity and
+    // clipping makes sum - 1 > tol then flatten -- this makes
+    // us conservative
+
+    if (summ - 1.0_rt > abundance_failure_tolerance ||
+        sump - 1.0_rt > abundance_failure_tolerance) {
+        for (int n = 0; n < NumSpec; ++n) {
+
+        if ((idir == 0 && i >= vlo[0]) ||
+            (idir == 1 && j >= vlo[1]) ||
+            (idir == 2 && k >= vlo[2])) {
+
+            qp(i,j,k,n) =  q_arr(i,j,k,n);
+        }
+
+        if (idir == 0 && i <= vhi[0]) {
+            qm(i+1,j,k,n) = q_arr(i,j,k,n);
+        } else if (idir == 1 && j <= vhi[1]) {
+            qm(i,j+1,k,n) = q_arr(i,j,k,n);
+        } else if (idir == 2 && k <= vhi[2]) {
+            qm(i,j,k+1,n) = q_arr(i,j,k,n);
+        }
+
     }
 
 
