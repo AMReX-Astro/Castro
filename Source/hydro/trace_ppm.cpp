@@ -423,23 +423,24 @@ Castro::trace_ppm(const Box& bx,
 
     if (summ - 1.0_rt > abundance_failure_tolerance ||
         sump - 1.0_rt > abundance_failure_tolerance) {
+
         for (int n = 0; n < NumSpec; ++n) {
 
-        if ((idir == 0 && i >= vlo[0]) ||
-            (idir == 1 && j >= vlo[1]) ||
-            (idir == 2 && k >= vlo[2])) {
+            if ((idir == 0 && i >= vlo[0]) ||
+                (idir == 1 && j >= vlo[1]) ||
+                (idir == 2 && k >= vlo[2])) {
 
-            qp(i,j,k,n) =  q_arr(i,j,k,n);
+                qp(i,j,k,n) =  q_arr(i,j,k,n);
+            }
+
+            if (idir == 0 && i <= vhi[0]) {
+                qm(i+1,j,k,n) = q_arr(i,j,k,n);
+            } else if (idir == 1 && j <= vhi[1]) {
+                qm(i,j+1,k,n) = q_arr(i,j,k,n);
+            } else if (idir == 2 && k <= vhi[2]) {
+                qm(i,j,k+1,n) = q_arr(i,j,k,n);
+            }
         }
-
-        if (idir == 0 && i <= vhi[0]) {
-            qm(i+1,j,k,n) = q_arr(i,j,k,n);
-        } else if (idir == 1 && j <= vhi[1]) {
-            qm(i,j+1,k,n) = q_arr(i,j,k,n);
-        } else if (idir == 2 && k <= vhi[2]) {
-            qm(i,j,k+1,n) = q_arr(i,j,k,n);
-        }
-
     }
 
 
