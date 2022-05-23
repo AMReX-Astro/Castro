@@ -250,7 +250,7 @@ A retry can be triggered by a number of conditions:
 
     .. note::
 
-       The combination of ``castro.use_retry = 0`` and ``integrator.abort_on_failure = F``
+       The combination of ``castro.use_retry = 0`` and ``integrator.abort_on_failure = 0``
        is unsafe and not supported.
 
        For true SDC, we disable retry and reset ``abort_on_failure`` to
