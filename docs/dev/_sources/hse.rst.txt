@@ -65,7 +65,15 @@ the reconstruction part, this step is identical between CTU and true-SDC.
 PPM
 ---
 
-There is currently no hydrostatic version of PPM
+The PPM version of ``use_pslope`` is essentially the same as the PLM
+version described above.  We first compute the excess pressure,
+:math:`\tilde{p}`, and then fit a cubic to the 4 cells surrounding an
+interface to get the initial interface values.  These become the left
+and right values of the parabola in each zone.  The PPM limiting is
+then done on the parabola, again working with :math:`\tilde{p}`.
+Finally, the parabola values are updated to include the hydrostatic
+pressure.
+
 
 Fully fourth-order method
 -------------------------

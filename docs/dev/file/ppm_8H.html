@@ -222,6 +222,26 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
+<span class="target" id="ppm_8H_1a91115536ad1639a0590aacf75da54677"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct_pressure</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*rho,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*p,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*src,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">bool</span> <span class="pre">lo_bc_test,</span> <span class="pre">bool</span> <span class="pre">hi_bc_test,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dx,</span> <span class="pre">Real</span> <span class="pre">&amp;sm,</span> <span class="pre">Real</span> <span class="pre">&amp;sp)</span></span></dt>
+<dd><p>Compute the coefficients of a parabolic reconstruction of the pressure by first subtracting off the hydrostatic pressure. This should better balance the gravitational force by only limiting on the wave-generating pressure. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho</strong> – Real(\5) giving the density in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>p</strong> – Real(\5) giving the pressure in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>src</strong> – Real(\5) the source in the velocity equation (e.g. g) in zones i-2, i-1, i, i+2, i+2 </p></li>
+<li><p><strong>flatn</strong> – flattening coefficient </p></li>
+<li><p><strong>lo_bc_test</strong> – true if a physical boundary is just to the left of this zone </p></li>
+<li><p><strong>hi_bc_test</strong> – true if a physical boundary is just to the right of this zone</p></li>
+<li><p><strong>sm</strong> – The value of the parabola on the left edge of the zone </p></li>
+<li><p><strong>sp</strong> – The value of the parabola on the right edge of the zone </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
 <span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_int_profile</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">sm,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sp,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sc,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">u,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">c,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dtdx,</span> <span class="pre">Real</span> <span class="pre">*Ip,</span> <span class="pre">Real</span> <span class="pre">*Im)</span></span></dt>
 <dd><p>Integrate under the parabola using from the left and right edges with the wave speeds u-c, u, u+c</p>
 <dl class="field-list simple">

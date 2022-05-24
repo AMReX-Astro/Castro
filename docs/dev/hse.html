@@ -180,7 +180,14 @@ the reconstruction part, this step is identical between CTU and true-SDC.</p>
 </section>
 <section id="ppm">
 <h3>PPM<a class="headerlink" href="#ppm" title="Permalink to this headline">¶</a></h3>
-<p>There is currently no hydrostatic version of PPM</p>
+<p>The PPM version of <code class="docutils literal notranslate"><span class="pre">use_pslope</span></code> is essentially the same as the PLM
+version described above.  We first compute the excess pressure,
+<span class="math notranslate nohighlight">\(\tilde{p}\)</span>, and then fit a cubic to the 4 cells surrounding an
+interface to get the initial interface values.  These become the left
+and right values of the parabola in each zone.  The PPM limiting is
+then done on the parabola, again working with <span class="math notranslate nohighlight">\(\tilde{p}\)</span>.
+Finally, the parabola values are updated to include the hydrostatic
+pressure.</p>
 </section>
 <section id="fully-fourth-order-method">
 <h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Permalink to this headline">¶</a></h3>
