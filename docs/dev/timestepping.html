@@ -330,10 +330,12 @@ in low density regions by setting <code class="docutils literal notranslate"><sp
 <code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>.</p></li>
 <li><p>The mass fractions fall outside of <span class="math notranslate nohighlight">\([0, 1]\)</span> – we use
 <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_tolerance</span></code> with a default value of
-<code class="docutils literal notranslate"><span class="pre">0.01</span></code> to trigger the retry.</p></li>
+<code class="docutils literal notranslate"><span class="pre">0.01</span></code> to trigger the retry.  This check can be disabled at low
+densities by setting <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_rho_cutoff</span></code> to
+the density below which we want to silently renormalize the species.</p></li>
 <li><p>Integration failure in the burner</p>
 <p>Note: this requires that the following be set in your <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">integrator</span><span class="o">.</span><span class="n">abort_on_failure</span> <span class="o">=</span> <span class="n">F</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">integrator</span><span class="o">.</span><span class="n">abort_on_failure</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 </div>
 <p>This instructs the integration routine in Microphysics to not
@@ -342,7 +344,7 @@ Castro routine that the integration failed so Castro can handle
 the retry itself.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The combination of <code class="docutils literal notranslate"><span class="pre">castro.use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">integrator.abort_on_failure</span> <span class="pre">=</span> <span class="pre">F</span></code>
+<p>The combination of <code class="docutils literal notranslate"><span class="pre">castro.use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">integrator.abort_on_failure</span> <span class="pre">=</span> <span class="pre">0</span></code>
 is unsafe and not supported.</p>
 <p>For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
 always be true, since retry is not supported for that integration.</p>
