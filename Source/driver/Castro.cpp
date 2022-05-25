@@ -575,6 +575,11 @@ Castro::read_params ()
             ppr.get("max_level", max_level);
             info.SetMaxLevel(max_level);
         }
+        if (ppr.countval("volume_weighting") > 0) {
+            int volume_weighting;
+            ppr.get("volume_weighting", volume_weighting);
+            info.SetVolumeWeighting(volume_weighting);
+        }
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
@@ -1998,6 +2003,48 @@ Castro::post_timestep (int iteration_local)
         }
     }
 #endif
+
+    // Check to see if the user-supplied stopping criterion has been met.
+
+    if (castro::stopping_criterion_field != "" && level == 0) {
+        Real max_field_val = std::numeric_limits<Real>::min();
+
+        for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
+            auto mf = getLevel(lev).derive(castro::stopping_criterion_field, state[State_Type].curTime(), 0);
+            max_field_val = std::max(max_field_val, mf->max(0));
+        }
+
+        int to_stop = (max_field_val >= castro::stopping_criterion_value);
+
+        amrex::ParallelDescriptor::ReduceIntMax(to_stop);
+
+        if (to_stop) {
+
+            amrex::Print() << std::endl
+                           << "Ending simulation because we are above the user-specified stopping criterion threshold."
+                           << std::endl;
+
+            signalStopJob = true;
+
+            // Write out a checkpoint.
+
+            if (amrex::ParallelDescriptor::IOProcessor()) {
+                std::ofstream dump_file;
+                dump_file.open("dump_and_stop", std::ofstream::out);
+                dump_file.close();
+            }
+
+            // Write out a file that indicates the job has completed.
+
+            if (amrex::ParallelDescriptor::IOProcessor()) {
+                std::ofstream jobIsDoneFile;
+                jobIsDoneFile.open("jobIsDone", std::ofstream::out);
+                jobIsDoneFile.close();
+            }
+
+        }
+
+    }
 }
 
 void

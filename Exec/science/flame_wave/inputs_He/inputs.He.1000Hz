@@ -18,7 +18,8 @@ castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = 1
-castro.hse_interp_temp = 1
+castro.hse_interp_temp = 0
+castro.hse_fixed_temp = 1.e8   # this should match problem.T_star
 castro.hse_reflect_vels = 1
 
 castro.fill_ambient_bc = 1
@@ -59,6 +60,9 @@ castro.sponge_upper_density = 1.e2
 castro.sponge_lower_density = 1.e0
 castro.sponge_timescale     = 1.e-7
 
+castro.abundance_failure_tolerance = 0.1
+castro.abundance_failure_rho_cutoff = 1.0
+
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
@@ -67,7 +71,7 @@ castro.change_max     = 1.1     # max time step growth
 castro.use_retry      = 1
 castro.max_subcycles = 16
 
-castro.retry_small_density_cutoff = 1
+castro.retry_small_density_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 0       # timesteps between computing mass
