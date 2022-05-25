@@ -178,7 +178,13 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
         Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
 
         // this only makes sense if the pressures are positive
-        if (p0_hse < 0.0 || pp1_hse < 0.0 || pp2_hse < 0.0 || pm1_hse < 0.0 || pm2_hse < 0.0) {
+        bool ptest = p0_hse < 0.0 ||
+                     pp1_hse < 0.0 ||
+                     pp2_hse < 0.0 ||
+                     pm1_hse < 0.0 ||
+                     pm2_hse < 0.0;
+
+        if (ptest) {
             p0_hse = 0.0;
             pp1_hse = 0.0;
             pp2_hse = 0.0;
@@ -188,19 +194,20 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
 
         // subtract off the hydrostatic pressure
 
-        tp[i0] = 0.0_rt;
+        tp[i0] = p[i0] - p0_hse;
+
         tp[ip1] = p[ip1] - pp1_hse;
         tp[ip2] = p[ip2] - pp2_hse;
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
 
-        if (lo_bc_test) {
+        if (lo_bc_test && !ptest) {
             tp[im1] = 0.0_rt;  // HSE is perfectly satisfied
             tp[im2] = 0.0_rt;
         }
 
-        if (hi_bc_test) {
+        if (hi_bc_test && !ptest) {
             tp[ip1] = 0.0_rt;
             tp[ip2] = 0.0_rt;
         }
