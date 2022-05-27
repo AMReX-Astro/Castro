@@ -143,16 +143,6 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
-  // special care for the reflecting BCs
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  bool lo_bc_test = lo_bc[idir] == Symmetry;
-  bool hi_bc_test = hi_bc[idir] == Symmetry;
-
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)

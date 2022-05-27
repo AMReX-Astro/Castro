@@ -56,7 +56,7 @@ void
 ppm_reconstruct(const Real* s,
                 const int i, const int j, const int k, const int idir,
                 const bool lo_bc_test, const bool hi_bc_test,
-                GpuArray<int, 3>& const domlo, GpuArray<int, 3>& const domhi,
+                const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                 const Real flatn, Real& sm, Real& sp) {
 
   // first we compute s_{i-1/2} -- the left interface value for zone i
@@ -244,7 +244,7 @@ void
 ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src,
                          const int i, const int j, const int k, const int idir,
                          bool lo_bc_test, bool hi_bc_test,
-                         GpuArray<int, 3>& const domlo, GpuArray<int, 3>& const domhi,
+                         const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                          const Real dx,
                          const Real flatn,
                          Real& sm, Real& sp) {
