@@ -214,9 +214,6 @@ amr.small_plot_per = 0.1
 # Number of timesteps between small plotfiles
 amr.small_plot_int = -1
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # State variables to add to plot files
 amr.plot_vars = ALL
 

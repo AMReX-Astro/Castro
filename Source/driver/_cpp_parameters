@@ -388,6 +388,12 @@ max_subcycles                int           10
 # Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
 
+# Field to use for determining whether to stop the simulation.
+stopping_criterion_field     string        ""
+
+# Threshold value for determining whether to stop.
+stopping_criterion_value     Real          1.e200
+
 #-----------------------------------------------------------------------------
 # category: reactions
 #-----------------------------------------------------------------------------

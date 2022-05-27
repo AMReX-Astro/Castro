@@ -53,6 +53,15 @@ Castro::trace_ppm(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  bool lo_symm = lo_bc[idir] == Symmetry;
+  bool hi_symm = hi_bc[idir] == Symmetry;
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
@@ -149,6 +158,15 @@ Castro::trace_ppm(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
+
+    bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
+                                  (idir == 1 && j == domlo[1]) ||
+                                  (idir == 2 && k == domlo[2]));
+
+    bool hi_bc_test = hi_symm && ((idir == 0 && i == domhi[0]) ||
+                                  (idir == 1 && j == domhi[1]) ||
+                                  (idir == 2 && k == domhi[2]));
+
     Real cc = qaux_arr(i,j,k,QC);
 
 #if AMREX_SPACEDIM < 3
@@ -217,9 +235,19 @@ Castro::trace_ppm(const Box& bx,
     Real Im_p[3];
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
-    ppm_reconstruct(s, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flat, sm, sp);
+
+    Real trho[5];
+    Real src[5];
+
+    load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+    load_stencil(srcQ, idir, i, j, k, QUN, src);
+
+    ppm_reconstruct_pressure(trho, s, src,
+                             i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi,
+                             dx[idir], flat, sm, sp);
     sm = amrex::max(lsmall_pres, sm);
     sp = amrex::max(lsmall_pres, sp);
+
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
     // reconstruct rho e
