@@ -159,7 +159,6 @@ ppm_reconstruct(const Real* s,
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const Real flatn,
-                         bool lo_bc_test, bool hi_bc_test,
                          const Real dx,
                          Real& sm, Real& sp) {
 
@@ -183,7 +182,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
                  pm2_hse < 0.0;
 
 
-    if (use_pslope && !ptest && rho[i0] >= pslope_cutoff_density) {
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
 
         // subtract off the hydrostatic pressure
 
@@ -194,16 +193,6 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
-
-        // if (lo_bc_test && !ptest) {
-        //     tp[im1] = 0.0_rt;  // HSE is perfectly satisfied
-        //     tp[im2] = 0.0_rt;
-        // }
-
-        // if (hi_bc_test && !ptest) {
-        //     tp[ip1] = 0.0_rt;
-        //     tp[ip2] = 0.0_rt;
-        // }
 
     } else {
 
@@ -222,7 +211,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
     // now correct sm and sp to be back to the full pressure by
     // adding in the hydrostatic pressure at the interface
 
-    if (use_pslope && !ptest && rho[i0] >= pslope_cutoff_density) {
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
         sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
         sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
     }
