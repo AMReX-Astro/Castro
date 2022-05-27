@@ -15,7 +15,7 @@ amr.n_cell   =  256 1 1
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size    = 256
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
@@ -32,8 +32,30 @@ amr.plot_int        = 10000000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 #amr.plot_files_output = 0    # suppress plot files
 
-# PROBIN FILENAME
-amr.probin_file     = probin
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.e0
+problem.T_0 = 5.8022593689285789e5
+
+# EOS
+eos.eos_const_c_v =  1.0e8
+eos.eos_c_v_exp_m =  0.0e0
+eos.eos_c_v_exp_n =  0.0e0
+
+# OPACITY
+opacity.const_kappa_r =  0.0e0
+opacity.kappa_r_exp_m =  0.0e0
+opacity.kappa_r_exp_n =  0.0e0
+opacity.kappa_r_exp_p =  0.0e0
+
+opacity.const_kappa_p =  0.0e0
+opacity.kappa_p_exp_m =  0.0e0
+opacity.kappa_p_exp_n =  0.0e0
+opacity.kappa_p_exp_p =  0.0e0
+
+opacity.const_scatter =  4.6656e56
+opacity.scatter_exp_m =  0.0e0
+opacity.scatter_exp_n =  0.0e0
+opacity.scatter_exp_p = -3.0e0
 
 # VERBOSITY
 amr.v = 1

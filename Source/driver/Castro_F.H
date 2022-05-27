@@ -9,38 +9,6 @@ extern "C"
 {
 #endif
 
-  void ca_microphysics_init();
-
-  void ca_extern_init(const int* name, const int* namlen);
-
-#ifdef REACTIONS
-  void ca_set_abort_on_failure(int * abort_on_failure);
-#endif
-
-  void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-
-  void ca_set_method_params
-    (const int& dm);
-
-  void ca_finalize_meth_params();
-
-  void ca_set_castro_method_params();
-
-  void ca_set_problem_params
-    (const int& dm,
-     const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_get_tagging_params(const int* name, const int* namlen);
-
-#ifdef RADIATION
-  void ca_inelastic_sct
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(Erout),
-     const BL_FORT_FAB_ARG_3D(kappa_s),
-     const amrex::Real& dt);
-#endif
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
@@ -48,19 +16,6 @@ extern "C"
      BL_FORT_FAB_ARG(state_new),
      const int* lo, const int* hi,
      const amrex::Real * dt);
-#endif
-
-
-
-
-/* sources */
-#include <Castro_sources_F.H>
-
-
-
-/* SCF */
-#ifdef GRAVITY
-#include <scf_relax_F.H>
 #endif
 
 #ifdef __cplusplus
@@ -87,16 +42,6 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
    const amrex::Real model[], const int& model_size, const int& MAESTRO_npts_model,
    const amrex::Real dx[], const amrex::Real& dr, const amrex::Real xlo[], const amrex::Real xhi[],
    const int& r_model_start);
-#endif
-
-#ifdef MHD
-BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
-  (const int& level, const amrex::Real& time,
-   const int* lo, const int* hi,
-   const int& nx, BL_FORT_FAB_ARG_3D(magx),
-   const int& ny, BL_FORT_FAB_ARG_3D(magy),
-   const int& nz, BL_FORT_FAB_ARG_3D(magz),
-   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
 #endif

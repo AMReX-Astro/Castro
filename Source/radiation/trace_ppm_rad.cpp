@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <flatten.H>
 
 using namespace amrex;
 
@@ -18,7 +19,6 @@ Castro::trace_ppm_rad(const Box& bx,
                       Array4<Real const> const& q_arr,
                       Array4<Real const> const& qaux_arr,
                       Array4<Real const> const& srcQ,
-                      Array4<Real const> const& flatn,
                       Array4<Real> const& qm,
                       Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -169,7 +169,30 @@ Castro::trace_ppm_rad(const Box& bx,
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
     Real s[5];
-    Real flat = flatn(i,j,k);
+
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
+#ifdef RADIATION
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
+#endif
+    }
+
     Real sm;
     Real sp;
 
@@ -180,29 +203,7 @@ Castro::trace_ppm_rad(const Box& bx,
     for (int n = 0; n < NQ; n++) {
       if (n == QTEMP) continue;
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,n);
-        s[im1] = q_arr(i-1,j,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i+1,j,k,n);
-        s[ip2] = q_arr(i+2,j,k,n);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,n);
-        s[im1] = q_arr(i,j-1,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j+1,k,n);
-        s[ip2] = q_arr(i,j+2,k,n);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,n);
-        s[im1] = q_arr(i,j,k-1,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j,k+1,n);
-        s[ip2] = q_arr(i,j,k+2,n);
-
-      }
-
+      load_stencil(q_arr, idir, i, j, k, n, s);
       ppm_reconstruct(s, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
@@ -246,31 +247,9 @@ Castro::trace_ppm_rad(const Box& bx,
 
       if (do_trace) {
 
-        if (idir == 0) {
-          s[im2] = srcQ(i-2,j,k,n);
-          s[im1] = srcQ(i-1,j,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i+1,j,k,n);
-          s[ip2] = srcQ(i+2,j,k,n);
-
-        } else if (idir == 1) {
-          s[im2] = srcQ(i,j-2,k,n);
-          s[im1] = srcQ(i,j-1,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j+1,k,n);
-          s[ip2] = srcQ(i,j+2,k,n);
-
-        } else {
-          s[im2] = srcQ(i,j,k-2,n);
-          s[im1] = srcQ(i,j,k-1,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j,k+1,n);
-          s[ip2] = srcQ(i,j,k+2,n);
-
-        }
-
-        ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
+          load_stencil(srcQ, idir, i, j, k, n, s);
+          ppm_reconstruct(s, flat, sm, sp);
+          ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
         Ip_src[n][0] = 0.0_rt;
@@ -308,29 +287,15 @@ Castro::trace_ppm_rad(const Box& bx,
         // projecting, the reference state doesn't matter
 
         qp(i,j,k,n) = Im[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
-#endif
       }
 
       // Minus state on face i+1
       if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
       } else if (idir == 1 && j <= vhi[1]) {
         qm(i,j+1,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
       } else if (idir == 2 && k <= vhi[2]) {
         qm(i,j,k+1,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
       }
     }
 

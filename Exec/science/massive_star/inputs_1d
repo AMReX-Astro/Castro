@@ -10,9 +10,9 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 2         # spherical
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  17498633068.48000
+geometry.prob_hi   =  1.6384e10
 
-amr.n_cell         = 6400
+amr.n_cell         = 8192
 
 amr.max_level      = 0       # maximum level number allowed
 
@@ -70,9 +70,38 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-amr.probin_file = probin
-
-castro.small_dens   = 1.e-4
+castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
 castro.time_integration_method=3
+
+
+# problem initialization
+
+problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
+
+# refinement
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.max_level = 3
+amr.refine.denerr.value_greater = 1.e4
+amr.refine.denerr.field_name = density
+
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+
+integrator.abort_on_failure = 0
+
+integrator.jacobian = 2
+
+network.rho_nse = 2.e6
+network.T_nse = 3.e9
+
+network.small_x = 1.e-10
+
+network.nse_relax_factor = 0.9
+

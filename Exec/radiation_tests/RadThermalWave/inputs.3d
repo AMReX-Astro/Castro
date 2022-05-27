@@ -17,7 +17,7 @@ amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 16
 
 amr.check_file      = chk      # root name of checkpoint file
@@ -27,10 +27,31 @@ amr.plot_file       = plt
 amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
+amr.refinement_indicators = tempgrad_rel
+
+amr.refine.tempgrad_rel.max_level = 4
+amr.refine.tempgrad_rel.relative_gradient = 0.2
+amr.refine.tempgrad_rel.field_name = Temp
+
 amr.grid_log        = grdlog  # name of grid logging file
 amr.v = 1
 
-amr.probin_file     = probin.3d
+problem.rhocv = 0.05e0
+problem.T0 = 1.e-6
+problem.Eexp = 3.e7
+problem.rexp = 3.125
+
+eos.eos_gamma = 1.4
+
+opacity.const_kappa_p =  1.0e6
+opacity.kappa_p_exp_m =  0.0e0
+opacity.kappa_p_exp_n =  0.0e0
+opacity.kappa_p_exp_p =  0.0e0
+
+opacity.const_kappa_r =  1.0e-3
+opacity.kappa_r_exp_m =  0.0e0
+opacity.kappa_r_exp_n = -0.5e0
+opacity.kappa_r_exp_p =  0.0e0
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry

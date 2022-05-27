@@ -134,12 +134,5 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
         {
             problem_source(i, j, k, geomdata, snew, src, dt, time);
         });
-
-        ca_ext_src
-          (AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(state_old[mfi]),
-           BL_TO_FORTRAN_ANYD(state_new[mfi]),
-           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-           AMREX_ZFILL(prob_lo), AMREX_ZFILL(dx), time, dt);
     }
 }

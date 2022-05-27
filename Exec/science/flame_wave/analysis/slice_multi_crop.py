@@ -14,9 +14,10 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 # assume that our data is in CGS
 from yt.units import cm, amu
+from yt.frontends.boxlib.api import CastroDataset
 
 plotfile = sys.argv[1]
-ds = yt.load(plotfile)
+ds = CastroDataset(plotfile)
 
 xmin = ds.domain_left_edge[0]
 xmax = 2*ds.domain_right_edge[0]/3
@@ -42,7 +43,7 @@ grid = ImageGrid(fig, 111, nrows_ncols=(len(fields), 1),
 
 for i, f in enumerate(fields):
 
-    sp = yt.SlicePlot(ds, "theta", f, center=[xctr, yctr, 0.0], width=[L_x, L_y, 0.0], fontsize="12")
+    sp = yt.SlicePlot(ds, "theta", f, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="12")
     sp.set_buff_size((2400,2400))
 
     if f == "Temp":

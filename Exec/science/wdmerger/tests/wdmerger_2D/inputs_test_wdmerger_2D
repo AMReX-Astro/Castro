@@ -4,8 +4,6 @@
 # Problem setup
 ############################################################################################
 
-amr.probin_file = probin_test_wdmerger_2D          # Name of the probin file
-
 max_step = 10                                      # Maximum coarse timestep
 
 geometry.is_periodic = 0 0 0                       # Non-periodic boundary conditions
@@ -43,6 +41,15 @@ amr.max_grid_size = 32                             # Maximum grid size at each l
 amr.blocking_factor = 16                           # Grid sizes must be a multiple of this
 
 amr.grid_eff = 0.9                                 # What constitutes an efficient grid
+
+amr.refinement_indicators = temperr
+
+amr.refine.temperr.max_level = 4
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.value_greater = 2.0e8
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -118,3 +125,21 @@ gravity.v = 1                                      # Control verbosity in Gravit
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
 amr.derive_plot_vars = ALL                         # Calculate all variables for plotfiles, including derived variables
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.90
+problem.mass_S = 0.90
+
+problem.problem = 1
+
+problem.roche_radius_factor = 1.0e0
+
+problem.stellar_temp = 1.0e7
+
+problem.orbital_eccentricity = 0.0e0
+problem.orbital_angle = 0.0e0
+
+problem.stellar_density_threshold = 1.0e0

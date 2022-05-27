@@ -81,5 +81,18 @@ amr.plot_file       = test2_z_plt  # root name of plotfile
 amr.plot_int        = 10           # number of timesteps between plotfiles
 amr.derive_plot_vars= density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
-# PROBIN FILENAME
-amr.probin_file = probin-test2-z
+# PROBLEM PARAMETERS
+problem.p_l = 0.4
+problem.u_l = -2.0
+problem.rho_l = 1.0
+
+problem.p_r = 0.4
+problem.u_r = 2.0
+problem.rho_r = 1.0
+
+problem.idir = 3
+problem.frac = 0.5
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4

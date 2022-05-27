@@ -63,7 +63,7 @@ The time-integration method used is controlled by
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
-    method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
+    method to work.
 
 .. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
@@ -123,8 +123,6 @@ of each step.
    This sets up the current level for advancement. The following
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
-
-   -  Sync up the level information to the Fortran-side of Castro.
 
    -  Do any radiation initialization.
 
@@ -343,8 +341,8 @@ In the code, the objective is to evolve the state from the old time,
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho e)^\star &= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
           (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
@@ -379,9 +377,9 @@ In the code, the objective is to evolve the state from the old time,
       follows that of Maestro :cite:`maestro:III`
 
    B. external sources : users can define problem-specific sources
-      in the ``ext_src_?d.f90`` file. Sources for the different
+      in the ``problem_source.H`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
-      using the integer keys defined in ``meth_params_module``
+      using the integer keys defined in ``state_indices.H``
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the
@@ -594,7 +592,7 @@ together directly.
    The code must be compiled with ``USE_TRUE_SDC = TRUE`` to use this
    evolution type.
 
-The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
+The SDC solver follows the algorithm detailed in :cite:`castro-sdc`.
 We write our evolution equation as:
 
 .. math::

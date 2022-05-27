@@ -1,0 +1,6 @@
+# name                          data type             default                  in runtime params?     size
+wd_mass                         real                  1.0e0_rt                 y
+wd_central_density              real                 -1.0e0_rt                 n
+wd_radius                       real                 -1.0e0_rt                 n
+wd_temperature                  real                  1.0e7_rt                 y
+wd_speed                        real                  1.0e8_rt                 y

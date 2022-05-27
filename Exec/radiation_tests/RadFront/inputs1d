@@ -16,7 +16,7 @@ amr.n_cell   = 128
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
@@ -32,8 +32,25 @@ amr.plot_file       = plt_
 amr.plot_int        = 1000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin1d
+# PROBLEM PARAMETERS
+problem.rho_0  = 1.0e-5
+problem.T_0 = 3.0e2
+
+# EOS
+eos.eos_gamma = 1.6666666667
+
+# OPACITY
+opacity.const_kappa_p = 1.0e-7
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+opacity.kappa_p_exp_p = 0.0e0
+
+opacity.const_kappa_r = 1.0e-7
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
+opacity.kappa_r_exp_p = 0.0e0
+
+opacity.kappa_floor = 1.0e-15
 
 # VERBOSITY
 amr.v = 1
@@ -63,7 +80,6 @@ castro.small_dens =1.0e-10
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.0e-9 
 
 castro.fixed_dt       = 1.3e-12
 

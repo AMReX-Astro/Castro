@@ -47,7 +47,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -61,5 +61,9 @@ amr.plot_file       = nse_test_512_plt  # root name of plotfile
 amr.plot_per = 0.24
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# problem initialization
+
+problem.T0 = 4.e9
+problem.dT_fact = 0.2
+problem.rho0 = 5.e8
+problem.L_pert = 2.e7

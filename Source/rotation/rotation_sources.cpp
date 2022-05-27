@@ -63,25 +63,21 @@ Castro::rsrc(const Box& bx,
     snew[UMZ] += dt * src[UMZ];
 
 #ifdef HYBRID_MOMENTUM
-    if (state_in_rotating_frame == 1) {
+    GpuArray<Real, 3> linear_momentum;
+    linear_momentum[0] = src[UMX];
+    linear_momentum[1] = src[UMY];
+    linear_momentum[2] = src[UMZ];
 
-      GpuArray<Real, 3> linear_momentum;
-      linear_momentum[0] = src[UMX];
-      linear_momentum[1] = src[UMY];
-      linear_momentum[2] = src[UMZ];
+    GpuArray<Real, 3> hybrid_source;
+    set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
-      GpuArray<Real, 3> hybrid_source;
-      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
+    snew[UMR] += dt * hybrid_source[0];
+    snew[UML] += dt * hybrid_source[1];
+    snew[UMP] += dt * hybrid_source[2];
 
-      snew[UMR] += dt * hybrid_source[0];
-      snew[UML] += dt * hybrid_source[1];
-      snew[UMP] += dt * hybrid_source[2];
-
-      src[UMR] = hybrid_source[0];
-      src[UML] = hybrid_source[1];
-      src[UMP] = hybrid_source[2];
-
-    }
+    src[UMR] = hybrid_source[0];
+    src[UML] = hybrid_source[1];
+    src[UMP] = hybrid_source[2];
 #endif
 
     // Our conservative energy formulation does not strictly require
@@ -113,8 +109,6 @@ Castro::rsrc(const Box& bx,
 
 void
 Castro::corrrsrc(const Box& bx,
-                 Array4<Real const> const& phi_old,
-                 Array4<Real const> const& phi_new,
                  Array4<Real const> const& uold,
                  Array4<Real const> const& unew,
                  Array4<Real> const& source,
@@ -130,8 +124,6 @@ Castro::corrrsrc(const Box& bx,
   // exists outside of the Fortran module above because it needs to
   // be called directly from C++.
 
-  // phi_old and phi_new are used to compute the time centered rotational potential
-
   // uold and unew are the old and new time state data
 
   // source is the source term to send back
@@ -143,6 +135,16 @@ Castro::corrrsrc(const Box& bx,
   // is the new time at time-level n+1.
 
   GeometryData geomdata = geom.data();
+
+  Real hdtInv = 0.5_rt / dt;
+
+  GpuArray<Real, 3> dx;
+  for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      dx[i] = geom.CellSizeArray()[i];
+  }
+  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+      dx[i] = 0.0_rt;
+  }
 
   auto omega = get_omega();
 
@@ -156,26 +158,9 @@ Castro::corrrsrc(const Box& bx,
 
     if (rotation_include_coriolis == 1) {
 
-      // If the state variables are in the inertial frame, then we are doing
-      // an implicit solve using (dt / 2) multiplied by the standard Coriolis term.
-      // If not, then the rotation source term to the linear momenta (Equations 16
-      // and 17 in Byerly et al., 2014) still retains a Coriolis-like form, with
-      // the only difference being that the magnitude is half as large. Consequently
-      // we can still do an implicit solve in that case.
-
-      if (state_in_rotating_frame == 1) {
-
         for (int idir = 0; idir < 3; idir++) {
           dt_omega[idir] = dt * omega[idir];
         }
-
-      } else {
-
-        for (int idir = 0; idir < 3; idir++) {
-          dt_omega[idir] = 0.5_rt * dt * omega[idir];
-        }
-
-      }
 
     } else {
 
@@ -342,69 +327,75 @@ Castro::corrrsrc(const Box& bx,
     snew[UMZ] += dt * src[UMZ];
 
 #ifdef HYBRID_MOMENTUM
-    // The source terms vanish if the state variables are measured in the
-    // inertial frame; see wdmerger paper III.
+    GpuArray<Real, 3> hybrid_source;
 
-    if (state_in_rotating_frame == 1) {
-      GpuArray<Real, 3> hybrid_source;
+    GpuArray<Real, 3> linear_momentum;
+    linear_momentum[0] = src[UMX];
+    linear_momentum[1] = src[UMY];
+    linear_momentum[2] = src[UMZ];
 
-      GpuArray<Real, 3> linear_momentum;
-      linear_momentum[0] = src[UMX];
-      linear_momentum[1] = src[UMY];
-      linear_momentum[2] = src[UMZ];
+    set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
-      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
+    snew[UMR] += dt * hybrid_source[0];
+    snew[UML] += dt * hybrid_source[1];
+    snew[UMP] += dt * hybrid_source[2];
 
-      snew[UMR] += dt * hybrid_source[0];
-      snew[UML] += dt * hybrid_source[1];
-      snew[UMP] += dt * hybrid_source[2];
-
-      src[UMR] = hybrid_source[0];
-      src[UML] = hybrid_source[1];
-      src[UMP] = hybrid_source[2];
-    }
+    src[UMR] = hybrid_source[0];
+    src[UML] = hybrid_source[1];
+    src[UMP] = hybrid_source[2];
 #endif
 
     // Correct energy
 
     // First, subtract the predictor step we applied earlier.
 
-    Real SrEcorr = - SrE_old;
+    SrEcorr = - SrE_old;
 
-    // The change in the gas energy is equal in magnitude to, and opposite in sign to,
-    // the change in the rotational potential energy, rho * phi.
-    // This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
-    // Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-    // There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
-    // it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
-    // (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
-    // change multiplied by the difference between these two potentials.
-    // This is a generalization of the cell-centered approach implemented in
-    // the other source options, which effectively are equal to
-    // SrEcorr = - drho(i,j,k) * phi(i,j,k),
-    // where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
+    // See corrgsrc for an explanation of this algorithm. We can implement this identically
+    // to the conservative gravity, swapping out the gravitational acceleration for the
+    // rotational acceleration. We only need to calculate the rotational acceleration on
+    // edges, which is straightforward to do. The Coriolis term does not play a role in
+    // the energy update (it does no work), so we turn it off and pass in a temporary
+    // velocity array which will be ignored.
 
-    // Note that in the hydrodynamics step, the fluxes used here were already
-    // multiplied by dA and dt, so dividing by the cell volume is enough to
-    // get the density change (flux * dt * dA / dV). We then divide by dt
-    // so that we get the source term and not the actual update, which will
-    // be applied later by multiplying by dt.
+    Real edge_Sr[3][2];
 
-    Real phi = 0.5_rt * (phi_new(i,j,k) + phi_old(i,j,k));
+    // Loop over directions and edges
 
-    Real phixl = 0.5_rt * (phi_new(i-1,j,k) + phi_old(i-1,j,k));
-    Real phixr = 0.5_rt * (phi_new(i+1,j,k) + phi_old(i+1,j,k));
-    Real phiyl = 0.5_rt * (phi_new(i,j-dg1,k) + phi_old(i,j-dg1,k));
-    Real phiyr = 0.5_rt * (phi_new(i,j+dg1,k) + phi_old(i,j+dg1,k));
-    Real phizl = 0.5_rt * (phi_new(i,j,k-dg2) + phi_old(i,j,k-dg2));
-    Real phizr = 0.5_rt * (phi_new(i,j,k+dg2) + phi_old(i,j,k+dg2));
+    for (int dir = 0; dir < 3; ++dir) {
+        for (int edge = 0; edge <= 1; ++edge) {
 
-    SrEcorr = SrEcorr - (0.5_rt / dt) * ( flux0(i    ,j,k) * (phi - phixl) -
-                                          flux0(i+1  ,j,k) * (phi - phixr) +
-                                          flux1(i,    j,k) * (phi - phiyl) -
-                                          flux1(i,j+dg1,k) * (phi - phiyr) +
-                                          flux2(i,j,k    ) * (phi - phizl) -
-                                          flux2(i,j,k+dg2) * (phi - phizr) ) / vol(i,j,k);
+            bool ccx = dir == 0 ? true : false;
+            bool ccy = dir == 1 ? true : false;
+            bool ccz = dir == 2 ? true : false;
+
+            int ie = dir == 0 ? i + edge : i;
+            int je = dir == 1 ? j + edge : j;
+            int ke = dir == 2 ? k + edge : k;
+
+            position(ie, je, ke, geomdata, loc, ccx, ccy, ccz);
+
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                loc[n] -= problem::center[n];
+            }
+
+            GpuArray<Real, 3> temp_vel{};
+            Real temp_Sr[3];
+
+            coriolis = false;
+            rotational_acceleration(loc, temp_vel, coriolis, temp_Sr);
+
+            edge_Sr[dir][edge] = temp_Sr[dir];
+
+        }
+    }
+
+    SrEcorr += hdtInv * (flux0(i      ,j,k) * edge_Sr[0][0] * dx[0] +
+                         flux0(i+1*dg0,j,k) * edge_Sr[0][1] * dx[0] +
+                         flux1(i,j      ,k) * edge_Sr[1][0] * dx[1] +
+                         flux1(i,j+1*dg1,k) * edge_Sr[1][1] * dx[1] +
+                         flux2(i,j,k      ) * edge_Sr[2][0] * dx[2] +
+                         flux2(i,j,k+1*dg2) * edge_Sr[2][1] * dx[2]) / vol(i,j,k);
 
     src[UEDEN] = SrEcorr;
 

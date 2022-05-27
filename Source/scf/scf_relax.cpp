@@ -2,6 +2,7 @@
 #include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <Gravity.H>
+#include <Rotation.H>
 
 using namespace amrex;
 
@@ -63,9 +64,18 @@ Castro::do_hscf_solve()
     const int finest_level = parent->finestLevel();
     const int n_levs = finest_level + 1;
 
-    // Do the initial relaxation setup.
+    // Do the initial relaxation setup. We need to fix two points
+    // to uniquely determine an equilibrium configuration for a
+    // rotating star. We are provided the distance from the center,
+    // and the axis we're measuring on.
 
-    scf_setup_relaxation(scf_equatorial_radius, 1, scf_polar_radius, 3);
+    GpuArray<Real, 3> scf_r_A = {problem::center[0], problem::center[1], problem::center[2]};
+    GpuArray<Real, 3> scf_r_B = {problem::center[0], problem::center[1], problem::center[2]};
+
+    // Note that the sign is somewhat arbitrary here.
+
+    scf_r_A[0] += castro::scf_equatorial_radius;
+    scf_r_B[2] += castro::scf_polar_radius;
 
     // To do the relaxation loop, we need to know the target maximum
     // enthalpy on the domain. So we'll loop through the grid and
@@ -91,19 +101,44 @@ Castro::do_hscf_solve()
 
         MultiFab& state_new = getLevel(lev).get_new_data(State_Type);
 
+        ReduceOps<ReduceOpMax> reduce_op;
+        ReduceData<Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:target_h_max)
+#pragma omp parallel
 #endif
         for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& bx = mfi.tilebox();
 
-            scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                                       scf_maximum_density,
-                                       &target_h_max);
+            auto state_arr = state_new[mfi].array();
+
+            reduce_op.eval(bx, reduce_data,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+            {
+                eos_t eos_state;
+
+                eos_state.rho = castro::scf_maximum_density;
+                eos_state.T   = state_arr(i,j,k,UTEMP);
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
+                }
+#endif
+
+                eos(eos_input_rt, eos_state);
+
+                return {eos_state.h};
+            });
 
         }
+
+        ReduceTuple hv = reduce_data.value();
+        target_h_max = amrex::max(target_h_max, amrex::get<0>(hv));
 
     }
 
@@ -113,14 +148,13 @@ Castro::do_hscf_solve()
     Vector< std::unique_ptr<MultiFab> > enthalpy(n_levs);
     Vector< std::unique_ptr<MultiFab> > state_vec(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi(n_levs);
-    Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
 
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
 
-    int j = 1;
+    int ctr = 1;
 
-    while (j <= scf_max_iterations) {
+    while (ctr <= scf_max_iterations) {
 
         Real time = getLevel(0).state[State_Type].curTime();
 
@@ -132,8 +166,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-
-            const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -162,7 +194,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
             state_vec[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
             phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-            phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
         }
 
         // Copy in the state data. Mask it out on coarse levels.
@@ -171,7 +202,6 @@ Castro::do_hscf_solve()
 
             MultiFab::Copy((*state_vec[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
             MultiFab::Copy((*phi[lev]), getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1, 0);
-            MultiFab::Copy((*phi_rot[lev]), getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
 
             if (lev < finest_level) {
                 const MultiFab& mask = getLevel(lev+1).build_fine_mask();
@@ -181,7 +211,6 @@ Castro::do_hscf_solve()
                 }
 
                 MultiFab::Multiply((*phi[lev]), mask, 0, 0, 1, 0);
-                MultiFab::Multiply((*phi_rot[lev]), mask, 0, 0, 1, 0);
             }
 
         }
@@ -195,22 +224,94 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            auto geomdata = parent->Geom(lev).data();
+
+            ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
+            ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
+#pragma omp parallel
 #endif
             for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx),
-                                       &phi_A, &psi_A, &phi_B, &psi_B);
+                auto phi_arr = (*phi[lev])[mfi].array();
+                auto psi_arr = (*psi[lev])[mfi].array();
 
+                reduce_op.eval(bx, reduce_data,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+                {
+                    auto dx = geomdata.CellSize();
+                    auto problo = geomdata.ProbLo();
+
+                    // The below assumes we are rotating on the z-axis.
+
+                    Real r[3] = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+                    // Do a trilinear interpolation to find the contribution from
+                    // this grid point. Limit so that only the nearest zone centers
+                    // can participate. This implies that the maximum allowable
+                    // distance from the target location is 0.5 * dx.
+
+                    Real rr[3] = {0.0};
+
+                    rr[0] = std::abs(r[0] - scf_r_A[0]) / dx[0];
+#if AMREX_SPACEDIM >= 2
+                    rr[1] = std::abs(r[1] - scf_r_A[1]) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    rr[2] = std::abs(r[2] - scf_r_A[2]) / dx[2];
+#endif
+
+                    Real scale;
+
+                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
+                        scale = 0.0;
+                    }
+                    else {
+                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
+                    }
+
+                    Real dphi_A = scale * phi_arr(i,j,k);
+                    Real dpsi_A = scale * psi_arr(i,j,k);
+
+                    rr[0] = std::abs(r[0] - scf_r_B[0]) / dx[0];
+#if AMREX_SPACEDIM >= 2
+                    rr[1] = std::abs(r[1] - scf_r_B[1]) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    rr[2] = std::abs(r[2] - scf_r_B[2]) / dx[2];
+#endif
+
+                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
+                        scale = 0.0;
+                    }
+                    else {
+                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
+                    }
+
+                    Real dphi_B = scale * phi_arr(i,j,k);
+                    Real dpsi_B = scale * psi_arr(i,j,k);
+
+                    return {dphi_A, dpsi_A, dphi_B, dpsi_B};
+                });
             }
+
+            ReduceTuple hv = reduce_data.value();
+            phi_A += amrex::get<0>(hv);
+            psi_A += amrex::get<1>(hv);
+            phi_B += amrex::get<2>(hv);
+            psi_B += amrex::get<3>(hv);
 
         }
 
@@ -241,31 +342,14 @@ Castro::do_hscf_solve()
             Real omega = sqrt(omegasq);
 
             // Rotational period is 2 pi / omega.
+            // Let's also be sure not to let the period
+            // change by too much in a single iteration.
 
-            rotational_period = 2.0 * M_PI / omega;
-
-        }
-
-        // With the updated period, we can construct the updated rotational
-        // potential, which will be used in the remaining steps below.
-
-        for (int lev = 0; lev <= finest_level; ++lev) {
-
-            const Real* dx = parent->Geom(lev).CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-            for (MFIter mfi((*phi_rot[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-                const Box& bx = mfi.tilebox();
-
-                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
-
-            }
+            rotational_period = amrex::min(1.1_rt * rotational_period,
+                                           amrex::max(0.9_rt * rotational_period,
+                                                      2.0_rt * M_PI / omega));
 
         }
-
 
 
         // Second step is to evaluate the Bernoulli constant.
@@ -274,21 +358,71 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            auto geomdata = parent->Geom(lev).data();
+
+            ReduceOps<ReduceOpSum> reduce_op;
+            ReduceData<Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:bernoulli)
+#pragma omp parallel
 #endif
             for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                        BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                        AMREX_ZFILL(dx), &bernoulli);
+                auto phi_arr = (*phi[lev])[mfi].array();
+
+                reduce_op.eval(bx, reduce_data,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+                {
+                    auto dx = geomdata.CellSize();
+                    auto problo = geomdata.ProbLo();
+
+                    // The below assumes we are rotating on the z-axis.
+
+                    GpuArray<Real, 3> r = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+                    // Do a trilinear interpolation to find the contribution from
+                    // this grid point. Limit so that only the nearest zone centers
+                    // can participate. This implies that the maximum allowable
+                    // distance from the target location is 0.5 * dx.
+
+                    Real rr[3] = {0.0};
+
+                    rr[0] = std::abs(r[0] - scf_r_A[0]) / dx[0];
+#if AMREX_SPACEDIM >= 2
+                    rr[1] = std::abs(r[1] - scf_r_A[1]) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    rr[2] = std::abs(r[2] - scf_r_A[2]) / dx[2];
+#endif
+                    Real scale;
+
+                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
+                        scale = 0.0;
+                    }
+                    else {
+                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
+                    }
+
+                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r));
+
+                    return {bernoulli_zone};
+                });
 
             }
+
+            ReduceTuple hv = reduce_data.value();
+            bernoulli += amrex::get<0>(hv);
 
         }
 
@@ -301,9 +435,9 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            enthalpy[lev]->setVal(0.0);
+            auto geomdata = parent->Geom(lev).data();
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            enthalpy[lev]->setVal(0.0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -312,11 +446,31 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
-                                       AMREX_ZFILL(dx), bernoulli);
+                auto enthalpy_arr = (*enthalpy[lev])[mfi].array();
+                auto phi_arr = (*phi[lev])[mfi].array();
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                {
+                    // The Bernoulli equation says that energy is conserved:
+                    // enthalpy + gravitational potential + rotational potential = const
+                    // We already have the constant, so our goal is to construct the enthalpy field.
+
+                    auto dx = geomdata.CellSize();
+                    auto problo = geomdata.ProbLo();
+
+                    GpuArray<Real, 3> r = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r);
+                });
 
             }
 
@@ -338,23 +492,88 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            ReduceOps<ReduceOpMax> reduce_op;
+            ReduceData<Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:Linf_norm)
+#pragma omp parallel
 #endif
             for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                   BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
-                                   BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
-                                   AMREX_ZFILL(dx), actual_rho_max,
-                                   actual_h_max, target_h_max,
-                                   &Linf_norm);
+                auto enthalpy_arr = (*enthalpy[lev])[mfi].array();
+                auto state_arr = (*state_vec[lev])[mfi].array();
+
+                reduce_op.eval(bx, reduce_data,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+                {
+                    Real norm = 0.0;
+
+                    // We only want to call the EOS for zones with enthalpy > 0.
+                    // For distances far enough from the center, the rotation
+                    // term can overcome the other terms and make the enthalpy
+                    // spuriously negative. If the enthalpy is negative, we just
+                    // leave the zone alone -- this should be ambient material.
+
+                    if (enthalpy_arr(i,j,k) > 0.0 && state_arr(i,j,k,URHO) > 0.0) {
+
+                        Real old_rho = state_arr(i,j,k,URHO);
+
+                        // Rescale the enthalpy by the maximum allowed value.
+
+                        enthalpy_arr(i,j,k) = target_h_max * (enthalpy_arr(i,j,k) / actual_h_max);
+
+                        eos_t eos_state;
+
+                        eos_state.rho = state_arr(i,j,k,URHO); // Initial guess for the EOS
+                        eos_state.T   = state_arr(i,j,k,UTEMP);
+                        for (int n = 0; n < NumSpec; ++n) {
+                            eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
+                        }
+#if NAUX_NET > 0
+                        for (int n = 0; n < NumAux; ++n) {
+                            eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
+                        }
+#endif
+                        eos_state.h   = enthalpy_arr(i,j,k);
+
+                        eos(eos_input_th, eos_state);
+
+                        state_arr(i,j,k,URHO)  = eos_state.rho;
+                        state_arr(i,j,k,UTEMP) = eos_state.T;
+                        state_arr(i,j,k,UEINT) = state_arr(i,j,k,URHO) * eos_state.e;
+                        for (int n = 0; n < NumSpec; ++n) {
+                            state_arr(i,j,k,UFS+n) = state_arr(i,j,k,URHO) * eos_state.xn[n];
+                        }
+
+                        state_arr(i,j,k,UMX) = 0.0;
+                        state_arr(i,j,k,UMY) = 0.0;
+                        state_arr(i,j,k,UMZ) = 0.0;
+
+                        state_arr(i,j,k,UEDEN) = state_arr(i,j,k,UEINT);
+
+                        // Convergence test
+
+                        // Zones only participate in this test if they have a density
+                        // that is above a certain fraction of the peak, to avoid
+                        // oscillations in low density zones stalling convergence.
+
+                        Real drho = std::abs(state_arr(i,j,k,URHO) - old_rho) / old_rho;
+
+                        if (state_arr(i,j,k,URHO) / actual_rho_max > 1.0e-3_rt) {
+                            norm = drho;
+                        }
+                    }
+
+                    return {norm};
+                });
 
             }
+
+            ReduceTuple hv = reduce_data.value();
+            Linf_norm = amrex::max(Linf_norm, amrex::get<0>(hv));
 
         }
 
@@ -365,7 +584,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
             MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state_vec[lev]), 0, 0, NUM_STATE, 0);
             MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type), (*phi[lev]), 0, 0, 1, 0);
-            MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
         }
 
         for (int lev = finest_level-1; lev >= 0; --lev) {
@@ -375,7 +593,9 @@ Castro::do_hscf_solve()
         // Since we've changed the density distribution on the grid, regrid.
 
         bool do_io = false;
-        parent->RegridOnly(time, do_io);
+        if (finest_level > 0) {
+            parent->RegridOnly(time, do_io);
+        }
 
         // Update the gravitational field -- only after we've completed cleaning up the state above.
 
@@ -390,23 +610,84 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            const Real* dx = parent->Geom(lev).CellSize();
+            auto geomdata = parent->Geom(lev).data();
+            const auto dx = parent->Geom(level).CellSizeArray();
+
+            Real dV = dx[0];
+#if AMREX_SPACEDIM >= 2
+            dV *= dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+            dV *= dx[2];
+#endif
+
+            ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
+            ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng,mass)
+#pragma omp parallel
 #endif
             for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
-                                BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                AMREX_ZFILL(dx),
-                                &kin_eng, &pot_eng, &int_eng, &mass);
+                auto state_arr = (*state_vec[lev])[mfi].array();
+                auto phi_arr = (*phi[lev])[mfi].array();
+
+                reduce_op.eval(bx, reduce_data,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+                {
+                    Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
+
+                    auto problo = geomdata.ProbLo();
+
+                    GpuArray<Real, 3> r = {0.0};
+
+                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+                    if (state_arr(i,j,k,URHO) > 0.0)
+                    {
+                        dM = state_arr(i,j,k,URHO) * dV;
+
+                        dK = rotational_potential(r) * dM;
+
+                        dU = 0.5_rt * phi_arr(i,j,k) * dM;
+
+                        eos_t eos_state;
+
+                        eos_state.rho = state_arr(i,j,k,URHO);
+                        eos_state.T   = state_arr(i,j,k,UTEMP);
+                        for (int n = 0; n < NumSpec; ++n) {
+                            eos_state.xn[n] = state_arr(i,j,k,UFS+n) / state_arr(i,j,k,URHO);
+                        }
+#if NAUX_NET > 0
+                        for (int n = 0; n < NumAux; ++n) {
+                            eos_state.aux[n] = state_arr(i,j,k,UFX+n) / state_arr(i,j,k,URHO);
+                        }
+#endif
+
+                        eos(eos_input_rt, eos_state);
+
+                        dE = eos_state.p * dV;
+                    }
+
+                    return {dM, dK, dU, dE};
+                });
 
             }
+
+            ReduceTuple hv = reduce_data.value();
+            mass += amrex::get<0>(hv);
+            kin_eng += amrex::get<1>(hv);
+            pot_eng += amrex::get<2>(hv);
+            int_eng += amrex::get<3>(hv);
 
         }
 
@@ -430,7 +711,7 @@ Castro::do_hscf_solve()
             // Grab the value for the solar mass.
 
             std::cout << std::endl << std::endl;
-            std::cout << "   Relaxation iterations completed: " << j << std::endl;
+            std::cout << "   Relaxation iterations completed: " << ctr << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
             std::cout << "   Rotational period (s): " << rotational_period << std::endl;
             std::cout << "   Kinetic energy: " << kin_eng << std::endl;
@@ -449,7 +730,7 @@ Castro::do_hscf_solve()
 
         if (is_relaxed == 1) break;
 
-        j++;
+        ctr++;
 
     }
 

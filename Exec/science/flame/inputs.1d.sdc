@@ -31,7 +31,7 @@ castro.sdc_solver_tol_spec = 1.e-10
 castro.sdc_solver_tol_ener = 1.e-6
 castro.sdc_solver_atol = 1.e-10
 castro.sdc_solver = 1
-castro.sdc_use_analytic_jac = 1
+castro.sdc_newton_use_analytic_jac = 1
 castro.sdc_solver_relax_factor = 1
 
 castro.use_reconstructed_gamma1 = 1
@@ -78,5 +78,40 @@ amr.plot_per        = 5.e-7
 castro.plot_per_is_exact = 1
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin.sdc
+# problem initialization
+
+problem.rho_fuel = 2.e7
+problem.T_fuel = 5.e7
+
+problem.T_ash = 3.6e9
+
+problem.ash1_name = "nickel-56"
+problem.X_ash1 = 1.0
+
+problem.smallx_init = 1.e-8
+
+problem.pert_frac = 0.4
+problem.pert_delta = 0.06
+
+problem.v_inflow = 0.0
+
+# refinement
+
+amr.refinement_indicators = denerr dengrad
+
+amr.refine.denerr.max_level = 5
+amr.refine.denerr.value_greater = 1.e-7
+amr.refine.denerr.field_name = density
+
+amr.refine.dengrad.max_level = 5
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-8
+integrator.atol_spec = 1.e-8
+
+network.small_x = 1.e-10
+
+integrator.jacobian = 2

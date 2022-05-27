@@ -1,5 +1,5 @@
 # Start with main wdmerger inputs
-FILE = ../../inputs_3d
+FILE = ../../inputs
 
 geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 geometry.prob_hi =  1.28e11  1.28e11  1.28e11
@@ -14,6 +14,8 @@ amr.regrid_int = 2
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
 amr.max_grid_size = 128
 amr.blocking_factor = 32
+
+amr.refine.density.value_greater = 1.0e4
 
 castro.init_shrink = 0.1
 castro.change_max = 1.1
@@ -37,3 +39,15 @@ amr.plot_per = 10.0
 amr.plot_int = -1
 amr.small_plot_per = 1.0
 amr.small_plot_int = -1
+
+problem.mass_P = 0.60
+problem.mass_S = -1.0
+
+problem.problem = 2
+
+problem.tde_separation = 8.0e0
+problem.tde_beta = 6.0e0
+
+problem.nsub = 16
+
+problem.stellar_density_threshold = 1.0e4

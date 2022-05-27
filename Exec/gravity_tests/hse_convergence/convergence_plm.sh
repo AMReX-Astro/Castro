@@ -10,6 +10,7 @@ ofile=plm.converge.out
 
 RUNPARAMS="
 castro.ppm_type=0
+castro.use_pslope=1
 """
 
 ${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
@@ -35,6 +36,7 @@ ofile=plm-hsereflect.converge.out
 
 RUNPARAMS="
 castro.ppm_type=0
+castro.use_pslope=1
 castro.hse_interp_temp=1
 castro.hse_reflect_vels=1
 """
@@ -90,6 +92,7 @@ ofile=plm-reflect.converge.out
 
 RUNPARAMS="
 castro.ppm_type=0
+castro.use_pslope=1
 castro.lo_bc=3
 castro.hi_bc=3
 """
