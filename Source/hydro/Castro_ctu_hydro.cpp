@@ -460,6 +460,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                           shk_arr,
                           0, false);
 
+      enforce_reflect_states(xbx, 0, qxm_arr, qxp_arr);
+
 #endif // 1-d
 
 
