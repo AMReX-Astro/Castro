@@ -349,7 +349,7 @@ Castro::corrrsrc(const Box& bx,
 
     // First, subtract the predictor step we applied earlier.
 
-    SrEcorr = - SrE_old;
+    Real SrEcorr = - SrE_old;
 
     // See corrgsrc for an explanation of this algorithm. We can implement this identically
     // to the conservative gravity, swapping out the gravitational acceleration for the
