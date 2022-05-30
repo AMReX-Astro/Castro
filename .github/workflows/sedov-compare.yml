@@ -9,27 +9,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get AMReX
+      - name: Get submodules
         run: |
-          mkdir external
-          cd external
-          git clone https://github.com/AMReX-Codes/amrex.git
-          cd amrex
-          git checkout development
-          echo 'AMREX_HOME=$(GITHUB_WORKSPACE)/external/amrex' >> $GITHUB_ENV
-          echo $AMREX_HOME
-          if [[ -n "${AMREX_HOME}" ]]; then exit 1; fi
-          cd ../..
-
-      - name: Get Microphysics
-        run: |
-          cd external
-          git clone https://github.com/AMReX-Codes/Microphysics.git
-          cd Microphysics
-          git checkout development
-          echo 'MICROPHYSICS_HOME=$(GITHUB_WORKSPACE)/external/Microphysics' >> $GITHUB_ENV
-          echo $MICROPHYSICS_HOME
-          if [[ -n "${MICROPHYSICS_HOME}" ]]; then exit 1; fi
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
           cd ../..
 
       - name: Install dependencies
