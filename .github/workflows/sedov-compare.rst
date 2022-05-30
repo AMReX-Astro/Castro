@@ -51,5 +51,3 @@ jobs:
         run: |
           cd Exec/hydro_tests/Sedov
           diff grid_diag.out ci-benchmarks/grid_diag.out
-
-
