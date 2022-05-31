@@ -31,7 +31,7 @@ jobs:
       - name: Run Sedov
         run: |
           cd Exec/hydro_tests/Sedov
-          ./Castro3d.gnu.DEBUG.ex inputs.3d.sph max_step=20 amr.max_level=2 amr.plot_files_output=0 amr.checkpoint_files_output=0
+          ./Castro3d.gnu.DEBUG.ex inputs.3d.sph max_step=10 amr.max_level=2 amr.plot_files_output=0 amr.checkpoint_files_output=0
 
       - name: Compare to stored output
         run: |
