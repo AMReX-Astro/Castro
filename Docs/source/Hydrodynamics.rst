@@ -199,21 +199,21 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
       +=======================+=======================+=======================+
-      | ``QGDRHO``            | :math:`\rho`          |                       |
+      | ``GDRHO``             | :math:`\rho`          |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDU``               | :math:`u`             |                       |
+      | ``GDU``               | :math:`u`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDV``               | :math:`v`             |                       |
+      | ``GDV``               | :math:`v`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDW``               | :math:`w`             |                       |
+      | ``GDW``               | :math:`w`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDPRES``            | :math:`p`             | regardless of whether |
+      | ``GDPRES``            | :math:`p`             | regardless of whether |
       |                       |                       | ``RADIATION`` is      |
       |                       |                       | defined,              |
       |                       |                       | this is always just   |
       |                       |                       | the gas pressure      |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
+      | ``GDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
       |                       |                       | limiter—there are     |
       |                       |                       | ngroups components    |
@@ -221,7 +221,7 @@ several main data structures that hold the state.
       |                       |                       | ``RADIATION`` is      |
       |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDERADS``           | :math:`E_r`           | the starting index    |
+      | ``GDERADS``           | :math:`E_r`           | the starting index    |
       |                       |                       | for the radiation     |
       |                       |                       | energy—there are      |
       |                       |                       | ngroups components    |
