@@ -215,7 +215,7 @@ Castro::trace_ppm(const Box& bx,
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);
 
-        ppm_reconstruct_pressure(trho, s, src, flat, dx[idir], sm, sp);
+        ppm_reconstruct_pslope(trho, s, src, flat, dx[idir], sm, sp);
 
     } else {
         ppm_reconstruct(s, flat, sm, sp);

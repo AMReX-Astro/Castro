@@ -158,9 +158,9 @@ ppm_reconstruct(const Real* s,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const Real flatn,
-                         const Real dx,
-                         Real& sm, Real& sp) {
+ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+                       const Real dx,
+                       Real& sm, Real& sp) {
 
     Real tp[5];
 
