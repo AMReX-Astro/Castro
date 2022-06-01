@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydrostatic Equilibrium &mdash; Castro  documentation</title>
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MHD" href="mhd.html" />
+    <link rel="prev" title="Hydrodynamics" href="Hydrodynamics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+            <a href="index.html" class="icon icon-home"> Castro
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    <div class="branch">
+        Branch: <a href="./hse.html">main</a> | <a href="./dev/hse.html">development</a>
+    </div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hydrostatic Equilibrium</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reconstruction">Reconstruction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#piecewise-linear">Piecewise linear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ppm">PPM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fully-fourth-order-method">Fully fourth-order method</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reflecting">reflecting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hse">HSE</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#interface-states-at-reflecting-boundary">Interface states at reflecting boundary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-problems">Test problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Hydrostatic Equilibrium</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/hse.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hydrostatic-equilibrium">
+<h1>Hydrostatic Equilibrium<a class="headerlink" href="#hydrostatic-equilibrium" title="Permalink to this headline">¶</a></h1>
+<p>There are a few places where we take care to maintain HSE.  These differ
+by integration method:</p>
+<ul class="simple">
+<li><p>CTU: this does characteristic tracing of the interface states and is
+used by Strang and simplified-SDC.  CTU requires that we predict the
+interface states at the midpoint in time – this can make enforcing
+HSE much more difficult.</p></li>
+<li><p>true-SDC: this uses a method of lines time reconstruction of the interface
+states – they are only spatially reconstructed, not extrapolated in time.</p></li>
+</ul>
+<section id="reconstruction">
+<h2>Reconstruction<a class="headerlink" href="#reconstruction" title="Permalink to this headline">¶</a></h2>
+<section id="piecewise-linear">
+<h3>Piecewise linear<a class="headerlink" href="#piecewise-linear" title="Permalink to this headline">¶</a></h3>
+<p id="index-0">Piecewise linear reconstruction can be used with both CTU and
+true-SDC.</p>
+<p>For the 4th-order MC limiter, if we set <code class="docutils literal notranslate"><span class="pre">castro.use_pslope</span> <span class="pre">=</span> <span class="pre">1</span></code>,
+then we subtract off the hydrostatic pressure before limiting.
+The idea here is that the hydrostatic pressure balances gravity
+so it is not available to generate waves or cause over/undershoots.
+We define the excess pressure as <span class="math notranslate nohighlight">\(\tilde{p}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\tilde{p}_i = p_i - p_{\mathrm{hse},i}\]</div>
+<p>This is designed to work with HSE discretized as:</p>
+<div class="math notranslate nohighlight">
+\[p_{i+1} = p_i + \frac{1}{4} \Delta x (\rho_i + \rho_{i+1}) (g_i + g_{i+1})\]</div>
+<p>The 4th order MC limiter uses information in zones
+<span class="math notranslate nohighlight">\(\{i-2,i-1,i,i+1,i+2\}\)</span>.  We pick zone <code class="docutils literal notranslate"><span class="pre">i</span></code> as the reference
+and integrate from <code class="docutils literal notranslate"><span class="pre">i</span></code> to the 4 other zone centers, and construct
+<span class="math notranslate nohighlight">\(\{\tilde{p}_{i-2}, \tilde{p}_{i-1}, \tilde{p}_{i}, \tilde{p}_{i+1}, \tilde{p}_{i+2}\}\)</span>.  We then limit on this, giving us the change in the excess
+pressure over the zone, <span class="math notranslate nohighlight">\(\Delta \tilde{p}_i\)</span>.  Finally, we
+construct the total slope (including the hydrostatic part) as:</p>
+<div class="math notranslate nohighlight">
+\[\Delta p_i = \Delta \tilde{p}_i + \rho_i g_i \Delta x\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be disabled at low densities by setting <code class="docutils literal notranslate"><span class="pre">castro.pslope_cutoff_density</span></code>.</p>
+</div>
+<p>The remainder of the PLM algorithm is unchanged.  Since this was just
+the reconstruction part, this step is identical between CTU and true-SDC.</p>
+</section>
+<section id="ppm">
+<h3>PPM<a class="headerlink" href="#ppm" title="Permalink to this headline">¶</a></h3>
+<p>The PPM version of <code class="docutils literal notranslate"><span class="pre">use_pslope</span></code> is essentially the same as the PLM
+version described above.  We first compute the excess pressure,
+<span class="math notranslate nohighlight">\(\tilde{p}\)</span>, and then fit a cubic to the 4 cells surrounding an
+interface to get the initial interface values.  These become the left
+and right values of the parabola in each zone.  The PPM limiting is
+then done on the parabola, again working with <span class="math notranslate nohighlight">\(\tilde{p}\)</span>.
+Finally, the parabola values are updated to include the hydrostatic
+pressure.</p>
+</section>
+<section id="fully-fourth-order-method">
+<h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Permalink to this headline">¶</a></h3>
+<p>The 4th order accurate true SDC solver does not appear to need any
+well-balancing.  It maintains HSE to very high precision, as shown in
+<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. \apj , 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">71</a>]</span>.</p>
+</section>
+</section>
+<section id="boundary-conditions">
+<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<section id="reflecting">
+<h3>reflecting<a class="headerlink" href="#reflecting" title="Permalink to this headline">¶</a></h3>
+<p>For piecewise linear reconstruction, in <code class="docutils literal notranslate"><span class="pre">slope.H</span></code>, when using the
+4th order MC slopes (<code class="docutils literal notranslate"><span class="pre">castro.plm_limiter</span> <span class="pre">=</span> <span class="pre">2</span></code>), we impose special
+ghost cell values on the normal velocity at reflecting boundaries to
+ensure that the velocity goes to 0 at the boundary. This follows
+<span id="id2">[<a class="reference internal" href="zreferences.html#id70" title="Jeff Saltzman. An Unsplit 3D Upwind Method for Hyperbolic Conservation Laws. Journal of Computational Physics, 115:153–168, 1994.">9</a>]</span> , page 162 (but note that they have a sign
+error).  Only the normal velocity is treated specially.</p>
+</section>
+<section id="hse">
+<h3>HSE<a class="headerlink" href="#hse" title="Permalink to this headline">¶</a></h3>
+<p id="index-1">For hydrostatic boundary conditions, we follow the method from
+<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. \apjs , 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">69</a>]</span>.  Essentially, this starts with the last
+zone inside of the boundary and integrates HSE into the ghost cells,
+keeping the density either constant or extrapolating it.  Together
+the discretized HSE equation and the EOS yield the density and pressure
+in the ghost cells.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The HSE boundary condition only works with constant gravity at the moment.</p>
+</div>
+<p>To enable this, we set the appropriate boundary’s <code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code>, <code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code>,
+<code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code>, <code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code>, <code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code>,
+<code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>We then control the behavior via the following options.</p>
+<p>For the velocity, we have:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code> : all 3 components of the velocity in the ghost
+cell are set to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code> : the normal velocity is reflected and the transverse
+velocity components are given a zero gradient.</p></li>
+</ul>
+<p>If neither of these are set, then all components of the velocity are
+simply given a zero gradient.</p>
+<p>The temperature in the ghost cells is controlled by:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code> : if this is set to <code class="docutils literal notranslate"><span class="pre">1</span></code>, then we fill the
+temperatures in the ghost cells via linear extrapolation, using the
+2 interior zones just inside the domain.  Otherwise, we take the
+temperature in the ghost cells to be constant.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hse_fixed_temp</span></code> : if this is positive, then we set the
+temperature in the ghost cells to the value specified.  This
+requires <code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="interface-states-at-reflecting-boundary">
+<h2>Interface states at reflecting boundary<a class="headerlink" href="#interface-states-at-reflecting-boundary" title="Permalink to this headline">¶</a></h2>
+<p>For all methods, we enforce the reflecting condition on the interface
+states directly by reflecting the state just inside the domain to
+overwrite the state on the reflecting boundary just outside of the
+domain.  This is done for all variables (flipping the sign on the
+normal velocity state).  This is especially important for
+reconstruction that used a one-sided stencil (like the 4th order
+method).</p>
+</section>
+<section id="test-problems">
+<h2>Test problems<a class="headerlink" href="#test-problems" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Castro/Exec/gravity_tests/hse_convergence_general</span></code> can be used to
+test the different HSE approaches.  This sets up a 1-d X-ray burst
+atmosphere (based on the <code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> setup).  Richardson
+extrapolation can be used to measure the convergence rate (or just
+look at how the peak velocity changes).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Hydrodynamics.html" class="btn btn-neutral float-left" title="Hydrodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+
+</body>
+</html>

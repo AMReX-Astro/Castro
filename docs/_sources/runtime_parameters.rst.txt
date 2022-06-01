@@ -134,7 +134,7 @@ namespace: ``castro``
 |                                            | update the internal energy variable UEINT to match E - K.   |               |
 |                                            | Below this, UEINT remains unchanged.                        |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 1             |
+| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 0             |
 |                                            | :math:`(\rho g)` from the pressure before limiting?  This   |               |
 |                                            | is a well-balanced method that does well with HSE           |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -289,7 +289,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.check_dt_after_advance, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters, castro.stopping_criterion_field, castro.stopping_criterion_value
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -317,6 +317,9 @@ namespace: ``castro``
 | ``change_max``                             | the maximum factor by which the timestep can increase or    | 1.1           |
 |                                            | decrease from one step to the next. Must be greater than    |               |
 |                                            | 1.0---use max_dt to set a cap on the timestep.              |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``check_dt_after_advance``                 | whether to check that we took a valid timestep after the    | 1             |
+|                                            | advance                                                     |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``plot_per_is_exact``                      | enforce that the AMR plot interval must be hit exactly      | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -348,6 +351,11 @@ namespace: ``castro``
 |                                            | Set to a negative value to disable this criterion.          |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``sdc_iters``                              | Number of iterations for the simplified SDC advance.        | 2             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``stopping_criterion_field``               | Field to use for determining whether to stop the            | ""            |
+|                                            | simulation.                                                 |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``stopping_criterion_value``               | Threshold value for determining whether to stop.            | 1.e200        |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 
@@ -430,7 +438,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -453,15 +461,6 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``rotation_include_coriolis``              | permits the Coriolis terms in the rotation to be turned on  | 1             |
 |                                            | and off                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``state_in_rotating_frame``                | Which reference frame to measure the state variables with   | 1             |
-|                                            | respect to. The standard in the literature when using a     |               |
-|                                            | rotating reference frame is to measure the state variables  |               |
-|                                            | with respect to an observer fixed in that rotating frame.   |               |
-|                                            | If this option is disabled by setting it to 0, the state    |               |
-|                                            | variables will be measured with respect to an observer      |               |
-|                                            | fixed in the inertial frame (but the frame will still       |               |
-|                                            | rotate).                                                    |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``rot_source_type``                        | determines how the rotation source terms are added to the   | 4             |
 |                                            | momentum and energy equations                               |               |
@@ -608,7 +607,7 @@ namespace: ``castro``
 
 **diagnostics, I/O**
 
-.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step, castro.store_omegadot, castro.store_burn_weights, castro.abort_on_invalid_params
+.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step, castro.store_omegadot, castro.store_burn_weights, castro.abort_on_invalid_params
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -631,8 +630,6 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``sum_per``                                | how often (simulation time) to compute integral sums (for   | -1.0e0        |
 |                                            | runtime diagnostics)                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``show_center_of_mass``                    | display center of mass diagnostics                          | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``job_name``                               | a string describing the simulation that will be copied into | "Castro"      |
 |                                            | the plotfile's ``job_info`` file                            |               |
@@ -801,7 +798,7 @@ namespace: ``particles``
 namespace: ``radiation``
 ------------------------
 
-.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold
+.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold, radiation.comoving, radiation.closure, radiation.limiter, radiation.fspace_advection_type
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -810,6 +807,17 @@ namespace: ``radiation``
 | ``prop_temp_floor``                        |                                                             | 0.0           |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``flatten_pp_threshold``                   |                                                             | -1.0          |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``comoving``                               | are we in a comoving reference frame?                       | 1             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``closure``                                | which closure relation to use 0: f = lambda 1: f = 1/3 2: f | 3             |
+|                                            | = 1 - 2 * lambda 3: f = lambda + (lambda * R)^2 4: f = 1/3  |               |
+|                                            | + 2/3 (lambda * R)^2                                        |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``limiter``                                | which limiter to use 0: no limiter 2: Lev-Pom limiter 12:   | 2             |
+|                                            | Bruenn 22: square root 32: Minerbo                          |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``fspace_advection_type``                  | frequency space advection type                              | 2             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 

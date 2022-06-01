@@ -67,6 +67,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
@@ -213,6 +214,29 @@
 <dt class="sig sig-object cpp">
 <span class="target" id="namespacehydro_1ace45ee0d16cce2c93a2c3ed3ed2722f8"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">src_to_prim</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;q_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;old_src,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;src_corr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;srcQ)</span></span></dt>
 <dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespacehydro_1a1d772923bc2bec54ac8037faa3005b42"></span><span class="sig-name descname"><span class="pre">template&lt;class</span> <span class="pre">T,</span> <span class="pre">class</span> <span class="pre">U&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">conservative_to_primitive</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;uin,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;Bx,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;By,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;Bz,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;Erin,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;lam,</span> <span class="pre">T</span> <span class="pre">&amp;q,</span> <span class="pre">U</span> <span class="pre">&amp;qaux)</span></span></dt>
+<dd><p>Convert conservative variables to primitive variables. The method is templated so that q/qaux can either be either Array4 or Array1D.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – x index </p></li>
+<li><p><strong>j</strong> – y index </p></li>
+<li><p><strong>k</strong> – z index </p></li>
+<li><p><strong>uin</strong> – input conserved state </p></li>
+<li><p><strong>Bx</strong> – x-component of magentic field (if USE_MHD=TRUE) </p></li>
+<li><p><strong>By</strong> – y-component of magentic field (if USE_MHD=TRUE) </p></li>
+<li><p><strong>Bz</strong> – z-component of magentic field (if USE_MHD=TRUE) </p></li>
+<li><p><strong>Erin</strong> – radiation energy (if USE_RAD=TRUE) </p></li>
+<li><p><strong>lam</strong> – radiation flux limiter (if USE_RAD=TRUE) </p></li>
+<li><p><strong>q</strong> – output primitive state </p></li>
+<li><p><strong>qaux</strong> – output auxiliary quantities </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 </dd></dl>
