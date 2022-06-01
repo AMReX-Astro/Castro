@@ -1,3 +1,27 @@
+# 22.06
+
+   * castro.stopping_criterion_field and castro.stopping_criterion_value have
+     been added; these allow you to stop the simulation once a certain threshold
+     has been exceeded (for example, if the temperature gets too hot). (#2209)
+
+   * The option castro.show_center_of_mass has been removed. If castro.v = 1
+     and castro.sum_interval > 0, then the center of mass will automatically
+     be included with the other diagnostic sums that are displayed. (#2176)
+
+   * The option castro.state_in_rotating_frame has been removed. The default
+     behavior continues to be that when rotation is being used, fluid variables
+     are measured with respect to the rotating frame. (#2172)
+
+   * The default for use_pslope has been changed to 0 -- disabling this.
+     use_pslope enables reconstruction that knows about HSE for the PLM
+     (castro.ppm_type = 0) implementation.  Since that method is not the
+     default, it is unlikely that this has been used.  This change is being
+     done to allow for a PPM implementation to be added without changing
+     the default behavior of that method. (#2205)
+
+   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+     extended to PPM (#2202)
+
 # 22.05
 
    * A new option castro.hydro_memory_footprint_ratio has been added which

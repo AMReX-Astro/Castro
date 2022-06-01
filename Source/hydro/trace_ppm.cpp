@@ -139,6 +139,7 @@ Castro::trace_ppm(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
+
     Real cc = qaux_arr(i,j,k,QC);
 
 #if AMREX_SPACEDIM < 3
@@ -206,7 +207,19 @@ Castro::trace_ppm(const Box& bx,
     Real Im_p[3];
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
-    ppm_reconstruct(s, flat, sm, sp);
+
+    if (use_pslope) {
+        Real trho[5];
+        Real src[5];
+
+        load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+        load_stencil(srcQ, idir, i, j, k, QUN, src);
+
+        ppm_reconstruct_pslope(trho, s, src, flat, dx[idir], sm, sp);
+
+    } else {
+        ppm_reconstruct(s, flat, sm, sp);
+    }
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
     // reconstruct rho e
@@ -359,10 +372,6 @@ Castro::trace_ppm(const Box& bx,
 
     Real Ip_passive;
     Real Im_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-    Real Ip_src_passive;
-    Real Im_src_passive;
-#endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
@@ -372,13 +381,6 @@ Castro::trace_ppm(const Box& bx,
         load_stencil(q_arr, idir, i, j, k, n, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
-
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        // if we turned this on, don't bother to check if it source is non-zero -- just trace
-        load_stencil(srcQ, idir, i, j, k, n, s);
-        ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_passive, Im_src_passive);
-#endif
 
         // Plus state on face i
 
@@ -396,29 +398,15 @@ Castro::trace_ppm(const Box& bx,
             // projecting, the reference state doesn't matter
 
             qp(i,j,k,n) = Im_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qp(i,j,k,n) += 0.5_rt * dt * Im_src_passive;
-#endif
         }
 
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
             qm(i+1,j,k,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
-
         } else if (idir == 1 && j <= vhi[1]) {
             qm(i,j+1,k,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
-
         } else if (idir == 2 && k <= vhi[2]) {
             qm(i,j,k+1,n) = Ip_passive;
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-            qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src_passive;
-#endif
         }
     }
 

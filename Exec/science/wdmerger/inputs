@@ -61,9 +61,6 @@ max_step = 10000000
 # Simulation time to stop at
 stop_time = 100.0
 
-# Whether to use our custom stopping criteria
-problem.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -315,9 +312,6 @@ gravity.do_composite_phi_correction = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Whether to evolve state variables in the inertial or rotating frame
-castro.state_in_rotating_frame = 1
-
 ############################################################################################
 # Sponge
 ############################################################################################
@@ -398,9 +392,6 @@ castro.output_at_completion = 0
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
@@ -420,7 +411,7 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = star_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 ############################################################################################
 # Problem parameters

@@ -39,163 +39,20 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
-#ifdef RADIATION
-  int is_comoving = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
-#endif
-
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
-
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
+      auto q = [&] (int n) -> Real& { return q_arr(i,j,k,n); };
+      auto qaux = [&] (int n) -> Real& { return qaux_arr(i,j,k,n); };
 
-#ifndef AMREX_USE_GPU
-    if (uin(i,j,k,URHO) <= 0.0_rt) {
-      std::cout << std::endl;
-      std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
-      std::cout << ">>> ... negative density " << uin(i,j,k,URHO) << std::endl;
-      amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
-    } else if (uin(i,j,k,URHO) < castro::small_dens) {
-      std::cout << std::endl;
-      std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
-      std::cout << ">>> ... small density " << uin(i,j,k,URHO) << std::endl;
-      amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
-    }
-#endif
-
-    q_arr(i,j,k,QRHO) = uin(i,j,k,URHO);
-    Real rhoinv = 1.0_rt/q_arr(i,j,k,QRHO);
-
-    q_arr(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv;
-    q_arr(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv;
-    q_arr(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv;
-
+      hydro::conservative_to_primitive(i, j, k, uin,
 #ifdef MHD
-    q_arr(i,j,k,QMAGX) = 0.5_rt * (Bx(i+1,j,k) + Bx(i,j,k));
-    q_arr(i,j,k,QMAGY) = 0.5_rt * (By(i,j+1,k) + By(i,j,k));
-    q_arr(i,j,k,QMAGZ) = 0.5_rt * (Bz(i,j,k+1) + Bz(i,j,k));
+                                       Bx, By, Bz,
 #endif
-
-    // Get the internal energy, which we'll use for
-    // determining the pressure.  We use a dual energy
-    // formalism. If (E - K) < eta1 and eta1 is suitably
-    // small, then we risk serious numerical truncation error
-    // in the internal energy.  Therefore we'll use the result
-    // of the separately updated internal energy equation.
-    // Otherwise, we'll set e = E - K.
-
-    Real kineng = 0.5_rt * q_arr(i,j,k,QRHO) * (q_arr(i,j,k,QU)*q_arr(i,j,k,QU) +
-                                                q_arr(i,j,k,QV)*q_arr(i,j,k,QV) +
-                                                q_arr(i,j,k,QW)*q_arr(i,j,k,QW));
-
-    if ((uin(i,j,k,UEDEN) - kineng) > castro::dual_energy_eta1*uin(i,j,k,UEDEN)) {
-      q_arr(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv;
-    } else {
-      q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
-    }
-
-    // If we're advecting in the rotating reference frame,
-    // then subtract off the rotation component here.
-
-#ifdef ROTATION
-    if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-      GpuArray<Real, 3> vel;
-      for (int n = 0; n < 3; n++) {
-        vel[n] = uin(i,j,k,UMX+n) * rhoinv;
-      }
-
-      inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-      q_arr(i,j,k,QU) = vel[0];
-      q_arr(i,j,k,QV) = vel[1];
-      q_arr(i,j,k,QW) = vel[2];
-    }
-#endif
-
-    q_arr(i,j,k,QTEMP) = uin(i,j,k,UTEMP);
 #ifdef RADIATION
-    for (int g = 0; g < NGROUPS; g++) {
-      q_arr(i,j,k,QRAD+g) = Erin(i,j,k,g);
-    }
+                                       Erin, lam,
 #endif
-
-    // Load passively advected quatities into q
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upassmap(ipassive);
-      int iq = qpassmap(ipassive);
-      q_arr(i,j,k,iq) = uin(i,j,k,n) * rhoinv;
-    }
-
-    // get gamc, p, T, c, csml using q state
-    eos_rep_t eos_state;
-    eos_state.T = q_arr(i,j,k,QTEMP);
-    eos_state.rho = q_arr(i,j,k,QRHO);
-    eos_state.e = q_arr(i,j,k,QREINT);
-    for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
-    }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = q_arr(i,j,k,QFX+n);
-    }
-#endif
-
-    eos(eos_input_re, eos_state);
-
-    q_arr(i,j,k,QTEMP) = eos_state.T;
-    q_arr(i,j,k,QREINT) = eos_state.e * q_arr(i,j,k,QRHO);
-    q_arr(i,j,k,QPRES) = eos_state.p;
-#ifdef TRUE_SDC
-    q_arr(i,j,k,QGC) = eos_state.gam1;
-#endif
-
-#ifdef MHD
-    q_arr(i,j,k,QPTOT) = q_arr(i,j,k,QPRES) +
-      0.5_rt * (q_arr(i,j,k,QMAGX) * q_arr(i,j,k,QMAGX) +
-                q_arr(i,j,k,QMAGY) * q_arr(i,j,k,QMAGY) +
-                q_arr(i,j,k,QMAGZ) * q_arr(i,j,k,QMAGZ));
-#endif
-
-#ifdef RADIATION
-    qaux_arr(i,j,k,QGAMCG) = eos_state.gam1;
-    qaux_arr(i,j,k,QCG) = eos_state.cs;
-
-    Real lams[NGROUPS];
-    for (int g = 0; g < NGROUPS; g++) {
-      lams[g] = lam(i,j,k,g);
-    }
-    Real qs[NQ];
-    for (int n = 0; n < NQ; n++) {
-      qs[n] = q_arr(i,j,k,n);
-    }
-    Real ptot;
-    Real ctot;
-    Real gamc_tot;
-    compute_ptot_ctot(lams, qs,
-                      is_comoving, limiter, closure,
-                      qaux_arr(i,j,k,QCG),
-                      ptot, ctot, gamc_tot);
-
-    q_arr(i,j,k,QPTOT) = ptot;
-
-    qaux_arr(i,j,k,QC) = ctot;
-    qaux_arr(i,j,k,QGAMC) = gamc_tot;
-
-    q_arr(i,j,k,QREITOT) = q_arr(i,j,k,QREINT);
-    for (int g = 0; g < NGROUPS; g++) {
-      qaux_arr(i,j,k,QLAMS+g) = lam(i,j,k,g);
-      q_arr(i,j,k,QREITOT) += q_arr(i,j,k,QRAD+g);
-    }
-
-#else
-    qaux_arr(i,j,k,QGAMC) = eos_state.gam1;
-    qaux_arr(i,j,k,QC) = eos_state.cs;
-#endif
-
+                                       q, qaux);
   });
 }
 
@@ -689,17 +546,6 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     Real density_floor = small_dens * density_floor_tolerance;
 
-    // We apply this flux limiter on a per-edge basis. So we can guarantee
-    // that any individual flux cannot cause a small density in one step,
-    // but with the above floor we cannot guarantee that the sum of the
-    // fluxes will enforce this constraint. The only way to guarantee that
-    // is if the density floor is increased by a factor of the number of
-    // edges, so that even if all edges are summed together, the density
-    // will still be at the floor. So we multiply the floor by a factor of
-    // 2 (two edges in each dimension) and a factor of AMREX_SPACEDIM.
-
-    density_floor *= AMREX_SPACEDIM * 2;
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -735,15 +581,31 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         Real drhoL = flux_coefL * flux(i,j,k,URHO);
 
         // Limit all fluxes such that the zone does not go negative in density.
+        // We apply this flux limiter on a per-edge basis. So we can guarantee
+        // that any individual flux cannot cause a small density in one step,
+        // but with the above floor we cannot guarantee that the sum of the
+        // fluxes will enforce this constraint. A simple way to guarantee that
+        // is to note that in the worst case, all six faces adjacent to a zone
+        // could be evacuating that zone (more generally, 2 * AMREX_SPACEDIM).
+        // So instead of checking whether rho + drho is less than the floor,
+        // we can check whether rho + 6 * drho is less than the floor, and
+        // strengthen the limiter by that same factor of 6, so that even in the
+        // worst case, the zone will remain positive. This is simple to implement
+        // at the risk of being overly aggressive on flux limiting. A more
+        // sophisticated version of this might check the ratio of the fluxes
+        // (or, similarly, the ratio of the edge velocities coming from the
+        // Riemann solver) and scale the larger fluxes more strongly than the
+        // weaker fluxes, and perhaps only consider fluxes that subtract from
+        // the zone, but this would also be more complicated to implement.
 
-        if (rhoR + drhoR < density_floor) {
-            Real limiting_factor = std::abs((density_floor - rhoR) / drhoR);
+        if (rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
+            Real limiting_factor = std::abs((density_floor - rhoR) / (2 * AMREX_SPACEDIM * drhoR));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
-        else if (rhoL - drhoL < density_floor) {
-            Real limiting_factor = std::abs((density_floor - rhoL) / drhoL);
+        else if (rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
+            Real limiting_factor = std::abs((density_floor - rhoL) / (2 * AMREX_SPACEDIM * drhoL));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
@@ -845,4 +707,69 @@ Castro::do_enforce_minimum_density(const Box& bx,
 #endif
     }
   });
+}
+
+
+void
+Castro::enforce_reflect_states(const Box& bx, const int idir,
+                               Array4<Real> const& qm,
+                               Array4<Real> const& qp) {
+
+    // special care for reflecting BCs
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+
+    const auto domlo = geom.Domain().loVect3d();
+    const auto domhi = geom.Domain().hiVect3d();
+
+    bool lo_bc_test = lo_bc[idir] == Symmetry;
+    bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+    // normal velocity
+    const int QUN = QU + idir;
+
+    // this is a loop over interfaces
+
+    if (lo_bc_test) {
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+            // reset the left state at domlo if needed -- it is outside the domain
+            if (idir == 0 && i == domlo[0] ||
+                idir == 1 && j == domlo[1] ||
+                idir == 2 && k == domlo[2]) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qm(i,j,k,QUN) = -qp(i,j,k,QUN);
+                    } else {
+                        qm(i,j,k,n) = qp(i,j,k,n);
+                    }
+                }
+            }
+        });
+    }
+
+    if (hi_bc_test) {
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+            // reset the right state at domhi+1 if needed -- it is outside the domain
+            if (idir == 0 && i == domhi[0]+1 ||
+                idir == 1 && j == domhi[1]+1 ||
+                idir == 2 && k == domhi[2]+1) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qp(i,j,k,QUN) = -qm(i,j,k,QUN);
+                    } else {
+                        qp(i,j,k,n) = qm(i,j,k,n);
+                    }
+                }
+            }
+        });
+
+    }
 }

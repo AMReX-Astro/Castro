@@ -110,16 +110,16 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (update_limiter == 0) {
-    scaledGradient(level, lambda, kappa_r, 0, Er_old, 0, limiter);
+    scaledGradient(level, lambda, kappa_r, 0, Er_old, 0);
     // lambda now contains scaled gradient
 
-    fluxLimiter(level, lambda, limiter);
+    fluxLimiter(level, lambda);
     // lambda now contains flux limiter
   }
   else if (update_limiter < 0) {
     MultiFab& Er_lag = castro->get_old_data(Rad_Type);
-    scaledGradient(level, lambda, kappa_r, 0, Er_lag, 0, limiter);
-    fluxLimiter(level, lambda, limiter);
+    scaledGradient(level, lambda, kappa_r, 0, Er_lag, 0);
+    fluxLimiter(level, lambda);
   }
 
   // Implicit update loop:
@@ -187,9 +187,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     solver->levelACoeffs(level, fkp, eta, etainv, c, delta_t, 1.0);
 
     if (update_limiter > 0 && it <= update_limiter + 1) {
-      scaledGradient(level, lambda, kappa_r, 0, Er_new, 0, limiter);
+      scaledGradient(level, lambda, kappa_r, 0, Er_new, 0);
       // lambda now contains scaled gradient
-      fluxLimiter(level, lambda, limiter);
+      fluxLimiter(level, lambda);
       // lambda now contains flux limiter
     }
 
@@ -394,7 +394,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       }
 
       if (plot_lab_flux) {
-          if (comoving) {
+          if (radiation::comoving) {
               save_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
           } else {
               MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, AMREX_SPACEDIM, 0);
@@ -402,7 +402,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       }
 
       if (plot_com_flux) {
-          if (comoving) {
+          if (radiation::comoving) {
               MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, AMREX_SPACEDIM, 0);
           } else {
               save_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0, -1.0);

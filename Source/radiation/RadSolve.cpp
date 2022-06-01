@@ -286,8 +286,6 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
           auto lmz = lambda[2][mfi].array();
 #endif
 
-          int limiter = Radiation::limiter;
-
           amrex::ParallelFor(reg,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
@@ -312,7 +310,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
                          lmz(i,j,k,igroup) + lmz(i  ,j  ,k+1,igroup)) / 6.e0_rt;
 #endif
 
-                  spa_arr(i,j,k) = FLDalpha(lam, limiter);
+                  spa_arr(i,j,k) = FLDalpha(lam);
               }
           });
       }

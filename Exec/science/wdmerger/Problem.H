@@ -50,14 +50,6 @@ void problem_post_timestep();
 
 void writeGitHashes(std::ostream& log);
 
-// Check whether we should stop the run.
-
-void check_to_stop(amrex::Real time, bool dump = true);
-
-// Calculate extrema on grid.
-
-void update_extrema(amrex::Real time);
-
 // Update relaxation process.
 
 void update_relaxation(amrex::Real time, amrex::Real dt);

@@ -339,9 +339,6 @@ Castro::trace_plm(const Box& bx, const int idir,
 
         Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
         qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dX;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
       }
 
       // Left state
@@ -350,22 +347,10 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
       } else if (idir == 1 && j <= vhi[1]) {
         qm(i,j+1,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
       } else if (idir == 2 && k <= vhi[2]) {
         qm(i,j,k+1,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
       }
 
     }

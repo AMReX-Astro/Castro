@@ -34,16 +34,26 @@ amrex::LevelBld* getLevelBld ();
 
 void override_parameters ()
 {
-    ParmParse pp("amrex");
+    {
+        ParmParse pp("amrex");
 #ifndef RADIATION // Radiation is not yet ready to stop using managed memory
-    if (!pp.contains("the_arena_is_managed")) {
-        // Use device memory allocations, not managed memory.
-        pp.add("the_arena_is_managed", false);
-    }
+        if (!pp.contains("the_arena_is_managed")) {
+            // Use device memory allocations, not managed memory.
+            pp.add("the_arena_is_managed", false);
+        }
 #endif
-    if (!pp.contains("abort_on_out_of_gpu_memory")) {
-        // Abort if we run out of GPU memory.
-        pp.add("abort_on_out_of_gpu_memory", true);
+        if (!pp.contains("abort_on_out_of_gpu_memory")) {
+            // Abort if we run out of GPU memory.
+            pp.add("abort_on_out_of_gpu_memory", true);
+        }
+    }
+
+    {
+        ParmParse pp("amr");
+        // Always check for whether to dump a plotfile or checkpoint.
+        if (!pp.contains("message_int")) {
+            pp.add("message_int", 1);
+        }
     }
 }
 

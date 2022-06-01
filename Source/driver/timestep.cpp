@@ -34,10 +34,6 @@ Castro::estdt_cfl(const Real time)
 
   // Courant-condition limited timestep
 
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
-
   const auto dx = geom.CellSizeArray();
 
   ReduceOps<ReduceOpMin> reduce_op;
@@ -80,21 +76,6 @@ Castro::estdt_cfl(const Real time)
       Real ux = u(i,j,k,UMX) * rhoInv;
       Real uy = u(i,j,k,UMY) * rhoInv;
       Real uz = u(i,j,k,UMZ) * rhoInv;
-
-#ifdef ROTATION
-      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        GpuArray<Real, 3> vel;
-        vel[0] = ux;
-        vel[1] = uy;
-        vel[2] = uz;
-
-        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-        ux = vel[0];
-        uy = vel[1];
-        uz = vel[2];
-      }
-#endif
 
       Real c = eos_state.cs;
 

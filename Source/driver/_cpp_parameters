@@ -158,7 +158,7 @@ dual_energy_eta2             Real          1.0e-4
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?  This is a well-balanced method that
 # does well with HSE
-use_pslope                   int           1
+use_pslope                   int           0
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
@@ -347,6 +347,9 @@ init_shrink                  Real          1.0
 # on the timestep.
 change_max                   Real          1.1
 
+# whether to check that we took a valid timestep after the advance
+check_dt_after_advance       int           1
+
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
 
@@ -384,6 +387,12 @@ max_subcycles                int           10
 
 # Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
+
+# Field to use for determining whether to stop the simulation.
+stopping_criterion_field     string        ""
+
+# Threshold value for determining whether to stop.
+stopping_criterion_value     Real          1.e200
 
 #-----------------------------------------------------------------------------
 # category: reactions
@@ -482,14 +491,6 @@ rotation_include_centrifugal int           1                  n        ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  n        ROTATION
-
-# Which reference frame to measure the state variables with respect to.
-# The standard in the literature when using a rotating reference frame
-# is to measure the state variables with respect to an observer fixed
-# in that rotating frame. If this option is disabled by setting it to 0,
-# the state variables will be measured with respect to an observer fixed
-# in the inertial frame (but the frame will still rotate).
-state_in_rotating_frame     int           1                  n        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations
@@ -649,9 +650,6 @@ sum_interval                 int           -1
 
 # how often (simulation time) to compute integral sums (for runtime diagnostics)
 sum_per                      Real          -1.0e0
-
-# display center of mass diagnostics
-show_center_of_mass          int           0
 
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
@@ -819,3 +817,25 @@ beta                         Real          1.0
 prop_temp_floor              Real          0.0                y
 
 flatten_pp_threshold         Real          -1.0
+
+# are we in a comoving reference frame?
+comoving                     int           1
+
+# which closure relation to use
+# 0: f = lambda
+# 1: f = 1/3
+# 2: f = 1 - 2 * lambda
+# 3: f = lambda + (lambda * R)^2
+# 4: f = 1/3 + 2/3 (lambda * R)^2
+closure                      int           3
+
+# which limiter to use
+# 0: no limiter
+# 2: Lev-Pom limiter
+# 12: Bruenn
+# 22: square root
+# 32: Minerbo
+limiter                      int           2
+
+# frequency space advection type
+fspace_advection_type        int           2
