@@ -2607,6 +2607,12 @@ Castro::reflux(int crse_level, int fine_level)
 
         MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
+        // Get a version of this state with one ghost zone.
+
+        MultiFab expanded_crse_state(crse_state.boxArray(), crse_state.DistributionMap(), crse_state.nComp(), 1);
+
+        crse_lev.expand_state(expanded_crse_state, crse_lev.state[State_Type].curTime(), 1);
+
         // Clear out the data that's not on coarse-fine boundaries so that this register only
         // modifies the fluxes on coarse-fine interfaces.
 
@@ -2623,8 +2629,7 @@ Castro::reflux(int crse_level, int fine_level)
 
         // The simplest way to do this is make a copy of the flux register to a MultiFab,
         // then loop through the data and calculate what the reflux operation would be,
-        // zeroing out the flux if it would result in a negative density. (An alternate
-        // approach might be to use limit_hydro_fluxes_on_small_dens().) Then we overwrite
+        // limiting the flux if it would result in a negative density. Then we overwrite
         // the flux register with the updated data. This is more straightforward than operating
         // on the flux register data directly, and we will anyway need this copy of the flux
         // data in MultiFab form later.
@@ -2659,7 +2664,7 @@ Castro::reflux(int crse_level, int fine_level)
         for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            auto U = crse_state[mfi].array();
+            auto U = expanded_crse_state[mfi].array();
             auto V = crse_lev.volume[mfi].array();
             auto F_x = (temp_fluxes[0])[mfi].array();
 #if AMREX_SPACEDIM >= 2
@@ -2670,8 +2675,18 @@ Castro::reflux(int crse_level, int fine_level)
 #endif
             auto mask_arr = mask[mfi].array();
 
+            // Limit fluxes that would cause a small/negative density.
+
+            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+                auto F = temp_fluxes[idir][mfi].array();
+                auto A = crse_lev.area[idir][mfi].array();
+                Real dt = parent->dtLevel(crse_level);
+                bool scale_by_dAdt = false;
+                crse_lev.limit_hydro_fluxes_on_small_dens(bx, idir, U, V, F, A, dt, scale_by_dAdt);
+            }
+
             // Loop over zones and check all adjacent fluxes to see whether
-            // the sum of them would cause a small/negative density or invalid X.
+            // the sum of them would cause invalid X.
             // If so, set all adjacent fluxes to zero. Note that in principle this
             // could lead to a race condition when this loop runs in parallel, but
             // in practice this should not be a real issue because any given flux
@@ -2700,10 +2715,6 @@ Castro::reflux(int crse_level, int fine_level)
                 drho += F_z(i,j,k,URHO) - F_z(i,j,k+1,URHO);
 #endif
                 drho /= V(i,j,k);
-
-                if (rho + drho < castro::small_dens) {
-                    zero_fluxes = true;
-                }
 
                 if (!zero_fluxes) {
                     Real rhoInvNew = 1.0_rt / (rho + drho);
