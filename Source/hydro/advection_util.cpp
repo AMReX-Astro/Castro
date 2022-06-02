@@ -519,11 +519,11 @@ void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
                                          Array4<Real const> const& u,
-                                         Array4<Real const> const& q,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area_arr,
-                                         Real dt)
+                                         Array4<Real const> const& area,
+                                         Real dt,
+                                         bool scale_by_dAdt)
 {
     // Hu, Adams, and Shu (2013), JCP, 242, 169, "Positivity-preserving method for
     // high-order conservative schemes solving compressible Euler equations," proposes
@@ -572,8 +572,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Coefficients of fluxes on either side of the interface.
 
-        Real flux_coefR = dt * area_arr(i,j,k) / volR;
-        Real flux_coefL = dt * area_arr(i,j,k) / volL;
+        Real flux_coefR = 1.0_rt / volR;
+        Real flux_coefL = 1.0_rt / volL;
+
+        if (scale_by_dAdt) {
+            flux_coefR *= dt * area(i,j,k);
+            flux_coefL *= dt * area(i,j,k);
+        }
 
         // Updates to the zones on either side of the interface.
 
