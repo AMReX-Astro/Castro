@@ -76,7 +76,16 @@ Castro::do_advance_ctu(Real time,
     // the point where we can bail out later in the advance, so let's just
     // go directly into a retry now if we're too far away from the needed dt.
 
-    if (castro::check_dt_before_advance && amr_iteration > 1) {
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
 
         Real old_dt = estTimeStep();
 
