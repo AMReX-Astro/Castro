@@ -603,18 +603,19 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // weaker fluxes, and perhaps only consider fluxes that subtract from
         // the zone, but this would also be more complicated to implement.
 
-        if (rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
+        if (rhoR >= density_floor && std::abs(drhoR) > 0.0_rt && rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
             Real limiting_factor = std::abs((density_floor - rhoR) / (2 * AMREX_SPACEDIM * drhoR));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
-        else if (rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
+        else if (rhoL >= density_floor && std::abs(drhoL) > 0.0_rt && rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
             Real limiting_factor = std::abs((density_floor - rhoL) / (2 * AMREX_SPACEDIM * drhoL));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
+
     });
 }
 
