@@ -347,6 +347,9 @@ init_shrink                  Real          1.0
 # on the timestep.
 change_max                   Real          1.1
 
+# whether to check that we will take a valid timestep before the advance
+check_dt_before_advance      int           1
+
 # whether to check that we took a valid timestep after the advance
 check_dt_after_advance       int           1
 
