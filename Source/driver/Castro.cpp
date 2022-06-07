@@ -1511,7 +1511,7 @@ Castro::initialTimeStep ()
 }
 
 Real
-Castro::estTimeStep ()
+Castro::estTimeStep (int is_new)
 {
     BL_PROFILE("Castro::estTimeStep()");
 
@@ -1520,8 +1520,6 @@ Castro::estTimeStep ()
     }
 
     Real estdt = max_dt;
-
-    Real time = state[State_Type].curTime();
 
     std::string limiter = "castro.max_dt";
 
@@ -1538,7 +1536,7 @@ Castro::estTimeStep ()
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
 
-            estdt_hydro = estdt_rad();
+            estdt_hydro = estdt_rad(is_new);
 
         }
         else
@@ -1546,9 +1544,9 @@ Castro::estTimeStep ()
 #endif
 
 #ifdef MHD
-          estdt_hydro = estdt_mhd();
+          estdt_hydro = estdt_mhd(is_new);
 #else
-          estdt_hydro = estdt_cfl(time);
+          estdt_hydro = estdt_cfl(is_new);
 #endif
 
 #ifdef RADIATION
@@ -1579,7 +1577,7 @@ Castro::estTimeStep ()
 
     if (diffuse_temp)
     {
-      estdt_diffusion = estdt_temp_diffusion();
+      estdt_diffusion = estdt_temp_diffusion(is_new);
     }
 
     ParallelDescriptor::ReduceRealMin(estdt_diffusion);
@@ -1604,7 +1602,7 @@ Castro::estTimeStep ()
 
         // Compute burning-limited timestep.
 
-        estdt_burn = estdt_burning();
+        estdt_burn = estdt_burning(is_new);
 
         ParallelDescriptor::ReduceRealMin(estdt_burn);
 

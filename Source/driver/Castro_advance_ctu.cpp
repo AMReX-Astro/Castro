@@ -87,7 +87,8 @@ Castro::do_advance_ctu(Real time,
 
     if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
 
-        Real old_dt = estTimeStep();
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
 
         if (castro::change_max * old_dt < dt) {
             status.success = false;
@@ -436,7 +437,8 @@ Castro::do_advance_ctu(Real time,
 
     if (castro::check_dt_after_advance) {
 
-        Real new_dt = estTimeStep();
+        int is_new = 1;
+        Real new_dt = estTimeStep(is_new);
 
         if (castro::change_max * new_dt < dt) {
             status.success = false;
