@@ -548,39 +548,39 @@ public:
 ///
 /// Estimate time step.
 ///
-    amrex::Real estTimeStep ();
+    amrex::Real estTimeStep (int is_new = 1);
 
 
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl(const amrex::Real time);
+    amrex::Real estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd();
+    amrex::Real estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion();
+    amrex::Real estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning();
+    amrex::Real estdt_burning (int is_new = 1);
 #endif
 
 #ifdef RADIATION
 ///
 /// Radiation hydro timestep
 ///
-    amrex::Real estdt_rad ();
+    amrex::Real estdt_rad (int is_new = 1);
 #endif
 
 ///
