@@ -68,6 +68,36 @@ Castro::do_advance_ctu(Real time,
 
     check_for_nan(S_old);
 
+    // If we're doing a step later than the first on each level, the fluid
+    // state might have evolved to the point where the AMR timestep could be
+    // significantly too large, but we don't have freedom to adjust the AMR
+    // timestep at that point. Trying to evolve with a dt that is too large
+    // could result in catastrophic behavior such that we don't even get to
+    // the point where we can bail out later in the advance, so let's just
+    // go directly into a retry now if we're too far away from the needed dt.
+
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
+
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
+
+        if (castro::change_max * old_dt < dt) {
+            status.success = false;
+            status.reason = "pre-advance timestep validity check failed";
+            return status;
+        }
+
+    }
+
     // Since we are Strang splitting the reactions, do them now
 
 #ifdef REACTIONS
@@ -407,11 +437,12 @@ Castro::do_advance_ctu(Real time,
 
     if (castro::check_dt_after_advance) {
 
-        Real new_dt = estTimeStep();
+        int is_new = 1;
+        Real new_dt = estTimeStep(is_new);
 
         if (castro::change_max * new_dt < dt) {
             status.success = false;
-            status.reason = "timestep validity check failed";
+            status.reason = "post-advance timestep validity check failed";
             return status;
         }
 
