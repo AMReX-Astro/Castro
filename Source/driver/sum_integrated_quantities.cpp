@@ -657,9 +657,11 @@ Castro::sum_integrated_quantities ()
 
         // Calculate maximum number of advance subcycles across all levels.
 
-        int max_num_subcycles = num_subcycles_taken;
-        for (int lev = 1; lev <= parent->finestLevel(); ++lev) {
-            max_num_subcycles = std::max(max_num_subcycles, getLevel(lev).num_subcycles_taken);
+        int max_num_subcycles = 0;
+        if (time > 0.0_rt) {
+            for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
+                max_num_subcycles = std::max(max_num_subcycles, getLevel(lev).num_subcycles_taken);
+            }
         }
 
         if (ParallelDescriptor::IOProcessor()) {
@@ -676,8 +678,8 @@ Castro::sum_integrated_quantities ()
                 header << std::setw(fixwidth) << "                     TIME"; ++n;
                 header << std::setw(fixwidth) << "                       DT"; ++n;
                 header << std::setw(intwidth) << "  FINEST LEV";              ++n;
-                header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
                 header << std::setw(fixwidth) << "  MAX NUMBER OF SUBCYCLES"; ++n;
+                header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
 #ifdef AMREX_USE_GPU
                 header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
                 header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
