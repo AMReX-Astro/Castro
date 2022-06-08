@@ -655,6 +655,13 @@ Castro::sum_integrated_quantities ()
         ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
 #endif
 
+        // Calculate maximum number of advance subcycles across all levels.
+
+        int max_num_subcycles = num_subcycles_taken;
+        for (int lev = 1; lev <= parent->finestLevel(); ++lev) {
+            max_num_subcycles = std::max(max_num_subcycles, getLevel(lev).num_subcycles_taken);
+        }
+
         if (ParallelDescriptor::IOProcessor()) {
 
             std::ostream& log = *Castro::data_logs[3];
@@ -670,6 +677,7 @@ Castro::sum_integrated_quantities ()
                 header << std::setw(fixwidth) << "                       DT"; ++n;
                 header << std::setw(intwidth) << "  FINEST LEV";              ++n;
                 header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
+                header << std::setw(fixwidth) << "  MAX NUMBER OF SUBCYCLES"; ++n;
 #ifdef AMREX_USE_GPU
                 header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
                 header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
@@ -685,8 +693,9 @@ Castro::sum_integrated_quantities ()
                 }
 
                 log << std::setw(intwidth) << 4; // Handle the finest lev column
+                log << std::setw(intwidth) << 5; // Handle the subcycle count column
 
-                for (int i = 5; i <= n; ++i) {
+                for (int i = 6; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
                 }
 
@@ -700,7 +709,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -713,6 +725,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
+            log << std::setw(intwidth)                                    << max_num_subcycles;
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
 #ifdef AMREX_USE_GPU
             log << std::setw(datwidth)                                    << gpu_size_used_MB;

@@ -1447,6 +1447,7 @@ protected:
     static amrex::Real lastDtBeforePlotLimiting;
 
     int in_retry;
+    int num_subcycles_taken;
 
     amrex::Real lastDt;
 
