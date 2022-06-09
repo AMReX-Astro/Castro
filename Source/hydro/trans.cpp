@@ -361,6 +361,30 @@ Castro::actual_trans_single(const Box& bx,
             reset_state = true;
         }
 
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
+        }
+
         // Convert back to primitive form
         qo_arr(i,j,k,QRHO) = rrnewn;
         Real rhoinv = 1.0_rt / rrnewn;
@@ -790,6 +814,30 @@ Castro::actual_trans_final(const Box& bx,
             }
 #endif
             reset_state = true;
+        }
+
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
         }
 
         qo_arr(i,j,k,QRHO) = rrnewn;
