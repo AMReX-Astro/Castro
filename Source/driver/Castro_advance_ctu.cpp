@@ -785,6 +785,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
 
+    // Record the number of subcycles we took for diagnostic purposes.
+
+    num_subcycles_taken = sub_iteration;
+
     if (sub_iteration > 1) {
 
         // Finally, copy the original data back to the old state
