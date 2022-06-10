@@ -373,7 +373,10 @@ Castro::sum_integrated_quantities ()
 
                data_log1 << std::setw(intwidth) <<  timestep;
 
-               if (time < 1.e-4_rt || time > 1.e4_rt) {
+               if (time == 0.0_rt) {
+                   data_log1 << std::fixed;
+               }
+               else if (time < 1.e-4_rt || time > 1.e4_rt) {
                    data_log1 << std::scientific;
                }
                else {
@@ -509,7 +512,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -614,7 +620,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -695,7 +704,7 @@ Castro::sum_integrated_quantities ()
                 }
 
                 log << std::setw(intwidth) << 4; // Handle the finest lev column
-                log << std::setw(intwidth) << 5; // Handle the subcycle count column
+                log << std::setw(fixwidth) << 5; // Handle the subcycle count column
 
                 for (int i = 6; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
@@ -727,7 +736,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
-            log << std::setw(intwidth)                                    << max_num_subcycles;
+            log << std::setw(fixwidth)                                    << max_num_subcycles;
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
 #ifdef AMREX_USE_GPU
             log << std::setw(datwidth)                                    << gpu_size_used_MB;
