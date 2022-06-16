@@ -8,5 +8,8 @@ cd $SLURM_SUBMIT_DIR
 
 source activate andes_env
 
-python vol-subch.py subch_plt00000
+PLOTFILE=subch_smallplt01989
+#python vol-enuc-subch.py ${PLOTFILE}
+python vol-enuc-pos-subch.py ${PLOTFILE}
+#python vol-abar-subch.py ${PLOTFILE}
 
