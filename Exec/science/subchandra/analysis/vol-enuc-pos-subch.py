@@ -117,6 +117,7 @@ def doit(plotfile):
     sc.camera = cam
 
     sc.save_annotated("{}_enuc_pos_annotated.png".format(plotfile),
+                      sigma_clip=5.0,
                       text_annotate=[[(0.05, 0.05),
                                       "t = {}".format(ds.current_time.d),
                                       dict(horizontalalignment="left")],
