@@ -775,11 +775,11 @@
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
-                                     amrex::Array4<amrex::Real const> const& q,
                                      amrex::Array4<amrex::Real const> const& vol,
                                      amrex::Array4<amrex::Real> const& flux,
                                      amrex::Array4<amrex::Real const> const& area,
-                                     amrex::Real dt);
+                                     amrex::Real dt,
+                                     bool scale_by_dAdt = true);
 
 
 

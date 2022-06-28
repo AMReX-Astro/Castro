@@ -1187,8 +1187,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           if (limit_fluxes_on_small_dens == 1) {
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
-                   U_old_arr,
-                   q.array(),
+                   Sborder.array(mfi),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),

@@ -586,7 +586,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
