@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -130,7 +131,7 @@
            <div itemprop="articleBody">
              
   <section id="input-files">
-<h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
+<h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this heading">¶</a></h1>
 <p>The Castro executable uses an inputs file at runtime to set and
 alter the behavior of the algorithm and initial conditions.</p>
 <p>Runtime parameters take the form <code class="docutils literal notranslate"><span class="pre">namespace.parameter</span> <span class="pre">=</span> <span class="pre">value</span></code> ,
@@ -160,9 +161,9 @@ specifier is not recognized.</p>
 <p>Additionally, note that in Castro, all quantities are in CGS units.</p>
 </div>
 <section id="common-inputs-options">
-<h2>Common inputs Options<a class="headerlink" href="#common-inputs-options" title="Permalink to this headline">¶</a></h2>
+<h2>Common inputs Options<a class="headerlink" href="#common-inputs-options" title="Permalink to this heading">¶</a></h2>
 <section id="problem-geometry">
-<h3>Problem Geometry<a class="headerlink" href="#problem-geometry" title="Permalink to this headline">¶</a></h3>
+<h3>Problem Geometry<a class="headerlink" href="#problem-geometry" title="Permalink to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">geometry</span></code> namespace is used by AMReX to define the
 computational domain. The main parameters here are:</p>
 <blockquote>
@@ -206,7 +207,7 @@ in the <span class="math notranslate nohighlight">\(y\)</span>-direction only. T
 between the lower left and upper right corners.</p>
 </section>
 <section id="domain-boundary-conditions">
-<h3>Domain Boundary Conditions<a class="headerlink" href="#domain-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<h3>Domain Boundary Conditions<a class="headerlink" href="#domain-boundary-conditions" title="Permalink to this heading">¶</a></h3>
 <p>Boundary conditions are specified using integer keys that are interpreted
 by AMReX. The runtime parameters that we use are:</p>
 <blockquote>
@@ -254,7 +255,7 @@ the low and high <span class="math notranslate nohighlight">\(y\)</span>-faces, 
 See § <a class="reference internal" href="software.html#soft-phys-bcs"><span class="std std-ref">Physical Boundaries</span></a>.</p>
 </section>
 <section id="resolution">
-<h3>Resolution<a class="headerlink" href="#resolution" title="Permalink to this headline">¶</a></h3>
+<h3>Resolution<a class="headerlink" href="#resolution" title="Permalink to this heading">¶</a></h3>
 <p>The grid resolution is specified by defining the resolution at the
 coarsest level (level 0) and the number of refinement levels and
 factor of refinement between levels. The relevant parameters are:</p>
@@ -313,7 +314,7 @@ never regrid for any level. Note that this is not compatible with
 <code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
 </section>
 <section id="other-parameters">
-<h3>Other parameters<a class="headerlink" href="#other-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Other parameters<a class="headerlink" href="#other-parameters" title="Permalink to this heading">¶</a></h3>
 <p>There are a large number of solver-specific runtime parameters. We describe these
 together with the discussion of the physics solvers in later chapters.</p>
 </section>

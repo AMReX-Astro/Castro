@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -129,9 +130,9 @@
            <div itemprop="articleBody">
              
   <section id="rotation">
-<span id="ch-rotation"></span><h1>Rotation<a class="headerlink" href="#rotation" title="Permalink to this headline">¶</a></h1>
+<span id="ch-rotation"></span><h1>Rotation<a class="headerlink" href="#rotation" title="Permalink to this heading">¶</a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
 <p>Currently, Castro supports contant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.</p>
@@ -200,7 +201,7 @@ appear in the momentum and total energy evolution equations upon
 switching to a rotating reference frame.</p>
 </section>
 <section id="coordinate-transformation-to-rotating-frame">
-<h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this heading">¶</a></h2>
 <figure class="align-default" id="id2">
 <img alt="inertial vs. corotating frame" src="_images/tframes.png" />
 <figcaption>
@@ -269,7 +270,7 @@ rotating frame:</p>
 <span class="eqno">(19)<a class="headerlink" href="#equation-eq-cont-rot-total" title="Permalink to this equation">¶</a></span>\[\frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
 </section>
 <section id="momentum-equation-in-rotating-frame">
-<h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Permalink to this heading">¶</a></h2>
 <p>The usual momentum equation applies in an inertial frame:</p>
 <div class="math notranslate nohighlight" id="equation-eq-mom1">
 <span class="eqno">(20)<a class="headerlink" href="#equation-eq-mom1" title="Permalink to this equation">¶</a></span>\[\frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
@@ -287,7 +288,7 @@ the terms in the rotating frame from <a class="reference internal" href="#equati
 <span class="eqno">(21)<a class="headerlink" href="#equation-eq-mom-rot-tot" title="Permalink to this equation">¶</a></span>\[\frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
 </section>
 <section id="energy-equations-in-rotating-frame">
-<h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
+<h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Permalink to this heading">¶</a></h2>
 <p>From <a class="reference internal" href="#equation-eq-mom-rot-tot">(21)</a>, we have the velocity evolution equation in
 a rotating frame</p>
 <div class="math notranslate nohighlight" id="equation-eq-v-rot">
@@ -319,7 +320,7 @@ get the evolution of the total specific energy in the rotating frame,
     \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].\]</div>
 </section>
 <section id="switching-to-the-rotating-reference-frame">
-<h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Permalink to this headline">¶</a></h2>
+<h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Permalink to this heading">¶</a></h2>
 <p>If we choose to be a stationary observer in the rotating reference
 frame, we can drop all of the tildes, which indicated terms in the
 non-inertial frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>. Doing so, and making sure we
@@ -334,7 +335,7 @@ reference:</p>
   \end{align}\end{split}\]</div>
 </section>
 <section id="adding-the-forcing-to-the-hydrodynamics">
-<h2>Adding the forcing to the hydrodynamics<a class="headerlink" href="#adding-the-forcing-to-the-hydrodynamics" title="Permalink to this headline">¶</a></h2>
+<h2>Adding the forcing to the hydrodynamics<a class="headerlink" href="#adding-the-forcing-to-the-hydrodynamics" title="Permalink to this heading">¶</a></h2>
 <p>There are several ways to incorporate the effect of the rotation
 forcing on the hydrodynamical evolution. We control this through the
 use of the runtime parameter castro.rot_source_type. This
