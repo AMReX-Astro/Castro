@@ -52,7 +52,7 @@ Castro::ctoprim(const Box& bx,
 #ifdef RADIATION
                                        Erin, lam,
 #endif
-                                       q, qaux);
+                                       q, qaux, q_arr.nComp() == NQ);
   });
 }
 
