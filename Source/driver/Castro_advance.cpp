@@ -250,6 +250,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Reset the retry information.
 
     in_retry = false;
+    num_subcycles_taken = 1;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -284,7 +285,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
 
-    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+    if (level == 0 && do_grav && gravity->get_gravity_type() == "PoissonGrav") {
         gravity->update_max_rhs();
     }
 #endif

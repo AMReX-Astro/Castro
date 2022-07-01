@@ -11,28 +11,6 @@ module rad_module
 
 contains
 
-subroutine sphc(r, s, &
-                DIMS(reg), dx) bind(C, name="sphc")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  real(rt)         :: dx(2)
-  real(rt)         :: h1, h2, d1, d2
-  integer :: i, j
-  h1 = 0.5e0_rt * dx(1)
-  h2 = 0.5e0_rt * dx(2)
-  d1 = 1.e0_rt / (3.e0_rt * dx(1))
-  d2 = 1.e0_rt / dx(2)
-  do i = reg_l1, reg_h1
-     r(i) = d1 * ((r(i) + h1)**3 - (r(i) - h1)**3)
-  enddo
-  do j = reg_l2, reg_h2
-     s(j) = d2 * (cos(s(j) - h2) - cos(s(j) + h2))
-  enddo
-end subroutine sphc
-
 subroutine sphe(r, s, n, &
                 DIMS(reg), dx) bind(C, name="sphe")
 

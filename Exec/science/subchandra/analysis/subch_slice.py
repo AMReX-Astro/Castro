@@ -20,7 +20,7 @@ plotfile = sys.argv[1]
 ds = CastroDataset(plotfile)
 
 xmin = ds.domain_left_edge[0]
-xmax = ds.domain_right_edge[0]
+xmax = 0.5*ds.domain_right_edge[0]
 xctr = 0.5*(xmin + xmax)
 L_x = xmax - xmin
 
@@ -28,7 +28,9 @@ ymin = ds.domain_left_edge[1]
 ymax = ds.domain_right_edge[1]
 yctr = 0.5*(ymin + ymax)
 L_y = ymax - ymin
-
+ymin = yctr - 0.25*L_y
+ymax = yctr + 0.25*L_y
+L_y = ymax - ymin
 
 fig = plt.figure()
 
@@ -48,7 +50,9 @@ for i, f in enumerate(fields):
         sp.set_zlim(f, 5.e7, 4e9)
         sp.set_cmap(f, "magma_r")
     elif f == "enuc":
-        sp.set_zlim(f, 1.e18, 1.e21)
+        sp.set_log(f, True, linthresh=1.e18)
+        sp.set_zlim(f, -1.e22, 1.e22)
+        sp.set_cmap(f, "bwr")
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":

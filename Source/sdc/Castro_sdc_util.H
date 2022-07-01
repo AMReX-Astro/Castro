@@ -3,9 +3,14 @@
 
 #include <Castro.H>
 #ifdef REACTIONS
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <Castro_react_util.H>
 #include <vode_dvode.H>
+#ifndef NEW_NETWORK_IMPLEMENTATION
 #include <linpack.H>
+#endif
 #endif
 
 // error codes
@@ -335,7 +340,12 @@ sdc_newton_solve(const Real dt_m,
         IArray1D ipvt;
 
         // solve the linear system: Jac dU_react = -f
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgefa(Jac);
+        info = 0;
+#else
         dgefa<NumSpec+2>(Jac, ipvt, info);
+#endif
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
@@ -345,7 +355,11 @@ sdc_newton_solve(const Real dt_m,
             f_rhs(n) = -f[n-1];
         }
 
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgesl(Jac, f_rhs);
+#else
         dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
+#endif
 
         for (int n = 0; n < NumSpec+2; ++n) {
             dU_react[n] = f_rhs(n+1);

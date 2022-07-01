@@ -11,6 +11,8 @@
 #include <hybrid.H>
 #endif
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 void
@@ -42,7 +44,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
   MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+#endif
 #endif
 
   // we will treat the hydro source as any other source term
@@ -67,6 +71,49 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Record a running total of the number of bytes allocated as temporary Fab data.
+
+  size_t fab_size = 0;
+  size_t mf_size = 0;
+  IntVect maximum_tile_size{0};
+
+  // Our strategy for launching work on GPUs in the hydro is incompatible with OpenMP,
+  // throw an error if the user is trying this. If this were to ever change, it would
+  // require at minimum doing a safe atomic update on the running fab_size total.
+
+#if defined(AMREX_USE_OMP) && defined(AMREX_USE_GPU)
+  amrex::Error("USE_OMP=TRUE and USE_GPU=TRUE are not concurrently supported in Castro");
+#endif
+
+#ifdef AMREX_USE_GPU
+   if (castro::hydro_memory_footprint_ratio > 0.0) {
+       // If we haven't done any tuning yet, set the tile size to an arbitrary
+       // small value to start with.
+
+       if (hydro_tile_size_has_been_tuned == 0) {
+           hydro_tile_size[0] = 16;
+#if AMREX_SPACEDIM >= 2
+           hydro_tile_size[1] = 16;
+#endif
+#if AMREX_SPACEDIM == 3
+           hydro_tile_size[2] = 16;
+#endif
+       }
+
+       // Run through boxes on this level and see if any of them are
+       // bigger than the biggest box from our previous tuning. If so,
+       // we need to re-compute the tile size.
+       for (MFIter mfi(S_new, false); mfi.isValid(); ++mfi) {
+           if (mfi.validbox().numPts() > largest_box_from_hydro_tile_size_tuning) {
+               hydro_tile_size_has_been_tuned = 0;
+           }
+
+           // Also, sum up the number of bytes in the state data.
+           mf_size += S_new[mfi].nBytes();
+       }
+   }
+#endif
+
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp)
@@ -85,12 +132,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     // we apply an Elixir to ensure that their memory is saved until it is no
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
-    FArrayBox flatn;
-#ifdef RADIATION
-    FArrayBox flatg;
-#endif
     FArrayBox shk;
     FArrayBox q, qaux;
+    FArrayBox rho_inv;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -124,65 +168,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox qmyz, qpyz;
 #endif
 
-#ifdef AMREX_USE_GPU
-    size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
-    size_t current_size = starting_size;
-#endif
-
     MultiFab& old_source = get_old_data(Source_Type);
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-
-      size_t fab_size = 0;
 
       // the valid region box
       const Box& bx = mfi.tilebox();
 
       const Box& obx = amrex::grow(bx, 1);
-
-      flatn.resize(obx, 1);
-      Elixir elix_flatn = flatn.elixir();
-      fab_size += flatn.nBytes();
-
-#ifdef RADIATION
-      flatg.resize(obx, 1);
-      Elixir elix_flatg = flatg.elixir();
-      fab_size += flatg.nBytes();
-#endif
-
-      // If we are oversubscribing the GPU, performance of the hydro will be constrained
-      // due to its heavy memory requirements. We can help the situation by prefetching in
-      // all the data we will need, and then prefetching it out at the end. This at least
-      // improves performance by mitigating the number of unified memory page faults.
-
-      // An empirical threshold on NVIDIA GPUs is that we're probably oversubscribing if
-      // there are less than 10 MB left.
-
-      bool oversubscribed = false;
-
-#ifdef AMREX_USE_GPU
-      if (Gpu::Device::freeMemAvailable() < 10000000) {
-          oversubscribed = true;
-      }
-#endif
-
-      if (oversubscribed) {
-          volume[mfi].prefetchToDevice();
-          Sborder[mfi].prefetchToDevice();
-          S_new[mfi].prefetchToDevice();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToDevice();
-              (*fluxes[i])[mfi].prefetchToDevice();
-          }
-#if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToDevice();
-          P_radial[mfi].prefetchToDevice();
-#endif
-#ifdef RADIATION
-          Erborder[mfi].prefetchToDevice();
-          Er_new[mfi].prefetchToDevice();
-#endif
-      }
 
       // Compute the primitive variables (both q and qaux) from
       // the conserved variables.
@@ -190,7 +183,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       const Box& qbx = amrex::grow(bx, NUM_GROW);
       const Box& qbx3 = amrex::grow(bx, 3);
 
+#ifdef RADIATION
       q.resize(qbx, NQ);
+#else
+      // note: we won't store the passives in q, so we'll compute their
+      // primitive versions on demand as needed
+      q.resize(qbx, NQTHERM);
+#endif
       Elixir elix_q = q.elixir();
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
@@ -200,7 +199,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += qaux.nBytes();
       Array4<Real> const qaux_arr = qaux.array();
 
-      ctoprim(qbx, time, Sborder.array(mfi),
+      Array4<Real const> const U_old_arr = Sborder.array(mfi);
+
+      rho_inv.resize(qbx3, 1);
+      Elixir elix_rho_inv = rho_inv.elixir();
+      fab_size += rho_inv.nBytes();
+      Array4<Real> const rho_inv_arr = rho_inv.array();
+
+      amrex::ParallelFor(qbx3,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
+      });
+
+      ctoprim(qbx, time, U_old_arr,
 #ifdef RADIATION
               Erborder.array(mfi), lamborder.array(mfi),
 #endif
@@ -221,53 +233,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
 #endif
-
-      // compute the flattening coefficient
-
-      Array4<Real> const flatn_arr = flatn.array();
-#ifdef RADIATION
-      Array4<Real> const flatg_arr = flatg.array();
-#endif
-
-      if (first_order_hydro == 1) {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = 0.0;
-        });
-      } else if (use_flattening == 1) {
-
-        uflatten(obx, q_arr, flatn_arr, QPRES);
-
-#ifdef RADIATION
-        uflatten(obx, q_arr, flatg_arr, QPTOT);
-
-        Real flatten_pp_thresh = radiation::flatten_pp_threshold;
-
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
-
-          if (flatten_pp_thresh > 0.0) {
-            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
-                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
-
-              if (q_arr(i,j,k,QPRES) < flatten_pp_thresh * q_arr(i,j,k,QPTOT)) {
-                flatn_arr(i,j,k) = 0.0;
-              }
-            }
-          }
-        });
-#endif
-
-      } else {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-          flatn_arr(i,j,k) = 1.0;
-        });
-      }
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
       const Box& gxbx = amrex::grow(xbx, 1);
@@ -316,13 +281,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const old_src_arr = old_source.array(mfi);
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      src_to_prim(qbx3, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+      amrex::ParallelFor(qbx3,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+      });
 
       // work on the interface states
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
-      fab_size += shk.nBytes();
+      fab_size += qxm.nBytes();
 
       qxp.resize(obx, NQ);
       Elixir elix_qxp = qxp.elixir();
@@ -362,8 +331,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (ppm_type == 0) {
 
         ctu_plm_states(obx, bx,
+                       U_old_arr, rho_inv_arr,
                        q_arr,
-                       flatn_arr,
                        qaux_arr,
                        src_q_arr,
                        qxm_arr, qxp_arr,
@@ -382,7 +351,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef RADIATION
         ctu_ppm_rad_states(obx, bx,
-                           q_arr, flatn_arr, qaux_arr, src_q_arr,
+                           U_old_arr, rho_inv_arr,
+                           q_arr, qaux_arr, src_q_arr,
                            qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                            qym_arr, qyp_arr,
@@ -397,7 +367,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
 
         ctu_ppm_states(obx, bx,
-                       q_arr, flatn_arr, qaux_arr, src_q_arr,
+                       U_old_arr, rho_inv_arr,
+                       q_arr, qaux_arr, src_q_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,
@@ -485,14 +456,18 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       Array4<Real> const sdc_src_arr = SDC_react_source.array(mfi);
+#endif
 #endif
 
 #if AMREX_SPACEDIM == 1
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(xbx, 0, dt,
                                qxm_arr, qxp_arr, sdc_src_arr);
+#endif
 #endif
 
       // compute the fluxes through the x-interface
@@ -624,8 +599,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // solve the final Riemann problem axross the x-interfaces
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(xbx, 0, dt,
                                ql_arr, qr_arr, sdc_src_arr);
+#endif
 
 #endif
 
@@ -667,9 +644,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // solve the final Riemann problem axross the y-interfaces
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(ybx, 1, dt,
                                ql_arr, qr_arr, sdc_src_arr);
-
+#endif
 #endif
 
       cmpflx_plus_godunov(ybx,
@@ -996,9 +974,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       reset_edge_state_thermo(xbx, qr.array());
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(xbx, 0, dt,
                                ql_arr, qr_arr, sdc_src_arr);
-
+#endif
 #endif
 
 
@@ -1074,9 +1053,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       reset_edge_state_thermo(ybx, qr.array());
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(ybx, 1, dt,
                                ql_arr, qr_arr, sdc_src_arr);
-
+#endif
 #endif
 
 
@@ -1154,9 +1134,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       reset_edge_state_thermo(zbx, qr.array());
 
 #ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
       add_sdc_source_to_states(zbx, 2, dt,
                                ql_arr, qr_arr, sdc_src_arr);
-
+#endif
 #endif
 
       // compute the final z fluxes F^z
@@ -1183,7 +1164,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           const Box& nbx = amrex::surroundingNodes(bx, idir);
 
           Array4<Real> const flux_arr = (flux[idir]).array();
-          Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
@@ -1195,7 +1175,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
           });
 
-          apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
+          apply_av(nbx, idir, div_arr, U_old_arr, flux_arr);
 
 #ifdef RADIATION
           Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
@@ -1208,18 +1188,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
-          }
-
-          if (limit_fluxes_on_large_vel == 1) {
-              limit_hydro_fluxes_on_large_vel
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1423,47 +1391,66 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } // idir loop
 
 #ifdef AMREX_USE_GPU
-      // Check if we're going to run out of memory in the next MFIter iteration.
-      // If so, do a synchronize here so that we don't oversubscribe GPU memory.
-      // Note that this will capture the case where we started with more memory
-      // than what the GPU has, on the logic that even in that case, it makes
-      // sense to not further pile on the oversubscription demands.
+      if (castro::hydro_memory_footprint_ratio > 0.0) {
 
-      // This could (and should) be generalized in the future to operate with
-      // more granularity than the MFIter loop boundary. We would have potential
-      // synchronization points prior to each of the above kernel launches, and
-      // we would check whether the sum of all previously allocated fabs would
-      // result in oversubscription, including any contributions from a partial
-      // MFIter loop. A further optimization would be to not apply a device
-      // synchronize, but rather to use CUDA events to poll on a check about
-      // whether enough memory has freed up to begin the next iteration, and then
-      // immediately proceed to the next kernel when there's enough space for it.
+          if (hydro_tile_size_has_been_tuned == 0) {
 
-      current_size += fab_size;
-      if (current_size + fab_size >= Gpu::Device::totalGlobalMem()) {
-          Gpu::Device::synchronize();
-          current_size = starting_size;
-      }
+              // Keep a running record of the largest box we've encountered.
+
+              largest_box_from_hydro_tile_size_tuning = amrex::max(largest_box_from_hydro_tile_size_tuning,
+                                                                   mfi.validbox().numPts());
+
+              // If we're tuning the hydro tile size during this timestep, we will record
+              // the total amount of additional memory allocated, relative to the size of S_new.
+              // Then we will reset the tile size so that it is no larger than the requested
+              // memory footprint.
+
+              // This could be generalized in the future to operate with more granularity
+              // than the MFIter loop boundary. We could have potential synchronization
+              // points prior to each of the above kernel launches.
+
+              maximum_tile_size[0] = amrex::max(maximum_tile_size[0], bx.bigEnd(0) - mfi.validbox().smallEnd(0) + 1);
+#if AMREX_SPACEDIM >= 2
+              maximum_tile_size[1] = amrex::max(maximum_tile_size[1], bx.bigEnd(1) - mfi.validbox().smallEnd(1) + 1);
+#endif
+#if AMREX_SPACEDIM ==3
+              maximum_tile_size[2] = amrex::max(maximum_tile_size[2], bx.bigEnd(2) - mfi.validbox().smallEnd(2) + 1);
 #endif
 
-      if (oversubscribed) {
-          volume[mfi].prefetchToHost();
-          Sborder[mfi].prefetchToHost();
-          S_new[mfi].prefetchToHost();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToHost();
-              (*fluxes[i])[mfi].prefetchToHost();
+              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size) {
+                  // If we reached the memory limit, set the tile size to the current
+                  // maximum tile size.
+                  Gpu::synchronize();
+                  hydro_tile_size = maximum_tile_size;
+                  hydro_tile_size_has_been_tuned = 1;
+              }
+              else if (mfi.tileIndex() == mfi.length() - 1) {
+                  // If we reached the last tile and we haven't gone over the
+                  // memory limit, effectively disable tiling.
+                  hydro_tile_size[0] = 1024;
+#if AMREX_SPACEDIM >= 2
+                  hydro_tile_size[1] = 1024;
+#endif
+#if AMREX_SPACEDIM == 3
+                  hydro_tile_size[2] = 1024;
+#endif
+                  hydro_tile_size_has_been_tuned = 1;
+              }
+
           }
-#if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToHost();
-          P_radial[mfi].prefetchToHost();
-#endif
-#ifdef RADIATION
-          Erborder[mfi].prefetchToHost();
-          Er_new[mfi].prefetchToHost();
-#endif
-      }
+          else {
+              // If we have already tuned the parameter, then synchronize each time the
+              // outstanding number of active bytes is larger than our ratio.
 
+              if (fab_size >= castro::hydro_memory_footprint_ratio * mf_size) {
+                  Gpu::synchronize();
+
+                  // Reset the counter for the next sequence of tiles.
+                  fab_size = 0;
+              }
+          }
+      }
+#endif
 
     } // MFIter loop
 

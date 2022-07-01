@@ -83,21 +83,14 @@ test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
-ifeq ($(USE_RAD), TRUE)
-  state_fort_opts = --ngroups $(NGROUPS)
-else
-  state_fort_opts =
-endif
-
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(CASTRO_HOME)/Source/driver/set_variables.py $(state_fort_opts) \
+	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
-           --ngroups $(NGROUPS) \
            --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
 

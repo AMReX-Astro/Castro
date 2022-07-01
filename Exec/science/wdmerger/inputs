@@ -61,9 +61,6 @@ max_step = 10000000
 # Simulation time to stop at
 stop_time = 100.0
 
-# Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -84,6 +81,9 @@ castro.use_retry = 1
 
 # Skip retries for small density if the starting density was less than this threshold
 castro.retry_small_density_cutoff = 1.0e0
+
+# Don't abort for invalid X if the zone density is less than this threshold
+castro.abundance_failure_rho_cutoff = 1.0e0
 
 ############################################################################################ 
 # Resolution, gridding and AMR
@@ -130,6 +130,22 @@ castro.state_interp_order = 0
 
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
+
+# Add refinement indicators
+amr.refinement_indicators = density temperature
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e0
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
+
+# Temperature refinement criterion
+amr.refine.temperature.value_greater = 5.0e8
+amr.refine.temperature.field_name = Temp
+amr.refine.temperature.max_level = 0
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -189,8 +205,7 @@ castro.transverse_reset_density = 1
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
-# Explicitly limit fluxes to avoid large velocities
-castro.limit_fluxes_on_large_vel = 0
+# Set global simulation speed limit
 castro.speed_limit = 1.498962290e9 # 0.05c
 
 ############################################################################################
@@ -221,6 +236,9 @@ castro.ambient_temp = 1.0e7
 # Ambient density (g / cm**3)
 castro.ambient_density = 1.0e-4
 
+# Clamp temperature in ambient zones to its initial value
+castro.clamp_ambient_temp = 1
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################
@@ -246,9 +264,6 @@ castro.react_rho_max = 1.0e12
 # Smallest allowable mass fraction
 network.small_x = 1.0e-12
 
-# Burn at constant volume
-integrator.do_constant_volume_burn = 1
-
 # Evaluate the RHS during the burn
 integrator.call_eos_in_rhs = 1
 
@@ -261,7 +276,6 @@ integrator.atol_enuc = 1.0e-6
 
 # Do not abort or retry on a failed burn (Castro will handle this)
 integrator.abort_on_failure = 0
-integrator.retry_burn = 0
 
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
@@ -298,9 +312,6 @@ gravity.do_composite_phi_correction = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Whether to evolve state variables in the inertial or rotating frame
-castro.state_in_rotating_frame = 1
-
 ############################################################################################
 # Sponge
 ############################################################################################
@@ -322,9 +333,6 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 # Diagnostics and I/O
 ############################################################################################
-
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -384,9 +392,6 @@ castro.output_at_completion = 0
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
@@ -406,7 +411,7 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = star_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 ############################################################################################
 # Problem parameters
@@ -448,18 +453,7 @@ problem.orbital_angle = 0.0e0
 problem.axis_1 = 1
 problem.axis_2 = 2
 
-problem.max_stellar_tagging_level = 20
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e0
-problem.temperature_tagging_threshold = 5.0e8
-problem.max_tagging_radius = 0.75e0
-problem.roche_tagging_factor = 2.0e0
-
-problem.bulk_velx = 0.0e0
-problem.bulk_vely = 0.0e0
-problem.bulk_velz = 0.0e0
-
-problem.smallu = 0.0e0
 
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0

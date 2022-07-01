@@ -17,22 +17,22 @@ def doit(pfile=None):
 
     for pf in pfile:
         print(f"about to read {pfile}")
-        ds = yt.load(pf)
+        ds = yt.load(pf, hint="castro")
 
         label = pf.split("plt")[-1]
 
         ray = ds.ray((0, 0, 0), (2.56e3, 0, 0))
-        isrt = np.argsort(ray["x"])
+        isrt = np.argsort(ray[("boxlib", "x")])
 
-        ax[0].plot(ray["x"][isrt], ray["density"][isrt], label=label)
+        ax[0].plot(ray[("boxlib", "x")][isrt], ray[("boxlib", "density")][isrt], label=label)
         ax[0].set_ylabel("density")
         ax[0].set_yscale("log")
 
-        ax[1].plot(ray["x"][isrt], ray["Temp"][isrt], label=label)
+        ax[1].plot(ray[("boxlib", "x")][isrt], ray[("boxlib", "Temp")][isrt], label=label)
         ax[1].set_ylabel("temperature")
         ax[1].set_yscale("log")
 
-        ax[2].plot(ray["x"][isrt], ray["magvel"][isrt], label=label)
+        ax[2].plot(ray[("boxlib", "x")][isrt], ray[("boxlib", "magvel")][isrt], label=label)
         ax[2].set_ylabel("|U|")
         ax[2].set_xlabel("x")
         ax[2].set_yscale("log")

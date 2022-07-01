@@ -1,6 +1,8 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 void
@@ -174,7 +176,11 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
 
-          src_to_prim(bx_gc, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+          amrex::ParallelFor(bx_gc,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              hydro::src_to_prim(i, j, k, dt, u_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+          });
 
           check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 

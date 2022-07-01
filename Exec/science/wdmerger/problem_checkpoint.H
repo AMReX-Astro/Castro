@@ -39,65 +39,12 @@ void problem_checkpoint (std::string checkpoint_dir)
 
 
 
-    std::ofstream rotation;
-    rotation.open(checkpoint_dir + "/Rotation", std::ios::out);
-
-    rotation << std::scientific;
-    rotation.precision(19);
-
-    rotation << std::setw(30) << castro::rotational_period << std::endl;
-
-    rotation.close();
-
-
-
-    std::ofstream extrema;
-    extrema.open(checkpoint_dir + "/Extrema", std::ios::out);
-
-    extrema << std::scientific;
-    extrema.precision(19);
-
-    extrema << std::setw(30) << problem::T_global_max << std::endl;
-    extrema << std::setw(30) << problem::rho_global_max << std::endl;
-    extrema << std::setw(30) << problem::ts_te_global_max << std::endl;
-
-    extrema.close();
-
-
-
-    std::ofstream energy;
-    energy.open(checkpoint_dir + "/Energy", std::ios::out);
-
-    energy << std::scientific;
-    energy.precision(19);
-
-    for (int i = 0; i < problem::num_previous_ener_timesteps; ++i) {
-        energy << std::setw(30) << problem::total_ener_array[i] << std::endl;
-    }
-
-    energy.close();
-
-
-
     std::ofstream relaxation;
     relaxation.open(checkpoint_dir + "/Relaxation", std::ios::out);
 
     relaxation << std::setw(30) << problem::relaxation_is_done << std::endl;
 
     relaxation.close();
-
-
-
-    // If the job is done, write a file in the checkpoint indicating this.
-
-    if (problem::jobIsDone) {
-
-        std::ofstream jobisdone;
-        jobisdone.open(checkpoint_dir + "/jobIsDone", std::ios::out);
-
-        jobisdone.close();
-
-    }
 }
 
 #endif

@@ -1,0 +1,224 @@
+
+############################## CASTRO INPUTS ###############################################
+
+############################################################################################
+# Geometry
+############################################################################################
+
+# Non-periodic boundary conditions
+geometry.is_periodic = 0 0 0
+
+# Cartesian coordinate system
+geometry.coord_sys = 0
+
+# Lower boundary limits in physical space
+geometry.prob_lo = -2.56e9 -1.28e9 -1.28e9
+
+# Upper boundary limits in physical space
+geometry.prob_hi =  2.56e9  1.28e9  1.28e9
+
+############################################################################################
+# Boundary conditions
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+############################################################################################
+
+# Boundary conditions on lo x, y, and z edges
+castro.lo_bc = 2 2 2
+
+# Boundary conditions on hi x, y, and z edges
+castro.hi_bc = 2 2 2
+
+############################################################################################ 
+# Timestepping
+############################################################################################
+
+# Maximum coarse timestep
+max_step = 10000000
+
+# Simulation time to stop at (using the default speed, this should
+# be when the WD crosses half the domain)
+stop_time = 25.6
+
+# CFL number for hyperbolic system
+castro.cfl = 0.8
+
+# Scale back initial timestep by this factor
+castro.init_shrink = 0.01
+
+# Factor by which dt is allowed to change each timestep
+castro.change_max = 1.25
+
+# If we regrid on Level 0, compute a new timestep afterward
+amr.compute_new_dt_on_regrid = 1
+
+############################################################################################ 
+# Resolution, gridding and AMR
+############################################################################################
+
+# Number of cells on the coarse grid
+amr.n_cell = 128 64 64
+
+# Maximum level number allowed
+amr.max_level = 0
+
+# Refinement ratio
+amr.ref_ratio = 4
+
+# How many coarse timesteps between regridding
+amr.regrid_int = 2
+
+# Number of buffer cells in error estimation
+amr.n_error_buf = 2
+
+# Maximum grid size at each level
+amr.max_grid_size = 64
+
+# Grid sizes must be a multiple of blocking factor
+amr.blocking_factor = 16
+
+# Add refinement indicators
+amr.refinement_indicators = density
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e3
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
+
+############################################################################################
+# Physics to include
+############################################################################################
+
+# Whether or not to do hydrodynamics
+castro.do_hydro = 1
+
+# Whether or not to do gravity
+castro.do_grav = 1
+
+# Whether or not to apply the sponge
+castro.do_sponge = 1
+
+############################################################################################
+# PPM/Hydro options
+############################################################################################
+
+# Use a lagged predictor estimate of the source terms in the hydro
+castro.source_term_predictor = 1
+
+# Reset (rho*e) if it goes negative in the transverse terms
+castro.transverse_reset_rhoe = 1
+
+# Reset rho if it goes negative in the transverse terms
+castro.transverse_reset_density = 1
+
+# Explicitly limit fluxes to avoid hitting a negative density
+castro.limit_fluxes_on_small_dens = 1
+
+############################################################################################
+# Thermodynamics
+############################################################################################
+
+# Minimum allowable temperature (K)
+castro.small_temp = 1.e5
+
+# Minimum allowable density (g / cm**3)
+castro.small_dens = 1.e-5
+
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
+# Clamp temperature in ambient zones to its initial value
+castro.clamp_ambient_temp = 1
+
+# Smallest allowable mass fraction
+network.small_x = 1.0e-12
+
+############################################################################################
+# Gravity
+############################################################################################
+
+# Full self-gravity with the Poisson equation
+gravity.gravity_type = PoissonGrav
+
+# Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.max_multipole_order = 6
+
+# Tolerance for multigrid solver for phi solves
+gravity.abs_tol = 1.e-10
+
+# Use sync solve for gravity after refluxing
+gravity.no_sync = 0
+
+# Disable the use of the lagged composite correction for the potential
+gravity.do_composite_phi_correction = 0
+
+# Track the moving center of the problem
+castro.moving_center = 1
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e0
+castro.sponge_upper_density = 1.0e0
+castro.sponge_timescale     = 0.01e0
+
+############################################################################################
+# Diagnostics and I/O
+############################################################################################
+
+# Name the job
+castro.job_name = advecting_white_dwarf
+
+# Verbosity
+amr.v = 1
+castro.v = 1
+
+# Sum interval
+castro.sum_interval = 1
+
+# Whether or not to output plotfiles
+amr.plot_files_output = 1
+
+# Whether or not to output checkpoints
+amr.checkpoint_files_output = 1
+
+# Root name of checkpoint files
+amr.check_file = chk
+
+# Simulation time between checkpoints
+amr.check_per = 1.0
+
+# Number of timesteps between checkpoints
+amr.check_int = -1
+
+# Root name of plot files
+amr.plot_file = plt
+
+# Simulation time between plotfiles
+amr.plot_per = 1.0
+
+# Number of timesteps between plotfiles
+amr.plot_int = -1
+
+# Root name of small plot files
+amr.small_plot_file = smallplt
+
+# Simulation time between small plotfiles
+amr.small_plot_per = 0.1
+
+# Number of timesteps between small plotfiles
+amr.small_plot_int = -1
+
+# State variables to add to plot files
+amr.plot_vars = ALL
+
+# Derived variables to add to plot files
+amr.derive_plot_vars = NONE
+
+# State variables to add to small plot files
+amr.small_plot_vars = density Temp

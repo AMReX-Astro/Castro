@@ -14,8 +14,9 @@ using namespace amrex;
 void
 Castro::sum_integrated_quantities ()
 {
-
     if (verbose <= 0) return;
+
+    BL_PROFILE("Castro::sum_integrated_quantities()");
 
     bool local_flag = true;
 
@@ -42,6 +43,10 @@ Castro::sum_integrated_quantities ()
     Real total_energy = 0.0;
 #endif
 
+    Real T_max       = 0.0;
+    Real rho_max     = 0.0;
+    Real ts_te_max   = 0.0;
+
     int datprecision = 16;
 
     int datwidth     = 25; // Floating point data in scientific notation
@@ -51,34 +56,134 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
+        MultiFab& S_new = ca_lev.get_new_data(State_Type);
+#ifdef GRAVITY
+        MultiFab& phi_new = ca_lev.get_new_data(PhiGrav_Type);
+#endif
+#ifdef REACTIONS
+        MultiFab& R_new = ca_lev.get_new_data(Reactions_Type);
+#endif
 
-        mass   += ca_lev.volWgtSum("density", time, local_flag);
-        mom[0] += ca_lev.volWgtSum("xmom", time, local_flag);
-        mom[1] += ca_lev.volWgtSum("ymom", time, local_flag);
-        mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        mass   += ca_lev.volWgtSum(S_new, URHO, local_flag);
+        mom[0] += ca_lev.volWgtSum(S_new, UMX, local_flag);
+        mom[1] += ca_lev.volWgtSum(S_new, UMY, local_flag);
+        mom[2] += ca_lev.volWgtSum(S_new, UMZ, local_flag);
 
         ang_mom[0] += ca_lev.volWgtSum("angular_momentum_x", time, local_flag);
         ang_mom[1] += ca_lev.volWgtSum("angular_momentum_y", time, local_flag);
         ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
 
 #ifdef HYBRID_MOMENTUM
-        hyb_mom[0] += ca_lev.volWgtSum("rmom", time, local_flag);
-        hyb_mom[1] += ca_lev.volWgtSum("lmom", time, local_flag);
-        hyb_mom[2] += ca_lev.volWgtSum("zmom", time, local_flag);
+        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, time, local_flag);
+        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, time, local_flag);
+        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, time, local_flag);
 #endif
 
-        if (show_center_of_mass) {
-           com[0] += ca_lev.locWgtSum("density", time, 0, local_flag);
-           com[1] += ca_lev.locWgtSum("density", time, 1, local_flag);
-           com[2] += ca_lev.locWgtSum("density", time, 2, local_flag);
-        }
+        com[0] += ca_lev.locWgtSum(S_new, URHO, 0, local_flag);
+        com[1] += ca_lev.locWgtSum(S_new, URHO, 1, local_flag);
+        com[2] += ca_lev.locWgtSum(S_new, URHO, 2, local_flag);
 
-       rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
-       rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
-       rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
+        rho_e += ca_lev.volWgtSum(S_new, UEINT, local_flag);
+        rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
+        rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
 #ifdef GRAVITY
         if (gravity->get_gravity_type() == "PoissonGrav")
-               rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
+            rho_phi += ca_lev.volProductSum(S_new, phi_new, URHO, 0, local_flag);
+#endif
+
+        // Compute extrema
+
+#ifdef REACTIONS
+        auto dx = ca_lev.geom.CellSizeArray();
+
+        Real dd = 0.0_rt;
+#if AMREX_SPACEDIM == 1
+        dd = dx[0];
+#elif AMREX_SPACEDIM == 2
+        dd = amrex::min(dx[0], dx[1]);
+#else
+        dd = amrex::min(dx[0], dx[1], dx[2]);
+#endif
+#endif
+
+        bool mask_available = true;
+        if (lev == parent->finestLevel()) {
+            mask_available = false;
+        }
+
+        MultiFab tmp_mf;
+        const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
+
+        ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+        ReduceData<Real, Real, Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto U = S_new[mfi].array();
+#ifdef REACTIONS
+            auto R = R_new[mfi].array();
+#endif
+
+            auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+
+            reduce_op.eval(bx, reduce_data,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+            {
+                Real maskFactor = 1.0;
+                if (mask_available) {
+                    maskFactor = level_mask(i,j,k);
+                }
+
+                Real T = U(i,j,k,UTEMP) * maskFactor;
+                Real rho = U(i,j,k,URHO) * maskFactor;
+                Real ts_te = 0.0_rt;
+
+#ifdef REACTIONS
+                Real enuc = std::abs(R(i,j,k,0)) / U(i,j,k,URHO);
+
+                if (enuc > 1.e-100_rt && maskFactor == 1.0) {
+
+                    Real rhoInv = 1.0_rt / rho;
+
+                    // Calculate sound speed
+                    eos_rep_t eos_state;
+                    eos_state.rho = rho;
+                    eos_state.T   = T;
+                    eos_state.e   = U(i,j,k,UEINT) * rhoInv;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        eos_state.xn[n] = U(i,j,k,UFS+n) * rhoInv;
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        eos_state.aux[n] = U(i,j,k,UFX+n) * rhoInv;
+                    }
+#endif
+
+                    eos(eos_input_re, eos_state);
+
+                    Real t_e = eos_state.e / enuc;
+                    Real t_s = dd / eos_state.cs;
+
+                    ts_te = t_s / t_e;
+                }
+#endif
+
+                return {T, rho, ts_te};
+            });
+
+        }
+
+        ReduceTuple hv = reduce_data.value();
+
+        T_max = amrex::max(T_max, amrex::get<0>(hv));
+        rho_max = amrex::max(rho_max, amrex::get<1>(hv));
+#ifdef REACTIONS
+        ts_te_max = amrex::max(ts_te_max, amrex::get<2>(hv));
 #endif
 
     }
@@ -88,19 +193,21 @@ Castro::sum_integrated_quantities ()
 
 #ifdef HYBRID_MOMENTUM
 #ifdef GRAVITY
+       const int nfoo = 17;
+#else
+       const int nfoo = 16;
+#endif
+#else
+#ifdef GRAVITY
        const int nfoo = 14;
 #else
        const int nfoo = 13;
 #endif
-#else
-#ifdef GRAVITY
-       const int nfoo = 11;
-#else
-       const int nfoo = 10;
-#endif
 #endif
 
-        Real foo[nfoo] = {mass, mom[0], mom[1], mom[2], ang_mom[0], ang_mom[1], ang_mom[2],
+        Real foo[nfoo] = {mass, mom[0], mom[1], mom[2],
+                          com[0], com[1], com[2],
+                          ang_mom[0], ang_mom[1], ang_mom[2],
 #ifdef HYBRID_MOMENTUM
                           hyb_mom[0], hyb_mom[1], hyb_mom[2],
 #endif
@@ -110,14 +217,17 @@ Castro::sum_integrated_quantities ()
                           rho_e, rho_K, rho_E};
 #endif
 
+        const int nfoo_max = 3;
+
+        Real foo_max[nfoo_max] = {T_max, rho_max, ts_te_max};
+
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
 
         ParallelDescriptor::ReduceRealSum(foo, nfoo, ParallelDescriptor::IOProcessorNumber());
 
-        if (show_center_of_mass)
-            ParallelDescriptor::ReduceRealSum(com, 3, ParallelDescriptor::IOProcessorNumber());
+        ParallelDescriptor::ReduceRealMax(foo_max, nfoo_max, ParallelDescriptor::IOProcessorNumber());
 
         if (ParallelDescriptor::IOProcessor()) {
 
@@ -126,6 +236,9 @@ Castro::sum_integrated_quantities ()
             mom[0]     = foo[i++];
             mom[1]     = foo[i++];
             mom[2]     = foo[i++];
+            com[0]     = foo[i++];
+            com[1]     = foo[i++];
+            com[2]     = foo[i++];
             ang_mom[0] = foo[i++];
             ang_mom[1] = foo[i++];
             ang_mom[2] = foo[i++];
@@ -151,6 +264,16 @@ Castro::sum_integrated_quantities ()
             }
 #endif
 
+            for (int idir = 0; idir < 3; idir++) {
+                com[idir]     = com[idir] / mass;
+                com_vel[idir] = mom[idir] / mass;
+            }
+
+            i = 0;
+            T_max     = foo_max[i++];
+            rho_max   = foo_max[i++];
+            ts_te_max = foo_max[i++];
+
             std::cout << '\n';
             std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
             std::cout << "TIME= " << time << " XMOM        = "   << mom[0]    << '\n';
@@ -170,6 +293,20 @@ Castro::sum_integrated_quantities ()
 #ifdef GRAVITY
             std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
             std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';
+#endif
+            std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
+
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
+
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
+            std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
+
+            std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
+            std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
+#ifdef REACTION
+            std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
 #endif
 
             std::ostream& data_log1 = *Castro::data_logs[0];
@@ -205,6 +342,17 @@ Castro::sum_integrated_quantities ()
                    header << std::setw(datwidth) << "             GRAV. ENERGY"; ++n;
                    header << std::setw(datwidth) << "             TOTAL ENERGY"; ++n;
 #endif
+                   header << std::setw(datwidth) << "     CENTER OF MASS X-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Y-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Z-LOC"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS X-VEL"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Y-VEL"; ++n;
+                   header << std::setw(datwidth) << "     CENTER OF MASS Z-VEL"; ++n;
+                   header << std::setw(datwidth) << "      MAXIMUM TEMPERATURE"; ++n;
+                   header << std::setw(datwidth) << "          MAXIMUM DENSITY"; ++n;
+#ifdef REACTIONS
+                   header << std::setw(datwidth) << "        MAXIMUM T_S / T_E"; ++n;
+#endif
 
                    header << std::endl;
 
@@ -225,7 +373,10 @@ Castro::sum_integrated_quantities ()
 
                data_log1 << std::setw(intwidth) <<  timestep;
 
-               if (time < 1.e-4_rt || time > 1.e4_rt) {
+               if (time == 0.0_rt) {
+                   data_log1 << std::fixed;
+               }
+               else if (time < 1.e-4_rt || time > 1.e4_rt) {
                    data_log1 << std::scientific;
                }
                else {
@@ -255,24 +406,20 @@ Castro::sum_integrated_quantities ()
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
                data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
 #endif
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com[2];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << com_vel[2];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << T_max;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_max;
+#ifdef REACTIONS
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ts_te_max;
+#endif
+
                data_log1 << std::endl;
 
-            }
-
-            if (show_center_of_mass) {
-                for (int idir = 0; idir <= 2; idir++) {
-                  com[idir]     = com[idir] / mass;
-                  com_vel[idir] = mom[idir] / mass;
-                }
-
-                std::cout << "TIME= " << time << " CENTER OF MASS X-LOC = " << com[0]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS X-VEL = " << com_vel[0] << '\n';
-
-                std::cout << "TIME= " << time << " CENTER OF MASS Y-LOC = " << com[1]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS Y-VEL = " << com_vel[1] << '\n';
-
-                std::cout << "TIME= " << time << " CENTER OF MASS Z-LOC = " << com[2]     << '\n';
-                std::cout << "TIME= " << time << " CENTER OF MASS Z-VEL = " << com_vel[2] << '\n';
             }
         }
 #ifdef BL_LAZY
@@ -365,7 +512,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -407,8 +557,9 @@ Castro::sum_integrated_quantities ()
         // Integrated mass of all species on the domain
 
         for (int lev = 0; lev <= finest_level; ++lev) {
+            MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
             for (int i = 0; i < NumSpec; ++i) {
-                species_mass[i] += getLevel(lev).volWgtSum("rho_" + species_names[i], time, local_flag) / C::M_solar;
+                species_mass[i] += getLevel(lev).volWgtSum(S_new, UFS + i, local_flag) / C::M_solar;
             }
         }
 
@@ -469,7 +620,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -510,6 +664,15 @@ Castro::sum_integrated_quantities ()
         ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
 #endif
 
+        // Calculate maximum number of advance subcycles across all levels.
+
+        int max_num_subcycles = 0;
+        if (time > 0.0_rt) {
+            for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
+                max_num_subcycles = std::max(max_num_subcycles, getLevel(lev).num_subcycles_taken);
+            }
+        }
+
         if (ParallelDescriptor::IOProcessor()) {
 
             std::ostream& log = *Castro::data_logs[3];
@@ -524,6 +687,7 @@ Castro::sum_integrated_quantities ()
                 header << std::setw(fixwidth) << "                     TIME"; ++n;
                 header << std::setw(fixwidth) << "                       DT"; ++n;
                 header << std::setw(intwidth) << "  FINEST LEV";              ++n;
+                header << std::setw(fixwidth) << "  MAX NUMBER OF SUBCYCLES"; ++n;
                 header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
 #ifdef AMREX_USE_GPU
                 header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
@@ -540,8 +704,9 @@ Castro::sum_integrated_quantities ()
                 }
 
                 log << std::setw(intwidth) << 4; // Handle the finest lev column
+                log << std::setw(fixwidth) << 5; // Handle the subcycle count column
 
-                for (int i = 5; i <= n; ++i) {
+                for (int i = 6; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
                 }
 
@@ -555,7 +720,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -568,6 +736,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
+            log << std::setw(fixwidth)                                    << max_num_subcycles;
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
 #ifdef AMREX_USE_GPU
             log << std::setw(datwidth)                                    << gpu_size_used_MB;

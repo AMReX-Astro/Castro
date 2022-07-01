@@ -42,15 +42,6 @@ Castro::problem_post_timestep()
 
     update_relaxation(time, dt);
 
-    // Update extrema on the domain.
-
-    update_extrema(time);
-
-    // Some of the problems might have stopping conditions that depend on
-    // the state of the simulation; those are checked here.
-
-    check_to_stop(time);
-
     // Compute any integral quantities.
 
     problem_sums();
@@ -77,9 +68,6 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Update the problem center using the system bulk velocity
-    update_center(time);
-
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;
@@ -103,6 +91,7 @@ Castro::wd_update (Real time, Real dt)
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
       Castro& c_lev = getLevel(lev);
+      MultiFab& S_new = c_lev.get_new_data(State_Type);
 
       GeometryData geomdata = c_lev.geom.data();
 
@@ -123,48 +112,24 @@ Castro::wd_update (Real time, Real dt)
           }
       }
 
-      // Density and momenta
-
-      auto mfrho  = c_lev.derive("density",time,0);
-      auto mfxmom = c_lev.derive("xmom",time,0);
-      auto mfymom = c_lev.derive("ymom",time,0);
-      auto mfzmom = c_lev.derive("zmom",time,0);
-
-      // Masks for the primary and secondary
-
-      auto mfpmask = c_lev.derive("primarymask", time, 0);
-      auto mfsmask = c_lev.derive("secondarymask", time, 0);
-
-      BL_ASSERT(mfrho   != nullptr);
-      BL_ASSERT(mfxmom  != nullptr);
-      BL_ASSERT(mfymom  != nullptr);
-      BL_ASSERT(mfzmom  != nullptr);
-      BL_ASSERT(mfpmask != nullptr);
-      BL_ASSERT(mfsmask != nullptr);
-
-      if (lev < parent->finestLevel())
-      {
-          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-
-          MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+      bool mask_available = true;
+      if (lev == parent->finestLevel()) {
+          mask_available = false;
       }
+
+      MultiFab tmp_mf;
+      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          auto rho   = (*mfrho )[mfi].array();
-          auto xmom  = (*mfxmom)[mfi].array();
-          auto ymom  = (*mfymom)[mfi].array();
-          auto zmom  = (*mfzmom)[mfi].array();
-          auto pmask = (*mfpmask)[mfi].array();
-          auto smask = (*mfsmask)[mfi].array();
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          auto rho   = S_new[mfi].array(URHO);
+          auto xmom  = S_new[mfi].array(UMX);
+          auto ymom  = S_new[mfi].array(UMY);
+          auto zmom  = S_new[mfi].array(UMZ);
           auto vol   = c_lev.volume[mfi].array();
+          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
           const Box& box  = mfi.tilebox();
 
@@ -205,10 +170,18 @@ Castro::wd_update (Real time, Real dt)
                   }
               }
 
-              Real dm = rho(i,j,k) * vol(i,j,k);
+              Real maskFactor = 1.0;
+
+              if (mask_available) {
+                  maskFactor = level_mask(i,j,k);
+              }
+
+              Real dm = rho(i,j,k) * vol(i,j,k) * maskFactor;
 
               Real dmSymmetric = dm;
-              GpuArray<Real, 3> momSymmetric{xmom(i,j,k), ymom(i,j,k), zmom(i,j,k)};
+              GpuArray<Real, 3> momSymmetric{xmom(i,j,k) * maskFactor,
+                                             ymom(i,j,k) * maskFactor,
+                                             zmom(i,j,k) * maskFactor};
 
               if (coord_type == 0) {
 
@@ -238,12 +211,12 @@ Castro::wd_update (Real time, Real dt)
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
 
-              if (pmask(i,j,k) > 0.0_rt) {
+              if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
 
                   primary_factor = 1.0_rt;
 
               }
-              else if (smask(i,j,k) > 0.0_rt) {
+              else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
 
                   secondary_factor = 1.0_rt;
 
@@ -422,38 +395,28 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
       Castro& c_lev = getLevel(lev);
 
-      const auto dx = c_lev.geom.CellSizeArray();
-      auto mf = c_lev.derive("density",time,0);
+      auto geomdata = c_lev.geom.data();
+      MultiFab& S_new = c_lev.get_new_data(State_Type);
 
-      // Effective potentials of the primary and secondary
-
-      auto mfpmask = c_lev.derive("primarymask", time, 0);
-      auto mfsmask = c_lev.derive("secondarymask", time, 0);
-
-      BL_ASSERT(mf      != nullptr);
-      BL_ASSERT(mfpmask != nullptr);
-      BL_ASSERT(mfsmask != nullptr);
-
-      if (lev < parent->finestLevel())
-      {
-	  const MultiFab& mask = c_lev.getLevel(lev+1).build_fine_mask();
-	  MultiFab::Multiply(*mf,      mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+      bool mask_available = true;
+      if (lev == parent->finestLevel()) {
+          mask_available = false;
       }
+
+      MultiFab tmp_mf;
+      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
       ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
       ReduceData<Real, Real> reduce_data(reduce_op);
       using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          auto rho   = (*mf)[mfi].array();
-          auto pmask = (*mfpmask)[mfi].array();
-          auto smask = (*mfsmask)[mfi].array();
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          auto rho   = S_new[mfi].array(URHO);
           auto vol   = c_lev.volume[mfi].array();
+          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
 	  const Box& box  = mfi.tilebox();
 
@@ -469,14 +432,19 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
 
-              if (rho(i,j,k) > rho_cutoff) {
+              Real maskFactor = 1.0;
+              if (mask_available) {
+                  maskFactor = level_mask(i,j,k);
+              }
 
-                  if (pmask(i,j,k) > 0.0_rt) {
+              if (rho(i,j,k) * maskFactor > rho_cutoff) {
+
+                  if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
 
                       primary_factor = 1.0_rt;
 
                   }
-                  else if (smask(i,j,k) > 0.0_rt) {
+                  else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
 
                       secondary_factor = 1.0_rt;
 
@@ -484,7 +452,8 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
               }
 
-              return {vol(i,j,k) * primary_factor, vol(i,j,k) * secondary_factor};
+              return {vol(i,j,k) * maskFactor * primary_factor,
+                      vol(i,j,k) * maskFactor * secondary_factor};
           });
 
       }
@@ -537,15 +506,6 @@ void Castro::problem_post_init() {
   using namespace wdmerger;
   using namespace problem;
 
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
-
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
   // This should generally be the last operation
@@ -561,21 +521,6 @@ void Castro::problem_post_restart() {
 
   using namespace wdmerger;
   using namespace problem;
-
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
-
-  // Reset current values of extrema.
-
-  T_curr_max = T_global_max;
-  rho_curr_max = rho_global_max;
-  ts_te_curr_max = ts_te_global_max;
 
   // If we're restarting from a checkpoint at t = 0 but don't yet
   // have diagnostics, we want to generate the headers and the t = 0
@@ -605,16 +550,6 @@ void Castro::problem_post_restart() {
 
   }
 
-  // It is possible that we are restarting from a checkpoint
-  // that already satisfies the stopping criteria. If so, we
-  // should honor that constraint, and refuse to take more
-  // timesteps. In this case we do not want to dump a checkpoint,
-  // since we have not advanced at all and we would just be
-  // overwriting the existing checkpoint.
-
-  const bool dump = false;
-  check_to_stop(time, dump);
-
 }
 
 
@@ -628,209 +563,6 @@ void Castro::writeGitHashes(std::ostream& log) {
   log << "# Castro       git hash: " << castro_hash       << std::endl;
   log << "# AMReX        git hash: " << amrex_hash        << std::endl;
   log << "# Microphysics git hash: " << microphysics_hash << std::endl;
-
-}
-
-
-
-void Castro::check_to_stop(Real time, bool dump) {
-
-    using namespace wdmerger;
-    using namespace problem;
-
-    if (use_stopping_criterion) {
-
-        // Note that we don't want to use the following in 1D
-        // since we're not simulating gravitationally bound systems.
-
-#if AMREX_SPACEDIM > 1
-        if (use_energy_stopping_criterion) {
-
-            // For the collision problem, we know we are done when the total energy
-            // is positive (indicating that we have become unbound due to nuclear
-            // energy release) and when it is decreasing in magnitude (indicating
-            // all of the excitement is done and fluid is now just streaming off
-            // the grid). We don't need to be super accurate for this, so let's check
-            // on the coarse grid only. It is possible that a collision could not
-            // generate enough energy to become unbound, so possibly this criterion
-            // should be expanded in the future to cover that case.
-
-            Real rho_E = 0.0;
-            Real rho_phi = 0.0;
-
-            // Note that we'll define the total energy using only
-            // gas energy + gravitational. Rotation is never on
-            // for the collision problem so we can ignore it.
-
-            Real E_tot = 0.0;
-
-            Real curTime   = state[State_Type].curTime();
-
-            bool local_flag = true;
-            bool fine_mask = false;
-
-            rho_E += volWgtSum("rho_E", curTime,  local_flag, fine_mask);
-
-#ifdef GRAVITY
-            if (do_grav) {
-                rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
-            }
-#endif
-
-            E_tot = rho_E + 0.5 * rho_phi;
-
-            amrex::ParallelDescriptor::ReduceRealSum(E_tot);
-
-            // Put this on the end of the energy array.
-
-            for (int i = num_previous_ener_timesteps - 1; i > 0; --i)
-                total_ener_array[i] = total_ener_array[i - 1];
-
-            total_ener_array[0] = E_tot;
-
-            bool stop_flag = false;
-
-            int i = 0;
-
-            // Check if energy is positive and has been decreasing for at least the last few steps.
-
-            while (i < num_previous_ener_timesteps - 1) {
-
-                if (total_ener_array[i] < 0.0)
-                    break;
-                else if (total_ener_array[i] > total_ener_array[i + 1])
-                    break;
-
-                ++i;
-
-            }
-
-            if (i == num_previous_ener_timesteps - 1)
-                stop_flag = true;
-
-            if (stop_flag) {
-
-                problem::jobIsDone = 1;
-
-                amrex::Print() << std::endl 
-                               << "Ending simulation because total energy is positive and decreasing." 
-                               << std::endl;
-
-            }
-
-        }
-#endif
-
-        if (ts_te_curr_max >= ts_te_stopping_criterion) {
-
-            problem::jobIsDone = 1;
-
-            amrex::Print() << std::endl
-                           << "Ending simulation because we are above the threshold for unstable burning."
-                           << std::endl;
-
-        }
-
-        if (T_curr_max >= T_stopping_criterion) {
-
-            problem::jobIsDone = 1;
-
-            amrex::Print() << std::endl
-                           << "Ending simulation because we are above the temperature threshold."
-                           << std::endl;
-
-        }
-
-
-    }
-
-    // Is the job done? If so, signal this to AMReX.
-
-    if (problem::jobIsDone) {
-
-      signalStopJob = true;
-
-      // Write out a checkpoint. Note that this will
-      // only happen if you have amr.message_int = 1.
-
-      if (dump && amrex::ParallelDescriptor::IOProcessor()) {
-	std::ofstream dump_file;
-	dump_file.open("dump_and_stop", std::ofstream::out);
-	dump_file.close();
-
-        // Also write out a file signifying that we're done with the simulation.
-
-        std::ofstream jobDoneFile;
-        jobDoneFile.open("jobIsDone", std::ofstream::out);
-        jobDoneFile.close();
-      }
-
-    }
-
-}
-
-
-
-void Castro::update_extrema(Real time) {
-
-    using namespace wdmerger;
-    using namespace problem;
-
-    // Compute extrema
-
-    bool local_flag = true;
-
-    T_curr_max     = 0.0;
-    rho_curr_max   = 0.0;
-    ts_te_curr_max = 0.0;
-
-    int finest_level = parent->finestLevel();
-
-    for (int lev = 0; lev <= finest_level; lev++) {
-
-      auto T = parent->getLevel(lev).derive("Temp", time, 0);
-      auto rho = parent->getLevel(lev).derive("density", time, 0);
-#ifdef REACTIONS
-      auto ts_te = parent->getLevel(lev).derive("t_sound_t_enuc", time, 0);
-#endif
-
-      if (lev < finest_level) {
-          const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-          MultiFab::Multiply(*T, mask, 0, 0, 1, 0);
-          MultiFab::Multiply(*rho, mask, 0, 0, 1, 0);
-#ifdef REACTIONS
-          MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
-#endif
-      }
-
-      T_curr_max = std::max(T_curr_max, T->max(0, 0, local_flag));
-      rho_curr_max = std::max(rho_curr_max, rho->max(0, 0, local_flag));
-
-#ifdef REACTIONS
-      ts_te_curr_max = std::max(ts_te_curr_max, ts_te->max(0, 0, local_flag));
-#endif
-
-    }
-
-    // Max reductions
-
-    const int nfoo_max = 3;
-
-    Real foo_max[3];
-
-    foo_max[0] = T_curr_max;
-    foo_max[1] = rho_curr_max;
-    foo_max[2] = ts_te_curr_max;
-
-    amrex::ParallelDescriptor::ReduceRealMax(foo_max, nfoo_max);
-
-    T_curr_max     = foo_max[0];
-    rho_curr_max   = foo_max[1];
-    ts_te_curr_max = foo_max[2];
-
-    T_global_max     = std::max(T_global_max, T_curr_max);
-    rho_global_max   = std::max(rho_global_max, rho_curr_max);
-    ts_te_global_max = std::max(ts_te_global_max, ts_te_curr_max);
 
 }
 
@@ -889,8 +621,24 @@ Castro::update_relaxation(Real time, Real dt) {
 
         if (lev < parent->finestLevel()) {
             const MultiFab& mask = getLevel(lev+1).build_fine_mask();
-            for (int n = 0; n < NUM_STATE; ++n)
-                MultiFab::Multiply(*force[lev], mask, 0, n, 1, 0);
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(*force[lev], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+                const Box& bx = mfi.tilebox();
+
+                auto F = (*force[lev])[mfi].array();
+                auto m = mask[mfi].array();
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                {
+                    for (int n = 0; n < NUM_STATE; ++n) {
+                        F(i,j,k,n) *= m(i,j,k);
+                    }
+                });
+            }
         }
 
     }
@@ -904,10 +652,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-        auto pmask = getLevel(lev).derive("primarymask", time, 0);
-        auto smask = getLevel(lev).derive("secondarymask", time, 0);
-
         MultiFab& vol = getLevel(lev).Volume();
+
+        auto geomdata = getLevel(lev).geom.data();
 
         const int coord_type = geom.Coord();
 
@@ -930,10 +677,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
             // Compute the sum of the hydrodynamic and gravitational forces acting on the WDs.
 
+            Array4<Real const> const rho_arr   = S_new[mfi].array(URHO);
             Array4<Real const> const force_arr = (*force[lev]).array(mfi);
             Array4<Real const> const vol_arr   = vol.array(mfi);
-            Array4<Real const> const pmask_arr = (*pmask).array(mfi);
-            Array4<Real const> const smask_arr = (*smask).array(mfi);
 
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -979,11 +725,11 @@ Castro::update_relaxation(Real time, Real dt) {
                 Real primary_factor = 0.0_rt;
                 Real secondary_factor = 0.0_rt;
 
-                if (pmask_arr(i,j,k) > 0.0_rt) {
+                if (stellar_mask(i, j, k, geomdata, rho_arr, true) > 0.0_rt) {
 
                     primary_factor = 1.0_rt;
 
-                } else if (smask_arr(i,j,k) > 0.0_rt) {
+                } else if (stellar_mask(i, j, k, geomdata, rho_arr, false) > 0.0_rt) {
 
                     secondary_factor = 1.0_rt;
 
@@ -1051,7 +797,7 @@ Castro::update_relaxation(Real time, Real dt) {
     const auto dx = geom.CellSizeArray();
     GeometryData geomdata = geom.data();
 
-    auto mfphieff = derive("phiEff", time, 0);
+    MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
     Real potential;
 
@@ -1066,11 +812,11 @@ Castro::update_relaxation(Real time, Real dt) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(*mfphieff, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(phi_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& bx = mfi.tilebox();
 
-            Array4<Real const> const phiEff = (*mfphieff).array(mfi);
+            Array4<Real const> const phi = phi_new[mfi].array();
 
             // Determine the critical Roche potential at the Lagrange point L1.
             // We will use a tri-linear interpolation that gets a contribution
@@ -1081,6 +827,10 @@ Castro::update_relaxation(Real time, Real dt) {
             {
                 GpuArray<Real, 3> r;
                 position(i, j, k, geomdata, r);
+
+                // Compute the effective potential.
+
+                Real phiEff = phi(i,j,k) + rotational_potential(r);
 
                 for (int n = 0; n < 3; ++n) {
                     r[n] -= L1[n];
@@ -1101,7 +851,7 @@ Castro::update_relaxation(Real time, Real dt) {
                 Real dP = 0.0_rt;
 
                 if ((r[0] * r[0] + r[1] * r[1] + r[2] * r[2]) < 1.0_rt) {
-                    dP = (1.0_rt - std::abs(r[0])) * (1.0_rt - std::abs(r[1])) * (1.0_rt - std::abs(r[2])) * phiEff(i,j,k);
+                    dP = (1.0_rt - std::abs(r[0])) * (1.0_rt - std::abs(r[1])) * (1.0_rt - std::abs(r[2])) * phiEff;
                 }
 
                 return dP;
@@ -1134,7 +884,7 @@ Castro::update_relaxation(Real time, Real dt) {
             const Box& bx = mfi.tilebox();
 
             Array4<Real const> const u = S_new.array(mfi);
-            Array4<Real const> const phiEff = (*mfphieff).array(mfi);
+            Array4<Real const> const phi = phi_new.array(mfi);
 
             // Check whether we should stop the initial relaxation.
             // The criterion is that we're outside the critical Roche surface
@@ -1145,9 +895,14 @@ Castro::update_relaxation(Real time, Real dt) {
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
+                GpuArray<Real, 3> r;
+                position(i, j, k, geomdata, r);
+
+                Real phiEff = phi(i,j,k) + rotational_potential(r);
+
                 Real done = 0.0_rt;
 
-                if (phiEff(i,j,k) > potential && u(i,j,k,URHO) > relaxation_density_cutoff) {
+                if (phiEff > potential && u(i,j,k,URHO) > relaxation_density_cutoff) {
                     done = 1.0_rt;
                 }
 
@@ -1196,8 +951,6 @@ Castro::problem_sums ()
 
     if (level > 0) return;
 
-    bool local_flag = true;
-
     int finest_level  = parent->finestLevel();
     Real time         = state[State_Type].curTime();
     Real dt           = parent->dtLevel(0);
@@ -1206,35 +959,9 @@ Castro::problem_sums ()
 
     int timestep = parent->levelSteps(0);
 
-    Real mass                 = 0.0;
-    Real momentum[3]          = { 0.0 };
-    Real angular_momentum[3]  = { 0.0 };
-    Real hybrid_momentum[3]   = { 0.0 };
-    Real rho_E                = 0.0;
-    Real rho_e                = 0.0;
-    Real rho_K                = 0.0;
-    Real rho_phi              = 0.0;
-    Real rho_phirot           = 0.0;
-
-    // Total energy on the grid, including decomposition
-    // into the various components.
-
-    Real gravitational_energy = 0.0;
-    Real kinetic_energy       = 0.0;
-    Real gas_energy           = 0.0;
-    Real rotational_energy    = 0.0;
-    Real internal_energy      = 0.0;
-    Real total_energy         = 0.0;
-    Real total_E_grid         = 0.0;
-
     // Mass transfer rate
 
     Real mdot = 0.5 * (std::abs(mdot_P) + std::abs(mdot_S));
-
-    // Center of mass of the system.
-
-    Real com[3]       = { 0.0 };
-    Real com_vel[3]   = { 0.0 };
 
     // Distance between the WDs.
 
@@ -1258,9 +985,6 @@ Castro::problem_sums ()
     Real vel_P_phi = 0.0;
     Real vel_S_phi = 0.0;
 
-    std::string name1;
-    std::string name2;
-
     int dataprecision = 16; // Number of digits after the decimal point, for float data
 
     int datwidth      = 25; // Floating point data in scientific notation
@@ -1268,110 +992,6 @@ Castro::problem_sums ()
     int intwidth      = 12; // Integer data
 
     wd_dist_init[problem::axis_1 - 1] = 1.0;
-
-    for (int lev = 0; lev <= finest_level; lev++)
-    {
-
-      // Get the current level from Castro
-
-      Castro& ca_lev = getLevel(lev);
-
-      for ( int i = 0; i < 3; i++ ) {
-        com[i] += ca_lev.locWgtSum("density", time, i, local_flag);
-      }
-
-      // Calculate total mass, momentum, angular momentum, and energy of system.
-
-      mass += ca_lev.volWgtSum("density", time, local_flag);
-
-      momentum[0] += ca_lev.volWgtSum("inertial_momentum_x", time, local_flag);
-      momentum[1] += ca_lev.volWgtSum("inertial_momentum_y", time, local_flag);
-      momentum[2] += ca_lev.volWgtSum("inertial_momentum_z", time, local_flag);
-
-      angular_momentum[0] += ca_lev.volWgtSum("inertial_angular_momentum_x", time, local_flag);
-      angular_momentum[1] += ca_lev.volWgtSum("inertial_angular_momentum_y", time, local_flag);
-      angular_momentum[2] += ca_lev.volWgtSum("inertial_angular_momentum_z", time, local_flag);
-
-#ifdef HYBRID_MOMENTUM
-      hybrid_momentum[0] += ca_lev.volWgtSum("rmom", time, local_flag);
-      hybrid_momentum[1] += ca_lev.volWgtSum("lmom", time, local_flag);
-      hybrid_momentum[2] += ca_lev.volWgtSum("pmom", time, local_flag);
-#endif
-
-      rho_E += ca_lev.volWgtSum("rho_E", time, local_flag);
-      rho_K += ca_lev.volWgtSum("kineng",time, local_flag);
-      rho_e += ca_lev.volWgtSum("rho_e", time, local_flag);
-
-#ifdef GRAVITY
-      if (do_grav)
-        rho_phi += ca_lev.volProductSum("density", "phiGrav", time, local_flag);
-#endif
-
-#ifdef ROTATION
-      if (do_rotation)
-	rho_phirot += ca_lev.volWgtSum("rho_phiRot", time, local_flag);
-#endif
-
-    }
-
-    // Do the reductions.
-
-    int nfoo_sum = 18;
-
-    amrex::Vector<Real> foo_sum(nfoo_sum);
-
-    foo_sum[0] = mass;
-
-    for (int i = 0; i < 3; i++) {
-      foo_sum[i+1]  = com[i];
-      foo_sum[i+4]  = momentum[i];
-      foo_sum[i+7]  = angular_momentum[i];
-      foo_sum[i+10] = hybrid_momentum[i];
-    }
-
-    foo_sum[13] = rho_E;
-    foo_sum[14] = rho_K;
-    foo_sum[15] = rho_e;
-    foo_sum[16] = rho_phi;
-    foo_sum[17] = rho_phirot;
-
-    amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
-
-    mass = foo_sum[0];
-
-    for (int i = 0; i < 3; i++) {
-      com[i]              = foo_sum[i+1];
-      momentum[i]         = foo_sum[i+4];
-      angular_momentum[i] = foo_sum[i+7];
-      hybrid_momentum[i]  = foo_sum[i+10];
-    }
-
-    rho_E      = foo_sum[13];
-    rho_K      = foo_sum[14];
-    rho_e      = foo_sum[15];
-    rho_phi    = foo_sum[16];
-    rho_phirot = foo_sum[17];
-
-    // Complete calculations for energy and momenta
-
-    gravitational_energy = rho_phi;
-    if (gravity->get_gravity_type() == "PoissonGrav")
-      gravitational_energy *= 0.5; // avoids double counting
-    internal_energy = rho_e;
-    kinetic_energy = rho_K;
-    gas_energy = rho_E;
-    rotational_energy = rho_phirot;
-    total_E_grid = gravitational_energy + rho_E;
-    total_energy = total_E_grid + rotational_energy;
-
-    // Complete calculations for center of mass quantities
-
-    for ( int i = 0; i < 3; i++ ) {
-
-      com[i]       = com[i] / mass;
-      com_vel[i]   = momentum[i] / mass;
-
-    }
 
     com_P_mag += std::pow( std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5 );
     com_S_mag += std::pow( std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5 );
@@ -1671,67 +1291,6 @@ Castro::problem_sums ()
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
 	   for (int i = 0; i <= 6; ++i)
 	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
-
-	   log << std::endl;
-
-	 }
-
-      }
-
-      // Extrema over time of various quantities
-
-      if (parent->NumDataLogs() > 3) {
-
-	 std::ostream& log = parent->DataLog(3);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "               MAX T CURR"; ++n;
-	     header << std::setw(datwidth) << "             MAX RHO CURR"; ++n;
-	     header << std::setw(datwidth) << "           MAX TS_TE CURR"; ++n;
-	     header << std::setw(datwidth) << "           MAX T ALL TIME"; ++n;
-	     header << std::setw(datwidth) << "         MAX RHO ALL TIME"; ++n;
-	     header << std::setw(datwidth) << "       MAX TS_TE ALL TIME"; ++n;
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-
-	   log << std::scientific;
-
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << T_curr_max;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rho_curr_max;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << ts_te_curr_max;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << T_global_max;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rho_global_max;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << ts_te_global_max;
 
 	   log << std::endl;
 

@@ -63,18 +63,6 @@ void problem_source (int i, int j, int k,
             mom[dir] = state(i,j,k,UMX+dir);
         }
 
-#ifdef ROTATION
-        if (do_rotation == 1 && state_in_rotating_frame == 0) {
-            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                vel[dir] = rhoInv * mom[dir];
-            }
-            inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                mom[dir] = state(i,j,k,URHO) * vel[dir];
-            }
-        }
-#endif
-
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             Sr[dir] = mom[dir] * damping_factor;
             src(i,j,k,UMX+dir) += Sr[dir];
