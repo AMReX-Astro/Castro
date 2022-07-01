@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -135,9 +136,9 @@
            <div itemprop="articleBody">
              
   <section id="runtime-parameters">
-<h1>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h1>
+<h1>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading">¶</a></h1>
 <section id="introduction-to-runtime-parameters">
-<h2>Introduction to Runtime Parameters<a class="headerlink" href="#introduction-to-runtime-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction to Runtime Parameters<a class="headerlink" href="#introduction-to-runtime-parameters" title="Permalink to this heading">¶</a></h2>
 <p>Castro runtime parameters are set
 in the inputs file and managed by the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>
 class. For Castro-specific parameters, we list the runtime
@@ -153,7 +154,7 @@ of network, integrator, and EOS, and creates the <code class="docutils literal n
 <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code> files that manage the parameters.  These
 are set at runtime via the inputs file.</p>
 <section id="castro-specific-parameters">
-<h3>Castro-specific parameters<a class="headerlink" href="#castro-specific-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Castro-specific parameters<a class="headerlink" href="#castro-specific-parameters" title="Permalink to this heading">¶</a></h3>
 <p>The Castro parameters that control the behavior of the code and
 physics modules are listed in <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code> and take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
@@ -193,7 +194,7 @@ parameter definition will be used to generate the documentation
 describing the parameters.</p>
 </section>
 <section id="microphysics-extern-parameter-format">
-<h3>Microphysics/extern parameter format<a class="headerlink" href="#microphysics-extern-parameter-format" title="Permalink to this headline">¶</a></h3>
+<h3>Microphysics/extern parameter format<a class="headerlink" href="#microphysics-extern-parameter-format" title="Permalink to this heading">¶</a></h3>
 <p>The microphysics/extern parameter definitions take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment describing the parameter</span>
 <span class="n">name</span>              <span class="n">data</span><span class="o">-</span><span class="nb">type</span>       <span class="n">default</span><span class="o">-</span><span class="n">value</span>      <span class="n">priority</span>
@@ -206,7 +207,7 @@ specific implementations to override the general parameter defaults.</p>
 </section>
 </section>
 <section id="parameters-by-namespace">
-<h2>Parameters by Namespace<a class="headerlink" href="#parameters-by-namespace" title="Permalink to this headline">¶</a></h2>
+<h2>Parameters by Namespace<a class="headerlink" href="#parameters-by-namespace" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html">namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></a></li>

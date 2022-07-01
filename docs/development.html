@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -132,19 +133,19 @@
            <div itemprop="articleBody">
              
   <section id="development-best-practices">
-<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this headline">¶</a></h1>
+<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this heading">¶</a></h1>
 <section id="coding-conventions">
-<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline">¶</a></h2>
+<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this heading">¶</a></h2>
 <p>Castro development should do its best to adhere to the following coding
 style guidelines.</p>
 <section id="general">
-<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<h3>General<a class="headerlink" href="#general" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Indentation should be spaces, not tabs, with 4 spaces preferred.</p></li>
 </ul>
 </section>
 <section id="c">
-<h3>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
+<h3>C++<a class="headerlink" href="#c" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>Conditional should appear as:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">condition</span><span class="p">)</span><span class="w"></span>
@@ -165,7 +166,7 @@ style guidelines.</p>
 </ul>
 </section>
 <section id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h3>
 <p>C++ routines should use Doxygen style comments.</p>
 <ul>
 <li><p>C++ functions should be documented in the header file using the style:</p>
@@ -188,7 +189,7 @@ with a brief inline description:</p>
 </section>
 </section>
 <section id="castro-releases">
-<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this headline">¶</a></h2>
+<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this heading">¶</a></h2>
 <p>This outlines the procedure for doing the monthly Castro release.</p>
 <p>Castro uses submodules for dependencies, this means that, at a
 minimum, we must update the AMReX and  Microphysics submodules monthly when we
@@ -234,7 +235,7 @@ summarizing changes since last major release.</p></li>
 </ul>
 </div></blockquote>
 <section id="interim-updates">
-<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this headline">¶</a></h3>
+<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this heading">¶</a></h3>
 <p>When breaking changes to Microphysics occur in its development branch
 that Castro depends on, we must update the Microphysics submodule on
 the Castro development branch in the same way, replacing the git
@@ -249,7 +250,7 @@ submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
 </section>
 </section>
 <section id="continuous-integration">
-<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this headline">¶</a></h2>
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this heading">¶</a></h2>
 <p>We github actions to run integration tests on the code and to build and deploy the documentation.</p>
 <p>Currently, we run the <a class="reference external" href="https://clang-analyzer.llvm.org/">clang static analyzer</a>, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch.</p>
 </section>

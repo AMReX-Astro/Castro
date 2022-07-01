@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -134,7 +135,7 @@
            <div itemprop="articleBody">
              
   <section id="namespace-castro">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code><a class="headerlink" href="#namespace-castro" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code><a class="headerlink" href="#namespace-castro" title="Permalink to this heading">¶</a></h1>
 <p><strong>AMR</strong></p>
 <table class="docutils align-default" id="index-0">
 <colgroup>
@@ -630,21 +631,26 @@ decrease from one step to the next. Must be greater than
 1.0—use max_dt to set a cap on the timestep.</p></td>
 <td><p>1.1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">check_dt_after_advance</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">check_dt_before_advance</span></code></p></td>
+<td><p>whether to check that we will take a valid timestep before
+the advance</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">check_dt_after_advance</span></code></p></td>
 <td><p>whether to check that we took a valid timestep after the
 advance</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
 <td><p>enforce that the AMR plot interval must be hit exactly</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">small_plot_per_is_exact</span></code></p></td>
 <td><p>enforce that the AMR small plot interval must be hit
 exactly</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></p></td>
 <td><p>Retry a timestep if it violated the timestep-limiting
 criteria or other checks (negative density, burn failure)
 over the course of an advance. The criteria will suggest a
@@ -653,45 +659,45 @@ subcycled timesteps on the same level until we reach the
 original target time.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
 <td><p>When performing a retry, the factor to multiply the current
 timestep by when trying again.</p></td>
 <td><p>0.5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_small_density_cutoff</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_small_density_cutoff</span></code></p></td>
 <td><p>Skip retries for small (or negative) density if the zone’s
 density prior to the update was below this threshold.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_tolerance</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_tolerance</span></code></p></td>
 <td><p>Set the threshold for failing the species abundance
 validity check.</p></td>
 <td><p>1.e-2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_rho_cutoff</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">abundance_failure_rho_cutoff</span></code></p></td>
 <td><p>Do not abort for invalid species abundances if the zone’s
 density is below this threshold.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
 <td><p>Regrid after every timestep.</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
 <td><p>Do not permit more subcycled timesteps than this parameter.
 Set to a negative value to disable this criterion.</p></td>
 <td><p>10</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
 <td><p>Number of iterations for the simplified SDC advance.</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stopping_criterion_field</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stopping_criterion_field</span></code></p></td>
 <td><p>Field to use for determining whether to stop the
 simulation.</p></td>
 <td><p>“”</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stopping_criterion_value</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stopping_criterion_value</span></code></p></td>
 <td><p>Threshold value for determining whether to stop.</p></td>
 <td><p>1.e200</p></td>
 </tr>
@@ -1230,7 +1236,7 @@ parameters are managed by the python scripts.</p></td>
 </table>
 </section>
 <section id="namespace-diffusion">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code><a class="headerlink" href="#namespace-diffusion" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code><a class="headerlink" href="#namespace-diffusion" title="Permalink to this heading">¶</a></h1>
 <table class="docutils align-default" id="index-14">
 <colgroup>
 <col style="width: 37%" />
@@ -1257,7 +1263,7 @@ number means more output)</p></td>
 </table>
 </section>
 <section id="namespace-gravity">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code><a class="headerlink" href="#namespace-gravity" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code><a class="headerlink" href="#namespace-gravity" title="Permalink to this heading">¶</a></h1>
 <table class="docutils align-default" id="index-15">
 <colgroup>
 <col style="width: 37%" />
@@ -1348,7 +1354,7 @@ potential, rather than constructing it directly?</p></td>
 </table>
 </section>
 <section id="namespace-particles">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code><a class="headerlink" href="#namespace-particles" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code><a class="headerlink" href="#namespace-particles" title="Permalink to this heading">¶</a></h1>
 <table class="docutils align-default" id="index-16">
 <colgroup>
 <col style="width: 37%" />
@@ -1403,7 +1409,7 @@ particles are stored in output files</p></td>
 </table>
 </section>
 <section id="namespace-radiation">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">radiation</span></code><a class="headerlink" href="#namespace-radiation" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">radiation</span></code><a class="headerlink" href="#namespace-radiation" title="Permalink to this heading">¶</a></h1>
 <table class="docutils align-default" id="index-17">
 <colgroup>
 <col style="width: 37%" />
@@ -1448,7 +1454,7 @@ Bruenn 22: square root 32: Minerbo</p></td>
 </table>
 </section>
 <section id="namespace-radsolve">
-<h1>namespace: <code class="docutils literal notranslate"><span class="pre">radsolve</span></code><a class="headerlink" href="#namespace-radsolve" title="Permalink to this headline">¶</a></h1>
+<h1>namespace: <code class="docutils literal notranslate"><span class="pre">radsolve</span></code><a class="headerlink" href="#namespace-radsolve" title="Permalink to this heading">¶</a></h1>
 <table class="docutils align-default" id="index-18">
 <colgroup>
 <col style="width: 37%" />

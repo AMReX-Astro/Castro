@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -142,11 +143,11 @@
            <div itemprop="articleBody">
              
   <section id="gravity">
-<span id="ch-gravity"></span><h1>Gravity<a class="headerlink" href="#gravity" title="Permalink to this headline">¶</a></h1>
+<span id="ch-gravity"></span><h1>Gravity<a class="headerlink" href="#gravity" title="Permalink to this heading">¶</a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
 <section id="gravity-types">
-<h3>Gravity Types<a class="headerlink" href="#gravity-types" title="Permalink to this headline">¶</a></h3>
+<h3>Gravity Types<a class="headerlink" href="#gravity-types" title="Permalink to this heading">¶</a></h3>
 <p>Castro can incorporate gravity as a constant, monopole approximation,
 or a full Poisson solve. To enable gravity in the code, set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_GRAV</span> <span class="o">=</span> <span class="n">TRUE</span>
@@ -174,7 +175,7 @@ setting it in the <code class="docutils literal notranslate"><span class="pre">p
 </div>
 </section>
 <section id="integration-strategy">
-<h3>Integration Strategy<a class="headerlink" href="#integration-strategy" title="Permalink to this headline">¶</a></h3>
+<h3>Integration Strategy<a class="headerlink" href="#integration-strategy" title="Permalink to this heading">¶</a></h3>
 <p>Castro uses subcycling to integrate levels at different timesteps.
 The gravity algorithm needs to respect this to obtain full accuracy.
 When self-gravity is computed via a multigrid solve
@@ -231,7 +232,7 @@ the fine level(s) cover essentially all of the mass on the grid for
 all time.</p>
 </section>
 <section id="controls">
-<h3>Controls<a class="headerlink" href="#controls" title="Permalink to this headline">¶</a></h3>
+<h3>Controls<a class="headerlink" href="#controls" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>For the full Poisson solver
 (<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>), the behavior
@@ -301,9 +302,9 @@ determines how many levels can be tracked by the <code class="docutils literal n
 </section>
 </section>
 <section id="types-of-approximations">
-<h2>Types of Approximations<a class="headerlink" href="#types-of-approximations" title="Permalink to this headline">¶</a></h2>
+<h2>Types of Approximations<a class="headerlink" href="#types-of-approximations" title="Permalink to this heading">¶</a></h2>
 <section id="constantgrav">
-<h3><code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code><a class="headerlink" href="#constantgrav" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code><a class="headerlink" href="#constantgrav" title="Permalink to this heading">¶</a></h3>
 <p>Gravity can be defined as constant in direction and magnitude,
 defined in the inputs file by:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gravity</span><span class="o">.</span><span class="n">const_grav</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9.8</span>
@@ -321,7 +322,7 @@ The actual setting is done in Gravity.cpp as:</p>
 (vertical for 2D axisymmetric).</p>
 </section>
 <section id="monopolegrav">
-<span id="sec-monopole-grav"></span><h3><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code><a class="headerlink" href="#monopolegrav" title="Permalink to this headline">¶</a></h3>
+<span id="sec-monopole-grav"></span><h3><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code><a class="headerlink" href="#monopolegrav" title="Permalink to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> integrates the mass distribution on the grid
 in spherical shells, defining an enclosed mass and uses this
 to compute the gravitational potential and acceleration in a
@@ -386,7 +387,7 @@ that is not part of the grid.</p>
 <code class="docutils literal notranslate"><span class="pre">make_radial_phi</span></code> come into play?</p>
 </section>
 <section id="poissongrav">
-<h3><code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code><a class="headerlink" href="#poissongrav" title="Permalink to this headline">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code><a class="headerlink" href="#poissongrav" title="Permalink to this heading">¶</a></h3>
 <p>The most general case is a self-induced gravitational field,</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{g}(\mathbf{x},t) = \nabla \phi\]</div>
@@ -397,7 +398,7 @@ that is not part of the grid.</p>
 the monopole approximation in spherical coordinates is faster and more
 accurate than solving the Poisson equation.</p>
 <section id="poisson-boundary-conditions-2d">
-<h4>Poisson Boundary Conditions: 2D<a class="headerlink" href="#poisson-boundary-conditions-2d" title="Permalink to this headline">¶</a></h4>
+<h4>Poisson Boundary Conditions: 2D<a class="headerlink" href="#poisson-boundary-conditions-2d" title="Permalink to this heading">¶</a></h4>
 <p>In 2D, if boundary conditions are not periodic in both directions, we
 use a monopole approximation at the coarsest level. This involves
 computing an effective 1D radial density profile (on level = 0 only),
@@ -408,7 +409,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 0\)</span>). For more details, see Section <a class="reference external" href="#sec-monopole-grav">2.2</a>.</p>
 </section>
 <section id="poisson-boundary-conditions-3d">
-<span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
+<span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this heading">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
 is <span id="id2">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">47</a>]</span>.</p>
@@ -507,7 +508,7 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </section>
 </section>
 <section id="point-mass">
-<h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this headline">¶</a></h3>
+<h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this heading">¶</a></h3>
 <p>Pointmass gravity works with all other forms of gravity, it is not a
 separate option. Since the Poisson equation is linear in potential
 (and its derivative, the acceleration, is also linear), the point mass
@@ -529,7 +530,7 @@ back to the grid). This calculation is done in
 </section>
 </section>
 <section id="gr-correction">
-<h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this headline">¶</a></h2>
+<h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this heading">¶</a></h2>
 <p>In the cases of compact objects or very massive stars, the general
 relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id7" id="id3">2</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
@@ -619,7 +620,7 @@ really makes a difference. So <a class="reference internal" href="#equation-tov2
 <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> approximation.</p>
 </section>
 <section id="hydrodynamics-source-terms">
-<h2>Hydrodynamics Source Terms<a class="headerlink" href="#hydrodynamics-source-terms" title="Permalink to this headline">¶</a></h2>
+<h2>Hydrodynamics Source Terms<a class="headerlink" href="#hydrodynamics-source-terms" title="Permalink to this heading">¶</a></h2>
 <p>There are several options to incorporate the effects of gravity into
 the hydrodynamics system. The main parameter here is
 <code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code>.</p>
