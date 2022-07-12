@@ -17,7 +17,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.units import cm, amu
 from yt.frontends.boxlib.api import CastroDataset
 
-times = [0.0, 0.05, 0.1]
+times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25]
 
 def find_files(plist):
 
@@ -45,11 +45,24 @@ def doit(pfiles):
 
     field = "Temp"
 
-    grid = ImageGrid(fig, 111, nrows_ncols=(1, len(pfiles)),
-                     axes_pad=0.75, cbar_pad=0.05, label_mode="L", cbar_mode="each")
+    if len(pfiles) > 3:
+        nrows = 2
+        ncols = (len(pfiles) + 1)//2
+    else:
+        nrows = 1
+        ncols = len(pfiles)
+
+    grid = ImageGrid(fig, 111, nrows_ncols=(nrows, ncols),
+                     axes_pad=0.75, cbar_pad=0.05, label_mode="L", cbar_mode="single")
 
 
-    for i, pf in enumerate(pfiles):
+    for i in range(nrows * ncols):
+
+        if i < len(pfiles):
+            pf = pfiles[i]
+        else:
+            grid[i].remove()
+            continue
 
         ds = CastroDataset(pf)
 
