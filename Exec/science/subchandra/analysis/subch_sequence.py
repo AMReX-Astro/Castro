@@ -35,15 +35,12 @@ def find_files(plist):
 
     return files_to_plot
 
-def doit(pfiles):
+def doit(field, pfiles):
 
     print("looking to plot: ", pfiles)
 
 
     fig = plt.figure()
-
-
-    field = "Temp"
 
     if len(pfiles) > 3:
         nrows = 2
@@ -82,8 +79,18 @@ def doit(pfiles):
         sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="12")
         sp.set_buff_size((2400,2400))
         sp.annotate_text((0.05, 0.05), f"time = {float(ds.current_time):8.3f} s", coord_system="axis", text_args={"color": "black"})
-        sp.set_zlim(field, 5.e7, 4e9)
-        sp.set_cmap(field, "magma_r")
+
+        if field == "Temp":
+            sp.set_zlim(field, 5.e7, 4e9)
+            sp.set_cmap(field, "magma_r")
+        elif field == "enuc":
+            sp.set_log(field, True, linthresh=1.e18)
+            sp.set_zlim(field, -1.e22, 1.e22)
+            sp.set_cmap(field, "bwr")
+        elif field == "abar":
+            sp.set_zlim(field, 4, 28)
+            sp.set_log(field, False)
+            sp.set_cmap(field, "plasma_r")
 
         sp.set_axes_unit("km")
 
@@ -104,11 +111,13 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
 
+    p.add_argument("--var", type=str, default="Temp",
+                   help="variable to plot")
     p.add_argument("plotfiles", type=str, nargs="+",
                    help="list of plotfiles to plot")
 
     args = p.parse_args()
-
+    print(args)
     plist = find_files(args.plotfiles)
 
-    doit(plist)
+    doit(args.var, plist)
