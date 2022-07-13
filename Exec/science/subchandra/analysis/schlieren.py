@@ -10,6 +10,9 @@ import sys
 
 if __name__ == "__main__":
 
+    clip_val = -35.0
+    max_val = -19.0
+
     if len(sys.argv) < 2:
         sys.exit("Please provide a plotfile!")
 
@@ -62,7 +65,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(8, 10))
 
 
-    cax = ax.imshow(schlieren(sq, cutoff=-35).T,
+    cax = ax.imshow(schlieren(sq, cutoff=clip_val).T, vmin=clip_val, vmax=max_val,
                     origin='lower', cmap=plt.cm.bone_r)
     ax.set_xlabel(r'$r$')
     ax.set_ylabel(r'$z$')
