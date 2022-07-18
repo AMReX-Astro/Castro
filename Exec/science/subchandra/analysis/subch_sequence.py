@@ -17,7 +17,9 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.units import cm, amu
 from yt.frontends.boxlib.api import CastroDataset
 
-times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25]
+#times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35]
+times = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+#times = [0.0, 0.15, 0.3, 0.45]
 
 def find_files(plist):
 
@@ -42,7 +44,7 @@ def doit(field, pfiles):
 
     fig = plt.figure()
 
-    if len(pfiles) > 3:
+    if len(pfiles) > 4:
         nrows = 2
         ncols = (len(pfiles) + 1)//2
     else:
@@ -63,17 +65,19 @@ def doit(field, pfiles):
 
         ds = CastroDataset(pf)
 
+        domain_frac = 0.1
+
         xmin = ds.domain_left_edge[0]
-        xmax = 0.5*ds.domain_right_edge[0]
-        xctr = 0.5*(xmin + xmax)
+        xmax = domain_frac * ds.domain_right_edge[0]
+        xctr = 0.5 * (xmin + xmax)
         L_x = xmax - xmin
 
         ymin = ds.domain_left_edge[1]
         ymax = ds.domain_right_edge[1]
-        yctr = 0.5*(ymin + ymax)
+        yctr = 0.5 * (ymin + ymax)
         L_y = ymax - ymin
-        ymin = yctr - 0.25*L_y
-        ymax = yctr + 0.25*L_y
+        ymin = yctr - 0.5 * domain_frac * L_y
+        ymax = yctr + 0.5 * domain_frac * L_y
         L_y = ymax - ymin
 
         sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="12")

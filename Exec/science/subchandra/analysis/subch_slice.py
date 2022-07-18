@@ -19,17 +19,19 @@ from yt.frontends.boxlib.api import CastroDataset
 plotfile = sys.argv[1]
 ds = CastroDataset(plotfile)
 
+domain_frac = 0.1
+
 xmin = ds.domain_left_edge[0]
-xmax = 0.5*ds.domain_right_edge[0]
-xctr = 0.5*(xmin + xmax)
+xmax = domain_frac * ds.domain_right_edge[0]
+xctr = 0.5 * (xmin + xmax)
 L_x = xmax - xmin
 
 ymin = ds.domain_left_edge[1]
 ymax = ds.domain_right_edge[1]
-yctr = 0.5*(ymin + ymax)
+yctr = 0.5 * (ymin + ymax)
 L_y = ymax - ymin
-ymin = yctr - 0.25*L_y
-ymax = yctr + 0.25*L_y
+ymin = yctr - 0.5 * domain_frac * L_y
+ymax = yctr + 0.5 * domain_frac * L_y
 L_y = ymax - ymin
 
 fig = plt.figure()

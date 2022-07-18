@@ -7,6 +7,7 @@ import yt
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from yt.frontends.boxlib.api import CastroDataset
 
 if __name__ == "__main__":
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
 
     pf = sys.argv[1].replace("/","")
 
-    ds = yt.load(pf, hint="castro")
+    ds = CastroDataset(pf)
 
     level = 0
     dims = ds.domain_dimensions * ds.refine_by**level
