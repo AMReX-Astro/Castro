@@ -20,7 +20,7 @@ USE_CXX_MODEL_PARSER = TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch
+NETWORK_DIR := subch_approx
 
 INTEGRATOR_DIR := VODE
 
