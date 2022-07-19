@@ -580,6 +580,11 @@ Castro::read_params ()
             ppr.get("volume_weighting", volume_weighting);
             info.SetVolumeWeighting(volume_weighting);
         }
+        if (ppr.countval("derefine") > 0) {
+            int derefine;
+            ppr.get("derefine", derefine);
+            info.SetDerefine(derefine);
+        }
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
