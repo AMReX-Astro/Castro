@@ -10,11 +10,11 @@ geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  1.024e9 2.048e9
+geometry.prob_hi   =  5.12e9 1.024e10
 
-amr.n_cell         = 256 512
+amr.n_cell         = 1280 2560
 
-amr.max_level      = 2       # maximum level number allowed
+amr.max_level      = 1       # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -86,7 +86,7 @@ amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
 amr.plot_per        = 2.e-3
 
-amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
 
 amr.v               = 1       # control verbosity in Amr.cpp
