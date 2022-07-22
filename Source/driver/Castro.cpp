@@ -3999,16 +3999,16 @@ Castro::create_source_corrector()
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections && source_term_predictor == 1) {
 
-        // If we're doing simplified SDC, time-center the source term (using the
-        // current iteration's old sources and the last iteration's new
-        // sources). Since the "new-time" sources are just the corrector step
-        // of the predictor-corrector formalism, we want to add the full
-        // value of the "new-time" sources to the old-time sources to get a
-        // time-centered value. Note that, as above, the "new" data from the
-        // last step is currently residing in the "old" StateData since we
-        // have already done the swap.
+        // If we're doing simplified SDC, time-center the source terms for all
+        // but the first iteration.  We will use the last iteration's "new" source
+        // (which is of the form (S^{n+1,k-1} - S^n)/2) as the corrector to the
+        // current iteration's source, which will result in a source in the hydro
+        // prediction of the form: 1/2 (S^n + S^{n+1,k-1}).
+        //
+        // Since we are not doing this for the first iteration, we access the new-time
+        // data, which is the previous iteration's new source corrector.
 
-        const Real time = get_state_data(Source_Type).prevTime();
+        const Real time = get_state_data(Source_Type).curTime();
         if (sdc_iteration > 0) {
             AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
         } else {
