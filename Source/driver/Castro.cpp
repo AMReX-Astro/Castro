@@ -4009,9 +4009,15 @@ Castro::create_source_corrector()
         // have already done the swap.
 
         const Real time = get_state_data(Source_Type).prevTime();
+        if (sdc_iteration > 0) {
+            AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
+        } else {
+            // the first SDC iteration is using information from the previous
+            // step, so it is not centered for this current step, so we 
+            // zero things out
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
-
+            source_corrector.clear();
+        }
     }
 
 }
