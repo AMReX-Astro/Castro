@@ -4016,7 +4016,7 @@ Castro::create_source_corrector()
             // step, so it is not centered for this current step, so we 
             // zero things out
 
-            source_corrector.clear();
+            source_corrector.setVal(0.0, source_corrector.nGrow());
         }
     }
 
