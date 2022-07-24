@@ -14,7 +14,7 @@ geometry.prob_hi   =   1.024e9  1.024e9  1.024e9
 
 amr.n_cell         = 512 512 512
 
-amr.max_level      = 1       # maximum level number allowed
+amr.max_level      = 2       # maximum level number allowed
 
 castro.lo_bc       =  2 2 2
 castro.hi_bc       =  2 2 2
@@ -40,8 +40,20 @@ castro.use_flattening = 1
 
 castro.riemann_solver = 1
 
-gravity.gravity_type = MonopoleGrav
-gravity.drdxfac = 2
+# Full self-gravity with the Poisson equation
+gravity.gravity_type = PoissonGrav
+
+# Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.max_multipole_order = 6
+
+# Tolerance for multigrid solver for phi solves
+gravity.abs_tol = 1.e-10
+
+# Use sync solve for gravity after refluxing
+#gravity.no_sync = 0
+
+# Disable the use of the lagged composite correction for the potential
+gravity.do_composite_phi_correction = 0
 
 castro.sponge_upper_density = 1.e4
 castro.sponge_lower_density = 1.e2
@@ -58,6 +70,8 @@ castro.use_retry = 1
 castro.retry_subcycle_factor = 0.5
 castro.max_subcycles = 32
 
+castro.abundance_failure_rho_cutoff = 1.0
+
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
 
@@ -67,10 +81,10 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = subch_chk     # root name of checkpoint file
-amr.check_int       = 10     # number of timesteps between checkpoints
+amr.check_int       = 100     # number of timesteps between checkpoints
 amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
-amr.plot_per        = 1.e-3
+amr.plot_per        = 0.05
 
 amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -84,25 +98,39 @@ castro.store_burn_weights = 1
 castro.small_dens   = 1.e-5
 castro.small_temp   = 1.e5
 
+amr.small_plot_file = subch_smallplt        # root name of plotfile
+amr.small_plot_per  = 2.e-3      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp
+
+amr.derive_small_plot_vars = abar magvel enuc
+
+fab.format = NATIVE_32
+
+
 # problem parameters
 
 problem.model_name =  "sub_chandra.M_WD-1.1.M_He-0.051.hse.CO.N14.10km"
 
-problem.pert_temp_factor = 40.0
-problem.pert_rad_factor = 2
+problem.pert_temp_factor = 20.0
+problem.pert_rad_factor = 0.5
 problem.R_pert = 1.e7
 
 
 # tagging
 
-amr.refinement_indicators = tempgrad denerr
+amr.refinement_indicators = tempgrad denerr temperr
 
 amr.refine.tempgrad.relative_gradient = 2.0
 amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.max_level = 1
 
 amr.refine.denerr.value_greater = 1.0
 amr.refine.denerr.field_name = density
-amr.refine.denerr.max_level = 3
+amr.refine.denerr.max_level = 1
+
+amr.refine.temperr.value_greater = 1.e8
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 3
 
 # Microphysics
 
@@ -112,7 +140,7 @@ integrator.SMALL_X_SAFE = 1.e-10
 integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
-integrator.atol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-8
 integrator.jacobian = 2
 
 integrator.abort_on_failure = 0
