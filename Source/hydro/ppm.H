@@ -249,7 +249,7 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
                        const Real flatn,
                        Real& sm, Real& sp) {
 
-    Real tp[5];
+    Real tp[7];
 
     // compute the hydrostatic pressure in each zone center starting with i0
 
@@ -257,16 +257,20 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 
     Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
     Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
+    Real pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
 
     Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
     Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
+    Real pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
                  pp1_hse < 0.0 ||
                  pp2_hse < 0.0 ||
+                 pp3_hse < 0.0 ||
                  pm1_hse < 0.0 ||
-                 pm2_hse < 0.0;
+                 pm2_hse < 0.0 ||
+                 pm3_hse < 0.0;
 
 
     if (!ptest && rho[i0] >= pslope_cutoff_density) {
@@ -277,19 +281,23 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 
         tp[ip1] = p[ip1] - pp1_hse;
         tp[ip2] = p[ip2] - pp2_hse;
+        tp[ip3] = p[ip3] - pp3_hse;
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
+        tp[im3] = p[im3] - pm3_hse;
 
     } else {
 
         // don't subtract off HSE
 
+        tp[im3] = p[im3];
         tp[im2] = p[im2];
         tp[im1] = p[im1];
         tp[i0] = p[i0];
         tp[ip1]= p[ip1];
         tp[ip2] = p[ip2];
+        tp[ip3] = p[ip3];
     }
 
     ppm_reconstruct(tp, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flatn, sm, sp);
