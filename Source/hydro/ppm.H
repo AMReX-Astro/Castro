@@ -255,13 +255,13 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 
     Real p0_hse = p[i0];
 
-    Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
-    Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
-    Real pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
+    Real pp1_hse = p0_hse + 0.5_rt*dx * (rho[i0] * src[i0] + rho[ip1] * src[ip1]);
+    Real pp2_hse = pp1_hse + 0.5_rt*dx * (rho[ip1] * src[ip1] + rho[ip2] * src[ip2]);
+    Real pp3_hse = pp2_hse + 0.5_rt*dx * (rho[ip2] * src[ip2] + rho[ip3] * src[ip3]);
 
-    Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
-    Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
-    Real pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
+    Real pm1_hse = p0_hse - 0.5_rt*dx * (rho[i0] * src[i0] + rho[im1] * src[im1]);
+    Real pm2_hse = pm1_hse - 0.5_rt*dx * (rho[im1] * src[im1] + rho[im2] * src[im2]);
+    Real pm3_hse = pm2_hse - 0.5_rt*dx * (rho[im2] * src[im2] + rho[im3] * src[im3]);
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
