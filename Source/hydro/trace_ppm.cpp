@@ -224,8 +224,8 @@ Castro::trace_ppm(const Box& bx,
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
 
     if (use_pslope) {
-        Real trho[5];
-        Real src[5];
+        Real trho[7];
+        Real src[7];
 
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);
