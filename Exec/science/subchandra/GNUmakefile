@@ -16,6 +16,8 @@ USE_REACT  = TRUE
 
 USE_CXX_MODEL_PARSER = TRUE
 
+USE_SIMPLIFIED_SDC=TRUE
+
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
