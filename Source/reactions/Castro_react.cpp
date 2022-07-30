@@ -486,7 +486,7 @@ Castro::react_state(Real time, Real dt)
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_noreact, qaux_noreact);
+                                             q_noreact, qaux_noreact, q_noreact.len() == NQ);
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -575,7 +575,7 @@ Castro::react_state(Real time, Real dt)
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_new, qaux_new);
+                                             q_new, qaux_new, q_new.len() == NQ);
 
             // Compute the reaction source term.
 

@@ -88,6 +88,8 @@ Castro::consup_hydro(const Box& bx,
 
 void
 Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
+                       Array4<Real const> const& U_arr,
+                       Array4<Real const> const& rho_inv_arr,
                        Array4<Real const> const& q_arr,
                        Array4<Real const> const& qaux_arr,
                        Array4<Real const> const& srcQ,
@@ -116,7 +118,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     if (idir == 0) {
       trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ,
+                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -129,7 +131,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ,
+                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -144,7 +146,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm(bx,
                 idir,
-                q_arr, qaux_arr, srcQ,
+                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qzm, qzp,
                 vbx, dt);
 
@@ -158,6 +160,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 #ifdef RADIATION
 void
 Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
+                           Array4<Real const> const& U_arr,
+                           Array4<Real const> const& rho_inv_arr,
                            Array4<Real const> const& q_arr,
                            Array4<Real const> const& qaux_arr,
                            Array4<Real const> const& srcQ,
@@ -183,7 +187,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ,
+                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                     dloga,
@@ -196,7 +200,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ,
+                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qym, qyp,
 #if AMREX_SPACEDIM <= 2
                     dloga,
@@ -211,7 +215,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm_rad(bx,
                     idir,
-                    q_arr, qaux_arr, srcQ,
+                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qzm, qzp,
                     vbx, dt);
 
@@ -226,6 +230,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 
 void
 Castro::ctu_plm_states(const Box& bx, const Box& vbx,
+                       Array4<Real const> const& U_arr,
+                       Array4<Real const> const& rho_inv_arr,
                        Array4<Real const> const& q_arr,
                        Array4<Real const> const& qaux_arr,
                        Array4<Real const> const& srcQ,
@@ -267,7 +273,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
     if (idir == 0) {
       trace_plm(bx, 0,
-                q_arr, qaux_arr,
+                U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -279,7 +285,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_plm(bx, 1,
-                q_arr, qaux_arr,
+                U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -292,7 +298,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM == 3
     } else {
       trace_plm(bx, 2,
-                q_arr, qaux_arr,
+                U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qzm, qzp,
                 srcQ, vbx, dt);
 

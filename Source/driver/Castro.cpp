@@ -580,6 +580,11 @@ Castro::read_params ()
             ppr.get("volume_weighting", volume_weighting);
             info.SetVolumeWeighting(volume_weighting);
         }
+        if (ppr.countval("derefine") > 0) {
+            int derefine;
+            ppr.get("derefine", derefine);
+            info.SetDerefine(derefine);
+        }
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
@@ -3994,18 +3999,27 @@ Castro::create_source_corrector()
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections && source_term_predictor == 1) {
 
-        // If we're doing simplified SDC, time-center the source term (using the
-        // current iteration's old sources and the last iteration's new
-        // sources). Since the "new-time" sources are just the corrector step
-        // of the predictor-corrector formalism, we want to add the full
-        // value of the "new-time" sources to the old-time sources to get a
-        // time-centered value. Note that, as above, the "new" data from the
-        // last step is currently residing in the "old" StateData since we
-        // have already done the swap.
+        // If we're doing simplified SDC, our approach depends on
+        // iteration.  For the first iteration, we use the corrector
+        // from the previous timestep, which when combined with the
+        // old source, will give us a prediction of the time-centered
+        // source term.  For later iterations, we use the previous
+        // iteration's corrector.  Note that we swap time-levels
+        // before the start of the step, so for iteration 0 we access
+        // the previous step's corrector as the old data.  But there
+        // is no swap between iterations, so for later iterations, we
+        // use the new timelevel.
 
-        const Real time = get_state_data(Source_Type).prevTime();
+        if (sdc_iteration == 0) {
+            const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
+            AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
+
+        } else {
+            const Real time = get_state_data(Source_Type).curTime();
+
+            AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
+        }
 
     }
 
