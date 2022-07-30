@@ -652,21 +652,31 @@ Gravity::GetCrsePhi(int level,
     
     BL_ASSERT(level!=0);
 
-    const Real t_old = LevelData[level-1]->get_state_data(PhiGrav_Type).prevTime();
-    const Real t_new = LevelData[level-1]->get_state_data(PhiGrav_Type).curTime();
-    Real alpha = (time - t_old)/(t_new - t_old);
-    Real omalpha = 1.0 - alpha;
-
-    MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
-    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
-
     phi_crse.clear();
     phi_crse.define(grids[level-1], dmap[level-1], 1, 1); // BUT NOTE we don't trust phi's ghost cells.
 
-    MultiFab::LinComb(phi_crse,
-                      alpha  , phi_new, 0,
-                      omalpha, phi_old, 0,
-                      0, 1, 1);
+    const Real t_old = LevelData[level-1]->get_state_data(PhiGrav_Type).prevTime();
+    const Real t_new = LevelData[level-1]->get_state_data(PhiGrav_Type).curTime();
+    Real alpha = (time - t_old) / (t_new - t_old);
+    Real omalpha = 1.0_rt - alpha;
+    const Real threshold = 1.e-6_rt;
+
+    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
+
+    if (std::abs(omalpha) < threshold) {
+        MultiFab::Copy(phi_crse, phi_new, 0, 0, 1, 1);
+    }
+    else if (std::abs(alpha) < threshold) {
+        // Note we only access the old time if it's actually needed, to guard against
+        // scenarios where it may not be allocated yet, for example after a restart when
+        // the old time was not dumped to the checkpoint.
+        MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+        MultiFab::Copy(phi_crse, phi_old, 0, 0, 1, 1);
+    }
+    else {
+        MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+        MultiFab::LinComb(phi_crse, alpha, phi_new, 0, omalpha, phi_old, 0, 0, 1, 1);
+    }
 
     const Geometry& geom = parent->Geom(level-1);
     phi_crse.FillBoundary(geom.periodicity());
