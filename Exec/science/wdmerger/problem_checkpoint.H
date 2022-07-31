@@ -39,18 +39,6 @@ void problem_checkpoint (std::string checkpoint_dir)
 
 
 
-    std::ofstream rotation;
-    rotation.open(checkpoint_dir + "/Rotation", std::ios::out);
-
-    rotation << std::scientific;
-    rotation.precision(19);
-
-    rotation << std::setw(30) << castro::rotational_period << std::endl;
-
-    rotation.close();
-
-
-
     std::ofstream relaxation;
     relaxation.open(checkpoint_dir + "/Relaxation", std::ios::out);
 

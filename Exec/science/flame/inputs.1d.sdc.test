@@ -63,6 +63,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 amr.plot_file       = plt        # root name of plotfile
 amr.plot_per        = 5.e-5
 amr.derive_plot_vars = ALL
+castro.store_omegadot = 1
 
 # problem initialization
 

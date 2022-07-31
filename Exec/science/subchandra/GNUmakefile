@@ -16,11 +16,13 @@ USE_REACT  = TRUE
 
 USE_CXX_MODEL_PARSER = TRUE
 
+USE_SIMPLIFIED_SDC=TRUE
+
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch
+NETWORK_DIR := subch_approx
 
 INTEGRATOR_DIR := VODE
 

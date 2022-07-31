@@ -134,6 +134,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
     FArrayBox shk;
     FArrayBox q, qaux;
+    FArrayBox rho_inv;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -182,7 +183,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       const Box& qbx = amrex::grow(bx, NUM_GROW);
       const Box& qbx3 = amrex::grow(bx, 3);
 
+#ifdef RADIATION
       q.resize(qbx, NQ);
+#else
+      // note: we won't store the passives in q, so we'll compute their
+      // primitive versions on demand as needed
+      q.resize(qbx, NQTHERM);
+#endif
       Elixir elix_q = q.elixir();
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
@@ -192,7 +199,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += qaux.nBytes();
       Array4<Real> const qaux_arr = qaux.array();
 
-      ctoprim(qbx, time, Sborder.array(mfi),
+      Array4<Real const> const U_old_arr = Sborder.array(mfi);
+
+      rho_inv.resize(qbx3, 1);
+      Elixir elix_rho_inv = rho_inv.elixir();
+      fab_size += rho_inv.nBytes();
+      Array4<Real> const rho_inv_arr = rho_inv.array();
+
+      amrex::ParallelFor(qbx3,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
+      });
+
+      ctoprim(qbx, time, U_old_arr,
 #ifdef RADIATION
               Erborder.array(mfi), lamborder.array(mfi),
 #endif
@@ -264,7 +284,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       amrex::ParallelFor(qbx3,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
-          hydro::src_to_prim(i, j, k, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+          hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
 
       // work on the interface states
@@ -311,6 +331,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (ppm_type == 0) {
 
         ctu_plm_states(obx, bx,
+                       U_old_arr, rho_inv_arr,
                        q_arr,
                        qaux_arr,
                        src_q_arr,
@@ -330,6 +351,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef RADIATION
         ctu_ppm_rad_states(obx, bx,
+                           U_old_arr, rho_inv_arr,
                            q_arr, qaux_arr, src_q_arr,
                            qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
@@ -345,6 +367,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
 
         ctu_ppm_states(obx, bx,
+                       U_old_arr, rho_inv_arr,
                        q_arr, qaux_arr, src_q_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
@@ -1141,7 +1164,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           const Box& nbx = amrex::surroundingNodes(bx, idir);
 
           Array4<Real> const flux_arr = (flux[idir]).array();
-          Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
@@ -1153,7 +1175,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
           });
 
-          apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
+          apply_av(nbx, idir, div_arr, U_old_arr, flux_arr);
 
 #ifdef RADIATION
           Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
@@ -1166,7 +1188,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),

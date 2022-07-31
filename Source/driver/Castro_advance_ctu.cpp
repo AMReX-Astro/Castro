@@ -68,6 +68,36 @@ Castro::do_advance_ctu(Real time,
 
     check_for_nan(S_old);
 
+    // If we're doing a step later than the first on each level, the fluid
+    // state might have evolved to the point where the AMR timestep could be
+    // significantly too large, but we don't have freedom to adjust the AMR
+    // timestep at that point. Trying to evolve with a dt that is too large
+    // could result in catastrophic behavior such that we don't even get to
+    // the point where we can bail out later in the advance, so let's just
+    // go directly into a retry now if we're too far away from the needed dt.
+
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
+
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
+
+        if (castro::change_max * old_dt < dt) {
+            status.success = false;
+            status.reason = "pre-advance timestep validity check failed";
+            return status;
+        }
+
+    }
+
     // Since we are Strang splitting the reactions, do them now
 
 #ifdef REACTIONS
@@ -333,16 +363,6 @@ Castro::do_advance_ctu(Real time,
 
         if (do_react) {
 
-            // store the current conserved state (without burning) into
-            // Simplified_SDC_React_Type -- this will be used after the burn
-            // to figure out just the effect of reactions
-
-            // we are actually abusing this MF a bit, since it has NQ components,
-            // are we are storing NUM_STATE there now, so this assumes NQ >= NUM_STATE
-
-            MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
-            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
-
             // Do the ODE integration to capture the reaction source terms.
 
             bool burn_success = react_state(time, dt);
@@ -358,15 +378,6 @@ Castro::do_advance_ctu(Real time,
             MultiFab& S_new = get_new_data(State_Type);
 
             clean_state(S_new, time + dt, S_new.nGrow());
-
-            // Compute the reactive source term for use in the next iteration.
-
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            if (add_sdc_react_source_to_advection) {
-                get_react_source_prim(SDC_react_new, time, dt);
-            } else {
-                SDC_react_new.setVal(0.0);
-            }
 
             // Check for NaN's.
 
@@ -424,12 +435,17 @@ Castro::do_advance_ctu(Real time,
     // whereas in computeNewDt change_max prevents the timestep from growing
     // too much. The same reasoning applies for the other timestep limiters.
 
-    Real new_dt = estTimeStep();
+    if (castro::check_dt_after_advance) {
 
-    if (castro::change_max * new_dt < dt) {
-        status.success = false;
-        status.reason = "timestep validity check failed";
-        return status;
+        int is_new = 1;
+        Real new_dt = estTimeStep(is_new);
+
+        if (castro::change_max * new_dt < dt) {
+            status.success = false;
+            status.reason = "post-advance timestep validity check failed";
+            return status;
+        }
+
     }
 
     finalize_do_advance();
@@ -768,6 +784,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
+
+    // Record the number of subcycles we took for diagnostic purposes.
+
+    num_subcycles_taken = sub_iteration;
 
     if (sub_iteration > 1) {
 

@@ -75,7 +75,8 @@ castro.plot_per_is_exact = 1
 castro.small_plot_per_is_exact = 1
 castro.output_at_completion = 1
 
-amr.message_int = 1
+castro.stopping_criterion_field = Temp
+castro.stopping_criterion_value = 4.e9
 
 # problem initialization
 
@@ -96,10 +97,6 @@ problem.center_T = 0.5
 problem.vel = 2.0e8
 
 problem.grav_acceleration = 1.1e8
-
-problem.use_early_stopping = 1
-problem.T_stop_cutoff = 4.e9
-problem.ts_te_stop_cutoff = 1.e200
 
 # Microphysics
 

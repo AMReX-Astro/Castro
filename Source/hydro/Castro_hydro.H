@@ -233,6 +233,8 @@
 /// @param dt       timestep
 ///
     void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
+                        amrex::Array4<amrex::Real const> const& U_arr,
+                        amrex::Array4<amrex::Real const> const& rho_inv_arr,
                         amrex::Array4<amrex::Real const> const& q_arr,
                         amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
@@ -272,6 +274,8 @@
 /// @param dt       timestep
 ///
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
+                        amrex::Array4<amrex::Real const> const& U_arr,
+                        amrex::Array4<amrex::Real const> const& rho_inv_arr,
                         amrex::Array4<amrex::Real const> const& q_arr,
                         amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
@@ -312,6 +316,8 @@
 /// @param dt       timestep
 ///
     void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
+                            amrex::Array4<amrex::Real const> const& U_arr,
+                            amrex::Array4<amrex::Real const> const& rho_inv_arr,
                             amrex::Array4<amrex::Real const> const& q_arr,
                             amrex::Array4<amrex::Real const> const& qaux_arr,
                             amrex::Array4<amrex::Real const> const& srcQ,
@@ -612,6 +618,8 @@
 ///
     void trace_ppm(const amrex::Box& bx,
                    const int idir,
+                   amrex::Array4<amrex::Real const> const& U_arr,
+                   amrex::Array4<amrex::Real const> const& rho_inv_arr,
                    amrex::Array4<amrex::Real const> const& q_arr,
                    amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real const> const& srcQ,
@@ -639,6 +647,8 @@
 ///
     void trace_ppm_T(const amrex::Box& bx,
                      const int idir,
+                     amrex::Array4<amrex::Real const> const& U_arr,
+                     amrex::Array4<amrex::Real const> const& rho_inv_arr,
                      amrex::Array4<amrex::Real const> const& q_arr,
                      amrex::Array4<amrex::Real const> const& qaux_arr,
                      amrex::Array4<amrex::Real const> const& srcQ,
@@ -668,6 +678,8 @@
 ///
     void trace_plm(const amrex::Box& bx,
                    const int idir,
+                   amrex::Array4<amrex::Real const> const& U_arr,
+                   amrex::Array4<amrex::Real const> const& rho_inv_arr,
                    amrex::Array4<amrex::Real const> const& q_arr,
                    amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real> const& qm,
@@ -697,6 +709,8 @@
 ///
     void trace_ppm_rad(const amrex::Box& bx,
                        const int idir,
+                       amrex::Array4<amrex::Real const> const& U_arr,
+                       amrex::Array4<amrex::Real const> const& rho_inv_arr,
                        amrex::Array4<amrex::Real const> const& q_arr,
                        amrex::Array4<amrex::Real const> const& qaux_arr,
                        amrex::Array4<amrex::Real const> const& srcQ,
@@ -790,11 +804,24 @@
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
-                                     amrex::Array4<amrex::Real const> const& q,
                                      amrex::Array4<amrex::Real const> const& vol,
                                      amrex::Array4<amrex::Real> const& flux,
                                      amrex::Array4<amrex::Real const> const& area,
-                                     amrex::Real dt);
+                                     amrex::Real dt,
+                                     bool scale_by_dAdt = true);
+
+
+
+///
+/// For a reflecting boundary, we simply reflect the interface state
+/// just inside the domain to overwrite the state on the same
+/// interface but just outside the domain.  This ensures that the flux
+/// through the reflecting boundary is zero.
+///
+   void enforce_reflect_states(const amrex::Box& bx, const int idir,
+                               amrex::Array4<amrex::Real> const& qm,
+                               amrex::Array4<amrex::Real> const& qp);
+
 
     void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1

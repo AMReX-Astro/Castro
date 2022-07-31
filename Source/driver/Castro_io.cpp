@@ -30,6 +30,12 @@
 #include <omp.h>
 #endif
 
+#ifdef REACTIONS
+#ifdef SCREENING
+#include <screen.H>
+#endif
+#endif
+
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
@@ -185,6 +191,24 @@ Castro::restart (Amr&     papa,
             PMFile.close();
         }
 
+    }
+#endif
+
+#ifdef ROTATION
+    if (do_rotation && level == 0)
+    {
+        // get current value of the rotation period
+        std::ifstream RotationFile;
+        std::string FullPathRotationFile = parent->theRestartFile();
+        FullPathRotationFile += "/Rotation";
+        RotationFile.open(FullPathRotationFile.c_str(), std::ios::in);
+
+        if (RotationFile.is_open()) {
+            RotationFile >> castro::rotational_period;
+            amrex::Print() << "  Based on the checkpoint, setting the rotational period to "
+                           << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
+            RotationFile.close();
+        }
     }
 #endif
 
@@ -458,6 +482,23 @@ Castro::checkPoint(const std::string& dir,
         }
 #endif
 
+#ifdef ROTATION
+        if (do_rotation) {
+            // store current value of the rotation period
+            std::ofstream RotationFile;
+            std::string FullPathRotationFile = dir;
+            FullPathRotationFile += "/Rotation";
+            RotationFile.open(FullPathRotationFile.c_str(), std::ios::out);
+
+            RotationFile << std::scientific;
+            RotationFile.precision(19);
+
+            RotationFile << std::setw(30) << castro::rotational_period << std::endl;
+
+            RotationFile.close();
+        }
+#endif
+
         {
             // store any problem-specific stuff
             problem_checkpoint(dir);
@@ -613,6 +654,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
   }
 
+#ifdef SCREENING
+  jobInfoFile << "screening: " << screen_name << "\n";
+#endif
   jobInfoFile << "\n";
 
   const char* githash1 = buildInfoGetGitHash(1);

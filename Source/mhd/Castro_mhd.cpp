@@ -179,7 +179,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           amrex::ParallelFor(bx_gc,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
-              hydro::src_to_prim(i, j, k, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+              hydro::src_to_prim(i, j, k, dt, u_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
           });
 
           check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
