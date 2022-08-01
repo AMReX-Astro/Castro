@@ -1,3 +1,12 @@
+# 22.08
+
+   * fixed an issue with restart when using Poisson gravity (#2253)
+
+   * the source term corrector can now be used with simplified-SDC
+     (#2252)
+
+   * derefinement can now be specified via AMRErrorTag (#2238)
+
 # 22.06
 
    * castro.stopping_criterion_field and castro.stopping_criterion_value have
