@@ -96,7 +96,7 @@ castro.abundance_failure_tolerance = 0.1
 castro.abundance_failure_rho_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 0       # timesteps between computing mass
+castro.sum_interval   = 10       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
