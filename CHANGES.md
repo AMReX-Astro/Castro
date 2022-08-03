@@ -1,3 +1,8 @@
+# 22.09
+
+   * Added an option `castro.allow_non_unit_aspect_zones` to permit
+     Castro to be run with dx != dy != dz.  This support is experimental.
+
 # 22.08
 
    * fixed an issue with restart when using Poisson gravity (#2253)
