@@ -15,7 +15,6 @@ xloc_vortices       real            0.0_rt        n     10
 
 ih1		    integer         0             n
 
-layer_h1_base       real            0.0_rt        n
+y_h1       real            0.0_rt        n
 
-
-
+width      real            0.0_rt        y

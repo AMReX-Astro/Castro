@@ -28,7 +28,7 @@ void problem_initialize ()
         }
     }
 
-    // velocity perturbation x-axis vortex location
+    // Velocity perturbation x-axis vortex location
 
     Real offset = (probhi[0] - problo[0]) / problem::num_vortices;
 
@@ -36,8 +36,15 @@ void problem_initialize ()
         problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
     }
 
+    // Temperature perturbation x-axis nodes lenght
+    problem::L = probhi[0] - problo[0];
+
+    // Finding the h1 layer, and max temp location.
+
     problem::ih1 = network_spec_index("hydrogen-1");
-    problem::layer_h1_base = 0.0_rt;
+    problem::y_h1 = 0.0_rt;
+    //problem::temp_max = 0.0_rt;
+
 
     for (int n = 0; n < model::npts; n++) {
         if (model::profile(0).state(n, model::ispec+problem::ih1) > 0.5_rt) {
@@ -45,6 +52,14 @@ void problem_initialize ()
             break;
         }
     }
+
+    /*
+    for (int n = 0; n < model::npts; n++) {
+        if (model::profile(0).state(n, model::itemp) > problem::temp_max) {
+            problem::temp_max = model::profile(0).state(n, model::itemp);
+        }
+    }
+    */
 
     // set the ambient state for the upper boundary condition
 

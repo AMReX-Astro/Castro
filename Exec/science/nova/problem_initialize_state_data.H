@@ -77,7 +77,7 @@ void problem_initialize_state_data (int i, int j, int k,
     if (problem::apply_vel_field) {
 
         Real zdist = 0.0_rt;
-        Real ydist = y - problem::layer_h1_base;
+        Real ydist = y - problem::y_h1;
 
         Real upert[3] = {0.0_rt};
 
