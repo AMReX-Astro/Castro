@@ -18,3 +18,7 @@ ih1		    integer         0             n
 y_h1       real            0.0_rt        n
 
 width      real            0.0_rt        y
+
+L                   real            0.0_rt        n
+
+amplitude           real            0.0_rt        y
