@@ -99,6 +99,8 @@ void problem_initialize_state_data (int i, int j, int k,
 
             upert[2] = 0.0_rt;
 
+        }
+
             state(i,j,k,UMX) = state(i,j,k,URHO) * upert[0];
             state(i,j,k,UMY) = state(i,j,k,URHO) * upert[1];
             state(i,j,k,UMZ) = state(i,j,k,URHO) * upert[2];
@@ -107,7 +109,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     (state(i,j,k,UMX) * state(i,j,k,UMX) +
                                     state(i,j,k,UMY) * state(i,j,k,UMY) +
                                     state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
-        }
 
     }
 
