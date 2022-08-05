@@ -43,23 +43,13 @@ void problem_initialize ()
 
     problem::ih1 = network_spec_index("hydrogen-1");
     problem::y_h1 = 0.0_rt;
-    //problem::temp_max = 0.0_rt;
-
 
     for (int n = 0; n < model::npts; n++) {
         if (model::profile(0).state(n, model::ispec+problem::ih1) > 0.5_rt) {
-            problem::layer_h1_base = model::profile(0).r(n);
+            problem::y_h1 = model::profile(0).r(n);
             break;
         }
     }
-
-    /*
-    for (int n = 0; n < model::npts; n++) {
-        if (model::profile(0).state(n, model::itemp) > problem::temp_max) {
-            problem::temp_max = model::profile(0).state(n, model::itemp);
-        }
-    }
-    */
 
     // set the ambient state for the upper boundary condition
 
