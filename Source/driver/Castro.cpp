@@ -967,20 +967,24 @@ Castro::initData ()
 
     S_new.setVal(0.);
 
-    // make sure dx = dy = dz -- that's all we guarantee to support
+    if (! allow_non_unit_aspect_zones) {
+
+        // make sure dx = dy = dz -- that's all we guarantee to support
 #if (AMREX_SPACEDIM == 2)
-    const Real SMALL = 1.e-13;
-    if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
-      {
-        amrex::Abort("We don't support dx != dy");
-      }
+        const Real SMALL = 1.e-13;
+        if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
+          {
+            amrex::Abort("We don't support dx != dy");
+          }
 #elif (AMREX_SPACEDIM == 3)
-    const Real SMALL = 1.e-13;
-    if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
-      {
-        amrex::Abort("We don't support dx != dy != dz");
-      }
+        const Real SMALL = 1.e-13;
+        if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
+          {
+            amrex::Abort("We don't support dx != dy != dz");
+          }
 #endif
+
+    }
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Initializing the data at level " << level << std::endl;
