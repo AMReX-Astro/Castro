@@ -26,3 +26,5 @@ amplitude            real            0.0_rt         y
 apply_temp_field     integer         0              y
 
 velpert_scale_ratio  real            0.0_rt         y
+
+width_ratio          real            0.0_rt         y
