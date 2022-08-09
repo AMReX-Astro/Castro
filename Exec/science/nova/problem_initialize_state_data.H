@@ -115,7 +115,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // Now we add the temperature perturbation
     if (problem::apply_temp_field){
 
-        Real ydist = y - problem::y_h1 - 1.5_rt*problem::width;
+        Real ydist = y - problem::y_h1 - problem::width_ratio*problem::width;
         Real delta = problem::amplitude;
         Real temp_pert = 0.0_rt;
 

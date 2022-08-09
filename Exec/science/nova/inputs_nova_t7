@@ -89,6 +89,7 @@ problem.apply_temp_field = 1
 problem.width = 1.0e6
 problem.amplitude = 0.5
 problem.num_vortices = 10
+problem.width_ratio = 1.8
 
 # Microphysics
 
