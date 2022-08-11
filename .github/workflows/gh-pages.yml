@@ -14,6 +14,7 @@ jobs:
 
       - name: Install pandoc and doxygen
         run: |
+          sudo apt update
           sudo apt install pandoc doxygen
 
       - name: Setup Python
