@@ -78,10 +78,18 @@ amr.data_log = log
 
 problem.model_name =  "glasner_T71600.hse"
 
-problem.apply_vel_field = 1
-problem.velpert_scale = 2.0e5
-problem.velpert_amplitude = 1.0e6
-problem.num_vortices = 4
+problem.apply_vel_field = 0
+#problem.velpert_scale = 5.0e5
+#problem.velpert_scale_ratio = 7.0
+#problem.velpert_amplitude = 7.0e5
+#problem.num_vortices = 8
+
+
+problem.apply_temp_field = 1
+problem.width = 1.0e6
+problem.amplitude = 0.5
+problem.num_vortices = 10
+problem.width_ratio = 1.8
 
 # Microphysics
 

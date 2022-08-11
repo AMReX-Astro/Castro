@@ -78,10 +78,20 @@ amr.data_log = log
 
 problem.model_name =  "glasner_T91600.hse"
 
-problem.apply_vel_field = 1
-problem.velpert_scale = 2.0e5
-problem.velpert_amplitude = 1.0e6
-problem.num_vortices = 4
+problem.apply_vel_field = 0
+#problem.velpert_scale = 5.0e5
+#problem.velpert_scale_ratio = 7.0
+#problem.velpert_amplitude = 7.0e5
+#problem.num_vortices = 8
+
+
+problem.apply_temp_field = 1
+problem.width = 1.0e6
+problem.amplitude = 0.5
+problem.num_vortices = 10
+problem.width_ratio = 1.8
+
+# Microphysics
 
 # Microphysics
 
@@ -92,12 +102,12 @@ integrator.rtol_enuc = 1.e-6
 
 # refinement
 
-amr.refinement_indicators = dens temp
+#amr.refinement_indicators = dens temp
 
-amr.refine.dens.max_level = 1
-amr.refine.dens.value_greater = 1.0e3
-amr.refine.dens.field_name = density
+#amr.refine.dens.max_level = 1
+#amr.refine.dens.value_greater = 1.0e3
+#amr.refine.dens.field_name = density
 
-amr.refine.temp.max_level = 1
-amr.refine.temp.value_greater = 1.0e7
-amr.refine.temp.field_name = Temp
+#amr.refine.temp.max_level = 1
+#amr.refine.temp.value_greater = 1.0e7
+#amr.refine.temp.field_name = Temp
