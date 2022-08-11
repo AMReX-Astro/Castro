@@ -71,7 +71,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -104,7 +104,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii+1,j,k,UTEMP) - adv(ii+2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -146,7 +150,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                     if (! converged_hse) {
                         std::cout << "ii, j, k, domlo[0]: " << ii << " " << j << " " << k << " " << domlo[0] << std::endl;
                         std::cout << "p_want:    " << p_want << std::endl;
@@ -180,8 +184,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                           int ioff = domlo[0]-ii-1;
                           adv(ii,j,k,UMX) = -dens_zone * (adv(domlo[0]+ioff,j,k,UMX) / adv(domlo[0]+ioff,j,k,URHO));
 
-                          adv(ii,j,k,UMY) = -dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
-                          adv(ii,j,k,UMZ) = -dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
+                          adv(ii,j,k,UMY) = dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
+                          adv(ii,j,k,UMZ) = dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
                       } else {
                           // zero gradient
                           adv(ii,j,k,UMX) = dens_zone * (adv(domlo[0],j,k,UMX) / dens_base);
@@ -261,7 +265,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -290,7 +294,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii-1,j,k,UTEMP) - adv(ii-2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -331,7 +339,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "ii, j, k, domhi[0]: " << ii << " " << j << " " << k << " " << domhi[0] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -365,8 +373,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int ioff = ii-domhi[0]-1;
                            adv(ii,j,k,UMX) = -dens_zone * (adv(domhi[0]-ioff,j,k,UMX) / adv(domhi[0]-ioff,j,k,URHO));
 
-                           adv(ii,j,k,UMY) = -dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
-                           adv(ii,j,k,UMZ) = -dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
+                           adv(ii,j,k,UMY) = dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
+                           adv(ii,j,k,UMZ) = dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(ii,j,k,UMX) = dens_zone * (adv(domhi[0],j,k,UMX) / dens_base);
@@ -451,7 +459,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -481,7 +489,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj+1,k,UTEMP) - adv(i,jj+2,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -523,7 +535,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domlo[1]: " << i << " " << jj << " " << k << " " << domlo[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -557,8 +569,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = domlo[1]-jj-1;
                            adv(i,jj,k,UMY) = -dens_zone*(adv(i,domlo[1]+joff,k,UMY) / adv(i,domlo[1]+joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domlo[1],k,UMX) / dens_base);
@@ -639,7 +651,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -668,7 +680,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj-1,k,UTEMP) - adv(i,jj-2,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -709,7 +725,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domhi[1]: " << i << " " << jj << " " << k << " " << domhi[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -743,8 +759,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = jj-domhi[1]-1;
                            adv(i,jj,k,UMY) = -dens_zone * (adv(i,domhi[1]-joff,k,UMY) / adv(i,domhi[1]-joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
@@ -828,7 +844,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -858,7 +874,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,j,kk+1,UTEMP) - adv(i,j,kk+2,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
                     bool converged_hse = false;
@@ -900,7 +920,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, j, kk, domlo[2]: " << i << " " << j << " " << kk << " " << domlo[2] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -934,8 +954,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int koff = domlo[2]-kk-1;
                            adv(i,j,kk,UMZ) = -dens_zone * (adv(i,j,domlo[2]+koff,UMZ) / adv(i,j,domlo[2]+koff,URHO));
 
-                           adv(i,j,kk,UMX) = -dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
-                           adv(i,j,kk,UMY) = -dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
+                           adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
+                           adv(i,j,kk,UMY) = dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
@@ -986,7 +1006,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     if (bcr[URHO].hi(2) == EXT_DIR && hi[2] > domhi[2]) {
 
         if (zr_ext_bc_type == EXT_HSE) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
             amrex::Error("ERROR: HSE boundaries not implemented for +Z");
 #endif
         }

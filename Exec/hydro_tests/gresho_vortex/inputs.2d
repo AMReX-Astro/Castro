@@ -49,6 +49,24 @@ amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 256
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.check_file      = gresho_chk   # root name of checkpoint file
 amr.check_int       = 500       # number of timesteps between checkpoints
@@ -58,5 +76,19 @@ amr.plot_file       = gresho_plt
 amr.plot_int        = 500
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.rho0 = 1.0
+
+# p0 = rho0 u_phi**2/(gamma * M**2) - 1/2  -- specify M to get p0
+
+# M ~ 0.001
+problem.p0 = 599999.5
+
+# M ~ 0.01
+# problem.p0 = 5999.5
+
+# M ~ 0.1
+# problem.p0 = 59.5
+
+# EOS
+eos.eos_assume_neutral = 1

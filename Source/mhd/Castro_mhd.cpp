@@ -1,6 +1,8 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+#include <advection_util.H>
+
 using namespace amrex;
 
 void
@@ -9,18 +11,19 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;
 
-      hydro_source.setVal(0.0);
-
       const auto dx = geom.CellSizeArray();
 
       MultiFab& S_new = get_new_data(State_Type);
+
       MultiFab& Bx_new= get_new_data(Mag_Type_x);
       MultiFab& By_new= get_new_data(Mag_Type_y);
       MultiFab& Bz_new= get_new_data(Mag_Type_z);
 
+      MultiFab& old_source = get_old_data(Source_Type);
 
-      //MultiFab electric[BL_SPACEDIM];
-      //for (int j = 0; j < BL_SPACEDIM; j++)
+
+      //MultiFab electric[AMREX_SPACEDIM];
+      //for (int j = 0; j < AMREX_SPACEDIM; j++)
       //{
       //  electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
       //  electric[j].setVal(0.0);
@@ -74,7 +77,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
       FArrayBox div;
 
-      for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
 
           const Box& bx = mfi.tilebox();
@@ -87,10 +90,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           FArrayBox &statein  = Sborder[mfi];
           auto u_arr = statein.array();
 
-          FArrayBox &source_in  = sources_for_hydro[mfi];
-          auto src_arr = source_in.array();
-
-          FArrayBox &hydro_update = hydro_source[mfi];
+          FArrayBox &hydro_update = S_new[mfi];
           auto update_arr = hydro_update.array();
 
           FArrayBox& Bx  = Bx_old_tmp[mfi];
@@ -168,12 +168,19 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           auto src_q_arr = srcQ.array();
           auto elix_src_q = srcQ.elixir();
 
+          Array4<Real> const old_src_arr = old_source.array(mfi);
+          Array4<Real> const src_corr_arr = source_corrector.array(mfi);
+
           ctoprim(bx_gc, time,
                   u_arr,
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
 
-          src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
+          amrex::ParallelFor(bx_gc,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              hydro::src_to_prim(i, j, k, dt, u_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+          });
 
           check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
@@ -630,7 +637,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
           // Conservative update
 
-          consup_mhd(bx, update_arr, flxx_arr, flxy_arr, flxz_arr);
+          consup_mhd(bx, dt, update_arr, flxx_arr, flxy_arr, flxz_arr);
 
           // magnetic update
 

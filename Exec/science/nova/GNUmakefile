@@ -5,7 +5,7 @@ PROFILE          = FALSE
 DEBUG            = FALSE
 DIM              = 2
 
-COMP	         = gnu
+COMP	         = gcc
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE
@@ -19,7 +19,7 @@ USE_CXX_MODEL_PARSER = TRUE
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := nova
+NETWORK_DIR := nova2
 
 Bpack   := ./Make.package
 Blocs   := .

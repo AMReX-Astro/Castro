@@ -5,11 +5,11 @@
 #include <burn_type.H>
 #include <extern_parameters.H>
 
-#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#else
 #include <actual_network.H>
 #include <actual_rhs.H>
-#else
-#include <fortran_to_cxx_actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
 
@@ -18,7 +18,7 @@
 // network you're actually using.
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUdt)
+void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUdt, const bool in_jacobian=false)
 {
 
     // note: dUdt is 1-based
@@ -133,7 +133,7 @@ void jac (burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
     burn_t burn_state_pass;
     single_zone_react_source(U_full, R_full, burn_state_pass);
 
-    single_zone_jac(U_full, burn_state_pass, dRdw);
+    single_zone_jac(U_full, burn_state_pass, vode_state.H, dRdw);
 
     // construct dwdU
 

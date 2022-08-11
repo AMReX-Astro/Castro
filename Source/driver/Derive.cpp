@@ -35,7 +35,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -122,7 +122,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -157,7 +157,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -192,7 +192,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -228,7 +228,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -263,7 +263,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -468,7 +468,7 @@ extern "C"
           Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
           // calculate the sound speed
-          eos_t eos_state;
+          eos_rep_t eos_state;
           eos_state.rho  = dat(i,j,k,URHO);
           eos_state.T = dat(i,j,k,UTEMP);
           eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -1154,75 +1154,6 @@ extern "C"
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
       der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i,j,k+1,0));
-    });
-
-  }
-
-  void ca_derex(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_x = -(V X B)_x
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_y,mag_z,density,ymom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vy = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vy*dat(i,j,k,1) + vz*dat(i,j,k,0);
-
-    });
-
-  }
-
-  void ca_derey(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_y = -(V X B)_y
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_z,density,xmom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vz*dat(i,j,k,0) + vx*dat(i,j,k,1);
-
-    });
-
-  }
-
-  void ca_derez(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_z = -(V X B)_z
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_y,density,xmom,ymom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vy = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vx*dat(i,j,k,1) + vy*dat(i,j,k,0);
-
     });
 
   }

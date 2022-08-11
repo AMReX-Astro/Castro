@@ -56,6 +56,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
+              'sphinx-prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -79,7 +80,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = 'Castro'
-copyright = '2018-2020, Castro development tem'
+copyright = '2018-2022, Castro development team'
 author = 'Castro development team'
 
 html_logo = "castro_logo_hot_200.png"
@@ -113,17 +114,17 @@ todo_include_todos = False
 
 
 # -- Options for MathJax
-mathjax_config = {'TeX': {'Macros': {}}}
+mathjax3_config = {'tex': {'macros': {}}}
 
 with open('mathsymbols.tex', 'r') as f:
     for line in f:
         macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
         for macro in macros:
             if len(macro[1]) == 0:
-                mathjax_config['TeX']['Macros'][macro[0]
+                mathjax3_config['tex']['macros'][macro[0]
                                                 ] = "{" + macro[3] + "}"
             else:
-                mathjax_config['TeX']['Macros'][macro[0]] = [
+                mathjax3_config['tex']['macros'][macro[0]] = [
                     "{" + macro[3] + "}", int(macro[2])]
 
 
@@ -151,6 +152,8 @@ html_static_path = ['_static']
 html_context = {
     'css_files': [
         '_static/theme_overrides.css',  # override wide tables in RTD theme
+        '_static/css/theme.css',
+        '_static/pygments.css'
     ],
 }
 

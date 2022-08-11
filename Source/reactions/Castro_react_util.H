@@ -3,6 +3,10 @@
 
 #include <Castro.H>
 #include <burn_type.H>
+#include <actual_network.H> //this is needed to get the definition of NEW_NETWORK_IMPLEMENTATION
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <numerical_jacobian.H>
 
 
@@ -130,7 +134,7 @@ single_zone_react_source(const int i, const int j, const int k,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
-                burn_t burn_state,
+                burn_t& burn_state, const Real dt,
                 Array2D<Real, 0, NumSpec+1, 0, NumSpec+1>& dRdw) {
 
 #ifdef SIMPLIFIED_SDC
@@ -151,9 +155,11 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // network variables, X, T. e.  It does not have derivatives with
     // respect to density, so we'll have to compute those ourselves.
 
-    if (sdc_use_analytic_jac == 0) {
+    if (sdc_newton_use_analytic_jac == 0) {
         // note the numerical Jacobian will be returned in terms of X
-        numerical_jac(burn_state, Jac);
+        jac_info_t jac_info;
+        jac_info.h = dt;
+        numerical_jac(burn_state, jac_info, Jac);
     } else {
         actual_jac(burn_state, Jac);
 

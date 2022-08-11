@@ -4,7 +4,7 @@ This is the acoustic pulse problem from McCorquodale & Colella 2011.
 We use this to measure convergence.
 
 Note: for DIM > 1, you can still run this in a "1-d" mode by
-setting the probin parameter init_as_1d to 1, 2, or 3, to just
+setting the inputs parameter problem.init_as_1d to 1, 2, or 3, to just
 do the pulse in that coordinate direction.
 
 
@@ -25,7 +25,6 @@ paper.
     cd acoustic_pulse
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse/Castro2d.intel.haswell.MPI.ex .
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse/inputs.2d.* .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse/probin .
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse/job_scripts/cori.acoustic_pulse_convergence.slurm .
     sbatch cori.acoustic_pulse_convergence.slurm
     ```

@@ -1,19 +1,18 @@
-&PROBIN
-rho_l = 4652355.8103695335
-u_l = 245111315.38000077
-p_l = 2.6202854395637027E+023
+problem.rho_l = 4652355.8103695335
+problem.u_l = 245111315.38000077
+problem.p_l = 2.6202854395637027e23
 
-rho_r = 3941475.9501159284
-u_r = 308790982.62686896
-p_r = 1.7831374154698178E+023
+problem.rho_r = 3941475.9501159284
+problem.u_r = 308790982.62686896
+problem.p_r = 1.7831374154698178e23
 
-use_Tinit = F
+problem.use_Tinit = 0
 
-xmin  = 0.0d0
-xmax  = 1.0d6
-xjump = 0.5d6
+problem.xmin  = 0.0
+problem.xmax  = 1.0e6
+problem.xjump = 0.5e6
 
-t     = 0.0008d0
+problem.t     = 0.0008
 
-npts  = 512
-/
+problem.npts  = 512
+

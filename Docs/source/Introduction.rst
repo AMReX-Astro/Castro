@@ -40,7 +40,7 @@ Castro's major capabilities:
   * spectral deferred corrections time integration for coupling hydro
     and reactions (see :ref:`ch:sdc`)
 
-  * parallelization via MPI + OpenMP or MPI + CUDA
+  * parallelization via MPI + OpenMP (CPUs), MPI + CUDA (NVIDIA GPUs), or MPI + HIP (AMD GPUs)
 
 
 Development Model
@@ -109,5 +109,6 @@ throughout the code documentation and papers.
    +-----------------------+-----------------------+-----------------------+
 
 Physical constants, again using the CGS system are available
-in ``Castro/constants/constants_cgs.f90``
+in ``Microphysics/constants/``.
+
 

@@ -10,7 +10,7 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
-#include <prob_parameters_F.H>
+#include <Castro_util.H>
 
 using namespace castro;
 
@@ -46,8 +46,10 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
+#ifndef TRUE_SDC
 #ifdef REACTIONS
 #include <burner.H>
+#endif
 #endif
 
 #ifdef BL_LAZY
@@ -75,9 +77,6 @@ enum StateType { State_Type = 0,
 #ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
-#endif
-#ifdef ROTATION
-                 PhiRot_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -125,25 +124,6 @@ enum int_method { CornerTransportUpwind = 0,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
-
-
-#if AMREX_SPACEDIM == 1
-constexpr int dg0 = 1;
-constexpr int dg1 = 0;
-constexpr int dg2 = 0;
-
-#elif AMREX_SPACEDIM == 2
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 0;
-
-#else
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 1;
-
-#endif
-
 
 // Struct that returns information about
 // why an advance failed.
@@ -580,32 +560,39 @@ public:
 ///
 /// Estimate time step.
 ///
-    amrex::Real estTimeStep ();
+    amrex::Real estTimeStep (int is_new = 1);
 
 
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl(const amrex::Real time);
+    amrex::Real estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd();
+    amrex::Real estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion();
+    amrex::Real estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning();
+    amrex::Real estdt_burning (int is_new = 1);
+#endif
+
+#ifdef RADIATION
+///
+/// Radiation hydro timestep
+///
+    amrex::Real estdt_rad (int is_new = 1);
 #endif
 
 ///
@@ -751,7 +738,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
@@ -766,16 +753,6 @@ public:
 /// @param time         current time
 ///
     void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
-
-
-///
-/// Apply a given tagging function.
-///
-/// @param tags         TagBoxArray of tags
-/// @param time         current time
-/// @param j            integer
-///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
 
 ///
@@ -802,8 +779,6 @@ public:
                  amrex::Real               time,
                  amrex::MultiFab&          mf,
                  int                dcomp) override;
-
-    static int numGrow();
 
 
 #ifdef REACTIONS
@@ -931,6 +906,16 @@ public:
 ///
 /// Volume weighted sum of given quantity
 ///
+/// @param mf           MultiFab containing quantity
+/// @param comp         integer index of quantity in MultiFab
+/// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
+/// @param finemask     boolean, should we build a mask to exclude finer levels?
+///
+    amrex::Real volWgtSum (const MultiFab& mf, int comp, bool local=false, bool finemask=true);
+
+///
+/// Volume weighted sum of given quantity
+///
 /// @param name         Name of quantity
 /// @param time         current time
 /// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
@@ -938,16 +923,15 @@ public:
 ///
     amrex::Real volWgtSum (const std::string& name, amrex::Real time, bool local=false, bool finemask=true);
 
-
 ///
-/// Volume weight sum of (given quantity) squared
+/// Sum weighted by volume multiplied by distance from center in given direction
 ///
-/// @param name     Name of quantity
-/// @param time     current time
+/// @param mf       MultiFab containing quantity
+/// @param comp     integer index of quantity in MultiFab
+/// @param idir     Axis along which to compute distance from center
 /// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
-    amrex::Real volWgtSquaredSum (const std::string& name, amrex::Real time, bool local=false);
-
+    amrex::Real locWgtSum (const MultiFab& mf, int comp, int idir, bool local=false);
 
 ///
 /// Sum weighted by volume multiplied by distance from center in given direction
@@ -959,6 +943,16 @@ public:
 ///
     amrex::Real locWgtSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+///
+/// Volume weighted sum of the product of two quantities
+///
+/// @param mf1      MultiFab containing first quantity
+/// @param mf2      MultiFab containing second quantity
+/// @param comp1    integer index of quantity in first MultiFab
+/// @param comp2    integer index of quantity in second MultiFab
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
+///
+    amrex::Real volProductSum (const MultiFab& mf1, const MultiFab& mf2, int comp1, int comp2, bool local=false);
 
 ///
 /// Volume weighted sum of the product of two quantities
@@ -1220,9 +1214,9 @@ public:
     static amrex::Vector<std::string> source_names;
 
 ///
-/// Vector storing list of custom error tags.
+/// Vector storing list of error tags.
 ///
-    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -1272,6 +1266,15 @@ protected:
 ///
     amrex::MultiFab comp_minus_level_phi;
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
+#endif
+
+
+#ifdef REACTIONS
+///
+/// Storage for the burn_weights
+///
+    amrex::MultiFab burn_weights;
+    static std::vector<std::string> burn_weight_names;
 #endif
 
 
@@ -1328,29 +1331,16 @@ protected:
 
 
 ///
-/// Source terms to the hydrodynamics solve.
-///
-    amrex::MultiFab sources_for_hydro;
-
-
-///
 /// Source term corrector.
 ///
     amrex::MultiFab source_corrector;
 
 
 ///
-/// Source term representing hydrodynamics update - this should just be
-///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
-///
-    amrex::MultiFab hydro_source;
-
-
-///
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
@@ -1360,7 +1350,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
@@ -1376,7 +1366,7 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif
@@ -1444,7 +1434,7 @@ protected:
 
 ///
 /// For initialization of the C++ values of the runtime parameters
-  static int do_init_probparams;
+  static int do_cxx_prob_initialize;
 
 
 ///
@@ -1456,11 +1446,6 @@ protected:
     // Static data members.
     //
 
-#ifdef SPONGE
-#include <sponge_params.H>
-#endif
-
-
     static bool      signalStopJob;
     static int       radius_grow;
     static std::vector<std::string> err_list_names;
@@ -1468,13 +1453,13 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
+    int num_subcycles_taken;
 
     amrex::Real lastDt;
 
@@ -1507,11 +1492,6 @@ protected:
 
 #ifdef RADIATION
 
-///
-/// permits radiation to be turned on and off without recompiling:
-///
-    static int do_radiation;
-
 
 ///
 /// There can be only one Radiation object, it covers all levels:
@@ -1532,6 +1512,9 @@ protected:
 
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
+
+    static int hydro_tile_size_has_been_tuned;
+    static Long largest_box_from_hydro_tile_size_tuning;
 
     static int SDC_Source_Type;
     static int num_state_type;
@@ -1565,13 +1548,6 @@ public:
 //
 // Inlines.
 //
-
-inline
-int
-Castro::numGrow()
-{
-    return NUM_GROW;
-}
 
 inline
 amrex::MultiFab*

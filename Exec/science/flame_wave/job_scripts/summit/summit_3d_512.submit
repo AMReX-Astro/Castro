@@ -1,0 +1,69 @@
+#!/bin/bash
+#BSUB -P ast106
+#BSUB -W 02:00
+#BSUB -nnodes 512
+#BSUB -alloc_flags smt1
+#BSUB -J flame_gpu
+#BSUB -o flame_gpu.%J
+#BSUB -e flame_gpu.%J
+
+cd $LS_SUBCWD
+
+module load gcc/10.2.0
+module load cuda/11.2.0
+
+Castro_ex=./Castro3d.gnu.TPROF.MPI.CUDA.ex
+inputs_file=inputs.noboost.25cm.1000Hz.3d
+
+n_mpi=3072 # nodes * 6 gpu per node
+n_omp=1
+n_gpu=1
+n_cores=1
+n_rs_per_node=6
+
+function find_chk_file {
+    # find_chk_file takes a single argument -- the wildcard pattern
+    # for checkpoint files to look through
+    chk=$1
+
+    # find the latest 2 restart files.  This way if the latest didn't
+    # complete we fall back to the previous one.
+    temp_files=$(find . -maxdepth 1 -name "${chk}" -print | sort | tail -2)
+    restartFile=""
+    for f in ${temp_files}
+    do
+        # the Header is the last thing written -- check if it's there, otherwise,
+        # fall back to the second-to-last check file written
+        if [ ! -f ${f}/Header ]; then
+            restartFile=""
+        else
+            restartFile="${f}"
+        fi
+    done
+
+}
+
+# look for 7-digit chk files
+find_chk_file "*chk???????"
+
+if [ "${restartFile}" = "" ]; then
+    # look for 6-digit chk files
+    find_chk_file "*chk??????"
+fi
+
+if [ "${restartFile}" = "" ]; then
+    # look for 5-digit chk files
+    find_chk_file "*chk?????"
+fi
+
+# restartString will be empty if no chk files are found -- i.e. new run
+if [ "${restartFile}" = "" ]; then
+    restartString=""
+else
+    restartString="amr.restart=${restartFile}"
+fi
+
+export OMP_NUM_THREADS=$n_omp
+
+
+jsrun -n $n_mpi -r $n_rs_per_node -c $n_cores -a 1 -g $n_gpu $Castro_ex $inputs_file ${restartString}

@@ -12,9 +12,8 @@ using namespace amrex;
 
 void
 Castro::ctu_rad_consup(const Box& bx,
-                       Array4<Real> const& update,
+                       Array4<Real> const& U_new,
                        Array4<Real const> const& Erin,
-                       Array4<Real> const& uout,
                        Array4<Real> const& Erout,
                        Array4<Real const> const& radflux1,
                        Array4<Real const> const& qx,
@@ -40,8 +39,6 @@ Castro::ctu_rad_consup(const Box& bx,
 
   GpuArray<Real, NGROUPS> Erscale = {0.0};
 
-  int fspace_type = Radiation::fspace_advection_type;
-
   GpuArray<Real, NGROUPS> dlognu = {0.0};
 
   GpuArray<Real, NGROUPS> nugroup = {0.0};
@@ -52,7 +49,7 @@ Castro::ctu_rad_consup(const Box& bx,
     ca_get_nugroup(nugroup.begin());
     ca_get_dlognu(dlognu.begin());
 
-    if (fspace_type == 1) {
+    if (radiation::fspace_advection_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
       }
@@ -64,12 +61,8 @@ Castro::ctu_rad_consup(const Box& bx,
   }
 
 
-  int comov = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
+  // radiation energy update. 
 
-  // radiation energy update.  For the moment, we actually update things
-  // fully here, instead of creating a source term for the update
   amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
   {
@@ -85,23 +78,12 @@ Castro::ctu_rad_consup(const Box& bx,
          ) / vol(i,j,k);
   });
 
-  // Add gradp term to momentum equation -- only for axisymmetry coords
-  // (and only for the radial flux);  also add the radiation pressure gradient
-  // to the momentum for all directions
+  // add the radiation pressure gradient to the momentum for all
+  // directions
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
-
-    // pgdnv from the Riemann solver is only the gas contribution,
-    // not the radiation contribution.  Note that we've already included
-    // the gas pressure in the momentum flux for all Cartesian coordinate
-    // directions
-
-    Real dpdx = 0;
-    if (!mom_flux_has_p(0, 0, coord_type)) {
-      dpdx = (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES))/ dx[0];
-      update(i,j,k,UMX) -= dpdx;
-    }
 
     // radiation contribution -- this is sum{lambda E_r}
     Real dprdx = 0.0;
@@ -133,33 +115,33 @@ Castro::ctu_rad_consup(const Box& bx,
 #endif
     }
 
+
     // we now want to compute the change in the kinetic energy -- we
-    // base this off of uout, since that has the source terms in it.
-    // But note that this does not have the fluxes (since we are
-    // using update)
+    // base this off of S_new, since that already is updated with hydro
 
     // note, we need to include the Z component here too (even
     // for 1- and 2-d), since rotation might be in play
 
-    Real urho_new = uout(i,j,k,URHO) + dt * update(i,j,k,URHO);
+    Real urho_new = U_new(i,j,k,URHO);
 
     // this update includes the hydro fluxes and grad{p} from hydro
-    Real umx_new1 = uout(i,j,k,UMX) + dt * update(i,j,k,UMX);
-    Real umy_new1 = uout(i,j,k,UMY) + dt * update(i,j,k,UMY);
-    Real umz_new1 = uout(i,j,k,UMZ) + dt * update(i,j,k,UMZ);
+    Real umx_new1 = U_new(i,j,k,UMX);
+    Real umy_new1 = U_new(i,j,k,UMY);
+    Real umz_new1 = U_new(i,j,k,UMZ);
 
     Real ek1 = (umx_new1 * umx_new1 +
                 umy_new1 * umy_new1 +
                 umz_new1 * umz_new1) / (2.0_rt * urho_new);
 
-    // now add the radiation pressure gradient
-    update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx;
-    update(i,j,k,UMY) = update(i,j,k,UMY) - dprdy;
-    update(i,j,k,UMZ) = update(i,j,k,UMZ) - dprdz;
 
-    Real umx_new2 = umx_new1 - dt * dprdx;
-    Real umy_new2 = umy_new1 - dt * dprdy;
-    Real umz_new2 = umz_new1 - dt * dprdz;
+    // now add the radiation pressure gradient
+    U_new(i,j,k,UMX) -= dt * dprdx;
+    U_new(i,j,k,UMY) -= dt * dprdy;
+    U_new(i,j,k,UMZ) -= dt * dprdz;
+
+    Real umx_new2 = U_new(i,j,k,UMX);
+    Real umy_new2 = U_new(i,j,k,UMY);
+    Real umz_new2 = U_new(i,j,k,UMZ);
 
     Real ek2 = (umx_new2 * umx_new2 +
                 umy_new2 * umy_new2 +
@@ -167,10 +149,11 @@ Castro::ctu_rad_consup(const Box& bx,
 
     Real dek = ek2 - ek1;
 
-    // the update is a source / dt, so scale accordingly
-    update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek/dt;
+    // update the kinetic energy with the radiation contribution
 
-    if (! comov) {
+    U_new(i,j,k,UEDEN) = U_new(i,j,k,UEDEN) + dek;
+
+    if (!radiation::comoving) {
       // ! mixed-frame (single group only)
       Erout(i,j,k,0) = Erout(i,j,k,0) - dek;
     }
@@ -180,7 +163,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
   // Add radiation source terms to rho*u, rhoE, and Er
 
-  if (comov) {
+  if (radiation::comoving) {
 
     ReduceOps<ReduceOpMax> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -220,7 +203,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
       Real divu = dudx[0] + dudy[1] + dudz[2];
 
-      // Note that for single group, fspace_type is always 1
+      // Note that for single group, fspace_advection_type is always 1
       Real af[NGROUPS];
 
       for (int g = 0; g < NGROUPS; g++) {
@@ -258,21 +241,21 @@ Castro::ctu_rad_consup(const Box& bx,
                 qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.0_rt;
 #endif
 
-        Real Eddf = Edd_factor(lamc, limiter, closure);
+        Real Eddf = Edd_factor(lamc);
         Real f1 = (1.0_rt - Eddf) * 0.5_rt;
         Real f2 = (3.0_rt * Eddf - 1.0_rt) * 0.5_rt;
         af[g] = -(f1*divu + f2*nnColonDotGu);
 
-        if (fspace_type == 1) {
-          Real Eddfxp = Edd_factor(qx(i+1,j,k,GDLAMS+g), limiter, closure);
-          Real Eddfxm = Edd_factor(qx(i,j,k,GDLAMS+g), limiter, closure);
+        if (radiation::fspace_advection_type == 1) {
+          Real Eddfxp = Edd_factor(qx(i+1,j,k,GDLAMS+g));
+          Real Eddfxm = Edd_factor(qx(i,j,k,GDLAMS+g));
 #if AMREX_SPACEDIM >= 2
-          Real Eddfyp = Edd_factor(qy(i,j+1,k,GDLAMS+g), limiter, closure);
-          Real Eddfym = Edd_factor(qy(i,j,k,GDLAMS+g), limiter, closure);
+          Real Eddfyp = Edd_factor(qy(i,j+1,k,GDLAMS+g));
+          Real Eddfym = Edd_factor(qy(i,j,k,GDLAMS+g));
 #endif
 #if AMREX_SPACEDIM == 3
-          Real Eddfzp = Edd_factor(qz(i,j,k+1,GDLAMS+g), limiter, closure);
-          Real Eddfzm = Edd_factor(qz(i,j,k,GDLAMS+g), limiter, closure);
+          Real Eddfzp = Edd_factor(qz(i,j,k+1,GDLAMS+g));
+          Real Eddfzm = Edd_factor(qz(i,j,k,GDLAMS+g));
 #endif
 
           Real f1xp = 0.5_rt * (1.0_rt - Eddfxp);

@@ -8,18 +8,19 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Install pandoc and doxygen 
+      - name: Install pandoc and doxygen
         run: |
+          sudo apt update
           sudo apt install pandoc doxygen
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Upgrade pip
         run: |

@@ -1,0 +1,31 @@
+PRECISION ?= DOUBLE
+PROFILE ?= FALSE
+
+DEBUG ?= FALSE
+BACKTRACE ?= FALSE
+TEST ?= FALSE
+
+USE_MPI ?= TRUE
+USE_OMP ?= FALSE
+
+DIM ?= 3
+
+USE_GRAV ?= TRUE
+
+USE_CXX_MODEL_PARSER = TRUE
+NUM_MODELS = 1
+
+COMP ?= gnu
+
+EOS_DIR ?= helmholtz
+
+NETWORK_DIR ?= general_null
+
+NETWORK_INPUTS = ignition.net
+
+PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/gravity_tests/advecting_white_dwarf
+
+Blocs = $(PROBLEM_DIR)
+Bpack = $(PROBLEM_DIR)/Make.package
+
+include $(CASTRO_HOME)/Exec/Make.Castro

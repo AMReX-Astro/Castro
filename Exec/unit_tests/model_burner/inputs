@@ -1,8 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-#PROBIN FILENAME
-amr.probin_file = probin
-
 max_step = 1
 stop_time = 0.1
 
@@ -27,3 +24,6 @@ castro.small_temp = 1.e6
 amr.max_level        = 0        # maximum level number allowed
 amr.n_cell           = 16 16 16
 
+# PROBLEM PARAMETERS
+problem.model_name =  "15m_500_sec.hse.6400"
+problem.burn_dt = 1.e-7

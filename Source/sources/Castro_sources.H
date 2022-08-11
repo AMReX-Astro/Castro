@@ -138,19 +138,6 @@
     void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
                                           std::string source_name);
 
-///
-/// Obtain the sum of all source terms.
-///
-/// this computes advective_source + 1/2 (old source + new source)
-///
-/// @note the advective source is defined as \f$-\nabla\cdot F\f$
-///
-/// the time-centering is accomplished since new source is defined
-/// to be 1/2 (new source - old source) generally.
-///
-/// @param source       MultiFab of source terms to be summed
-///
-    void sum_of_sources(amrex::MultiFab& source);
 
 
 ///
@@ -200,23 +187,11 @@
 /// @param state        input state
 /// @param source       source incremented with the sponge
 /// @param dt           timestep
-/// @param mult_factor  multiplicative factor in front of the source
 ///
     void apply_sponge(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const state,
                       amrex::Array4<amrex::Real> const source,
-                      amrex::Real dt, amrex::Real mult_factor);
-
-///
-/// Allocate sponge parameters
-///
-    static void sponge_init();
-
-
-///
-/// Deallocate sponge parameters
-///
-    static void sponge_finalize();
+                      amrex::Real dt);
 
 #endif
 
@@ -331,15 +306,3 @@
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
                           amrex::MultiFab& S, amrex::MultiFab& ext_src);
-
-
-#ifdef REACTIONS
-///
-/// Obtain the effective source term due to reactions on the primitive variables
-///
-/// @param source   MultiFab to save source term to
-/// @param dt       timestep
-///
-    void get_react_source_prim(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
-#endif
-

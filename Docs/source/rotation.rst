@@ -26,14 +26,13 @@ equations.
 
 The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
-default axis of rotation points from ``center``, which is typically
-defined in a ``Prob_nd.F90`` routine, to the typical “vertical
-direction.” The vertical direction is defined as follows:
+default axis of rotation points from ``problem::center`` in the vertical direction.
 
-.. note:: make sure you have set the ``center()`` variable
-   appropriately for you problem.  This can be done either by directly
-   setting it in the ``prob_params_module`` or via the
-   ``castro.center`` runtime parameter.
+.. note:: make sure you have set the ``problem::center()`` variable
+   appropriately for you problem.  This can be done by directly
+   setting it in the ``problem_initialize()`` function.
+
+The "vertical direction" is defined as follows:
 
 * 2D
 
@@ -68,9 +67,6 @@ The main parameters that affect rotation are:
 -  ``castro.rotation_include_domegadt`` : whether to
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
-
--  ``castro.state_in_rotating_frame`` : whether state
-   variables are measured in the rotating frame (default: 1)
 
 -  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)

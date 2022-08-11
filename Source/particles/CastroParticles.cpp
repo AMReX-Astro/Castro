@@ -16,11 +16,6 @@ using namespace amrex;
 AmrTracerParticleContainer* Castro::TracerPC =  0;
 
 namespace {
-    std::string       particle_init_file;
-    std::string       particle_restart_file;
-    int               restart_from_nonparticle_chkfile = 0;
-    std::string       particle_output_file;
-    std::string       timestamp_dir;
     std::vector<int>  timestamp_indices;
     //
     const std::string chk_tracer_particle_file("Tracer");
@@ -33,8 +28,8 @@ Castro::read_particle_params ()
   ParmParse pp("particles");
 
     if (ParallelDescriptor::IOProcessor())
-        if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
-            amrex::CreateDirectoryFailed(timestamp_dir);
+        if (!amrex::UtilCreateDirectory(particles::timestamp_dir, 0755))
+            amrex::CreateDirectoryFailed(particles::timestamp_dir);
     //
     // Force other processors to wait till directory is built.
     //
@@ -57,9 +52,9 @@ Castro::init_particles ()
 
         TracerPC->SetVerbose(particles::particle_verbose);
 
-        if (! particle_init_file.empty())
+        if (! particles::particle_init_file.empty())
         {
-            TracerPC->InitFromAsciiFile(particle_init_file,0);
+            TracerPC->InitFromAsciiFile(particles::particle_init_file,0);
         }
     }
 }
@@ -102,19 +97,19 @@ Castro::ParticlePostRestart (const std::string& restart_file)
             // We want to be able to add new particles on a restart.
             // As well as the ability to write the particles out to an ascii file.
             //
-            if (!restart_from_nonparticle_chkfile)
+            if (!particles::restart_from_nonparticle_chkfile)
             {
                 TracerPC->Restart(parent->theRestartFile(), chk_tracer_particle_file);
             }
 
-            if (!particle_restart_file.empty())
+            if (!particles::particle_restart_file.empty())
             {
-                TracerPC->InitFromAsciiFile(particle_restart_file,0);
+                TracerPC->InitFromAsciiFile(particles::particle_restart_file,0);
             }
 
-            if (!particle_output_file.empty())
+            if (!particles::particle_output_file.empty())
             {
-                TracerPC->WriteAsciiFile(particle_output_file);
+                TracerPC->WriteAsciiFile(particles::particle_output_file);
             }
         }
     }
@@ -221,9 +216,9 @@ Castro::TimestampParticles (int ngrow)
         }
     }
 
-    if ( TracerPC && !timestamp_dir.empty())
+    if ( TracerPC && !particles::timestamp_dir.empty())
     {
-        std::string basename = timestamp_dir;
+        std::string basename = particles::timestamp_dir;
 
         if (basename[basename.length()-1] != '/') basename += '/';
 
@@ -261,10 +256,10 @@ Castro::advance_particles(int iteration, Real time, Real dt)
         int ng = iteration;
         Real t = time + 0.5*dt;
 
-        MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
+        MultiFab Ucc(grids,dmap,AMREX_SPACEDIM,ng); // cell centered velocity
 
         {
-            FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
+            FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, AMREX_SPACEDIM+1);
             MultiFab& S = fpi.get_mf();
 
 #ifdef _OPENMP
@@ -274,7 +269,7 @@ Castro::advance_particles(int iteration, Real time, Real dt)
             {
                 const Box& bx = mfi.growntilebox();
                 S[mfi].invert(1.0, bx, 0, 1);
-                for (int dir=0; dir < BL_SPACEDIM; ++dir) {
+                for (int dir=0; dir < AMREX_SPACEDIM; ++dir) {
                     Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
                     Ucc[mfi].mult(S[mfi], bx, 0, dir);
                 }

@@ -17,10 +17,6 @@ USE_ROTATION ?= TRUE
 USE_CXX_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
-# We want to use the dimension agnostic version of certain source files.
-
-GPU_COMPATIBLE_PROBLEM = TRUE
-
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 
 ifeq ($(DIM), 3)

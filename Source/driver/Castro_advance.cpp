@@ -13,6 +13,8 @@
 #include <cmath>
 #include <climits>
 
+#include <problem_initialize_state_data.H>
+
 using std::string;
 using namespace amrex;
 
@@ -90,7 +92,7 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
        int is_new = 1;
@@ -148,9 +150,8 @@ Castro::initialize_do_advance(Real time)
         define_new_center(get_old_data(State_Type), time);
     }
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       swap_outflow_data();
        int is_new = 0;
        make_radial_data(is_new);
     }
@@ -177,12 +178,18 @@ Castro::initialize_do_advance(Real time)
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
 #endif      
       // for the CTU unsplit method, we always start with the old
-      // state note: a clean_state has already been done on the old
-      // state in initialize_advance so we don't need to do another
-      // one here
+      // state note: although clean_state has already been done on
+      // the old state in initialize_advance, we still need to do
+      // another here to ensure the ghost zones are thermodynamically
+      // consistent
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
+      clean_state(
+#ifdef MHD
+                  Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                  Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -214,7 +221,7 @@ Castro::finalize_do_advance()
     if (!do_hydro && Radiation::rad_hydro_combined) {
         MultiFab& Er_old = get_old_data(Rad_Type);
         MultiFab& Er_new = get_new_data(Rad_Type);
-        Er_new.copy(Er_old);
+        MultiFab::Copy(Er_new, Er_old, 0, 0, Er_old.nComp(), 0);
     }
 #endif
 
@@ -240,11 +247,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     keep_prev_state = false;
 
-    // Reset the retry timestep information.
+    // Reset the retry information.
 
-    lastDtRetryLimited = 0;
-    lastDtFromRetry = 1.e200;
     in_retry = false;
+    num_subcycles_taken = 1;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -279,21 +285,15 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
 
-    if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
+    if (level == 0 && do_grav && gravity->get_gravity_type() == "PoissonGrav") {
         gravity->update_max_rhs();
     }
 #endif
 
-    // This array holds the sum of all source terms that affect the
-    // hydrodynamics.
-
-    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
     // This array holds the source term corrector.
 
-    source_corrector.define(grids, dmap, NSRC, NUM_GROW);
-    source_corrector.setVal(0.0, NUM_GROW);
+    source_corrector.define(grids, dmap, NSRC, NUM_GROW_SRC);
+    source_corrector.setVal(0.0, NUM_GROW_SRC);
 
     // Swap the new data from the last timestep into the old state data.
 
@@ -305,13 +305,84 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
+    MultiFab& S_old = get_old_data(State_Type);
+
+    // if we are doing drive_initial_convection, check to see if we
+    // need to reinitialize the thermodynamic data (while keeping the
+    // velocity unchanged)
+
+#ifndef MHD
+
+    const Real cur_time = state[State_Type].curTime();
+    const Real dt_level = parent->dtLevel(level);
+
+    if (drive_initial_convection && cur_time <= drive_initial_convection_tmax) {
+
+        // Calculate the new dt by comparing to the dt needed to get
+        // to the next multiple of drive_initial_convection_reinit_period
+
+        const Real dtMod = std::fmod(cur_time, drive_initial_convection_reinit_period);
+
+        Real reinit_dt;
+
+        // Note that if we are just about exactly on a multiple of
+        // drive_initial_convection_reinit_period, then we need to be
+        // careful to avoid floating point issues.
+
+
+        if (std::abs(dtMod - drive_initial_convection_reinit_period) <=
+            std::numeric_limits<Real>::epsilon() * cur_time) {
+                reinit_dt = drive_initial_convection_reinit_period +
+                    (drive_initial_convection_reinit_period - dtMod);
+        } else {
+            reinit_dt = drive_initial_convection_reinit_period - dtMod;
+        }
+
+        if (reinit_dt < dt_level) {
+
+          amrex::Print() << "<<<<< drive initial convection reset >>>>" << std::endl;
+
+            for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+            {
+                const Box& box     = mfi.validbox();
+
+                auto s = S_old[mfi].array();
+                auto geomdata = geom.data();
+
+                amrex::ParallelFor(box,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                {
+                    // redo the problem initialization.  We want to preserve
+                    // the current velocity though, so save that and then
+                    // restore it afterwards.
+
+                    Real vx_orig = s(i,j,k,UMX) / s(i,j,k,URHO);
+                    Real vy_orig = s(i,j,k,UMY) / s(i,j,k,URHO);
+                    Real vz_orig = s(i,j,k,UMZ) / s(i,j,k,URHO);
+
+                    problem_initialize_state_data(i, j, k, s, geomdata);
+
+                    s(i,j,k,UMX) = s(i,j,k,URHO) * vx_orig;
+                    s(i,j,k,UMY) = s(i,j,k,URHO) * vy_orig;
+                    s(i,j,k,UMZ) = s(i,j,k,URHO) * vz_orig;
+
+                    s(i,j,k,UEDEN) = s(i,j,k,UEINT) + 0.5_rt * s(i,j,k,URHO) *
+                        (vx_orig * vx_orig + vy_orig * vy_orig + vz_orig * vz_orig);
+
+                });
+            }
+
+        }
+    }
+#endif
+
+
     // Ensure data is valid before beginning advance. This addresses
     // the fact that we may have new data on this level that was interpolated
     // from a coarser level, and the interpolation in general cannot be
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    MultiFab& S_old = get_old_data(State_Type);
     clean_state(
 #ifdef MHD
                  get_old_data(Mag_Type_x),
@@ -326,11 +397,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     for (int k = 0; k < num_state_type; ++k) {
         prev_state[k].reset(new StateData());
-    }
-
-    // This array holds the hydrodynamics update.
-    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      hydro_source.define(grids,dmap,NUM_STATE,0);
     }
 
 
@@ -401,7 +467,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
     }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
     }
@@ -409,9 +475,15 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
         }
+    }
+#endif
+
+#ifdef REACTIONS
+    if (store_burn_weights) {
+        burn_weights.setVal(0.0);
     }
 #endif
 
@@ -429,10 +501,6 @@ Castro::finalize_advance()
         FluxRegFineAdd();
     }
 
-
-    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      hydro_source.clear();
-    }
 
 #ifdef TRUE_SDC
     q.clear();
@@ -453,7 +521,6 @@ Castro::finalize_advance()
 #endif
 
     source_corrector.clear();
-    sources_for_hydro.clear();
 
     if (!keep_prev_state) {
         amrex::FillNull(prev_state);

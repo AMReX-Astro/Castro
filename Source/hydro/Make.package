@@ -9,6 +9,7 @@ CEXE_sources += Castro_ctu.cpp
 CEXE_sources += Castro_mol.cpp
 CEXE_headers += advection_util.H
 CEXE_sources += advection_util.cpp
+CEXE_headers += flatten.H
 CEXE_sources += flatten.cpp
 
 ifeq ($(USE_TRUE_SDC),TRUE)
@@ -27,7 +28,6 @@ endif
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
 CEXE_headers += riemann_solvers.H
-CEXE_sources += riemann_solvers.cpp
 CEXE_sources += riemann_util.cpp
 CEXE_headers += riemann.H
 CEXE_headers += slope.H

@@ -30,10 +30,15 @@
 #include <omp.h>
 #endif
 
+#ifdef REACTIONS
+#ifdef SCREENING
+#include <screen.H>
+#endif
+#endif
+
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;
@@ -54,11 +59,13 @@ using namespace amrex;
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
+// 10: Reactions_Type was removed from checkpoints
+// 11: PhiRot_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 9;
+    int current_version = 11;
 }
 
 // I/O routines for Castro
@@ -181,10 +188,27 @@ Castro::restart (Amr&     papa,
 
         if (PMFile.good()) {
             PMFile >> point_mass;
-            set_pointmass(&point_mass);
             PMFile.close();
         }
 
+    }
+#endif
+
+#ifdef ROTATION
+    if (do_rotation && level == 0)
+    {
+        // get current value of the rotation period
+        std::ifstream RotationFile;
+        std::string FullPathRotationFile = parent->theRestartFile();
+        FullPathRotationFile += "/Rotation";
+        RotationFile.open(FullPathRotationFile.c_str(), std::ios::in);
+
+        if (RotationFile.is_open()) {
+            RotationFile >> castro::rotational_period;
+            amrex::Print() << "  Based on the checkpoint, setting the rotational period to "
+                           << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
+            RotationFile.close();
+        }
     }
 #endif
 
@@ -196,8 +220,6 @@ Castro::restart (Amr&     papa,
 
         problem_restart(dir);
     }
-
-    const Real* dx  = geom.CellSize();
 
     if ( (grown_factor > 1) && (parent->maxLevel() < 1) )
     {
@@ -240,7 +262,7 @@ Castro::restart (Amr&     papa,
              orig_domain.setBig(d,hi);
 
           } else {
-             for (int d = 0; d < BL_SPACEDIM; d++)
+             for (int d = 0; d < AMREX_SPACEDIM; d++)
              {
                 int dlen =  domain.size()[d];
                 if (grown_factor == 2) {
@@ -266,10 +288,7 @@ Castro::restart (Amr&     papa,
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 
-           const Real* prob_lo = geom.ProbLo();
            const Box& bx      = mfi.validbox();
-           const int* lo      = bx.loVect();
-           const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
 
@@ -284,26 +303,6 @@ Castro::restart (Amr&     papa,
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
 
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-
-              RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-
-              Real cur_time = state[State_Type].curTime();
-
-              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-                 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
-
-
            }
        }
     }
@@ -313,12 +312,9 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
-       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -486,6 +482,23 @@ Castro::checkPoint(const std::string& dir,
         }
 #endif
 
+#ifdef ROTATION
+        if (do_rotation) {
+            // store current value of the rotation period
+            std::ofstream RotationFile;
+            std::string FullPathRotationFile = dir;
+            FullPathRotationFile += "/Rotation";
+            RotationFile.open(FullPathRotationFile.c_str(), std::ios::out);
+
+            RotationFile << std::scientific;
+            RotationFile.precision(19);
+
+            RotationFile << std::setw(30) << castro::rotational_period << std::endl;
+
+            RotationFile.close();
+        }
+#endif
+
         {
             // store any problem-specific stuff
             problem_checkpoint(dir);
@@ -527,23 +540,6 @@ Castro::setPlotVariables ()
 #endif
 #endif
 
-  ParmParse pp("castro");
-
-  bool plot_X;
-
-  if (pp.query("plot_X",plot_X))
-  {
-      if (plot_X)
-      {
-          // Get the species names from the network model.
-          //
-          for (int i = 0; i < NumSpec; i++)
-          {
-              string spec_string = "X(" + short_spec_names_cxx[i] + ")";
-              parent->addDerivePlotVar(spec_string);
-          }
-      }
-  }
 }
 
 
@@ -633,7 +629,12 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   jobInfoFile << "\n";
-  
+
+#ifdef AMREX_USE_CUDA
+  jobInfoFile << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  jobInfoFile << "\n";
+#endif
+
   jobInfoFile << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   jobInfoFile << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
 
@@ -653,6 +654,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
   }
 
+#ifdef SCREENING
+  jobInfoFile << "screening: " << screen_name << "\n";
+#endif
   jobInfoFile << "\n";
 
   const char* githash1 = buildInfoGetGitHash(1);
@@ -689,7 +693,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
       jobInfoFile << " level: " << i << "\n";
       jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
       jobInfoFile << "   maximum zones   = ";
-      for (int n = 0; n < BL_SPACEDIM; n++)
+      for (int n = 0; n < AMREX_SPACEDIM; n++)
         {
           jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
           //jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
@@ -698,10 +702,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     }
 
   jobInfoFile << " Boundary conditions\n";
-  Vector<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
+  Vector<int> lo_bc_out(AMREX_SPACEDIM), hi_bc_out(AMREX_SPACEDIM);
   ParmParse pp("castro");
-  pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
+  pp.getarr("lo_bc",lo_bc_out,0,AMREX_SPACEDIM);
+  pp.getarr("hi_bc",hi_bc_out,0,AMREX_SPACEDIM);
 
 
   // these names correspond to the integer flags setup in the
@@ -713,11 +717,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
   jobInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
-  if (BL_SPACEDIM >= 2) {
+  if (AMREX_SPACEDIM >= 2) {
     jobInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
     jobInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
   }
-  if (BL_SPACEDIM == 3) {
+  if (AMREX_SPACEDIM == 3) {
     jobInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
     jobInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
   }
@@ -812,19 +816,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   diffusion->output_job_info_params(jobInfoFile);
 #endif
 
+#include <prob_job_info_tests.H>
+
+#include <extern_job_info_tests.H>
+
   jobInfoFile.close();
-
-  // now the external parameters
-  const int jobinfo_file_length = FullPathJobInfoFile.length();
-  Vector<int> jobinfo_file_name(jobinfo_file_length);
-
-  for (int i = 0; i < jobinfo_file_length; i++) {
-    jobinfo_file_name[i] = FullPathJobInfoFile[i];
-  }
-
-  runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
-
-  prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
 }
 
@@ -1095,6 +1091,14 @@ Castro::plotFileOutput(const std::string& dir,
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
 #endif
 
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        n_data_items += Castro::burn_weight_names.size();
+    }
+#endif
+#endif
+
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -1139,15 +1143,25 @@ Castro::plotFileOutput(const std::string& dir,
         }
 #endif
 
-        os << BL_SPACEDIM << '\n';
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+        if (store_burn_weights) {
+            for (auto name: Castro::burn_weight_names) {
+                os << name << '\n';
+            }
+        }
+#endif
+#endif
+
+        os << AMREX_SPACEDIM << '\n';
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++) {
+        for (int i = 0; i < AMREX_SPACEDIM; i++) {
             os << geom.ProbLo(i) << ' ';
         }
         os << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++) {
+        for (int i = 0; i < AMREX_SPACEDIM; i++) {
             os << geom.ProbHi(i) << ' ';
         }
         os << '\n';
@@ -1165,7 +1179,7 @@ Castro::plotFileOutput(const std::string& dir,
         os << '\n';
         for (int i = 0; i <= f_lev; i++)
         {
-            for (int k = 0; k < BL_SPACEDIM; k++) {
+            for (int k = 0; k < AMREX_SPACEDIM; k++) {
               os << parent->Geom(i).CellSize()[k] << ' ';
             }
             os << '\n';
@@ -1222,7 +1236,7 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i = 0; i < grids.size(); ++i)
         {
             RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-            for (int n = 0; n < BL_SPACEDIM; n++) {
+            for (int n = 0; n < AMREX_SPACEDIM; n++) {
               os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
             }
         }
@@ -1281,6 +1295,15 @@ Castro::plotFileOutput(const std::string& dir,
         MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
         cnt += Radiation::nplotvar;
     }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
+        cnt += Castro::burn_weight_names.size();
+    }
+#endif
 #endif
 
     //

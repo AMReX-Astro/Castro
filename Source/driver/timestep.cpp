@@ -14,24 +14,25 @@
 #endif
 
 #ifdef REACTIONS
-#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
 #include <actual_rhs.H>
-#else
-#include <fortran_to_cxx_actual_rhs.H>
 #endif
+
+#ifdef RADIATION
+#include <Radiation.H>
 #endif
+
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
+
 
 using namespace amrex;
 
 Real
-Castro::estdt_cfl(const Real time)
+Castro::estdt_cfl (int is_new)
 {
 
   // Courant-condition limited timestep
-
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
 
   const auto dx = geom.CellSizeArray();
 
@@ -39,7 +40,7 @@ Castro::estdt_cfl(const Real time)
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& stateMF = get_new_data(State_Type);
+  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -55,7 +56,7 @@ Castro::estdt_cfl(const Real time)
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u(i,j,k,URHO);
       eos_state.T = u(i,j,k,UTEMP);
       eos_state.e = u(i,j,k,UEINT) * rhoInv;
@@ -75,21 +76,6 @@ Castro::estdt_cfl(const Real time)
       Real ux = u(i,j,k,UMX) * rhoInv;
       Real uy = u(i,j,k,UMY) * rhoInv;
       Real uz = u(i,j,k,UMZ) * rhoInv;
-
-#ifdef ROTATION
-      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        GpuArray<Real, 3> vel;
-        vel[0] = ux;
-        vel[1] = uy;
-        vel[2] = uz;
-
-        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-        ux = vel[0];
-        uy = vel[1];
-        uz = vel[2];
-      }
-#endif
 
       Real c = eos_state.cs;
 
@@ -141,7 +127,7 @@ Castro::estdt_cfl(const Real time)
 
 #ifdef MHD
 Real
-Castro::estdt_mhd()
+Castro::estdt_mhd (int is_new)
 {
 
   // MHD timestep limiter
@@ -151,11 +137,11 @@ Castro::estdt_mhd()
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& state = get_new_data(State_Type);
+  const MultiFab& state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
-  const MultiFab& bx = get_new_data(Mag_Type_x);
-  const MultiFab& by = get_new_data(Mag_Type_y);
-  const MultiFab& bz = get_new_data(Mag_Type_z);
+  const MultiFab& bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
+  const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
+  const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -182,7 +168,7 @@ Castro::estdt_mhd()
       Real uy = u_arr(i,j,k,UMY) * rhoInv;
       Real uz = u_arr(i,j,k,UMZ) * rhoInv;
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u_arr(i,j,k,URHO);
       eos_state.e = u_arr(i,j,k,UEINT) * rhoInv;
       eos_state.T = u_arr(i,j,k,UTEMP);
@@ -255,7 +241,7 @@ Castro::estdt_mhd()
 #ifdef DIFFUSION
 
 Real
-Castro::estdt_temp_diffusion(void)
+Castro::estdt_temp_diffusion (int is_new)
 {
 
   // Diffusion-limited timestep
@@ -269,7 +255,7 @@ Castro::estdt_temp_diffusion(void)
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& stateMF = get_new_data(State_Type);
+  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const Real ldiffuse_cutoff_density = diffuse_cutoff_density;
   const Real lmax_dt = max_dt;
@@ -293,6 +279,7 @@ Castro::estdt_temp_diffusion(void)
 
                        // we need cv
                        eos_t eos_state;
+
                        eos_state.rho = ustate(i,j,k,URHO);
                        eos_state.T = ustate(i,j,k,UTEMP);
                        eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
@@ -346,7 +333,7 @@ Castro::estdt_temp_diffusion(void)
 
 #ifdef REACTIONS
 Real
-Castro::estdt_burning()
+Castro::estdt_burning (int is_new)
 {
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
@@ -355,8 +342,7 @@ Castro::estdt_burning()
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab& S_new = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -366,9 +352,6 @@ Castro::estdt_burning()
         const Box& box = mfi.validbox();
 
         const auto S = S_new[mfi].array();
-        const auto R = R_new[mfi].array();
-
-        const auto dx = geom.CellSizeArray();
 
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
@@ -403,39 +386,38 @@ Castro::estdt_burning()
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
-            burn_t state;
+            burn_t burn_state;
 
-            state.rho = S(i,j,k,URHO);
-            state.T   = S(i,j,k,UTEMP);
-            state.e   = S(i,j,k,UEINT) * rhoInv;
+            burn_state.rho = S(i,j,k,URHO);
+            burn_state.T   = S(i,j,k,UTEMP);
+            burn_state.e   = S(i,j,k,UEINT) * rhoInv;
             for (int n = 0; n < NumSpec; ++n) {
-                state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+                burn_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
             }
 #if NAUX_NET > 0
             for (int n = 0; n < NumAux; ++n) {
-                state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+                burn_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
             }
 #endif
 
-            if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
-                state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
+            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                 return {1.e200_rt};
             }
 
-            Real e    = state.e;
-            Real T    = amrex::max(state.T, castro::small_temp);
+            Real e = burn_state.e;
             Real X[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
-                X[n] = amrex::max(state.xn[n], small_x);
+                X[n] = amrex::max(burn_state.xn[n], small_x);
             }
 
-            eos(eos_input_rt, state);
+            eos(eos_input_rt, burn_state);
 
 #ifdef STRANG
-            state.self_heat = true;
+            burn_state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;
-            actual_rhs(state, ydot);
+            actual_rhs(burn_state, ydot);
 
             Real dedt = ydot(net_ienuc);
             Real dXdt[NumSpec];
@@ -467,7 +449,7 @@ Castro::estdt_burning()
             // evaluate the NSE criterion based on the conserved state.
 
             eos_t eos_state;
-            burn_to_eos(state, eos_state);
+            burn_to_eos(burn_state, eos_state);
 
             if (!in_nse(eos_state)) {
 #endif
@@ -486,6 +468,95 @@ Castro::estdt_burning()
 
     ReduceTuple hv = reduce_data.value();
     Real estdt = amrex::get<0>(hv);
+
+    return estdt;
+}
+#endif
+
+#ifdef RADIATION
+Real
+Castro::estdt_rad (int is_new)
+{
+    auto dx = geom.CellSizeArray();
+
+    const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+    const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
+
+    // Compute radiation + hydro limited timestep.
+
+    ReduceOps<ReduceOpMin> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& tbox = mfi.tilebox();
+        const Box& vbox = mfi.validbox();
+
+        FArrayBox gPr;
+        gPr.resize(tbox);
+        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), vbox);
+
+        auto u = stateMF[mfi].array();
+        auto gPr_arr = gPr.array();
+
+        // Note that we synchronize in the call to estimate_gamrPr. Ideally
+        // we would merge these into one loop later (probably by making that
+        // call occur on a zone-by-zone basis) so that we can simplify.
+
+        reduce_op.eval(tbox, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+        {
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+            eos_t eos_state;
+            eos_state.rho = u(i,j,k,URHO);
+            eos_state.T   = u(i,j,k,UTEMP);
+            eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+            }
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; ++n) {
+                eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+            }
+#endif
+
+            eos(eos_input_re, eos_state);
+
+            Real c = eos_state.cs;
+            c = std::sqrt(c * c + gPr_arr(i,j,k) * rhoInv);
+
+            Real ux = u(i,j,k,UMX) * rhoInv;
+            Real uy = u(i,j,k,UMY) * rhoInv;
+            Real uz = u(i,j,k,UMZ) * rhoInv;
+
+            Real dt1 = dx[0] / (c + std::abs(ux));
+#if AMREX_SPACEDIM >= 2
+            Real dt2 = dx[1] / (c + std::abs(uy));
+#else
+            Real dt2 = std::numeric_limits<Real>::max();
+#endif
+#if AMREX_SPACEDIM == 3
+            Real dt3 = dx[2] / (c + std::abs(uz));
+#else
+            Real dt3 = std::numeric_limits<Real>::max();
+#endif
+
+            Real dt_min = amrex::min(dt1, dt2, dt3);
+
+            return {dt_min};
+        });
+
+        Gpu::synchronize();
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    Real estdt = amrex::get<0>(hv);
+    estdt = std::min(estdt, max_dt / cfl);
 
     return estdt;
 }
