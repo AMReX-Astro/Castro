@@ -63,9 +63,16 @@ def schlieren(data, cutoff=-16):
     dr = r[5, 5] - r[4, 5]
     dz = z[5, 5] - z[5, 4]
 
+    rl = r - 0.5 * dr
+    rr = r + 0.5 * dr
+
     # calculate the laplacian
-    lapl[1:-1, :] = 1 / (2 * dr * r[1:-1]) * (dens[2:, :] - dens[:-2, :]) + \
-        (dens[2:, :] + dens[:-2, :] - 2 * dens[1:-1, :]) / dr**2
+
+    # radial term -- this is 1/r d/dr (r  dA/dr)
+
+    lapl[1:-1, :] = 1 / (r[1:-1, :] * dr**2) * (
+        -(rl[1:-1,:] + rr[1:-1,:]) * dens[1:-1:, :] +
+        rl[1:-1, :] * dens[:-2, :] + rr[1:-1, :] * dens[2:, :])
 
     lapl[:, 1:-1] += 1 / dz**2 * \
         (dens[:, 2:] + dens[:, :-2] - 2 * dens[:, 1:-1])
@@ -104,8 +111,10 @@ def doit(pfiles):
 
         ds = CastroDataset(pf)
 
-        level = 0
-        dims = ds.domain_dimensions * ds.refine_by**level
+        level = ds.index.max_level
+        ref = int(np.product(ds.ref_factors[0:level]))
+
+        dims = ds.domain_dimensions * ref
 
         sq = ds.covering_grid(level, left_edge=[0, 0, 0],
                               dims=dims, fields=["density"])
