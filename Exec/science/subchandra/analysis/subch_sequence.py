@@ -16,10 +16,15 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 # assume that our data is in CGS
 from yt.units import cm, amu
 from yt.frontends.boxlib.api import CastroDataset
+from yt.funcs import just_one
+from yt.fields.derived_field import ValidateSpatial
 
 #times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35]
 times = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
 #times = [0.0, 0.15, 0.3, 0.45]
+
+clip_val = -35
+max_val = -19
 
 def find_files(plist):
 
@@ -36,6 +41,29 @@ def find_files(plist):
                 mask[k] = 1.0
 
     return files_to_plot
+
+def _lap_rho(field, data):
+    dr = just_one(data["index", "dr"]).d
+    r = data["index", "r"].d
+    rl = r - 0.5 * dr
+    rr = r + 0.5 * dr
+
+    dz = just_one(data["index", "dz"]).d
+    dens = data["gas", "density"].d
+
+    _lap = np.zeros_like(dens)
+
+    lapl_field = data.ds.arr(np.zeros(dens.shape, dtype=np.float64), None)
+
+    # r-component
+    _lap[1:-1, :] = 1 / (r[1:-1, :] * dr**2) * (
+        -(rl[1:-1,:] + rr[1:-1,:]) * dens[1:-1:, :] +
+        rl[1:-1, :] * dens[:-2, :] + rr[1:-1, :] * dens[2:, :])
+
+    _lap[:, 1:-1] += 1 / dz**2 * (dens[:, 2:] + dens[:, :-2] - 2.0 * dens[:, 1:-1])
+    lapl_field[1:-1, 1:-1] = np.log(np.abs(_lap[1:-1, 1:-1] / dens[1:-1, 1:-1]))
+    lapl_field[lapl_field < clip_val] = clip_val
+    return lapl_field
 
 def doit(field, pfiles):
 
@@ -65,7 +93,13 @@ def doit(field, pfiles):
 
         ds = CastroDataset(pf)
 
-        domain_frac = 0.1
+        if field == "lap_rho":
+            ds.force_periodicity()
+            ds.add_field(name=("gas", "lap_rho"), sampling_type="local",
+                         function=_lap_rho, units="",
+                         validators=[ValidateSpatial(1)])
+
+        domain_frac = 0.15
 
         xmin = ds.domain_left_edge[0]
         xmax = domain_frac * ds.domain_right_edge[0]
@@ -95,6 +129,10 @@ def doit(field, pfiles):
             sp.set_zlim(field, 4, 28)
             sp.set_log(field, False)
             sp.set_cmap(field, "plasma_r")
+        elif field == "lap_rho":
+            sp.set_zlim(field, clip_val, max_val)
+            sp.set_log(field, False)
+            sp.set_cmap(field, "bone_r")
 
         sp.set_axes_unit("km")
 

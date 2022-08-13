@@ -32,8 +32,8 @@ geometry.prob_lo     = 0       0       0
 #elif AMREX_SPACEDIM == 2
   geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 
-  geometry.prob_hi     = 2.048e5      2.56e4
-  amr.n_cell           = 1024         128
+  geometry.prob_hi     = 1.024e5      2.56e4
+  amr.n_cell           = 512         128
 
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   # 0 = Interior           3 = Symmetry
