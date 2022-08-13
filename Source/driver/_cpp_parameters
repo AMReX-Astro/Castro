@@ -31,6 +31,10 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
+# Castro was originally written assuming dx = dy = dz.  This assumption is
+# enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
+allow_non_unit_aspect_zones  int           0
+
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
