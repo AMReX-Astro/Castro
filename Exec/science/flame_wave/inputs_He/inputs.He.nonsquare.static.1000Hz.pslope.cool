@@ -9,8 +9,8 @@ geometry.prob_lo     = 0       0       0
 #if AMREX_SPACEDIM == 3
   geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
-  geometry.prob_hi     = 2.048e5      2.048e5    2.56e4
-  amr.n_cell           = 1024         1024        128
+  geometry.prob_hi     = 196608       196608     24576
+  amr.n_cell           = 768          768        192
 
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   # 0 = Interior           3 = Symmetry
@@ -27,8 +27,8 @@ geometry.prob_lo     = 0       0       0
 #elif AMREX_SPACEDIM == 2
   geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 
-  geometry.prob_hi     = 1.024e5      2.56e4
-  amr.n_cell           = 512         128
+  geometry.prob_hi     = 98304       2.4576e4
+  amr.n_cell           = 384         192
 
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   # 0 = Interior           3 = Symmetry
@@ -43,6 +43,8 @@ geometry.prob_lo     = 0       0       0
   castro.ambient_outflow_vel = 1
 
 #endif
+
+castro.allow_non_unit_aspect_zones = 1
 
 castro.domain_is_plane_parallel = 1
 
@@ -82,6 +84,9 @@ castro.sponge_upper_density = 1.e2
 castro.sponge_lower_density = 1.e0
 castro.sponge_timescale     = 1.e-7
 
+# GPU options
+castro.hydro_memory_footprint_ratio = 3
+
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
@@ -110,7 +115,12 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = flame_wave_1000Hz_25cm_chk        # root name of checkpoint file
-amr.check_int       = 1000        # number of timesteps between checkpoints
+#if AMREX_SPACEDIM == 3
+amr.check_int       = 25        # number of timesteps between checkpoints
+#elif AMREX_SPACEDIM == 2
+amr.check_int       = 250        # number of timesteps between checkpoints
+#endif
+
 amr.checkpoint_files_output = 1
 
 # PLOTFILES
@@ -134,16 +144,16 @@ fab.format = NATIVE_32
 
 # problem initialization
 
-problem.dtemp = 1.1e9
-problem.x_half_max = 4.096e4
+problem.dtemp = 1.2e9
+problem.x_half_max = 2.56e4
 problem.x_half_width = 2048.e0
 
 problem.dx_model = 25.e0
 
 problem.dens_base = 3.43e6
 
-problem.T_star = 3.e8
-problem.T_hi = 3.e8
+problem.T_star = 2.e8
+problem.T_hi = 2.e8
 problem.T_lo = 8.e6
 
 problem.H_star = 2000.e0
