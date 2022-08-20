@@ -82,7 +82,7 @@ void main_main()
 
     std::cout << "enuc_max = " << enuc_max << std::endl;
 
-    ParallelDescriptor::ReduceRealSum(lstate.data(), lstate.size());
+    //ParallelDescriptor::ReduceRealSum(lstate.data(), lstate.size());
 
     // output the header
     for (int ivar = 0; ivar < var_names_pf.size(); ++ivar) {
