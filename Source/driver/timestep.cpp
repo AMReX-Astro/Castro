@@ -42,17 +42,15 @@ Castro::estdt_cfl (int is_new)
 
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-    const Box& box = mfi.tilebox();
+  auto const& ua = stateMF.const_arrays();
 
-    auto u = stateMF.array(mfi);
+  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
+  [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
+  {
 
-    reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-    {
+      Array4<Real const> const& u = ua[box_no];
+
+      IntVect idx(D_DECL(i,j,k));
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
@@ -61,11 +59,11 @@ Castro::estdt_cfl (int is_new)
       eos_state.T = u(i,j,k,UTEMP);
       eos_state.e = u(i,j,k,UEINT) * rhoInv;
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+          eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -99,29 +97,29 @@ Castro::estdt_cfl (int is_new)
       // schemes (including the true SDC).  Since the simplified SDC
       // solver is based on CTU, we can use its timestep.
       if (castro::time_integration_method == 0 || castro::time_integration_method == 3) {
-        return {amrex::min(dt1, dt2, dt3)};
+          Real dt = amrex::min(dt1, dt2, dt3);
+          return {ValLocPair<Real, IntVect>{dt, idx}};
 
       } else {
-        // method of lines-style constraint is tougher
-        Real dt_tmp = 1.0_rt/dt1;
+          // method of lines-style constraint is tougher
+          Real dt_tmp = 1.0_rt/dt1;
 #if AMREX_SPACEIM >= 2
-        dt_tmp += 1.0_rt/dt2;
+          dt_tmp += 1.0_rt/dt2;
 #endif
 #if AMREX_SPACEDIM == 3
-        dt_tmp += 1.0_rt/dt3;
+          dt_tmp += 1.0_rt/dt3;
 #endif
 
-        return 1.0_rt/dt_tmp;
+          return {ValLocPair<Real, IntVect>{1.0_rt/dt_tmp, idx}};
       }
 
-    });
+  });
 
+  if (ParallelDescriptor::IOProcessor()) {
+      std::cout << "hydro CFL timestep constrained at (i,j,k) = " << r.index << std::endl;
   }
 
-  ReduceTuple hv = reduce_data.value();
-  Real estdt_hydro = amrex::get<0>(hv);
-
-  return estdt_hydro;
+  return r.value;
 
 }
 
