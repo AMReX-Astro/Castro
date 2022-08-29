@@ -36,10 +36,6 @@ Castro::estdt_cfl (int is_new)
 
   const auto dx = geom.CellSizeArray();
 
-  ReduceOps<ReduceOpMin> reduce_op;
-  ReduceData<Real> reduce_data(reduce_op);
-  using ReduceTuple = typename decltype(reduce_data)::Type;
-
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   auto const& ua = stateMF.const_arrays();
@@ -131,31 +127,28 @@ Castro::estdt_mhd (int is_new)
   // MHD timestep limiter
   const auto dx = geom.CellSizeArray();
 
-  ReduceOps<ReduceOpMin> reduce_op;
-  ReduceData<Real> reduce_data(reduce_op);
-  using ReduceTuple = typename decltype(reduce_data)::Type;
-
   const MultiFab& state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const MultiFab& bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
   const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
   const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-    const Box& box = mfi.tilebox();
+  auto const& ua = stateMF.const_arrays();
+  auto const& bxa = bx.const_arrays();
+  auto const& bxy = by.const_arrays();
+  auto const& bxz = bz.const_arrays();
 
-    auto u_arr = state.array(mfi);
+  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
+  [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
+  {
 
-    auto bx_arr = bx.array(mfi);
-    auto by_arr = by.array(mfi);
-    auto bz_arr = bz.array(mfi);
+      Array4<Real const> const& u_arr = ua[box_no];
 
-    reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-    {
+      Array4<Real const> const& bx_arr = bxa[box_no];
+      Array4<Real const> const& by_arr = bya[box_no];
+      Array4<Real const> const& bz_arr = bza[box_no];
+
+      IntVect idx(D_DECL(i,j,k));
 
       Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
       Real bcx = 0.5_rt * (bx_arr(i+1,j,k) + bx_arr(i,j,k));
@@ -222,16 +215,15 @@ Castro::estdt_mhd (int is_new)
       dt3 = dt1;
 #endif
 
-      return {amrex::min(dt1, dt2, dt3)};
+      return {VelLocPair<Real, IntVect>{amrex::min(dt1, dt2, dt3), idx}};
 
-    });
+  });
 
+  if (ParallelDescriptor::IOProcessor()) {
+      std::cout << "MHD CFL timestep constrained at (i,j,k) = " << r.index << std::endl;
   }
 
-  ReduceTuple hv = reduce_data.value();
-  Real estdt_mhd = amrex::get<0>(hv);
-
-  return estdt_mhd;
+  return r.value;
 
 }
 #endif
