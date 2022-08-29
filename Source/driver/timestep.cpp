@@ -133,12 +133,13 @@ Castro::estdt_mhd (int is_new)
   const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
   const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
-  auto const& ua = stateMF.const_arrays();
-  auto const& bxa = bx.const_arrays();
-  auto const& bxy = by.const_arrays();
-  auto const& bxz = bz.const_arrays();
+  auto const& ua = state.const_arrays();
 
-  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
+  auto const& bxa = bx.const_arrays();
+  auto const& bya = by.const_arrays();
+  auto const& bza = bz.const_arrays();
+
+  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, state,
   [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
   {
 
@@ -215,7 +216,7 @@ Castro::estdt_mhd (int is_new)
       dt3 = dt1;
 #endif
 
-      return {VelLocPair<Real, IntVect>{amrex::min(dt1, dt2, dt3), idx}};
+      return {ValLocPair<Real, IntVect>{amrex::min(dt1, dt2, dt3), idx}};
 
   });
 
@@ -241,83 +242,73 @@ Castro::estdt_temp_diffusion (int is_new)
 
   const auto dx = geom.CellSizeArray();
 
-  ReduceOps<ReduceOpMin> reduce_op;
-  ReduceData<Real> reduce_data(reduce_op);
-  using ReduceTuple = typename decltype(reduce_data)::Type;
-
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const Real ldiffuse_cutoff_density = diffuse_cutoff_density;
   const Real lmax_dt = max_dt;
   const Real lcfl = cfl;
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-  for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-    const Box& box = mfi.tilebox();
+  auto const& ua = stateMF.const_arrays();
 
-    auto ustate = stateMF.array(mfi);
+  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
+  [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
+  {
 
-    reduce_op.eval(box, reduce_data,
-                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-                   {
+      Array4<Real const> const& ustate = ua[box_no];
 
-                     if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
+      IntVect idx(D_DECL(i,j,k));
 
-                       Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
+      if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
 
-                       // we need cv
-                       eos_t eos_state;
+          Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
 
-                       eos_state.rho = ustate(i,j,k,URHO);
-                       eos_state.T = ustate(i,j,k,UTEMP);
-                       eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
-                       for (int n = 0; n < NumSpec; n++) {
-                         eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
-                       }
+          // we need cv
+          eos_t eos_state;
+
+          eos_state.rho = ustate(i,j,k,URHO);
+          eos_state.T = ustate(i,j,k,UTEMP);
+          eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
+          for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
+          }
 #if NAUX_NET > 0
-                       for (int n = 0; n < NumAux; n++) {
-                         eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
-                       }
+          for (int n = 0; n < NumAux; n++) {
+              eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
+          }
 #endif
 
-                       eos(eos_input_re, eos_state);
+          eos(eos_input_re, eos_state);
 
-                       // we also need the conductivity
-                       conductivity(eos_state);
+          // we also need the conductivity
+          conductivity(eos_state);
 
-                       // maybe we should check (and take action) on negative cv here?
-                       Real D = eos_state.conductivity * rho_inv / eos_state.cv;
+          // maybe we should check (and take action) on negative cv here?
+          Real D = eos_state.conductivity * rho_inv / eos_state.cv;
 
-                       Real dt1 = 0.5_rt * dx[0]*dx[0] / D;
+          Real dt1 = 0.5_rt * dx[0]*dx[0] / D;
 
-                       Real dt2;
+          Real dt2;
 #if AMREX_SPACEDIM >= 2
-                       dt2 = 0.5_rt * dx[1]*dx[1] / D;
+          dt2 = 0.5_rt * dx[1]*dx[1] / D;
 #else
-                       dt2 = dt1;
+          dt2 = dt1;
 #endif
 
-                       Real dt3;
+          Real dt3;
 #if AMREX_SPACEDIM >= 3
-                       dt3 = 0.5_rt * dx[2]*dx[2] / D;
+          dt3 = 0.5_rt * dx[2]*dx[2] / D;
 #else
-                       dt3 = dt1;
+          dt3 = dt1;
 #endif
 
-                       return {amrex::min(dt1, dt2, dt3)};
+          return {ValLocPair<Real, IntVect>{amrex::min(dt1, dt2, dt3), idx}};
 
-                     } else {
-                       return lmax_dt/lcfl;
+      } else {
+          return {ValLocPair<Real, IntVect>{lmax_dt/lcfl, idx}};
       }
-    });
-  }
+  });
 
-  ReduceTuple hv = reduce_data.value();
-  Real estdt_diff = amrex::get<0>(hv);
-
-  return estdt_diff;
+  return r.value;
 }
 #endif
 
@@ -328,20 +319,18 @@ Castro::estdt_burning (int is_new)
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
 
-    ReduceOps<ReduceOpMin> reduce_op;
-    ReduceData<Real> reduce_data(reduce_op);
-    using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    MultiFab& S_new = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+    MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+    auto const& ua = stateMF.const_arrays();
+
+    auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
+    [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
     {
-        const Box& box = mfi.validbox();
 
-        const auto S = S_new[mfi].array();
+        Array4<Real const> const& S = ua[box_no];
+
+        IntVect idx(D_DECL(i,j,k));
 
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
@@ -371,95 +360,87 @@ Castro::estdt_burning (int is_new)
         // values for the thermodynamic data like abar, zbar, etc.
         // But we will call in (rho, T) mode, which is inexpensive.
 
-        reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-        {
-            Real rhoInv = 1.0_rt / S(i,j,k,URHO);
+        Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
-            burn_t burn_state;
+        burn_t burn_state;
 
-            burn_state.rho = S(i,j,k,URHO);
-            burn_state.T   = S(i,j,k,UTEMP);
-            burn_state.e   = S(i,j,k,UEINT) * rhoInv;
-            for (int n = 0; n < NumSpec; ++n) {
-                burn_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
-            }
+        burn_state.rho = S(i,j,k,URHO);
+        burn_state.T   = S(i,j,k,UTEMP);
+        burn_state.e   = S(i,j,k,UEINT) * rhoInv;
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+        }
 #if NAUX_NET > 0
-            for (int n = 0; n < NumAux; ++n) {
-                burn_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
-            }
+        for (int n = 0; n < NumAux; ++n) {
+            burn_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+        }
 #endif
 
-            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
-                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
-                return {1.e200_rt};
-            }
+        if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+            burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
+            return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
+        }
 
-            Real e = burn_state.e;
-            Real X[NumSpec];
-            for (int n = 0; n < NumSpec; ++n) {
-                X[n] = amrex::max(burn_state.xn[n], small_x);
-            }
+        Real e = burn_state.e;
+        Real X[NumSpec];
+        for (int n = 0; n < NumSpec; ++n) {
+            X[n] = amrex::max(burn_state.xn[n], small_x);
+        }
 
-            eos(eos_input_rt, burn_state);
+        eos(eos_input_rt, burn_state);
 
 #ifdef STRANG
-            burn_state.self_heat = true;
+        burn_state.self_heat = true;
 #endif
-            Array1D<Real, 1, neqs> ydot;
-            actual_rhs(burn_state, ydot);
+        Array1D<Real, 1, neqs> ydot;
+        actual_rhs(burn_state, ydot);
 
-            Real dedt = ydot(net_ienuc);
-            Real dXdt[NumSpec];
-            for (int n = 0; n < NumSpec; ++n) {
-                dXdt[n] = ydot(n+1) * aion[n];
+        Real dedt = ydot(net_ienuc);
+        Real dXdt[NumSpec];
+        for (int n = 0; n < NumSpec; ++n) {
+            dXdt[n] = ydot(n+1) * aion[n];
+        }
+
+        // Apply a floor to the derivatives. This ensures that we don't
+        // divide by zero; it also gives us a quick method to disable
+        // the timestep limiting, because the floor is small enough
+        // that the implied timestep will be very large, and thus
+        // ignored compared to other limiters.
+
+        dedt = amrex::max(std::abs(dedt), derivative_floor);
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (X[n] >= castro::dtnuc_X_threshold) {
+                dXdt[n] = amrex::max(std::abs(dXdt[n]), derivative_floor);
+            } else {
+                dXdt[n] = derivative_floor;
             }
+        }
 
-            // Apply a floor to the derivatives. This ensures that we don't
-            // divide by zero; it also gives us a quick method to disable
-            // the timestep limiting, because the floor is small enough
-            // that the implied timestep will be very large, and thus
-            // ignored compared to other limiters.
-
-            dedt = amrex::max(std::abs(dedt), derivative_floor);
-
-            for (int n = 0; n < NumSpec; ++n) {
-                if (X[n] >= castro::dtnuc_X_threshold) {
-                    dXdt[n] = amrex::max(std::abs(dXdt[n]), derivative_floor);
-                } else {
-                    dXdt[n] = derivative_floor;
-                }
-            }
-
-            Real dt_tmp = 1.e200_rt;
+        Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
-            // we need to use the eos_state interface here because for
-            // SDC, if we come in with a burn_t, it expects to
-            // evaluate the NSE criterion based on the conserved state.
+        // we need to use the eos_state interface here because for
+        // SDC, if we come in with a burn_t, it expects to
+        // evaluate the NSE criterion based on the conserved state.
 
-            eos_t eos_state;
-            burn_to_eos(burn_state, eos_state);
+        eos_t eos_state;
+        burn_to_eos(burn_state, eos_state);
 
-            if (!in_nse(eos_state)) {
+        if (!in_nse(eos_state)) {
 #endif
-                dt_tmp = dtnuc_e * e / dedt;
+            dt_tmp = dtnuc_e * e / dedt;
 #ifdef NSE
-            }
+        }
 #endif
-            for (int n = 0; n < NumSpec; ++n) {
-                dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
-            }
+        for (int n = 0; n < NumSpec; ++n) {
+            dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
+        }
 
-            return {dt_tmp};
-        });
+        return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
+    });
 
-    }
-
-    ReduceTuple hv = reduce_data.value();
-    Real estdt = amrex::get<0>(hv);
-
-    return estdt;
+    return r.value;
 }
 #endif
 
