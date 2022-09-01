@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -24,6 +24,10 @@ namespace: ``castro``
 | ``update_sources_after_reflux``            | whether to re-compute new-time source terms after a reflux  | 1             |
 |                                            | Note: this only works for the CTU and simple-SDC            |               |
 |                                            | time_integration_method drivers                             |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``allow_non_unit_aspect_zones``            | Castro was originally written assuming dx = dy = dz.  This  | 0             |
+|                                            | assumption is enforced at runtime.  Setting                 |               |
+|                                            | allow_non_unit_aspect_zones = 1 opts out.                   |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 
