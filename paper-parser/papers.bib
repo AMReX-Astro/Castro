@@ -960,21 +960,18 @@ archivePrefix = "arXiv",
 }
 
 
-@ARTICLE{2018arXiv181004720Z,
-   author = {{Zingale}, M. and {Eiden}, K. and {Cavecchi}, Y. and {Harpole}, A. and 
-	{Bell}, J.~B. and {Chang}, M. and {Hawke}, I. and {Katz}, M.~P. and 
-	{Malone}, C.~M. and {Nonaka}, A.~J. and {Willcox}, D.~E. and 
-	{Zhang}, W.},
-    title = "{Toward Resolved Simulations of Burning Fronts in Thermonuclear X-ray Bursts}",
-  journal = {ArXiv e-prints},
-archivePrefix = "arXiv",
-   eprint = {1810.04720},
- primaryClass = "astro-ph.HE",
- keywords = {Astrophysics - High Energy Astrophysical Phenomena},
-     year = 2018,
-    month = "oct",
-   adsurl = {http://adsabs.harvard.edu/abs/2018arXiv181004720Z},
-  adsnote = {Provided by the SAO/NASA Astrophysics Data System},
+@article{Zingale_2019,
+	doi = {10.1088/1742-6596/1225/1/012005},
+	url = {https://doi.org/10.1088/1742-6596/1225/1/012005},
+	year = 2019,
+	month = {may},
+	publisher = {{IOP} Publishing},
+	volume = {1225},
+	number = {1},
+	pages = {012005},
+	author = {M. Zingale and K. Eiden and Y. Cavecchi and A. Harpole and J. B. Bell and M. Chang and I. Hawke and M. P. Katz and C. M. Malone and A. J. Nonaka and D. E. Willcox and W. Zhang},
+	title = {Toward Resolved Simulations of Burning Fronts in Thermonuclear X-ray Bursts},
+	journal = {Journal of Physics: Conference Series},
   subject = {X-ray bursts}
 }
 
@@ -1243,24 +1240,19 @@ archivePrefix = {arXiv},
       subject = {X-ray bursts}
 }
 
-@ARTICLE{2020arXiv200705218K,
-       author = {{Katz}, Max P. and {Almgren}, Ann and {Barrios Sazo}, Maria and
-         {Eiden}, Kiran and {Gott}, Kevin and {Harpole}, Alice and
-         {Sexton}, Jean M. and {Willcox}, Don E. and {Zhang}, Weiqun and
-         {Zingale}, Michael},
-        title = "{Preparing Nuclear Astrophysics for Exascale}",
-      journal = {arXiv e-prints},
-     keywords = {Astrophysics - Instrumentation and Methods for Astrophysics, Astrophysics - High Energy Astrophysical Phenomena},
-         year = 2020,
-        month = "jul",
-          eid = {arXiv:2007.05218},
-        pages = {arXiv:2007.05218},
-archivePrefix = {arXiv},
-       eprint = {2007.05218},
- primaryClass = {astro-ph.IM},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2020arXiv200705218K},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System},
-        note = {accepted to SC20},
+@inproceedings{10.5555/3433701.3433822,
+author = {Katz, Max P. and Almgren, Ann and Sazo, Maria Barrios and Eiden, Kiran and Gott, Kevin and Harpole, Alice and Sexton, Jean M. and Willcox, Don E. and Zhang, Weiqun and Zingale, Michael},
+title = {Preparing Nuclear Astrophysics for Exascale},
+year = {2020},
+isbn = {9781728199986},
+publisher = {IEEE Press},
+abstract = {Astrophysical explosions such as supernovae are fascinating events that require sophisticated algorithms and substantial computational power to model. Castro and MAESTROeX are nuclear astrophysics codes that simulate thermonuclear fusion in the context of supernovae and X-ray bursts. Examining these nuclear burning processes using high resolution simulations is critical for understanding how these astrophysical explosions occur. In this paper we describe the changes that have been made to these codes to transform them from standard MPI + OpenMP codes targeted at petascale CPU-based systems into a form compatible with the pre-exascale systems now online and the exascale systems coming soon. We then discuss what new science is possible to run on systems such as Summit and Perlmutter that could not have been achieved on the previous generation of supercomputers.},
+booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis},
+articleno = {91},
+numpages = {12},
+keywords = {hydrodynamics, astrophysics, gravity, computational fluid dynamics, adaptive mesh refinement, nuclear reactions},
+location = {Atlanta, Georgia},
+series = {SC '20},
   subject = {algorithm}
 }
 
@@ -1322,5 +1314,20 @@ archivePrefix = {arXiv},
 	title = {Practical Effects of Integrating Temperature with Strang Split Reactions},
 	journal = {Research Notes of the {AAS}},
 	abstract = {Many astrophysical environments involve convective or explosive flows driven by thermonuclear reactions (Type Ia supernovae, classical novae, X-ray bursts, stellar evolution). Simulation codes need to accurately capture the interactions between reactions and hydrodynamics to produce realistic models of these events. For astrophysical reacting flows, operator splitting is commonly used to couple hydrodynamics and reactions. Each process operates independent of one another, but by staggering the updates in a symmetric fashion (via Strang splitting) second order accuracy in time can be achieved. However, approximations are often made to the reacting system, including the choice of whether or not to integrate temperature with the species. Here we demonstrate through a simple convergence test that integrating an energy equation together with reactions achieves the best convergence when modeling reactive flows with Strang splitting. Additionally, second order convergence cannot be achieved without integrating an energy or temperature equation.},
+  subject = {algorithm}
+}
+
+@article{Zingale_2022,
+	doi = {10.3847/1538-4357/ac8478},
+	url = {https://doi.org/10.3847/1538-4357/ac8478},
+	year = 2022,
+	month = {aug},
+	publisher = {American Astronomical Society},
+	volume = {936},
+	number = {1},
+	pages = {6},
+	author = {M. Zingale and M. P. Katz and A. Nonaka and M. Rasmussen},
+	title = {An Improved Method for Coupling Hydrodynamics with Astrophysical Reaction Networks},
+	journal = {The Astrophysical Journal},
   subject = {algorithm}
 }
