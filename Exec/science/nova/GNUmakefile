@@ -9,6 +9,7 @@ COMP	         = gcc
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE
+USE_CUDA         = TRUE 
 
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
