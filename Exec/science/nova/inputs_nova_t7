@@ -97,7 +97,7 @@ integrator.abort_on_failure = 0
 
 amr.refinement_indicators = dens temp edot
 
-amr.refine.dens.max_level = 5
+amr.refine.dens.max_level = 4
 amr.refine.dens.value_greater = 1.0e2
 amr.refine.dens.field_name = density
 
