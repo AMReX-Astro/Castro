@@ -199,21 +199,21 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
       +=======================+=======================+=======================+
-      | ``QGDRHO``            | :math:`\rho`          |                       |
+      | ``GDRHO``             | :math:`\rho`          |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDU``               | :math:`u`             |                       |
+      | ``GDU``               | :math:`u`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDV``               | :math:`v`             |                       |
+      | ``GDV``               | :math:`v`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDW``               | :math:`w`             |                       |
+      | ``GDW``               | :math:`w`             |                       |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDPRES``            | :math:`p`             | regardless of whether |
+      | ``GDPRES``            | :math:`p`             | regardless of whether |
       |                       |                       | ``RADIATION`` is      |
       |                       |                       | defined,              |
       |                       |                       | this is always just   |
       |                       |                       | the gas pressure      |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
+      | ``GDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
       |                       |                       | limiter—there are     |
       |                       |                       | ngroups components    |
@@ -221,7 +221,7 @@ several main data structures that hold the state.
       |                       |                       | ``RADIATION`` is      |
       |                       |                       | defined)              |
       +-----------------------+-----------------------+-----------------------+
-      | ``QDERADS``           | :math:`E_r`           | the starting index    |
+      | ``GDERADS``           | :math:`E_r`           | the starting index    |
       |                       |                       | for the radiation     |
       |                       |                       | energy—there are      |
       |                       |                       | ngroups components    |
@@ -568,7 +568,7 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
-.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star, castro.show_center_of_mass
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star
 
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
@@ -596,8 +596,6 @@ runtime parameters for hydrodynamics:
    cells that are inside the domain to define a radial function. This
    function is then used to set the values outside the domain in
    implementing the boundary conditions.
-
--  ``castro.show_center_of_mass``: (0 or 1; default: 0)
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 

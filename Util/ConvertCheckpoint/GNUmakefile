@@ -42,7 +42,7 @@ include $(AMREX_HOME)/Src/Boundary/Make.package
 
 DEFINES += -DBL_PARALLEL_IO
 
-f90EXE_sources += probinit.f90
+#f90EXE_sources += probinit.f90
 
 vpath %.f   $(PATHDIRS)
 vpath %.f90 $(PATHDIRS)

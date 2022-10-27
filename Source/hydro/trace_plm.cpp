@@ -10,14 +10,16 @@
 
 #include <slope.H>
 #include <reconstruction.H>
+#include <flatten.H>
 
 using namespace amrex;
 
 void
 Castro::trace_plm(const Box& bx, const int idir,
+                  Array4<Real const> const& U_arr,
+                  Array4<Real const> const& rho_inv_arr,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
-                  Array4<Real const> const& flatn_arr,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
@@ -120,7 +122,29 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     Real dq[NEIGN];
     Real s[5];
-    Real flat = flatn_arr(i,j,k);
+
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
+#ifdef RADIATION
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
+#endif
+    }
 
     for (int n = 0; n < NEIGN; n++) {
       int v = cvars[n];
@@ -303,11 +327,12 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
+      int nc = upassmap(ipassive);
       int n = qpassmap(ipassive);
 
       // get the slope
 
-      load_stencil(q_arr, idir, i, j, k, n, s);
+      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state
@@ -316,10 +341,7 @@ Castro::trace_plm(const Box& bx, const int idir,
           (idir == 2 && k >= vlo[2])) {
 
         Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
-        qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dX;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
+        qp(i,j,k,n) = s[i0] + 0.5_rt*(-1.0_rt - spzero)*dX;
       }
 
       // Left state
@@ -327,23 +349,11 @@ Castro::trace_plm(const Box& bx, const int idir,
       Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dX;
 
       if (idir == 0 && i <= vhi[0]) {
-        qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
+        qm(i+1,j,k,n) = s[i0] + acmpleft;
       } else if (idir == 1 && j <= vhi[1]) {
-        qm(i,j+1,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
+        qm(i,j+1,k,n) = s[i0] + acmpleft;
       } else if (idir == 2 && k <= vhi[2]) {
-        qm(i,j,k+1,n) = q_arr(i,j,k,n) + acmpleft;
-#if PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * srcQ(i,j,k,n);
-#endif
-
+        qm(i,j,k+1,n) = s[i0] + acmpleft;
       }
 
     }

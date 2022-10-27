@@ -43,9 +43,6 @@ max_step = 10000000
 # Simulation time to stop at
 stop_time = 100.0
 
-# Whether to use our custom stopping criteria
-problem.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -243,9 +240,6 @@ castro.sponge_timescale     = 0.01e0
 # Diagnostics and I/O
 ############################################################################################
 
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 1
-
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
 
@@ -298,9 +292,6 @@ castro.output_at_completion = 0
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
@@ -320,7 +311,7 @@ amr.derive_plot_vars = ALL
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out
 
 ############################################################################################
 # Problem parameters

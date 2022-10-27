@@ -29,12 +29,6 @@ namespace wdmerger
 
     extern AMREX_GPU_MANAGED amrex::Real rho_avg_P;
     extern AMREX_GPU_MANAGED amrex::Real rho_avg_S;
-
-    // Current values of the above extrema
-
-    extern AMREX_GPU_MANAGED amrex::Real T_curr_max;
-    extern AMREX_GPU_MANAGED amrex::Real rho_curr_max;
-    extern AMREX_GPU_MANAGED amrex::Real ts_te_curr_max;
 }
 
 #endif

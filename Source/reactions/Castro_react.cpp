@@ -1,6 +1,7 @@
 
 #include <Castro.H>
 #include <Castro_F.H>
+#include <advection_util.H>
 #ifdef CXX_MODEL_PARSER
 #include <model_parser.H>
 #endif
@@ -318,15 +319,16 @@ Castro::react_state(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif
+
     const int ng = S_new.nGrow();
 
-    // Create a MultiFab with all of the non-reacting source terms.
-    // This is the term A = -div{F} + 0.5 * (old_source + new_source)
-
-    MultiFab A_src(grids, dmap, NUM_STATE, ng);
-    make_sdc_hydro_plus_sources(A_src, dt);
-
     MultiFab& reactions = get_new_data(Reactions_Type);
+    MultiFab& SDC_react = get_new_data(Simplified_SDC_React_Type);
 
     reactions.setVal(0.0, reactions.nGrow());
 
@@ -346,7 +348,12 @@ Castro::react_state(Real time, Real dt)
 
         auto U_old = S_old.array(mfi);
         auto U_new = S_new.array(mfi);
-        auto asrc = A_src.array(mfi);
+#ifdef MHD
+        auto Bx    = Bx_new.array(mfi);
+        auto By    = By_new.array(mfi);
+        auto Bz    = Bz_new.array(mfi);
+#endif
+        auto I     = SDC_react.array(mfi);
         auto react_src = reactions.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
@@ -392,6 +399,7 @@ Castro::react_state(Real time, Real dt)
                 burn_state.y[SFX+n] = U_old(i,j,k,UFX+n);
             }
 #endif
+
             // we need an initial T guess for the EOS
             burn_state.T = U_old(i,j,k,UTEMP);
 
@@ -431,20 +439,54 @@ Castro::react_state(Real time, Real dt)
                 do_burn = false;
             }
 
-            // Tell the integrator about the non-reacting source terms.
+            // Tell the integrator about the non-reacting source terms,
+            // which are advective_source + 1/2 (old source + new source).
+            //
+            // We have the following:
+            //
+            // U_new:      U^n - dt div{F} + dt/2 (S^n + S^{n+1})
+            // U_old:      U^n
+            //
+            // So we can compute:
+            //
+            //   (1 / dt) * (U_new - U_old)
+            //
+            // To get the non-reacting sources:
+            //
+            //   -div{F} + (1/2) (S^n + S^{n+1})
 
-            burn_state.ydot_a[SRHO] = asrc(i,j,k,URHO);
-            burn_state.ydot_a[SMX] = asrc(i,j,k,UMX);
-            burn_state.ydot_a[SMY] = asrc(i,j,k,UMY);
-            burn_state.ydot_a[SMZ] = asrc(i,j,k,UMZ);
-            burn_state.ydot_a[SEDEN] = asrc(i,j,k,UEDEN);
-            burn_state.ydot_a[SEINT] = asrc(i,j,k,UEINT);
+            Real dtInv = 1.0_rt / dt;
+            Real asrc[NUM_STATE];
+            for (int n = 0; n < NUM_STATE; ++n) {
+                asrc[n] = (U_new(i,j,k,n) - U_old(i,j,k,n)) * dtInv;
+            }
+
+            burn_state.ydot_a[SRHO] = asrc[URHO];
+            burn_state.ydot_a[SMX] = asrc[UMX];
+            burn_state.ydot_a[SMY] = asrc[UMY];
+            burn_state.ydot_a[SMZ] = asrc[UMZ];
+            burn_state.ydot_a[SEDEN] = asrc[UEDEN];
+            burn_state.ydot_a[SEINT] = asrc[UEINT];
             for (int n = 0; n < NumSpec; n++) {
-                burn_state.ydot_a[SFS+n] = asrc(i,j,k,UFS+n);
+                burn_state.ydot_a[SFS+n] = asrc[UFS+n];
             }
+#if NAUX_NET > 0
             for (int n = 0; n < NumAux; n++) {
-                burn_state.ydot_a[SFX+n] = asrc(i,j,k,UFX+n);
+                burn_state.ydot_a[SFX+n] = asrc[UFX+n];
             }
+#endif
+
+            // Convert the current state to primitive data.
+            // This state is U* = U_old + dt A where A = -div U + S_hydro.
+
+            Array1D<Real, 0, NQ-1> q_noreact;
+            Array1D<Real, 0, NQAUX-1> qaux_noreact;
+
+            hydro::conservative_to_primitive(i, j, k, U_new,
+#ifdef MHD
+                                             Bx, By, Bz,
+#endif
+                                             q_noreact, qaux_noreact, q_noreact.len() == NQ);
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -493,17 +535,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc[UEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc[UFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc[UFX+n];
                         }
 #endif
                     }
@@ -522,10 +564,39 @@ Castro::react_state(Real time, Real dt)
 
                  }
 
-             }
+            }
 
+            // Convert the updated state (with the contribution from burning) to primitive data.
 
-             return {burn_failed};
+            Array1D<Real, 0, NQ-1> q_new;
+            Array1D<Real, 0, NQAUX-1> qaux_new;
+
+            hydro::conservative_to_primitive(i, j, k, U_new,
+#ifdef MHD
+                                             Bx, By, Bz,
+#endif
+                                             q_new, qaux_new, q_new.len() == NQ);
+
+            // Compute the reaction source term.
+
+            // I_q = (q^{n+1} - q^n) / dt - A(q)
+            //
+            // but A(q) = (q* - q^n) / dt -- that's the effect of advection w/o burning
+            //
+            // so I_q = (q^{n+1} - q*) / dt
+
+            if (castro::add_sdc_react_source_to_advection) {
+                for (int n = 0; n < NQ; ++n) {
+                    I(i,j,k,n) = (q_new(n) - q_noreact(n)) * dtInv;
+                }
+            }
+            else {
+                for (int n = 0; n < NQ; ++n) {
+                    I(i,j,k,n) = 0.0_rt;
+                }
+            }
+
+            return {burn_failed};
         });
 
     }
@@ -540,6 +611,9 @@ Castro::react_state(Real time, Real dt)
     if (ng > 0) {
         S_new.FillBoundary(geom.periodicity());
     }
+
+    Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
+    AmrLevel::FillPatch(*this, SDC_react, SDC_react.nGrow(), cur_time, Simplified_SDC_React_Type, 0, SDC_react.nComp());
 
     if (print_update_diagnostics) {
 

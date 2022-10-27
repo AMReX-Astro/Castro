@@ -19,8 +19,6 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
                Array4<Real> const& F,
 #ifdef RADIATION
                Array4<Real> const& rF,
-               int fspace_t, int comov,
-               int limiter, int closure,
 #endif
                Array4<Real> const& qgdnv, const bool store_full_state) {
 
@@ -87,9 +85,9 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #endif
 
 #ifdef RADIATION
-    if (fspace_t == 1) {
+    if (radiation::fspace_advection_type == 1) {
         for (int g = 0; g < NGROUPS; g++) {
-            Real eddf = Edd_factor(qint.lam[g], limiter, closure);
+            Real eddf = Edd_factor(qint.lam[g]);
             Real f1 = 0.5e0_rt*(1.0_rt-eddf);
             rF(i,j,k,g) = (1.0_rt + f1) * qint.er[g] * qint.un;
         }

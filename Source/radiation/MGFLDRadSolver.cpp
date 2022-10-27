@@ -44,7 +44,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
 
   Array<MultiFab, AMREX_SPACEDIM> lambda;
-  if (limiter > 0) {
+  if (radiation::limiter > 0) {
     for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
         lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
     }
@@ -64,9 +64,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       MGFLD_compute_rosseland(kpr_lag, S_lag); 
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
-        scaledGradient(level, lambda, kpr_lag, igroup, Er_lag, igroup, limiter, 1, igroup);
+        scaledGradient(level, lambda, kpr_lag, igroup, Er_lag, igroup, 1, igroup);
         // lambda now contains scaled gradient
-        fluxLimiter(level, lambda, limiter, igroup);
+        fluxLimiter(level, lambda, igroup);
         // lambda now contains flux limiter
       }
     }
@@ -218,13 +218,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     MultiFab::Copy(temp_star, temp_new, 0, 0, 1, 0);
     MultiFab::Copy(Er_star, Er_new, 0, 0, nGroups, 0);
 
-    if (limiter>0 && inner_update_limiter==0) {
+    if (radiation::limiter>0 && inner_update_limiter==0) {
       Er_star.FillBoundary(parent->Geom(level).periodicity());
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
-        scaledGradient(level, lambda, kappa_r, igroup, Er_star, igroup, limiter, 1, igroup);
+        scaledGradient(level, lambda, kappa_r, igroup, Er_star, igroup, 1, igroup);
         // lambda now contains scaled gradient
-        fluxLimiter(level, lambda, limiter, igroup);
+        fluxLimiter(level, lambda, igroup);
         // lambda now contains flux limiter
       }
     }
@@ -248,14 +248,14 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       MultiFab::Copy(Er_pi, Er_new, 0, 0, nGroups, 0);
 
-      if (limiter>0 && inner_update_limiter>0) { 
+      if (radiation::limiter>0 && inner_update_limiter>0) { 
         if (innerIteration <= inner_update_limiter) {
           Er_pi.FillBoundary(parent->Geom(level).periodicity());
           
           for (int igroup=0; igroup<nGroups; ++igroup) {
-            scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, limiter, 1, igroup);
+            scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, 1, igroup);
             // lambda now contains scaled gradient
-            fluxLimiter(level, lambda, limiter, igroup);
+            fluxLimiter(level, lambda, igroup);
             // lambda now contains flux limiter
           }
         }
@@ -274,7 +274,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
         
         solver->levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
 
-        int lamcomp = (limiter==0) ? 0 : igroup;
+        int lamcomp = (radiation::limiter==0) ? 0 : igroup;
         solver->levelBCoeffs(level, lambda, kappa_r, igroup, c, lamcomp);
 
         if (have_Sanchez_Pomraning) {

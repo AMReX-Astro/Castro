@@ -250,6 +250,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Reset the retry information.
 
     in_retry = false;
+    num_subcycles_taken = 1;
 
     if (use_post_step_regrid && level > 0) {
 

@@ -76,6 +76,8 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+     AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
+
      Density = _Density;
      read_params();
      finest_level_allocated = -1;
@@ -650,21 +652,31 @@ Gravity::GetCrsePhi(int level,
     
     BL_ASSERT(level!=0);
 
-    const Real t_old = LevelData[level-1]->get_state_data(PhiGrav_Type).prevTime();
-    const Real t_new = LevelData[level-1]->get_state_data(PhiGrav_Type).curTime();
-    Real alpha = (time - t_old)/(t_new - t_old);
-    Real omalpha = 1.0 - alpha;
-
-    MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
-    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
-
     phi_crse.clear();
     phi_crse.define(grids[level-1], dmap[level-1], 1, 1); // BUT NOTE we don't trust phi's ghost cells.
 
-    MultiFab::LinComb(phi_crse,
-                      alpha  , phi_new, 0,
-                      omalpha, phi_old, 0,
-                      0, 1, 1);
+    const Real t_old = LevelData[level-1]->get_state_data(PhiGrav_Type).prevTime();
+    const Real t_new = LevelData[level-1]->get_state_data(PhiGrav_Type).curTime();
+    Real alpha = (time - t_old) / (t_new - t_old);
+    Real omalpha = 1.0_rt - alpha;
+    const Real threshold = 1.e-6_rt;
+
+    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
+
+    if (std::abs(omalpha) < threshold) {
+        MultiFab::Copy(phi_crse, phi_new, 0, 0, 1, 1);
+    }
+    else if (std::abs(alpha) < threshold) {
+        // Note we only access the old time if it's actually needed, to guard against
+        // scenarios where it may not be allocated yet, for example after a restart when
+        // the old time was not dumped to the checkpoint.
+        MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+        MultiFab::Copy(phi_crse, phi_old, 0, 0, 1, 1);
+    }
+    else {
+        MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+        MultiFab::LinComb(phi_crse, alpha, phi_new, 0, omalpha, phi_old, 0, 0, 1, 1);
+    }
 
     const Geometry& geom = parent->Geom(level-1);
     phi_crse.FillBoundary(geom.periodicity());
@@ -1996,39 +2008,105 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     // Now, do a global reduce over all processes.
 
+    Real* qL0_ptr = qL0.dataPtr();
+    Real* qLC_ptr = qLC.dataPtr();
+    Real* qLS_ptr = qLS.dataPtr();
+
+    // Create temporary pinned host containers in case we need them.
+
+    FArrayBox qL0_host(The_Pinned_Arena());
+    FArrayBox qLC_host(The_Pinned_Arena());
+    FArrayBox qLS_host(The_Pinned_Arena());
+
     if (!ParallelDescriptor::UseGpuAwareMpi()) {
-        qL0.prefetchToHost();
-        qLC.prefetchToHost();
-        qLS.prefetchToHost();
+        if (The_Arena() == The_Managed_Arena()) {
+            qL0.prefetchToHost();
+            qLC.prefetchToHost();
+            qLS.prefetchToHost();
+        }
+        else if (The_Arena() == The_Device_Arena()) {
+            qL0_host.resize(boxq0);
+            qLC_host.resize(boxqC);
+            qLS_host.resize(boxqS);
+
+            qL0_host.copy<RunOn::Device>(qL0, boxq0);
+            qLC_host.copy<RunOn::Device>(qLC, boxqC);
+            qLS_host.copy<RunOn::Device>(qLS, boxqS);
+
+            qL0_ptr = qL0_host.dataPtr();
+            qLC_ptr = qLC_host.dataPtr();
+            qLS_ptr = qLS_host.dataPtr();
+        }
     }
 
-    ParallelDescriptor::ReduceRealSum(qL0.dataPtr(),boxq0.numPts());
-    ParallelDescriptor::ReduceRealSum(qLC.dataPtr(),boxqC.numPts());
-    ParallelDescriptor::ReduceRealSum(qLS.dataPtr(),boxqS.numPts());
+    Gpu::synchronize();
+
+    ParallelDescriptor::ReduceRealSum(qL0_ptr, boxq0.numPts());
+    ParallelDescriptor::ReduceRealSum(qLC_ptr, boxqC.numPts());
+    ParallelDescriptor::ReduceRealSum(qLS_ptr, boxqS.numPts());
 
     if (!ParallelDescriptor::UseGpuAwareMpi()) {
-        qL0.prefetchToDevice();
-        qLC.prefetchToDevice();
-        qLS.prefetchToDevice();
+        if (The_Arena() == The_Managed_Arena()) {
+            qL0.prefetchToDevice();
+            qLC.prefetchToDevice();
+            qLS.prefetchToDevice();
+        }
+        else if (The_Arena() == The_Device_Arena()) {
+            qL0.copy<RunOn::Device>(qL0_host, boxq0);
+            qLC.copy<RunOn::Device>(qLC_host, boxqC);
+            qLS.copy<RunOn::Device>(qLS_host, boxqS);
+        }
     }
 
     if (boundary_only != 1) {
 
-      if (!ParallelDescriptor::UseGpuAwareMpi()) {
-          qU0.prefetchToHost();
-          qUC.prefetchToHost();
-          qUS.prefetchToHost();
-      }
+        Real* qU0_ptr = qU0.dataPtr();
+        Real* qUC_ptr = qUC.dataPtr();
+        Real* qUS_ptr = qUS.dataPtr();
 
-      ParallelDescriptor::ReduceRealSum(qU0.dataPtr(),boxq0.numPts());
-      ParallelDescriptor::ReduceRealSum(qUC.dataPtr(),boxqC.numPts());
-      ParallelDescriptor::ReduceRealSum(qUS.dataPtr(),boxqS.numPts());
+        FArrayBox qU0_host(The_Pinned_Arena());
+        FArrayBox qUC_host(The_Pinned_Arena());
+        FArrayBox qUS_host(The_Pinned_Arena());
 
-      if (!ParallelDescriptor::UseGpuAwareMpi()) {
-          qU0.prefetchToDevice();
-          qUC.prefetchToDevice();
-          qUS.prefetchToDevice();
-      }
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            if (The_Arena() == The_Managed_Arena()) {
+                qU0.prefetchToHost();
+                qUC.prefetchToHost();
+                qUS.prefetchToHost();
+            }
+            else if (The_Arena() == The_Device_Arena()) {
+                qU0_host.resize(boxq0);
+                qUC_host.resize(boxqC);
+                qUS_host.resize(boxqS);
+
+                qU0_host.copy<RunOn::Device>(qU0, boxq0);
+                qUC_host.copy<RunOn::Device>(qUC, boxqC);
+                qUS_host.copy<RunOn::Device>(qUS, boxqS);
+
+                qU0_ptr = qU0_host.dataPtr();
+                qUC_ptr = qUC_host.dataPtr();
+                qUS_ptr = qUS_host.dataPtr();
+            }
+        }
+
+        Gpu::synchronize();
+
+        ParallelDescriptor::ReduceRealSum(qU0_ptr, boxq0.numPts());
+        ParallelDescriptor::ReduceRealSum(qUC_ptr, boxqC.numPts());
+        ParallelDescriptor::ReduceRealSum(qUS_ptr, boxqS.numPts());
+
+        if (!ParallelDescriptor::UseGpuAwareMpi()) {
+            if (The_Arena() == The_Managed_Arena()) {
+                qU0.prefetchToDevice();
+                qUC.prefetchToDevice();
+                qUS.prefetchToDevice();
+            }
+            else if (The_Arena() == The_Device_Arena()) {
+                qU0.copy<RunOn::Device>(qU0_host, boxq0);
+                qUC.copy<RunOn::Device>(qUC_host, boxqC);
+                qUS.copy<RunOn::Device>(qUS_host, boxqS);
+            }
+        }
 
     }
 

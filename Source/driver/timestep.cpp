@@ -29,14 +29,10 @@
 using namespace amrex;
 
 Real
-Castro::estdt_cfl(const Real time)
+Castro::estdt_cfl (int is_new)
 {
 
   // Courant-condition limited timestep
-
-#ifdef ROTATION
-  GeometryData geomdata = geom.data();
-#endif
 
   const auto dx = geom.CellSizeArray();
 
@@ -44,7 +40,7 @@ Castro::estdt_cfl(const Real time)
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& stateMF = get_new_data(State_Type);
+  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -80,21 +76,6 @@ Castro::estdt_cfl(const Real time)
       Real ux = u(i,j,k,UMX) * rhoInv;
       Real uy = u(i,j,k,UMY) * rhoInv;
       Real uz = u(i,j,k,UMZ) * rhoInv;
-
-#ifdef ROTATION
-      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        GpuArray<Real, 3> vel;
-        vel[0] = ux;
-        vel[1] = uy;
-        vel[2] = uz;
-
-        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
-
-        ux = vel[0];
-        uy = vel[1];
-        uz = vel[2];
-      }
-#endif
 
       Real c = eos_state.cs;
 
@@ -146,7 +127,7 @@ Castro::estdt_cfl(const Real time)
 
 #ifdef MHD
 Real
-Castro::estdt_mhd()
+Castro::estdt_mhd (int is_new)
 {
 
   // MHD timestep limiter
@@ -156,11 +137,11 @@ Castro::estdt_mhd()
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& state = get_new_data(State_Type);
+  const MultiFab& state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
-  const MultiFab& bx = get_new_data(Mag_Type_x);
-  const MultiFab& by = get_new_data(Mag_Type_y);
-  const MultiFab& bz = get_new_data(Mag_Type_z);
+  const MultiFab& bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
+  const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
+  const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -260,7 +241,7 @@ Castro::estdt_mhd()
 #ifdef DIFFUSION
 
 Real
-Castro::estdt_temp_diffusion(void)
+Castro::estdt_temp_diffusion (int is_new)
 {
 
   // Diffusion-limited timestep
@@ -274,7 +255,7 @@ Castro::estdt_temp_diffusion(void)
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-  const MultiFab& stateMF = get_new_data(State_Type);
+  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const Real ldiffuse_cutoff_density = diffuse_cutoff_density;
   const Real lmax_dt = max_dt;
@@ -352,7 +333,7 @@ Castro::estdt_temp_diffusion(void)
 
 #ifdef REACTIONS
 Real
-Castro::estdt_burning()
+Castro::estdt_burning (int is_new)
 {
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
@@ -361,7 +342,7 @@ Castro::estdt_burning()
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& S_new = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -494,12 +475,12 @@ Castro::estdt_burning()
 
 #ifdef RADIATION
 Real
-Castro::estdt_rad ()
+Castro::estdt_rad (int is_new)
 {
     auto dx = geom.CellSizeArray();
 
-    const MultiFab& stateMF = get_new_data(State_Type);
-    const MultiFab& radMF = get_new_data(Rad_Type);
+    const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+    const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
 
     // Compute radiation + hydro limited timestep.
 
