@@ -257,11 +257,11 @@ ambient_temp                 Real          -1.e200
 # energy of the ambient material (should default to the same as small_ener)
 ambient_energy               Real          -1.e200
 
-# integration order for SDC integration
+# integration order for true SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2
 
-# which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
+# which quadrature type to use with true SDC?  0 = Gauss-Lobatto, 1 = Radau
 sdc_quadrature               int           0
 
 # number of extra SDC iterations to take beyond the order.  This only applies
@@ -269,40 +269,47 @@ sdc_quadrature               int           0
 sdc_extra                    int           0
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
+# This only applies for true SDC
 sdc_solver                   int           1
 
-# relative tolerance for the nonlinear solve on rho with SDC
+# relative tolerance for the nonlinear solve on rho with true SDC
 sdc_solver_tol_dens           Real          1.e-6
 
-# relative tolerance for the nonlinear solve on rho X_k with SDC
+# relative tolerance for the nonlinear solve on rho X_k with true SDC
 sdc_solver_tol_spec           Real          1.e-6
 
-# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
+# relative tolerance for the nonlinear solve on (rho e) or (rho E) with true SDC
 sdc_solver_tol_ener           Real          1.e-6
 
-# absolute tolerance for species with SDC (this will be multiplied by
+# absolute tolerance for species with true SDC (this will be multiplied by
 # the current rho in the zone to define the absolute tolerance on (rho
 # X)).
 sdc_solver_atol               Real          1.e-10
 
 # factor by which to reduce the SDC solver tol for each iteration before the last
 # (e.g., for iteration k out of kmax iterations, the tol is
-# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
+# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`.  This only applies for true SDC.
 sdc_solver_relax_factor      Real          1.0
 
-# do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
+# do we solve for (rho e) or (rho E) in the true SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1
 
-# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
-# for the VODE solver, we use integrator.jacobian instead
-sdc_newton_use_analytic_jac         int           1
+# do we use the analytic or numerical Jacobian for the Newton-Raphson
+# solver in the true SDC solver?  for the VODE solver we use
+# integrator.jacobian instead
+sdc_newton_use_analytic_jac  int           1
 
 # for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
 use_axisymmetric_geom_source int           1
 
-# for simplified-SDC, do we add the reactive source prediction to the interface states
-# used in the advective source construction?
+# for simplified-SDC, do we add the reactive source prediction to the
+# interface states used in the advective source construction?
 add_sdc_react_source_to_advection  int     1
+
+# for the first simplified SDC iteration, should we predict the
+# reactive source term using the current state and the previous
+# iterations reactive term?
+predict_simple_sdc_react_term      int     0
 
 # In GPU builds, the hydro advance typically results in a large amount of extra
 # temporary memory allocated due to the large tile sizes that are used for computational
