@@ -182,8 +182,6 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
               hydro::src_to_prim(i, j, k, dt, u_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
           });
 
-          check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
-
           // we need to compute the flattening coefficient for every zone
           // center where we do reconstruction
 
