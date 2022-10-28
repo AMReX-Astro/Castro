@@ -10,6 +10,10 @@
 #include <Gravity.H>
 #endif
 
+#ifdef REACTIONS
+#include <actual_rhs.H>
+#endif
+
 using namespace amrex;
 
 advance_status
@@ -184,6 +188,92 @@ Castro::do_advance_ctu(Real time,
     // be in sync due to any average down done, so fill them here
 
     MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+
+    // if it is the first simplified-SDC iteration, then we optionally
+    // extrapolate the reactive source to the midpoint in time
+
+    if (sdc_iteration == 0 && predict_simple_sdc_react_term) {
+
+        for (MFIter mfi(react_src, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto react_arr = react_src.array(mfi);
+            auto S = Sborder.array(mfi);
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k)
+            {
+
+                // call the RHS to get the instantaneous reactive terms
+                Real rhoInv = 1.0_rt / S(i,j,k,URHO);
+
+                eos_t eos_state;
+
+                eos_state.rho = S(i,j,k,URHO);
+                eos_state.T   = S(i,j,k,UTEMP);
+                eos_state.e   = S(i,j,k,UEINT) * rhoInv;
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+                }
+#endif
+
+                bool test = 
+                    (eos_state.T < castro::react_T_min ||
+                     eos_state.T > castro::react_T_max ||
+                     eos_state.rho < castro::react_rho_min ||
+                     eos_state.rho > castro::react_rho_max);
+
+                if (! test) {
+                    eos(eos_input_rt, eos_state);
+
+                    burn_t burn_state;
+                    eos_to_burn(eos_state, burn_state);
+
+                    Array1D<Real, 1, neqs> ydot;
+                    actual_rhs(burn_state, ydot);
+
+                    Real dedt = ydot(net_ienuc);
+                    Real dXdt[NumSpec];
+                    for (int n = 0; n < NumSpec; ++n) {
+                        dXdt[n] = ydot(n+1) * aion[n];
+                    }
+
+                    // use the old dt's source to predict what will happen in
+                    // this timestep
+
+                    Real R[NQ] = {0.0_rt};
+
+                    // species
+                    for (int n = 0; n < NumSpec; ++n) {
+                        R[QFS+n] = dXdt[n];
+                    }
+
+                    // pressure
+                    Real sigma = eos_state.dpdT /
+                        (eos_state.rho * eos_state.cp * eos_state.dpdr);
+
+                    R[QPRES] = sigma * eos_state.p * eos_state.gam1 * dedt;
+
+                    // rho e
+                    R[QREINT] = eos_state.rho * dedt;
+
+
+                    // now predict the new R
+                    for (int n = 0; n < NQ; ++n) {
+                        //react_arr(i,j,k,n) = (R[n] - react_arr(i,j,k,n)) * (dt / dt_old) + R[n];
+                        react_arr(i,j,k,n) = R[n] + 0.5 * react_arr(i,j,k,n);
+                    }
+
+                }
+
+            });
+
+        }
+    }
 
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 #endif
