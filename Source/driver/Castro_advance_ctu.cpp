@@ -265,7 +265,7 @@ Castro::do_advance_ctu(Real time,
                     // now predict the new R
                     for (int n = 0; n < NQ; ++n) {
                         //react_arr(i,j,k,n) = (R[n] - react_arr(i,j,k,n)) * (dt / dt_old) + R[n];
-                        react_arr(i,j,k,n) = R[n] + 0.5 * react_arr(i,j,k,n);
+                        react_arr(i,j,k,n) = 0.5 * (R[n] + react_arr(i,j,k,n));
                     }
 
                 }
