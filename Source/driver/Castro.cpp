@@ -1553,19 +1553,20 @@ Castro::estTimeStep (int is_new)
 #endif
 
 #ifdef MHD
-          estdt_hydro = estdt_mhd(is_new);
+          auto hydro_dt = estdt_mhd(is_new);
 #else
-          estdt_hydro = estdt_cfl(is_new);
+          auto hydro_dt = estdt_cfl(is_new);
 #endif
 
 #ifdef RADIATION
         }
 #endif
 
-        ParallelDescriptor::ReduceRealMin(estdt_hydro);
-        estdt_hydro *= cfl;
+        amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
+        estdt_hydro = amrex::min(estdt_hydro, hydro_dt.value) * cfl;
         if (verbose) {
             amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+            amrex::Print() << "...hydro CFL timestep constrained at (i,j,k) = " << hydro_dt.index << std::endl;
         }
 
         // Determine if this is more restrictive than the maximum timestep limiting
@@ -1586,13 +1587,15 @@ Castro::estTimeStep (int is_new)
 
     if (diffuse_temp)
     {
-      estdt_diffusion = estdt_temp_diffusion(is_new);
+        auto diffuse_dt = estdt_temp_diffusion(is_new);
     }
 
-    ParallelDescriptor::ReduceRealMin(estdt_diffusion);
-    estdt_diffusion *= cfl;
+    ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
+    estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
     if (verbose) {
         amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
+        amrex::Print() << "...diffusion-limited timestep constrained at (i,j,k) = " << diffuse_dt.index << std::endl;
+
     }
 
     // Determine if this is more restrictive than the hydro limiting
@@ -1611,12 +1614,14 @@ Castro::estTimeStep (int is_new)
 
         // Compute burning-limited timestep.
 
-        estdt_burn = estdt_burning(is_new);
+        auto burn_dt = estdt_burning(is_new);
 
-        ParallelDescriptor::ReduceRealMin(estdt_burn);
+        ParallelAllReduce::Min(burn_dt, MPI_COMM_WORLD);
+        estdt_burn = amrex::min(estdt_burn, burn_dt.value);
 
         if (verbose && estdt_burn < max_dt) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
+            amrex::Print() << "...burning-limited timestep constrained at (i,j,k) = " << burn_dt.index << std::endl;
         }
 
         // Determine if this is more restrictive than the hydro limiting

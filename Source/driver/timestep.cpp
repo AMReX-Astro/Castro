@@ -28,7 +28,7 @@
 
 using namespace amrex;
 
-Real
+ValLocPair<Real, IntVect>
 Castro::estdt_cfl (int is_new)
 {
 
@@ -111,16 +111,13 @@ Castro::estdt_cfl (int is_new)
 
   });
 
-  if (ParallelDescriptor::IOProcessor()) {
-      std::cout << "hydro CFL timestep constrained at (i,j,k) = " << r.index << std::endl;
-  }
 
-  return r.value;
+  return r;
 
 }
 
 #ifdef MHD
-Real
+ValLocPair<Real, IntVect>
 Castro::estdt_mhd (int is_new)
 {
 
@@ -224,14 +221,14 @@ Castro::estdt_mhd (int is_new)
       std::cout << "MHD CFL timestep constrained at (i,j,k) = " << r.index << std::endl;
   }
 
-  return r.value;
+  return r;
 
 }
 #endif
 
 #ifdef DIFFUSION
 
-Real
+ValLocPair<Real, IntVect>
 Castro::estdt_temp_diffusion (int is_new)
 {
 
@@ -308,16 +305,19 @@ Castro::estdt_temp_diffusion (int is_new)
       }
   });
 
-  return r.value;
+  return;
 }
 #endif
 
 #ifdef REACTIONS
-Real
+ValLocPair<Real, IntVect>
 Castro::estdt_burning (int is_new)
 {
 
-    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
+    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) {
+        IntVect idx(D_DECL(0,0,0));
+        return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
+    }
 
 
     MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
@@ -440,7 +440,7 @@ Castro::estdt_burning (int is_new)
         return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
     });
 
-    return r.value;
+    return r;
 }
 #endif
 
