@@ -1588,14 +1588,14 @@ Castro::estTimeStep (int is_new)
     if (diffuse_temp)
     {
         auto diffuse_dt = estdt_temp_diffusion(is_new);
-    }
+        ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
+        estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
 
-    ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
-    estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
-    if (verbose) {
-        amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
-        amrex::Print() << "...diffusion-limited timestep constrained at (i,j,k) = " << diffuse_dt.index << std::endl;
+        if (verbose) {
+            amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
+            amrex::Print() << "...diffusion-limited timestep constrained at (i,j,k) = " << diffuse_dt.index << std::endl;
 
+        }
     }
 
     // Determine if this is more restrictive than the hydro limiting

@@ -301,7 +301,7 @@ Castro::estdt_temp_diffusion (int is_new)
       }
   });
 
-  return;
+  return r;
 }
 #endif
 
