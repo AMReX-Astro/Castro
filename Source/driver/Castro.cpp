@@ -1545,8 +1545,9 @@ Castro::estTimeStep (int is_new)
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
 
-            estdt_hydro = estdt_rad(is_new);
-            ParallelDescriptor::ReduceRealMin(estdt_hydro);
+            Real lestdt_hydro = estdt_rad(is_new);
+            ParallelDescriptor::ReduceRealMin(lestdt_hydro);
+            estdt_hydro = amrex::min(estdt_hydro, lestdt_hydro) * cfl;
             if (verbose) {
                 amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
             }
