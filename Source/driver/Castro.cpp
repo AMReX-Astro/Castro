@@ -1546,7 +1546,10 @@ Castro::estTimeStep (int is_new)
         if (Radiation::rad_hydro_combined) {
 
             estdt_hydro = estdt_rad(is_new);
-
+            ParallelDescriptor::ReduceRealMin(estdt_hydro);
+            if (verbose) {
+                amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+            }
         }
         else
         {
@@ -1558,16 +1561,17 @@ Castro::estTimeStep (int is_new)
           auto hydro_dt = estdt_cfl(is_new);
 #endif
 
+          amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
+          estdt_hydro = amrex::min(estdt_hydro, hydro_dt.value) * cfl;
+          if (verbose) {
+              amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+              amrex::Print() << "...hydro CFL timestep constrained at (i,j,k) = " << hydro_dt.index << std::endl;
+          }
+
 #ifdef RADIATION
         }
 #endif
 
-        amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
-        estdt_hydro = amrex::min(estdt_hydro, hydro_dt.value) * cfl;
-        if (verbose) {
-            amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
-            amrex::Print() << "...hydro CFL timestep constrained at (i,j,k) = " << hydro_dt.index << std::endl;
-        }
 
         // Determine if this is more restrictive than the maximum timestep limiting
 
