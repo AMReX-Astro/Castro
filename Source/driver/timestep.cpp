@@ -217,10 +217,6 @@ Castro::estdt_mhd (int is_new)
 
   });
 
-  if (ParallelDescriptor::IOProcessor()) {
-      std::cout << "MHD CFL timestep constrained at (i,j,k) = " << r.index << std::endl;
-  }
-
   return r;
 
 }
