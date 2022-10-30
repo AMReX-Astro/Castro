@@ -554,26 +554,26 @@ public:
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
 #endif
 
 #ifdef RADIATION
