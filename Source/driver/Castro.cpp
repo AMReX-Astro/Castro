@@ -1566,7 +1566,16 @@ Castro::estTimeStep (int is_new)
           estdt_hydro = amrex::min(estdt_hydro, hydro_dt.value) * cfl;
           if (verbose) {
               amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
-              amrex::Print() << "...hydro CFL timestep constrained at (i,j,k) = " << hydro_dt.index << std::endl;
+              std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+              idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+              idx_str += ",k";
+#endif
+              idx_str += ")";
+
+              amrex::Print() << "...hydro-limited CFL timestep constrained at " << idx_str << " = " << hydro_dt.index << std::endl;
           }
 
 #ifdef RADIATION
@@ -1598,7 +1607,16 @@ Castro::estTimeStep (int is_new)
 
         if (verbose) {
             amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
-            amrex::Print() << "...diffusion-limited timestep constrained at (i,j,k) = " << diffuse_dt.index << std::endl;
+            std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+            idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+            idx_str += ",k";
+#endif
+            idx_str += ")";
+
+            amrex::Print() << "...diffusion-limited timestep constrained at " << idx_str << " = " << diffuse_dt.index << std::endl;
 
         }
     }
@@ -1626,7 +1644,16 @@ Castro::estTimeStep (int is_new)
 
         if (verbose && estdt_burn < max_dt) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
-            amrex::Print() << "...burning-limited timestep constrained at (i,j,k) = " << burn_dt.index << std::endl;
+            std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+            idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+            idx_str += ",k";
+#endif
+            idx_str += ")";
+
+            amrex::Print() << "...burning-limited timestep constrained at " << idx_str << " = " << burn_dt.index << std::endl;
         }
 
         // Determine if this is more restrictive than the hydro limiting
