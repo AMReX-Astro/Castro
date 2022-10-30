@@ -1,8 +1,8 @@
-name: Sedov
+name: flame_wave
 
 on: [pull_request]
 jobs:
-  Sedov-3d:
+  flame_wave-2d:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
           cd Exec/science/flame_wave
           make DEBUG=TRUE USE_MPI=FALSE -j 4
 
-      - name: Run Sedov
+      - name: Run flame_wave
         run: |
           cd Exec/science/flame_wave
           ./Castro2d.gnu.DEBUG.ex inputs_2d.testsuite max_step=2 castro.sum_interval=1 amr.plot_files_output=0 amr.checkpoint_files_output=0
