@@ -38,11 +38,6 @@ jobs:
           cd Exec/science/flame_wave
           diff grid_diag.out ci-benchmarks/grid_diag.out
 
-      - name: Check amr_diag.out
-        run: |
-          cd Exec/science/flame_wave
-          diff amr_diag.out ci-benchmarks/amr_diag.out
-
       - name: Check species_diag.out
         run: |
           cd Exec/science/flame_wave
