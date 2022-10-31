@@ -40,5 +40,5 @@ jobs:
 
       - name: Build docs
         run: |
-          cd sphinx_docs/
+          cd Docs/
           make SPHINXOPTS=-v NO_DOXYGEN=TRUE html
