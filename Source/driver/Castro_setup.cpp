@@ -17,9 +17,6 @@
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 #include <ambient.H>
 
 using std::string;
@@ -267,8 +264,8 @@ Castro::variableSetUp ()
   for (int n = 0; n < NumSpec; ++n) {
       eos_state.xn[n] = 1.0_rt / NumSpec;
   }
-#ifdef NSE_THERMO
-  set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+  set_aux_comp_from_X(eos_state);
 #endif
 
   eos(eos_input_rt, eos_state);
@@ -879,10 +876,10 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
-#ifndef NSE_THERMO
+#ifndef AUX_THERMO
   //
   // Abar
-  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
+  // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
