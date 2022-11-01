@@ -501,6 +501,16 @@ Castro::finalize_advance()
         FluxRegFineAdd();
     }
 
+    // The mass_fluxes array currently holds only the fluxes
+    // from the last subcycle. Override this with the sum of
+    // the fluxes from the full timestep (this will be used
+    // later during the reflux operation).
+
+    if (do_reflux && update_sources_after_reflux) {
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            MultiFab::Copy(*mass_fluxes[idir], *fluxes[idir], URHO, 0, 1, 0);
+        }
+    }
 
 #ifdef TRUE_SDC
     q.clear();
