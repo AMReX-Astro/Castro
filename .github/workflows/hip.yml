@@ -1,0 +1,19 @@
+name: hip
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-hip
+  cancel-in-progress: true
+
+jobs:
+  hip-compile:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Dependencies
+      run: .github/workflows/dependencies_hip.sh
+    - name: compile flame_wave
+      run: |
+        cd Exec/science/flame_wave
+        make USE_HIP=TRUE -j 4
