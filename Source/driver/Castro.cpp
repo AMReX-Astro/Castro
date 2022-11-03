@@ -967,20 +967,24 @@ Castro::initData ()
 
     S_new.setVal(0.);
 
-    // make sure dx = dy = dz -- that's all we guarantee to support
+    if (! allow_non_unit_aspect_zones) {
+
+        // make sure dx = dy = dz -- that's all we guarantee to support
 #if (AMREX_SPACEDIM == 2)
-    const Real SMALL = 1.e-13;
-    if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
-      {
-        amrex::Abort("We don't support dx != dy");
-      }
+        const Real SMALL = 1.e-13;
+        if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
+          {
+            amrex::Abort("We don't support dx != dy");
+          }
 #elif (AMREX_SPACEDIM == 3)
-    const Real SMALL = 1.e-13;
-    if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
-      {
-        amrex::Abort("We don't support dx != dy != dz");
-      }
+        const Real SMALL = 1.e-13;
+        if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
+          {
+            amrex::Abort("We don't support dx != dy != dz");
+          }
 #endif
+
+    }
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Initializing the data at level " << level << std::endl;
@@ -1541,28 +1545,43 @@ Castro::estTimeStep (int is_new)
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
 
-            estdt_hydro = estdt_rad(is_new);
-
+            Real lestdt_hydro = estdt_rad(is_new);
+            ParallelDescriptor::ReduceRealMin(lestdt_hydro);
+            estdt_hydro = amrex::min(estdt_hydro, lestdt_hydro) * cfl;
+            if (verbose) {
+                amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+            }
         }
         else
         {
 #endif
 
 #ifdef MHD
-          estdt_hydro = estdt_mhd(is_new);
+          auto hydro_dt = estdt_mhd(is_new);
 #else
-          estdt_hydro = estdt_cfl(is_new);
+          auto hydro_dt = estdt_cfl(is_new);
 #endif
+
+          amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
+          estdt_hydro = amrex::min(estdt_hydro, hydro_dt.value) * cfl;
+          if (verbose) {
+              amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+              std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+              idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+              idx_str += ",k";
+#endif
+              idx_str += ")";
+
+              amrex::Print() << "...hydro-limited CFL timestep constrained at " << idx_str << " = " << hydro_dt.index << std::endl;
+          }
 
 #ifdef RADIATION
         }
 #endif
 
-        ParallelDescriptor::ReduceRealMin(estdt_hydro);
-        estdt_hydro *= cfl;
-        if (verbose) {
-            amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
-        }
 
         // Determine if this is more restrictive than the maximum timestep limiting
 
@@ -1582,13 +1601,24 @@ Castro::estTimeStep (int is_new)
 
     if (diffuse_temp)
     {
-      estdt_diffusion = estdt_temp_diffusion(is_new);
-    }
+        auto diffuse_dt = estdt_temp_diffusion(is_new);
+        ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
+        estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
 
-    ParallelDescriptor::ReduceRealMin(estdt_diffusion);
-    estdt_diffusion *= cfl;
-    if (verbose) {
-        amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
+        if (verbose) {
+            amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
+            std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+            idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+            idx_str += ",k";
+#endif
+            idx_str += ")";
+
+            amrex::Print() << "...diffusion-limited timestep constrained at " << idx_str << " = " << diffuse_dt.index << std::endl;
+
+        }
     }
 
     // Determine if this is more restrictive than the hydro limiting
@@ -1607,12 +1637,23 @@ Castro::estTimeStep (int is_new)
 
         // Compute burning-limited timestep.
 
-        estdt_burn = estdt_burning(is_new);
+        auto burn_dt = estdt_burning(is_new);
 
-        ParallelDescriptor::ReduceRealMin(estdt_burn);
+        ParallelAllReduce::Min(burn_dt, MPI_COMM_WORLD);
+        estdt_burn = amrex::min(estdt_burn, burn_dt.value);
 
         if (verbose && estdt_burn < max_dt) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
+            std::string idx_str = "(i";
+#if AMREX_SPACEDIM >= 2
+            idx_str += ",j";
+#endif
+#if AMREX_SPACEDIM == 3
+            idx_str += ",k";
+#endif
+            idx_str += ")";
+
+            amrex::Print() << "...burning-limited timestep constrained at " << idx_str << " = " << burn_dt.index << std::endl;
         }
 
         // Determine if this is more restrictive than the hydro limiting
@@ -2741,12 +2782,8 @@ Castro::reflux(int crse_level, int fine_level)
                 MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes[idir], 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
 
                 // The gravity and rotation source terms depend on the mass fluxes.
-                // These should be the same as the URHO component of the fluxes.
-                // This update must be a copy from the fluxes rather than an add
-                // from the flux register because the mass fluxes only represent
-                // the last subcycle of the previous timestep.
 
-                MultiFab::Copy(*crse_lev.mass_fluxes[idir], *crse_lev.fluxes[idir], URHO, 0, 1, 0);
+                MultiFab::Add(*crse_lev.mass_fluxes[idir], temp_fluxes[idir], URHO, 0, 1, 0);
             }
 
         }

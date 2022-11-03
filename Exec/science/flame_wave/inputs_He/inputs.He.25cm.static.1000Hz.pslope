@@ -17,13 +17,8 @@ geometry.prob_lo     = 0       0       0
   # 1 = Inflow             4 = SlipWall
   # 2 = Outflow            5 = NoSlipWall
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-  castro.lo_bc       =  2   2   1
+  castro.lo_bc       =  2   2   3
   castro.hi_bc       =  2   2   2
-
-  castro.zl_ext_bc_type = 1
-  castro.hse_interp_temp = 0
-  castro.hse_fixed_temp = 3.e8   # this should match problem.T_star
-  castro.hse_reflect_vels = 1
 
   castro.fill_ambient_bc = 1
   castro.ambient_fill_dir = 2
@@ -32,8 +27,8 @@ geometry.prob_lo     = 0       0       0
 #elif AMREX_SPACEDIM == 2
   geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 
-  geometry.prob_hi     = 2.048e5      2.56e4
-  amr.n_cell           = 1024         128
+  geometry.prob_hi     = 1.024e5      2.56e4
+  amr.n_cell           = 512         128
 
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   # 0 = Interior           3 = Symmetry
@@ -42,11 +37,6 @@ geometry.prob_lo     = 0       0       0
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   castro.lo_bc       =  3   3
   castro.hi_bc       =  2   2
-
-  castro.yl_ext_bc_type = 1
-  castro.hse_interp_temp = 0
-  castro.hse_fixed_temp = 3.e8   # this should match problem.T_star
-  castro.hse_reflect_vels = 1
 
   castro.fill_ambient_bc = 1
   castro.ambient_fill_dir = 1
@@ -106,7 +96,7 @@ castro.abundance_failure_tolerance = 0.1
 castro.abundance_failure_rho_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 0       # timesteps between computing mass
+castro.sum_interval   = 10       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
