@@ -29,4 +29,4 @@ jobs:
       - name: compile flame_wave
         run: |
           cd Exec/science/flame_wave
-          make COMP=gnu USE_HIP=TRUE USE_MPI=FALSE USE_OMP=FALSE USE_CUDA=FALSE -j 4
+          make COMP=gnu USE_HIP=TRUE USE_MPI=FALSE USE_OMP=FALSE USE_CUDA=FALSE -j 2
