@@ -5,6 +5,7 @@
 #include <iostream>
 // #include <stringstream>
 #include <regex>
+#include <string>
 #include <AMReX_DataServices.H>
 #include <Sedov_F.H>
 
@@ -16,12 +17,12 @@ std::string inputs_name = "";
 // Prototypes
 //
 void GetInputArgs (const int argc, char** argv,
-                   string& pltfile, string& slcfile,
+                   std::string& pltfile, std::string& slcfile,
                    bool& sphr);
 
-string GetVarFromJobInfo (const string pltfile, const string varname);
+std::string GetVarFromJobInfo (const std::string pltfile, const std::string varname);
 
-Vector<Real> GetCenter (const string pltfile);
+Vector<Real> GetCenter (const std::string pltfile);
 
 void PrintHelp ();
 
@@ -35,7 +36,7 @@ int main(int argc, char* argv[])
 	BL_PROFILE_VAR("main()", pmain);
 
 	// Input arguments
-	string pltfile, slcfile;
+	std::string pltfile, slcfile;
 	bool sphr = false;
 
 	GetInputArgs (argc, argv, pltfile, slcfile, sphr);
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
 	int finestLevel = data.FinestLevel();
 
 	// get variable names
-	const Vector<string>& varNames = data.PlotVarNames();
+	const Vector<std::string>& varNames = data.PlotVarNames();
 
 	// get the index bounds and dx.
 	Box domain = data.ProbDomain()[finestLevel];
@@ -276,7 +277,7 @@ int main(int argc, char* argv[])
 // Parse command line arguments
 //
 void GetInputArgs ( const int argc, char** argv,
-                    string& pltfile, string& slcfile,
+                    std::string& pltfile, std::string& slcfile,
                     bool &sphr)
 {
 
@@ -333,8 +334,8 @@ void GetInputArgs ( const int argc, char** argv,
 /// Gets the variable ``varname`` from the ``job_info`` file and returns as a
 /// string
 ///
-string GetVarFromJobInfo (const string pltfile, const string varname) {
-	string filename = pltfile + "/job_info";
+std::string GetVarFromJobInfo (const std::string pltfile, const std::string varname) {
+	std::string filename = pltfile + "/job_info";
 	std::regex re("(?:[ \\t]*)" + varname + "\\s*:\\s*(.*)\\s*\\n");
 
 	std::smatch m;
@@ -343,7 +344,7 @@ string GetVarFromJobInfo (const string pltfile, const string varname) {
 	if (jobfile.is_open()) {
 		std::stringstream buf;
 		buf << jobfile.rdbuf();
-		string file_contents = buf.str();
+		std::string file_contents = buf.str();
 
 		if (std::regex_search(file_contents, m, re)) {
 			return m[1];
@@ -358,7 +359,7 @@ string GetVarFromJobInfo (const string pltfile, const string varname) {
 }
 
 // Get the center from the job info file and return as a Real Vector
-Vector<Real> GetCenter (const string pltfile) {
+Vector<Real> GetCenter (const std::string pltfile) {
 	auto center_str = GetVarFromJobInfo(pltfile, "center");
 
 	// split string
