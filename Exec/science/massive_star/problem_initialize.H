@@ -5,10 +5,6 @@
 #include <eos.H>
 #include <model_parser.H>
 
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
-
 AMREX_INLINE
 void problem_initialize ()
 {

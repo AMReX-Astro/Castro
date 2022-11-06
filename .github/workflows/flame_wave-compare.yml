@@ -1,0 +1,44 @@
+name: flame_wave
+
+on: [pull_request]
+jobs:
+  flame_wave-2d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+
+      - name: Compile flame_wave
+        run: |
+          cd Exec/science/flame_wave
+          make DEBUG=TRUE USE_MPI=FALSE -j 4
+
+      - name: Run flame_wave
+        run: |
+          cd Exec/science/flame_wave
+          ./Castro2d.gnu.DEBUG.ex inputs_2d.testsuite max_step=2 castro.sum_interval=1 amr.plot_files_output=0 amr.checkpoint_files_output=0
+
+      - name: Check grid_diag.out
+        run: |
+          cd Exec/science/flame_wave
+          diff grid_diag.out ci-benchmarks/grid_diag.out
+
+      - name: Check species_diag.out
+        run: |
+          cd Exec/science/flame_wave
+          diff species_diag.out ci-benchmarks/species_diag.out
