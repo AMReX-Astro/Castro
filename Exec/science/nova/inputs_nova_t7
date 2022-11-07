@@ -80,7 +80,7 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T73800.hse"
+problem.model_name =  "glasner_T74096.hse"
 
 problem.apply_vel_field = 0
 problem.apply_temp_field = 1
