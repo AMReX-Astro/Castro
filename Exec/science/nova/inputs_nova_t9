@@ -79,7 +79,7 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T93800.hse"
+problem.model_name =  "glasner_T94096.hse"
 
 problem.apply_vel_field = 0
 #problem.velpert_scale = 5.0e5
