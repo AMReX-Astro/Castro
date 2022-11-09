@@ -37,8 +37,8 @@ castro.pslope_cutoff_density = 1.0e-5
 
 castro.use_flattening = 1
 
-castro.small_temp = 5.0e6
-castro.small_dens = 1.0e-5
+castro.small_temp = 1.0e6
+castro.small_dens = 1.0e-6
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.33e8
