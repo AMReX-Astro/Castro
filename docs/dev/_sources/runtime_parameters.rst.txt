@@ -13,7 +13,8 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``lin_limit_state_interp``                 | how to do limiting of the state data when interpolating 0:  | 0             |
 |                                            | only prevent new extrema 1: preserve linear combinations of |               |
-|                                            | state variables                                             |               |
+|                                            | state variables 2: preserve linear combinations and prevent |               |
+|                                            | new extrema                                                 |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``state_nghost``                           | Number of ghost zones for state data to have. Note that if  | 0             |
 |                                            | you are using radiation, choosing this to be zero will be   |               |
