@@ -385,9 +385,6 @@ Castro::estdt_burning (int is_new)
 
         eos(eos_input_rt, burn_state);
 
-#ifdef STRANG
-        burn_state.self_heat = true;
-#endif
         Array1D<Real, 1, neqs> ydot;
         actual_rhs(burn_state, ydot);
 
