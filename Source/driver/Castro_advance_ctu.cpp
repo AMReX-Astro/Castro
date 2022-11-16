@@ -488,30 +488,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
-
-            if (!prev_state[k]->hasOldData()) {
-
-#ifdef AMREX_USE_GPU
-                Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
-#endif
-                *prev_state[k] = state[k];
-#ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
-#endif
-            }
-
-        }
+        save_data_for_retry();
 
         // Clear the contribution to the fluxes from this step.
 

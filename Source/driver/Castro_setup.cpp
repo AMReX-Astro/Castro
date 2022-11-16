@@ -335,17 +335,20 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  Interpolater* interp;
+  MFInterpolater* interp;
 
   if (state_interp_order == 0) {
-    interp = &pc_interp;
+    interp = &mf_pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1) {
-      interp = &lincc_interp;
+    if (lin_limit_state_interp == 2) {
+      interp = &mf_linear_slope_minmax_interp;
+    }
+    else if (lin_limit_state_interp == 1) {
+      interp = &mf_lincc_interp;
     }
     else {
-      interp = &cell_cons_interp;
+      interp = &mf_cell_cons_interp;
     }
   }
 

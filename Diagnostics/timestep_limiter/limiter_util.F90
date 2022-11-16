@@ -123,7 +123,6 @@ subroutine find_timestep_limiter_burning(lo, hi, state, slo, shi, nc_s, &
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
     use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
-    use temperature_integration_module, only: self_heat
     use network, only: nspec, aion
     use meth_params_module, only : dtnuc_e, dtnuc_X, dtnuc_X_threshold
     use extern_probin_module, only: small_x
@@ -177,8 +176,6 @@ subroutine find_timestep_limiter_burning(lo, hi, state, slo, shi, nc_s, &
                 call eos_to_burn(eos_state, state_new)
 
                 state_new % dx = minval(dx(1:AMREX_SPACEDIM))
-
-                state_new % self_heat = .false.
 
                 call actual_rhs(state_new)
 
