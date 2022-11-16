@@ -16,6 +16,7 @@ state_interp_order           int           1
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables
+# 2: preserve linear combinations and prevent new extrema
 lin_limit_state_interp       int           0
 
 # Number of ghost zones for state data to have. Note that

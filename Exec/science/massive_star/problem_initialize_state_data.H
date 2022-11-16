@@ -4,8 +4,7 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <model_parser.H>
-
-#ifdef NSE_THERMO
+#ifdef NSE_TABLE
 #include <nse.H>
 #endif
 
@@ -94,7 +93,7 @@ void problem_initialize_state_data (int i, int j, int k,
         // we are not in NSE, so set the aux quantities from X-- this
         // will fill eos_state.aux[]
 
-        set_nse_aux_from_X(eos_state);
+        set_aux_comp_from_X(eos_state);
 
         for (int n = 0; n < NumAux; n++) {
             state(i,j,k,UFX+n) = eos_state.aux[n];

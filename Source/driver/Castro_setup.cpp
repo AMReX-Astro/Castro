@@ -17,9 +17,6 @@
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 #include <ambient.H>
 
 using std::string;
@@ -267,8 +264,8 @@ Castro::variableSetUp ()
   for (int n = 0; n < NumSpec; ++n) {
       eos_state.xn[n] = 1.0_rt / NumSpec;
   }
-#ifdef NSE_THERMO
-  set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+  set_aux_comp_from_X(eos_state);
 #endif
 
   eos(eos_input_rt, eos_state);
@@ -338,17 +335,20 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  Interpolater* interp;
+  MFInterpolater* interp;
 
   if (state_interp_order == 0) {
-    interp = &pc_interp;
+    interp = &mf_pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1) {
-      interp = &lincc_interp;
+    if (lin_limit_state_interp == 2) {
+      interp = &mf_linear_slope_minmax_interp;
+    }
+    else if (lin_limit_state_interp == 1) {
+      interp = &mf_lincc_interp;
     }
     else {
-      interp = &cell_cons_interp;
+      interp = &mf_cell_cons_interp;
     }
   }
 
@@ -879,10 +879,10 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
-#ifndef NSE_THERMO
+#ifndef AUX_THERMO
   //
   // Abar
-  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
+  // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
