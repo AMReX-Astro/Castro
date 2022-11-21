@@ -160,6 +160,9 @@ def parse_params(infile, out_directory):
         cd.write(f"#ifndef _{nm.upper()}_DECLARES_H_\n")
         cd.write(f"#define _{nm.upper()}_DECLARES_H_\n")
 
+        cd.write("\n")
+        cd.write(f"namespace {nm} {{\n")
+
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
@@ -169,7 +172,7 @@ def parse_params(infile, out_directory):
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cd.write(p.get_declare_string())
                 cd.write("#endif\n")
-
+        cd.write("}\n\n")
         cd.write("#endif\n")
         cd.close()
 
@@ -189,11 +192,11 @@ def parse_params(infile, out_directory):
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
-                    cp.write(p.get_decl_string())
+                    cp.write(p.get_declare_string(with_extern=True))
             else:
                 cp.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cp.write(p.get_decl_string())
+                    cp.write(p.get_declare_string(with_extern=True))
                 cp.write("#endif\n")
         cp.write("}\n\n")
         cp.write("#endif\n")
