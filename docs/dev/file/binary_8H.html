@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File Problem_Derive.H &mdash; Castro  documentation</title>
+  <title>File binary.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Problem_Derive_F.H" href="Problem__Derive__F_8H.html" />
-    <link rel="prev" title="File Problem.H" href="Problem_8H.html" /> 
+    <link rel="next" title="File blackbody.H" href="blackbody_8H.html" />
+    <link rel="prev" title="File ambient.H" href="ambient_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,7 +42,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/Problem__Derive_8H.html">main</a> | <a href="../file/Problem__Derive_8H.html">development</a>
+        Branch: <a href="../../file/binary_8H.html">main</a> | <a href="../file/binary_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -116,7 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Problem_Derive.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
@@ -129,7 +129,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="binary_8H.html">File binary.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File binary.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
@@ -188,9 +188,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File Problem_Derive.H</li>
+      <li class="breadcrumb-item active">File binary.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/Problem__Derive_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/binary_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -198,16 +198,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-problem-derive-h">
-<h1>File Problem_Derive.H<a class="headerlink" href="#file-problem-derive-h" title="Permalink to this heading">¶</a></h1>
+  <section id="file-binary-h">
+<h1>File binary.H<a class="headerlink" href="#file-binary-h" title="Permalink to this heading">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a0544eb11fc763620c212a3f0c76693e8"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">gforce</span> <span class="pre">(Real</span> <span class="pre">M,</span> <span class="pre">Real</span> <span class="pre">r)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a12715829779adb696b5b15da79e48465"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">dgforcedr</span> <span class="pre">(Real</span> <span class="pre">M,</span> <span class="pre">Real</span> <span class="pre">r)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a9d2b3c72a9ec2f2aed705894f4449f3e"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">cforce</span> <span class="pre">(Real</span> <span class="pre">M,</span> <span class="pre">Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">r)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a1663f7ac8bffa487b200c36fddf5bc52"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">dcforcedr</span> <span class="pre">(Real</span> <span class="pre">M,</span> <span class="pre">Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">r)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1aa144abb798421f346385a10359c2325a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">fL</span> <span class="pre">(Real</span> <span class="pre">M1,</span> <span class="pre">Real</span> <span class="pre">M2,</span> <span class="pre">Real</span> <span class="pre">r1,</span> <span class="pre">Real</span> <span class="pre">r2,</span> <span class="pre">Real</span> <span class="pre">r,</span> <span class="pre">Real</span> <span class="pre">a)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a4c2e37dc9ea9e41507a64c459a639a77"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">fdLdr</span> <span class="pre">(Real</span> <span class="pre">M1,</span> <span class="pre">Real</span> <span class="pre">M2,</span> <span class="pre">Real</span> <span class="pre">r1,</span> <span class="pre">Real</span> <span class="pre">r2,</span> <span class="pre">Real</span> <span class="pre">r,</span> <span class="pre">Real</span> <span class="pre">a)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a30e9708bbff8ce5ed3cd3afebd714d63"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">lagrange_iterate</span> <span class="pre">(Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">mass_1,</span> <span class="pre">Real</span> <span class="pre">mass_2,</span> <span class="pre">Real</span> <span class="pre">r1,</span> <span class="pre">Real</span> <span class="pre">r2,</span> <span class="pre">Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">r_min,</span> <span class="pre">Real</span> <span class="pre">r_max)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1a8b22252056ebd77951c600029daa8014"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">get_lagrange_points</span> <span class="pre">(Real</span> <span class="pre">mass_1,</span> <span class="pre">Real</span> <span class="pre">mass_2,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*com_1,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*com_2,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;L1,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;L2,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;L3)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="binary_8H_1ad9921cb0a10840e6b5c8840278df8bef"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">get_roche_radii</span> <span class="pre">(Real</span> <span class="pre">mass_ratio,</span> <span class="pre">Real</span> <span class="pre">&amp;r_1,</span> <span class="pre">Real</span> <span class="pre">&amp;r_2,</span> <span class="pre">Real</span> <span class="pre">a=1.0_rt)</span></span></dt>
+<dd></dd></dl>
+
+</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Problem_8H.html" class="btn btn-neutral float-left" title="File Problem.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Problem__Derive__F_8H.html" class="btn btn-neutral float-right" title="File Problem_Derive_F.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="ambient_8H.html" class="btn btn-neutral float-left" title="File ambient.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="blackbody_8H.html" class="btn btn-neutral float-right" title="File blackbody.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
