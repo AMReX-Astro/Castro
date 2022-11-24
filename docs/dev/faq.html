@@ -304,6 +304,17 @@ there are density resets, try running with
 <code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span> <span class="pre">=</span> <span class="pre">1</span></code>.  This will use a flux
 limiter to prevent the density from going negative.</p>
 </li>
+<li><p><em>There might be a problem when Castro tries to normalize mass fractions
+and encounters: ``Invalid mass fraction in Castro::normalize_species()``.</em></p>
+<p>If the error happens at the beginning of the timestep, it is possible that
+something unexpected happened durng the interpolation from the coarse-level
+to the fine-level. Try to set <code class="docutils literal notranslate"><span class="pre">castro.state_interp_order</span> <span class="pre">=</span> <span class="pre">0</span></code> in the
+input file. This allows piecewise constant refinement, but sacrifices
+some benefit of the refinement.</p>
+<p>If the error continues, try to increase the tolerance of determining
+specie abundance validity check by setting <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_tolerance</span></code>
+to a higher value.</p>
+</li>
 </ol>
 </section>
 <section id="visualization">
