@@ -76,7 +76,7 @@ void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUd
 
 template<class MatrixType>
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void jac(const Real time, burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
+void jac (const Real time, burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
 {
     // Call the specific network routine to get the Jacobian.
 
