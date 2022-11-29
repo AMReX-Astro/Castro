@@ -428,6 +428,16 @@ Castro::read_params ()
         amrex::Error();
     }
 
+    // This interpolation is not currently implemented for some geometries
+    if (lin_limit_state_interp == 2) {
+        if (dgeom.IsSPHERICAL()) {
+            amrex::Error("lin_limit_state_interp == 2 is not currently implemented for spherical geometries");
+        }
+        else if (dgeom.IsRZ()) {
+            amrex::Error("lim_limit_state_interp == 2 is not currently implemented for cylindrical geometries");
+        }
+    }
+
 #ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
