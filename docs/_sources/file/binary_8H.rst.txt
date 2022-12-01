@@ -1,0 +1,4 @@
+File binary.H
+=============
+
+.. doxygenfile:: binary.H
