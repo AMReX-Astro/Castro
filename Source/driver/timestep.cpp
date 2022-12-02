@@ -315,6 +315,7 @@ Castro::estdt_burning (int is_new)
         return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
     }
 
+    const auto dx = geom.CellSizeArray();
 
     MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -359,6 +360,8 @@ Castro::estdt_burning (int is_new)
         Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
         burn_t burn_state;
+
+        burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
 
         burn_state.rho = S(i,j,k,URHO);
         burn_state.T   = S(i,j,k,UTEMP);
