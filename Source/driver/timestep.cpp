@@ -361,7 +361,11 @@ Castro::estdt_burning (int is_new)
 
         burn_t burn_state;
 
+#if AMREX_SPACEDIM == 1
+        burn_state.dx = dx[0];
+#else
         burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+#endif
 
         burn_state.rho = S(i,j,k,URHO);
         burn_state.T   = S(i,j,k,UTEMP);
