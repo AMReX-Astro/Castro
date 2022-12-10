@@ -12,7 +12,6 @@ USE_OMP    = FALSE
 
 USE_MHD    = FALSE
 
-USE_FORT_MICROPHYSICS := FALSE
 BL_NO_FORT := TRUE
 
 # define the location of the CASTRO top directory
