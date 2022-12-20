@@ -20,24 +20,19 @@ but for this section its main purpose is in defining the species so that
 the EOS can calculate fluid properties that depend on composition, such
 as electron fraction.
 
-By default, Castro comes with the ``gamma_law``
-EOS. This represents a gamma law gas, with equation of state:
+Most of the standard problem setups in Castro (such as the Sedov blast wave)
+use the ``gamma_law`` EOS. This represents a gamma law gas, with equation of state:
 
 .. math:: p = (\gamma - 1) \rho e.
 
-The gas is currently assumed to be monatomic and ideal. (Only a
-restricted set of thermodynamic variables are actually calculated,
-the minimum necessary for the hydrodynamics. A fuller set of
-thermodynamic variables, for example the entropy from the
-Sackur-Tetrode equation, are calculated in the ``gamma_law_general``
-EOS inside the Microphysics repository.)
+The gas is currently assumed to be monatomic and ideal.
 
 Runtime Parameters
 ------------------
 
-When inverting the EOS (e.g. by calling `eos_input_re`), an initial guess for
+When inverting the EOS (e.g. by using ``eos_input_re``), an initial guess for
 the temperature is required. This guess is provided by the runtime parameter
-`castro.T_guess`, and should be set to a sensible value for each problem
+``castro.T_guess``, and should be set to a sensible value for each problem
 (it will vary depending on which EOS is used).
 
 EOS Interfaces and Parameters
@@ -51,11 +46,11 @@ will perform any initialization steps and save EOS variables (mainly
 ``smallt``, the temperature floor, and ``smalld``, the
 density floor). Then, whenever you want to call the EOS, use::
 
- call eos (eos_input, eos_state)
+ eos (eos_input, eos_state)
 
 The first argument specifies the inputs to the EOS. The options
-that are currently available are stored in
-``EOS/eos_data.F90``, and are always a combination of two
+that are currently available are stored in Microphysics in
+``interfaces/eos_type.H``, and are always a combination of two
 thermodynamic quantities. For example, ``eos_input_rt`` means
 that we call the EOS with :math:`\rho` (density) and :math:`T` (temperature)
 and we expect the EOS to return the associated thermodynamic
@@ -69,22 +64,24 @@ e.g. ``eos_input_re``, a Newton-Raphson iteration is performed
 to find the density or temperature that corresponds to the given
 input.
 
-The eos_state variable is a Fortran derived type (``eos_t``, similar to
-a C struct). It stores a complete set of thermodynamic
+The eos_state variable is a C struct, ``eos_t``. It stores a complete
+set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
 that are the inputs, for example with
 
 ::
 
-      use eos_type_module
+      eos_t eos_state;
       ...
-      type (eos_t) :: eos_state
-      ...
-      eos_state % rho = state(i,j,k,URHO)
-      eos_state % T   = state(i,j,k,UTEMP)
-      eos_state % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
-      eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
-      eos_state % aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
+      eos_state.rho = state(i,j,k,URHO);
+      eos_state.T   = state(i,j,k,UTEMP);
+      eos_state.e   = state(i,j,k,UEINT) / state(i,j,k,URHO);
+      for (int n = 0; n < NumSpec; ++n) {
+          eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
+      }
+      for (int n = 0; n < NumAux; ++n) {
+          eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
+      }
 
 Whenever the ``eos_state`` type is initialized, the thermodynamic
 state variables are filled with unphysical numbers. If you do not
@@ -97,10 +94,9 @@ will likely not converge. Usually a prior value of the temperature or
 density suffices if it’s available, but if not then use ``T_guess`` or
 ``small_dens``.
 
-If you are interested in using more realistic and sophisticated equations of
-state, you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
-repository. This is a collection of microphysics routines that are compatible with the
-BoxLib codes. We refer you to the documentation in that repository for how to set it up
+The `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
+repository is the collection of microphysics routines that are compatible with the
+AMReX-Astro codes. We refer you to the documentation in that repository for how to set it up
 and for information on the equations of state provided. That documentation
 also goes into more detail about the details of the EOS code, in case you are interested in
 how it works (and in case you want to develop your own EOS).
@@ -108,7 +104,7 @@ how it works (and in case you want to develop your own EOS).
 Required Thermodynamics Quantities
 ----------------------------------
 
-Three input qwuantities are required of any EOS:
+Three input quantities are required of any EOS:
 
 -  ``eos_input_re``: :math:`\rho`, :math:`e`, and :math:`X_k` are input
 
@@ -121,28 +117,28 @@ quantities, but not all of these are needed for basic
 Castro operation. The main quantities that any EOS in any mode needs to
 supply, if they are not input, are:
 
--  ``eos_state % T``: the temperature
+-  ``eos_state.T``: the temperature
 
--  ``eos_state % P``: total pressure
+-  ``eos_state.p``: total pressure
 
--  ``eos_state % e``: the specific energy
+-  ``eos_state.e``: the specific energy
 
--  ``eos_state % gam1``: the first adiabatic index,
+-  ``eos_state.gam1``: the first adiabatic index,
    :math:`\Gamma_1 = d\log P / d\log \rho |_s`
 
 Additionally the ``eos_input_re`` mode also needs to supply:
 
--  ``eos_state % cs``: the adiabatic sound speed
+-  ``eos_state.cs``: the adiabatic sound speed
 
--  ``eos_state % dpdr_e``: the derivative, :math:`\partial p/\partial \rho |_e`
+-  ``eos_state.dpdr_e``: the derivative, :math:`\partial p/\partial \rho |_e`
    — note that the specific internal energy, :math:`e`
    is held constant here.
 
--  ``eos_state % dpde``: the derivative, :math:`\partial p / \partial e |_\rho`
+-  ``eos_state.dpde``: the derivative, :math:`\partial p / \partial e |_\rho`
 
 For radiation hydro, the ``eos_input_rt`` model needs to supply:
 
--  ``eos_state % cv``: the specific heat capacity.
+-  ``eos_state.cv``: the specific heat capacity.
 
 Other quantities (e.g., entropy) might be needed for the derived
 variables that are optional output into the plotfiles.
@@ -155,13 +151,13 @@ Composition derivatives
 
 A separate type, ``eos_xderivs_t`` provides access to derivatives with respect to mass fraction.
 
--  ``eos_xderivs % dhdX(nspec)``: the derivative of the
+-  ``eos_xderivs.dhdX[NumSpec]``: the derivative of the
    specific enthalpy with respect to mass fraction at constant
    :math:`T` and :math:`p`:
 
    .. math:: \xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}
 
--  ``eos_xderivs % dpdx(nspec)``: the derivative of the pressure with respect to mass fraction:
+-  ``eos_xderivs.dpdX[NumSpec]``: the derivative of the pressure with respect to mass fraction:
 
    .. math::
 
@@ -176,7 +172,7 @@ A separate type, ``eos_xderivs_t`` provides access to derivatives with respect t
                 \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
       \end{align}
 
--  ``eos_xderivs % dedx(nspec)``: the derivative of the specific internal energy with respect to mass fraction:
+-  ``eos_xderivs.dedX[NumSpec]``: the derivative of the specific internal energy with respect to mass fraction:
 
    .. math::
 
@@ -239,7 +235,7 @@ In normal operation in Castro  the integration occurs over a time interval
 of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
 
 If you are interested in using actual nuclear burning networks,
-you should download the `Microphysics <https://github.com/starkiller-astro/Microphysics>`__
+you should download the `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
 repository. This is a collection of microphysics routines that are compatible with the
 AMReX Astro codes. We refer you to the documentation in that repository for how to set it up
 and for information on the networks provided. That documentation

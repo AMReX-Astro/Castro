@@ -9,12 +9,16 @@
 
 // runtime parameters
 #include <castro_params.H>
+#include <prob_parameters.H>
+#include <Castro_util.H>
+
 using namespace castro;
 
 #ifdef AMREX_PARTICLES
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
@@ -42,8 +46,10 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
-#ifdef CXX_REACTIONS
+#ifndef TRUE_SDC
+#ifdef REACTIONS
 #include <burner.H>
+#endif
 #endif
 
 #ifdef BL_LAZY
@@ -51,11 +57,11 @@ constexpr int Shock = USHK;
 #endif
 
 #ifdef AMREX_PARTICLES
-#include "AMReX_AmrParticles.H"
+#include <AMReX_AmrParticles.H>
 #endif
 
 #ifdef RADIATION
-#include "RadSolve.H"
+#include <RadSolve.H>
 #endif
 
 #include <memory>
@@ -64,8 +70,6 @@ constexpr int Shock = USHK;
 using std::istream;
 using std::ostream;
 
-#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
-
 enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
@@ -73,9 +77,6 @@ enum StateType { State_Type = 0,
 #ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
-#endif
-#ifdef ROTATION
-                 PhiRot_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -112,6 +113,7 @@ enum sources { thermo_src = 0,
                sponge_src,
 #endif
                ext_src,
+               geom_src,
                num_src };
 
 
@@ -122,25 +124,6 @@ enum int_method { CornerTransportUpwind = 0,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
-
-
-#if AMREX_SPACEDIM == 1
-constexpr int dg0 = 1;
-constexpr int dg1 = 0;
-constexpr int dg2 = 0;
-
-#elif AMREX_SPACEDIM == 2
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 0;
-
-#else
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 1;
-
-#endif
-
 
 // Struct that returns information about
 // why an advance failed.
@@ -467,7 +450,7 @@ public:
                                   int  amr_ncycle);
 
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
@@ -475,21 +458,20 @@ public:
 #endif
 
 ///
+/// Save a copy of the old state data in case for the purposes of a retry.
+///
+    void save_data_for_retry();
+
+///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
 ///
-/// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, advance_status status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -530,46 +512,21 @@ public:
 /// losses, does refluxing, and clears arrays/data containers
 /// initialized at start of the level's advance.
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_advance();
 
 ///
 /// Performed at the start of ::do_advance, resets flags and
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_do_advance(amrex::Real time);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_do_advance();
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -596,28 +553,40 @@ public:
 ///
 /// Estimate time step.
 ///
-/// @param dt_old   previous timestep
-///
-    amrex::Real estTimeStep (amrex::Real dt_old);
+    amrex::Real estTimeStep (int is_new = 1);
 
 
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl(const amrex::Real time);
+    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd();
+    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion();
+    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
+
+#ifdef REACTIONS
+///
+/// Reactions-limited timestep
+///
+    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
+#endif
+
+#ifdef RADIATION
+///
+/// Radiation hydro timestep
+///
+    amrex::Real estdt_rad (int is_new = 1);
+#endif
 
 ///
 /// Compute initial time step.
@@ -628,16 +597,16 @@ public:
 /// Compute initial ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_level         Real Vector, will contain initial timestep at each level.
 /// @param stop_time        End time of simulation
 ///
     void computeInitialDt (int                   finest_level,
-                           int                   sub_cycle,
+                           int                   /*subcycle*/,
                            amrex::Vector<int>&           n_cycle,
-                           const amrex::Vector<amrex::IntVect>& ref_ratio,
+                           const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                            amrex::Vector<amrex::Real>&          dt_level,
                            amrex::Real                  stop_time) override;
 
@@ -645,18 +614,18 @@ public:
 /// Compute new ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_min
 /// @param dt_level
 /// @param stop_time        End time of simulation
 /// @param post_regrid_flag Have we done regridding yet?
 ///
     void computeNewDt (int                   finest_level,
-                       int                   sub_cycle,
+                       int                   /*subcycle*/,
                        amrex::Vector<int>&           n_cycle,
-                       const amrex::Vector<amrex::IntVect>& ref_ratio,
+                       const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                        amrex::Vector<amrex::Real>&          dt_min,
                        amrex::Vector<amrex::Real>&          dt_level,
                        amrex::Real                  stop_time,
@@ -672,18 +641,6 @@ public:
 ///
     void removeOldData () override;
 
-///
-/// Passes some data about the grid to a Fortran module.
-///
-/// Send refinement data to Fortran. We do it here
-/// because now the grids have been initialized and
-/// we need this data for setting up the problem.
-///
-/// @note this routine will always get called
-/// on level 0, even if we are doing a restart,
-/// so it is safe to put this here.
-///
-    void setGridInfo();
 
 ///
 /// Print information about energy budget.
@@ -774,7 +731,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
@@ -783,13 +740,12 @@ public:
 
 
 ///
-/// Apply a given tagging function.
+/// Apply any tagging restrictions that must be satisfied by all problems.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
-/// @param j            integer
 ///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
+    void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
@@ -816,8 +772,6 @@ public:
                  amrex::Real               time,
                  amrex::MultiFab&          mf,
                  int                dcomp) override;
-
-    static int numGrow();
 
 
 #ifdef REACTIONS
@@ -945,6 +899,16 @@ public:
 ///
 /// Volume weighted sum of given quantity
 ///
+/// @param mf           MultiFab containing quantity
+/// @param comp         integer index of quantity in MultiFab
+/// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
+/// @param finemask     boolean, should we build a mask to exclude finer levels?
+///
+    amrex::Real volWgtSum (const MultiFab& mf, int comp, bool local=false, bool finemask=true);
+
+///
+/// Volume weighted sum of given quantity
+///
 /// @param name         Name of quantity
 /// @param time         current time
 /// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
@@ -952,16 +916,15 @@ public:
 ///
     amrex::Real volWgtSum (const std::string& name, amrex::Real time, bool local=false, bool finemask=true);
 
-
 ///
-/// Volume weight sum of (given quantity) squared
+/// Sum weighted by volume multiplied by distance from center in given direction
 ///
-/// @param name     Name of quantity
-/// @param time     current time
+/// @param mf       MultiFab containing quantity
+/// @param comp     integer index of quantity in MultiFab
+/// @param idir     Axis along which to compute distance from center
 /// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
-    amrex::Real volWgtSquaredSum (const std::string& name, amrex::Real time, bool local=false);
-
+    amrex::Real locWgtSum (const MultiFab& mf, int comp, int idir, bool local=false);
 
 ///
 /// Sum weighted by volume multiplied by distance from center in given direction
@@ -973,6 +936,16 @@ public:
 ///
     amrex::Real locWgtSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+///
+/// Volume weighted sum of the product of two quantities
+///
+/// @param mf1      MultiFab containing first quantity
+/// @param mf2      MultiFab containing second quantity
+/// @param comp1    integer index of quantity in first MultiFab
+/// @param comp2    integer index of quantity in second MultiFab
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
+///
+    amrex::Real volProductSum (const MultiFab& mf1, const MultiFab& mf2, int comp1, int comp2, bool local=false);
 
 ///
 /// Volume weighted sum of the product of two quantities
@@ -994,6 +967,26 @@ public:
 /// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
+
+#ifdef GRAVITY
+///
+/// Calculate the gravitational wave signal
+///
+/// @param time       current time
+/// @param h_plus_1   gravitational wave signal in x-direction
+/// @param h_cross_1  gravitational wave signal in x-direction
+/// @param h_plus_2   gravitational wave signal in y-direction
+/// @param h_cross_2  gravitational wave signal in y-direction
+/// @param h_plus_3   gravitational wave signal in z-direction
+/// @param h_cross_3  gravitational wave signal in z-direction
+/// @param local      is sum local
+
+    void gwstrain (Real time,
+                   Real& h_plus_1, Real& h_cross_1,
+                   Real& h_plus_2, Real& h_cross_2,
+                   Real& h_plus_3, Real& h_cross_3,
+                   bool local);
+#endif
 
 #ifdef GRAVITY
 ///
@@ -1060,10 +1053,6 @@ public:
 #endif
 
     static void extern_init ();
-
-    static void amrinfo_init();
-
-    static void amrinfo_finalize();
 
     static void read_params ();
 
@@ -1167,7 +1156,17 @@ public:
 ///
     void sum_integrated_quantities ();
 
+///
+/// Problem-specific diagnostics (called by sum_integrated_quantities)
+///
+    void problem_diagnostics ();
+
     void write_info ();
+
+///
+/// Return BCs
+///
+    static amrex::BCRec physbc () { return phys_bc; }
 
 #ifdef GRAVITY
 
@@ -1207,8 +1206,10 @@ public:
 
     static amrex::Vector<std::string> source_names;
 
-    static amrex::Vector<int> upass_map;
-    static amrex::Vector<int> qpass_map;
+///
+/// Vector storing list of error tags.
+///
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -1228,6 +1229,12 @@ public:
 ///     non-integer number.
 ///
     static amrex::Real num_zones_advanced;
+
+///
+/// diagnostics
+///
+    static Vector<std::unique_ptr<std::fstream> > data_logs;
+    static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
 
 protected:
 
@@ -1255,6 +1262,15 @@ protected:
 #endif
 
 
+#ifdef REACTIONS
+///
+/// Storage for the burn_weights
+///
+    amrex::MultiFab burn_weights;
+    static std::vector<std::string> burn_weight_names;
+#endif
+
+
 ///
 /// A state array with ghost zones.
 ///
@@ -1274,6 +1290,8 @@ protected:
 #endif
 
 
+
+#ifdef TRUE_SDC
 ///
 /// A state array for the some reaction stuff with SDC
 ///
@@ -1283,16 +1301,12 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab q;
-#endif
-
 
 ///
 /// we need a second version when doing fourth order
 ///
     amrex::MultiFab q_bar;
-
 
 ///
 /// for diffusion in fourth order we need the cell-center temperature
@@ -1304,16 +1318,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab qaux;
-#endif
     amrex::MultiFab qaux_bar;
-
-
-///
-/// Source terms to the hydrodynamics solve.
-///
-    amrex::MultiFab sources_for_hydro;
+#endif
 
 
 ///
@@ -1323,17 +1330,10 @@ protected:
 
 
 ///
-/// Source term representing hydrodynamics update - this should just be
-///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
-///
-    amrex::MultiFab hydro_source;
-
-
-///
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
@@ -1343,7 +1343,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
@@ -1359,7 +1359,7 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif
@@ -1427,7 +1427,7 @@ protected:
 
 ///
 /// For initialization of the C++ values of the runtime parameters
-  static int do_init_probparams;
+  static int do_cxx_prob_initialize;
 
 
 ///
@@ -1439,11 +1439,6 @@ protected:
     // Static data members.
     //
 
-#ifdef SPONGE
-#include <sponge_params.H>
-#endif
-
-
     static bool      signalStopJob;
     static int       radius_grow;
     static std::vector<std::string> err_list_names;
@@ -1451,13 +1446,13 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
 
-    int lastDtRetryLimited;
-    amrex::Real lastDtFromRetry;
     int in_retry;
+    int num_subcycles_taken;
 
     amrex::Real lastDt;
 
@@ -1490,11 +1485,6 @@ protected:
 
 #ifdef RADIATION
 
-///
-/// permits radiation to be turned on and off without recompiling:
-///
-    static int do_radiation;
-
 
 ///
 /// There can be only one Radiation object, it covers all levels:
@@ -1515,6 +1505,9 @@ protected:
 
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
+
+    static int hydro_tile_size_has_been_tuned;
+    static Long largest_box_from_hydro_tile_size_tuning;
 
     static int SDC_Source_Type;
     static int num_state_type;
@@ -1548,13 +1541,6 @@ public:
 //
 // Inlines.
 //
-
-inline
-int
-Castro::numGrow()
-{
-    return NUM_GROW;
-}
 
 inline
 amrex::MultiFab*

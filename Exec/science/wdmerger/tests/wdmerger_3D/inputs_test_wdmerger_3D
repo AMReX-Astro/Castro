@@ -5,8 +5,6 @@
 # Problem setup
 ############################################################################################
 
-amr.probin_file = probin_test_wdmerger_3D          # Name of the probin file
-
 max_step = 5                                       # Maximum coarse timestep
 
 geometry.is_periodic = 0 0 0                       # Non-periodic boundary conditions
@@ -45,10 +43,19 @@ amr.n_cell = 96 96 96                              # Number of cells on the coar
 amr.max_level = 1                                  # Maximum level number allowed
 amr.ref_ratio = 2
 
+amr.refinement_indicators = temperature
+
+amr.refine.temperature.max_level = 4
+amr.refine.temperature.value_greater = 2.e8
+amr.refine.temperature.field_name = Temp
+
 amr.max_grid_size = 32                             # Maximum grid size at each level
 amr.blocking_factor = 16                           # Grid sizes must be a multiple of this
 
 amr.grid_eff = 0.9                                 # What constitutes an efficient grid
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -86,6 +93,12 @@ castro.small_dens = 1.e-5                          # Minimum allowable density (
 castro.dual_energy_eta1 = 1.0e-3                   # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
 
+eos.use_eos_coulomb = 0
+eos.eos_input_is_constant = 1
+
+castro.ambient_temp = 1.0e7
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -94,6 +107,14 @@ gravity.gravity_type = PoissonGrav                 # Full self-gravity with the 
 gravity.max_multipole_order = 6                    # Multipole expansion includes terms up to r**(-max_multipole_order)
 gravity.rel_tol = 1.e-10                           # Relative tolerance for multigrid solver
 gravity.no_sync = 1                                # Turn off sync solve for gravity after refluxing
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_radius = 3.840e9
+castro.sponge_upper_radius = 4.352e9
+castro.sponge_timescale    = 0.01e0
 
 ############################################################################################
 # Diagnostics and I/O
@@ -112,6 +133,27 @@ castro.v = 1                                       # Control verbosity in Castro
 gravity.v = 1                                      # Control verbosity in Gravity.cpp
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.90
+problem.mass_S = 0.90
+
+problem.problem = 1
+
+problem.roche_radius_factor = 1.0e0
+
+problem.stellar_temp = 1.0e7
+
+problem.relaxation_damping_factor = 1.0e-4
+problem.relaxation_density_cutoff = 1.0e10
+
+problem.orbital_eccentricity = 0.0e0
+problem.orbital_angle = 0.0e0
+
+problem.stellar_density_threshold = 1.0e0

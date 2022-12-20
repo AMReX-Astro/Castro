@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 import numpy as np
@@ -21,14 +22,19 @@ class Variable():
         self.o2 = float(o2)
         self.hi = float(hi)
 
-    def get_table_line(self, pretty_name=None):
+    def get_table_line(self, pretty_name=None, simple=False):
         if pretty_name is not None:
             name = pretty_name
         else:
             name = self.name
 
-        _str = r" {:27} & {:23} & {:5.3f}  & {:23} & {:5.3f}  & {:23} \\"
-        return _str.format(name, sci_not(self.lo), round(self.o1, 3), sci_not(self.med), round(self.o2, 3), sci_not(self.hi))
+        if simple:
+            _str = r" {:27}   {:14.10g}   {:5.3f}    {:14.10g}   {:5.3f}    {:14.10g}"
+            return _str.format(self.name, self.lo, round(self.o1, 3), self.med, round(self.o2, 3), self.hi)
+
+        else:
+            _str = r" {:27} & {:23} & {:5.3f}  & {:23} & {:5.3f}  & {:23} \\"
+            return _str.format(name, sci_not(self.lo), round(self.o1, 3), sci_not(self.med), round(self.o2, 3), sci_not(self.hi))
 
 class ConvergenceData():
     def __init__(self):
@@ -39,56 +45,40 @@ class ConvergenceData():
 
 def read_convergence(file_lo, file_hi):
 
+    # we'll wait until we find the L1 data
+
     lines_lo = []
     found_l1 = False
     with open(file_lo, "r") as flo:
         for line in flo:
-            # skip everything until we see the L1 norm
-            if line.find("L1 norm") > 0:
+            if "L1 norm" in line:
                 found_l1 = True
                 continue
-            elif not found_l1:
+            if not found_l1:
                 continue
-
-            if line.startswith("#") or len(line.strip()) == 0:
-                continue
-
-            if line.startswith("Variable"):
-                continue
-
-            if len(line.replace(r"\\", "").split("&")) != 4:
-                continue
-
-            lines_lo.append(line.replace(r"\\", "").strip())
+            # value data lines have 4 columns
+            if len(line.split()) == 4:
+                lines_lo.append(line.strip())
 
     lines_hi = []
     found_l1 = False
     with open(file_hi, "r") as fhi:
         for line in fhi:
-            # skip everything until we see the L1 norm
-            if line.find("L1 norm") > 0:
+            if "L1 norm" in line:
                 found_l1 = True
                 continue
-            elif not found_l1:
+            if not found_l1:
                 continue
-
-            if line.startswith("#") or len(line.strip()) == 0:
-                continue
-
-            if line.startswith("Variable"):
-                continue
-
-            if len(line.replace(r"\\", "").split("&")) != 4:
-                continue
-
-            lines_hi.append(line.replace(r"\\", "").strip())
+            # value data lines have 4 columns
+            if len(line.split()) == 4:
+                lines_hi.append(line.strip())
 
     cd = ConvergenceData()
 
     for llo, lhi in zip(lines_lo, lines_hi):
 
-        vlo, elo, o1, emed1 = llo.split("&")
-        vhi, emed2, o2, ehi = lhi.split("&")
+        vlo, elo, o1, emed1 = llo.split()
+        vhi, emed2, o2, ehi = lhi.split()
 
         if "---" in o1 or "---" in o2:
             print("skipping {}".format(vlo))
@@ -107,51 +97,38 @@ def read_convergence(file_lo, file_hi):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--simple', action="store_true", help='no latex output')
+    parser.add_argument("lofile", type=str, nargs=1,
+                        help="name of the low resolution convergence output file")
+    parser.add_argument("hifile", type=str, nargs=1,
+                        help="name of the high resolution convergence output file")
+
+    args = parser.parse_args()
+
     good_vars = {"density": r"$\rho$",
                  "xmom": r"$\rho u$",
                  "ymom": r"$\rho v$",
                  "rho_E": r"$\rho E$",
                  "rho_e": r"$\rho e$",
                  "Temp": r"$T$",
+                 "rho_H1": r"$\rho X(\isotm{H}{1})$",
                  "rho_He4": r"$\rho X(\isotm{He}{4})$",
                  "rho_C12": r"$\rho X(\isotm{C}{12})$",
                  "rho_O16": r"$\rho X(\isotm{O}{16})$",
-                 "rho_Fe56": r"$\rho X(\isotm{Fe}{56})$"}
+                 "rho_Fe56": r"$\rho X(\isotm{Fe}{56})$",
+                 "rho_Ye": r"$\rho Y_e$",
+                 "rho_abar": r"$\rho \bar{A}$",
+                 "rho_bea": r"$\rho (B/A)$"
+                 }
 
     # sdc4
-    file_lo = "convergence.2d.lo.sdc4.out"
-    file_hi = "convergence.2d.hi.sdc4.out"
+    file_lo = args.lofile[0]
+    file_hi = args.hifile[0]
 
     sdc4 = read_convergence(file_lo, file_hi)
 
-    print("\n SDC 4 \n\n")
-
     for v in sdc4.data:
         if v.name in good_vars.keys():
-            print(v.get_table_line(pretty_name=good_vars[v.name]))
+            print(v.get_table_line(pretty_name=good_vars[v.name], simple=args.simple))
 
-
-    # sdc2
-    file_lo = "convergence.2d.lo.sdc.out"
-    file_hi = "convergence.2d.hi.sdc.out"
-
-    sdc4 = read_convergence(file_lo, file_hi)
-
-    print("\n SDC 2 \n\n")
-
-    for v in sdc4.data:
-        if v.name in good_vars.keys():
-            print(v.get_table_line(pretty_name=good_vars[v.name]))
-
-
-    # strang
-    file_lo = "convergence.2d.lo.strang.out"
-    file_hi = "convergence.2d.hi.strang.out"
-
-    sdc4 = read_convergence(file_lo, file_hi)
-
-    print("\n strang 4 \n\n")
-
-    for v in sdc4.data:
-        if v.name in good_vars.keys():
-            print(v.get_table_line(pretty_name=good_vars[v.name]))

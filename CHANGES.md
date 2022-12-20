@@ -1,3 +1,376 @@
+# 22.12
+
+   * castro.lin_limit_state_interp now can be set to 2; this new
+     interpolater both prevents new extrema from being generated
+     and preserves linear combinations of state variables. (#2306)
+
+# 22.11
+
+   * We now output the location where the timestep is set (#2273)
+
+# 22.09
+
+   * Added an option `castro.allow_non_unit_aspect_zones` to permit
+     Castro to be run with dx != dy != dz.  This support is experimental.
+
+# 22.08
+
+   * fixed an issue with restart when using Poisson gravity (#2253)
+
+   * the source term corrector can now be used with simplified-SDC
+     (#2252)
+
+   * derefinement can now be specified via AMRErrorTag (#2238)
+
+# 22.06
+
+   * castro.stopping_criterion_field and castro.stopping_criterion_value have
+     been added; these allow you to stop the simulation once a certain threshold
+     has been exceeded (for example, if the temperature gets too hot). (#2209)
+
+   * The option castro.show_center_of_mass has been removed. If castro.v = 1
+     and castro.sum_interval > 0, then the center of mass will automatically
+     be included with the other diagnostic sums that are displayed. (#2176)
+
+   * The option castro.state_in_rotating_frame has been removed. The default
+     behavior continues to be that when rotation is being used, fluid variables
+     are measured with respect to the rotating frame. (#2172)
+
+   * The default for use_pslope has been changed to 0 -- disabling this.
+     use_pslope enables reconstruction that knows about HSE for the PLM
+     (castro.ppm_type = 0) implementation.  Since that method is not the
+     default, it is unlikely that this has been used.  This change is being
+     done to allow for a PPM implementation to be added without changing
+     the default behavior of that method. (#2205)
+
+   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+     extended to PPM (#2202)
+
+# 22.05
+
+   * A new option castro.hydro_memory_footprint_ratio has been added which
+     can help limit the amount of memory used in GPU builds. (#2153)
+
+   * In #1379, for the 21.04 release, Castro added a check that issued
+     an abort if any species mass fraction was found to be invalid (defined
+     by being less than -0.01 or greater than 1.01). This helps us catch
+     unintended code errors that do not properly normalize updates to the
+     species. (This was originally only enabled for CPU builds, but in the
+     22.04 release was extended for GPU builds, as noted below.) However,
+     as observed in #2096, this issue can legitimately be triggered in
+     regions of sharp composition and density gradients as an unavoidable
+     consequence of how the multi-dimensional CTU solver is designed. An
+     example would be a helium shell around a C/O white dwarf at low to
+     moderate spatial resolution. This was causing the code to abort in
+     a couple of science problems, so several improvements were added to
+     the code in this release to address it. In #2121, we turned this
+     situation into a retry after a hydro update rather than an abort,
+     so that the code has more chances to recover by doing an advance
+     with a smaller timestep. However, this will not always allow you
+     to recover, particularly if you are in an area where density resets
+     are occurring and/or you are using castro.limit_fluxes_on_small_dens,
+     so we also added a new option castro.abundance_failure_rho_cutoff in
+     #2124, which allows you to set a density threshold below which invalid
+     mass fractions will be silently ignored (and reset to valid values
+     between 0 and 1). We also turned the invalid mass fraction threshold
+     into a runtime parameter castro.abundance_failure_tolerance (#2131),
+     so that you can optionally loosen or tighten the strictness of this
+     check.
+
+     Since this scenario was sometimes occurring during the reflux step
+     in AMR simulations, we also improved the reflux code to avoid doing
+     the flux correction locally in zones where it would cause an invalid
+     mass fraction (#2123).
+
+     While doing these changes we noticed also that the option
+     castro.limit_fluxes_on_small_dens was sometimes inadvertently
+     aggravating this problem by creating physically implausible fluxes of
+     the species, so we simplified the algorithm to avoid that. (#2134)
+
+   * The option castro.limit_fluxes_on_large_vel has been removed. (#2132)
+
+# 22.04
+
+   * We now abort on GPUs if species do not sum to 1 (#2099)
+
+   * Fixed an issue with monopole gravity where running with multiple
+     MPI ranks in a GPU build could result in an incorrect gravitational
+     field calculation. (#2091)
+
+# 22.02
+
+   * Microphysics has moved from Starkiller-Astro to AMReX-Astro.  The
+     git submodules have been updated accordingly.  The old URL should
+     redirect to the new location, but you are encouraged to change
+     the submodule URL if you use submodules.  From the top-level Castro/
+     directory this can be done as:
+
+     git submodule set-url -- external/Microphysics/ https://github.com/AMReX-Astro/Microphysics.git
+
+# 21.12
+
+   * Tiling was added to main loop in MHD algorithm to enable 
+     scaling performance increase when using multiple threads
+     in with OpenMP. See issue #2038.
+
+   * `castro.hse_fixed_temp` was added to allow for a fixed temperature
+     at an HSE boundary. It can be enabled by setting it to a positive
+     value and setting castro.hse_interp_temp=0. (#2042)
+
+# 21.10
+
+   * A new option, `castro.drive_initial_convection` was added that
+     uses the temperature interpolated from the initial model instead
+     of the value on the grid to call the reactions.  This helps
+     prevent a reactive zone from burning in place before a convective
+     velocity field is established to carry off the energy.
+
+   * The `burn_weights` are no longer stored by default in the plotfile.
+     Instead, they are now enabled by setting
+     castro.store_burn_weights=1.  Additionally, they now give a better
+     estimate of the cost for the numerical Jacobian (#1946, #1949)
+
+   * `castro.change_max` is now required to be greater than 1.0. To enforce
+     a timestep cap but still allow the timestep to decrease, use
+     castro.max_dt. (#1976)
+
+   * Gravity was modified to introduce parallel plane gravity with a
+     point mass by setting the radius of the star by
+     `castro.point_mass_location_offset` and the integer
+     `castro.point_mass_offset_is_true` == 1. By default, both
+     parameters are 0.0 and 0, respectively.
+
+
+# 21.09
+
+   * `castro.source_term_predictor` now works for simplified-SDC to
+     disable the source predictor for the hydrodynamics states to the
+     interface. (#1968)
+
+   * `castro.add_sdc_react_source_to_advection` was added to disable
+     react source to advection in simplified-SDC (#1969)
+
+# 21.07
+
+   * The sponge is now applied in a fully implicit manner at the end of
+     the CTU advance, rather than using a predictor-corrector approach
+     with time centering. This is more consistent with the original form
+     of the sponge in Castro. (#1876)
+
+   * Castro can now validate the runtime parameters set in the inputs
+     file or on the commandline by setting
+     castro.abort_on_invalid_params=1 (#1882)
+
+# 21.06
+
+   * Starting with this release, problem setups written in Fortran are
+     no longer supported and will no longer work. Please consult the
+     code documentation and example problem setups in Exec/ to understand
+     the new problem setup format. If you need help converting a Fortran
+     setup to C++, please file an issue. (#1728, #1732)
+
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
+   * Ambient parameters are now only accepted through the inputs file; the
+     &ambient namelist in the probin file is no longer read. (#1742)
+
+   * The update_sponge_params hook has been removed. (#1716)
+
+   * The Fortran problem-specific source file, ext_src_nd.F90, has been
+     removed. Problem-specific sources should be implemented in C++ in
+     problem_source.H. (#1856)
+
+   * Support for the legacy tagging scheme based on probin parameters (denerr,
+     tempgrad, etc.) has been removed. These can be replaced with equivalent
+     tagging criteria constructed in the inputs file; see the docs or examples
+     in Exec/ to see how to use `amr.refinement_indicators`. (#1834)
+
+   * The Fortran set_problem_tags hook has been removed. The C++ replacement
+     is `problem_tagging()` in `problem_tagging.H`. (#1828)
+
+   * The PrescribedGrav functionality has been removed (not replaced with a C++
+     implementation). If you want to obtain the same functionality, you can use
+     a problem-defined source term (look for problem_source in the documentation)
+     and make the appropriate modification for applying it directly to the state
+     (e.g. the momentum source term is rho * g). (#1854)
+
+   * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
+     an implementation of rbndry has been removed. (#1743)
+
+   * We no longer store Reactions_Type in checkpoint files.  This means
+     that newer versions of Castro will not restart from old version.
+     
+# 21.05
+
+   * The parameter use_eos_in_riemann was removed -- we found no
+     instances of it being used (#1623)
+
+   * The option castro.apply_sources_consecutively was removed (#1636)
+
+# 21.04
+
+   * For simplified-SDC, we now correctly store only the reactive
+     part of the update for rho_enuc, enuc, and rho_omegadot
+     plotfile variables (#1602)
+
+# 21.02
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
+
+   * We can now set any of the Microphysics runtime parameters in the
+     inputs file instead of probin.  Each group of parameters has a
+     namesapce for the inputs file when set this way
+     (e.g. eos.use_coulomb = 1), and the C++ inputs value will take
+     precedence over the value set in probin if it is set in both
+     places. (#1527)
+
+# 21.01
+
+   * The minimum C++ standard supported by Castro is now C++17. Most modern compilers
+     support C++17; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 7.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1506)
+
+   * There can now be multiple _prob_params files throughout the source
+     tree.  We read the problem's file last and that takes precedence over
+     any other _prob_params files found. (#1500)
+
+   * The timestep limiter dtnuc_T has been removed. dtnuc_e and dtnuc_X
+     are still available for controlling the burning timestep. (#1501)
+
+   * A bug was fixed in the 2nd order true SDC (with reactions) that
+     was giving the wrong solution and convergence (#1494).  A second
+     bug was fixed in defining the weights for the Radau quadrature
+     when using true SDC (#1493)
+
+   * Compiling with the PGI compiler is no longer a requirement for the CUDA build of Castro.
+     We recommend using COMP=gnu with a version of gcc that is C++17 compliant (gcc >= 7).
+
+# 20.12
+
+   * An issue with incorrect application of HSE boundary conditions on derived quantities
+     is now resolved (#1356). Also, at this point the old Fortran implementations hypfill,
+     denfill, ext_hypfill, and ext_denfill have been removed; problem-specific boundary
+     conditions should be implemented using the new C++ interface in this release from #1289.
+
+   * The minimum supported Hypre version is now 2.19.0. (#1333)
+
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
+   * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
+     Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
+     are now deleted from the code; if you were using these to implement problem-specific
+     functionality, you can still manually add these files to the `Make.package` for your
+     problem setup. (#1311)
+
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
+   * MHD problems can now do the magnetic field initialization in C++
+     (#1298)
+
+# 20.11
+
+   * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
+     support C++14; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 5.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1284)
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
+# 20.10
+
+   * A new refinement scheme using the inputs file rather than the Fortran
+     tagging namelist has been added. (#1243, #1246) As an example, consider:
+
+     ```
+     amr.refinement_indicators = dens temp
+
+     amr.refine.dens.max_level = 1
+     amr.refine.dens.value_greater = 2.0
+     amr.refine.dens.field_name = density
+
+     amr.refine.temp.max_level = 2
+     amr.refine.temp.value_less = 1.0
+     amr.refine.temp.field_name = Temp
+     ```
+
+     `amr.refinement_indicators` is a list of user-defined names for refinement
+     schemes. For each defined name, amr.refine.<name> accepts predefined fields
+     describing when to tag. In the current implementation, these are `max_level`
+     (maximum level to refine to), `start_time` (when to start tagging), `end_time`
+     (when to stop tagging), `value_greater` (value above which we refine),
+     `value_less` (value below which to refine), `gradient` (absolute value of the
+     difference between adjacent cells above which we refine), and `field_name`
+     (name of the string defining the field in the code). If a refinement indicator
+     is added, either `value_greater`, `value_less`, or `gradient` must be provided.
+
+   * Automatic problem parameter configuration is now available to every
+     problem by placing a _prob_params file in your problem directory.
+     Examples can be found in most of the problems in Castro/Exec, and you
+     can look at the "Setting Up Your Own Problem" section of the documentation
+     for more information. This functionality is optional, however note that
+     a file containing a Fortran module named "probdata_module" is now
+     automatically generated, so if you have a legacy probdata.F90 file
+     containing a module with that name it should be renamed. (#1210)
+
+   * The variable "center" (in the `problem` namespace) is now part of this
+     automatically generated probdata module; at the present time, the only
+     valid way to change the problem center to a value other than zero is in
+     amrex_probinit(). (#1222)
+
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
+
+   * Problems may now be initialized in C++ instead of Fortran. Instead of implementing
+     amrex_probinit() and ca_initdata(), the problem should implement the analogous
+     functions initialize_problem() and initialize_problem_state_data(). If you switch to
+     the new C++ initialization, be sure to delete your Prob_nd.F90 file. By default both
+     implementations do nothing, so you can pick either one but do not pick both. (#1227)
+
+   * The external heat source term routines have been ported to C++
+     (#1191).  Any problem using an external heat source should look
+     convert the code over to C++.
+
+   * The interpolate_nd.F90 file has been moved to Util/interpolate and
+     is only compiled into Castro if you set USE_INTERPOLATE=TRUE
+
+# 20.09
+
+   * Reactions now work with MHD (#1179)
+
+   * MHD now uses the main slope routine (#1058) The order of the
+     slope is now controlled by plm_iorder, just as with hydro.  There
+     is an additional option, mhd_limit_characteristic, that
+     determines if the limiting is done on the primitive or
+     characteristic variables (the default).
+
 # 20.08
 
    * Rotation_Type has been removed from StateData. (#1128)

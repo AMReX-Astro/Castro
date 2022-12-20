@@ -7,13 +7,11 @@ Code structure
 
 Castro is built upon the AMReX C++ framework. This provides
 high-level classes for managing an adaptive mesh refinement
-simulation, including the core data structures we will deal with. A
-key design pattern in AMReX is that the overall memory management
-and parallelization is done in the C++ layer, while the heavy
-computational work is done in Fortran kernels. AMReX provides
+simulation, including the core data structures we will deal with. 
+AMReX provides
 convenient data structures that allow for this workflow—high level
-objects in C++ that communicate with Fortran through pointers to
-data regions that appear as multidimensional arrays.
+objects in C++ that communicate with our computational kernels, with
+the data regions appearing as multidimensional arrays.
 
 Castro uses a structured-grid approach to hydrodynamics. We work
 with square/cubic zones that hold state variables (density, momentum,
@@ -35,12 +33,11 @@ at used to communicate across nodes on a computer and OpenMP is used
 within a node, to loop over subregions of a box with different
 threads.
 
-The code structure in the Castro/ directory reflects the
-division between C++ and Fortran.
+The code structure in the Castro/ directory is:
 
--  ``constants/``: contains a file of useful constants in CGS units
+-  ``Diagnostics/``: various analysis routines for specific problems
 
--  ``docs/``: you’re reading this now!
+-  ``Docs/``: you’re reading this now!
 
 -  ``Exec/``: various problem implementations, sorted by category:
 
@@ -58,22 +55,14 @@ division between C++ and Fortran.
 
    -  ``unit_tests/``: test problems that exercise primarily a single module
 
--  ``external/Microphysics/``: contains directories for different default
-   microphysics (these are all implemented in Fortran)
+-  ``external/``: if you are using git submodules, the Microphysics and AMReX git
+   submodules will be in this directory.
 
-   -  ``conductivity/``: the thermal conductivity
+-  ``paper/``: the JOSS paper source
 
-   -  ``EOS/``: the equation of state
-
-   -  ``networks/``: the nuclear reaction networks
-
-   -  ``opacity/``: the radiative opacity (used with radiation)
-
-   -  ``viscosity/``: the viscous transport coefficient
-
-- ``Source/``: source code. In this main directory is all of the
-  code. Sources are mixed C++ and Fortran and are organized by topic
-  as:
+-  ``Source/``: source code. In this main directory is all of the
+   code. Sources are organized by topic
+   as:
 
    -  ``diffusion/`` : thermal diffusion code
 
@@ -82,6 +71,8 @@ division between C++ and Fortran.
    -  ``gravity/`` : self-gravity code
 
    -  ``hydro/`` : the compressible hydrodynamics code
+
+   -  ``mhd/`` : the MHD solver code
 
    -  ``particles/`` : support for particles
 
@@ -94,6 +85,8 @@ division between C++ and Fortran.
    -  ``rotation/`` : rotating code
 
    -  ``scf/`` : the self-consistent field initialization support
+
+   -  ``sdc/``: code specified for the true SDC method
 
    -  ``sources/`` : hydrodynamics source terms support
 
@@ -148,17 +141,6 @@ Floating point data in the C++ AMReX framework is declared as
 ``Real``. This is typedef to either ``float`` or ``double`` depending
 on the make variable ``PRECISION``.
 
-The corresponding type for Fortran is provided by the
-``amrex_fort_module`` as ``c_real``. We typically rename
-this to rt when using it. An example of a declaration of a
-parameter is::
-
-      use amrex_fort_module, only : rt => amrex_real
-      real(rt) :: tol = 1.0e-10_rt
-
-The ``amrex_constants_module`` provides common constants that can
-be used in the code, like ``ZERO``, ``THIRD``, ``ONE``, etc.
-
 .. note :: single precision support in Castro is not yet complete. In
    particular, a lot of the supporting microphysics has not been updated.
 
@@ -196,9 +178,8 @@ pointer to a data buffer. The real floating point data are stored as
 one-dimensional arrays in ``FArrayBox`` es. The associated ``Box`` can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
-structures is that this data buffer can be sent to Fortran, where it
-will appear as a DIM+1 dimensional array (DIM space + 1
-component).
+structures is that this data buffer can be cast a a DIM+1 dimensional array that
+we can easily fill in C++ kernels.
 
 .. note:: Castro is complied for a specific dimensionality.
 
@@ -264,10 +245,11 @@ The current ``StateData`` names Castro carries are:
    referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
-   In Fortran, the components of a FAB derived from ``State_Type``
-   is indexed using the integer keys defined in ``Castro_nd.F90``
-   and stored in ``meth_params_module``, e.g., ``URHO``, ``UMX``,
-   ``UMY``, ...
+   We access this data using an AMReX ``Array4`` type which is
+   of the form ``data(i,j,k,n)``, where ``n`` is the component.
+   The integer keys used to index the components are defined
+   in ``Source/driver/_variables`` (e.g., ``URHO``, ``UMX``,
+   ``UMY``, ...)
 
    .. note:: regardless of dimensionality, we always carry around all
       three velocity components. The “out-of-plane” components will
@@ -297,10 +279,6 @@ The current ``StateData`` names Castro carries are:
    dimensionality (consistent with our choice of always carrying all 3
    velocity components).
 
--  ``PhiRot_Type`` : this is the rotational potential.
-   When rotation is enabled, this will store the effective potential
-   corresponding to the centrifugal force.
-
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
    ``State_Type`` variables.
@@ -322,7 +300,16 @@ The current ``StateData`` names Castro carries are:
    and for reaction timestep limiting (this in particular needs the
    data stored in checkpoints for continuity of timestepping upon restart).
 
--  ``SDC_React_Type`` : this is used with the SDC
+- ``Mag_Type_x`` : this is defined for MHD and stores the
+   face-centered (on x-faces) x-component of the magnetic field.
+
+- ``Mag_Type_y`` : this is defined for MHD and stores the
+   face-centered (on y-faces) y-component of the magnetic field.
+
+- ``Mag_Type_z`` : this is defined for MHD and stores the
+   face-centered (on z-faces) z-component of the magnetic field.
+
+-  ``Simplified_SDC_React_Type`` : this is used with the SDC
    time-advancement algorithm. This stores the ``NQSRC`` terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
@@ -337,414 +324,25 @@ with the ``StateData`` using one of these keys. For instance::
 gets a pointer to the ``MultiFab`` containing the hydrodynamics state data
 at the new time.
 
-Various source ``MultiFabs``
-----------------------------
-
-There are a number of different ``MultiFabs`` (and arrays of ``MultiFabs``)
-that hold source term information.
-
--  ``hydro_source`` : this is a ``MultiFab`` that holds the
-   update to the hydrodynamics (basically the divergence of the
-   fluxes). This is filled in the conservative update routine of the
-   hydrodynamics.
-
-   As this is expressed as a source term, what is actually stored is
-
-   .. math:: \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
-
-   So the update of the conserved state appears as:
-
-   .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
-
--  ``sources_for_hydro`` : a single ``MultiFab`` that stores
-   the sum of sources over each physical process.
-
-``MFIter`` and interacting with Fortran
-=======================================
+``MFIter``
+==========
 
 The process of looping over boxes at a given level of refinement and
-operating on their data in Fortran is linked to how Castro achieves
+operating on their data is linked to how Castro achieves
 thread-level parallelism. The OpenMP approach in Castro has evolved
 considerably since the original paper was written, with the modern
 approach, called *tiling*, gearing up to meet the demands of
-many-core processors in the next-generation of supercomputers. We
-discuss the original and new approach together here.
+many-core processors in the next-generation of supercomputers.
 
-In both cases, the key construct is the ``MFiter``—this is a
-C++ iterator that knows how to loop over the ``FArrayBox`` es in the
-``MultiFab`` that are local to the processor (in this way, a lot of the
-parallelism is hidden from view).
+Full details of iterating over boxes and calling compute kernels
+is given in the AMReX documentation here: https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling
 
-.. _sec:amrex0:
-
-Non-Tiling MFIter
------------------
-
-The non-tiling way to iterate over the ``FArrayBox`` s is [1]_:
-
-.. code:: c++
-
-      for (MFIter mfi(mf); mfi.isValid(); ++mfi) // Loop over boxes
-      {
-        // Get the index space of this iteration
-        const Box& box = mfi.validbox();
-
-        // Get a reference to the FAB, which contains data and box
-        FArrayBox& fab = mf[mfi];
-
-        // Get the index space for the data region in th FAB.
-        // Note "abox" may have ghost cells, and is thus larger than
-        // or equal to "box" obtained using mfi.validbox().
-        const Box& abox = fab.box();
-
-        // We can now pass the information to a Fortran routine,
-        // fab.dataPtr() gives a double*, which is reshaped into
-        // a multi-dimensional array with dimensions specified by
-        // the information in "abox". We will also pass "box",
-        // which specifies our "work" region.
-        do_work(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                fab.dataPtr(), fab.nComp(),
-                ARLIM_3D(abox.loVect()), ARLIM_3D(abox.hiVect())
-
-      }
-
-A few comments about this code
-
--  In this example, we are working off of a ``MultiFab`` named ``mf``.
-   This could, for example, come from state data as::
-
-        MultiFab& mf = get_old_data(State_Type);
-
--  We are passing the data in ``mf`` one box at a time to the
-   Fortran function ``do_work``.
-
--  Here the ``MFIter`` iterator, ``mfi``, will perform the loop
-   only over the boxes that are local to the MPI task. If there are 3
-   boxes on the processor, then this loop has 3 iterations.
-
-   ``++mfi`` iterates to the next ``FArrayBox`` owned by the
-   ``MultiFab`` ``mf``, and ``mfi.isValid()`` returns false
-   after we’ve reached the last box contained in the ``MultiFab``,
-   terminating the loop.
-
--  ``box`` as returned from ``mfi.validbox()`` does not include
-   ghost cells. This is the valid data region only.
-   We can get the indices of the valid zones as ``box.loVect()`` and
-   ``box.hiVect()``.
-
-   In passing to the Fortran function, we use the macro
-   ``ARLIM_3D``, defined in ``ArrayLim.H`` to pass the ``lo``
-   and ``hi`` vectors as pointers to an ``int`` array. This array
-   is defined to always be 3D, with 0s substituted for the
-   higher dimension values if we are running in 1- or 2D.
-
-   Passing the data in this 3D fashion is a newer approach in Castro.
-   This enables writing *dimension agnostic code*. There are many
-   other approaches that will pass only the ``DIM`` values of
-   ``lo`` and ``hi`` using alternate macros in ``ArrayLim.H``.
-
--  ``fab.dataPtr()`` returns a ``double *``—a pointer to the
-   data region. This is what is passed to Fortran.
-
--  ``fab.nComp()`` gives an int—the number of components
-   in the ``MultiFab``. This will be used for dimensioning in Fortran.
-
--  To properly dimension the array in Fortran, we need the actual
-   bounds of the data region, including any ghost cells. This is the
-   ``Box`` ``abox``, obtained as ``fab.box()``. We pass the
-   ``lo`` and ``hi`` of the full data region as well.
-
-To properly compile, we need a prototype for the Fortran
-function. These are placed in the ``*_F.H`` files in the
-``Castro/Source/`` directory. Here’s the prototype for
-our function:
-
-.. code:: c++
-
-      void do_work
-        (const int* lo, const int* hi,
-         Real* state, const Real& ncomp
-         const int* s_lo, const int* s_hi)
-
-A few comments on the prototype:
-
--  we use the ``const`` qualifier on the many of the arguments.
-   This indicates that the data that is pointed to cannot be
-   modified [2]_, but the
-   contents of the memory space that they point to can be modified.
-
--  For ``ncomp``, we in the calling sequence, we just did
-   ``fab.nComp()``. This returns a ``int``. But Fortran is a
-   pass-by-reference language, so we make the argument in the prototype
-   a reference. This ensures that it is passed by reference.
-
-In our Fortran example, we want to loop over all of the data,
-including 1 ghost cell all around. The corresponding Fortran function
-will look like:
-
-.. code:: fortran
-
-      subroutine do_work(lo, hi, &
-                         state, ncomp, &
-                         s_lo, s_hi) bind(C, name="do_work")
-
-        use prob_params_module, only : dg
-
-        integer, intent(in) :: lo(3), hi(3)
-        integer, intent(in) :: s_lo(3), s_hi(3), ncomp
-
-        real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
-                                                 s_lo(2):s_hi(2), &
-                                                 s_lo(3):s_hi(3), ncomp)
-
-        ! loop over the data
-        do k = lo(3)-1*dg(3), hi(3)+1*dg(3)
-           do j = lo(2)-1*dg(2), hi(2)+1*dg(2)
-              do i = lo(1)-1*dg(1), hi(1)+1*dg(1)
-
-                 ! work on state(i,j,k,:), where the last index
-                 ! is the component of the multifab
-
-              enddo
-           enddo
-        enddo
-
-      end subroutine do_work
-
-Finally, comments on the Fortran routine;
-
--  We use the Fortran 2003 ``bind`` keyword to specify
-   that we want this to be interoperable with C. Ordinarily
-   we would not need to specify the optional argument name
-   in the binding, but the PGI compiler requires this if our
-   Fortran subroutine is part of a module.
-
--  We dimension state using ``s_lo`` and ``s_hi`` —these are
-   the bounds we got from the ``FArrayBox``, and are for the entire data
-   region, including ghost cells.
-
-   .. note :: In Fortran, the spatial indices of state don’t
-      necessarily start at 1—they reflect the global index space for
-      the entire domain at this level of refinement. This means that
-      we know where the box is located.
-
-   Later we’ll see how to compute the spatial coordinates using this
-   information.
-
--  Our loop uses ``lo`` and ``hi``—these are the indices
-   of the valid data region (no ghost cells). Since we want a single
-   ghost cell all around, we subtract 1 from ``lo`` and add 1
-   to ``hi``.
-
-   Finally, since this is dimension-agnostic code (it should work
-   correctly in 1-, 2-, and 3D), we need to ensure the loops over the
-   higher dimensions do nothing when we compile for a lower
-   dimensionality. This is the role of ``dg``—dg is 1
-   if our simulation includes that spatial dimension and 0
-   otherwise.
-
-   If we were not looping over ghost cells too, then we would not need
-   to invoke ``dg``, since ``lo`` and ``hi`` are both set to
-   0 for any dimensions not represented in our simulation.
-
-Up to this point, we have not said anything about threading. In this
-style of using the MFIter, we implement the OpenMP in Fortran, for
-instance by putting a pragma around the outer loop in this example.
-
-.. _sec:amrex1:
-
-AMReX’s Current Tiling Approach In C++
---------------------------------------
-
-There are two types of tiling that people discuss. In *logical
-tiling*, the data storage in memory is unchanged from how we do things
-now in pure MPI. In a given box, the data region is stored
-contiguously). But when we loop in OpenMP over a box, the tiling
-changes how we loop over the data. The alternative is called
-*separate tiling*—here the data storage in memory itself is changed
-to reflect how the tiling will be performed. This is not considered
-in AMReX.
-
-We have recently introduced logical tiling into parts of AMReX.  It
-is off by default, to make the transition smooth and because not
-everything should be tiled. It can be enabled on a loop-by-loop basis
-by setting an optional argument to ``MFIter``. We demonstrate this
-below. Further examples can be found at ``amrex/Tutorials/Tiling_C``,
-and ``amrex/Src/LinearSolvers/C_CellMG/``.
-
-In our logical tiling approach, a box is logically split into tiles,
-and a ``MFIter`` loops over each tile in each box. Note that the
-non-tiling iteration approach can be considered as a special case of
-tiling with the tile size equal to the box size.
-
-Let us consider an example. Suppose there are four boxes—see
-:numref:`fig:domain-tiling`.
-
-.. _fig:domain-tiling:
-.. figure:: domain-tile.png
-   :alt: tiling of the domain
-
-   A simple domain showing 4 Boxes labeled 0–3, and their tiling
-   regions (dotted lines)
-
-The first box is divided into 4 logical tiles, the second and third
-are divided into 2 tiles each (because they are small), and the fourth
-into 4 tiles. So there are 12 tiles in total. The difference between
-the tiling and non-tiling version are then:
-
--  In the tiling version, the loop body will be run 12 times. Note
-   that ``tilebox`` is different for each tile, whereas ``fab``
-   might be referencing the same object if the tiles belong to the same
-   box.
-
--  In the non-tiling version (by constructing ``MFIter`` without
-   the optional second argument or setting to false), the loop
-   body will be run 4 times because there are four boxes, and a call to
-   ``mfi.tilebox()`` will return the traditional ``validbox``. The
-   non-tiling case is essentially having one tile per box.
-
-The tiling implementation of the same call to our the Fortran
-do_work routine is show below:
-
-.. code:: c++
-
-      bool tiling = true;
-      for (MFIter mfi(mf, tiling); mfi.isValid(); ++mfi) // Loop over tiles
-      {
-        // Get the index space of this iteration.
-        const Box& box = mfi.growntilebox(1);
-
-        // Get a reference to the FAB, which contains data and box
-        FArrayBox& fab = mf[mfi];
-
-        // Get the index space for the data pointed by the double*.
-        const Box& abox = fab.box();
-
-        // We can now pass the information to a Fortran routine.
-        do_work(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                fab.dataPtr(), fab.nComp(),
-                ARLIM_3D(abox.loVect()), ARLIM_3D(abox.hiVect())
-
-      }
-
-Note that the code is almost identical to the one in § :ref:`sec:amrex0`.
-Some comments:
-
--  The iterator now takes an extra argument to turn on tiling (set
-   to ``true``).
-
-   There is another interface fo ``MFIter`` that can take an
-   ``IntVect`` that explicitly gives the tile size in each coordinate
-   direction. If we don’t explictly specify the tile size at the loop,
-   then the runtime parameter ``fabarray.mfiter_tile_size``
-   can be used to set it globally.
-
--  ``.validBox()`` has the same meaning as in the non-tile
-   approach, so we don’t use it.
-   Since in this example, we want to include a single ghost cell in our
-   loop over the data, we use ``.growntilebox(1)`` (where the 1
-   here indicates a single ghost cell) to get the ``Box`` (and
-   corresponding ``lo`` and ``hi``) for the *current tile*, not
-   the entire data region. If instead, we just wanted the valid
-   region in Fortran, without any ghost cells, we would use
-   ``.tilebox()``.
-
--  When passing into the Fortran routine, we still use the index
-   space of the entire ``FArrayBox`` (including ghost cells), as seen in
-   the ``abox`` construction. This is needed to properly dimension
-   the array in Fortran.
-
-   The Fortran routine will declare a multidimensional array that is of
-   the same size as the entire box, but only work on the index space
-   identified by the tile-box (``box``).
-
-The Fortran code is almost the same as before, but now our loop
-simply uses ``lo`` and ``hi``, since, by construction with
-``.growntilebox(1)``, this already includes the single ghost cell
-all around:
-
-.. code:: fortran
-
-      subroutine do_work(lo, hi, &
-                         state, ncomp, &
-                         s_lo, s_hi) bind(C, name="do_work")
-
-        integer, intent(in) :: lo(3), hi(3)
-        integer, intent(in) :: s_lo(3), s_hi(3), ncomp
-
-        real (kind=dp_t), intent(inout) :: state(s_lo(1):s_hi(1), &
-                                                 s_lo(2):s_hi(2), &
-                                                 s_lo(3):s_hi(3), ncomp)
-
-        ! loop over the data
-        do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
-
-                 ! work on state(i,j,k,:), where the last index
-                 ! is the component of the multifab
-
-              enddo
-           enddo
-        enddo
-
-      end subroutine do_work
-
-The function prototype is unchanged.
-
-Tiling provides us the opportunity of a coarse-grained approach for
-OpenMP. Threading can be turned on by inserting the following line
-above the for (``MFIter``...) line::
-
-      #pragma omp parallel
-
-Note that the OpenMP pragma does not have a for—this is not
-used when working with an iterator.
-
-Assuming four threads are used in the above example, thread 0 will
-work on 3 tiles from the first box, thread 1 on 1 tile from the first
-box and 2 tiles from the second box, and so forth. Note that
-OpenMP can be used even when tiling is turned off. In that case, the
-OpenMP granularity is at the box level (and good performance would need
-many boxes per MPI task).
-
-The tile size for the three spatial dimensions can be set by a
-parameter, e.g., ``fabarray.mfiter_tile_size = 1024000 8 8``. A
-huge number like 1024000 will turn off tiling in that direction.
-As noted above, the ``MFIter`` constructor can also take an explicit
-tile size: ``MFIter(mfi(mf,IntVect(128,16,32)))``.
-
-Note that tiling can naturally transition from all threads working
-on a single box to each thread working on a separate box as the boxes
-coarsen (e.g., in multigrid).
-
-The MFIter class provides some other useful functions:
-
--  ``mfi.validbox()`` : The same meaning as before independent of tiling.
-
--  ``mfi.tilebox()`` : The standard way of getting the bounds of the
-   current tile box. This will tile over the valid data region only.
-
--  ``mfi.growntilebox(int)`` : A grown tile box that includes
-   ghost cells at box boundaries only. Thus the returned boxes for a
-   ``FArrayBox`` are non-overlapping.
-
--  ``mfi.nodaltilebox(int)`` : Returns non-overlapping
-   edge-type boxes for tiles. The argument is for direction.
-
--  ``mfi.fabbox()`` : Same as ``mf[mfi].box()``.
-
-Finally we note that tiling is not always desired or better. The
-traditional fine-grained approach coupled with dynamic scheduling is
-more appropriate for work with unbalanced loads, such as chemistry
-burning in cells by an implicit solver. Tiling can also create extra
-work in the ghost cells of tiles.
 
 Practical Details in Working with Tiling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
-With tiling, the OpenMP is now all in C++, and not in Fortran for all
-modules except reactions and ``initdata``.
+With tiling, the OpenMP is now all at the loop over boxes and not in the computational
+kernels themselves.
 
 It is the responsibility of the coder to make sure that the routines
 within a tiled region are safe to use with OpenMP. In particular,
@@ -772,37 +370,6 @@ note that:
    (which corresponds to the memory layout) and the index-space of the
    tile.
 
-   -  In the C++ end, we pass (sometimes via the
-      ``BL_TO_FORTRAN()`` macro) the ``loVect`` and ``hiVect`` of the
-      entire box (including ghost cells). These are then used to
-      allocate the array in Fortran as::
-
-            double precision :: a(a_l1:a_h1, a_l2:a_h2, ...)
-
-      When tiling is used, we do not want to loop as do ``a_l1``,
-      ``a_h1``, but instead we need to loop over the tiling region. The
-      indices of the tiling region need to be passed into the Fortran
-      routine separately, and they come from the ``mfi.tilebox()``
-      or ``mfi.growntilebox()`` statement.
-
-   -  In Fortran, when initializing an array to 0, do so only
-      over the tile region, not for the entire box. For a Fortran array
-      a, this means we cannot do::
-
-            a = 0.0
-            a(:,:,:,:) = 0.0
-
-      but instead must do::
-
-            a(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.0
-
-      where ``lo()`` and ``hi()`` are the index-space for the tile box
-      returned from ``mfi.tilebox()`` in C++ and passed into the Fortran
-      routine.
-
-   -  Look at ``r_old_s`` in ``Exec/gravity_tests/DustCollapse/probdata.f90`` as an
-      example of how to declare a ``threadprivate`` variable—this is then used
-      in ``sponge_nd.f90``.
 
 Boundaries: ``FillPatch`` and ``FillPatchIterator``
 ===================================================
@@ -875,7 +442,7 @@ let’s consider the following scenarios:
    first argument, which is the object that contains the relevant
    ``StateData`` —that is what the this pointer indicates.
    Finally, we are copying the ``State_Type`` data components 0 to
-   ``NUM_STATE`` [3]_.
+   ``NUM_STATE`` [1]_.
 
    The result of this operation is that ``Sborder`` will now have
    ``NUM_GROW`` ghost cells consistent with the ``State_Type``
@@ -980,7 +547,7 @@ Physical Boundaries
 
 .. index:: boundary conditions
 
-Physical boundary conditions are specified by an integer index [4]_ in
+Physical boundary conditions are specified by an integer index [2]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -1006,7 +573,7 @@ variable is done in ``Castro_setup.cpp``. At the top we define arrays
 such as ``scalar_bc``, ``norm_vel_bc``, etc, which say which kind of
 bc to use on which kind of physical boundary.  Boundary conditions are
 set in functions like ``set_scalar_bc``, which uses the ``scalar_bc``
-pre-defined arrays. We also specify the name of the Fortran routine
+pre-defined arrays. We also specify the name of the routine
 that is responsible for filling the data there (e.g., ``hypfill``).  These
 routines are discussed more below.
 
@@ -1081,120 +648,13 @@ and gravitation acceleration for use in the hydrodynamic sources.
 Depending on the approximation used for gravity, this could mean
 calling the AMReX multigrid solvers to solve the Poisson equation.
 
-Fortran Helper Modules
-======================
-
-There are a number of modules that make data available to the Fortran
-side of Castroor perform other useful tasks.
-
-``amrex_constants_module``
---------------------------
-
-This provides double precision constants as Fortran parameters, like
-``ZERO``, ``HALF``, and ``ONE``.
-
-``extern_probin_module``
-------------------------
-
-This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the ``_parameters`` files
-in the external sources, parse them for runtime parameters, and build
-the module.
-
-``fundamental_constants_module``
---------------------------------
-
-This provides the CGS values of many physical constants.
-
-
-``math_module``
----------------
-
-This provides simple mathematical functions. At the moment, a cross
-product routine.
-
-
-``meth_params_module``
-----------------------
-
-This module provides the integer keys used to access the state arrays
-for both the conserved variables (``URHO``, ``UMX``, :math:`\ldots`)
-and primitive variables (``QRHO``, ``QU``, :math:`\ldots`), as well as
-the number of scalar variables.
-
-It also provides the values of most of the ``castro.*xxxx*``
-runtime parameters.
-
-
-``model_parser_module``
------------------------
-
-This module is built if ``USE_MODELPARSER`` = ``TRUE`` is set in the
-problem’s ``GNUmakefile``. It then provides storage for the an initial
-model and routines to read it in and interpolate onto the Castro grid.
-
-.. _soft:prob_params:
-
-``prob_params_module``
-----------------------
-
-This module stores information about the domain and current level, and
-is periodically synced up with the C++ driver. The information
-available here is:
-
-   -  ``physbc_lo``, ``physbc_hi``: these are the boundary
-      condition types at the low and high ends of the domain, for each
-      coordinate direction. Integer keys, ``Interior``, ``Inflow``,
-      ``Outflow``, ``Symmetry``, ``SlipWall``, and
-      ``NoSlipWall`` allow you to interpret the values.
-
-   -  ``center`` is the center of the problem. Note—this is up
-      to the problem setup to define (in the ``probinit`` subroutine).
-      Alternately, it can be set at runtime via
-      ``castro.center``.
-
-      Usually ``center`` will be the physical center of the domain,
-      but not always. For instance, for axisymmetric problems,
-      center may be on the symmetry axis.
-
-      ``center`` is used in the multipole gravity, hybrid advection
-      algorithm, rotation sources, for the point mass gravity, in
-      defining the center of the sponge, and in deriving the radial
-      velocity.
-
-   -  ``coord_type``
-
-   -  ``dim``
-
-   -  ``dg``
-
-   -  *refining information*
-
 
 
 .. [1]
-   Note: some older code will use a special AMReX preprocessor macro,
-   ``BL_TO_FORTRAN``, defined in ``ArrayLim.H``, that converts
-   the C++ ``MultiFab`` into a Fortran array and its ``lo`` and ``hi`` indices.
-   Additionally, some older code will wrap the Fortran subroutine name
-   in an additional preprocessor macro, ``BL_FORT_PROC_CALL``
-   to handle the name mangling between Fortran and C. This later
-   macro is generally not needed any more because of Fortran 2003
-   interoperability with C (through the Fortran ``bind`` keyword).
-
-.. [2]
-   the way to read these complicated
-   C declarations is right-to-left. So ``const int* lo`` means
-   ``lo`` is a integer pointer to a memory space that is constant. See
-   https://isocpp.org/wiki/faq/const-correctness#ptr-to-const
-
-.. [3]
    for clarity and continuity in this
    documentation, some of the variable names have been changed
    compared to the actual code
 
-.. [4]
+.. [2]
    the integer values are defined in ``BC_TYPES.H``
 

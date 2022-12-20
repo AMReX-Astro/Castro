@@ -24,11 +24,6 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param apply_to_state   whether to apply the source to state_new
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_old_sources(
 #ifdef MHD
@@ -38,8 +33,7 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state,
-                        int amr_iteration = -1, int amr_ncycle = -1);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state);
 
 
 ///
@@ -51,17 +45,10 @@
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_old_source(int src, amrex::MultiFab& source,
                               amrex::MultiFab& state,
-                              amrex::Real time, amrex::Real dt,
-                              int amr_iteration = -1, int amr_ncycle = -1);
-
+                              amrex::Real time, amrex::Real dt);
 
 ///
 /// Construct new time sources
@@ -73,11 +60,6 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param apply_to_state   whether to apply the source to state_new
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_new_sources(
 #ifdef MHD
@@ -87,8 +69,8 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state,
-                        int amr_iteration = -1, int amr_ncycle = -1);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+
 
 ///
 /// Construct the new-time sources.
@@ -100,16 +82,11 @@
 /// @param time         the current simulation time
 /// @param dt       t   he timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_new_source(int src, amrex::MultiFab& source,
                               amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                              amrex::Real time, amrex::Real dt,
-                              int amr_iteration = -1, int amr_ncycle = -1);
+                              amrex::Real time, amrex::Real dt);
+
 
 ///
 /// Evaluate diagnostics quantities describing the effect of an
@@ -161,19 +138,6 @@
     void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
                                           std::string source_name);
 
-///
-/// Obtain the sum of all source terms.
-///
-/// this computes advective_source + 1/2 (old source + new source)
-///
-/// @note the advective source is defined as \f$-\nabla\cdot F\f$
-///
-/// the time-centering is accomplished since new source is defined
-/// to be 1/2 (new source - old source) generally.
-///
-/// @param source       MultiFab of source terms to be summed
-///
-    void sum_of_sources(amrex::MultiFab& source);
 
 
 ///
@@ -223,23 +187,11 @@
 /// @param state        input state
 /// @param source       source incremented with the sponge
 /// @param dt           timestep
-/// @param mult_factor  multiplicative factor in front of the source
 ///
     void apply_sponge(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const state,
                       amrex::Array4<amrex::Real> const source,
-                      amrex::Real dt, amrex::Real mult_factor);
-
-///
-/// Allocate sponge parameters
-///
-    static void sponge_init();
-
-
-///
-/// Deallocate sponge parameters
-///
-    static void sponge_finalize();
+                      amrex::Real dt);
 
 #endif
 
@@ -279,8 +231,8 @@
 /// @param S_new    New state
 /// @param ext_src MultiFab to save sources to
 ///
-    void fill_ext_source(amrex::Real time, amrex::Real dt,
-                         amrex::MultiFab& S_old, amrex::MultiFab& S_new,
+    void fill_ext_source(const amrex::Real time, const amrex::Real dt,
+                         const amrex::MultiFab& S_old, const amrex::MultiFab& S_new,
                          amrex::MultiFab& ext_src);
 
 
@@ -312,23 +264,45 @@
 ///
 /// Fill ``ext_src`` with thermal sources
 ///
-/// @param time     current time
-/// @param dt       timestep
 /// @param S_old    Old state
 /// @param S_new    New state
 /// @param ext_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::Real time, amrex::Real dt,
-                            amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+    void fill_thermo_source(amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
-#ifdef REACTIONS
 ///
-/// Obtain the effective source term due to reactions on the primitive variables
+/// Construct axisymmetric geometry source at old timestep
 ///
-/// @param source   MultiFab to save source term to
+/// @param source   MultiFab to save sources to
+/// @param state    Old state
+/// @param time     current time
 /// @param dt       timestep
 ///
-    void get_react_source_prim(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
-#endif
+    void construct_old_geom_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                                   amrex::Real time, amrex::Real dt);
 
+
+///
+/// Construct axisymmetric geometry source at new timestep
+///
+/// @param source       MultiFab to save sources to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
+///
+    void construct_new_geom_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+                                   amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+
+///
+/// Fill ``ext_src`` with axisymmetric geometry sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S        state
+/// @param ext_src  MultiFab to fill with sources
+///
+    void fill_geom_source(amrex::Real time, amrex::Real dt,
+                          amrex::MultiFab& S, amrex::MultiFab& ext_src);

@@ -1,11 +1,11 @@
-#include "AMReX_REAL.H"
+#include <AMReX_REAL.H>
 
-#include "Derive.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Derive.H>
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef DIFFUSION
-#include "diffusion_util.H"
+#include <diffusion_util.H>
 #endif
 
 using namespace amrex;
@@ -30,12 +30,12 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -63,7 +63,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         Real rhoInv = 1.0_rt/dat(i,j,k,URHO);
@@ -85,7 +85,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         der(i,j,k,0) = dat(i,j,k,UEINT) / dat(i,j,k,URHO);
@@ -101,7 +101,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
         der(i,j,k,0) = std::log10(dat(i,j,k,0));
       });
@@ -116,13 +116,13 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -151,13 +151,13 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -186,13 +186,13 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -222,13 +222,13 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -257,13 +257,13 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -295,7 +295,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
 
@@ -367,7 +367,7 @@ extern "C"
       const int coord_type = geomdata.Coord();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         // (k grad T)_{i+1/2}
@@ -455,7 +455,7 @@ extern "C"
       int enuc_comp = datfab.nComp()-1;
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         // the nuclear energy (rho H_nuc) is tacked onto the end of
@@ -468,7 +468,7 @@ extern "C"
           Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
           // calculate the sound speed
-          eos_t eos_state;
+          eos_rep_t eos_state;
           eos_state.rho  = dat(i,j,k,URHO);
           eos_state.T = dat(i,j,k,UTEMP);
           eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -503,7 +503,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_DEVICE (int i, int j, int k)
       {
           // The derive data is (rho, rho_enuc)
           Real enuc = dat(i,j,k,1) / dat(i,j,k,0);
@@ -522,7 +522,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
              der(i,j,k,0) = dat(i,j,k,1) / dat(i,j,k,0);
       });
@@ -538,7 +538,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         Real deninv = 1.0_rt/dat(i,j,k,0);
@@ -559,7 +559,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         der(i,j,k,0) = std::sqrt(dat(i,j,k,0)*dat(i,j,k,0) +
@@ -580,25 +580,20 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
         Real y = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
         Real z = 0.0_rt;
 #endif
@@ -640,25 +635,20 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
         Real y = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
         Real z = 0.0_rt;
 #endif
@@ -708,7 +698,7 @@ extern "C"
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                        {
 
                          der(i,j,k,0) = std::sqrt(dat(i,j,k,0)*dat(i,j,k,0) +
@@ -727,15 +717,11 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    // center calculated like advection_utils.cpp
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
-                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                        {
                          Real loc[3];
 
@@ -756,10 +742,10 @@ extern "C"
 #endif
 
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
-                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity_c
+                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
                            L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
                          }
@@ -783,14 +769,11 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
-                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                        {
                          Real loc[3];
 
@@ -808,7 +791,7 @@ extern "C"
                          loc[2] = 0.0_rt;
 #endif
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
@@ -834,14 +817,11 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
-                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                        {
                          Real loc[3];
 
@@ -860,7 +840,7 @@ extern "C"
 #endif
 
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
@@ -886,7 +866,7 @@ extern "C"
     auto const kineng = derfab.array();
 
     amrex::ParallelFor(bx,
-                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                        {
                          kineng(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * ( dat(i,j,k,1)*dat(i,j,k,1) +
                                                                      dat(i,j,k,2)*dat(i,j,k,2) +
@@ -895,13 +875,13 @@ extern "C"
 
   }
 
-  void ca_dernull(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec,
-                  const int* level, const int* grid_no)
+  void ca_dernull(Real* /*der*/, const int* /*der_lo*/, const int* /*der_hi*/, const int* /*nvar*/,
+                  const Real* /*data*/, const int* /*data_lo*/, const int* /*data_hi*/, const int* /*ncomp*/,
+                  const int* /*lo*/, const int* /*hi*/,
+                  const int* /*domain_lo*/, const int* /*domain_hi*/,
+                  const Real* /*delta*/, const Real* /*xlo*/,
+                  const Real* /*time*/, const Real* /*dt*/, const int* /*bcrec*/,
+                  const int* /*level*/, const int* /*grid_no*/)
   {
 
     // This routine is used by particle_count.  Yes it does nothing.
@@ -917,7 +897,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
              der(i,j,k,0) = dat(i,j,k,1) / dat(i,j,k,0);
       });
@@ -933,7 +913,7 @@ extern "C"
       auto const der = derfab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         Real sum = 0.0_rt;
@@ -961,7 +941,7 @@ extern "C"
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         // Calculate vorticity.
@@ -1048,16 +1028,12 @@ extern "C"
 
       auto dx = geomdata.CellSizeArray();
 
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       const int coord_type = geomdata.Coord();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
         Real uhi = dat(i+1,j,k,1) / dat(i+1,j,k,0);
@@ -1117,7 +1093,7 @@ extern "C"
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       // density
@@ -1143,7 +1119,7 @@ extern "C"
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
       der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i+1,j,k,0));
     });
@@ -1159,7 +1135,7 @@ extern "C"
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
       der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i,j+1,k,0));
     });
@@ -1175,78 +1151,9 @@ extern "C"
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
       der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i,j,k+1,0));
-    });
-
-  }
-
-  void ca_derex(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_x = -(V X B)_x
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_y,mag_z,density,ymom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-    {
-      Real vy = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vy*dat(i,j,k,1) + vz*dat(i,j,k,0);
-
-    });
-
-  }
-
-  void ca_derey(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_y = -(V X B)_y
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_z,density,xmom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vz*dat(i,j,k,0) + vx*dat(i,j,k,1);
-
-    });
-
-  }
-
-  void ca_derez(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_z = -(V X B)_z
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_y,density,xmom,ymom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vy = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vx*dat(i,j,k,1) + vy*dat(i,j,k,0);
-
     });
 
   }
@@ -1262,7 +1169,7 @@ extern "C"
     auto dx = geomdata.CellSizeArray();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
       Real dBx = dat(i+1,j,k,0) - dat(i,j,k,0);
       der(i,j,k,0) = dBx / dx[0];
@@ -1279,6 +1186,39 @@ extern "C"
     });
   }
 
+#endif
+
+#ifdef NSE
+  void ca_dernse(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+      Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
+
+      eos_t eos_state;
+      eos_state.rho  = dat(i,j,k,URHO);
+      eos_state.T = dat(i,j,k,UTEMP);
+      eos_state.e = dat(i,j,k,UEINT) * rhoInv;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
+      }
+#if NAUX_NET > 0
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
+      }
+#endif
+
+      eos(eos_input_re, eos_state);
+      der(i,j,k,0) = in_nse(eos_state);
+    });
+  }
 #endif
 
 

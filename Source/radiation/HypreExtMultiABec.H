@@ -1,7 +1,7 @@
 #ifndef CASTRO_HYPREEXTMULTIABEC_H
 #define CASTRO_HYPREEXTMULTIABEC_H
 
-#include "HypreMultiABec.H"
+#include <HypreMultiABec.H>
 
 
 ///
@@ -130,10 +130,10 @@ class HypreExtMultiABec : public HypreMultiABec {
 
  protected:
 
-  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > a2coefs; ///< face-based
-  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > ccoefs;  ///< face-based, 2 component
-  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > d1coefs; ///< cell-based but directional
-  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > d2coefs; ///< face-based
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > a2coefs; ///< face-based
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > ccoefs;  ///< face-based, 2 component
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > d1coefs; ///< cell-based but directional
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > d2coefs; ///< face-based
   amrex::Real alpha2, gamma, delta1, delta2; ///< multipliers for the above
 };
 

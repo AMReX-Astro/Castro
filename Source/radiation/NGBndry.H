@@ -60,7 +60,7 @@ protected:
 ///
 /// If used, these arrays must be built/deleted by a derived class:
 ///
-  amrex::Vector< std::unique_ptr<amrex::BaseFab<int> > > bctypearray[2*BL_SPACEDIM];
+  amrex::Vector< std::unique_ptr<amrex::BaseFab<int> > > bctypearray[2*AMREX_SPACEDIM];
 
 
 ///

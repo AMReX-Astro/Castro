@@ -1,11 +1,7 @@
-#include "AMReX_LO_BCTYPES.H"
-#include "AMReX_ArrayLim.H"
+#include <AMReX_LO_BCTYPES.H>
+#include <AMReX_ArrayLim.H>
 
 module rad_module
-
-  use meth_params_module, only : URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX, NVAR
-
-  use rad_util_module, only : FLDlambda
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -17,28 +13,6 @@ contains
 
 ! The following routines implement metric terms in 2D and are included
 ! in the 3D source only to enable the code to link.
-
-subroutine sphc(r, s, &
-                DIMS(reg), dx) bind(C, name="sphc")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  real(rt)         :: dx(2)
-  real(rt)         :: h1, h2, d1, d2
-  integer :: i, j
-  h1 = 0.5e0_rt * dx(1)
-  h2 = 0.5e0_rt * dx(2)
-  d1 = 1.e0_rt / (3.e0_rt * dx(1))
-  d2 = 1.e0_rt / dx(2)
-  do i = reg_l1, reg_h1
-     r(i) = d1 * ((r(i) + h1)**3 - (r(i) - h1)**3)
-  enddo
-  do j = reg_l2, reg_h2
-     s(j) = d2 * (cos(s(j) - h2) - cos(s(j) + h2))
-  enddo
-end subroutine sphc
 
 subroutine sphe(r, s, n, &
                 DIMS(reg), dx) bind(C, name="sphe")
@@ -71,136 +45,6 @@ subroutine sphe(r, s, n, &
      enddo
   endif
 end subroutine sphe
-
-subroutine eddfac(efact, &
-                  DIMS(rbox), &
-                  DIMS(reg), limiter, n) bind(C, name="eddfac")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(rbox)
-  integer :: DIMDEC(reg)
-  integer :: n, limiter
-  real(rt)         :: efact(DIMV(rbox))
-  integer :: i, j, k
-  real(rt)         :: r, lambda
-  integer :: dir(0:2)
-  dir(0) = 0
-  dir(1) = 0
-  dir(2) = 0
-  dir(n) = 1
-  do k = reg_l3, reg_h3 + dir(2)
-     do j = reg_l2, reg_h2 + dir(1)
-        do i = reg_l1, reg_h1 + dir(0)
-           r = efact(i,j,k)
-           lambda = FLDlambda(r,limiter)
-           efact(i,j,k) = lambda + (lambda * r)**2
-        enddo
-     enddo
-  enddo
-end subroutine eddfac
-
-subroutine ceupdterm(DIMS(reg), relres, absres, &
-                     frhoes, DIMS(grd), &
-                     frhoem, eta, etainv, dfo, dfn, exch, dterm, &
-                     dt, theta) bind(C, name="ceupdterm")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(grd)
-  real(rt)         :: frhoes(DIMV(grd))
-  real(rt)         :: frhoem(DIMV(grd))
-  real(rt)         :: eta(DIMV(grd))
-  real(rt)         :: etainv(DIMV(grd))
-  real(rt)         :: dfo(DIMV(grd))
-  real(rt)         :: dfn(DIMV(grd))
-  real(rt)         :: exch(DIMV(grd))
-  real(rt)         :: dterm(DIMV(grd))
-  real(rt)         :: dt, theta, relres, absres
-  real(rt)         :: tmp, chg, tot
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           chg = 0.e0_rt
-           tot = 0.e0_rt
-           tmp = eta(i,j,k) * frhoes(i,j,k) + &
-                etainv(i,j,k) * &
-                (frhoem(i,j,k) - &
-                dt * ((1.e0_rt - theta) * &
-                (dfo(i,j,k) - dfn(i,j,k)) + &
-                exch(i,j,k))) &
-                + dt * dterm(i,j,k)
-           chg = abs(tmp - frhoes(i,j,k))
-           tot = abs(frhoes(i,j,k))
-           frhoes(i,j,k) = tmp
-           absres = max(absres, chg)
-           relres = max(relres, chg / (tot + tiny))
-        enddo
-     enddo
-  enddo
-end subroutine ceupdterm
-
-! nonconservative form based on delta B
-subroutine nceup(DIMS(reg), relres, absres, &
-                 frhoes, DIMS(grd), &
-                 frhoem, eta, etainv, &
-                 er, DIMS(ebox), &
-                 dfo, dfn, temp, fkp, cv, &
-                 state, DIMS(sb), &
-                 sigma, c, dt, theta) bind(C, name="nceup")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(grd)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(ebox)
-  real(rt)         :: frhoes(DIMV(grd))
-  real(rt)         :: frhoem(DIMV(grd))
-  real(rt)         :: eta(DIMV(grd))
-  real(rt)         :: etainv(DIMV(grd))
-  real(rt)         :: er(DIMV(ebox))
-  real(rt)         :: dfo(DIMV(grd))
-  real(rt)         :: dfn(DIMV(grd))
-  real(rt)         :: temp(DIMV(grd))
-  real(rt)         :: fkp(DIMV(grd))
-  real(rt)         :: cv(DIMV(reg))
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: sigma, c, dt, theta, relres, absres
-  real(rt)         :: tmp, chg, tot, exch, b, db, dbdt, frhocv
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           chg = 0.e0_rt
-           tot = 0.e0_rt
-           frhocv = state(i,j,k, URHO) * cv(i,j,k)
-           dbdt = 16.e0_rt * sigma * temp(i,j,k)**3
-           b = 4.e0_rt * sigma * temp(i,j,k)**4
-           exch = fkp(i,j,k) * (b - c * er(i,j,k))
-           tmp = eta(i,j,k) * frhoes(i,j,k) + etainv(i,j,k) * &
-                (frhoem(i,j,k) - &
-                dt * ((1.e0_rt - theta) * &
-                (dfo(i,j,k) - dfn(i,j,k)) + &
-                exch))
-#if 1
-           if (frhocv > tiny .AND. tmp > frhoes(i,j,k)) then
-              db = (tmp - frhoes(i,j,k)) * dbdt / frhocv
-              if (b + db <= 0.e0_rt) then
-                 print *, i, j, k, b, db, b+db
-              endif
-              tmp = ((b + db) / (4.e0_rt * sigma))**0.25e0_rt
-              tmp = frhoes(i,j,k) + frhocv * (tmp - temp(i,j,k))
-           endif
-#endif
-           chg = abs(tmp - frhoes(i,j,k))
-           tot = abs(frhoes(i,j,k))
-           frhoes(i,j,k) = tmp
-           absres = max(absres, chg)
-           relres = max(relres, chg / (tot + tiny))
-        enddo
-     enddo
-  enddo
-end subroutine nceup
 
 subroutine rfface(fine, &
                   DIMS(fbox), &

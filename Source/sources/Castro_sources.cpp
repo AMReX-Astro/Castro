@@ -1,8 +1,8 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 using namespace amrex;
@@ -47,7 +47,7 @@ Castro::source_flag(int src)
             return true;
         else
             return false;
-#ifndef MHD     
+#ifndef MHD
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
           return true;
@@ -56,7 +56,14 @@ Castro::source_flag(int src)
 #else
     case thermo_src:
         return true;
-#endif  
+#endif
+
+    case geom_src:
+        if (geom.Coord() == 1) {
+          return true;
+        } else {
+          return false;
+        }
 
 #ifdef DIFFUSION
     case diff_src:
@@ -100,8 +107,8 @@ void
 Castro::do_old_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
-                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+#endif
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -112,56 +119,24 @@ Castro::do_old_sources(
 
     source.setVal(0.0, source.nGrow());
 
-    MultiFab temp_source;
-
-    if (apply_sources_consecutively && apply_to_state) {
-        temp_source.define(grids, dmap, NSRC, NUM_GROW);
-        temp_source.setVal(0.0, NUM_GROW);
-    }
-
     for (int n = 0; n < num_src; ++n) {
-        construct_old_source(n, source, state_old, time, dt, amr_iteration, amr_ncycle);
+        construct_old_source(n, source, state_old, time, dt);
 
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
-
-        if (apply_sources_consecutively && apply_to_state) {
-
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
-#ifdef MHD
-                            Bx, By, Bz,
-#endif                      
-                            state_new, time + dt, 0);
-
-            // Zero out the source MultiFab for the next source term.
-            // Also, log the sum of all source terms since we need
-            // to save that after we're done.
-
-            MultiFab::Add(temp_source, source, 0, 0, NSRC, NUM_GROW);
-
-            if (n < num_src - 1) {
-                source.setVal(0.0, NUM_GROW);
-            }
-
-        }
 
     }
 
     if (apply_to_state) {
 
-        if (apply_sources_consecutively) {
-            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-        } else {
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
+        apply_source_to_state(state_new, source, dt, 0);
+        clean_state(
 #ifdef MHD
-                            Bx, By, Bz,
-#endif                      
-                            state_new, time, 0);
-        }
-
+                     Bx, By, Bz,
+#endif
+                     state_new, time, 0);
     }
+
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -194,73 +169,36 @@ void
 Castro::do_new_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
-                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+#endif
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state)
 {
 
     BL_PROFILE("Castro::do_new_sources()");
 
     const Real strt_time = ParallelDescriptor::second();
 
-    source.setVal(0.0, NUM_GROW);
-
-    MultiFab temp_source;
-
-    if (apply_sources_consecutively && apply_to_state) {
-        temp_source.define(grids, dmap, NSRC, NUM_GROW);
-        temp_source.setVal(0.0, NUM_GROW);
-    }
+    source.setVal(0.0, NUM_GROW_SRC);
 
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
-        construct_new_source(n, source, state_old, state_new, time, dt, amr_iteration, amr_ncycle);
+        construct_new_source(n, source, state_old, state_new, time, dt);
 
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
-
-        if (apply_sources_consecutively && apply_to_state) {
-
-            // The individual source terms only calculate the source on the valid domain.
-            // FillPatch to get valid data in the ghost zones.
-
-            AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, source.nComp());
-
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
-#ifdef MHD
-                            Bx, By, Bz,
-#endif                      
-                            state_new, time, 0);
-
-            // Zero out the source MultiFab for the next source term.
-            // Also, log the sum of all source terms since we need
-            // to save that after we're done.
-
-            MultiFab::Add(temp_source, source, 0, 0, NSRC, NUM_GROW);
-
-            if (n < num_src - 1) {
-                source.setVal(0.0, NUM_GROW);
-            }
-
-        }
 
     }
 
     if (apply_to_state) {
 
-        if (apply_sources_consecutively) {
-            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-        } else {
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
+        apply_source_to_state(state_new, source, dt, 0);
+        clean_state(
 #ifdef MHD
-                            Bx, By, Bz,
-#endif                      
-                            state_new, time, 0);
-        }
-
+                     Bx, By, Bz,
+#endif
+                     state_new, time, 0);
     }
+
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -290,10 +228,10 @@ Castro::do_new_sources(
 }
 
 void
-Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_old_source()");
-    
+
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -310,6 +248,10 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
     case thermo_src:
         construct_old_thermo_source(source, state_in, time, dt);
+        break;
+
+    case geom_src:
+        construct_old_geom_source(source, state_in, time, dt);
         break;
 
 #ifdef DIFFUSION
@@ -346,7 +288,7 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 }
 
 void
-Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_new_source()");
 
@@ -369,6 +311,10 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
         construct_new_thermo_source(source, state_old, state_new, time, dt);
         break;
 #endif
+
+    case geom_src:
+        construct_new_geom_source(source, state_old, state_new, time, dt);
+        break;
 
 #ifdef DIFFUSION
     case diff_src:
@@ -516,116 +462,3 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 
     evaluate_and_print_source_change(source, dt, source_name);
 }
-
-// Obtain the sum of all source terms.
-
-void
-Castro::sum_of_sources(MultiFab& source)
-{
-  BL_PROFILE("Castro::sum_of_sources()");
-
-  // this computes advective_source + 1/2 (old source + new source)
-  //
-  // Note: the advective source is defined as -div{F}
-  //
-  // the time-centering is accomplished since new source is defined
-  // to be 1/2 (new source - old source) generally.
-
-  int ng = source.nGrow();
-
-  source.setVal(0.0);
-
-  MultiFab& old_sources = get_old_data(Source_Type);
-  MultiFab& new_sources = get_new_data(Source_Type);
-
-  MultiFab::Add(source, old_sources, 0, 0, old_sources.nComp(), ng);
-
-  MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
-
-  MultiFab::Add(source, new_sources, 0, 0, new_sources.nComp(), ng);
-
-}
-
-// Obtain the effective source term due to reactions on the primitive variables.
-// This is done with simplified_SDC
-
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-void
-Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
-{
-
-    BL_PROFILE("Castro::get_react_source_prim()");
-
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
-
-    int ng = 0;
-
-    // Carries the contribution of all non-reacting source terms.
-
-    MultiFab A(grids, dmap, NUM_STATE, ng);
-
-    sum_of_sources(A);
-
-    // Compute the state that has effectively only been updated with advection.
-    // U* = U_old + dt A
-    // where A = -div U + S_hydro
-    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
-
-    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
-    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
-
-    clean_state(S_noreact, state[State_Type].curTime(), S_noreact.nGrow());
-
-    // Compute its primitive counterpart, q*
-
-    MultiFab q_noreact(grids, dmap, NQ, ng);
-    MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
-
-    cons_to_prim(S_noreact, q_noreact, qaux_noreact, time);
-
-    // Compute the primitive version of the old state, q_old
-
-    MultiFab q_old(grids, dmap, NQ, ng);
-    MultiFab qaux_old(grids, dmap, NQAUX, ng);
-
-    cons_to_prim(S_old, q_old, qaux_old, time);
-
-    // Compute the effective advective update on the primitive state.
-    // A(q) = (q* - q_old)/dt
-
-    MultiFab A_prim(grids, dmap, NQ, ng);
-
-    A_prim.setVal(0.0);
-
-    if (dt > 0.0) {
-        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, NQ, ng);
-        MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, NQ, ng);
-    }
-
-    // Compute the primitive version of the new state.
-
-    MultiFab q_new(grids, dmap, NQ, ng);
-    MultiFab qaux_new(grids, dmap, NQAUX, ng);
-
-    cons_to_prim(S_new, q_new, qaux_new, time + dt);
-
-    // Compute the reaction source term.
-
-    react_src.setVal(0.0, react_src.nGrow());
-
-    if (dt > 0.0) {
-        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, NQ, ng);
-        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, NQ, ng);
-    }
-
-    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, NQ, ng);
-
-    // Now fill all of the ghost zones.
-    Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
-
-}
-#endif
-#endif

@@ -17,7 +17,7 @@ amr.n_cell           = 64     128
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 0
 castro.hse_reflect_vels = 0
 
@@ -36,6 +36,10 @@ castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
+# SPONGE
+castro.sponge_upper_density = 50.0e0
+castro.sponge_lower_density = 12.5e0
+castro.sponge_timescale     = 1.e-3
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -59,8 +63,11 @@ amr.plot_file        = plt        # root name of plotfile
 amr.plot_int         = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.model_name =  "toy_nova_constg_tanh2.hse.smooth_3.00.1024"
 
-# DATA LOG
-amr.data_log = log
+problem.apply_vel_field = 1
+problem.velpert_height_loc = 3.95e8
+problem.velpert_scale = 1.e6
+problem.velpert_amplitude = 1.e3
+problem.num_vortices = 6

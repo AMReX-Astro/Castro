@@ -1,7 +1,7 @@
 #ifndef CASTRO_HYBRID_H
 #define CASTRO_HYBRID_H
 
-#include "Castro_util.H"
+#include <Castro_util.H>
 
 using namespace amrex;
 
@@ -31,11 +31,7 @@ void linear_to_hybrid(const GpuArray<Real, 3>& loc,
     // Note that we expect the linear momentum to be consistent
     // with which frame we're measuring the fluid quantities in.
     // So we're effectively always using the first form of those
-    // equalities, not the second. If state_in_rotating_frame = 1,
-    // then we're not including the centrifugal term in the angular
-    // momentum anyway, and if state_in_rotating_frame = 0, then
-    // the linear momenta are already expressed in the inertial frame,
-    // so we don't need to explicitly take rotation into account.
+    // equalities, not the second.
 
     hybrid_mom[0] = linear_mom[0] * (loc[0] * RInv) + linear_mom[1] * (loc[1] * RInv);
     hybrid_mom[1] = linear_mom[1] * loc[0] - linear_mom[0] * loc[1];
@@ -97,7 +93,6 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 ///
 /// @param state          the Godunov state
 /// @param geomdata       the Castro geometry data object
-/// @param center         domain center
 /// @param idir           coordinate direction for flux computation (0 = x, 1 = y, 2 = z)
 /// @param i              x zone index
 /// @param j              y zone index
@@ -107,7 +102,7 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData& geomdata,
-                         const GpuArray<Real, 3>& center, int idir, int i, int j, int k,
+                         int idir, int i, int j, int k,
                          GpuArray<Real, NUM_STATE>& flux, bool cell_centered = false)
 {
     bool ccx = true;
@@ -129,7 +124,7 @@ void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData&
     position(i, j, k, geomdata, loc, ccx, ccy, ccz);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
 
     GpuArray<Real, 3> linear_mom;
 

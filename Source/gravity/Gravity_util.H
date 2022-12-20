@@ -83,7 +83,7 @@ void calcLegPolyL (int l, Real& legPolyL, Real& legPolyL1, Real& legPolyL2, Real
     }
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
+AMREX_GPU_DEVICE AMREX_INLINE
 void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
                    Array4<Real> const& qL0,
                    Array4<Real> const& qLC,
@@ -91,14 +91,14 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
                    Array4<Real> const& qU0,
                    Array4<Real> const& qUC,
                    Array4<Real> const& qUS,
-                   int npts, int nlo, int index, bool parity = false)
+                   int npts, int nlo, int index,
+                   amrex::Gpu::Handler const& handler,
+                   bool parity = false)
 {
     Real legPolyL, legPolyL1, legPolyL2;
     Real assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2;
 
     Real rho_r_L, rho_r_U;
-
-    Real dQ;
 
     for (int n = nlo; n <= npts-1; ++n) {
 
@@ -106,28 +106,32 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
             calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, cosTheta);
 
+            Real dQL0 = 0.0_rt;
+            Real dQU0 = 0.0_rt;
+
             if (index <= n) {
 
                 rho_r_L = rho * (std::pow(r, l));
 
-                dQ = legPolyL * rho_r_L * vol * multipole::volumeFactor;
+                dQL0 = legPolyL * rho_r_L * vol * multipole::volumeFactor;
                 if (parity) {
-                    dQ = dQ * multipole::parity_q0(l);
+                    dQL0 = dQL0 * multipole::parity_q0(l);
                 }
-                Gpu::Atomic::Add(&qL0(l,0,n), dQ);
 
             }
             else {
 
                 rho_r_U = rho * (std::pow(r, -l-1));
 
-                dQ = legPolyL * rho_r_U * vol * multipole::volumeFactor;
+                dQU0 = legPolyL * rho_r_U * vol * multipole::volumeFactor;
                 if (parity) {
-                    dQ = dQ * multipole::parity_q0(l);
+                    dQU0 = dQU0 * multipole::parity_q0(l);
                 }
-                Gpu::Atomic::Add(&qU0(l,0,n), dQ);
 
             }
+
+            amrex::Gpu::deviceReduceSum(&qL0(l,0,n), dQL0, handler);
+            amrex::Gpu::deviceReduceSum(&qU0(l,0,n), dQU0, handler);
 
         }
 
@@ -143,40 +147,47 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
                 calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta);
 
+                Real dQLC = 0.0_rt;
+                Real dQLS = 0.0_rt;
+
+                Real dQUC = 0.0_rt;
+                Real dQUS = 0.0_rt;
+
                 if (index <= n) {
 
                     rho_r_L = rho * (std::pow(r, l));
 
-                    dQ = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
+                    dQLC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQLC = dQLC * multipole::parity_qC_qS(l,m);
                     }
-                    Gpu::Atomic::Add(&qLC(l,m,n), dQ);
 
-                    dQ = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
+                    dQLS = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQLS = dQLS * multipole::parity_qC_qS(l,m);
                     }
-                    Gpu::Atomic::Add(&qLS(l,m,n), dQ);
 
                 }
                 else {
 
                     rho_r_U = rho * (std::pow(r, -l-1));
 
-                    dQ = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
+                    dQUC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQUC = dQUC * multipole::parity_qC_qS(l,m);
                     }
-                    Gpu::Atomic::Add(&qUC(l,m,n), dQ);
 
-                    dQ = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
+                    dQUS = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQUS = dQUS * multipole::parity_qC_qS(l,m);
                     }
-                    Gpu::Atomic::Add(&qUS(l,m,n), dQ);
 
                 }
+
+                amrex::Gpu::deviceReduceSum(&qLC(l,m,n), dQLC, handler);
+                amrex::Gpu::deviceReduceSum(&qLS(l,m,n), dQLS, handler);
+                amrex::Gpu::deviceReduceSum(&qUC(l,m,n), dQUC, handler);
+                amrex::Gpu::deviceReduceSum(&qUS(l,m,n), dQUS, handler);
 
             }
         }
@@ -184,11 +195,10 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
     }
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
+AMREX_GPU_DEVICE AMREX_INLINE
 void multipole_symmetric_add(Real x, Real y, Real z,
                              const GpuArray<Real, AMREX_SPACEDIM>& problo,
                              const GpuArray<Real, AMREX_SPACEDIM>& probhi,
-                             const GpuArray<Real, 3>& center,
                              Real rho, Real vol,
                              Array4<Real> const& qU0,
                              Array4<Real> const& qUC,
@@ -196,57 +206,60 @@ void multipole_symmetric_add(Real x, Real y, Real z,
                              Array4<Real> const& qL0,
                              Array4<Real> const& qLC,
                              Array4<Real> const& qLS,
-                             int npts, int nlo, int index)
+                             int npts, int nlo, int index,
+                             amrex::Gpu::Handler const& handler)
 {
-    Real xLo = (2.0_rt * (problo[0] - center[0])) / multipole::rmax - x;
+    Real xLo = (2.0_rt * (problo[0] - problem::center[0])) / multipole::rmax - x;
 
 #if AMREX_SPACEDIM >= 2
-    Real yLo = (2.0_rt * (problo[1] - center[1])) / multipole::rmax - y;
+    Real yLo = (2.0_rt * (problo[1] - problem::center[1])) / multipole::rmax - y;
 #else
     Real yLo = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-    Real zLo = (2.0_rt * (problo[2] - center[2]) ) / multipole::rmax - z;
+    Real zLo = (2.0_rt * (problo[2] - problem::center[2]) ) / multipole::rmax - z;
 #else
     Real zLo = 0.0_rt;
 #endif
 
+    Real r, phiAngle, cosTheta;
+
     if (multipole::doSymmetricAddLo(0)) {
 
-        Real r        = std::sqrt(xLo * xLo + y * y + z * z);
-        Real phiAngle = std::atan2(y, xLo);
-        Real cosTheta = z / r;
+        r        = std::sqrt(xLo * xLo + y * y + z * z);
+        phiAngle = std::atan2(y, xLo);
+        cosTheta = z / r;
 
-        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         if (multipole::doSymmetricAddLo(1)) {
 
-            Real r        = std::sqrt(xLo * xLo + yLo * yLo + z * z);
-            Real phiAngle = std::atan2(yLo, xLo);
-            Real cosTheta = z / r;
+            r        = std::sqrt(xLo * xLo + yLo * yLo + z * z);
+            phiAngle = std::atan2(yLo, xLo);
+            cosTheta = z / r;
 
-            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         }
 
         if (multipole::doSymmetricAddLo(2)) {
 
-            Real r        = std::sqrt(xLo * xLo + y * y + zLo * zLo);
-            Real phiAngle = std::atan2(y, xLo);
-            Real cosTheta = zLo / r;
+            r        = std::sqrt(xLo * xLo + y * y + zLo * zLo);
+            phiAngle = std::atan2(y, xLo);
+            cosTheta = zLo / r;
 
-            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         }
 
         if (multipole::doSymmetricAddLo(1) && multipole::doSymmetricAddLo(2)) {
 
-            Real r        = std::sqrt(xLo * xLo + yLo * yLo + zLo * zLo);
-            Real phiAngle = std::atan2(yLo, xLo);
-            Real cosTheta = zLo / r;
+            r        = std::sqrt(xLo * xLo + yLo * yLo + zLo * zLo);
+            phiAngle = std::atan2(yLo, xLo);
+            cosTheta = zLo / r;
 
-            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         }
 
@@ -254,19 +267,19 @@ void multipole_symmetric_add(Real x, Real y, Real z,
 
     if (multipole::doSymmetricAddLo(1)) {
 
-        Real r        = std::sqrt(x * x + yLo * yLo + z * z);
-        Real phiAngle = std::atan2(yLo, x);
-        Real cosTheta = z / r;
+        r        = std::sqrt(x * x + yLo * yLo + z * z);
+        phiAngle = std::atan2(yLo, x);
+        cosTheta = z / r;
 
-        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         if (multipole::doSymmetricAddLo(2)) {
 
-            Real r        = std::sqrt(x * x + yLo * yLo + zLo * zLo);
-            Real phiAngle = std::atan2(yLo, x);
-            Real cosTheta = zLo / r;
+            r        = std::sqrt(x * x + yLo * yLo + zLo * zLo);
+            phiAngle = std::atan2(yLo, x);
+            cosTheta = zLo / r;
 
-            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+            multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
         }
 
@@ -274,11 +287,11 @@ void multipole_symmetric_add(Real x, Real y, Real z,
 
     if (multipole::doSymmetricAddLo(2)) {
 
-        Real r        = std::sqrt(x * x + y * y + zLo * zLo);
-        Real phiAngle = std::atan2(y, x);
-        Real cosTheta = zLo / r;
+        r        = std::sqrt(x * x + y * y + zLo * zLo);
+        phiAngle = std::atan2(y, x);
+        cosTheta = zLo / r;
 
-        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index);
+        multipole_add(cosTheta, phiAngle, r, rho, vol, qL0, qLC, qLS, qU0, qUC, qUS, npts, nlo, index, handler);
 
     }
 }

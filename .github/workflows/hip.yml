@@ -1,0 +1,32 @@
+name: hip
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-hip
+  cancel-in-progress: true
+
+jobs:
+  hip-compile:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Dependencies
+        run: .github/workflows/dependencies_hip.sh
+
+      - name: compile flame_wave
+        run: |
+          cd Exec/science/flame_wave
+          make COMP=gnu USE_HIP=TRUE USE_MPI=FALSE USE_OMP=FALSE USE_CUDA=FALSE -j 2

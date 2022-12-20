@@ -1,9 +1,9 @@
 
-#include "HypreExtMultiABec.H"
-#include "HABEC_F.H"
-#include "AMReX_LO_BCTYPES.H"
+#include <HypreExtMultiABec.H>
+#include <HABEC_F.H>
+#include <AMReX_LO_BCTYPES.H>
 
-#include "_hypre_sstruct_mv.h"
+#include <_hypre_sstruct_mv.h>
 
 #include <iostream>
 
@@ -27,9 +27,9 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
   int ngrow=0;
 
   if (!a2coefs[level]) {
-    a2coefs[level].reset(new Array<MultiFab, BL_SPACEDIM>);
+    a2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
  
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
       (*a2coefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
@@ -52,9 +52,9 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
   int ngrow=0;
 
   if (!ccoefs[level]) {
-    ccoefs[level].reset(new Array<MultiFab, BL_SPACEDIM>);
+    ccoefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
  
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
       (*ccoefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
@@ -77,9 +77,9 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
   int ngrow=0;
 
   if (!d1coefs[level]) {
-    d1coefs[level].reset(new Array<MultiFab, BL_SPACEDIM>);
+    d1coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
 
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       (*d1coefs[level])[i].define(grids[level], dmap[level], ncomp, ngrow);
       (*d1coefs[level])[i].setVal(0.0);
     }
@@ -100,9 +100,9 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
   int ngrow=0;
 
   if (!d2coefs[level]) {
-    d2coefs[level].reset(new Array<MultiFab, BL_SPACEDIM>);
+    d2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
  
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
       (*d2coefs[level])[i].define(edge_boxes, dmap[level], ncomp, ngrow);
@@ -160,7 +160,7 @@ void HypreExtMultiABec::loadMatrix()
   }
 
   // These really ought to be members and already defined:
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
@@ -171,13 +171,13 @@ void HypreExtMultiABec::loadMatrix()
   int offsets[3][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0}};
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
                        {-1,  0},
                        { 1,  0},
                        { 0, -1},
                        { 0,  1}};
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
                        {-1,  0,  0},
                        { 1,  0,  0},
@@ -187,7 +187,7 @@ void HypreExtMultiABec::loadMatrix()
                        { 0,  0,  1}};
 #endif
 
-  const int size = 2 * BL_SPACEDIM + 1;
+  const int size = 2 * AMREX_SPACEDIM + 1;
 
   int stencil_indices[size];
 
@@ -205,7 +205,7 @@ void HypreExtMultiABec::loadMatrix()
       const Box &reg = grids[level][i];
 
       matfab.resize(reg,size);
-      Real* mat = matfab.dataPtr();
+      auto mat = matfab.array();
       Elixir mat_elix = matfab.elixir();
 
       matfab.setVal<RunOn::Device>(0.0);
@@ -213,42 +213,111 @@ void HypreExtMultiABec::loadMatrix()
       // build matrix interior
 
       if (a2coefs[level]) {
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-            hma2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                  BL_TO_FORTRAN_ANYD(matfab), 
-                  BL_TO_FORTRAN_ANYD((*a2coefs[level])[idim][mfi]),
-                  alpha2, idim);
+        for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+            const Real fac = 0.25_rt * alpha2;
+
+            auto a2 = (*a2coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i+1,j,k));
+                    mat(i,j,k,1) += fac * a2(i,j,k);
+                    mat(i,j,k,2) += fac * a2(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i,j+1,k));
+                    mat(i,j,k,3) += fac * a2(i,j,k);
+                    mat(i,j,k,4) += fac * a2(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i,j,k+1));
+                    mat(i,j,k,5) += fac * a2(i,j,k);
+                    mat(i,j,k,6) += fac * a2(i,j,k+1);
+                }
+            });
         }
       }
 
       if (ccoefs[level]) {
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmcc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-               BL_TO_FORTRAN_ANYD(matfab), 
-               BL_TO_FORTRAN_ANYD((*ccoefs[level])[idim][mfi]), 
-               gamma, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+        for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+            const Real fac = 0.5_rt * gamma / geom[level].CellSize(idim);
+
+            auto c = (*ccoefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i+1,j,k));
+                    mat(i,j,k,1) += -fac * c(i,j,k);
+                    mat(i,j,k,2) += fac * c(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i,j+1,k));
+                    mat(i,j,k,3) += -fac * c(i,j,k);
+                    mat(i,j,k,4) += fac * c(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i,j,k+1));
+                    mat(i,j,k,5) += -fac * c(i,j,k);
+                    mat(i,j,k,6) += fac * c(i,j,k+1);
+                }
+            });
         }
       }
 
       if (d1coefs[level]) {
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmd1c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
-                BL_TO_FORTRAN_ANYD((*d1coefs[level])[idim][mfi]),
-                delta1, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+        for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+            const Real fac = 0.5_rt * delta1 / geom[level].CellSize(idim);
+
+            auto d1 = (*d1coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            {
+                if (idim == 0) {
+                    mat(i,j,k,1) += -fac * d1(i,j,k);
+                    mat(i,j,k,2) += fac * d1(i,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,3) += -fac * d1(i,j,k);
+                    mat(i,j,k,4) += fac * d1(i,j,k);
+                }
+                else {
+                    mat(i,j,k,5) += -fac * d1(i,j,k);
+                    mat(i,j,k,6) += fac * d1(i,j,k);
+                }
+            });
         }
       }
 
       if (d2coefs[level]) {
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmd2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
-                BL_TO_FORTRAN_ANYD((*d2coefs[level])[idim][mfi]),
-                delta2, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+        for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
+            const Real fac = 0.5_rt * delta2 / geom[level].CellSize(idim);
+
+            auto d2 = (*d2coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i+1,j,k));
+                    mat(i,j,k,1) += -fac * d2(i,j,k);
+                    mat(i,j,k,2) += fac * d2(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i,j+1,k));
+                    mat(i,j,k,3) += -fac * d2(i,j,k);
+                    mat(i,j,k,4) += fac * d2(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i,j,k+1));
+                    mat(i,j,k,5) += -fac * d2(i,j,k);
+                    mat(i,j,k,6) += fac * d2(i,j,k+1);
+                }
+            });
         }
       }
 
@@ -262,7 +331,7 @@ void HypreExtMultiABec::loadMatrix()
       int volume = reg.numPts();
       for (int s = 0; s < size; s++) {
         for (int k = 0; k < volume; k++) {
-          mat_tmp[k] = mat[k * size + s];
+          mat_tmp[k] = matfab.dataPtr()[s * volume + k];
         }
         HYPRE_SStructMatrixAddToBoxValues(A, part, loV(reg), hiV(reg), 0,
                                           1, &stencil_indices[s], mat_tmp);
@@ -517,7 +586,7 @@ void HypreExtMultiABec::loadMatrix()
 //        const Mask &msk = bd[level]->bndryMasks(ori,i);
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori,i)(v).empty() &&
-              !entry(ori,i)(v).slave()) {
+              !entry(ori,i)(v).secondary()) {
             entry(ori,i)(v).collapse();
             Vector<int> levels;
             Vector<IntVect> cells;
@@ -526,13 +595,13 @@ void HypreExtMultiABec::loadMatrix()
             Vector<Real> values;
             retval = entry(ori,i)(v).get_coeffs(values);
             BL_ASSERT(retval == 0);
-            int ientry = 2 * BL_SPACEDIM + 1;
+            int ientry = 2 * AMREX_SPACEDIM + 1;
             for (int j = 0; j < levels.size(); j++) {
               // identify stencil-like connections for separate treatment:
               int not_stencil = 1;
               if (levels[j] == level) {
                 IntVect d = cells[j] - v;
-                for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                   if (d == IntVect(offsets[k])) {
                     not_stencil = 0;
                     HYPRE_SStructMatrixAddToValues(A, part, getV1(v), 0,
@@ -616,12 +685,12 @@ void HypreExtMultiABec::loadMatrix()
       Real ofhc = ofac / hc;
       Real rfac = 1.0;
       IntVect ve; // default constructor initializes to zero
-#if (BL_SPACEDIM >= 2)
-      int jdir = (idir + 1) % BL_SPACEDIM;
+#if (AMREX_SPACEDIM >= 2)
+      int jdir = (idir + 1) % AMREX_SPACEDIM;
       ve += (rat[jdir] - 1) * amrex::BASISV(jdir);
       rfac /= rat[jdir]; // will average over fine cells in tangential dir
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
       int kdir = (idir + 2) % 3;
       ve += (rat[kdir] - 1) * amrex::BASISV(kdir);
       rfac /= rat[kdir]; // will average over fine cells in tangential dir
@@ -715,7 +784,7 @@ void HypreExtMultiABec::loadMatrix()
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
-                !(*c_entry[level])(ori,i,j)(vc).slave()) {
+                !(*c_entry[level])(ori,i,j)(vc).secondary()) {
               (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
@@ -725,14 +794,14 @@ void HypreExtMultiABec::loadMatrix()
               Vector<Real> values;
               retval = (*c_entry[level])(ori,i,j)(vc).get_coeffs(values);
               BL_ASSERT(retval == 0);
-              int ientry = 2 * BL_SPACEDIM + 1;
+              int ientry = 2 * AMREX_SPACEDIM + 1;
               for (int jj = 0; jj < levels.size(); jj++) {
                 // identify stencil-like connections for separate treatment:
                 int not_stencil = 1;
                 if (levels[jj] == -1) {
                   // connection to covered coarse cell to be zeroed out:
                   IntVect d = cells[jj] - vc;
-                  for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                  for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                     if (d == IntVect(offsets[k])) {
                       not_stencil = 0;
                       HYPRE_SStructMatrixSetValues(A, part-1, getV1(vc), 0,
@@ -745,7 +814,7 @@ void HypreExtMultiABec::loadMatrix()
                 if (levels[jj] == level-1) {
                   // other coarse-level entry, may or may not be in stencil:
                   IntVect d = cells[jj] - vc;
-                  for (int k = 0; k < 2 * BL_SPACEDIM + 1; k++) {
+                  for (int k = 0; k < 2 * AMREX_SPACEDIM + 1; k++) {
                     if (d == IntVect(offsets[k])) {
                       not_stencil = 0;
                       HYPRE_SStructMatrixAddToValues(A, part-1, getV1(vc), 0,

@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 800000
+max_step = 500000
 
 stop_time    = 1
 
@@ -39,7 +39,6 @@ castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
-amr.data_log          = "toy_flame.log"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
@@ -54,12 +53,53 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 1000       # number of timesteps between checkpoints
+amr.check_int       = 10000      # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 5.e-5
+amr.plot_per        = 1.e-3
 amr.derive_plot_vars = ALL
+castro.store_omegadot = 1
 
-#PROBIN FILENAME
-amr.probin_file = probin.H_He
+# problem initializaiton
+
+problem.rho_fuel = 2.e6
+problem.T_fuel = 5.e7
+
+problem.T_ash = 2.e9
+
+problem.fuel1_name = "hydrogen-1"
+problem.X_fuel1 = 0.74
+
+problem.fuel2_name = "helium-4"
+problem.X_fuel2 = 0.25
+
+problem.fuel3_name = "oxygen-14"
+problem.X_fuel3 = 3.5e-3
+
+problem.fuel4_name = "oxygen-15"
+problem.X_fuel4 = 6.5e-3
+
+problem.ash1_name = "nickel-56"
+problem.X_ash1 = 1.0
+  
+problem.pert_frac = 0.2
+problem.pert_delta = 0.05
+
+# refinement
+
+amr.refinement_indicators = denerr dengrad
+
+amr.refine.denerr.max_level = 5
+amr.refine.denerr.value_greater = 1.e-7
+amr.refine.denerr.field_name = density
+
+amr.refine.dengrad.max_level = 5
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-10
+integrator.atol_spec = 1.e-10
+

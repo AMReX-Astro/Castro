@@ -1,2 +1,0 @@
-ca_F90EXE_sources += probdata.F90
-ca_F90EXE_sources += Prob_nd.F90

@@ -1,7 +1,7 @@
 /* Implementations of functions in Problem.H go here */
 
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -29,9 +29,6 @@ Castro::compute_moment_of_inertia()
 
         // Get the Castro level
         Castro& ca_lev = getLevel(lev);
-
-        // Update the local level we're on.
-        ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
 
         // Add up the moment of inertia on this level
         int idir = -1; // So we do r**2, rather than any particular direction

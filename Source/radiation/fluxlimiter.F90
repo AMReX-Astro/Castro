@@ -10,10 +10,6 @@ module fluxlimiter_module
                          OneSixth=1.e0_rt/6.e0_rt, TwoNinths=2.e0_rt/9.e0_rt, &
                          FiveNinths=5.e0_rt/9.e0_rt
 
-#ifdef AMREX_USE_CUDA
-  attributes(managed) :: limiter, closure
-#endif
-
 contains
 
   subroutine init_fluxlimiter_module(limiter_in, closure_in)
@@ -78,8 +74,6 @@ contains
     real(rt), intent(in) :: lambda
     real(rt) :: f
 
-    !$gpu
-
     if (closure .eq. 0) then
        f = lambda
     else if (closure .eq. 1) then
@@ -129,45 +123,6 @@ contains
     end if
 
   end function Edd_factor
-
-  function FLDalpha(lam) result(alpha)
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    real(rt), intent(in) :: lam
-    real(rt) :: alpha, R, omtl, cr
-
-    omtl = max(0.e0_rt, 1.e0_rt-3.e0_rt*lam)
-
-    if (limiter .eq. 0) then ! no limiter
-       R = 0.e0_rt
-    else if (limiter < 10) then  ! approximate LP, [123]
-       R = (omtl + sqrt(omtl*(1.e0_rt+5.e0_rt*lam))) / (2.e0_rt*lam+1.e-50_rt)
-    else if (limiter < 20) then  ! Bruenn, 1[123]
-       R =omtl/(lam+1.e-50_rt)
-    else if (limiter < 30) then  ! Larsen's square root, 2[123]
-       R = sqrt(omtl*(1.e0_rt+3.e0_rt*lam)) / (lam+1.e-50_rt)
-    else if (limiter < 40) then  ! Minerbo
-       if (lam .gt. TwoNinths) then
-          R = sqrt(omtl/3.e0_rt) / (lam+1.e-50_rt)
-       else
-          R = 1.e0_rt/(lam+1.e-50_rt) - sqrt(2.e0_rt/(lam+1.e-50_rt))
-       end if
-    else
-       print *, "Unknown limiter ", limiter
-       stop
-    endif
-
-    if (R .lt. 1.e-6_rt) then
-       alpha = 0.25e0_rt
-    else if ( R .gt. 300.e0_rt) then
-       alpha = 0.5e0_rt
-    else
-       cr = cosh(R)
-       alpha = cr*log(cr) / (2.e0_rt*R*sinh(R))
-    end if
-
-  end function FLDalpha
 
 end module fluxlimiter_module
 

@@ -16,26 +16,23 @@
 #include <unistd.h>
 #endif
 
-#include "AMReX_REAL.H"
-#include "AMReX_Box.H"
-#include "AMReX_FArrayBox.H"
-#include "AMReX_ParmParse.H"
-#include "AMReX_ParallelDescriptor.H"
-#include "AMReX_DataServices.H"
-#include "AMReX_Utility.H"
-#include "AMReX_VisMF.H"
-#include "AMReX_Geometry.H"
-#include "AMReX_StateDescriptor.H"
-#include "AMReX_StateData.H"
-#include "AMReX_BCRec.H"
-#include "AMReX_LevelBld.H"
-#include "AMReX_AmrLevel.H"
+#include <AMReX_REAL.H>
+#include <AMReX_Box.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_ParallelDescriptor.H>
+#include <AMReX_DataServices.H>
+#include <AMReX_Utility.H>
+#include <AMReX_VisMF.H>
+#include <AMReX_Geometry.H>
+#include <AMReX_StateDescriptor.H>
+#include <AMReX_StateData.H>
+#include <AMReX_BCRec.H>
+#include <AMReX_LevelBld.H>
+#include <AMReX_AmrLevel.H>
 
 using namespace amrex;
 
-#define VSHOWVAL(verbose, val) { if(verbose && \
-                                   ParallelDescriptor::IOProcessor()) { \
-                                   cout << #val << " = " << val << endl; } }
 LevelBld *getLevelBld() {
   return 0;
 }
@@ -198,7 +195,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
         spdim = atoi(first_line.c_str());
     }
 
-    if(spdim != BL_SPACEDIM) {
+    if(spdim != AMREX_SPACEDIM) {
         cerr << "Amr::restart(): bad spacedim = " << spdim << '\n';
         amrex::Abort();
     }
@@ -248,7 +245,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
     // Make sure current domain is divisible by 2*ref_ratio so length of coarsened domain is even
     Box dom0(fakeAmr.geom[0].Domain());
-    for (int d = 0; d < BL_SPACEDIM; d++)
+    for (int d = 0; d < AMREX_SPACEDIM; d++)
     {
       int dlen = dom0.size()[d];
       int scaled = dlen / (2*ref_ratio);
@@ -420,7 +417,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
     int max_len = 0;
     BoxArray g(fakeAmr.fakeAmrLevels[n].grids);
     for (int b = 0; b < g.size(); b++)
-       for (int d = 0; d < BL_SPACEDIM; d++)
+       for (int d = 0; d < AMREX_SPACEDIM; d++)
          max_len = std::max(max_len, g[b].length(d));
     max_grid_size = max_len;
 
@@ -546,7 +543,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
 	int max_level(fakeAmr.finest_level);
         HeaderFile << CheckPointVersion << '\n'
-                   << BL_SPACEDIM       << '\n'
+                   << AMREX_SPACEDIM       << '\n'
                    << fakeAmr.cumtime           << '\n'
                    << max_level                 << '\n'
                    << fakeAmr.finest_level      << '\n';
@@ -712,15 +709,15 @@ static void ConvertData() {
    BoxList(newgrid_list);
 
    int dlenx = domain.size()[0];
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
    int dleny = domain.size()[1];
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
    int dlenz = domain.size()[1];
 #endif
 #endif
 
    // We treat the r-z case with the star in the middle specially
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
    if (coord == 1 && star_at_center == 1)
    {
      for (int jy = 0; jy < grown_factor; jy++)
@@ -750,18 +747,18 @@ static void ConvertData() {
    // Here we tile the domain with tiles smaller than the original domain --
    //   we first tile with domain-sized pieces, then intersect with the new domain
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
    for (int jz = 0; jz < 3; jz++)
 #endif
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
    for (int jy = 0; jy < 3; jy++)
 #endif
     for (int jx = 0; jx < 3; jx++)
       for (int n = 0; n < falRef0.grids.size(); n++) {
         int shiftx(jx*dlenx - dlenx/2);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
         int shifty(jy*dleny - dleny/2);
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
         int shiftz(jz*dlenz - dlenz/2);
 #endif
 #endif
@@ -779,19 +776,19 @@ static void ConvertData() {
    } else {
    // Here we tile the domain with tiles the size of the original domain
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
    for (int jz = 0; jz < grown_factor; jz++) 
 #endif
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
    for (int jy = 0; jy < grown_factor; jy++) 
 #endif
     for (int jx = 0; jx < grown_factor; jx++) 
       for (int n = 0; n < falRef0.grids.size(); n++) 
       {
         int shiftx(jx*dlenx);
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
         int shifty(jy*dleny);
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
         int shiftz(jz*dlenz);
 #endif
 #endif
@@ -804,7 +801,7 @@ static void ConvertData() {
 
    }  // end of star_at_center test
 
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
    }  // end of r-z test
 #endif
 
@@ -826,12 +823,12 @@ static void ConvertData() {
    {
       // Here we grow only prob_hi, extending the domain in one direction.
       // This works when the star's center is at the origin
-      for (int dm = 0; dm < BL_SPACEDIM; dm++) 
+      for (int dm = 0; dm < AMREX_SPACEDIM; dm++) 
          rb.setHi(dm,grown_factor*rb.hi(dm));
    } 
 
    // We treat the r-z case with the star in the middle specially
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
    else if (coord == 1)
    {
       // Here we grow only prob_hi in the r-direction, but both prob_hi
@@ -854,7 +851,7 @@ static void ConvertData() {
    {
       // Here we grow prob_lo and prob_hi, extending the domain in all directions.
       // This works when the star's center is at the center of the domain.
-      for (int dm = 0; dm < BL_SPACEDIM; dm++) 
+      for (int dm = 0; dm < AMREX_SPACEDIM; dm++) 
       {
          Real dist   = 0.5 * (rb.hi(dm)-rb.lo(dm));
          Real center = 0.5 * (rb.hi(dm)+rb.lo(dm));

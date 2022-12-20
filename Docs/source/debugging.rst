@@ -32,6 +32,20 @@ in the ``GNUmakefile``.  To capture the NaNs, use the runtime parameter::
 
    amrex.fpe_trap_invalid=1
 
+If the code crashes, it will produce one or more ``Backtrace.*``
+files.  Looking over these files should pinpoint where the FPE
+occurred allowing you to do further debugging.
+
+You can output more information into the ``Backtrace.*`` files by
+pushing it to the backtrace stack as described here:
+:ref:`debugging_backtrace`.
+
+Make sure your runtime options are valid
+----------------------------------------
+
+Castro can validate the runtime options specified in the inputs file
+by running with ``castro.abort_on_invalid_params = 1``.
+
 
 Valgrind
 --------
@@ -97,18 +111,6 @@ the ``contains_nan()`` method:
 
 There are other versions of ``contains_nan()`` that can take a Box
 to operate over.
-
-For Fortran code, the module ``nan_check`` has the function
-``check_for_nan()`` that can be called in a Fortran routine to look
-for NaNs:
-
-.. code-block:: fortran
-
-  subroutine check_for_nan(s, s_lo, s_hi, lo, hi, ncomp, comp)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: ncomp
-    real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), ncomp)
 
 
 

@@ -2,12 +2,12 @@
 
 #include <AMReX_LO_BCTYPES.H>
 
-#include "Radiation.H"
-#include "RadSolve.H"
+#include <Radiation.H>
+#include <RadSolve.H>
 
-#include "Castro_F.H"
+#include <Castro_F.H>
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
 #include <iostream>
 
@@ -42,17 +42,17 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab& Er_new = castro->get_new_data(Rad_Type);
 
   MultiFab Er_old(grids, dmap, Er_new.nComp(), Er_new.nGrow());
-  Er_old.copy(Er_new); // all components, including any first moments
+  MultiFab::Copy(Er_old, Er_new, 0, 0, Er_new.nComp(), 0);
 
-  Array<MultiFab, BL_SPACEDIM> Ff_new;
+  Array<MultiFab, AMREX_SPACEDIM> Ff_new;
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
       Ff_new[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   MultiFab Dterm;  
   if (has_dcoefs) {
-      Dterm.define(grids, dmap, BL_SPACEDIM, 0);
+      Dterm.define(grids, dmap, AMREX_SPACEDIM, 0);
   }
 
   MultiFab frhoem(grids,dmap,1,0);
@@ -72,10 +72,14 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
       const Box& reg = mfi.tilebox();
 
-#pragma gpu box(reg)
-      cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-             BL_TO_FORTRAN_ANYD(frhoem[mfi]),
-             BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto frhoem_arr = frhoem[mfi].array();
+      auto S_new_arr = S_new[mfi].array();
+
+      amrex::ParallelFor(reg,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          frhoem_arr(i,j,k) = S_new_arr(i,j,k,UEINT);
+      });
   }
 
   MultiFab::Copy(frhoes, frhoem, 0, 0, 1, 0);
@@ -88,7 +92,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab velo;
   MultiFab dcfactor; // 2. * (1-eta) * kappa_p/kappa_r
   if (has_dcoefs) {
-    velo.define(grids, dmap, BL_SPACEDIM, 1);
+    velo.define(grids, dmap, AMREX_SPACEDIM, 1);
     dcfactor.define(grids, dmap, 1, 1);
     get_rosseland_v_dcf(kappa_r, velo, dcfactor, delta_t, c, castro);
   }
@@ -99,23 +103,23 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab eta(grids,dmap,1,0);
   MultiFab etainv(grids,dmap,1,0);  // this is 1-eta, to avoid loss of accuracy
 
-  Array<MultiFab, BL_SPACEDIM> lambda;
+  Array<MultiFab, AMREX_SPACEDIM> lambda;
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
       lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
   if (update_limiter == 0) {
-    scaledGradient(level, lambda, kappa_r, 0, Er_old, 0, limiter);
+    scaledGradient(level, lambda, kappa_r, 0, Er_old, 0);
     // lambda now contains scaled gradient
 
-    fluxLimiter(level, lambda, limiter);
+    fluxLimiter(level, lambda);
     // lambda now contains flux limiter
   }
   else if (update_limiter < 0) {
     MultiFab& Er_lag = castro->get_old_data(Rad_Type);
-    scaledGradient(level, lambda, kappa_r, 0, Er_lag, 0, limiter);
-    fluxLimiter(level, lambda, limiter);
+    scaledGradient(level, lambda, kappa_r, 0, Er_lag, 0);
+    fluxLimiter(level, lambda);
   }
 
   // Implicit update loop:
@@ -126,7 +130,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   bool have_Sanchez_Pomraning = false;
   int lo_bc[3]={0}, hi_bc[3]={0};
-  for (int idim=0; idim<BL_SPACEDIM; idim++) {
+  for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
     if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
@@ -154,7 +158,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     it++;
 
     // get new-time temperature and opacity from frhoes:
-    temp.copy(frhoes);
+    MultiFab::Copy(temp, frhoes, 0, 0, frhoes.nComp(), 0);
 
     if (it == 1 || it <= update_planck + 1) {
       get_planck_and_temp(fkp, temp, S_new);
@@ -183,9 +187,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     solver->levelACoeffs(level, fkp, eta, etainv, c, delta_t, 1.0);
 
     if (update_limiter > 0 && it <= update_limiter + 1) {
-      scaledGradient(level, lambda, kappa_r, 0, Er_new, 0, limiter);
+      scaledGradient(level, lambda, kappa_r, 0, Er_new, 0);
       // lambda now contains scaled gradient
-      fluxLimiter(level, lambda, limiter);
+      fluxLimiter(level, lambda);
       // lambda now contains flux limiter
     }
 
@@ -382,7 +386,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
-      MultiFab flx(grids, dmap, BL_SPACEDIM, 0);
+      MultiFab flx(grids, dmap, AMREX_SPACEDIM, 0);
       solver->levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
       if (plot_lab_Er) {
@@ -390,18 +394,18 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       }
 
       if (plot_lab_flux) {
-          if (comoving) {
-              save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+          if (radiation::comoving) {
+              save_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
           } else {
-              MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, BL_SPACEDIM, 0);
+              MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, AMREX_SPACEDIM, 0);
           }
       }
 
       if (plot_com_flux) {
-          if (comoving) {
-              MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, BL_SPACEDIM, 0);
+          if (radiation::comoving) {
+              MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, AMREX_SPACEDIM, 0);
           } else {
-              save_com_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+              save_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0, -1.0);
           }
       }
   }

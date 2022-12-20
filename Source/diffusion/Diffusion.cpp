@@ -1,7 +1,7 @@
 #include <AMReX_ParmParse.H>
-#include "Diffusion.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Diffusion.H>
+#include <Castro.H>
+#include <Castro_F.H>
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
@@ -19,32 +19,18 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
-    read_params();
+    AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
+
     make_mg_bc();
 }
 
 Diffusion::~Diffusion() {}
 
-void
-Diffusion::read_params ()
-{
-    static bool done = false;
-
-    if (!done)
-    {
-        ParmParse pp("diffusion");
-
-#include "diffusion_queries.H"
-
-        done = true;
-    }
-}
-
 
 void 
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
-#include "diffusion_job_info_tests.H"
+#include <diffusion_job_info_tests.H>
 }
 
 
@@ -75,7 +61,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {

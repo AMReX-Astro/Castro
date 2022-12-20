@@ -22,4 +22,4 @@ T_l            real           1.0_rt              y
 
 T_r            real           1.0_rt              y
 
-use_Tinit       logical        .false.             y
+use_Tinit      integer        0                   y
