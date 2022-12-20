@@ -100,7 +100,7 @@ castro.small_temp   = 1.e5
 
 # problem parameters
 
-problem.model_name =  "sub_chandra.M_WD-1.1.M_He-0.051.hse.CO.N14.10km"
+problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.CO.N14.10.00km"
 
 problem.pert_temp_factor = 20.0
 problem.pert_rad_factor = 0.5

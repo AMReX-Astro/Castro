@@ -5,7 +5,7 @@
 #include <eos.H>
 #include <network.H>
 #include <network_properties.H>
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
 #include <actual_network.H>
 #endif
 
@@ -112,7 +112,7 @@ void problem_initialize ()
         eos_state.xn[n] = xn[n];
     }
 
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
     Real aux[NumAux] = {0.0_rt};
 
     for (int n = 0; n < NumSpec; n++) {

@@ -605,7 +605,7 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         const bool is_primary = true;
-        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }
 
@@ -622,6 +622,6 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         bool is_primary = false;
-        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }
