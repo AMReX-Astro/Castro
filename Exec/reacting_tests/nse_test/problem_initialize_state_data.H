@@ -72,7 +72,19 @@ void problem_initialize_state_data (int i, int j, int k,
 
     nse_interp(T, problem::rho0, ye, abar, dq, dyedt, burn_state.xn);
 #elif defined(NSE_NET)
-    auto nse_state = get_actual_nse_state(burn_state);
+    Real eps = 1.e-10_rt;
+    bool input_ye_is_valid = true;
+
+    // we need an initial guess for the mass fractions -- make them all the same
+    for (int n = 0; n < NumSpec; ++n) {
+        burn_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
+    }
+
+    // we also need a guess for the initial chemical potential
+    burn_state.mu_p = -3.0_rt;
+    burn_state.mu_n = -12.0_rt;
+
+    auto nse_state = get_actual_nse_state(burn_state, eps, input_ye_is_valid);
 
     for (int n = 0; n < NumSpec; ++n) {
         burn_state.xn[n] = nse_state.xn[n];
