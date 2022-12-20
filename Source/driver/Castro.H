@@ -458,6 +458,11 @@ public:
 #endif
 
 ///
+/// Save a copy of the old state data in case for the purposes of a retry.
+///
+    void save_data_for_retry();
+
+///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
@@ -554,26 +559,26 @@ public:
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
 #endif
 
 #ifdef RADIATION

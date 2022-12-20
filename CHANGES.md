@@ -1,3 +1,13 @@
+# 22.12
+
+   * castro.lin_limit_state_interp now can be set to 2; this new
+     interpolater both prevents new extrema from being generated
+     and preserves linear combinations of state variables. (#2306)
+
+# 22.11
+
+   * We now output the location where the timestep is set (#2273)
+
 # 22.09
 
    * Added an option `castro.allow_non_unit_aspect_zones` to permit
