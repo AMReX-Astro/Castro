@@ -88,10 +88,6 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
     // eos_get_small_temp(&small_temp);
     burn_state.T = amrex::min(MAX_TEMP, amrex::max(burn_state.T, small_temp));
 
-#ifdef STRANG
-    burn_state.self_heat = false;
-#endif
-
     Array1D<Real, 1, neqs> ydot;
 
     actual_rhs(burn_state, ydot);

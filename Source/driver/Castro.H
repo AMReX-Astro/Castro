@@ -458,6 +458,11 @@ public:
 #endif
 
 ///
+/// Save a copy of the old state data in case for the purposes of a retry.
+///
+    void save_data_for_retry();
+
+///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
