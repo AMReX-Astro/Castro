@@ -5,7 +5,7 @@
 #include <eos.H>
 #include <model_parser.H>
 #ifdef NSE_TABLE
-#include <nse.H>
+#include <nse_table_check.H>
 #endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
