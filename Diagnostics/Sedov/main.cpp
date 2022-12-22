@@ -47,7 +47,7 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
     r_zone = p[0] - center[0];
     Real r_r = problo[0]+static_cast<Real>(i+1)*dx_level[0];
     Real r_l = problo[0]+static_cast<Real>(i)*dx_level[0];
-    vol = (4.0_rt/3.0_rt) * pi * dx_level[0] *
+    vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
         (r_r*r_r + r_l*r_r + r_l*r_l);
 
 #elif AMREX_SPACEDIM == 2
@@ -62,7 +62,7 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
 
         r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
                            (p[1] - center[1]) * (p[1] - center[1]));
-        vol = 2 * pi * p[0] * dx_level[0] * dx_level[1];
+        vol = 2 * M_PI * p[0] * dx_level[0] * dx_level[1];
 
     } else {
         // 2-d Cartesian geometry / cylindrical Sedov explosion
