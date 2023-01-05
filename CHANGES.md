@@ -1,3 +1,9 @@
+# 23.01
+
+   * fixed the Sedov diagnostic (#2297)
+
+   * removed the timestep limiter diagnostic tool (#2332)
+
 # 22.12
 
    * castro.lin_limit_state_interp now can be set to 2; this new
@@ -109,7 +115,7 @@
 
 # 21.12
 
-   * Tiling was added to main loop in MHD algorithm to enable 
+   * Tiling was added to main loop in MHD algorithm to enable
      scaling performance increase when using multiple threads
      in with OpenMP. See issue #2038.
 
@@ -200,7 +206,7 @@
 
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
-     
+
 # 21.05
 
    * The parameter use_eos_in_riemann was removed -- we found no
