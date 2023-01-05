@@ -1,17 +1,38 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>Adaptive Mesh Refinement &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
@@ -20,22 +41,43 @@
         <script src="_static/sphinx_highlight.js"></script>
         <script>window.MathJax = {"tex": {"macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Checkpoint Embiggener" href="ConvertCheckpoint.html" />
     <link rel="prev" title="Spectral Deferred Corrections" href="sdc.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
 
+
+          
             <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
             <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
           </a>
+
+          
+            
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -43,11 +85,22 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+          
     <div class="branch">
         Branch: <a href="./AMR.html">main</a> | <a href="./dev/AMR.html">development</a>
     </div>
 
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
@@ -107,30 +160,71 @@
 <li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Castro</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-      <li class="breadcrumb-item active">Adaptive Mesh Refinement</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Adaptive Mesh Refinement</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/AMR.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+            
   <section id="adaptive-mesh-refinement">
 <span id="ch-amr"></span><h1>Adaptive Mesh Refinement<a class="headerlink" href="#adaptive-mesh-refinement" title="Permalink to this heading">¶</a></h1>
 <p>Our approach to adaptive refinement in Castro uses a nested hierarchy
@@ -365,7 +459,7 @@ we do the AMR synchronization after a fine timestep, we first subtract
 the previously applied new-time source terms to both the coarse and the
 fine level, then do the flux correction and associated gravitational
 sync solve, and then re-compute the new-time source terms on both the
-coarse and the fine level <a class="footnote-reference brackets" href="#id5" id="id2">1</a>. In this way, we get almost
+coarse and the fine level <a class="footnote-reference brackets" href="#id5" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. In this way, we get almost
 the ideal behavior – if we aren’t subcycling, then we get essentially
 the same state at the end of the fine timestep as we would in a code
 that explicitly had no subcycling. The cost is re-computing the new-time
@@ -376,7 +470,7 @@ re-computing <span class="math notranslate nohighlight">\(\rho \mathbf{g}\)</spa
 <span class="math notranslate nohighlight">\(\mathbf{g}\)</span> itself (say, for self-gravity). If you believe that the
 error in not recomputing the source terms is sufficiently low, or the
 computational cost of computing them too high, you can disable this
-behavior <a class="footnote-reference brackets" href="#id6" id="id3">2</a> using the
+behavior <a class="footnote-reference brackets" href="#id6" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> using the
 code parameter castro.update_sources_after_reflux.</p>
 <p>Note that at present nuclear reactions are not enabled as part of this
 scheme, and at present are not automatically updated after an AMR
@@ -419,7 +513,7 @@ to the flux register and the normal contribution to the flux register
 for just that timestep. This is true because in Castro, we assume that
 the fluxes provided by the hydrodynamic solver are piecewise-constant
 over the timestep, which is all that is needed to be second-order
-accurate in time if the fluxes are time centered <a class="footnote-reference brackets" href="#id7" id="id4">3</a>. So it is fair to say
+accurate in time if the fluxes are time centered <a class="footnote-reference brackets" href="#id7" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>. So it is fair to say
 that halfway through the coarse timestep, half of the coarse flux has
 been advected, and we can mathematically split the flux register into
 two contributions that have equal weighting from the coarse flux. (In
@@ -479,9 +573,10 @@ the flux mismatch until the end of the level 0 timestep.) The
 synchronization no longer needs to be called at the end of any coarser
 level’s timestep because it will already be up to date as a result of
 the synchronizations applied at the end of the fine level timesteps.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
-<dd><p>In the absence of a global field like
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id5" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p>In the absence of a global field like
 the gravitational potential, this would only need to be done on the
 coarse level, as we always assume that the solution on the fine grid is
 correct and average it down to the coarse grid. In Castro we do it by
@@ -490,55 +585,74 @@ is a common component of many of our production science
 simulations. This could be generalized so that if you aren’t using any
 global force fields, you don’t bother updating the fine level. If this
 is important to the science you want to do, please let the Castro developers know and we can look into it.</p>
-</dd>
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
-<dd><p>in general it may be desirable for this to be a
+</aside>
+<aside class="footnote brackets" id="id6" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<p>in general it may be desirable for this to be a
 source-term specific setting, so that some source terms that are cheap
 or physically important are re-computed after a synchronization can be
 set to update, while others can be disabled. If this is important for
 your science application, please let the developers know, as this would
 be a straightforward extension of the current architecture.</p>
-</dd>
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
-<dd><p>If this scheme
+</aside>
+<aside class="footnote brackets" id="id7" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">3</a><span class="fn-bracket">]</span></span>
+<p>If this scheme
 is generalized to higher-order methods, in principle all one would need
 to do is integrate the fluxes until <span class="math notranslate nohighlight">\(\Delta t / 2\)</span>, which is what we are
 doing here for the constant-in-time flux case.</p>
-</dd>
-</dl>
+</aside>
+</aside>
 </section>
 </section>
 </section>
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="sdc.html" class="btn btn-neutral float-left" title="Spectral Deferred Corrections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="ConvertCheckpoint.html" class="btn btn-neutral float-right" title="Checkpoint Embiggener" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sdc.html" class="btn btn-neutral float-left" title="Spectral Deferred Corrections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
-  </div>
+    <p>
+        &#169; Copyright 2018-2022, Castro development team.
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>  
+  </script>
+
+  
+  
+    
+    
 
 
 </body>

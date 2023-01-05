@@ -1,39 +1,81 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>Debugging &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Hydrodynamics" href="Hydrodynamics.html" />
     <link rel="prev" title="Build System Overview" href="build_system.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
 
+
+          
             <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
             <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
           </a>
+
+          
+            
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -41,11 +83,22 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+          
     <div class="branch">
         Branch: <a href="./debugging.html">main</a> | <a href="./dev/debugging.html">development</a>
     </div>
 
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
@@ -112,30 +165,71 @@
 <li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Castro</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-      <li class="breadcrumb-item active">Debugging</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Debugging</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/debugging.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+            
   <section id="debugging">
 <h1>Debugging<a class="headerlink" href="#debugging" title="Permalink to this heading">¶</a></h1>
 <p>There are several methods we typically use to debug issues in Castro.
@@ -183,7 +277,7 @@ it.</p>
 </section>
 <section id="clang-tidy">
 <h3>Clang-tidy<a class="headerlink" href="#clang-tidy" title="Permalink to this heading">¶</a></h3>
-<p>We run <a class="reference external" href="https://clang.llvm.org/extra/clang-tidy/">clang-tidy</a> on all
+<p id="index-0">We run <a class="reference external" href="https://clang.llvm.org/extra/clang-tidy/">clang-tidy</a> on all
 pull requests using a <a class="reference external" href="https://github.com/AMReX-Astro/cpp-linter-action">GitHub action</a>. <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code>
 analyzes the source code, produces warnings for potential bugs and
 offers suggestions for performance improvements.</p>
@@ -193,9 +287,9 @@ can be downloaded from <a class="reference external" href="https://github.com/AM
 analysis is performed by first compiling a problem using the <code class="docutils literal notranslate"><span class="pre">bear</span></code>
 package, then running the python script to analyze the source
 files. From within a problem directory, run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bear make <span class="nv">COMP</span><span class="o">=</span>llvm -j <span class="m">20</span> <span class="nv">USE_OMP</span><span class="o">=</span>FALSE <span class="nv">USE_MPI</span><span class="o">=</span>FALSE <span class="nv">DEBUG</span><span class="o">=</span>TRUE
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bear<span class="w"> </span>make<span class="w"> </span><span class="nv">COMP</span><span class="o">=</span>llvm<span class="w"> </span>-j<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="nv">USE_OMP</span><span class="o">=</span>FALSE<span class="w"> </span><span class="nv">USE_MPI</span><span class="o">=</span>FALSE<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>TRUE
 
-python3 run-clang-tidy.py -header-filter<span class="o">=</span><span class="s1">&#39;Castro&#39;</span> -ignore-files<span class="o">=</span><span class="s1">&#39;amrex|Microphysics&#39;</span> -j <span class="m">20</span> &gt; clang-tidy-report.txt
+python3<span class="w"> </span>run-clang-tidy.py<span class="w"> </span>-header-filter<span class="o">=</span><span class="s1">&#39;Castro&#39;</span><span class="w"> </span>-ignore-files<span class="o">=</span><span class="s1">&#39;amrex|Microphysics&#39;</span><span class="w"> </span>-j<span class="w"> </span><span class="m">20</span><span class="w"> </span>&gt;<span class="w"> </span>clang-tidy-report.txt
 </pre></div>
 </div>
 <p>The compiler flags can be modified to suit the problem to be analyzed, but the <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> flag must be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>. The <code class="docutils literal notranslate"><span class="pre">header-filter</span></code> option for the python script tells the script to only analyze header files containing the given regex pattern, and the <code class="docutils literal notranslate"><span class="pre">ignore-files</span></code> flag tells it to ignore any source files containing the given regex pattern. The <code class="docutils literal notranslate"><span class="pre">-j</span></code> option tells the script to run a given number of processes in parallel. The output is then redirected to a text file.</p>
@@ -210,16 +304,16 @@ python3 run-clang-tidy.py -header-filter<span class="o">=</span><span class="s1"
 <h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this heading">¶</a></h3>
 <p>In the C++ code, you can check whether a FAB contains NaNs using
 the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">MFIter</span><span class="w"> </span><span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">);</span><span class="w"> </span><span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">mfi</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">MFIter</span><span class="w"> </span><span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">);</span><span class="w"> </span><span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">mfi</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 
-<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Box</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">Box</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span>
 
 <span class="w">  </span><span class="c1">// do some operations on S[mfi]</span>
 
-<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="w">  </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box
@@ -233,33 +327,50 @@ to operate over.</p>
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="build_system.html" class="btn btn-neutral float-left" title="Build System Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="Hydrodynamics.html" class="btn btn-neutral float-right" title="Hydrodynamics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="build_system.html" class="btn btn-neutral float-left" title="Build System Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
-  </div>
+    <p>
+        &#169; Copyright 2018-2022, Castro development team.
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>  
+  </script>
+
+  
+  
+    
+    
 
 
 </body>
