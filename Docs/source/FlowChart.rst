@@ -313,7 +313,7 @@ here, consistent with the names used in the code:
 
 
 Single Step Flowchart
---------------------
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
