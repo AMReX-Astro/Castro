@@ -312,8 +312,8 @@ here, consistent with the names used in the code:
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
 
-Single Step Flowchat
---------------------
+Single Step Flowchart
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
