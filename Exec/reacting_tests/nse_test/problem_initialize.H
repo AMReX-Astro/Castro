@@ -25,7 +25,7 @@ void problem_initialize ()
     // the EOS
 
 #if (!defined(NSE_TABLE) && !defined(NSE_NET))
-    amrex::Error("Error: this problem requires USE_NSE=TRUE or USE_NSE_TABLE=TRUE");
+    amrex::Error("Error: this problem requires USE_NSE_NET=TRUE or USE_NSE_TABLE=TRUE");
 #endif
 
 }
