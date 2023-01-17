@@ -105,6 +105,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.rho = U(i,j,k,URHO);
             burn_state.T = U(i,j,k,UTEMP);
+            burn_state.e = U(i,j,k,UEINT) * rhoInv;
 
 #ifdef CXX_MODEL_PARSER
             if (drive_initial_convection) {
