@@ -99,7 +99,7 @@ Castro::estdt_cfl (int is_new)
       } else {
           // method of lines-style constraint is tougher
           Real dt_tmp = 1.0_rt/dt1;
-#if AMREX_SPACEIM >= 2
+#if AMREX_SPACEDIM >= 2
           dt_tmp += 1.0_rt/dt2;
 #endif
 #if AMREX_SPACEDIM == 3
