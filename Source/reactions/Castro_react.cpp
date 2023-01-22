@@ -104,7 +104,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
             Real rhoInv = 1.0_rt / U(i,j,k,URHO);
 
             burn_state.rho = U(i,j,k,URHO);
+
+            // this T is consistent with UEINT because we did an EOS call before
+            // calling this function
+
             burn_state.T = U(i,j,k,UTEMP);
+
+            burn_state.T_fixed = -1.e30_rt;
 
 #ifdef CXX_MODEL_PARSER
             if (drive_initial_convection) {
@@ -126,7 +132,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                     dist = std::sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2]);
                 }
 
-                burn_state.T = interpolate(dist, model::itemp);
+                burn_state.T_fixed = interpolate(dist, model::itemp);
 
             }
 #endif
