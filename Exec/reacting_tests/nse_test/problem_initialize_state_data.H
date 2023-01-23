@@ -49,9 +49,9 @@ void problem_initialize_state_data (int i, int j, int k,
         ye = ye0;
     }
 
-    state(i,j,k,UMX) = 0.0_rt;
-    state(i,j,k,UMY) = 0.0_rt;
-    state(i,j,k,UMZ) = 0.0_rt;
+    state(i,j,k,UMX) = problem::rho0 * problem::u0;
+    state(i,j,k,UMY) = problem::rho0 * problem::v0;
+    state(i,j,k,UMZ) = problem::rho0 * problem::w0;
 
     // we are isentropic, so find rho
 
@@ -87,7 +87,11 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = eos_state.rho;
 
-    state(i,j,k,UEDEN) = eos_state.rho * eos_state.e;
+    state(i,j,k,UEDEN) = eos_state.rho * eos_state.e +
+        0.5_rt * eos_state.rho * (problem::u0 * problem::u0 +
+                                  problem::v0 * problem::v0 +
+                                  problem::w0 * problem::w0);
+
     state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
