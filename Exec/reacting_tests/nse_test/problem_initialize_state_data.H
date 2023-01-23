@@ -115,22 +115,19 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UEINT) = burn_state.rho * burn_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = xn[n];
+        burn_state.xn[n] = xn[n];
     }
-    eos_state.aux[AuxZero::iye] = ye;
-    eos_state.aux[AuxZero::iabar] = abar;
-    eos_state.aux[AuxZero::ibea] = dq;
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rt, burn_state);
 
-    state(i,j,k,URHO) = eos_state.rho;
+    state(i,j,k,URHO) = burn_state.rho;
 
-    state(i,j,k,UEDEN) = eos_state.rho * eos_state.e +
-        0.5_rt * eos_state.rho * (problem::u0 * problem::u0 +
+    state(i,j,k,UEDEN) = burn_state.rho * burn_state.e +
+        0.5_rt * burn_state.rho * (problem::u0 * problem::u0 +
                                   problem::v0 * problem::v0 +
                                   problem::w0 * problem::w0);
 
-    state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+    state(i,j,k,UEINT) = burn_state.rho * burn_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
