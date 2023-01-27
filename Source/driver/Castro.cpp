@@ -1117,7 +1117,7 @@ Castro::initData ()
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               // Initialize chemical potentials
-	      problem_initialize_state_data(i, j, k, ChemPot, geomdata);
+	      problem_initialize_chem_data(i, j, k, ChemPot, geomdata);
           });
        }
 #endif
