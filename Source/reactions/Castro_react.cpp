@@ -119,8 +119,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
             burn_state.T_fixed = -1.e30_rt;
 	    
 #ifdef NSE_NET
-	    burn_state.mu_p = ChemPot(CMUP);
-	    burn_state.mu_n = ChemPot(CMUN);
+	    burn_state.mu_p = ChemPot(i,j,k,CMUP);
+	    burn_state.mu_n = ChemPot(i,j,k,CMUN);
 #endif
 	    
 #ifdef CXX_MODEL_PARSER
@@ -439,8 +439,8 @@ Castro::react_state(Real time, Real dt)
 
             burn_state.T_fixed = -1.e30_rt;
 #ifdef NSE_NET
-	    burn_state.mu_p = ChemPot(CMUP);
-	    burn_state.mu_n = ChemPot(CMUN);
+	    burn_state.mu_p = ChemPot(i,j,k,CMUP);
+	    burn_state.mu_n = ChemPot(i,j,k,CMUN);
 #endif
 	    
 #ifdef CXX_MODEL_PARSER
