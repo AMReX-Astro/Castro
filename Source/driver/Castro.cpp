@@ -1037,6 +1037,11 @@ Castro::initData ()
 #endif
 #endif
 
+#ifdef NSE_NET
+   MultiFab& ChemPot_new = get_new_data(Chemical_Pot_Type);
+   ChemPot_new.setVal(0.);
+#endif
+   
 #ifdef MAESTRO_INIT
     MAESTRO_init();
 #else
@@ -4102,6 +4107,12 @@ Castro::swap_state_time_levels(const Real dt)
 #endif
 #endif
 
+#ifdef NSE_NET
+	if (k == Chemical_Pot_Type) {
+	  state[k].swapTimeLevels(0.0);
+	}
+#endif
+	
 #ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&

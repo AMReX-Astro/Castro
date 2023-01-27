@@ -89,8 +89,11 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-                 Simplified_SDC_React_Type
+	       Simplified_SDC_React_Type,
 #endif
+#endif
+#ifdef NSE_NET
+	       Chemical_Pot_Type
 #endif
 };
 

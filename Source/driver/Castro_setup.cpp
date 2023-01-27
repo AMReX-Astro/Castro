@@ -467,6 +467,14 @@ Castro::variableSetUp ()
 #endif
 #endif
 
+#ifdef NSE_NET
+  // Adding descriptor for chemical potentials used for NSE_NET
+  store_in_checkpoint = true;
+  desc_lst.addDescriptor(Chemical_Pot_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point, 1, NCHEM,
+			 interp, state_data_extrap, store_in_checkpoint);
+#endif  
+  
   Vector<BCRec>       bcs(NUM_STATE);
   Vector<std::string> name(NUM_STATE);
 
@@ -676,6 +684,13 @@ Castro::variableSetUp ()
 #endif
 #endif
 
+#ifdef NSE_NET
+  // set component for chemical potential
+  desc_lst.setComponent(Chemical_Pot_Type, CMUP, "mu_p", bc, genericBndryFunc);
+  desc_lst.setComponent(Chemical_Pot_Type, CMUN, "mu_n", bc, genericBndryFunc);
+#endif  
+
+  
 #ifdef RADIATION
   int ngrow = 1;
   int ncomp = Radiation::nGroups;

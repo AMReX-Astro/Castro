@@ -60,6 +60,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
+#ifdef NSE_NET
+    MultiFab& ChemPot_new = get_new_data(Chemical_Pot_Type);
+#endif
+    
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -71,7 +75,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
-
+#ifdef NSE_NET
+	auto ChemPot = ChemPot_new.array(mfi);
+#endif
         const auto dx = geom.CellSizeArray();
         const auto problo = geom.ProbLoArray();
 
@@ -111,7 +117,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
             burn_state.T = U(i,j,k,UTEMP);
 
             burn_state.T_fixed = -1.e30_rt;
-
+	    
+#ifdef NSE_NET
+	    burn_state.mu_p = ChemPot(CMUP);
+	    burn_state.mu_n = ChemPot(CMUN);
+#endif
+	    
 #ifdef CXX_MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
@@ -335,6 +346,10 @@ Castro::react_state(Real time, Real dt)
     MultiFab& Bz_new = get_new_data(Mag_Type_z);
 #endif
 
+#ifdef NSE_NET
+    MultiFab& ChemPot_new = get_new_data(Chemical_Pot_Type);
+#endif
+    
     const int ng = S_new.nGrow();
 
     MultiFab& reactions = get_new_data(Reactions_Type);
@@ -362,6 +377,9 @@ Castro::react_state(Real time, Real dt)
         auto Bx    = Bx_new.array(mfi);
         auto By    = By_new.array(mfi);
         auto Bz    = Bz_new.array(mfi);
+#endif
+#ifdef NSE_NET
+	auto ChemPot = ChemPot_new.array(mfi);
 #endif
         auto I     = SDC_react.array(mfi);
         auto react_src = reactions.array(mfi);
@@ -420,7 +438,11 @@ Castro::react_state(Real time, Real dt)
             burn_state.T = U_old(i,j,k,UTEMP);
 
             burn_state.T_fixed = -1.e30_rt;
-
+#ifdef NSE_NET
+	    burn_state.mu_p = ChemPot(CMUP);
+	    burn_state.mu_n = ChemPot(CMUN);
+#endif
+	    
 #ifdef CXX_MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};

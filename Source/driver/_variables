@@ -63,4 +63,7 @@
    flux-limiter           GDLAMS    None            NGROUPS             RADIATION
    radiation              GDERADS   None            NGROUPS             RADIATION
 
-
+# chemical potentials for NSE
+@set: chemical NCHEM
+   mu_p                   CMUP      None            1                   NSE_NET
+   mu_n                   CMUN      None            1                   NSE_NET
