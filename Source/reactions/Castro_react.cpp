@@ -243,6 +243,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 U(i,j,k,UEINT) = U(i,j,k,URHO) * burn_state.e;
                 U(i,j,k,UEDEN) += U(i,j,k,UEINT) - reint_old;
 
+#ifdef NSE_NET
+		ChemPot(i,j,k,CMUP) = burn_state.mu_p;
+		ChemPot(i,j,k,CMUN) = burn_state.mu_n;
+#endif
             } else {
 
                 if (reactions.contains(i,j,k)) {
@@ -554,7 +558,10 @@ Castro::react_state(Real time, Real dt)
             if (do_burn) {
 
                 // update the state data.
-
+#ifdef NSE_NET
+		ChemPot(i,j,k,CMUP) = burn_state.mu_p;
+		ChemPot(i,j,k,CMUN) = burn_state.mu_n;
+#endif
                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
                 for (int n = 0; n < NumSpec; n++) {

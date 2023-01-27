@@ -471,7 +471,7 @@ Castro::variableSetUp ()
   // Adding descriptor for chemical potentials used for NSE_NET
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Chemical_Pot_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, 1, NCHEM,
+			 StateDescriptor::Point, ngrow_state, NCHEM,
 			 interp, state_data_extrap, store_in_checkpoint);
 #endif  
   

@@ -53,6 +53,9 @@
 #ifdef RADIATION
 #include <problem_initialize_rad_data.H>
 #endif
+#ifdef NSE_NET
+#include <problem_initialize_chem_data.H>
+#endif
 #include <problem_tagging.H>
 
 #include <ambient.H>
@@ -1039,7 +1042,7 @@ Castro::initData ()
 
 #ifdef NSE_NET
    MultiFab& ChemPot_new = get_new_data(Chemical_Pot_Type);
-   ChemPot_new.setVal(0.);
+   ChemPot_new.setVal(0.0, ChemPot_new.nGrow());
 #endif
    
 #ifdef MAESTRO_INIT
@@ -1102,10 +1105,27 @@ Castro::initData ()
 
 #endif //MHD
 
+#ifdef NSE_NET
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+       {
+          const Box& box     = mfi.validbox();	  
+
+          auto ChemPot = ChemPot_new.array(mfi);
+          auto geomdata = geom.data();
+	  
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              // Initialize chemical potentials
+	      problem_initialize_state_data(i, j, k, ChemPot, geomdata);
+          });
+       }
+#endif
+       
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
           const Box& box     = mfi.validbox();
-
+	  
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
 
