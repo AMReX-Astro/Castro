@@ -246,7 +246,7 @@ state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
 explicit coupling of the burning and hydro is done.  This code
 path uses the corner-transport upwind (CTU) method (the unsplit,
-characteristic tracing method of <span id="id1">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">24</a>]</span>).  This is the default method.</p>
+characteristic tracing method of <span id="id1">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">25</a>]</span>).  This is the default method.</p>
 <p>The MHD solver uses this same driver.</p>
 </li>
 <li><p>SDC: a class of iterative methods that couples the advection and reactions
@@ -264,7 +264,7 @@ to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
 Iterations allow each process to see one another and achieve
-high-order in time convergence.  This is described in <span id="id2">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. \apj , 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">71</a>]</span>.</p></li>
+high-order in time convergence.  This is described in <span id="id2">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. \apj , 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">72</a>]</span>.</p></li>
 </ul>
 </li>
 </ul>
@@ -273,7 +273,7 @@ high-order in time convergence.  This is described in <span id="id2">[<a class="
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <span id="id3">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">16</a>]</span>.  This uses Strang splitting and the CTU
+described in <span id="id3">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">17</a>]</span>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -498,7 +498,8 @@ reconstruction will work from.</p></li>
 <li><p><em>Initialize</em></p>
 <ol class="upperalpha simple">
 <li><p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>, create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
-<li><p>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> to make sure the thermodynamics are in sync, in particular,
+compute the temperature.</p></li>
 </ol>
 </li>
 <li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code> ]</p>
@@ -538,7 +539,7 @@ StateData <code class="docutils literal notranslate"><span class="pre">Source_Ty
 <li><p>sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <span id="id4">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">17</a>]</span></p></li>
+follows that of Maestro <span id="id4">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">18</a>]</span></p></li>
 <li><p>external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">problem_source.H</span></code> file. Sources for the different
 equations in the conservative state vector, <span class="math notranslate nohighlight">\(\Ub\)</span>, are indexed
@@ -552,6 +553,10 @@ problems will not use this.</p>
 the “pdV” work for the internal energy equation as a source term
 rather than computing it from the Riemann problem.  This source is
 computed here for the internal energy equation.</p></li>
+<li><p>geometry source: this is applied only for 2-d axisymmetric data
+and captures the geometric term arising from applying the
+cylindrical divergence in <span class="math notranslate nohighlight">\(\nabla \cdot (\rho \Ub \Ub)\)</span> in
+the momentum equation.  See <span id="id5">[<a class="reference internal" href="zreferences.html#id74" title="Aude Bernard-Champmartin, Jean-Philippe Braeunig, and Jean-Michel Ghidaglia. An Eulerian finite volume solver for multi-material fluid flows with cylindrical symmetry. Computers and Fluids, pages 7, September 2012. Publisher: Elsevier. URL: https://hal.archives-ouvertes.fr/hal-00797200 (visited on 2020-03-11), doi:10.1016/j.compfluid.2012.09.014.">2</a>]</span>.</p></li>
 <li><p>[<code class="docutils literal notranslate"><span class="pre">DIFFUSION</span></code>] diffusion : thermal diffusion can be
 added in an explicit formulation. Second-order accuracy is
 achieved by averaging the time-level <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(n+1\)</span> terms, using
@@ -659,7 +664,7 @@ correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>.</p>
 <p>This correction is stored
-in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id7" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id8" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -682,8 +687,8 @@ the hybrid and linear momenta</p></li>
 </ol>
 <p>A summary of which state is the input and which is updated for each of
 these processes is presented below:</p>
-<table class="docutils align-center" id="id8">
-<caption><span class="caption-number">Table 3 </span><span class="caption-text">update sequence of state arrays for Strang-CTU</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-center" id="id9">
+<caption><span class="caption-number">Table 3 </span><span class="caption-text">update sequence of state arrays for Strang-CTU</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><em>step</em></p></th>
 <th class="head"><p><code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></th>
@@ -775,7 +780,7 @@ simulation.</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <span id="id6">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. \apj , 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">71</a>]</span>.
+<p>The SDC solver follows the algorithm detailed in <span id="id7">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. \apj , 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">72</a>]</span>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
@@ -806,8 +811,8 @@ time in the time nodes.  This gives us the trapezoid rule for 2nd
 order methods and Simpson’s rule for 4th order methods.  Choosing
 <code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span> <span class="pre">=</span> <span class="pre">1</span></code> uses Radau IIA integration, which includes
 the ending time but not the starting time in the quadrature.</p>
-<table class="docutils align-center" id="id9">
-<caption><span class="caption-number">Table 4 </span><span class="caption-text">SDC quadrature summary</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-center" id="id10">
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">SDC quadrature summary</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></p></th>
 <th class="head"><p><code class="docutils literal notranslate"><span class="pre">quadrature</span></code></p></th>
@@ -1055,8 +1060,8 @@ next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id7" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">1</a><span class="fn-bracket">]</span></span>
+<aside class="footnote brackets" id="id8" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">1</a><span class="fn-bracket">]</span></span>
 <p>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</p>
 </aside>
 </aside>
