@@ -100,7 +100,12 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; n++) {
         burn_state.xn[n] /= sumX;
     }
-
+    
+#ifdef NSE_NET
+    state(i,j,k,UMUP) = burn_state.mu_p;
+    state(i,j,k,UMUN) = burn_state.mu_n;
+#endif
+    
 #ifdef AUX_THERMO
     burn_state.aux[AuxZero::iye] = ye;
     burn_state.aux[AuxZero::iabar] = abar;
