@@ -1190,13 +1190,15 @@ extern "C"
 
 #ifdef NSE
   void ca_dernse(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  const FArrayBox& datfab, const Geometry& geomdata,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
+    auto dx = geomdata.CellSizeArray();
+    
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -1206,6 +1208,17 @@ extern "C"
       burn_state.rho  = dat(i,j,k,URHO);
       burn_state.T = dat(i,j,k,UTEMP);
       burn_state.e = dat(i,j,k,UEINT) * rhoInv;
+#ifdef NSE_NET
+      burn_state.mu_p = dat(i,j,k,UMUP);
+      burn_state.mu_n = dat(i,j,k,UMUN);
+#endif
+      
+#if AMREX_SPACEDIM == 1
+      burn_state.dx = dx[0];
+#else
+      burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+#endif
+
       for (int n = 0; n < NumSpec; n++) {
         burn_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
       }
@@ -1227,7 +1240,7 @@ extern "C"
 
       burn_state.y[SEINT] = burn_state.rho * burn_state.e;
 #endif
-
+      
       der(i,j,k,0) = in_nse(burn_state);
 
     });
