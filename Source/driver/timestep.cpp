@@ -420,14 +420,20 @@ Castro::estdt_burning (int is_new)
         Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
-        // we need to use the eos_state interface here because for
-        // SDC, if we come in with a burn_t, it expects to
-        // evaluate the NSE criterion based on the conserved state.
 
-        eos_t eos_state;
-        burn_to_eos(burn_state, eos_state);
+#ifdef SIMPLIFIED_SDC
+        // if we are doing simplified-SDC + NSE, then the `in_nse()`
+        // check will use burn_state.y[], so we need to ensure that
+        // those are initialized
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.y[SFS+n] = burn_state.rho * burn_state.xn[n];
+        }
 
-        if (!in_nse(eos_state)) {
+        burn_state.y[SEINT] = burn_state.rho * burn_state.e;
+
+#endif
+
+        if (!in_nse(burn_state)) {
 #endif
             dt_tmp = dtnuc_e * e / dedt;
 #ifdef NSE
