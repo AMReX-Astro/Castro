@@ -1283,6 +1283,10 @@ Castro::initData ()
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
+#ifdef NSE_NET
+	 Chemborder.define(grids, dmap, NCHEM, NUM_GROW);
+	 AmrLevel::FillPatch(*this, Chemborder, NUM_GROW, cur_time, Chemical_Pot_Type, 0, NCHEM);
+#endif
          // convert to centers -- not tile safe
          auto domain_lo = geom.Domain().loVect3d();
          auto domain_hi = geom.Domain().hiVect3d();

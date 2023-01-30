@@ -1292,7 +1292,9 @@ protected:
     std::unique_ptr<RadSolve> rad_solver;
 #endif
 
-
+#ifdef NSE_NET
+  amrex::MultiFab Chemborder;
+#endif
 
 #ifdef TRUE_SDC
 ///
