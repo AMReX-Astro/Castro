@@ -1208,6 +1208,7 @@ extern "C"
       burn_state.rho  = dat(i,j,k,URHO);
       burn_state.T = dat(i,j,k,UTEMP);
       burn_state.e = dat(i,j,k,UEINT) * rhoInv;
+
 #ifdef NSE_NET
       burn_state.mu_p = dat(i,j,k,UMUP);
       burn_state.mu_n = dat(i,j,k,UMUN);
@@ -1240,7 +1241,7 @@ extern "C"
 
       burn_state.y[SEINT] = burn_state.rho * burn_state.e;
 #endif
-      
+
       der(i,j,k,0) = in_nse(burn_state);
 
     });

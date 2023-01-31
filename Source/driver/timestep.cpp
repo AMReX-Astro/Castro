@@ -420,6 +420,7 @@ Castro::estdt_burning (int is_new)
         Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
+
 #ifdef SIMPLIFIED_SDC
         // if we are doing simplified-SDC + NSE, then the `in_nse()`
         // check will use burn_state.y[], so we need to ensure that
