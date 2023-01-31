@@ -1202,21 +1202,34 @@ extern "C"
     {
       Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-      eos_t eos_state;
-      eos_state.rho  = dat(i,j,k,URHO);
-      eos_state.T = dat(i,j,k,UTEMP);
-      eos_state.e = dat(i,j,k,UEINT) * rhoInv;
+      burn_t burn_state;
+      burn_state.rho  = dat(i,j,k,URHO);
+      burn_state.T = dat(i,j,k,UTEMP);
+      burn_state.e = dat(i,j,k,UEINT) * rhoInv;
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
+        burn_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
+        burn_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
-      eos(eos_input_re, eos_state);
-      der(i,j,k,0) = in_nse(eos_state);
+      eos(eos_input_re, burn_state);
+
+#ifdef SIMPLIFIED_SDC
+      // if we are doing simplified-SDC + NSE, then the `in_nse()`
+      // check will use burn_state.y[], so we need to ensure that
+      // those are initialized
+      for (int n = 0; n < NumSpec; ++n) {
+          burn_state.y[SFS+n] = burn_state.rho * burn_state.xn[n];
+      }
+
+      burn_state.y[SEINT] = burn_state.rho * burn_state.e;
+#endif
+
+      der(i,j,k,0) = in_nse(burn_state);
+
     });
   }
 #endif
