@@ -33,5 +33,5 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Run check-ifdefs
-        run |
-        python .github/workflows/check_ifdefs.py .github/workflows/good_defines.txt
+        run: |
+          python .github/workflows/check_ifdefs.py .github/workflows/good_defines.txt
