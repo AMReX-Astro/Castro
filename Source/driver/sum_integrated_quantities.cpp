@@ -305,7 +305,7 @@ Castro::sum_integrated_quantities ()
 
             std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
             std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
-#ifdef REACTION
+#ifdef REACTIONS
             std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
 #endif
 

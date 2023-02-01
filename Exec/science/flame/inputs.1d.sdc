@@ -55,7 +55,6 @@ castro.dtnuc_e        = 0.25
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
-amr.data_log          = "toy_flame.log"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 

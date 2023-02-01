@@ -59,6 +59,11 @@ void problem_initialize ()
         eos_state.xn[n]  = problem::ambient_comp[n];
     }
 
+#ifdef AUX_THERMO
+    // set the aux quantities -- we need to do this if we are using the NSE network
+    set_aux_comp_from_X(eos_state);
+#endif
+
     eos_state.T = problem::T_l;
 
     eos(eos_input_rt, eos_state);

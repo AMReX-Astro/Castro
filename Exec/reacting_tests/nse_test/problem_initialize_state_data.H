@@ -4,6 +4,11 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
+#if defined(NSE_TABLE)
+#include <nse_table.H>
+#elif defined(NSE_NET)
+#include <nse_solver.H>
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -49,56 +54,81 @@ void problem_initialize_state_data (int i, int j, int k,
         ye = ye0;
     }
 
-    state(i,j,k,UMX) = 0.0_rt;
-    state(i,j,k,UMY) = 0.0_rt;
-    state(i,j,k,UMZ) = 0.0_rt;
+    state(i,j,k,UMX) = problem::rho0 * problem::u0;
+    state(i,j,k,UMY) = problem::rho0 * problem::v0;
+    state(i,j,k,UMZ) = problem::rho0 * problem::w0;
 
     // we are isentropic, so find rho
 
-    eos_t eos_state;
-    eos_state.T = T;
-    eos_state.rho = problem::rho0;
+    burn_t burn_state;
+    burn_state.T = T;
+    burn_state.rho = problem::rho0;
+    burn_state.y_e = ye;
 
-    Real xn[NumSpec];
+#if defined(NSE_TABLE)
     Real abar;
     Real dq;
     Real dyedt;
 
-    nse_interp(T, problem::rho0, ye, abar, dq, dyedt, xn);
+    nse_interp(T, problem::rho0, ye, abar, dq, dyedt, burn_state.xn);
+#elif defined(NSE_NET)
+    Real eps = 1.e-10_rt;
+    bool input_ye_is_valid = true;
+
+    // we need an initial guess for the mass fractions -- make them all the same
+    for (int n = 0; n < NumSpec; ++n) {
+        burn_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
+    }
+
+    // we also need a guess for the initial chemical potential
+    burn_state.mu_p = -3.0_rt;
+    burn_state.mu_n = -12.0_rt;
+
+    auto nse_state = get_actual_nse_state(burn_state, eps, input_ye_is_valid);
+
+    for (int n = 0; n < NumSpec; ++n) {
+        burn_state.xn[n] = nse_state.xn[n];
+    }
+#endif
 
     // since the species are interpolated, normalize them
 
     Real sumX = 0.0_rt;
     for (int n = 0; n < NumSpec; n++) {
-        sumX += xn[n];
+        sumX += burn_state.xn[n];
     }
     for (int n = 0; n < NumSpec; n++) {
-        xn[n] /= sumX;
+        burn_state.xn[n] /= sumX;
     }
+
+#ifdef AUX_THERMO
+    burn_state.aux[AuxZero::iye] = ye;
+    burn_state.aux[AuxZero::iabar] = abar;
+    burn_state.aux[AuxZero::ibea] = dq;
+#endif
+
+    eos(eos_input_rt, burn_state);
+
+    state(i,j,k,URHO) = burn_state.rho;
+
+    state(i,j,k,UEDEN) = burn_state.rho * burn_state.e +
+        0.5_rt * burn_state.rho * (problem::u0 * problem::u0 +
+                                   problem::v0 * problem::v0 +
+                                   problem::w0 * problem::w0);
+
+    state(i,j,k,UEINT) = burn_state.rho * burn_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = xn[n];
-    }
-    eos_state.aux[AuxZero::iye] = ye;
-    eos_state.aux[AuxZero::iabar] = abar;
-    eos_state.aux[AuxZero::ibea] = dq;
-
-    eos(eos_input_rt, eos_state);
-
-    state(i,j,k,URHO) = eos_state.rho;
-
-    state(i,j,k,UEDEN) = eos_state.rho * eos_state.e;
-    state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
-
-    for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * burn_state.xn[n];
     }
 
+#ifdef AUX_THERMO
     for (int n = 0; n < NumAux; n++) {
-        state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];
+        state(i,j,k,UFX+n) = state(i,j,k,URHO) * burn_state.aux[n];
     }
+#endif
 
-    state(i,j,k,UTEMP) = eos_state.T;
+    state(i,j,k,UTEMP) = burn_state.T;
 
 }
 
