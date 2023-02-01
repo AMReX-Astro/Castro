@@ -99,6 +99,8 @@ if __name__ == "__main__":
             invalid.append(d)
 
     if invalid or total_errors > 0:
+        if invalid:
+            print("\ninvalid defines:")
         for bad in invalid:
             print(bad)
         sys.exit(1)
