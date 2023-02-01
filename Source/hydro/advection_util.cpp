@@ -355,7 +355,10 @@ Castro::apply_av(const Box& bx,
 #ifdef SHOCK_VAR
     if (n == USHK) return;
 #endif
-
+    
+#ifdef NSE_NET
+    if (n == UMUP || n == UMUN) return;
+#endif
     Real div1;
     if (idir == 0) {
 
