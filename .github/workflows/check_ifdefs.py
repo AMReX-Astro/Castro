@@ -71,6 +71,9 @@ if __name__ == "__main__":
     all_defines = []
     total_errors = 0
     for f in find_source_files():
+        if "tmp_build_dir" in f.parts:
+            # skip generated files
+            continue
         ierr, defines = check_file(f)
         all_defines += defines
         total_errors += ierr
