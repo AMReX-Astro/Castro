@@ -83,6 +83,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #ifdef NSE_NET
 	    burn_state.mu_p = U(i,j,k,UMUP);
 	    burn_state.mu_n = U(i,j,k,UMUN);
+
+	    burn_state.y_e = 0.0_rt;
 #endif
 	    
 #if AMREX_SPACEDIM == 1
