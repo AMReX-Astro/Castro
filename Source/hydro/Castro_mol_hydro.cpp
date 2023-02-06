@@ -407,6 +407,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 #ifdef NSE_NET
 		  } else if (n == UMUP || n == UMUN) {
+		    flux_arr(i,j,k,n) == 0.0;
 #endif
                   } else {
 
