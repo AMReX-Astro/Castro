@@ -743,9 +743,9 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         {
 
             // reset the left state at domlo if needed -- it is outside the domain
-            if (idir == 0 && i == domlo[0] ||
-                idir == 1 && j == domlo[1] ||
-                idir == 2 && k == domlo[2]) {
+            if ((idir == 0 && i == domlo[0]) ||
+                (idir == 1 && j == domlo[1]) ||
+                (idir == 2 && k == domlo[2])) {
                 for (int n = 0; n < NQ; n++) {
                     if (n == QUN) {
                         qm(i,j,k,QUN) = -qp(i,j,k,QUN);
@@ -764,9 +764,9 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         {
 
             // reset the right state at domhi+1 if needed -- it is outside the domain
-            if (idir == 0 && i == domhi[0]+1 ||
-                idir == 1 && j == domhi[1]+1 ||
-                idir == 2 && k == domhi[2]+1) {
+            if ((idir == 0 && i == domhi[0]+1) ||
+                (idir == 1 && j == domhi[1]+1) ||
+                (idir == 2 && k == domhi[2]+1)) {
                 for (int n = 0; n < NQ; n++) {
                     if (n == QUN) {
                         qp(i,j,k,QUN) = -qm(i,j,k,QUN);

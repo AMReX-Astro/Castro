@@ -2720,14 +2720,6 @@ Castro::reflux(int crse_level, int fine_level)
 
             auto U = expanded_crse_state[mfi].array();
             auto V = crse_lev.volume[mfi].array();
-            auto F_x = (temp_fluxes[0])[mfi].array();
-#if AMREX_SPACEDIM >= 2
-            auto F_y = (temp_fluxes[1])[mfi].array();
-#endif
-#if AMREX_SPACEDIM == 3
-            auto F_z = (temp_fluxes[2])[mfi].array();
-#endif
-            auto mask_arr = mask[mfi].array();
 
             // Limit fluxes that would cause a small/negative density.
             // Also check to see whether the flux would cause invalid X. We use a
@@ -2749,8 +2741,8 @@ Castro::reflux(int crse_level, int fine_level)
                                        bool zero_fluxes = false;
 
                                        Real rho = U(i,j,k,URHO);
-                                       Real drho = F(i,j,k,URHO) / V(i,j,k);
-                                       Real rhoInvNew = 1.0_rt / (rho + drho);
+                                       Real drhoV = F(i,j,k,URHO) / V(i,j,k);
+                                       Real rhoInvNew = 1.0_rt / (rho + drhoV);
 
                                        for (int n = 0; n < NumSpec; ++n) {
                                            Real rhoX = U(i,j,k,UFS+n);
@@ -2832,21 +2824,21 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (update_sources_after_reflux) {
 
-                MultiFab temp_fluxes(crse_lev.P_radial.boxArray(),
-                                     crse_lev.P_radial.DistributionMap(),
-                                     crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow());
+                MultiFab tmp_fluxes(crse_lev.P_radial.boxArray(),
+                                    crse_lev.P_radial.DistributionMap(),
+                                    crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow());
 
-                temp_fluxes.setVal(0.0);
+                tmp_fluxes.setVal(0.0);
 
                 for (OrientationIter fi; fi; ++fi)
                 {
                     const FabSet& fs = (*reg)[fi()];
                     if (fi().coordDir() == 0) {
-                        fs.copyTo(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
+                        fs.copyTo(tmp_fluxes, 0, 0, 0, tmp_fluxes.nComp());
                     }
                 }
 
-                MultiFab::Add(crse_lev.P_radial, temp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
+                MultiFab::Add(crse_lev.P_radial, tmp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
 
             }
 
