@@ -74,7 +74,7 @@ void problem_initialize_state_data (int i, int j, int k,
 #elif defined(NSE_NET)
     Real eps = 1.e-10_rt;
     bool input_ye_is_valid = true;
-    ase_tol = problem::ase_tol;
+    ase_tol = problem::tol;
 
     // we need an initial guess for the mass fractions -- make them all the same
     for (int n = 0; n < NumSpec; ++n) {
