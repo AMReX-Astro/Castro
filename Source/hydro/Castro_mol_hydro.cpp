@@ -403,7 +403,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
                   } else if (n == USHK) {
-                    flux_arr(i,j,k,n) == 0.0;
+                    flux_arr(i,j,k,n) = 0.0;
 #endif
 #ifdef NSE_NET
 		  } else if (n == UMUP || n == UMUN) {
