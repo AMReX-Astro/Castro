@@ -569,6 +569,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 

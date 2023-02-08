@@ -84,6 +84,11 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     F(i,j,k,USHK) = 0.0;
 #endif
 
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
+
 #ifdef RADIATION
     if (radiation::fspace_advection_type == 1) {
         for (int g = 0; g < NGROUPS; g++) {
