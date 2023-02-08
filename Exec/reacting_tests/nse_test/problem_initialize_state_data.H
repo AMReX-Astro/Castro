@@ -77,7 +77,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     // manually set the tolerance. Set a really large number to assure we're in NSE
     // since here we only test nse_burn() in this unit test.
-    ase_tol = problem::tol;
+    ase_tol = problem::nse_tol;
 
     // we need an initial guess for the mass fractions -- make them all the same
     for (int n = 0; n < NumSpec; ++n) {
