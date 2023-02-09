@@ -67,3 +67,4 @@ problem.T0 = 5.e9
 problem.dT_fact = 0.2
 problem.rho0 = 1.e9
 problem.L_pert = 2.e7
+problem.nse_tol = 1.e2
