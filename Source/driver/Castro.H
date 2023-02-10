@@ -503,9 +503,8 @@ public:
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration);
 
 ///
 /// If required, adds material lost in timestep to cumulative

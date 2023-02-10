@@ -7,6 +7,6 @@
 /// @param checkpoint_dir   Name of the checkpoint directory
 ///
 AMREX_INLINE
-void problem_checkpoint (std::string checkpoint_dir) {}
+void problem_checkpoint ([[maybe_unused]] std::string checkpoint_dir) {}
 
 #endif

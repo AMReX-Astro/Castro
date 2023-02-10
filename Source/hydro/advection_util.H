@@ -238,8 +238,8 @@ void
 dflux(const GpuArray<Real, NUM_STATE>& u,
       const GpuArray<Real, NQ>& q,
       int dir, int coord,
-      const GeometryData& geomdata,
-      const GpuArray<int, 3>& idx,
+      [[maybe_unused]] const GeometryData& geomdata,
+      [[maybe_unused]] const GpuArray<int, 3>& idx,
       GpuArray<Real, NUM_STATE>& flux)
 {
     // Given a conservative state and its corresponding primitive state, calculate the

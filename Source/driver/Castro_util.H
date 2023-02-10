@@ -156,7 +156,9 @@ namespace geometry_util
 {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real volume(const int& i, const int& j, const int& k,
+Real volume([[maybe_unused]] const int& i,
+            [[maybe_unused]] const int& j,
+            [[maybe_unused]] const int& k,
             const GeometryData& geomdata)
 {
     // Given 3D cell-centered indices (i,j,k), return the volume of the zone.
@@ -224,7 +226,9 @@ Real volume(const int& i, const int& j, const int& k,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real area(const int& i, const int& j, const int& k,
+Real area([[maybe_unused]] const int& i,
+          [[maybe_unused]] const int& j,
+          [[maybe_unused]] const int& k,
           const int& idir, const GeometryData& geomdata)
 {
     auto dx = geomdata.CellSize();

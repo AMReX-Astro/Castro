@@ -74,7 +74,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // Record a running total of the number of bytes allocated as temporary Fab data.
 
   size_t fab_size = 0;
+#ifdef AMREX_USE_GPU
   size_t mf_size = 0;
+#endif
   IntVect maximum_tile_size{0};
 
   // Our strategy for launching work on GPUs in the hydro is incompatible with OpenMP,

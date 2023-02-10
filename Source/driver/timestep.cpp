@@ -69,7 +69,9 @@ Castro::estdt_cfl (int is_new)
 
       Real ux = u(i,j,k,UMX) * rhoInv;
       Real uy = u(i,j,k,UMY) * rhoInv;
+#if AMREX_SPACEDIM == 3
       Real uz = u(i,j,k,UMZ) * rhoInv;
+#endif
 
       Real c = eos_state.cs;
 
