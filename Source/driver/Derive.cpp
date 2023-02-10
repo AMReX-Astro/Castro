@@ -904,6 +904,28 @@ extern "C"
     }
 
 
+  void ca_derye(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
+
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+
+        Real sum = 0.0_rt;
+        Real xn;
+        for (int n = 0; n < NumSpec; n++) {
+          xn = dat(i,j,k,1+n) / dat(i,j,k,0);
+          sum += xn * zion[n] / aion[n];
+        }
+        der(i,j,k,0) = sum;
+      });
+    }
+
   void ca_derabar(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
