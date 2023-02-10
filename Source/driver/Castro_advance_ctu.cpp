@@ -365,7 +365,7 @@ Castro::do_advance_ctu(Real time,
 
             // Do the ODE integration to capture the reaction source terms.
 
-            bool burn_success = react_state(time, dt);
+            burn_success = react_state(time, dt);
 
             // Skip the rest of the advance if the burn was unsuccessful.
 
