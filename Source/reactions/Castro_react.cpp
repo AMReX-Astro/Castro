@@ -14,7 +14,7 @@ using namespace amrex;
 // Strang version
 
 bool
-Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
+Castro::react_state(MultiFab& s, MultiFab& r, [[maybe_unused]] Real time, Real dt, const int strang_half)
 {
     BL_PROFILE("Castro::react_state()");
 
@@ -309,7 +309,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 // Simplified SDC version
 
 bool
-Castro::react_state(Real time, Real dt)
+Castro::react_state([[maybe_unused]] Real time, Real dt)
 {
 
     // The goal is to update S_old to S_new with the effects of both

@@ -4,7 +4,8 @@
 using namespace amrex;
 
 void
-Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
+                                    [[maybe_unused]] Real time, [[maybe_unused]] Real dt)
 {
 
 #ifndef MHD
@@ -45,7 +46,10 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
 
 void
-Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_thermo_source([[maybe_unused]] MultiFab& source,
+                                    [[maybe_unused]] MultiFab& state_old,
+                                    [[maybe_unused]] MultiFab& state_new,
+                                    [[maybe_unused]] Real time, [[maybe_unused]] Real dt)
 {
 
 #ifndef MHD

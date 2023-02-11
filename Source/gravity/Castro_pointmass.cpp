@@ -4,7 +4,7 @@
 using namespace amrex;
 
 void
-Castro::pointmass_update(Real time, Real dt)
+Castro::pointmass_update([[maybe_unused]] Real time, [[maybe_unused]] Real dt)
 {
     int finest_level = parent->finestLevel();
 
@@ -40,16 +40,14 @@ Castro::pointmass_update(Real time, Real dt)
                 const Real eps = 1.e-8_rt;
 
                 // This should be the cell whose lower left corner is at center
-                int icen = std::floor((problem::center[0] - problo[0]) / dx[0] + eps);
+                int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                int jcen = std::floor((problem::center[1] - problo[1]) / dx[1] + eps);
+                int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                 int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                int kcen = std::floor((problem::center[2] - problo[2]) / dx[2] + eps);
-#else
-                int kcen = 0;
+                int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                 // Make sure we only count contributions from this grid
@@ -123,16 +121,14 @@ Castro::pointmass_update(Real time, Real dt)
                     const Real eps = 1.e-8_rt;
 
                     // This should be the cell whose lower left corner is at center
-                    int icen = std::floor((problem::center[0] - problo[0]) / dx[0] + eps);
+                    int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                    int jcen = std::floor((problem::center[1] - problo[1]) / dx[1] + eps);
+                    int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                     int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                    int kcen = std::floor((problem::center[2] - problo[2]) / dx[2] + eps);
-#else
-                    int kcen = 0;
+                    int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                     // Make sure we only count contributions from this grid

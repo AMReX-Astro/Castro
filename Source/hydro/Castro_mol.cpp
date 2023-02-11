@@ -205,7 +205,7 @@ Castro::mol_consup(const Box& bx,
 #endif
                    Array4<Real const> const& srcU,
                    Array4<Real> const& update,
-                   const Real dt,
+                   [[maybe_unused]] const Real dt,
                    Array4<Real const> const& flux0,
 #if AMREX_SPACEDIM >= 2
                    Array4<Real const> const& flux1,

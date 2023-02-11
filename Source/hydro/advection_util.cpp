@@ -25,7 +25,7 @@ using namespace amrex;
 
 void
 Castro::ctoprim(const Box& bx,
-                const Real time,
+                [[maybe_unused]] const Real time,
                 Array4<Real const> const& uin,
 #ifdef MHD
                 Array4<Real const> const& Bx,
@@ -524,7 +524,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          Array4<Real const> const& u,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt,
                                          bool scale_by_dAdt)
 {
@@ -579,8 +579,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         Real flux_coefL = 1.0_rt / volL;
 
         if (scale_by_dAdt) {
-            flux_coefR *= dt * area(i,j,k);
-            flux_coefL *= dt * area(i,j,k);
+            flux_coefR *= dt * area_arr(i,j,k);
+            flux_coefL *= dt * area_arr(i,j,k);
         }
 
         // Updates to the zones on either side of the interface.

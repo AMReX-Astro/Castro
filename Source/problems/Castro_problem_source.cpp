@@ -112,10 +112,10 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
 
 void
-Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_old, const MultiFab& state_new, MultiFab& ext_src)
+Castro::fill_ext_source (const Real time, const Real dt,
+                         [[maybe_unused]] const MultiFab& state_old, const MultiFab& state_new,
+                         MultiFab& ext_src)
 {
-    const Real* dx = geom.CellSize();
-    const Real* prob_lo = geom.ProbLo();
     GeometryData geomdata = geom.data();
 
 #ifdef _OPENMP
@@ -125,7 +125,6 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
     {
         const Box& bx = mfi.tilebox();
 
-        Array4<Real const> const sold = state_old.array(mfi);
         Array4<Real const> const snew = state_new.array(mfi);
         Array4<Real> const src = ext_src.array(mfi);
 
