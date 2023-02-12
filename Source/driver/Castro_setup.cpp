@@ -898,9 +898,11 @@ Castro::variableSetUp ()
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
 
+#ifdef REACTIONS
   derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
   derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
