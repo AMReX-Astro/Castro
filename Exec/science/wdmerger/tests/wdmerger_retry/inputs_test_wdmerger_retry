@@ -40,9 +40,6 @@ castro.hi_bc = 2 2
 # Maximum coarse timestep
 max_step = 1
 
-# Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -91,6 +88,9 @@ castro.state_interp_order = 0
 
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -206,9 +206,6 @@ castro.react_rho_max = 1.0e12
 # Smallest allowable mass fraction
 network.small_x = 1.0e-12
 
-# Burn at constant volume
-integrator.do_constant_volume_burn = 1
-
 # Evaluate the RHS during the burn
 integrator.call_eos_in_rhs = 1
 
@@ -218,9 +215,6 @@ integrator.atol_spec = 1.0e-10
 
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
-
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.retry_burn = 1
 
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
@@ -248,9 +242,6 @@ gravity.no_sync = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Whether to evolve state variables in the inertial or rotating frame
-castro.state_in_rotating_frame = 1
-
 ############################################################################################
 # Sponge
 ############################################################################################
@@ -272,9 +263,6 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 # Diagnostics and I/O
 ############################################################################################
-
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -321,9 +309,6 @@ amr.small_plot_int = -1
 # Do not write plotfiles when we dump checkpoints
 amr.write_plotfile_with_checkpoint = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
@@ -346,7 +331,7 @@ amr.derive_plot_vars = pressure x_velocity y_velocity z_velocity soundspeed
 amr.small_plot_vars = density Temp
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out
 
 # Used a forced fixed dt that is known to be larger
 # than the safe hydrodynamic timestep given the above
@@ -381,18 +366,7 @@ problem.orbital_angle = 0.0e0
 problem.axis_1 = 1
 problem.axis_2 = 2
 
-problem.max_stellar_tagging_level = 0
-problem.max_temperature_tagging_level = 0
 problem.stellar_density_threshold = 1.0e0
-problem.temperature_tagging_threshold = 5.0e8
-problem.max_tagging_radius = 0.75e0
-problem.roche_tagging_factor = 2.0e0
-
-problem.bulk_velx = 0.0e0
-problem.bulk_vely = 0.0e0
-problem.bulk_velz = 0.0e0
-
-problem.smallu = 0.0e0
 
 problem.center_fracx = 0.5e0
 problem.center_fracy = 0.5e0

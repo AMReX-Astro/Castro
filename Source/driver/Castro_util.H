@@ -25,28 +25,36 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
+        // passive is one of the advected quantities
         return UFA + ipassive;
     }
-    else if (ipassive < NumAdv + NumSpec) {
+
+    if (ipassive < NumAdv + NumSpec) {
+        // passive is one of the species
         return UFS + ipassive - NumAdv;
     }
-    else {
-        return UFX + ipassive - NumAdv - NumSpec;
-    }
+
+    // passive is one of the auxiliary quantities
+    return UFX + ipassive - NumAdv - NumSpec;
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int qpassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
+        // passive is one of the advected quantities
         return QFA + ipassive;
     }
-    else if (ipassive < NumAdv + NumSpec) {
+
+    if (ipassive < NumAdv + NumSpec) {
+        // passive is one of the species
         return QFS + ipassive - NumAdv;
     }
-    else {
-        return QFX + ipassive - NumAdv - NumSpec;
-    }
+
+    // passive is one of the auxiliary quantities
+    return QFX + ipassive - NumAdv - NumSpec;
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE

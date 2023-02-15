@@ -6,6 +6,8 @@
 #include <diffusion_util.H>
 #endif
 
+#include <advection_util.H>
+
 #include <fourth_center_average.H>
 
 using namespace amrex;
@@ -401,7 +403,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
                   } else if (n == USHK) {
-                    flux_arr(i,j,k,n) == 0.0;
+                    flux_arr(i,j,k,n) = 0.0;
+#endif
+#ifdef NSE_NET
+		  } else if (n == UMUP || n == UMUN) {
+		    flux_arr(i,j,k,n) = 0.0;
 #endif
                   } else {
 
@@ -477,7 +483,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 Elixir elix_src_q = src_q.elixir();
                 Array4<Real> const src_q_arr = src_q.array();
 
-                src_to_prim(qbx, dt, q_arr, source_in_arr, src_q_arr);
+                amrex::ParallelFor(qbx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                {
+                    hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
+                });
 
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,
@@ -517,6 +527,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
                 flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+#ifdef NSE_NET
+		flux_arr(i,j,k,UMUP) = 0.e0;
+		flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
               });
 
@@ -580,7 +594,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),

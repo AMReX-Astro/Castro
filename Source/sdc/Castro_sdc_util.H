@@ -3,9 +3,14 @@
 
 #include <Castro.H>
 #ifdef REACTIONS
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <Castro_react_util.H>
 #include <vode_dvode.H>
+#ifndef NEW_NETWORK_IMPLEMENTATION
 #include <linpack.H>
+#endif
 #endif
 
 // error codes
@@ -142,7 +147,7 @@ f_sdc_jac(const Real dt_m,
 
     // get dRdw -- this may do a numerical approxiation or use the
     // network's analytic Jac
-    single_zone_jac(U_full, burn_state, dRdw);
+    single_zone_jac(U_full, burn_state, dt_m, dRdw);
 
     // the density row
     dwdU(iwrho, 0) = 1.0_rt;
@@ -335,7 +340,12 @@ sdc_newton_solve(const Real dt_m,
         IArray1D ipvt;
 
         // solve the linear system: Jac dU_react = -f
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgefa(Jac);
+        info = 0;
+#else
         dgefa<NumSpec+2>(Jac, ipvt, info);
+#endif
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
@@ -345,7 +355,11 @@ sdc_newton_solve(const Real dt_m,
             f_rhs(n) = -f[n-1];
         }
 
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgesl(Jac, f_rhs);
+#else
         dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
+#endif
 
         for (int n = 0; n < NumSpec+2; ++n) {
             dU_react[n] = f_rhs(n+1);
@@ -572,28 +586,15 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
-    GpuArray<Real, NumSpec+2> rtol;
-    GpuArray<Real, NumSpec+2> atol;
-
     // relative tolerances
-    rtol[0] = tol_dens;
-    for (int n = 0; n < NumSpec; ++n) {
-        rtol[1+n] = tol_spec;
-    }
-    rtol[NumSpec+1] = tol_ener;
+    dvode_state.rtol_dens = tol_dens;
+    dvode_state.rtol_spec = tol_spec;
+    dvode_state.rtol_enuc = tol_ener;
 
     // absolute tolerances
-    atol[0] = sdc_solver_atol;
-    for (int n = 0; n < NumSpec; ++n) {
-        atol[1+n] = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
-    }
-
-    atol[NumSpec+1] = sdc_solver_atol;
-
-    for (int n = 1; n <= NumSpec+2; ++n) {
-        dvode_state.atol(n) = atol[n-1];
-        dvode_state.rtol(n) = rtol[n-1];
-    }
+    dvode_state.atol_dens = sdc_solver_atol * U_old[URHO];
+    dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
+    dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
 
     int istate = dvode(burn_state, dvode_state);
 

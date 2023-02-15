@@ -23,21 +23,6 @@ using namespace castro;
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
 
-// for backwards compatibility with the old way of naming variables
-// these keys are deprecated and may be removed in the future
-constexpr int Density = URHO;
-constexpr int Xmom = UMX;
-constexpr int Ymom = UMY;
-constexpr int Zmom = UMZ;
-constexpr int Eden = UEDEN;
-constexpr int Eint = UEINT;
-constexpr int Temp = UTEMP;
-constexpr int FirstAdv = UFA;
-constexpr int FirstSpec = UFS;
-constexpr int FirstAux = UFX;
-#ifdef SHOCK_VAR
-constexpr int Shock = USHK;
-#endif
 
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
@@ -46,8 +31,10 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
+#ifndef TRUE_SDC
 #ifdef REACTIONS
 #include <burner.H>
+#endif
 #endif
 
 #ifdef BL_LAZY
@@ -75,9 +62,6 @@ enum StateType { State_Type = 0,
 #ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
-#endif
-#ifdef ROTATION
-                 PhiRot_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -459,6 +443,11 @@ public:
 #endif
 
 ///
+/// Save a copy of the old state data in case for the purposes of a retry.
+///
+    void save_data_for_retry();
+
+///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
@@ -549,39 +538,39 @@ public:
 ///
 /// Estimate time step.
 ///
-    amrex::Real estTimeStep ();
+    amrex::Real estTimeStep (int is_new = 1);
 
 
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl(const amrex::Real time);
+    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd();
+    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion();
+    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning();
+    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
 #endif
 
 #ifdef RADIATION
 ///
 /// Radiation hydro timestep
 ///
-    amrex::Real estdt_rad ();
+    amrex::Real estdt_rad (int is_new = 1);
 #endif
 
 ///
@@ -895,6 +884,16 @@ public:
 ///
 /// Volume weighted sum of given quantity
 ///
+/// @param mf           MultiFab containing quantity
+/// @param comp         integer index of quantity in MultiFab
+/// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
+/// @param finemask     boolean, should we build a mask to exclude finer levels?
+///
+    amrex::Real volWgtSum (const MultiFab& mf, int comp, bool local=false, bool finemask=true);
+
+///
+/// Volume weighted sum of given quantity
+///
 /// @param name         Name of quantity
 /// @param time         current time
 /// @param local        boolean, is sum local (over each patch) or over entire MultiFab?
@@ -902,16 +901,15 @@ public:
 ///
     amrex::Real volWgtSum (const std::string& name, amrex::Real time, bool local=false, bool finemask=true);
 
-
 ///
-/// Volume weight sum of (given quantity) squared
+/// Sum weighted by volume multiplied by distance from center in given direction
 ///
-/// @param name     Name of quantity
-/// @param time     current time
+/// @param mf       MultiFab containing quantity
+/// @param comp     integer index of quantity in MultiFab
+/// @param idir     Axis along which to compute distance from center
 /// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
-    amrex::Real volWgtSquaredSum (const std::string& name, amrex::Real time, bool local=false);
-
+    amrex::Real locWgtSum (const MultiFab& mf, int comp, int idir, bool local=false);
 
 ///
 /// Sum weighted by volume multiplied by distance from center in given direction
@@ -923,6 +921,16 @@ public:
 ///
     amrex::Real locWgtSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
+///
+/// Volume weighted sum of the product of two quantities
+///
+/// @param mf1      MultiFab containing first quantity
+/// @param mf2      MultiFab containing second quantity
+/// @param comp1    integer index of quantity in first MultiFab
+/// @param comp2    integer index of quantity in second MultiFab
+/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
+///
+    amrex::Real volProductSum (const MultiFab& mf1, const MultiFab& mf2, int comp1, int comp2, bool local=false);
 
 ///
 /// Volume weighted sum of the product of two quantities
@@ -1239,6 +1247,15 @@ protected:
 #endif
 
 
+#ifdef REACTIONS
+///
+/// Storage for the burn_weights
+///
+    amrex::MultiFab burn_weights;
+    static std::vector<std::string> burn_weight_names;
+#endif
+
+
 ///
 /// A state array with ghost zones.
 ///
@@ -1420,6 +1437,7 @@ protected:
     static amrex::Real lastDtBeforePlotLimiting;
 
     int in_retry;
+    int num_subcycles_taken;
 
     amrex::Real lastDt;
 
@@ -1472,6 +1490,9 @@ protected:
 
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
+
+    static int hydro_tile_size_has_been_tuned;
+    static Long largest_box_from_hydro_tile_size_tuning;
 
     static int SDC_Source_Type;
     static int num_state_type;

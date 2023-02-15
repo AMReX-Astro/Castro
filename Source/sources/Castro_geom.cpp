@@ -114,7 +114,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
 void
 Castro::fill_geom_source (Real time, Real dt,
-                          MultiFab& state, MultiFab& geom_src)
+                          MultiFab& cons_state, MultiFab& geom_src)
 {
 
   // Compute the geometric source for axisymmetric coordinates
@@ -134,7 +134,7 @@ Castro::fill_geom_source (Real time, Real dt,
 
     const Box& bx = mfi.tilebox();
 
-    Array4<Real const> const U_arr = state.array(mfi);
+    Array4<Real const> const U_arr = cons_state.array(mfi);
 
     Array4<Real> const src = geom_src.array(mfi);
 

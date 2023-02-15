@@ -136,7 +136,6 @@ def parse_params(infile, out_directory):
                                cpp_var_name=cpp_var_name,
                                namespace=namespace,
                                debug_default=debug_default,
-                               in_fortran=in_fortran,
                                ifdef=ifdef))
 
 

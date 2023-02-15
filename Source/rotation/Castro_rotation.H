@@ -50,8 +50,6 @@
 /// Compute the correction source term for rotation
 ///
 /// @param bx       the box to operate over
-/// @param phi_old  rotational potential at old time
-/// @param phi_new  rotational potential at new time
 /// @param uold     old time state
 /// @param unew     new time state
 /// @param source   full hydrodynamic state
@@ -63,8 +61,6 @@
 ///
     void
     corrrsrc(const Box& bx,
-             Array4<Real const> const& phi_old,
-             Array4<Real const> const& phi_new,
              Array4<Real const> const& uold,
              Array4<Real const> const& unew,
              Array4<Real> const& source,

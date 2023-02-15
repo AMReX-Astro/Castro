@@ -12,6 +12,8 @@ USE_OMP    = FALSE
 
 USE_MHD    = FALSE
 
+BL_NO_FORT := TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 

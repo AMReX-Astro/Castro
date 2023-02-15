@@ -13,7 +13,9 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
-USE_NSE    = TRUE
+USE_NSE_TABLE    = TRUE
+
+BL_NO_FORT := TRUE
 
 USE_CXX_MODEL_PARSER = TRUE
 
@@ -24,6 +26,8 @@ EOS_DIR     := helmholtz
 NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
+
+MAX_NPTS_MODEL = 32768
 
 Bpack   := ./Make.package
 Blocs   := .

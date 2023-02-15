@@ -10,26 +10,20 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 # Microphysics runtime parameters
 #------------------------------------------------------------------------------
 
-# runtime parameter support for extern/ routines
-F90EXE_sources += extern.F90
 CEXE_sources += extern_parameters.cpp
-FEXE_headers += extern_parameters_F.H
 CEXE_headers += extern_parameters.H
 
-EXTERN_TEMPLATE := $(MICROPHYSICS_HOME)/interfaces/extern_probin.template
+# for dependency resolution
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
-# these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE)
-EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
+# this is for finding runtime parameters
+EXTERN_PARAMETERS := $(foreach dir, $(INCLUDE_LOCATIONS),$(realpath $(wildcard $(dir)/_parameters)))
 
-EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
+$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
-$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern.F90
-
-$(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
            --pa "$(EXTERN_PARAMETERS)"
 
@@ -51,8 +45,7 @@ PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H
 
 # Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
 # on that; if it doesn't exist, it's ignored as a make target. The default
@@ -70,8 +63,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.H: $(DEFAULT_PROB_PARAMETERS) $(wildca
 CEXE_headers += castro_params.H
 
 # for dependency resolution
-$(depEXETempDir)/%.d: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
-$(depEXETempDir)/f90.depends: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 
@@ -85,19 +77,22 @@ test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H: $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90
-	echo "state_indices.H will be generated at the same time as state_indices_nd.F90"
 
-$(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90:
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
+
+# for dependency resolution
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
+
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H:
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
-           --ngroups $(NGROUPS) \
            --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
 
 # for debugging
-test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90
+test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.H
 
 
 #------------------------------------------------------------------------------
@@ -135,12 +130,18 @@ ifdef BUILD_GIT_NAME
                        --build_git_dir "$(BUILD_GIT_DIR)"
 endif
 
+ifeq ($(USE_CUDA), TRUE)
+   CUDA_FLAGS := --CUDA_VERSION "$(nvcc_version)"
+endif
+
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
           --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
+          $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"

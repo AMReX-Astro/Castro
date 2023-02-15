@@ -21,7 +21,8 @@ geometry.prob_lo     = 0       0       0
   castro.hi_bc       =  2   2   2
 
   castro.zl_ext_bc_type = 1
-  castro.hse_interp_temp = 1
+  castro.hse_interp_temp = 0
+  castro.hse_fixed_temp = 3.e8   # this should match problem.T_star
   castro.hse_reflect_vels = 1
 
   castro.fill_ambient_bc = 1
@@ -31,8 +32,8 @@ geometry.prob_lo     = 0       0       0
 #elif AMREX_SPACEDIM == 2
   geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 
-  geometry.prob_hi     = 2.048e5      2.56e4
-  amr.n_cell           = 1024         128
+  geometry.prob_hi     = 1.024e5      2.56e4
+  amr.n_cell           = 512         128
 
   # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
   # 0 = Interior           3 = Symmetry
@@ -43,7 +44,8 @@ geometry.prob_lo     = 0       0       0
   castro.hi_bc       =  2   2
 
   castro.yl_ext_bc_type = 1
-  castro.hse_interp_temp = 1
+  castro.hse_interp_temp = 0
+  castro.hse_fixed_temp = 3.e8   # this should match problem.T_star
   castro.hse_reflect_vels = 1
 
   castro.fill_ambient_bc = 1
@@ -95,6 +97,11 @@ castro.change_max     = 1.1     # max time step growth
 
 castro.use_retry      = 1
 castro.max_subcycles = 16
+
+castro.retry_small_density_cutoff = 1.0
+
+castro.abundance_failure_tolerance = 0.1
+castro.abundance_failure_rho_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 0       # timesteps between computing mass
@@ -169,5 +176,4 @@ integrator.atol_spec = 1.e-6
 
 network.use_tables = 1
 
-integrator.retry_burn = 0
 integrator.abort_on_failure = 0

@@ -41,8 +41,7 @@ to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://github.com/hypre-space/hypre (the minimum
-supported release version is 2.19.0, except for the CUDA build which
-requires the latest master branch as of January 2021). Their install
+supported release version is 2.23.0). Their install
 instructions describe what to do; we recommend using the autotools
 and GNU Make build. On HPC clusters, you typically want to build
 with the same compiler you're using to build Castro, and you also
@@ -57,7 +56,7 @@ replacing ``/path/to/Hypre/install`` with the target location
 where you want the Hypre files to be installed.
 ::
 
-   HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+   CUDA_HOME=$OLCF_CUDA_ROOT HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
    make install
 
 Then, when you are building Castro, you would build with

@@ -40,7 +40,7 @@ Castro's major capabilities:
   * spectral deferred corrections time integration for coupling hydro
     and reactions (see :ref:`ch:sdc`)
 
-  * parallelization via MPI + OpenMP or MPI + CUDA
+  * parallelization via MPI + OpenMP (CPUs), MPI + CUDA (NVIDIA GPUs), or MPI + HIP (AMD GPUs)
 
 
 Development Model

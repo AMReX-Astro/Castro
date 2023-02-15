@@ -3,6 +3,10 @@
 
 #include <Castro.H>
 #include <burn_type.H>
+#include <actual_network.H> //this is needed to get the definition of NEW_NETWORK_IMPLEMENTATION
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <numerical_jacobian.H>
 
 
@@ -84,10 +88,6 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
     // eos_get_small_temp(&small_temp);
     burn_state.T = amrex::min(MAX_TEMP, amrex::max(burn_state.T, small_temp));
 
-#ifdef STRANG
-    burn_state.self_heat = false;
-#endif
-
     Array1D<Real, 1, neqs> ydot;
 
     actual_rhs(burn_state, ydot);
@@ -130,7 +130,7 @@ single_zone_react_source(const int i, const int j, const int k,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
-                burn_t burn_state,
+                burn_t& burn_state, const Real dt,
                 Array2D<Real, 0, NumSpec+1, 0, NumSpec+1>& dRdw) {
 
     // we enter this routine if we are doing the Newton solver or VODE
@@ -169,7 +169,9 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 
     if (sdc_newton_use_analytic_jac == 0 || jacobian == 3) {
         // note the numerical Jacobian will be returned in terms of X
-        numerical_jac(burn_state, Jac);
+        jac_info_t jac_info;
+        jac_info.h = dt;
+        numerical_jac(burn_state, jac_info, Jac);
     } else {
         actual_jac(burn_state, Jac);
 

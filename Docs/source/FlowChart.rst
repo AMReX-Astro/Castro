@@ -63,7 +63,7 @@ The time-integration method used is controlled by
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
-    method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
+    method to work.
 
 .. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
@@ -123,8 +123,6 @@ of each step.
    This sets up the current level for advancement. The following
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
-
-   -  Sync up the level information to the Fortran-side of Castro.
 
    -  Do any radiation initialization.
 
@@ -314,8 +312,8 @@ here, consistent with the names used in the code:
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
 
-Single Step Flowchat
---------------------
+Single Step Flowchart
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
@@ -324,7 +322,8 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. Check for NaNs in the initial state, ``S_old``.
+   B. Call ``clean_state()`` to make sure the thermodynamics are in sync, in particular,
+      compute the temperature.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -393,7 +392,12 @@ In the code, the objective is to evolve the state from the old time,
       rather than computing it from the Riemann problem.  This source is
       computed here for the internal energy equation.
 
-   D. [``DIFFUSION``] diffusion : thermal diffusion can be
+   D. geometry source: this is applied only for 2-d axisymmetric data
+      and captures the geometric term arising from applying the
+      cylindrical divergence in :math:`\nabla \cdot (\rho \Ub \Ub)` in
+      the momentum equation.  See :cite:`bernard-champmartin_eulerian_2012`.
+
+   E. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -404,10 +408,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   E. [``HYBRID_MOMENTUM``] angular momentum
+   F. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   F. [``GRAVITY``] gravity:
+   G. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -422,7 +426,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   G. [``ROTATION``] rotation
+   H. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum

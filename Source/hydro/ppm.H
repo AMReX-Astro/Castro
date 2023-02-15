@@ -140,6 +140,86 @@ ppm_reconstruct(const Real* s,
 
 
 ///
+/// Compute the coefficients of a parabolic reconstruction of the pressure by
+/// first subtracting off the hydrostatic pressure.  This should better balance
+/// the gravitational force by only limiting on the wave-generating pressure.
+/// This uses the standard PPM limiters described in Colella & Woodward (1984)
+///
+/// @param rho          Real[5] giving the density in zones i-2, i-1, i, i+1, i+2
+/// @param p           Real[5] giving the pressure in zones i-2, i-1, i, i+1, i+2
+/// @param src         Real[5] the source in the velocity equation (e.g. g) in zones
+///                    i-2, i-1, i, i+2, i+2
+/// @param flatn       flattening coefficient
+/// @param lo_bc_test  true if a physical boundary is just to the left of this zone
+/// @param hi_bc_test  true if a physical boundary is just to the right of this zone
+///
+/// @param sm     The value of the parabola on the left edge of the zone
+/// @param sp     The value of the parabola on the right edge of the zone
+///
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+                       const Real dx,
+                       Real& sm, Real& sp) {
+
+    Real tp[5];
+
+    // compute the hydrostatic pressure in each zone center starting with i0
+
+    Real p0_hse = p[i0];
+
+    Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
+    Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
+
+    Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
+    Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
+
+    // this only makes sense if the pressures are positive
+    bool ptest = p0_hse < 0.0 ||
+                 pp1_hse < 0.0 ||
+                 pp2_hse < 0.0 ||
+                 pm1_hse < 0.0 ||
+                 pm2_hse < 0.0;
+
+
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
+
+        // subtract off the hydrostatic pressure
+
+        tp[i0] = p[i0] - p0_hse;
+
+        tp[ip1] = p[ip1] - pp1_hse;
+        tp[ip2] = p[ip2] - pp2_hse;
+
+        tp[im1] = p[im1] - pm1_hse;
+        tp[im2] = p[im2] - pm2_hse;
+
+    } else {
+
+        // don't subtract off HSE
+
+        tp[im2] = p[im2];
+        tp[im1] = p[im1];
+        tp[i0] = p[i0];
+        tp[ip1]= p[ip1];
+        tp[ip2] = p[ip2];
+    }
+
+    ppm_reconstruct(tp, flatn, sm, sp);
+
+
+    // now correct sm and sp to be back to the full pressure by
+    // adding in the hydrostatic pressure at the interface
+
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
+        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
+        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
+    }
+
+}
+
+
+///
 /// Integrate under the parabola using from the left and right edges
 /// with the wave speeds u-c, u, u+c
 ///
