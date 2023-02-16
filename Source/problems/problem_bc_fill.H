@@ -13,12 +13,18 @@
 /// @param geomdata  geometry data
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void problem_bc_fill([[maybe_unused]] int i,
-                     [[maybe_unused]] int j,
-                     [[maybe_unused]] int k,
-                     [[maybe_unused]] Array4<Real> const& state,
-                     [[maybe_unused]] Real time,
-                     [[maybe_unused]] Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     [[maybe_unused]] GeometryData geomdata) {}
+void problem_bc_fill(int i, int j, int k,
+                      Array4<Real> const& state,
+                      Real time, Array1D<BCRec, 0, NUM_STATE-1> bcs,
+                      GeometryData geomdata) {
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+    amrex::ignore_unused(state);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(bcs);
+    amrex::ignore_unused(geomdata);
+}
 
 #endif

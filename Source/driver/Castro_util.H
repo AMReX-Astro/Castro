@@ -156,15 +156,17 @@ namespace geometry_util
 {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real volume([[maybe_unused]] const int& i,
-            [[maybe_unused]] const int& j,
-            [[maybe_unused]] const int& k,
+Real volume(const int& i, const int& j, const int& k,
             const GeometryData& geomdata)
 {
     // Given 3D cell-centered indices (i,j,k), return the volume of the zone.
     // Note that Castro has no support for angular coordinates, so
     // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     // in 2D, and Spherical in 1D.
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
 
     auto dx = geomdata.CellSize();
 
@@ -226,11 +228,14 @@ Real volume([[maybe_unused]] const int& i,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real area([[maybe_unused]] const int& i,
-          [[maybe_unused]] const int& j,
-          [[maybe_unused]] const int& k,
+Real area(const int& i, const int& j,const int& k,
           const int& idir, const GeometryData& geomdata)
 {
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+
     auto dx = geomdata.CellSize();
 
     Real a;
