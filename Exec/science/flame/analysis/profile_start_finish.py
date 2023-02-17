@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
-import sys
 
 import numpy as np
-from cycler import cycler
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -15,7 +12,7 @@ import yt
 
 def get_Te_profile(plotfile):
 
-    ds = yt.load(plotfile)
+    ds = yt.load(plotfile, hint="castro")
 
     time = float(ds.current_time)
     ad = ds.all_data()
@@ -45,14 +42,14 @@ def doit(prefix, nums, xmax):
 
     for n in range(0, len(nums)):
 
-        pfile = "{}{}".format(prefix, nums[n])
+        pfile = f"{prefix}{nums[n]}"
 
         time, x, T, p, rho, v, enuc = get_Te_profile(pfile)
 
-        ax_T.plot(x, T, color="C{}".format(n), label="t = {:6.4g} s".format(time))
-        ax_r.plot(x, rho, color="C{}".format(n))
-        ax_p.plot(x, p, color="C{}".format(n))
-        ax_v.plot(x, v, color="C{}".format(n))
+        ax_T.plot(x, T, color=f"C{n}", label=f"t = {time:6.4g} s")
+        ax_r.plot(x, rho, color=f"C{n}")
+        ax_p.plot(x, p, color=f"C{n}")
+        ax_v.plot(x, v, color=f"C{n}")
 
     ax_T.legend(frameon=False, fontsize="small")
     ax_T.set_ylabel("T (K)")

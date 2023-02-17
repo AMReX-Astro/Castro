@@ -80,7 +80,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         {
 
             burn_t burn_state;
+#ifdef NSE_NET
+	    burn_state.mu_p = U(i,j,k,UMUP);
+	    burn_state.mu_n = U(i,j,k,UMUN);
 
+	    burn_state.y_e = 0.0_rt;
+#endif
+	    
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
@@ -104,7 +110,17 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
             Real rhoInv = 1.0_rt / U(i,j,k,URHO);
 
             burn_state.rho = U(i,j,k,URHO);
+
+	    // Need to store current internal energy for self-consistent nse burn
+#ifdef NSE_NET
+	    burn_state.e = U(i,j,k,UEINT) * rhoInv;
+#endif
+            // this T is consistent with UEINT because we did an EOS call before
+            // calling this function
+
             burn_state.T = U(i,j,k,UTEMP);
+
+            burn_state.T_fixed = -1.e30_rt;
 
 #ifdef CXX_MODEL_PARSER
             if (drive_initial_convection) {
@@ -126,7 +142,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                     dist = std::sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2]);
                 }
 
-                burn_state.T = interpolate(dist, model::itemp);
+                burn_state.T_fixed = interpolate(dist, model::itemp);
 
             }
 #endif
@@ -213,7 +229,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 }
 
                 // update the state
-
+#ifdef NSE_NET
+		U(i,j,k,UMUP) = burn_state.mu_p;
+		U(i,j,k,UMUN) = burn_state.mu_n;
+#endif
                 for (int n = 0; n < NumSpec; ++n) {
                     U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
                 }
@@ -378,6 +397,10 @@ Castro::react_state(Real time, Real dt)
             burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
 #endif
 
+#ifdef NSE_NET
+	    burn_state.mu_p = U_old(i,j,k,UMUP);
+	    burn_state.mu_n = U_old(i,j,k,UMUN);
+#endif
             // Initialize some data for later.
 
             bool do_burn = true;
@@ -526,7 +549,10 @@ Castro::react_state(Real time, Real dt)
             if (do_burn) {
 
                 // update the state data.
-
+#ifdef NSE_NET
+	        U_new(i,j,k,UMUP) = burn_state.mu_p;
+	        U_new(i,j,k,UMUN) = burn_state.mu_n;
+#endif
                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
                 for (int n = 0; n < NumSpec; n++) {

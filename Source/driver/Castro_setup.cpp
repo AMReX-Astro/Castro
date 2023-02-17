@@ -569,6 +569,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -881,12 +891,18 @@ Castro::variableSetUp ()
 
 #ifndef AUX_THERMO
   //
-  // Abar
+  // Abar and Ye
   // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+
+#ifdef REACTIONS
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
