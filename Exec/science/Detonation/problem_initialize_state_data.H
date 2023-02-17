@@ -50,8 +50,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
 #ifdef NSE_NET
     // set initial conditions for NSE_NET
-    Real eps = 1.0e-10_rt;
-    bool input_ye_is_valid = false;
     ase_tol = problem::nse_tol;
     state(i,j,k,UMUP) = problem::mu_p;
     state(i,j,k,UMUN) = problem::mu_n;    
