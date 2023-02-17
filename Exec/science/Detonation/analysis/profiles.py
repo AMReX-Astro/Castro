@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
 
-    p.add_argument("--skip", type=int, default=10,
+    p.add_argument("--skip", type=int, default=1,
                    help="interval between plotfiles")
     p.add_argument("--xmin", type=float, default=0,
                    help="minimum x-coordinate to show")
