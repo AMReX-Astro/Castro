@@ -81,8 +81,8 @@ problem.idir = 1
 problem.w_T = 5.e-4
 problem.center_T = 0.3
 
-problem.mu_p = -6.0
-problem.mu_n = -11.0
+problem.mu_p = -5.0
+problem.mu_n = -10.0
 # refinement
 
 amr.refinement_indicators = temperr tempgrad
