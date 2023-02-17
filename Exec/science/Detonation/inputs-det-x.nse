@@ -39,7 +39,7 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
-castro.dtnuc_e        = 0.25
+#castro.dtnuc_e        = 0.25
 castro.use_retry      = 1
 castro.max_subcycles  = 32
 
