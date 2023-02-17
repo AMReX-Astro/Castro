@@ -48,6 +48,15 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 #endif
 
+#ifdef NSE_NET
+    // set initial conditions for NSE_NET
+    Real eps = 1.0e-10_rt;
+    bool input_ye_is_valid = false;
+    ase_tol = problem::nse_tol;
+    state(i,j,k,UMUP) = problem::mu_p;
+    state(i,j,k,UMUN) = problem::mu_n;    
+#endif
+    
     eos(eos_input_rt, eos_state);
 
     state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::vel - 2 * problem::vel * (1.0_rt - sigma));
