@@ -11,8 +11,12 @@
 using namespace amrex;
 
 void
-Castro::construct_old_gravity([[maybe_unused]] int amr_iteration, [[maybe_unused]] int amr_ncycle, Real time)
+Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_old_gravity()");
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -113,8 +117,12 @@ Castro::construct_old_gravity([[maybe_unused]] int amr_iteration, [[maybe_unused
 }
 
 void
-Castro::construct_new_gravity([[maybe_unused]] int amr_iteration, [[maybe_unused]] int amr_ncycle, Real time)
+Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_new_gravity()");
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
@@ -231,8 +239,11 @@ Castro::construct_new_gravity([[maybe_unused]] int amr_iteration, [[maybe_unused
 
 }
 
-void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, [[maybe_unused]] Real time, Real dt)
+void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_old_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -381,8 +392,11 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 }
 
 void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
-                                          [[maybe_unused]] Real time, Real dt)
+                                          Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_new_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();

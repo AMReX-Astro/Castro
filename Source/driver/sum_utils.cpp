@@ -310,11 +310,13 @@ Castro::locSquaredSum (const std::string& name,
 
 #ifdef GRAVITY
 void
-Castro::gwstrain ([[maybe_unused]] Real time,
+Castro::gwstrain (Real time,
 		  Real& h_plus_1, Real& h_cross_1,
 		  Real& h_plus_2, Real& h_cross_2,
 		  Real& h_plus_3, Real& h_cross_3,
 		  bool local) {
+
+    amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::gwstrain()");
 

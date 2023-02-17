@@ -61,7 +61,7 @@ AMREX_GPU_MANAGED Array2D<Real, 0, multipole::lnum_max, 0, multipole::lnum_max> 
 AMREX_GPU_MANAGED Array1D<Real, 0, multipole::lnum_max> multipole::parity_q0;
 AMREX_GPU_MANAGED Array2D<Real, 0, multipole::lnum_max, 0, multipole::lnum_max> multipole::parity_qC_qS;
 
-Gravity::Gravity(Amr* Parent, [[maybe_unused]] int _finest_level, BCRec* _phys_bc, int _Density)
+Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   :
     parent(Parent),
     LevelData(MAX_LEV),
@@ -76,6 +76,9 @@ Gravity::Gravity(Amr* Parent, [[maybe_unused]] int _finest_level, BCRec* _phys_b
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+
+     amrex::ignore_unused(_finest_level);
+
      AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
 
      Density = _Density;

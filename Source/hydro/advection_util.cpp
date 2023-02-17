@@ -25,7 +25,7 @@ using namespace amrex;
 
 void
 Castro::ctoprim(const Box& bx,
-                [[maybe_unused]] const Real time,
+                const Real time,
                 Array4<Real const> const& uin,
 #ifdef MHD
                 Array4<Real const> const& Bx,
@@ -38,6 +38,8 @@ Castro::ctoprim(const Box& bx,
 #endif
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
+
+  amrex::ignore_unused(time);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)

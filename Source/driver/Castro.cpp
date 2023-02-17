@@ -1928,8 +1928,11 @@ Castro::computeInitialDt (int                   finest_level,
 }
 
 void
-Castro::post_timestep ([[maybe_unused]] int iteration_local)
+Castro::post_timestep (int iteration_local)
 {
+
+    amrex::ignore_unused(iteration_local);
+
     BL_PROFILE("Castro::post_timestep()");
 
     //
@@ -3357,8 +3360,10 @@ Castro::errorEst (TagBoxArray& tags,
 
 
 void
-Castro::apply_problem_tags (TagBoxArray& tags, [[maybe_unused]] Real time)
+Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 {
+
+    amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::apply_problem_tags()");
 

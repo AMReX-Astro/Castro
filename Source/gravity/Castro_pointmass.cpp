@@ -4,8 +4,12 @@
 using namespace amrex;
 
 void
-Castro::pointmass_update([[maybe_unused]] Real time, [[maybe_unused]] Real dt)
+Castro::pointmass_update(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     int finest_level = parent->finestLevel();
 
     if (level == finest_level && point_mass_fix_solution)

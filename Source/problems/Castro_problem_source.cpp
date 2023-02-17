@@ -113,9 +113,12 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
 void
 Castro::fill_ext_source (const Real time, const Real dt,
-                         [[maybe_unused]] const MultiFab& state_old, const MultiFab& state_new,
+                         const MultiFab& state_old, const MultiFab& state_new,
                          MultiFab& ext_src)
 {
+
+    amrex::ignore_unused(state_old);
+
     GeometryData geomdata = geom.data();
 
 #ifdef _OPENMP

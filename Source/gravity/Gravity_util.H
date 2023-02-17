@@ -198,7 +198,7 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 AMREX_GPU_DEVICE AMREX_INLINE
 void multipole_symmetric_add(Real x, Real y, Real z,
                              const GpuArray<Real, AMREX_SPACEDIM>& problo,
-                             [[maybe_unused]] const GpuArray<Real, AMREX_SPACEDIM>& probhi,
+                             const GpuArray<Real, AMREX_SPACEDIM>& probhi,
                              Real rho, Real vol,
                              Array4<Real> const& qU0,
                              Array4<Real> const& qUC,
@@ -209,6 +209,9 @@ void multipole_symmetric_add(Real x, Real y, Real z,
                              int npts, int nlo, int index,
                              amrex::Gpu::Handler const& handler)
 {
+
+    amrex::ignore_unused(probhi);
+
     Real xLo = (2.0_rt * (problo[0] - problem::center[0])) / multipole::rmax - x;
 
 #if AMREX_SPACEDIM >= 2

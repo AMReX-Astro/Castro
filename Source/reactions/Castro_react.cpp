@@ -14,8 +14,11 @@ using namespace amrex;
 // Strang version
 
 bool
-Castro::react_state(MultiFab& s, MultiFab& r, [[maybe_unused]] Real time, Real dt, const int strang_half)
+Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::react_state()");
 
     // Sanity check: should only be in here if we're doing CTU.
@@ -309,8 +312,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, [[maybe_unused]] Real time, Real d
 // Simplified SDC version
 
 bool
-Castro::react_state([[maybe_unused]] Real time, Real dt)
+Castro::react_state(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
 
     // The goal is to update S_old to S_new with the effects of both
     // advection and reactions.  We come into this S_new having seen

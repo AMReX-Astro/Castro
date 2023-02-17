@@ -228,7 +228,7 @@ Real volume(const int& i, const int& j, const int& k,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real area(const int& i, const int& j,const int& k,
+Real area(const int& i, const int& j, const int& k,
           const int& idir, const GeometryData& geomdata)
 {
 

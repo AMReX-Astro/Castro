@@ -205,7 +205,7 @@ Castro::mol_consup(const Box& bx,
 #endif
                    Array4<Real const> const& srcU,
                    Array4<Real> const& update,
-                   [[maybe_unused]] const Real dt,
+                   const Real dt,
                    Array4<Real const> const& flux0,
 #if AMREX_SPACEDIM >= 2
                    Array4<Real const> const& flux1,
@@ -225,6 +225,7 @@ Castro::mol_consup(const Box& bx,
 #endif
                    Array4<Real const> const& vol) {
 
+  amrex::ignore_unused(dt);
 
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to

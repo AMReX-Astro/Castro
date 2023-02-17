@@ -13,9 +13,10 @@ using namespace amrex;
 void
 hse_fill(const Box& bx, Array4<Real> const& adv,
               Geometry const& geom, const Vector<BCRec>& bcr,
-              [[maybe_unused]] const Real time)
+              const Real time)
 {
 
+    amrex::ignore_unused(time);
 
     auto domlo = geom.Domain().loVect3d();
     auto domhi = geom.Domain().hiVect3d();
