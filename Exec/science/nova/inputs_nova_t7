@@ -64,12 +64,12 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 3        # maximum level number allowed
-amr.ref_ratio       = 2 2 2    # refinement ratio
-amr.regrid_int      = 2 2 2    # how often to regrid
+amr.max_level       = 5            # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2    # refinement ratio
+amr.regrid_int      = 2 2 2 2 2    # how often to regrid
 amr.max_grid_size   = 192
 amr.blocking_factor = 32
-amr.n_error_buf     = 2 2 2    # number of buffer cells in error est
+amr.n_error_buf     = 2 2 2 2 2    # number of buffer cells in error est
 amr.refine_grid_layout = 0
 
 
@@ -108,14 +108,14 @@ integrator.abort_on_failure = 0
 
 amr.refinement_indicators = dens temp edot
 
-amr.refine.dens.max_level = 3
+amr.refine.dens.max_level = 5
 amr.refine.dens.value_greater = 1.0e2
 amr.refine.dens.field_name = density
 
-amr.refine.temp.max_level = 3
+amr.refine.temp.max_level = 5
 amr.refine.temp.value_greater = 1.0e7
 amr.refine.temp.field_name = Temp
 
-amr.refine.edot.max_level = 3
+amr.refine.edot.max_level = 5
 amr.refine.edot.value_greater = 1.0e11
 amr.refine.edot.field_name = enuc
