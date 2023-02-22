@@ -1286,9 +1286,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         const Box& nbx = amrex::surroundingNodes(bx, idir);
 
         Array4<Real> const flux_arr = (flux[idir]).array();
-#if AMREX_SPACEDIM < 3 || defined(RADIATION)
         Array4<Real const> const area_arr = (area[idir]).array(mfi);
-#endif
 
         scale_flux(nbx,
 #if AMREX_SPACEDIM == 1
