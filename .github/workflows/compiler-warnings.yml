@@ -26,9 +26,9 @@ jobs:
       - name: Compile subchandra
         run: |
           cd Exec/science/subchandra
-          make DEBUG=TRUE WARN_ALL=TRUE WARN_ERROR=TRUE -j 2
+          make USE_MPI=FALSE USE_OMP=FALSE DEBUG=TRUE WARN_ALL=TRUE WARN_ERROR=TRUE -j 2
 
       - name: Compile wdmerger
         run: |
           cd Exec/science/wdmerger
-          make DEBUG=TRUE WARN_ALL=TRUE WARN_ERROR=TRUE -j 2
+          make USE_MPI=FALSE USE_OMP=FALSE DEBUG=TRUE WARN_ALL=TRUE WARN_ERROR=TRUE -j 2
