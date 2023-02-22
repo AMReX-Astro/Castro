@@ -220,17 +220,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
               q_arr, qaux_arr);
 
-
-
+#if AMREX_SPACEDIM == 2
       Array4<Real const> const areax_arr = area[0].array(mfi);
-#if AMREX_SPACEDIM >= 2
       Array4<Real const> const areay_arr = area[1].array(mfi);
-#endif
-#if AMREX_SPACEDIM == 3
-      Array4<Real const> const areaz_arr = area[2].array(mfi);
-#endif
-
       Array4<Real> const vol_arr = volume.array(mfi);
+#endif
 
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
@@ -1292,7 +1286,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         const Box& nbx = amrex::surroundingNodes(bx, idir);
 
         Array4<Real> const flux_arr = (flux[idir]).array();
+#if AMREX_SPACEDIOM < 3 || defined(RADIATION)
         Array4<Real const> const area_arr = (area[idir]).array(mfi);
+#endif
 
         scale_flux(nbx,
 #if AMREX_SPACEDIM == 1
