@@ -1930,6 +1930,9 @@ Castro::computeInitialDt (int                   finest_level,
 void
 Castro::post_timestep (int iteration_local)
 {
+
+    amrex::ignore_unused(iteration_local);
+
     BL_PROFILE("Castro::post_timestep()");
 
     //
@@ -2713,8 +2716,6 @@ Castro::reflux(int crse_level, int fine_level)
 
         // Now zero out any problematic flux corrections.
 
-        const MultiFab& mask = fine_lev.build_fine_mask();
-
         for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
@@ -2892,7 +2893,6 @@ Castro::reflux(int crse_level, int fine_level)
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
             reg = &getLevel(lev).phi_reg;
-            Castro& fine_lev = getLevel(lev);
 
             // Note that the scaling by the area here is corrected for by dividing by the
             // cell volume in the reflux. In this way we get a discrete divergence that
@@ -3363,6 +3363,8 @@ void
 Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 {
 
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::apply_problem_tags()");
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -3396,7 +3398,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
 
 void
-Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
+Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time)
 {
     BL_PROFILE("Castro::apply_tagging_restrictions()");
 
@@ -3799,7 +3801,7 @@ Castro::computeTemp(
                     MultiFab& Bz,
 #endif
 
-                    MultiFab& State, Real time, int ng)
+                    MultiFab& State, [[maybe_unused]] Real time, int ng)
 
 {
 

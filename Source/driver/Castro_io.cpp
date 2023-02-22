@@ -314,7 +314,6 @@ Castro::restart (Amr&     papa,
 #ifdef GRAVITY
 #if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       MultiFab& S_new = get_new_data(State_Type);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -995,7 +994,7 @@ Castro::plotFileOutput(const std::string& dir,
         //
         // Names of variables -- first state, then derived
         //
-        for (int i =0; i < plot_var_map.size(); i++)
+        for (int i =0; i < static_cast<int>(plot_var_map.size()); i++)
         {
             int typ = plot_var_map[i].first;
             int comp = plot_var_map[i].second;
@@ -1142,7 +1141,7 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (int i = 0; i < plot_var_map.size(); i++)
+    for (int i = 0; i < static_cast<int>(plot_var_map.size()); i++)
     {
         int typ  = plot_var_map[i].first;
         int comp = plot_var_map[i].second;

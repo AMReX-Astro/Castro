@@ -164,6 +164,10 @@ Real volume(const int& i, const int& j, const int& k,
     // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     // in 2D, and Spherical in 1D.
 
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+
     auto dx = geomdata.CellSize();
 
     Real vol;
@@ -227,6 +231,11 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real area(const int& i, const int& j, const int& k,
           const int& idir, const GeometryData& geomdata)
 {
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+
     auto dx = geomdata.CellSize();
 
     Real a;
