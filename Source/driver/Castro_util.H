@@ -237,6 +237,7 @@ Real area(const int& i, const int& j, const int& k,
     amrex::ignore_unused(i);
     amrex::ignore_unused(j);
     amrex::ignore_unused(k);
+    amrex::ignore_unused(idir);
 
     auto dx = geomdata.CellSize();
 

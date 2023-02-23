@@ -127,6 +127,8 @@ void
 Castro::initialize_do_advance(Real time)
 {
 
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::initialize_do_advance()");
 
     // Reset the CFL violation flag.

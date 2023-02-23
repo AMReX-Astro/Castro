@@ -220,7 +220,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
               q_arr, qaux_arr);
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM >= 2
       Array4<Real const> const areax_arr = area[0].array(mfi);
       Array4<Real const> const areay_arr = area[1].array(mfi);
       Array4<Real> const vol_arr = volume.array(mfi);
