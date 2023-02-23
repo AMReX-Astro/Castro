@@ -39,7 +39,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   int coord = geom.Coord();
 #endif
 
+#if AMREX_SPACEDIM >= 2
   const Real *dx = geom.CellSize();
+#endif
 
   MultiFab& S_new = get_new_data(State_Type);
 

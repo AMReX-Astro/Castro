@@ -238,8 +238,6 @@ Castro::divu(const Box& bx,
   Real dxinv = 1.0_rt / dx[0];
 #if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt / dx[1];
-#else
-  Real dyinv = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];

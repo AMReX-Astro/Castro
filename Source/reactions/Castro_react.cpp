@@ -76,7 +76,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
+#ifdef CXX_MODEL_PARSER
         const auto problo = geom.ProbLoArray();
+#endif
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
