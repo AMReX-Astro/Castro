@@ -23,6 +23,11 @@ jobs:
           sudo apt-get update -y -qq
           sudo apt-get -qq -y install curl g++>=9.3.0
 
+      - name: Compile Detonation
+        run: |
+          cd Exec/science/Detonation
+          make USE_MPI=FALSE USE_OMP=FALSE DEBUG=TRUE WARN_ALL=TRUE WARN_ERROR=TRUE -j 2
+
       - name: Compile subchandra
         run: |
           cd Exec/science/subchandra
