@@ -19,6 +19,9 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
