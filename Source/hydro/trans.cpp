@@ -97,7 +97,11 @@ Castro::actual_trans_single(const Box& bx,
     // and ir,jr,kr to be the face-centered indices needed for
     // the transverse flux difference
 
+    amrex::ignore_unused(hdt);
+
+#if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+#endif
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;

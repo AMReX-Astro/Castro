@@ -971,7 +971,9 @@ Castro::initData ()
     //
     // Loop over grids, call FORTRAN function to init with data.
     //
+#if AMREX_SPACEDIM > 1
     const Real* dx  = geom.CellSize();
+#endif
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -2203,6 +2205,9 @@ Castro::post_regrid (int lbase,
                      int new_finest)
 {
 
+    amrex::ignore_unused(lbase);
+    amrex::ignore_unused(new_finest);
+
     BL_PROFILE("Castro::post_regrid()");
 
     fine_mask.clear();
@@ -2660,7 +2665,9 @@ Castro::reflux(int crse_level, int fine_level)
         reg = &getLevel(lev).flux_reg;
 
         Castro& crse_lev = getLevel(lev-1);
+#ifdef GRAVITY
         Castro& fine_lev = getLevel(lev);
+#endif
 
         MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
