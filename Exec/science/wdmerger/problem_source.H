@@ -48,7 +48,6 @@ void problem_source (int i, int j, int k,
         const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
 
         GpuArray<Real, 3> loc;
-        GpuArray<Real, 3> vel;
         GpuArray<Real, 3> mom;
 #ifdef HYBRID_MOMENTUM
         GpuArray<Real, 3> hybrid_mom;

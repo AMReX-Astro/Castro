@@ -39,7 +39,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   int coord = geom.Coord();
 #endif
 
+#if AMREX_SPACEDIM >= 2
   const Real *dx = geom.CellSize();
+#endif
 
   MultiFab& S_new = get_new_data(State_Type);
 
@@ -220,17 +222,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
               q_arr, qaux_arr);
 
-
-
+#if AMREX_SPACEDIM == 2
       Array4<Real const> const areax_arr = area[0].array(mfi);
-#if AMREX_SPACEDIM >= 2
       Array4<Real const> const areay_arr = area[1].array(mfi);
-#endif
-#if AMREX_SPACEDIM == 3
-      Array4<Real const> const areaz_arr = area[2].array(mfi);
-#endif
-
       Array4<Real> const vol_arr = volume.array(mfi);
+#endif
 
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
