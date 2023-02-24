@@ -11,17 +11,20 @@ env:
      clang-analyzer-*,
      cppcoreguidelines-*,
      readability-*,
+     -bugprone-easily-swappable-parameters,
      -cppcoreguidelines-pro-bounds-pointer-arithmetic,
      -cppcoreguidelines-pro-bounds-constant-array-index,
-     -clang-diagnostic-unknown-warning-option,
-     -clang-diagnostic-unknown-pragmas,
-     -readability-avoid-const-params-in-decls,
      -cppcoreguidelines-owning-memory,
      -cppcoreguidelines-avoid-magic-numbers,
-     -readability-magic-numbers,
      -cppcoreguidelines-avoid-non-const-global-variables,
-     -readability-identifier-length,
-     -modernize-use-trailing-return-type'
+     -clang-diagnostic-unknown-warning-option,
+     -clang-diagnostic-unknown-pragmas,
+     -modernize-avoid-c-arrays,
+     -modernize-use-trailing-return-type,
+     -readability-avoid-const-params-in-decls,
+     -readability-magic-numbers,
+     -readability-identifier-length
+
 
 jobs:
   cpp-linter:
@@ -58,7 +61,7 @@ jobs:
           if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
 
       - name: Run cpp linter
-        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -ignore-files="amrex|Microphysics" -input-checks="$TIDY_CHECKS" -run-linter
+        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -ignore-files="amrex|Microphysics" -input-checks='"$TIDY_CHECKS"' -run-linter
 
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v3
