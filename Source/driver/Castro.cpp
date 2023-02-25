@@ -205,7 +205,9 @@ Castro::read_params ()
 {
     static bool done = false;
 
-    if (done) return;
+    if (done) {
+        return;
+    }
 
     done = true;
 
@@ -465,13 +467,14 @@ Castro::read_params ()
         amrex::Error();
       }
     }
-    if (dgeom.IsRZ() == 1)
-      rot_axis = 2;
+    if (dgeom.IsRZ() == 1) {
+        rot_axis = 2;
+    }
 #if (AMREX_SPACEDIM == 1)
-      if (do_rotation == 1) {
+    if (do_rotation == 1) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
         amrex::Error();
-      }
+    }
 #endif
 #endif
 
@@ -1705,8 +1708,9 @@ Castro::computeNewDt (int                    finest_level,
     // We are at the start of a coarse grid timecycle.
     // Compute the timesteps for the next iteration.
     //
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
@@ -1853,8 +1857,9 @@ Castro::computeNewDt (int                    finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
+                if (verbose) {
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                }
             }
 
         }
@@ -1869,8 +1874,9 @@ Castro::computeNewDt (int                    finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            if (verbose)
+            if (verbose) {
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            }
         }
     }
 
@@ -1967,9 +1973,9 @@ Castro::post_timestep (int iteration_local)
 
     // Ensure consistency with finer grids.
 
-    if (level < finest_level)
+    if (level < finest_level) {
         avgDown();
-
+    }
 
 #ifdef MHD
     MultiFab& Bx_new = get_new_data(Mag_Type_x);
@@ -2066,7 +2072,7 @@ Castro::post_timestep (int iteration_local)
 
     // Check to see if the user-supplied stopping criterion has been met.
 
-    if (castro::stopping_criterion_field != "" && level == 0) {
+    if (!castro::stopping_criterion_field.empty() && level == 0) {
         Real max_field_val = std::numeric_limits<Real>::min();
 
         for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
@@ -2157,13 +2163,15 @@ Castro::post_restart ()
                    gravity->update_max_rhs();
 
                    gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1)
+                   if (gravity->test_results_of_solves() == 1) {
                        gravity->test_composite_phi(level);
+                   }
                 }
             }
 
-            if (grown_factor > 1)
+            if (grown_factor > 1) {
                 post_grown_restart();
+            }
         }
     }
 #endif
@@ -2197,8 +2205,9 @@ Castro::postCoarseTimeStep (Real cumtime)
     BL_ASSERT(level == 0);
     AmrLevel::postCoarseTimeStep(cumtime);
 #ifdef GRAVITY
-    if (do_grav)
+    if (do_grav) {
         gravity->set_mass_offset(cumtime, 0);
+    }
 #endif
 
 }
@@ -2413,7 +2422,9 @@ Castro::post_init (Real /*stop_time*/)
         int nstep = parent->levelSteps(0);
         Real dtlev = parent->dtLevel(0);
         Real cumtime = parent->cumTime();
-        if (cumtime != 0.0) cumtime += dtlev;
+        if (cumtime != 0.0) {
+            cumtime += dtlev;
+        }
 
         bool sum_int_test = false;
 
@@ -2454,8 +2465,9 @@ Castro::post_grown_restart ()
 
     BL_PROFILE("Castro::post_grown_restart()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
 #ifdef GRAVITY
     if (do_grav) {
@@ -3065,7 +3077,9 @@ Castro::avgDown ()
 {
   BL_PROFILE("Castro::avgDown()");
 
-  if (level == parent->finestLevel()) return;
+  if (level == parent->finestLevel()) {
+      return;
+  }
 
   for (int k = 0; k < num_state_type; k++) {
       avgDown(k);
@@ -3252,7 +3266,9 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
     // This routine sets the velocity in state_in to be no larger than the
     // speed limit, if one has been applied.
 
-    if (castro::speed_limit <= 0.0_rt) return;
+    if (castro::speed_limit <= 0.0_rt) {
+        return;
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3295,7 +3311,9 @@ Castro::avgDown (int state_indx)
 {
     BL_PROFILE("Castro::avgDown(state_indx)");
 
-    if (level == parent->finestLevel()) return;
+    if (level == parent->finestLevel()) {
+        return;
+    }
 
     Castro& fine_lev = getLevel(level+1);
 
@@ -3317,8 +3335,9 @@ Castro::allocOldData ()
 
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
     MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
-    for (int k = 0; k < num_state_type; k++)
+    for (int k = 0; k < num_state_type; k++) {
         state[k].allocOldData();
+    }
 }
 
 void
@@ -3351,7 +3370,7 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < error_tags.size(); j++) {
         std::unique_ptr<MultiFab> mf;
-        if (error_tags[j].Field() != std::string()) {
+        if (!error_tags[j].Field().empty()) {
             mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
         }
         error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);

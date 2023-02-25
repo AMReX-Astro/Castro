@@ -320,8 +320,8 @@ Castro::variableSetUp ()
   // not (which is reflected by whether ambient_density is positive)
   // then we use the "small" quantities.
 
-  for (int n = 0; n < NUM_STATE; ++n) {
-      ambient::ambient_state[n] = 0.0;
+  for (double & s : ambient::ambient_state) {
+      s = 0.0;
   }
 
   ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
