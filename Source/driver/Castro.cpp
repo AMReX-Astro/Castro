@@ -1441,7 +1441,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    Castro* oldlev = dynamic_cast<Castro*> &old;
+    Castro* oldlev = dynamic_cast<Castro*>(&old);
 
     //
     // Create new grid data by fillpatching from old.
