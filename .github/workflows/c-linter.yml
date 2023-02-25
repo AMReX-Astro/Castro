@@ -1,6 +1,7 @@
 name: cpp-linter
 
 on: [pull_request]
+
 jobs:
   cpp-linter:
     runs-on: ubuntu-latest
@@ -39,7 +40,7 @@ jobs:
         run: |
           python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
           -ignore-files="amrex|Microphysics" \
-          -input-checks='bugprone-*,performance-*,portability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*,readability-*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-clang-diagnostic-unknown-warning-option,-clang-diagnostic-unknown-pragmas,-readability-avoid-const-params-in-decls,-cppcoreguidelines-owning-memory,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-non-private-member-variables-in-classes,-readability-identifier-length,-modernize-use-trailing-return-type' \
+          -config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
           -header-filter='/Source/|/Util/model_parser_cxx|^\./' \
           -run-linter
 
