@@ -435,7 +435,7 @@ Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::
 #ifdef BL_LAZY
     Lazy::QueueReduction( [=] () mutable {
 #endif
-        ParallelDescriptor::ReduceRealSum(update.dataPtr(), update.size(), ParallelDescriptor::IOProcessorNumber());
+        ParallelDescriptor::ReduceRealSum(update.dataPtr(), static_cast<int>(update.size()), ParallelDescriptor::IOProcessorNumber());
 
         if (ParallelDescriptor::IOProcessor()) {
             if (std::abs(update[URHO]) != 0.0 || std::abs(update[UEDEN]) != 0.0) {
