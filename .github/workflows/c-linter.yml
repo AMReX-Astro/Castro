@@ -1,6 +1,7 @@
 name: cpp-linter
 
 on: [pull_request]
+
 jobs:
   cpp-linter:
     runs-on: ubuntu-latest
@@ -41,7 +42,7 @@ jobs:
         run: |
           python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
           -ignore-files="amrex|Microphysics" \
-          -config-file=".clang-tidy" \
+          -config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
           -header-filter='/Source/|/Util/model_parser_cxx|^\./' \
           -run-linter
 
