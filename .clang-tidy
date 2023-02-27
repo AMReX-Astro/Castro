@@ -1,5 +1,5 @@
 Checks: >
-    '-*,
+     -*,
      bugprone-*,
      clang-analyzer-*,
      clang-diagnostic-*,
@@ -32,6 +32,4 @@ Checks: >
        -readability-named-parameter,
        -readability-simplify-boolean-expr,
      mpi-*,
-     openmp-*'
-
-HeaderFilterRegex: '[^n][^o][^l][^i][^n][^t]\.H$'
+     openmp-*
