@@ -66,3 +66,7 @@ problem.T0 = 5.e9
 problem.dT_fact = 0.2
 problem.rho0 = 5.e8
 problem.L_pert = 2.e7
+
+# microphysics
+
+network.nse_table_interp_linear = 0
