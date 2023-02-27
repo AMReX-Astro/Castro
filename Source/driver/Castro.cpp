@@ -701,13 +701,11 @@ Castro::Castro (Amr&            papa,
         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
       }
 
-#ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
       {
           std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
           amrex::Error();
       }
-#endif
    }
 
 #endif
