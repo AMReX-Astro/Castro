@@ -152,6 +152,11 @@ extern "C"
      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
+  void ca_derye
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
+
   void ca_dermagvort
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
@@ -179,21 +184,6 @@ extern "C"
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagcenz
-    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
-     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
-
-  void ca_derex
-    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
-     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
-
-  void ca_derey
-    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
-     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
-
-  void ca_derez
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);

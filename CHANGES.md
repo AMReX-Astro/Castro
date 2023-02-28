@@ -1,3 +1,33 @@
+# 23.01
+
+   * fixed the Sedov diagnostic (#2297)
+
+   * removed the timestep limiter diagnostic tool (#2332)
+
+# 22.12
+
+   * castro.lin_limit_state_interp now can be set to 2; this new
+     interpolater both prevents new extrema from being generated
+     and preserves linear combinations of state variables. (#2306)
+
+# 22.11
+
+   * We now output the location where the timestep is set (#2273)
+
+# 22.09
+
+   * Added an option `castro.allow_non_unit_aspect_zones` to permit
+     Castro to be run with dx != dy != dz.  This support is experimental.
+
+# 22.08
+
+   * fixed an issue with restart when using Poisson gravity (#2253)
+
+   * the source term corrector can now be used with simplified-SDC
+     (#2252)
+
+   * derefinement can now be specified via AMRErrorTag (#2238)
+
 # 22.06
 
    * castro.stopping_criterion_field and castro.stopping_criterion_value have
@@ -85,7 +115,7 @@
 
 # 21.12
 
-   * Tiling was added to main loop in MHD algorithm to enable 
+   * Tiling was added to main loop in MHD algorithm to enable
      scaling performance increase when using multiple threads
      in with OpenMP. See issue #2038.
 
@@ -176,7 +206,7 @@
 
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
-     
+
 # 21.05
 
    * The parameter use_eos_in_riemann was removed -- we found no

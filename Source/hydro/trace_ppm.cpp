@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <reconstruction.H>
 #include <flatten.H>
 
 using namespace amrex;
@@ -16,6 +17,8 @@ using namespace amrex;
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
+                  Array4<Real const> const& U_arr,
+                  Array4<Real const> const& rho_inv_arr,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real const> const& srcQ,
@@ -52,15 +55,6 @@ Castro::trace_ppm(const Box& bx,
 
 
   const auto dx = geom.CellSizeArray();
-
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
 
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
@@ -149,14 +143,6 @@ Castro::trace_ppm(const Box& bx,
   {
 
 
-    bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
-                                  (idir == 1 && j == domlo[1]) ||
-                                  (idir == 2 && k == domlo[2]));
-
-    bool hi_bc_test = hi_symm && ((idir == 0 && i == domhi[0]) ||
-                                  (idir == 1 && j == domhi[1]) ||
-                                  (idir == 2 && k == domhi[2]));
-
     Real cc = qaux_arr(i,j,k,QC);
 
 #if AMREX_SPACEDIM < 3
@@ -224,13 +210,19 @@ Castro::trace_ppm(const Box& bx,
     Real Im_p[3];
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
-    Real trho[5];
-    Real src[5];
 
-    load_stencil(q_arr, idir, i, j, k, QRHO, trho);
-    load_stencil(srcQ, idir, i, j, k, QUN, src);
+    if (use_pslope) {
+        Real trho[5];
+        Real src[5];
 
-    ppm_reconstruct_pressure(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], sm, sp);
+        load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+        load_stencil(srcQ, idir, i, j, k, QUN, src);
+
+        ppm_reconstruct_pslope(trho, s, src, flat, dx[idir], sm, sp);
+
+    } else {
+        ppm_reconstruct(s, flat, sm, sp);
+    }
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
     // reconstruct rho e
@@ -386,10 +378,10 @@ Castro::trace_ppm(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
+        int nc = upassmap(ipassive);
         int n = qpassmap(ipassive);
 
-
-        load_stencil(q_arr, idir, i, j, k, n, s);
+        load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
 

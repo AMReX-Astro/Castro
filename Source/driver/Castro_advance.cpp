@@ -48,7 +48,7 @@ Castro::advance (Real time,
 
     Real dt_new = dt;
 
-    initialize_advance(time, dt, amr_iteration, amr_ncycle);
+    initialize_advance(time, dt, amr_iteration);
 
     // Do the advance.
 
@@ -126,6 +126,8 @@ Castro::advance (Real time,
 void
 Castro::initialize_do_advance(Real time)
 {
+
+    amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::initialize_do_advance()");
 
@@ -232,7 +234,7 @@ Castro::finalize_do_advance()
 
 
 void
-Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 {
     BL_PROFILE("Castro::initialize_advance()");
 
@@ -250,6 +252,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Reset the retry information.
 
     in_retry = false;
+    num_subcycles_taken = 1;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -500,6 +503,16 @@ Castro::finalize_advance()
         FluxRegFineAdd();
     }
 
+    // The mass_fluxes array currently holds only the fluxes
+    // from the last subcycle. Override this with the sum of
+    // the fluxes from the full timestep (this will be used
+    // later during the reflux operation).
+
+    if (do_reflux && update_sources_after_reflux) {
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            MultiFab::Copy(*mass_fluxes[idir], *fluxes[idir], URHO, 0, 1, 0);
+        }
+    }
 
 #ifdef TRUE_SDC
     q.clear();

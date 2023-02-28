@@ -158,52 +158,42 @@ ppm_reconstruct(const Real* s,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const Real flatn,
-                         bool lo_bc_test, bool hi_bc_test,
-                         const Real dx,
-                         Real& sm, Real& sp) {
+ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+                       const Real dx,
+                       Real& sm, Real& sp) {
 
     Real tp[5];
 
-    if (use_pslope && rho[i0] >= pslope_cutoff_density) {
+    // compute the hydrostatic pressure in each zone center starting with i0
 
-        // compute the hydrostatic pressure in each zone center starting with i0
+    Real p0_hse = p[i0];
 
-        Real p0_hse = p[i0];
+    Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
+    Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
 
-        Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
-        Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
+    Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
+    Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
 
-        Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
-        Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
+    // this only makes sense if the pressures are positive
+    bool ptest = p0_hse < 0.0 ||
+                 pp1_hse < 0.0 ||
+                 pp2_hse < 0.0 ||
+                 pm1_hse < 0.0 ||
+                 pm2_hse < 0.0;
 
-        // this only makes sense if the pressures are positive
-        if (p0_hse < 0.0 || pp1_hse < 0.0 || pp2_hse < 0.0 || pm1_hse < 0.0 || pm2_hse < 0.0) {
-            p0_hse = 0.0;
-            pp1_hse = 0.0;
-            pp2_hse = 0.0;
-            pm1_hse = 0.0;
-            pm2_hse = 0.0;
-        }
+
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
 
         // subtract off the hydrostatic pressure
 
-        tp[i0] = 0.0_rt;
+        tp[i0] = p[i0] - p0_hse;
+
         tp[ip1] = p[ip1] - pp1_hse;
         tp[ip2] = p[ip2] - pp2_hse;
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
 
-        if (lo_bc_test) {
-            tp[im1] = 0.0_rt;  // HSE is perfectly satisfied
-            tp[im2] = 0.0_rt;
-        }
-
-        if (hi_bc_test) {
-            tp[ip1] = 0.0_rt;
-            tp[ip2] = 0.0_rt;
-        }
     } else {
 
         // don't subtract off HSE
@@ -221,7 +211,7 @@ ppm_reconstruct_pressure(const Real* rho, const Real* p, const Real* src, const 
     // now correct sm and sp to be back to the full pressure by
     // adding in the hydrostatic pressure at the interface
 
-    if (use_pslope && rho[i0] >= pslope_cutoff_density) {
+    if (!ptest && rho[i0] >= pslope_cutoff_density) {
         sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
         sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
     }

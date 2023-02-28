@@ -19,6 +19,9 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -67,6 +70,36 @@ Castro::do_advance_ctu(Real time,
     // Check for NaN's.
 
     check_for_nan(S_old);
+
+    // If we're doing a step later than the first on each level, the fluid
+    // state might have evolved to the point where the AMR timestep could be
+    // significantly too large, but we don't have freedom to adjust the AMR
+    // timestep at that point. Trying to evolve with a dt that is too large
+    // could result in catastrophic behavior such that we don't even get to
+    // the point where we can bail out later in the advance, so let's just
+    // go directly into a retry now if we're too far away from the needed dt.
+
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
+
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
+
+        if (castro::change_max * old_dt < dt) {
+            status.success = false;
+            status.reason = "pre-advance timestep validity check failed";
+            return status;
+        }
+
+    }
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -335,7 +368,7 @@ Castro::do_advance_ctu(Real time,
 
             // Do the ODE integration to capture the reaction source terms.
 
-            bool burn_success = react_state(time, dt);
+            burn_success = react_state(time, dt);
 
             // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -344,8 +377,6 @@ Castro::do_advance_ctu(Real time,
                 status.reason = "burn unsuccessful";
                 return status;
             }
-
-            MultiFab& S_new = get_new_data(State_Type);
 
             clean_state(S_new, time + dt, S_new.nGrow());
 
@@ -361,10 +392,7 @@ Castro::do_advance_ctu(Real time,
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
             SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 
-            MultiFab& R_old = get_old_data(Reactions_Type);
             R_old.setVal(0.0, R_old.nGrow());
-
-            MultiFab& R_new = get_new_data(Reactions_Type);
             R_new.setVal(0.0, R_new.nGrow());
 
         }
@@ -407,11 +435,12 @@ Castro::do_advance_ctu(Real time,
 
     if (castro::check_dt_after_advance) {
 
-        Real new_dt = estTimeStep();
+        int is_new = 1;
+        Real new_dt = estTimeStep(is_new);
 
         if (castro::change_max * new_dt < dt) {
             status.success = false;
-            status.reason = "timestep validity check failed";
+            status.reason = "post-advance timestep validity check failed";
             return status;
         }
 
@@ -457,30 +486,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
-
-            if (!prev_state[k]->hasOldData()) {
-
-#ifdef AMREX_USE_GPU
-                Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
-#endif
-                *prev_state[k] = state[k];
-#ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
-#endif
-            }
-
-        }
+        save_data_for_retry();
 
         // Clear the contribution to the fluxes from this step.
 
@@ -753,6 +759,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
+
+    // Record the number of subcycles we took for diagnostic purposes.
+
+    num_subcycles_taken = sub_iteration;
 
     if (sub_iteration > 1) {
 

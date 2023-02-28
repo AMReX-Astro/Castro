@@ -97,7 +97,11 @@ Castro::actual_trans_single(const Box& bx,
     // and ir,jr,kr to be the face-centered indices needed for
     // the transverse flux difference
 
+    amrex::ignore_unused(hdt);
+
+#if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+#endif
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
@@ -359,6 +363,30 @@ Castro::actual_trans_single(const Box& bx,
             }
 #endif
             reset_state = true;
+        }
+
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
         }
 
         // Convert back to primitive form
@@ -790,6 +818,30 @@ Castro::actual_trans_final(const Box& bx,
             }
 #endif
             reset_state = true;
+        }
+
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
         }
 
         qo_arr(i,j,k,QRHO) = rrnewn;

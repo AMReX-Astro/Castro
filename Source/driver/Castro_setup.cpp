@@ -17,9 +17,6 @@
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 #include <ambient.H>
 
 using std::string;
@@ -267,8 +264,8 @@ Castro::variableSetUp ()
   for (int n = 0; n < NumSpec; ++n) {
       eos_state.xn[n] = 1.0_rt / NumSpec;
   }
-#ifdef NSE_THERMO
-  set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+  set_aux_comp_from_X(eos_state);
 #endif
 
   eos(eos_input_rt, eos_state);
@@ -317,8 +314,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Geometry& dgeom = DefaultGeometry();
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
@@ -338,17 +333,20 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  Interpolater* interp;
+  MFInterpolater* interp;
 
   if (state_interp_order == 0) {
-    interp = &pc_interp;
+    interp = &mf_pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1) {
-      interp = &lincc_interp;
+    if (lin_limit_state_interp == 2) {
+      interp = &mf_linear_slope_minmax_interp;
+    }
+    else if (lin_limit_state_interp == 1) {
+      interp = &mf_lincc_interp;
     }
     else {
-      interp = &cell_cons_interp;
+      interp = &mf_cell_cons_interp;
     }
   }
 
@@ -569,6 +567,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -879,14 +887,20 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
-#ifndef NSE_THERMO
+#ifndef AUX_THERMO
   //
-  // Abar
-  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
+  // Abar and Ye
+  // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+
+#ifdef REACTIONS
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
@@ -988,31 +1002,6 @@ Castro::variableSetUp ()
 //z component
   derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
   derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
-
-//Electric Field
-//x component
-  derive_lst.add("E_x", IndexType::TheCellType(), 1, ca_derex, the_same_box);
-  derive_lst.addComponent("E_x", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("E_x", desc_lst, Mag_Type_z, 0, 1);
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Ymom, 1);
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Zmom, 1);
-
-//y component
-  derive_lst.add("E_y", IndexType::TheCellType(), 1, ca_derey, the_same_box);
-  derive_lst.addComponent("E_y", desc_lst, Mag_Type_x, 0, 1);
-  derive_lst.addComponent("E_y", desc_lst, Mag_Type_z, 0, 1);
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Xmom, 1);
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Zmom, 1);
-
-//z component
-  derive_lst.add("E_z", IndexType::TheCellType(), 1, ca_derez, the_same_box);
-  derive_lst.addComponent("E_z", desc_lst, Mag_Type_x, 0, 1);
-  derive_lst.addComponent("E_z", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Xmom, 1);
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Ymom, 1);
 
 //Divergence of B
   derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);

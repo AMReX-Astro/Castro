@@ -16,6 +16,7 @@ state_interp_order           int           1
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables
+# 2: preserve linear combinations and prevent new extrema
 lin_limit_state_interp       int           0
 
 # Number of ghost zones for state data to have. Note that
@@ -30,6 +31,10 @@ do_reflux                    int           1
 # Note: this only works for the CTU and simple-SDC time_integration_method
 # drivers
 update_sources_after_reflux  int           1
+
+# Castro was originally written assuming dx = dy = dz.  This assumption is
+# enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
+allow_non_unit_aspect_zones  int           0
 
 
 #-----------------------------------------------------------------------------
@@ -346,6 +351,9 @@ init_shrink                  Real          1.0
 # one step to the next. Must be greater than 1.0---use max_dt to set a cap
 # on the timestep.
 change_max                   Real          1.1
+
+# whether to check that we will take a valid timestep before the advance
+check_dt_before_advance      int           1
 
 # whether to check that we took a valid timestep after the advance
 check_dt_after_advance       int           1

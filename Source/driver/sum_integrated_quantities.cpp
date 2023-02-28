@@ -305,7 +305,7 @@ Castro::sum_integrated_quantities ()
 
             std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
             std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
-#ifdef REACTION
+#ifdef REACTIONS
             std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
 #endif
 
@@ -373,7 +373,10 @@ Castro::sum_integrated_quantities ()
 
                data_log1 << std::setw(intwidth) <<  timestep;
 
-               if (time < 1.e-4_rt || time > 1.e4_rt) {
+               if (time == 0.0_rt) {
+                   data_log1 << std::fixed;
+               }
+               else if (time < 1.e-4_rt || time > 1.e4_rt) {
                    data_log1 << std::scientific;
                }
                else {
@@ -509,7 +512,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -590,7 +596,7 @@ Castro::sum_integrated_quantities ()
                     std::string outString  = "";
                     std::string massString = "Mass ";
                     std::string specString = species_names[i];
-                    while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
+                    while (static_cast<int>(outString.length() + specString.length() + massString.length()) < datwidth) outString += " ";
                     outString += massString;
                     outString += specString;
                     header << std::setw(datwidth) << outString; ++n;
@@ -614,7 +620,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -655,6 +664,15 @@ Castro::sum_integrated_quantities ()
         ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
 #endif
 
+        // Calculate maximum number of advance subcycles across all levels.
+
+        int max_num_subcycles = 0;
+        if (time > 0.0_rt) {
+            for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
+                max_num_subcycles = std::max(max_num_subcycles, getLevel(lev).num_subcycles_taken);
+            }
+        }
+
         if (ParallelDescriptor::IOProcessor()) {
 
             std::ostream& log = *Castro::data_logs[3];
@@ -669,6 +687,7 @@ Castro::sum_integrated_quantities ()
                 header << std::setw(fixwidth) << "                     TIME"; ++n;
                 header << std::setw(fixwidth) << "                       DT"; ++n;
                 header << std::setw(intwidth) << "  FINEST LEV";              ++n;
+                header << std::setw(fixwidth) << "  MAX NUMBER OF SUBCYCLES"; ++n;
                 header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
 #ifdef AMREX_USE_GPU
                 header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
@@ -685,8 +704,9 @@ Castro::sum_integrated_quantities ()
                 }
 
                 log << std::setw(intwidth) << 4; // Handle the finest lev column
+                log << std::setw(fixwidth) << 5; // Handle the subcycle count column
 
-                for (int i = 5; i <= n; ++i) {
+                for (int i = 6; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
                 }
 
@@ -700,7 +720,10 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time == 0.0_rt) {
+                log << std::fixed;
+            }
+            else if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -713,6 +736,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
             log << std::setw(intwidth)                                    << parent->finestLevel();
+            log << std::setw(fixwidth)                                    << max_num_subcycles;
             log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
 #ifdef AMREX_USE_GPU
             log << std::setw(datwidth)                                    << gpu_size_used_MB;
