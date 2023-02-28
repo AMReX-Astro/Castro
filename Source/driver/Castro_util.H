@@ -61,6 +61,8 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 {
 
+    amrex::ignore_unused(coord);
+
     // Keep track of which components of the momentum flux have pressure
 
 #if AMREX_SPACEDIM <= 2
@@ -164,6 +166,10 @@ Real volume(const int& i, const int& j, const int& k,
     // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     // in 2D, and Spherical in 1D.
 
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+
     auto dx = geomdata.CellSize();
 
     Real vol;
@@ -227,6 +233,12 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real area(const int& i, const int& j, const int& k,
           const int& idir, const GeometryData& geomdata)
 {
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+    amrex::ignore_unused(idir);
+
     auto dx = geomdata.CellSize();
 
     Real a;
