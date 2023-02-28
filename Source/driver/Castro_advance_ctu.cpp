@@ -19,6 +19,9 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -375,8 +378,6 @@ Castro::do_advance_ctu(Real time,
                 return status;
             }
 
-            MultiFab& S_new = get_new_data(State_Type);
-
             clean_state(S_new, time + dt, S_new.nGrow());
 
             // Check for NaN's.
@@ -391,10 +392,7 @@ Castro::do_advance_ctu(Real time,
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
             SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 
-            MultiFab& R_old = get_old_data(Reactions_Type);
             R_old.setVal(0.0, R_old.nGrow());
-
-            MultiFab& R_new = get_new_data(Reactions_Type);
             R_new.setVal(0.0, R_new.nGrow());
 
         }

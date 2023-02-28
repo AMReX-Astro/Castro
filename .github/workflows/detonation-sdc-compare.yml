@@ -1,0 +1,46 @@
+name: detonation-sdc
+
+on: [pull_request]
+jobs:
+  detonation-sdc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl g++>=9.3.0
+
+      - name: Compile Detonation
+        run: |
+          cd Exec/science/Detonation
+          make DIM=1 USE_MPI=FALSE -j 2 USE_SIMPLIFIED_SDC=TRUE
+
+      - name: Run Detonation
+        run: |
+          cd Exec/science/Detonation
+          ./Castro1d.gnu.SMPLSDC.ex inputs-det-x.nse max_step=40 castro.time_integration_method=3
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j 2
+
+      - name: Check the extrema
+        run: |
+          cd Exec/science/Detonation
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex det_x_plt00040 > fextrema.out
+          diff fextrema.out ci-benchmarks/sdc_det_plt00040_extrema.out
+

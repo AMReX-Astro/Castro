@@ -501,9 +501,8 @@ public:
 /// @param level        Index of level
 /// @param phi          Gravitational potential
 /// @param grav_vector  Gravity vector
-/// @param point_mass   Mass of pointmass
 ///
-    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
+    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector);
 
 ///
 /// Get the rhs

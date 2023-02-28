@@ -316,6 +316,8 @@ Castro::gwstrain (Real time,
 		  Real& h_plus_3, Real& h_cross_3,
 		  bool local) {
 
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::gwstrain()");
 
     // We have nothing to do if the user did not request the gravitational wave

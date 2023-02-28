@@ -68,8 +68,12 @@ Castro::estdt_cfl (int is_new)
       // Compute velocity and then calculate CFL timestep.
 
       Real ux = u(i,j,k,UMX) * rhoInv;
+#if AMREX_SPACEDIM >= 2
       Real uy = u(i,j,k,UMY) * rhoInv;
+#endif
+#if AMREX_SPACEDIM == 3
       Real uz = u(i,j,k,UMZ) * rhoInv;
+#endif
 
       Real c = eos_state.cs;
 
