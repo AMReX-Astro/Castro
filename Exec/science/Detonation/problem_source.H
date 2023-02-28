@@ -13,6 +13,9 @@ void problem_source (int i, int j, int k,
                      const Real dt, const Real time)
 {
 
+    amrex::ignore_unused(dt);
+    amrex::ignore_unused(time);
+
     // Add a mock gravitational acceleration which points to the center
     // with uniform magnitude on either side of the center.
 
