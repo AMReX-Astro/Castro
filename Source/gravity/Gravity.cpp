@@ -76,6 +76,9 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+
+     amrex::ignore_unused(_finest_level);
+
      AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
 
      Density = _Density;
@@ -894,9 +897,8 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
-        Real point_mass = cs->get_point_mass();
         MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
-        add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+        add_pointmass_to_gravity(level,phi,grav_vector);
     }
 }
 
@@ -967,9 +969,8 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
-        Real point_mass = cs->get_point_mass();
         MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
-        add_pointmass_to_gravity(level,phi,grav_vector,point_mass);
+        add_pointmass_to_gravity(level,phi,grav_vector);
     }
 }
 
@@ -1812,7 +1813,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         // is coded to only add to the moment arrays, so it is safe
         // to directly hand the arrays to them.
 
-        const Box& domain = parent->Geom(lev).Domain();
         const auto dx = parent->Geom(lev).CellSizeArray();
         const auto problo = parent->Geom(lev).ProbLoArray();
         const auto probhi = parent->Geom(lev).ProbHiArray();
@@ -2129,9 +2129,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         auto qL0_arr = qL0.array();
         auto qLC_arr = qLC.array();
         auto qLS_arr = qLS.array();
-        auto qU0_arr = qU0.array();
-        auto qUC_arr = qUC.array();
-        auto qUS_arr = qUS.array();
         auto phi_arr = phi[mfi].array();
 
         amrex::ParallelFor(bx,
@@ -2960,7 +2957,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 }
 
 void
-Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
+Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector)
 {
     BL_PROFILE("Gravity::add_pointmass_to_gravity()");
     
@@ -3117,10 +3114,6 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             lev_vol[i] = 0.;
             lev_mass[i] = 0.;
         });
-
-        const Geometry& geom = parent->Geom(lev);
-        const Real* dx   = geom.CellSize();
-        Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
@@ -3369,14 +3362,9 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     // Integrate radially outward to define the gravity
 
-    Real halfdr = 0.5_rt * dr;
-
-    Real mass_encl = 0.0_rt;
-    Real vol_total_i, vol_outer_shell, vol_upper_shell;
-
-    Real* const den = radial_den_summed.dataPtr();
     Real* const mass = radial_mass_summed.dataPtr();
 #ifdef GR_GRAV
+    Real* const den = radial_den_summed.dataPtr();
     Real* const pres = radial_pres_summed.dataPtr();
 #endif
     Real* const grav = radial_grav.dataPtr();

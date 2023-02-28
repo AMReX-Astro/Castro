@@ -85,8 +85,8 @@ Real stellar_mask (int i, int j, int k,
                          (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
 
-    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-        loc[i] -= problem::center[i];
+    for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+        loc[iloc] -= problem::center[iloc];
     }
 
     Real phi_rot = rotational_potential(loc);
