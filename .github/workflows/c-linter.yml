@@ -1,6 +1,7 @@
 name: cpp-linter
 
 on: [pull_request]
+
 jobs:
   cpp-linter:
     runs-on: ubuntu-latest
@@ -36,7 +37,12 @@ jobs:
           if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
 
       - name: Run cpp linter
-        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" -run-linter
+        run: |
+          python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
+          -ignore-files="amrex|Microphysics" \
+          -config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
+          -header-filter='/Source/|/Util/model_parser_cxx|^\./' \
+          -run-linter
 
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v3
