@@ -14,13 +14,11 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
-# We want to use the dimension agnostic version of certain source files.
+USE_CXX_MODEL_PARSER = TRUE
+NUM_MODELS = 2
 
-GPU_COMPATIBLE_PROBLEM = TRUE
-
-# Opt in to the auto-generated problem parameters.
-
-USE_PROB_PARAMS = TRUE
+# define the location of the CASTRO top directory
+CASTRO_HOME  ?= ../../..
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 

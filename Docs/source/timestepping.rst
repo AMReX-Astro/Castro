@@ -75,15 +75,15 @@ The following parameters affect the timestep choice:
   * ``castro.initial_dt``: initial level 0 time
     step regardless of other settings (Real :math:`> 0`; unused if not set)
 
-  * ``castro.dt_cutoff``: time step below which calculation
-    will abort (Real :math:`> 0`; default: 0.0)
+  * ``castro.dt_cutoff``: as a fraction of the current simulation time,
+    the time step below which the calculation will abort (Real
+    :math:`> 0`; default: 1.e-12); typically not user-defined
 
 As an example, consider::
 
     castro.cfl = 0.9
     castro.init_shrink = 0.01
     castro.change_max = 1.1
-    castro.dt_cutoff = 1.e-20
 
 This defines the :math:`\mathtt{cfl}` parameter in :eq:`eq:cfl` to be
 0.9, but sets (via ``init_shrink``) the first timestep we take to
@@ -93,7 +93,7 @@ the hydrodynamic timestep at the start of a simulation. The
 more than 10% over a coarse timestep. Note that the time step can
 shrink by any factor; this only controls the extent to which it can
 grow. The ``dt_cutoff`` parameter will force the code to abort if
-the timestep ever drops below :math:`10^{-20}`. This is a safety
+the timestep ever drops below :math:`10^{-12}` of the current time. This is a safety
 feature—if the code hits such a small value, then something likely
 went wrong in the simulation, and by aborting, you won’t burn through
 your entire allocation before noticing that there is an issue.
@@ -198,10 +198,14 @@ Alternately, we could do::
 which will subcycle twice at every level (except level 0).
 
 
+.. index:: retry
+
 .. _ch:retry:
 
 Retry Mechanism
 ---------------
+
+.. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.retry_small_density_cutoff, castro.small_dens
 
 Castro's Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
@@ -223,15 +227,21 @@ A retry can be triggered by a number of conditions:
 
   * Exceeding the CFL condition for a level
 
-  * A negative density is encountered
+  * A negative density is encountered.  This check can be disabled
+    in low density regions by setting ``castro.retry_small_density_cutoff`` to the density below which we silently reset the density to
+    ``castro.small_dens``.
+
+  * The mass fractions fall outside of :math:`[0, 1]` -- we use
+    ``castro.abundance_failure_tolerance`` with a default value of
+    ``0.01`` to trigger the retry.  This check can be disabled at low
+    densities by setting ``castro.abundance_failure_rho_cutoff`` to
+    the density below which we want to silently renormalize the species.
 
   * Integration failure in the burner
 
-    Note: this requires that the following be set in your ``&extern``
-    namelist::
+    Note: this requires that the following be set in your ``inputs``::
 
-      retry_burn = F
-      abort_on_failure = F
+      integrator.abort_on_failure = 0
 
     This instructs the integration routine in Microphysics to not
     abort when the integration fails, but instead to tell the calling
@@ -240,7 +250,7 @@ A retry can be triggered by a number of conditions:
 
     .. note::
 
-       The combination of ``use_retry = 0`` and ``abort_on_failure = F``
+       The combination of ``castro.use_retry = 0`` and ``integrator.abort_on_failure = 0``
        is unsafe and not supported.
 
        For true SDC, we disable retry and reset ``abort_on_failure`` to

@@ -77,7 +77,7 @@ problems are:
 
    * ``Sod``: A one-dimensional shock tube setup, including the
      classic Sod problem. This setup was used in the original Castro
-     paper.
+     paper :cite:`castro_I`.
 
    * ``Sod_stellar``: A version of the Sod shock tube for the general
      stellar equation of state. This setup and the included inputs
@@ -116,10 +116,10 @@ problems are:
      compared to a semi-analytic solution described in :cite:`lowrieedwards`.
    
    * ``RadFront``: This is the optically-thin streaming of a radiation front problem
-     demonstrated originally in Castro in :cite:`castroII`.
+     demonstrated originally in Castro in :cite:`CastroII`.
 
    * ``RadShestakovBolstad``: This is a linear multigroup diffusion test problem first described
-     by :cite:`SHESTAKOV2005` and demonstrated in Castro in :cite:`castroIII`.
+     by :cite:`SHESTAKOV2005` and demonstrated in Castro in :cite:`CastroIII`.
 
    * ``RadSourceTest``: Test the implementation of the source terms in the gray radiation
      solver.  This does the "relaxation to thermal equilibrium" test as
@@ -147,7 +147,7 @@ problems are:
      Maestro reaction paper :cite:`maestro:III`.
 
    * ``reacting_convergence``: a simple reacting hydrodynamics problem for measuring convergence,
-     used in :cite:`castro-sdc`.
+     used in :cite:`castro-sdc` and :cite:`strang_rnaas`
 
 * ``science``:
 
@@ -161,7 +161,7 @@ problems are:
      was used for the testing in :cite:`eiden:2020`.
 
    * ``flame_wave``: this is a model of a flame propagating across a neutron star as a model for
-     an X-ray burst.  This was presented in :cite:`eiden:2020`.
+     an X-ray burst.  This was presented in :cite:`eiden:2020` and :cite:`harpole2021dynamics`.
 
    * ``nova``: this models convection at the base of an accreted layer
      on a white dwarf as a model of a nova.
@@ -182,6 +182,4 @@ problems are:
      in both :cite:`castro-sdc` and :cite:`eiden:2020`.
 
    * ``particles_test``: a test of passive particles.
-
-   * ``reactions_driver_test``: a test that just calls the reaction terms on a cube of data.
 

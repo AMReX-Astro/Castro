@@ -6,11 +6,11 @@ stop_time =  2.5
 geometry.is_periodic = 1  1  0 
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0    0    0
-geometry.prob_hi     =  0.5  0.015625  1.0 
+geometry.prob_hi     =  0.5  0.03125  1.0 
 # use with single level
 #amr.n_cell           =  256   256   512
 # use with 1 level of refinement
-amr.n_cell           =  128   4   256
+amr.n_cell           =  128   8   256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -25,9 +25,7 @@ castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav = 1
 
-castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-#castro.apply_sources_consecutively = 1
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.0
@@ -49,9 +47,15 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 5
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
@@ -64,5 +68,9 @@ amr.plot_int        = 200        # number of timesteps between plotfiles
 amr.plot_vars  =  density Temp
 amr.derive_plot_vars = x_velocity y_velocity z_velocity magvel magvort pressure
 
-#PROBIN FILENAME
-amr.probin_file = probin_3d_mhd
+# PROBLEM PARAMETERS
+problem.B_0 = 0.035
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.67

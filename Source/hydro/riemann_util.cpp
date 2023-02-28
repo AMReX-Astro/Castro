@@ -1,18 +1,15 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
 #endif
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
-
-#include <eos.H>
 
 #include <cmath>
 
@@ -21,14 +18,10 @@ using namespace amrex;
 #include <riemann.H>
 
 void
-Castro::compute_flux_q(const Box& bx,
-                       Array4<Real const> const& qint,
-                       Array4<Real> const& F,
-#ifdef RADIATION
-                       Array4<Real const> const& lambda,
-                       Array4<Real> const& rF,
-#endif
-                       const int idir, const int enforce_eos) {
+Castro::compute_flux_from_q(const Box& bx,
+                            Array4<Real const> const& qint,
+                            Array4<Real> const& F,
+                            const int idir) {
 
   // given a primitive state, compute the flux in direction idir
   //
@@ -64,21 +57,9 @@ Castro::compute_flux_q(const Box& bx,
     im3 = UMY;
   }
 
-#ifdef RADIATION
-  int fspace_t = Radiation::fspace_advection_type;
-  int comov = Radiation::comoving;
-  int limiter = Radiation::limiter;
-  int closure = Radiation::closure;
-#endif
-
-  const Real lT_guess = T_guess;
-
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -86,27 +67,6 @@ Castro::compute_flux_q(const Box& bx,
 
     Real u_adv = qint(i,j,k,iu);
     Real rhoeint = qint(i,j,k,QREINT);
-
-    // if we are enforcing the EOS, then take rho, p, and X, and
-    // compute rhoe
-    if (enforce_eos == 1) {
-      eos_t eos_state;
-      eos_state.rho = qint(i,j,k,QRHO);
-      eos_state.p = qint(i,j,k,QPRES);
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qint(i,j,k,QFS+n);
-      }
-      eos_state.T = lT_guess;  // initial guess
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qint(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      rhoeint = qint(i,j,k,QRHO) * eos_state.e;
-    }
 
     // Compute fluxes, order as conserved state (not q)
     F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
@@ -131,21 +91,10 @@ Castro::compute_flux_q(const Box& bx,
     F(i,j,k,USHK) = 0.0;
 #endif
 
-#ifdef RADIATION
-    if (fspace_t == 1) {
-      for (int g = 0; g < NGROUPS; g++) {
-        Real eddf = Edd_factor(lambda(i,j,k,g), limiter, closure);
-        Real f1 = 0.5e0_rt*(1.0_rt-eddf);
-        rF(i,j,k,g) = (1.0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv;
-      }
-    } else {
-      // type 2
-      for (int g = 0; g < NGROUPS; g++) {
-        rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv;
-      }
-    }
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
 #endif
-
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n  = upassmap(ipassive);
@@ -162,24 +111,17 @@ Castro::compute_flux_q(const Box& bx,
     qgdnv_zone[GDV] = qint(i,j,k,QV);
     qgdnv_zone[GDW] = qint(i,j,k,QW);
     qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
-#ifdef RADIATION
-    for (int g = 0; g < NGROUPS; g++) {
-        qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
-        qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
-    }
-#endif
     GpuArray<Real, NUM_STATE> F_zone;
     for (int n = 0; n < NUM_STATE; n++) {
         F_zone[n] = F(i,j,k,n);
     }
-    compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F_zone);
+    compute_hybrid_flux(qgdnv_zone, geomdata, idir, i, j, k, F_zone);
     for (int n = 0; n < NUM_STATE; n++) {
         F(i,j,k,n) = F_zone[n];
     }
 #endif
   });
 }
-
 
 void
 Castro::store_godunov_state(const Box& bx,
@@ -194,11 +136,13 @@ Castro::store_godunov_state(const Box& bx,
   // hydro advancement.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-    // the hybrid routine uses the Godunov indices, not the full NQ state
+
+#ifdef HYBRID_MOMENTUM
     qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO);
+#endif
     qgdnv(i,j,k,GDU) = qint(i,j,k,QU);
     qgdnv(i,j,k,GDV) = qint(i,j,k,QV);
     qgdnv(i,j,k,GDW) = qint(i,j,k,QW);

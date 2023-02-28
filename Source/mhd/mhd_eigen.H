@@ -1,7 +1,7 @@
 #ifndef CASTRO_MHD_EIGEN_H
 #define CASTRO_MHD_EIGEN_H
 
-#include "mhd_util.H"
+#include <mhd_util.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
@@ -668,9 +668,14 @@ check_evecs(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
         dot += leig(m, p) * reig(p, n);
       }
 
+#ifndef AMREX_USE_GPU
       std::cout << "l(" << m << ") . r(" << n << ") = " << dot << std::endl;
+#endif
+
     }
+#ifndef AMREX_USE_GPU
     std::cout << std::endl;
+#endif
   }
 }
 #endif

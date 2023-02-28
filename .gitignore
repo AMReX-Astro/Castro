@@ -31,6 +31,9 @@ chk*
 *chk?????
 *plt?????.old*
 *chk?????.old*
+*plt?????.temp.old.*
+*chk?????.temp.old.*
+
 *.xmgr
 
 # build directories
@@ -69,3 +72,7 @@ Docs/source/namespacelist.rst
 Docs/source/runtime_parameters.rst
 Docs/source/*_files.rst
 Docs/source/preprocessed_files
+
+
+amr_diag.out
+grid_diag.out

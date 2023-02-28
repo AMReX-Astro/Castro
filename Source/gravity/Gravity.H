@@ -4,7 +4,7 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
-#include "gravity_params.H"
+#include <gravity_params.H>
 
 // This vector can be accessed on the GPU.
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
@@ -347,15 +347,6 @@ public:
 ///
   void interpolate_monopole_grav(int level, RealVector& radial_grav, amrex::MultiFab& grav_vector);
 
-
-///
-/// @param level    Level index
-/// @param time     Current time
-/// @param grav     Gravitational acceleration
-/// @param phi      Gravitational potential
-///
-  void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
-
 ///
 /// Integrate radially outward to find radial mass distribution
 ///
@@ -363,6 +354,7 @@ public:
 /// @param u            Density (RHS of Poisson's equation)
 /// @param radial_mass  Radially integrated mass
 /// @param radial_vol   Radially integrated volume
+/// @param radial_pres  Radially integrated pressure
 /// @param n1d          Number of radial points in the domain
 /// @param level        Level index
 ///
@@ -370,6 +362,9 @@ public:
                            amrex::Array4<amrex::Real const> const u,
                            RealVector& radial_mass,
                            RealVector& radial_vol,
+#ifdef GR_GRAV
+                           RealVector& radial_pres,
+#endif
                            int n1d, int level);
 
 ///
@@ -387,7 +382,7 @@ public:
 ///
   void init_multipole_grav();
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 
 ///
 /// Compute and fill direct sum boundary conditions
@@ -474,7 +469,7 @@ public:
 
   static amrex::Real max_radius_all_in_domain;
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 
 ///
 /// Modify Rhs and coeffs with the appropriate metric terms.
@@ -506,9 +501,8 @@ public:
 /// @param level        Index of level
 /// @param phi          Gravitational potential
 /// @param grav_vector  Gravity vector
-/// @param point_mass   Mass of pointmass
 ///
-    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
+    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector);
 
 ///
 /// Get the rhs

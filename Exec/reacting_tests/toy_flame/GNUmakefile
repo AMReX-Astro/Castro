@@ -13,12 +13,11 @@ USE_REACT = TRUE
 
 USE_DIFFUSION = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := gamma_law_general
+EOS_DIR     := gamma_law
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := powerlaw

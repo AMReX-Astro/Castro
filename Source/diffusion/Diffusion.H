@@ -4,7 +4,7 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
-#include "diffusion_params.H"
+#include <diffusion_params.H>
 
 ///
 /// @class Diffusion 
@@ -79,7 +79,7 @@ protected:
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 ///
 /// @param level
 /// @param cc

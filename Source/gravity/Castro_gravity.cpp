@@ -1,11 +1,11 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
-#include "Gravity.H"
+#include <Gravity.H>
 
 #ifdef HYBRID_MOMENTUM
-#include "Castro_util.H"
-#include "hybrid.H"
+#include <Castro_util.H>
+#include <hybrid.H>
 #endif
 
 using namespace amrex;
@@ -13,6 +13,10 @@ using namespace amrex;
 void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_old_gravity()");
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -43,16 +47,16 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
         // Create a copy of the current (composite) data on this level.
 
         MultiFab comp_phi;
-        Vector<std::unique_ptr<MultiFab> > comp_gphi(BL_SPACEDIM);
+        Vector<std::unique_ptr<MultiFab> > comp_gphi(AMREX_SPACEDIM);
 
         if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             comp_phi.define(phi_old.boxArray(), phi_old.DistributionMap(), phi_old.nComp(), phi_old.nGrow());
             MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-            for (int n = 0; n < BL_SPACEDIM; ++n) {
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
                 comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
-                comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
+                MultiFab::Copy(*comp_gphi[n], *gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
             }
 
         }
@@ -87,8 +91,9 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-            for (int n = 0; n < BL_SPACEDIM; ++n)
-                gravity->get_grad_phi_prev(level)[n]->copy(*comp_gphi[n], 0, 0, 1);
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                MultiFab::Copy(*gravity->get_grad_phi_prev(level)[n], *comp_gphi[n], 0, 0, 1, 0);
+            }
 
         }
 
@@ -114,6 +119,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_new_gravity()");
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
@@ -180,7 +189,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
             // calculate, so it is slightly more accurate than it would have been.
 
             phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-            for (int n = 0; n < BL_SPACEDIM; ++n)
+            for (int n = 0; n < AMREX_SPACEDIM; ++n)
                 gravity->get_grad_phi_curr(level)[n]->plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
             if (gravity->test_results_of_solves() == 1) {
@@ -214,7 +223,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
                 phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
-                for (int n = 0; n < BL_SPACEDIM; ++n)
+                for (int n = 0; n < AMREX_SPACEDIM; ++n)
                     gravity->get_grad_phi_curr(level)[n]->minus(*comp_minus_level_grad_phi[n], 0, 1, 0);
 
             }
@@ -232,11 +241,13 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_old_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
 
-    const MultiFab& phi_old = get_old_data(PhiGrav_Type);
     const MultiFab& grav_old = get_old_data(Gravity_Type);
 
     if (!do_grav) return;
@@ -245,9 +256,6 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
@@ -264,7 +272,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
         Array4<Real> const source_arr = source.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             // Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -309,7 +317,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
             GpuArray<Real, 3> loc;
             for (int n = 0; n < 3; ++n) {
                 position(i, j, k, geomdata, loc);
-                loc[n] -= center[n];
+                loc[n] -= problem::center[n];
             }
 
             GpuArray<Real, 3> hybrid_src;
@@ -383,8 +391,12 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 }
 
-void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                          Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_new_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -404,9 +416,6 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
@@ -430,7 +439,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
             Array4<Real> const source_arr  = source.array(mfi);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 GpuArray<Real, NSRC> src{};
 
@@ -504,7 +513,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                 GpuArray<Real, 3> loc;
                 position(i, j, k, geomdata, loc);
                 for (int n = 0; n < 3; ++n) {
-                    loc[n] -= center[n];
+                    loc[n] -= problem::center[n];
                 }
 
                 GpuArray<Real, 3> hybrid_src;

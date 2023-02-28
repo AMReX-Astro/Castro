@@ -1,9 +1,9 @@
-#include "Castro.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
 #endif
 
 using namespace amrex;
@@ -97,21 +97,18 @@ Castro::actual_trans_single(const Box& bx,
     // and ir,jr,kr to be the face-centered indices needed for
     // the transverse flux difference
 
+    amrex::ignore_unused(hdt);
+
+#if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+#endif
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
         // We are handling the states at the interface of
@@ -239,24 +236,24 @@ Castro::actual_trans_single(const Box& bx,
             dre += -cdtdx * luge[g];
         }
 
-        if (fspace_t == 1 && comov) {
+        if (radiation::fspace_advection_type == 1 && radiation::comoving) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = cdtdx * uav * f1 * (ergp[g] - ergm[g]);
             }
         }
-        else if (fspace_t == 2) {
+        else if (radiation::fspace_advection_type == 2) {
 #if AMREX_SPACEDIM == 2
             Real divu = (area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm) * volinv;
             for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = -hdt * f1 * 0.5_rt * (ergp[g] + ergm[g]) * divu;
             }
 #else
             for (int g = 0; g < NGROUPS; g++) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = cdtdx * f1 * 0.5_rt * (ergp[g] + ergm[g]) * (ugm - ugp);
             }
@@ -356,12 +353,40 @@ Castro::actual_trans_single(const Box& bx,
             rvnewn = rvn;
             rwnewn = rwn;
             renewn = ren;
+            for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                int nqp = qpassmap(ipassive);
+                qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+            }
 #ifdef RADIATION
             for (int g = 0; g < NGROUPS; ++g) {
                 ernewn[g] = ern[g];
             }
 #endif
             reset_state = true;
+        }
+
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
         }
 
         // Convert back to primitive form
@@ -390,6 +415,14 @@ Castro::actual_trans_single(const Box& bx,
 #endif
             }
 
+            // If (rho e) is negative by this point,
+            // set it back to the original interface state,
+            // which turns off the transverse correction.
+
+            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            }
+
             // Pretend QREINT has been fixed and transverse_use_eos != 1.
             // If we are wrong, we will fix it later.
 
@@ -405,6 +438,7 @@ Castro::actual_trans_single(const Box& bx,
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
+            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
         }
 
 #ifdef RADIATION
@@ -447,7 +481,7 @@ Castro::trans_final(const Box& bx,
 #endif
                     Array4<Real const> const& q_t1,
                     Array4<Real const> const& q_t2,
-                    Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                    Real cdtdx_t1, Real cdtdx_t2)
 {
     // Evaluate the transverse terms for both
     // the minus and plus states.
@@ -465,7 +499,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
     actual_trans_final(bx, idir_n, idir_t1, idir_t2, 0,
                        qp, qpo,
@@ -480,7 +514,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
 }
 
@@ -502,22 +536,15 @@ Castro::actual_trans_final(const Box& bx,
 #endif
                            Array4<Real const> const& q_t1,
                            Array4<Real const> const& q_t2,
-                           Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                           Real cdtdx_t1, Real cdtdx_t2)
 {
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
-
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
         // the normal state
@@ -689,17 +716,17 @@ Castro::actual_trans_final(const Box& bx,
 
         Real der[NGROUPS];
 
-        if (fspace_t == 1 && comov) {
+        if (radiation::fspace_advection_type == 1 && radiation::comoving) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ugt1p + ugt1m) * (ergt1p[g] - ergt1m[g]) +
                                cdtdx_t2 * 0.5_rt * (ugt2p + ugt2m) * (ergt2p[g] - ergt2m[g]));
             }
         }
-        else if (fspace_t == 2) {
+        else if (radiation::fspace_advection_type == 2) {
             for (int g = 0; g < NGROUPS; ++g) {
-                Real eddf = Edd_factor(lambda[g], limiter, closure);
+                Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = f1 * (cdtdx_t1 * 0.5_rt * (ergt1p[g] + ergt1m[g]) * (ugt1m - ugt1p) +
                                cdtdx_t2 * 0.5_rt * (ergt2p[g] + ergt2m[g]) * (ugt2m - ugt2p));
@@ -781,12 +808,40 @@ Castro::actual_trans_final(const Box& bx,
             rvnewn = rvn;
             rwnewn = rwn;
             renewn = ren;
+            for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                int nqp = qpassmap(ipassive);
+                qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+            }
 #ifdef RADIATION
             for (int g = 0; g < NGROUPS; ++g) {
                 ernewn[g] = ern[g];
             }
 #endif
             reset_state = true;
+        }
+
+        // Reset to original value if adding transverse terms made any mass fraction invalid.
+
+        for (int n = 0; n < NumSpec; ++n) {
+            if (qo_arr(i,j,k,n+QFS) > 1.0_rt + castro::abundance_failure_tolerance ||
+                qo_arr(i,j,k,n+QFS) < -castro::abundance_failure_tolerance) {
+                rrnewn = rrn;
+                runewn = run;
+                rvnewn = rvn;
+                rwnewn = rwn;
+                renewn = ren;
+                for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+                    int nqp = qpassmap(ipassive);
+                    qo_arr(i,j,k,nqp) = q_arr(i,j,k,nqp);
+                }
+#ifdef RADIATION
+                for (int g = 0; g < NGROUPS; ++g) {
+                    ernewn[g] = ern[g];
+                }
+#endif
+                reset_state = true;
+                break;
+            }
         }
 
         qo_arr(i,j,k,QRHO) = rrnewn;
@@ -810,6 +865,14 @@ Castro::actual_trans_final(const Box& bx,
                                                flux_t2(il_t2,jl_t2,kl_t2,UEINT) + pt2av * dut2);
             }
 
+            // If (rho e) is negative by this point,
+            // set it back to the original interface state,
+            // which turns off the transverse correction.
+
+            if (qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
+            }
+
             // Pretend QREINT has been fixed and transverse_use_eos != 1.
             // If we are wrong, we will fix it later.
 
@@ -819,6 +882,7 @@ Castro::actual_trans_final(const Box& bx,
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
+            qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
         }
 
         qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);

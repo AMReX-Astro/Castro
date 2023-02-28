@@ -19,18 +19,43 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_AmrLevel.H>
 
-#ifdef HYPRE
-#include "_hypre_utilities.h"
-#endif
-
 #include <time.h>
 
-#include "Castro.H"
-#include "Castro_io.H"
+#include <Castro.H>
+#include <Castro_io.H>
 
 using namespace amrex;
 
 std::string inputs_name = "";
+
+amrex::LevelBld* getLevelBld ();
+
+// Any parameters we want to override the defaults for in AMReX
+
+void override_parameters ()
+{
+    {
+        ParmParse pp("amrex");
+#ifndef RADIATION // Radiation is not yet ready to stop using managed memory
+        if (!pp.contains("the_arena_is_managed")) {
+            // Use device memory allocations, not managed memory.
+            pp.add("the_arena_is_managed", false);
+        }
+#endif
+        if (!pp.contains("abort_on_out_of_gpu_memory")) {
+            // Abort if we run out of GPU memory.
+            pp.add("abort_on_out_of_gpu_memory", true);
+        }
+    }
+
+    {
+        ParmParse pp("amr");
+        // Always check for whether to dump a plotfile or checkpoint.
+        if (!pp.contains("message_int")) {
+            pp.add("message_int", 1);
+        }
+    }
+}
 
 int
 main (int   argc,
@@ -50,7 +75,7 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    amrex::Initialize(argc,argv);
+    amrex::Initialize(argc, argv, true, MPI_COMM_WORLD, override_parameters);
     {
 
     // Refuse to continue if we did not provide an inputs file.
@@ -64,11 +89,6 @@ main (int   argc,
     if (!strchr(argv[1], '=')) {
         inputs_name = argv[1];
     }
-
-#ifdef HYPRE
-    // Initialize Hypre.
-    HYPRE_Init(argc, argv);
-#endif
 
     BL_PROFILE_VAR("main()", pmain);
 
@@ -122,7 +142,7 @@ main (int   argc,
     // Initialize random seed after we're running in parallel.
     //
 
-    Amr* amrptr = new Amr;
+    Amr* amrptr = new Amr(getLevelBld());
 
     amrptr->init(strt_time,stop_time);
 
@@ -192,10 +212,6 @@ main (int   argc,
                 << time_pointer->tm_year + 1900 << "-"
                 << std::setw(2) << time_pointer->tm_mon + 1 << "-"
                 << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
-
-#ifdef HYPRE
-    HYPRE_Finalize();
-#endif
 
     delete amrptr;
     //

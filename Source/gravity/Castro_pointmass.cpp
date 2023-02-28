@@ -1,11 +1,15 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 using namespace amrex;
 
 void
 Castro::pointmass_update(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     int finest_level = parent->finestLevel();
 
     if (level == finest_level && point_mass_fix_solution)
@@ -16,9 +20,6 @@ Castro::pointmass_update(Real time, Real dt)
 
         const auto dx = geom.CellSizeArray();
         const auto problo = geom.ProbLoArray();
-
-        GpuArray<Real, 3> center;
-        ca_get_center(center.begin());
 
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
@@ -36,23 +37,21 @@ Castro::pointmass_update(Real time, Real dt)
             Array4<Real const> const vol  = volume.array(mfi);
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 // This is just a small number to keep precision issues from making
                 // icen, jcen, kcen one cell too low.
                 const Real eps = 1.e-8_rt;
 
                 // This should be the cell whose lower left corner is at center
-                int icen = std::floor((center[0] - problo[0]) / dx[0] + eps);
+                int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                int jcen = std::floor((center[1] - problo[1]) / dx[1] + eps);
+                int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                 int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                int kcen = std::floor((center[2] - problo[2]) / dx[2] + eps);
-#else
-                int kcen = 0;
+                int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                 // Make sure we only count contributions from this grid
@@ -60,12 +59,21 @@ Castro::pointmass_update(Real time, Real dt)
                 const int box_size = 2;
 
                 int istart = amrex::max(icen - box_size, bx.smallEnd(0));
-                int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
-                int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
-
                 int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+#if AMREX_SPACEDIM >= 2
+                int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
                 int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+#else
+                int jstart = 0;
+                int jend = 0;
+#endif
+#if AMREX_SPACEDIM == 3
+                int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
                 int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+#else
+                int kstart = 0;
+                int kend = 0;
+#endif
 
                 Real delta_mass_tmp = 0.0_rt;
 
@@ -98,8 +106,6 @@ Castro::pointmass_update(Real time, Real dt)
 
             point_mass += mass_change_at_center;
 
-            set_pointmass(&point_mass);
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -111,7 +117,7 @@ Castro::pointmass_update(Real time, Real dt)
                 Array4<Real> const uout = S_new.array(mfi);
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     // This is just a small number to keep precision issues from making
                     // icen, jcen, kcen one cell too low.
@@ -119,16 +125,14 @@ Castro::pointmass_update(Real time, Real dt)
                     const Real eps = 1.e-8_rt;
 
                     // This should be the cell whose lower left corner is at center
-                    int icen = std::floor((center[0] - problo[0]) / dx[0] + eps);
+                    int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                    int jcen = std::floor((center[1] - problo[1]) / dx[1] + eps);
+                    int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                     int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                    int kcen = std::floor((center[2] - problo[2]) / dx[2] + eps);
-#else
-                    int kcen = 0;
+                    int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                     // Make sure we only count contributions from this grid
@@ -136,12 +140,23 @@ Castro::pointmass_update(Real time, Real dt)
                     const int box_size = 2;
 
                     int istart = amrex::max(icen - box_size, bx.smallEnd(0));
-                    int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
-                    int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
-
                     int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+
+#if AMREX_SPACEDIM >= 2
+                    int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
                     int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+#else
+                    int jstart = 0;
+                    int jend = 0;
+#endif
+
+# if AMREX_SPACEDIM == 3
+                    int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
                     int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+#else
+                    int kstart = 0;
+                    int kend = 0;
+#endif
 
                     if (i >= istart && i <= iend &&
                         j >= jstart && j <= jend &&

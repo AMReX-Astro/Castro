@@ -15,13 +15,15 @@ amr.n_cell           = 128
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  1
-castro.hi_bc       =  1
+castro.hi_bc       =  2
 
-castro.xl_ext_bc_type = "hse"
+castro.xl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
-castro.xr_ext_bc_type = "interp"
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 0
+castro.ambient_outflow_vel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -72,5 +74,26 @@ amr.plot_file        = flame_wave_128_plt        # root name of plotfile
 amr.plot_per         = 1.e-5      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin.hse_test
+# PROBLEM PARAMETERS
+problem.dx_model = 20.e0
+
+problem.dens_base = 3.43e6
+
+problem.T_star = 1.e8
+problem.T_hi = 2.e8
+problem.T_lo   = 8.e6
+
+problem.H_star = 1700.e0
+problem.atm_delta  = 50.0
+
+problem.fuel1_name = "helium-4"
+problem.fuel1_frac = 1.0e0
+
+problem.ash1_name  = "nickel-56"
+problem.ash1_frac = 1.0e0
+
+problem.low_density_cutoff = 1.e-4
+
+problem.cutoff_density = 2.5e4
+
+problem.X_min = 1.e-2

@@ -11,7 +11,7 @@ nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
-AMReX library.
+AMReX library :cite:`amrex-joss`.
 
 The core algorithms in Castro are described in a series of papers:
 
@@ -49,6 +49,14 @@ was described in:
     2019, ApJ, 886, 105.
     https://ui.adsabs.harvard.edu/link_gateway/2019ApJ...886..105Z/doi:10.3847/1538-4357/ab4e1d
 
+The Castro GPU strategy and performance was described in:
+
+  * *Preparing Nuclear Astrophysics for Exascale*
+    M. P. Katz, A. Almgren, M. Barrios Sazo, K. Eiden, K. Gott, A. Harpole, J. M. Sexton, D. E. Willcox, W. Zhang, & M. Zingale
+    2020, to appear in Proceedings of SC20
+    https://ui.adsabs.harvard.edu/abs/2020arXiv200705218K/abstract
+
+
 The development of AMReX library is led by the
 Center for Computational Sciences and Engineering / Lawrence Berkeley
 National Laboratory. Castro development is done collaboratively,
@@ -57,21 +65,8 @@ including the CCSE and Stony Brook University.
 Castro *core developers* are those who have made substantial
 contributions to the code. The process for becoming a core developer
 is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ in the Castro root directory.
-Current Castro core developers are:
 
-  * Ann Almgren
-  * Maria G. Barrios Sazo
-  * John Bell
-  * Vince Beckner
-  * Marc Day
-  * Alice Harpole
-  * Max Katz
-  * Mike Lijewski
-  * Chris Malone
-  * Andy Nonaka
-  * Don Willcox
-  * Weiqun Zhang
-  * Michael Zingale
+Current Castro core developers are listed at https://amrex-astro.github.io/Castro/who.html
 
 All Castro development takes place on the project’s github
 page, https://github.com/AMReX-Astro/Castro
@@ -81,8 +76,15 @@ local copy, and issue a pull-request to the AMReX-Astro/Castro
 project. Further guidelines are given in the `README.md
 <https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ file.
 
-To get help, subscribe to the *castro-help* google group mailing list:
-https://groups.google.com/forum/#!forum/castro-help
+Getting Help
+============
+
+We use github discussions to ask questions about the code and get help:
+
+https://github.com/AMReX-Astro/Castro/discussions
+
+You can also post issues on the github page to report bugs.
+
 
 Acknowledging and Citing Castro
 ===============================

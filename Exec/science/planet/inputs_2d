@@ -16,15 +16,13 @@ amr.n_cell           = 8      256
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0    1
-castro.hi_bc       =  0    1
+castro.hi_bc       =  0    2
 
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 #castro.hse_zero_vels=0
-
-castro.yr_ext_bc_type = "interp"
 
 fab.format=NATIVE_32
 
@@ -57,6 +55,19 @@ castro.ppm_reference_edge_limit = 1
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.0e3
 
+castro.sponge_lower_factor = 0.0
+castro.sponge_upper_factor = 1.0
+
+castro.sponge_lower_density = 1.1e-15
+castro.sponge_upper_density = 1.0e-13
+
+castro.sponge_target_x_velocity = 0.0
+
+castro.sponge_lower_pressure = 0.9e1
+castro.sponge_upper_pressure = 1.0e1
+
+castro.sponge_timescale    = 1.e2
+
 # TIME STEP CONTROL
 castro.cfl            = 0.01     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
@@ -72,7 +83,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 128 
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -106,8 +117,35 @@ amr.derive_small_plot_vars = rad pressure
 #RESTART
 amr.restart          = chk76898
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.model_name =  "newmodelcpp.hse"
+
+problem.apply_vel_field = 0
+problem.shear_vel_field = 0
+problem.velpert_height_loc = 0.0e0
+problem.velpert_scale = 0e0
+problem.velpert_amplitude = 0.0e0
+problem.num_vortices = 2
+
+problem.shear_height_loc = 0.99365234538e9
+problem.shear_amplitude  = 3.863080704e5
+problem.shear_height     = 14
+problem.shear_width_x    = 80.0
+problem.shear_width_y    = 20.0
+
+# EOS
+eos.eos_gamma = 1.4
+
+# OPACITY
+opacity.const_kappa_p =  6.35e-3
+opacity.kappa_p_exp_m =  2.0e0
+opacity.kappa_p_exp_n = -1.0e0
+opacity.kappa_p_exp_p =  0.0e0
+
+opacity.const_kappa_r =  6.35e-3
+opacity.kappa_r_exp_m =  2.0e0
+opacity.kappa_r_exp_n = -1.0e0
+opacity.kappa_r_exp_p =  0.0e0
 
 # DATA LOG
 amr.data_log = log

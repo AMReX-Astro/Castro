@@ -2,63 +2,35 @@
 Input Files
 ***********
 
-The Castro executable uses two inputs files at runtime to set and
-alter the behavior of the algorithm and initial conditions:
+The Castro executable uses an inputs file at runtime to set and
+alter the behavior of the algorithm and initial conditions.  
 
-  * The main inputs file, typically named ``inputs``:
+Runtime parameters take the form ``namespace.parameter = value`` ,
+where *namespace* identifies the major code component.  Some
+parameters take multiple values separated by spaces.
 
-    This is used to set AMReX parameters and the control flow in the
-    physics solvers in Castro.  Each parameter here has a namespace
-    (like ``amr.optionname`` or ``castro.optionname``).  Parameters
-    set here are read using the AMReX ``ParmParse`` class
-    infrastructure.
+Typically
+named ``inputs``, it 
 
-    .. warning:: Because the inputs file is handled by the C++ portion
-       of the code, any quantities you specify in scientific notation,
-       must take the form ``1.e5`` and not ``1.d5``—the ``d``
-       specifier is not recognized.
+  * Sets the AMReX parameters for gridding, refinement, etc., through the
+    ``geometry`` and ``amr`` namespaces.
 
-  * The problem / external inputs file, typically named ``probin``:
+  * Enables different physics behaviors through the ``castro`` namespace.
 
-    This is used by the Fortran code that initializes the problem
-    setup.  It is read at problem initialization (via a Fortran
-    namelist) and the problem-specific quantities are stored in a
-    Fortran module ``probdata_module`` defined in the problem’s
-    ``probdata.f90`` file.
+  * Sets the problem-specific runtime parameters through the ``problem`` namespace.
 
-    The ``probin`` file also has an ``&extern`` namelist that is
-    used to specify runtime parameters for the microphysics
-    (EOS, reaction network, ...)
+  * Sets any Microphysics runtime parameters, through the various namespaces
+    defined in Microphysics (like ``eos``, ``integrator``, ``network``, ...).
 
-Only the ``inputs`` file is specified on the commandline. The
-associated ``probin`` file is specified in the inputs file
-using the ``amr.probin_file`` parameter, e.g.::
+.. warning:: Because the inputs file is handled by the C++ portion
+   of the code, any quantities you specify in scientific notation,
+   must take the form ``1.e5`` and not ``1.d5``—the ``d``
+   specifier is not recognized.
 
-    amr.probin_file = my_special_probin
-
-for example, has the Fortran code read a file called ``my_special_probin``.
 
 .. note::
 
    Additionally, note that in Castro, all quantities are in CGS units.
-
-
-Working with probin Files
-=========================
-
-There are three several Fortran namelists that can be defined in the
-``probin`` file:
-
-  * ``&fortin`` is the main namelist read by the problem’s
-    ``probinit`` subroutine in the ``Prob_nd.F90`` file.
-
-  * ``&extern`` is used to set different microphysics options
-
-  * ``&tagging`` is used to get the parameters (defined in
-    ``tagging_module``) that affect how we tag for refinement.
-
-  * ``&sponge`` is used to set the parameters for the sponge source
-    term that is used to damp velocities.
 
 
 Common inputs Options
@@ -68,7 +40,7 @@ Common inputs Options
 Problem Geometry
 ----------------
 
-The ``geometry`` namespace is used by BoxLib to define the
+The ``geometry`` namespace is used by AMReX to define the
 computational domain. The main parameters here are:
 
   * ``geometry.prob_lo``: physical location of low corner of the
@@ -94,9 +66,9 @@ computational domain. The main parameters here are:
     center is used for gravity, rotation, and some other quantities.
     This is not necessarily the geometric center of the domain—often
     you should choose it to coincide with the center of mass of your
-    system. See § :ref:`soft:prob_params` for more details.
+    system.
 
-   Note: a number is needed for each dimension in the problem.
+    Note: a number is needed for each dimension in the problem.
 
 As an example, the following::
 
@@ -116,7 +88,7 @@ Domain Boundary Conditions
 --------------------------
 
 Boundary conditions are specified using integer keys that are interpreted
-by BoxLib. The runtime parameters that we use are:
+by AMReX. The runtime parameters that we use are:
 
   * ``castro.lo_bc``: boundary type of each low face (must be set)
 

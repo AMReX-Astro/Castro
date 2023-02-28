@@ -1,10 +1,10 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+
 #include <cmath>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 using namespace amrex;
@@ -23,7 +23,7 @@ Castro::uflatten(const Box& bx,
   constexpr Real dzcut = 1.0_rt / (zcut2-zcut1);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // x-direction flattening coef

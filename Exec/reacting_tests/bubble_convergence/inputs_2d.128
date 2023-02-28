@@ -17,14 +17,11 @@ amr.n_cell           = 128     128
 castro.lo_bc       =  0   3
 castro.hi_bc       =  0   3
 
-castro.yl_ext_bc_type = "interp"
-castro.yr_ext_bc_type = "interp"
-
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
 castro.do_grav = 1
-castro.do_sponge = 1
+castro.do_sponge = 0
 
 castro.small_temp = 1.e6
 
@@ -47,12 +44,11 @@ gravity.const_grav   = -1.e10
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
-castro.change_max     = 1.0     # max time step growth
 
 castro.fixed_dt = 0.75e-4
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 0       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
@@ -60,7 +56,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -73,5 +69,34 @@ amr.plot_file        = bubble_128_plt        # root name of plotfile
 amr.plot_per         = 5e-3       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin.128
+# Problem initialization
+
+problem.pert_width = 2.56e5
+
+problem.dens_base = 1.e7
+problem.temp_base = 1.0e8
+
+problem.nx_model = 128
+
+problem.do_pert = 1
+
+# Refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 6.e8
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e9
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-10
+integrator.atol_spec = 1.e-10
+
+network.small_x = 1.e-10
+
+integrator.rtol_enuc = 1.e-10

@@ -23,6 +23,12 @@ amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
+amr.refinement_indicators = tempgrad_rel
+
+amr.refine.tempgrad_rel.max_level = 20
+amr.refine.tempgrad_rel.relative_gradient = 0.1
+amr.refine.tempgrad_rel.field_name = Temp
+
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
@@ -32,8 +38,26 @@ amr.plot_file       = plt_
 amr.plot_int        = 500     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin.M2
+# PROBLEM PARAMETERS
+problem.rho0 = 5.45969027775e-13
+problem.T0 = 100.0e0
+problem.v0 = 235435.230236e0
+problem.rho1 = 1.24812608999e-12
+problem.T1 = 207.756999533e0
+problem.v1 = 102986.665199e0
+problem.idir = 1
+
+# EOS
+eos.eos_gamma = 1.6666666667
+
+# OPACITY
+opacity.const_kappa_p = 3.92663697758e-5
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+
+opacity.const_kappa_r = 0.848902853095e0
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
 
 # VERBOSITY
 amr.v = 1
@@ -44,8 +68,8 @@ amr.grid_log        = grdlog  # name of grid logging file
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1    4    4
-castro.hi_bc       =  1    4    4
+castro.lo_bc       =  2    4    4
+castro.hi_bc       =  2    4    4
 
 # WHICH PHYSICS
 castro.do_grav        = 0

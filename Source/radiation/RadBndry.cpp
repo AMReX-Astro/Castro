@@ -1,7 +1,7 @@
 
 #include <AMReX_ParmParse.H>
 #include <AMReX_LO_BCTYPES.H>
-#include "RadBndry.H"
+#include <RadBndry.H>
 
 #include <iostream>
 
@@ -9,13 +9,13 @@
 #include <omp.h>
 #endif
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
 using namespace amrex;
 
 int         RadBndry::first = 1;
-Vector<int>  RadBndry::bcflag(2*BL_SPACEDIM);
-Vector<Real> RadBndry::bcval(2*BL_SPACEDIM);
+Vector<int>  RadBndry::bcflag(2*AMREX_SPACEDIM);
+Vector<Real> RadBndry::bcval(2*AMREX_SPACEDIM);
 Real        RadBndry::time = 0.0;
 int         RadBndry::correction = 0;
 
@@ -82,13 +82,13 @@ void RadBndry::init()
 
   ParmParse pp("radiation");
 
-  Vector<int> lo_bcflag(BL_SPACEDIM, 0), hi_bcflag(BL_SPACEDIM, 0);
-  pp.queryarr("lo_bcflag",lo_bcflag,0,BL_SPACEDIM);
-  pp.queryarr("hi_bcflag",hi_bcflag,0,BL_SPACEDIM);
+  Vector<int> lo_bcflag(AMREX_SPACEDIM, 0), hi_bcflag(AMREX_SPACEDIM, 0);
+  pp.queryarr("lo_bcflag",lo_bcflag,0,AMREX_SPACEDIM);
+  pp.queryarr("hi_bcflag",hi_bcflag,0,AMREX_SPACEDIM);
 
-  Vector<Real> lo_bcval(BL_SPACEDIM, 0.0), hi_bcval(BL_SPACEDIM, 0.0);
-  pp.queryarr("lo_bcval",lo_bcval,0,BL_SPACEDIM);
-  pp.queryarr("hi_bcval",hi_bcval,0,BL_SPACEDIM);
+  Vector<Real> lo_bcval(AMREX_SPACEDIM, 0.0), hi_bcval(AMREX_SPACEDIM, 0.0);
+  pp.queryarr("lo_bcval",lo_bcval,0,AMREX_SPACEDIM);
+  pp.queryarr("hi_bcval",hi_bcval,0,AMREX_SPACEDIM);
 
   for (OrientationIter fi; fi; ++fi) {
     Orientation face(fi());
@@ -215,15 +215,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
         if (bcflag[face] <= 1) {
           if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
               p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {           
-            if (p_bcflag == 0) {
               setValue(face, i, value);
-            }
-            else {
-              FArrayBox& bnd_fab = bndry[face][i];
-              int iface = face.isLow() ? 0 : 1;
-              FORT_RADBNDRY(BL_TO_FORTRAN(bnd_fab),
-                            ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time, dir, iface);
-            }
           }
         }
         else {

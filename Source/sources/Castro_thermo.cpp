@@ -1,11 +1,15 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 using namespace amrex;
 
 void
-Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
 #ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
@@ -17,7 +21,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
   thermo_src.setVal(0.0);
 
-  fill_thermo_source(time, dt, state_in, thermo_src);
+  fill_thermo_source(state_in, thermo_src);
 
   Real mult_factor = 1.0;
 
@@ -45,8 +49,15 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
 
 void
-Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(state_new);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
 #ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
@@ -63,7 +74,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
   //Substract off the old-time value first
   Real old_time = time - dt;
 
-  fill_thermo_source(old_time, dt, state_old, thermo_src);
+  fill_thermo_source(state_old, thermo_src);
 
   Real mult_factor = -0.5;
 
@@ -79,7 +90,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
   FillPatchIterator fpi(*this, state_new, 1, time, State_Type, 0, NUM_STATE);
   MultiFab& grown_state = fpi.get_mf();
 
-  fill_thermo_source(time, dt, grown_state, thermo_src);
+  fill_thermo_source(grown_state, thermo_src);
 
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
 
@@ -107,8 +118,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_thermo_source (Real time, Real dt,
-                            MultiFab& state, MultiFab& thermo_src)
+Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
 {
 
   // Compute thermodynamic sources for the internal energy equation.
@@ -130,12 +140,12 @@ Castro::fill_thermo_source (Real time, Real dt,
 
     const Box& bx = mfi.tilebox();
 
-    Array4<Real const> const U = state.array(mfi);
+    Array4<Real const> const U = state_in.array(mfi);
     Array4<Real> const src = thermo_src.array(mfi);
 
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       // radius for non-Cartesian
@@ -159,18 +169,18 @@ Castro::fill_thermo_source (Real time, Real dt,
                                     rm*rm*U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/(r*r*dx[0]);
       }
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
                                    U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j,k+1,UMZ)/U(i,j,k+1,URHO) -
                                    U(i,j,k-1,UMZ)/U(i,j,k-1,URHO))/dx[2];
 #endif
 
       // we now need the pressure -- we will assume that the
       // temperature is consistent with the input state
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = U(i,j,k,URHO);
       eos_state.T = U(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {

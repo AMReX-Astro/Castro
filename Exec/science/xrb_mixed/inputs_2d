@@ -15,10 +15,9 @@ amr.n_cell           = 256     768
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0   1
-castro.hi_bc       =  0   1
+castro.hi_bc       =  0   2
 
-castro.yl_ext_bc_type = "hse"
-castro.yr_ext_bc_type = "interp"
+castro.yl_ext_bc_type = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -35,6 +34,10 @@ castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
+# SPONGE
+castro.sponge_upper_density = 5.0e4
+castro.sponge_lower_density = 8.0e1
+castro.sponge_timescale     = 1.0e-3
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -45,7 +48,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64 
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -58,8 +61,22 @@ amr.plot_file       = xrb_plt    # root name of plotfile
 amr.plot_int        = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.model_name =  "toy_xrb.hi_dens.hse.tanh.delta_12.000cm.dx_6.000cm.CNO"
 
-# DATA LOG
-amr.data_log = xrb_diag.out
+problem.apply_vel_field = 1
+problem.velpert_height_loc = 1475.0
+problem.velpert_scale = 1.e2
+problem.velpert_amplitude = 1.e5
+problem.num_vortices = 16
+
+# MICROPHYSICS
+integrator.jacobian = 1
+
+integrator.call_eos_in_rhs = 0
+
+integrator.atol_spec = 1.e-11
+integrator.rtol_spec = 1.e-12
+
+integrator.atol_enuc = 1.e-8
+integrator.rtol_enuc = 1.e-8

@@ -1,13 +1,13 @@
 
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 using namespace amrex;
@@ -19,16 +19,22 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
+
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
     advance_status status;
     status.success = true;
     status.reason = "";
+
+#ifndef TRUE_SDC
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -48,13 +54,9 @@ Castro::do_advance_ctu(Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    initialize_do_advance(time);
 
-    // Zero out the source term data.
-
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
-    // Add any correctors to the source term data. This must be done
+    // Create any correctors to the source term data. This must be done
     // before the source term data is overwritten below. Note: we do
     // not create the corrector source if we're currently retrying the
     // step; we will already have done it, and aside from avoiding
@@ -65,20 +67,39 @@ Castro::do_advance_ctu(Real time,
         create_source_corrector();
     }
 
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        // Add the source term predictor (scaled by dt/2).
-        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        // Time center the sources.
-        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
-    }
-
-#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_old);
-#endif
+
+    // If we're doing a step later than the first on each level, the fluid
+    // state might have evolved to the point where the AMR timestep could be
+    // significantly too large, but we don't have freedom to adjust the AMR
+    // timestep at that point. Trying to evolve with a dt that is too large
+    // could result in catastrophic behavior such that we don't even get to
+    // the point where we can bail out later in the advance, so let's just
+    // go directly into a retry now if we're too far away from the needed dt.
+
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
+
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
+
+        if (castro::change_max * old_dt < dt) {
+            status.success = false;
+            status.reason = "pre-advance timestep validity check failed";
+            return status;
+        }
+
+    }
 
     // Since we are Strang splitting the reactions, do them now
 
@@ -91,8 +112,12 @@ Castro::do_advance_ctu(Real time,
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         // The result of the reactions is added directly to Sborder.
-        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
-        clean_state(Sborder, prev_time, Sborder.nGrow());
+        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt, 0);
+        clean_state(
+#ifdef MHD
+                    Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                    Sborder, prev_time, Sborder.nGrow());
 
     }
 #endif
@@ -141,22 +166,31 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                       Bx_old, By_old, Bz_old,
 #endif                
-                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
-      // Apply the old sources to the sources for the hydro.
-      // Note that we are doing an add here, not a copy,
-      // in case we have already started with some source
-      // terms (e.g. the source term predictor, or the SDC source).
+      if (do_hydro) {
+          // Fill the ghost cells of old_source / Source_Type
 
-     if (do_hydro) {
-         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-     }
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+      }
+
 
     } else {
-      old_source.setVal(0.0, NUM_GROW);
+      old_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
+
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+    // the SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here
+
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
 
     // Do the hydro update.  We build directly off of Sborder, which
     // is the state that has already seen the burn
@@ -164,40 +198,91 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      // Check for CFL violations.
-      check_for_cfl_violation(S_old, dt);
-
-      // If we detect one, return immediately.
-      if (cfl_violation) {
-          status.success = false;
-          status.reason = "CFL violation";
-          return status;
-      }
-
       construct_ctu_hydro_source(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
 
-      if (print_update_diagnostics) {
-          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
-      }
+//      if (print_update_diagnostics) {
+//          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
+//      }
 #else
-      just_the_mhd(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
+      construct_ctu_mhd_source(time, dt);
 #endif
 
-      // Check for small/negative densities.
-      // If we detect one, return immediately.
+      // Check for small/negative densities and X > 1 or X < 0.
+      // If we detect this, return immediately.
 
-      Real minimum_density = S_new.min(URHO);
+      ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+      ReduceData<int, int> reduce_data(reduce_op);
+      using ReduceTuple = typename decltype(reduce_data)::Type;
 
-      if (minimum_density < 0.0_rt) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+
+          auto S_old_arr = S_old.array(mfi);
+          auto S_new_arr = S_new.array(mfi);
+
+          reduce_op.eval(bx, reduce_data,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+          {
+              int rho_check_failed = 0;
+              int X_check_failed = 0;
+
+              Real rho = S_new_arr(i,j,k,URHO);
+              Real rhoInv = 1.0_rt / rho;
+
+              // Optionally, the user can ignore this if the starting
+              // density is lower than a certain threshold. This is useful
+              // if the minimum density occurs in material that is not
+              // dynamically important; in that case, a density reset suffices.
+
+              if (S_old_arr(i,j,k,URHO) >= retry_small_density_cutoff && rho < small_dens) {
+#ifndef AMREX_USE_GPU
+                  std::cout << "Invalid density = " << rho << " at index " << i << ", " << j << ", " << k << "\n";
+#endif
+                  rho_check_failed = 1;
+              }
+
+              if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+
+                  for (int n = 0; n < NumSpec; ++n) {
+                      Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+
+                      if (X < -castro::abundance_failure_tolerance ||
+                          X > 1.0_rt + castro::abundance_failure_tolerance) {
+#ifndef AMREX_USE_GPU
+                          std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                    << i << ", " << j << ", " << k
+                                    << " with density = " << rho << "\n";
+#endif
+                          X_check_failed = 1;
+                      }
+                  }
+
+              }
+
+              return {rho_check_failed, X_check_failed};
+          });
+
+      }
+
+      ReduceTuple hv = reduce_data.value();
+      int rho_check_failed = amrex::get<0>(hv);
+      int X_check_failed = amrex::get<1>(hv);
+
+      ParallelDescriptor::ReduceIntMax(rho_check_failed);
+      ParallelDescriptor::ReduceIntMax(X_check_failed);
+
+      if (rho_check_failed == 1) {
           status.success = false;
-          status.reason = "negative density";
+          status.reason = "invalid density";
           return status;
       }
-      else if (minimum_density < small_dens) {
+
+      if (X_check_failed == 1) {
           status.success = false;
-          status.reason = "small density";
+          status.reason = "invalid X";
           return status;
       }
     }
@@ -210,11 +295,9 @@ Castro::do_advance_ctu(Real time,
 #endif
                 S_new, cur_time, 0);
 
-#ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
     check_for_nan(S_new);
-#endif
 
     // if we are done with the update do the source correction and
     // then the second half of the reactions
@@ -230,7 +313,7 @@ Castro::do_advance_ctu(Real time,
     // We need to make the new radial data now so that we can use it when we
     // FillPatch in creating the new source.
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
       int is_new = 1;
       make_radial_data(is_new);
@@ -252,11 +335,11 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                               Bx_new, By_new, Bz_new,
 #endif  
-                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
 
     } else {
 
-      new_source.setVal(0.0, NUM_GROW);
+      new_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
@@ -285,7 +368,7 @@ Castro::do_advance_ctu(Real time,
 
             // Do the ODE integration to capture the reaction source terms.
 
-            bool burn_success = react_state(time, dt);
+            burn_success = react_state(time, dt);
 
             // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -295,20 +378,22 @@ Castro::do_advance_ctu(Real time,
                 return status;
             }
 
-            MultiFab& S_new = get_new_data(State_Type);
-
             clean_state(S_new, time + dt, S_new.nGrow());
-
-            // Compute the reactive source term for use in the next iteration.
-
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, time, dt);
 
             // Check for NaN's.
 
-#ifndef AMREX_USE_CUDA
             check_for_nan(S_new);
-#endif
+
+        }
+        else {
+
+            // If we're not burning, just initialize the reactions data to zero.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+
+            R_old.setVal(0.0, R_old.nGrow());
+            R_new.setVal(0.0, R_new.nGrow());
 
         }
 
@@ -318,8 +403,12 @@ Castro::do_advance_ctu(Real time,
 
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
-        clean_state(S_new, cur_time, S_new.nGrow());
+        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt, 1);
+        clean_state(
+#ifdef MHD
+                    Bx_new, By_new, Bz_new,
+#endif
+                    S_new, cur_time, S_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -344,17 +433,25 @@ Castro::do_advance_ctu(Real time,
     // whereas in computeNewDt change_max prevents the timestep from growing
     // too much. The same reasoning applies for the other timestep limiters.
 
-    Real new_dt = estTimeStep(dt);
+    if (castro::check_dt_after_advance) {
 
-    if (castro::change_max * new_dt < dt) {
-        status.success = false;
-        status.reason = "timestep validity check failed";
-        return status;
+        int is_new = 1;
+        Real new_dt = estTimeStep(is_new);
+
+        if (castro::change_max * new_dt < dt) {
+            status.success = false;
+            status.reason = "post-advance timestep validity check failed";
+            return status;
+        }
+
     }
 
-    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    finalize_do_advance();
+
+#endif
 
     return status;
+
 }
 
 
@@ -362,7 +459,7 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
+Castro::retry_advance_ctu(Real dt, advance_status status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
@@ -377,8 +474,10 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
+            std::cout << Font::Bold << FGColor::Red;
             std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
             std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
+            std::cout << ResetDisplay;
             std::cout << std::endl;
         }
 
@@ -387,30 +486,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
-
-            if (!prev_state[k]->hasOldData()) {
-
-#ifdef AMREX_USE_GPU
-                Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
-#endif
-                *prev_state[k] = state[k];
-#ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
-#endif
-            }
-
-        }
+        save_data_for_retry();
 
         // Clear the contribution to the fluxes from this step.
 
@@ -422,7 +498,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
           mass_fluxes[dir]->setVal(0.0);
         }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
           P_radial.setVal(0.0);
         }
@@ -430,10 +506,14 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
-          for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
           }
         }
+#endif
+
+#ifdef REACTIONS
+        burn_weights.setVal(0.0);
 #endif
 
         // For simplified SDC, we'll have garbage data if we
@@ -515,7 +595,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Determine whether we're below the cutoff timestep.
 
-        if (dt_subcycle < dt_cutoff * time || (time == 0.0 && dt_subcycle < eps)) {
+        if (dt_subcycle <= dt_cutoff * time) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
@@ -540,8 +620,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
-                      << " with dt = " << dt_subcycle << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+                      << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
@@ -629,7 +709,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << "  Subcycle completed" << std::endl << std::endl;
+            std::cout << Font::Bold << FGColor::Green << "  Subcycle completed" << ResetDisplay << std::endl << std::endl;
         }
 
         // Set sdc_iters to its original value, in case we modified it above.
@@ -650,10 +730,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, status)) {
+            if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
-                lastDtRetryLimited = true;
-                lastDtFromRetry = dt_subcycle;
                 in_retry = true;
 
                 continue;
@@ -681,6 +759,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "  Subcycling complete" << std::endl << std::endl;
+
+    // Record the number of subcycles we took for diagnostic purposes.
+
+    num_subcycles_taken = sub_iteration;
 
     if (sub_iteration > 1) {
 

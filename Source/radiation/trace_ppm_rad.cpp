@@ -1,24 +1,26 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #include <cmath>
 
 #include <ppm.H>
+#include <flatten.H>
 
 using namespace amrex;
 
 void
 Castro::trace_ppm_rad(const Box& bx,
                       const int idir,
+                      Array4<Real const> const& U_arr,
+                      Array4<Real const> const& rho_inv_arr,
                       Array4<Real const> const& q_arr,
                       Array4<Real const> const& qaux_arr,
                       Array4<Real const> const& srcQ,
-                      Array4<Real const> const& flatn,
                       Array4<Real> const& qm,
                       Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -58,7 +60,7 @@ Castro::trace_ppm_rad(const Box& bx,
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 
   // if we're on the CPU, we preprocess the sources over the whole
   // tile up front -- we don't want to trace under a source that is
@@ -127,11 +129,6 @@ Castro::trace_ppm_rad(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; n++){
-    qpass_map_p[n] = qpass_map[n];
-  }
-
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -174,7 +171,30 @@ Castro::trace_ppm_rad(const Box& bx,
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
     Real s[5];
-    Real flat = flatn(i,j,k);
+
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
+#ifdef RADIATION
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
+#endif
+    }
+
     Real sm;
     Real sp;
 
@@ -182,32 +202,25 @@ Castro::trace_ppm_rad(const Box& bx,
     Real Im[NQ][3];
 
 
-    for (int n = 0; n < NQ; n++) {
+    // do the non-passives first
+
+    for (int n = 0; n < NQTHERM; n++) {
       if (n == QTEMP) continue;
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,n);
-        s[im1] = q_arr(i-1,j,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i+1,j,k,n);
-        s[ip2] = q_arr(i+2,j,k,n);
+      load_stencil(q_arr, idir, i, j, k, n, s);
+      ppm_reconstruct(s, flat, sm, sp);
+      ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,n);
-        s[im1] = q_arr(i,j-1,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j+1,k,n);
-        s[ip2] = q_arr(i,j+2,k,n);
+    }
 
-      } else {
-        s[im2] = q_arr(i,j,k-2,n);
-        s[im1] = q_arr(i,j,k-1,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j,k+1,n);
-        s[ip2] = q_arr(i,j,k+2,n);
+    // now the passives
 
-      }
+    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
 
+      int n = qpassmap(ipassive);
+      int nc = upassmap(ipassive);
+
+      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
       ppm_reconstruct(s, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
@@ -221,7 +234,7 @@ Castro::trace_ppm_rad(const Box& bx,
     for (int n = 0; n < NQSRC; n++) {
 
       // do we even need to trace (non-zero source?)
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       int do_trace = do_source_trace[n];
 #else
       int do_trace = 0;
@@ -251,31 +264,9 @@ Castro::trace_ppm_rad(const Box& bx,
 
       if (do_trace) {
 
-        if (idir == 0) {
-          s[im2] = srcQ(i-2,j,k,n);
-          s[im1] = srcQ(i-1,j,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i+1,j,k,n);
-          s[ip2] = srcQ(i+2,j,k,n);
-
-        } else if (idir == 1) {
-          s[im2] = srcQ(i,j-2,k,n);
-          s[im1] = srcQ(i,j-1,k,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j+1,k,n);
-          s[ip2] = srcQ(i,j+2,k,n);
-
-        } else {
-          s[im2] = srcQ(i,j,k-2,n);
-          s[im1] = srcQ(i,j,k-1,n);
-          s[i0]  = srcQ(i,j,k,n);
-          s[ip1] = srcQ(i,j,k+1,n);
-          s[ip2] = srcQ(i,j,k+2,n);
-
-        }
-
-        ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
+          load_stencil(srcQ, idir, i, j, k, n, s);
+          ppm_reconstruct(s, flat, sm, sp);
+          ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
         Ip_src[n][0] = 0.0_rt;
@@ -293,10 +284,10 @@ Castro::trace_ppm_rad(const Box& bx,
     // do the passives separately
 
     // the passive stuff is the same regardless of the tracing
-  
+
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-      int n = qpass_map_p[ipassive];
+      int n = qpassmap(ipassive);
 
       // Plus state on face i
       if ((idir == 0 && i >= vlo[0]) ||
@@ -313,29 +304,15 @@ Castro::trace_ppm_rad(const Box& bx,
         // projecting, the reference state doesn't matter
 
         qp(i,j,k,n) = Im[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
-#endif
       }
 
       // Minus state on face i+1
       if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
       } else if (idir == 1 && j <= vhi[1]) {
         qm(i,j+1,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
       } else if (idir == 2 && k <= vhi[2]) {
         qm(i,j,k+1,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
       }
     }
 
@@ -489,7 +466,7 @@ Castro::trace_ppm_rad(const Box& bx,
       Real drhoe_g = rhoe_g_ref - Ip[QREINT][1] - hdt*Ip_src[QREINT][1];
 
       Real der[NGROUPS];
-      for (int g = 0; g < NGROUPS; g++) { 
+      for (int g = 0; g < NGROUPS; g++) {
         der[g]  = er_ref[g]  - Ip[QRAD+g][1];
       }
 
@@ -667,7 +644,7 @@ Castro::trace_ppm_rad(const Box& bx,
           qm(i+1,j,k,QRAD+g) += sourcer[g];
         }
         qm(i+1,j,k,QPTOT) = qm(i+1,j,k,QPTOT) + sourcp;
-        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT); 
+        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT);
         for (int g = 0; g < NGROUPS; g++) {
           qm(i+1,j,k,QPTOT) += lamm[g]*sourcer[g];
           qm(i+1,j,k,QREITOT) += qm(i+1,j,k,QRAD+g);

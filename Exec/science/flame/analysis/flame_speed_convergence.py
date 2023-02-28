@@ -55,7 +55,7 @@ if __name__ == "__main__":
         files = glob.glob("*plt?????") + glob.glob("*plt??????")
         prefix = files[0].split("plt")[0] + "plt"
         plot_nums = sorted([p.split("plt")[1] for p in files], key=int)
-        sorted_files = ["{}{}".format(prefix, q) for q in plot_nums]
+        sorted_files = [f"{prefix}{q}" for q in plot_nums]
 
         # we'll operate on the last 2 files.  Compute the width and
         # flame_speed from these
