@@ -493,7 +493,7 @@ Castro::read_params ()
    // SCF initial model construction can only be done if both
    // rotation and gravity have been compiled in.
 
-#if (!defined(GRAVITY) || !defined(ROTATION))
+#if !defined(GRAVITY) || !defined(ROTATION)
    if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
    }
@@ -700,13 +700,11 @@ Castro::Castro (Amr&            papa,
         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
       }
 
-#ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
       {
           std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
           amrex::Error();
       }
-#endif
    }
 
 #endif
@@ -971,7 +969,9 @@ Castro::initData ()
     //
     // Loop over grids, call FORTRAN function to init with data.
     //
+#if AMREX_SPACEDIM > 1
     const Real* dx  = geom.CellSize();
+#endif
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1930,6 +1930,9 @@ Castro::computeInitialDt (int                   finest_level,
 void
 Castro::post_timestep (int iteration_local)
 {
+
+    amrex::ignore_unused(iteration_local);
+
     BL_PROFILE("Castro::post_timestep()");
 
     //
@@ -2199,6 +2202,9 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+
+    amrex::ignore_unused(lbase);
+    amrex::ignore_unused(new_finest);
 
     BL_PROFILE("Castro::post_regrid()");
 
@@ -2657,7 +2663,9 @@ Castro::reflux(int crse_level, int fine_level)
         reg = &getLevel(lev).flux_reg;
 
         Castro& crse_lev = getLevel(lev-1);
+#ifdef GRAVITY
         Castro& fine_lev = getLevel(lev);
+#endif
 
         MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
@@ -2713,21 +2721,11 @@ Castro::reflux(int crse_level, int fine_level)
 
         // Now zero out any problematic flux corrections.
 
-        const MultiFab& mask = fine_lev.build_fine_mask();
-
         for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
             auto U = expanded_crse_state[mfi].array();
             auto V = crse_lev.volume[mfi].array();
-            auto F_x = (temp_fluxes[0])[mfi].array();
-#if AMREX_SPACEDIM >= 2
-            auto F_y = (temp_fluxes[1])[mfi].array();
-#endif
-#if AMREX_SPACEDIM == 3
-            auto F_z = (temp_fluxes[2])[mfi].array();
-#endif
-            auto mask_arr = mask[mfi].array();
 
             // Limit fluxes that would cause a small/negative density.
             // Also check to see whether the flux would cause invalid X. We use a
@@ -2749,8 +2747,8 @@ Castro::reflux(int crse_level, int fine_level)
                                        bool zero_fluxes = false;
 
                                        Real rho = U(i,j,k,URHO);
-                                       Real drho = F(i,j,k,URHO) / V(i,j,k);
-                                       Real rhoInvNew = 1.0_rt / (rho + drho);
+                                       Real drhoV = F(i,j,k,URHO) / V(i,j,k);
+                                       Real rhoInvNew = 1.0_rt / (rho + drhoV);
 
                                        for (int n = 0; n < NumSpec; ++n) {
                                            Real rhoX = U(i,j,k,UFS+n);
@@ -2832,21 +2830,21 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (update_sources_after_reflux) {
 
-                MultiFab temp_fluxes(crse_lev.P_radial.boxArray(),
-                                     crse_lev.P_radial.DistributionMap(),
-                                     crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow());
+                MultiFab tmp_fluxes(crse_lev.P_radial.boxArray(),
+                                    crse_lev.P_radial.DistributionMap(),
+                                    crse_lev.P_radial.nComp(), crse_lev.P_radial.nGrow());
 
-                temp_fluxes.setVal(0.0);
+                tmp_fluxes.setVal(0.0);
 
                 for (OrientationIter fi; fi; ++fi)
                 {
                     const FabSet& fs = (*reg)[fi()];
                     if (fi().coordDir() == 0) {
-                        fs.copyTo(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
+                        fs.copyTo(tmp_fluxes, 0, 0, 0, tmp_fluxes.nComp());
                     }
                 }
 
-                MultiFab::Add(crse_lev.P_radial, temp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
+                MultiFab::Add(crse_lev.P_radial, tmp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
 
             }
 
@@ -2900,7 +2898,6 @@ Castro::reflux(int crse_level, int fine_level)
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
             reg = &getLevel(lev).phi_reg;
-            Castro& fine_lev = getLevel(lev);
 
             // Note that the scaling by the area here is corrected for by dividing by the
             // cell volume in the reflux. In this way we get a discrete divergence that
@@ -3371,6 +3368,8 @@ void
 Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 {
 
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::apply_problem_tags()");
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -3404,7 +3403,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
 
 void
-Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
+Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time)
 {
     BL_PROFILE("Castro::apply_tagging_restrictions()");
 
@@ -3807,7 +3806,7 @@ Castro::computeTemp(
                     MultiFab& Bz,
 #endif
 
-                    MultiFab& State, Real time, int ng)
+                    MultiFab& State, [[maybe_unused]] Real time, int ng)
 
 {
 

@@ -39,6 +39,8 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
+  amrex::ignore_unused(time);
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -230,15 +232,12 @@ Castro::divu(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const int coord_type = geom.Coord();
-#endif
-
   const auto problo = geom.ProbLoArray();
+#endif
 
   Real dxinv = 1.0_rt / dx[0];
 #if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt / dx[1];
-#else
-  Real dyinv = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
@@ -355,7 +354,10 @@ Castro::apply_av(const Box& bx,
 #ifdef SHOCK_VAR
     if (n == USHK) return;
 #endif
-
+    
+#ifdef NSE_NET
+    if (n == UMUP || n == UMUN) return;
+#endif
     Real div1;
     if (idir == 0) {
 
@@ -521,7 +523,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          Array4<Real const> const& u,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt,
                                          bool scale_by_dAdt)
 {
@@ -576,8 +578,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         Real flux_coefL = 1.0_rt / volL;
 
         if (scale_by_dAdt) {
-            flux_coefR *= dt * area(i,j,k);
-            flux_coefL *= dt * area(i,j,k);
+            flux_coefR *= dt * area_arr(i,j,k);
+            flux_coefL *= dt * area_arr(i,j,k);
         }
 
         // Updates to the zones on either side of the interface.
@@ -743,9 +745,9 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         {
 
             // reset the left state at domlo if needed -- it is outside the domain
-            if (idir == 0 && i == domlo[0] ||
-                idir == 1 && j == domlo[1] ||
-                idir == 2 && k == domlo[2]) {
+            if ((idir == 0 && i == domlo[0]) ||
+                (idir == 1 && j == domlo[1]) ||
+                (idir == 2 && k == domlo[2])) {
                 for (int n = 0; n < NQ; n++) {
                     if (n == QUN) {
                         qm(i,j,k,QUN) = -qp(i,j,k,QUN);
@@ -764,9 +766,9 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
         {
 
             // reset the right state at domhi+1 if needed -- it is outside the domain
-            if (idir == 0 && i == domhi[0]+1 ||
-                idir == 1 && j == domhi[1]+1 ||
-                idir == 2 && k == domhi[2]+1) {
+            if ((idir == 0 && i == domhi[0]+1) ||
+                (idir == 1 && j == domhi[1]+1) ||
+                (idir == 2 && k == domhi[2]+1)) {
                 for (int n = 0; n < NQ; n++) {
                     if (n == QUN) {
                         qp(i,j,k,QUN) = -qm(i,j,k,QUN);

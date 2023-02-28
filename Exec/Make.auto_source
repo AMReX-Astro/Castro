@@ -16,11 +16,8 @@ CEXE_headers += extern_parameters.H
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
-# these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE)
-EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
-
-EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
+# this is for finding runtime parameters
+EXTERN_PARAMETERS := $(foreach dir, $(INCLUDE_LOCATIONS),$(realpath $(wildcard $(dir)/_parameters)))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 

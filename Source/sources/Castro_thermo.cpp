@@ -4,8 +4,12 @@
 using namespace amrex;
 
 void
-Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
 #ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
@@ -45,8 +49,15 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
 
 void
-Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(state_new);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
 #ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;

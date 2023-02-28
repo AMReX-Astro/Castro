@@ -68,8 +68,12 @@ Castro::estdt_cfl (int is_new)
       // Compute velocity and then calculate CFL timestep.
 
       Real ux = u(i,j,k,UMX) * rhoInv;
+#if AMREX_SPACEDIM >= 2
       Real uy = u(i,j,k,UMY) * rhoInv;
+#endif
+#if AMREX_SPACEDIM == 3
       Real uz = u(i,j,k,UMZ) * rhoInv;
+#endif
 
       Real c = eos_state.cs;
 
@@ -99,7 +103,7 @@ Castro::estdt_cfl (int is_new)
       } else {
           // method of lines-style constraint is tougher
           Real dt_tmp = 1.0_rt/dt1;
-#if AMREX_SPACEIM >= 2
+#if AMREX_SPACEDIM >= 2
           dt_tmp += 1.0_rt/dt2;
 #endif
 #if AMREX_SPACEDIM == 3
@@ -315,6 +319,7 @@ Castro::estdt_burning (int is_new)
         return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
     }
 
+    const auto dx = geom.CellSizeArray();
 
     MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -359,6 +364,12 @@ Castro::estdt_burning (int is_new)
         Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
         burn_t burn_state;
+
+#if AMREX_SPACEDIM == 1
+        burn_state.dx = dx[0];
+#else
+        burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+#endif
 
         burn_state.rho = S(i,j,k,URHO);
         burn_state.T   = S(i,j,k,UTEMP);
@@ -413,14 +424,25 @@ Castro::estdt_burning (int is_new)
         Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
-        // we need to use the eos_state interface here because for
-        // SDC, if we come in with a burn_t, it expects to
-        // evaluate the NSE criterion based on the conserved state.
 
-        eos_t eos_state;
-        burn_to_eos(burn_state, eos_state);
+#ifdef SIMPLIFIED_SDC
+        // if we are doing simplified-SDC + NSE, then the `in_nse()`
+        // check will use burn_state.y[], so we need to ensure that
+        // those are initialized
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.y[SFS+n] = burn_state.rho * burn_state.xn[n];
+        }
 
-        if (!in_nse(eos_state)) {
+        burn_state.y[SEINT] = burn_state.rho * burn_state.e;
+
+#endif
+
+#ifdef NSE_NET
+	burn_state.mu_p = S(i,j,k,UMUP);
+	burn_state.mu_n = S(i,j,k,UMUN);
+#endif
+
+        if (!in_nse(burn_state)) {
 #endif
             dt_tmp = dtnuc_e * e / dedt;
 #ifdef NSE
