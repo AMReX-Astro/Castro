@@ -994,7 +994,7 @@ Castro::plotFileOutput(const std::string& dir,
         //
         // Names of variables -- first state, then derived
         //
-        for (const auto& [type, comp] : plot_var_map)
+        for (const auto& [typ, comp] : plot_var_map)
         {
             os << desc_lst[typ].name(comp) << '\n';
         }
