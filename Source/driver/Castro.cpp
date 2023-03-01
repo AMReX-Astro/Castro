@@ -1442,7 +1442,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    Castro* oldlev = dynamic_cast<Castro*>(&old);
+    Castro* oldlev = (Castro*) &old;
 
     //
     // Create new grid data by fillpatching from old.
@@ -2725,7 +2725,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             // Start with a MultiFab version of the flux register.
 
-            for (OrientationIter fi; fi != nullptr; ++fi) {
+            for (OrientationIter fi; fi.isValid(); ++fi) {
                 const FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
                     fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
@@ -2790,7 +2790,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             // Update the flux register now that we may have modified some of the flux corrections.
 
-            for (OrientationIter fi; fi != nullptr; ++fi) {
+            for (OrientationIter fi; fi.isValid(); ++fi) {
                 FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
                     fs.copyFrom(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
@@ -2851,7 +2851,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                 tmp_fluxes.setVal(0.0);
 
-                for (OrientationIter fi; fi != nullptr; ++fi)
+                for (OrientationIter fi; fi.isValid(); ++fi)
                 {
                     const FabSet& fs = (*reg)[fi()];
                     if (fi().coordDir() == 0) {
@@ -2890,7 +2890,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                     temp_fluxes.setVal(0.0);
 
-                    for (OrientationIter fi; fi; ++fi) {
+                    for (OrientationIter fi; fi.isValid(); ++fi) {
                         const FabSet& fs = (*reg)[fi()];
                         if (fi().coordDir() == idir) {
                             fs.copyTo(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
