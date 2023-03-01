@@ -18,3 +18,6 @@ v0           real          0.0_rt          y
 
 # ambient z-velocity field
 w0           real          0.0_rt          y
+
+# tolerance for self-consistent nse
+nse_tol      real          0.1_rt          y

@@ -314,7 +314,6 @@ Castro::restart (Amr&     papa,
 #ifdef GRAVITY
 #if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       MultiFab& S_new = get_new_data(State_Type);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -584,14 +583,14 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(0);
+  time_t now = time(nullptr);
 
   // Convert now to tm struct for local timezone
   tm* localtm = localtime(&now);
   jobInfoFile   << "output date / time: " << asctime(localtm);
 
   char currentDir[FILENAME_MAX];
-  if (getcwd(currentDir, FILENAME_MAX)) {
+  if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
     jobInfoFile << "output dir:         " << currentDir << "\n";
   }
 
@@ -972,7 +971,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef REACTIONS
 #ifndef TRUE_SDC
     if (store_burn_weights) {
-        n_data_items += Castro::burn_weight_names.size();
+        n_data_items += static_cast<int>(Castro::burn_weight_names.size());
     }
 #endif
 #endif
@@ -995,10 +994,8 @@ Castro::plotFileOutput(const std::string& dir,
         //
         // Names of variables -- first state, then derived
         //
-        for (int i =0; i < plot_var_map.size(); i++)
+        for (const auto& [typ, comp] : plot_var_map)
         {
-            int typ = plot_var_map[i].first;
-            int comp = plot_var_map[i].second;
             os << desc_lst[typ].name(comp) << '\n';
         }
 
@@ -1138,14 +1135,11 @@ Castro::plotFileOutput(const std::string& dir,
     int       cnt   = 0;
     const int nGrow = 0;
     MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
-    MultiFab* this_dat = 0;
+    MultiFab* this_dat = nullptr;
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (int i = 0; i < plot_var_map.size(); i++)
-    {
-        int typ  = plot_var_map[i].first;
-        int comp = plot_var_map[i].second;
+    for (const auto& [typ, comp] : plot_var_map) {
         this_dat = &state[typ].newData();
         MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
         cnt++;
@@ -1178,8 +1172,8 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef REACTIONS
 #ifndef TRUE_SDC
     if (store_burn_weights) {
-        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, Castro::burn_weight_names.size(),0);
-        cnt += Castro::burn_weight_names.size();
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, static_cast<int>(Castro::burn_weight_names.size()), 0);
+        cnt += static_cast<int>(Castro::burn_weight_names.size());
     }
 #endif
 #endif

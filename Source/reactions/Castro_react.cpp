@@ -16,6 +16,9 @@ using namespace amrex;
 bool
 Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::react_state()");
 
     // Sanity check: should only be in here if we're doing CTU.
@@ -73,14 +76,22 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
+#ifdef CXX_MODEL_PARSER
         const auto problo = geom.ProbLoArray();
+#endif
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
 
             burn_t burn_state;
+#ifdef NSE_NET
+	    burn_state.mu_p = U(i,j,k,UMUP);
+	    burn_state.mu_n = U(i,j,k,UMUN);
 
+	    burn_state.y_e = 0.0_rt;
+#endif
+	    
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
@@ -105,6 +116,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.rho = U(i,j,k,URHO);
 
+	    // Need to store current internal energy for self-consistent nse burn
+#ifdef NSE_NET
+	    burn_state.e = U(i,j,k,UEINT) * rhoInv;
+#endif
             // this T is consistent with UEINT because we did an EOS call before
             // calling this function
 
@@ -219,7 +234,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 }
 
                 // update the state
-
+#ifdef NSE_NET
+		U(i,j,k,UMUP) = burn_state.mu_p;
+		U(i,j,k,UMUN) = burn_state.mu_n;
+#endif
                 for (int n = 0; n < NumSpec; ++n) {
                     U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
                 }
@@ -298,6 +316,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 bool
 Castro::react_state(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
 
     // The goal is to update S_old to S_new with the effects of both
     // advection and reactions.  We come into this S_new having seen
@@ -384,6 +404,10 @@ Castro::react_state(Real time, Real dt)
             burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
 #endif
 
+#ifdef NSE_NET
+	    burn_state.mu_p = U_old(i,j,k,UMUP);
+	    burn_state.mu_n = U_old(i,j,k,UMUN);
+#endif
             // Initialize some data for later.
 
             bool do_burn = true;
@@ -532,7 +556,10 @@ Castro::react_state(Real time, Real dt)
             if (do_burn) {
 
                 // update the state data.
-
+#ifdef NSE_NET
+	        U_new(i,j,k,UMUP) = burn_state.mu_p;
+	        U_new(i,j,k,UMUN) = burn_state.mu_n;
+#endif
                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
                 for (int n = 0; n < NumSpec; n++) {
@@ -736,7 +763,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // if it is negligible compared to the amount of work
     // needed to just do the burn as normal.
 
-    int small_size = small_limiters.size();
+    int small_size = static_cast<int>(small_limiters.size());
 
     if (small_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMin(small_limiters.dataPtr(), small_size);
@@ -751,7 +778,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
         }
     }
 
-    int large_size = large_limiters.size();
+    int large_size = static_cast<int>(large_limiters.size());
 
     if (large_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMax(large_limiters.dataPtr(), large_size);

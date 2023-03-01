@@ -25,33 +25,43 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
+        // passive is one of the advected quantities
         return UFA + ipassive;
     }
-    else if (ipassive < NumAdv + NumSpec) {
+
+    if (ipassive < NumAdv + NumSpec) {
+        // passive is one of the species
         return UFS + ipassive - NumAdv;
     }
-    else {
-        return UFX + ipassive - NumAdv - NumSpec;
-    }
+
+    // passive is one of the auxiliary quantities
+    return UFX + ipassive - NumAdv - NumSpec;
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int qpassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
+        // passive is one of the advected quantities
         return QFA + ipassive;
     }
-    else if (ipassive < NumAdv + NumSpec) {
+
+    if (ipassive < NumAdv + NumSpec) {
+        // passive is one of the species
         return QFS + ipassive - NumAdv;
     }
-    else {
-        return QFX + ipassive - NumAdv - NumSpec;
-    }
+
+    // passive is one of the auxiliary quantities
+    return QFX + ipassive - NumAdv - NumSpec;
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 {
+
+    amrex::ignore_unused(coord);
 
     // Keep track of which components of the momentum flux have pressure
 
@@ -119,7 +129,7 @@ void position(int i, int j, int k,
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
 
-        if (geomdata.isPeriodic(dir)) {
+        if (geomdata.isPeriodic(dir) == 1) {
             if (idx[dir] < domlo[dir]) {
                 offset[dir] += probhi[dir] - problo[dir];
             }
@@ -155,6 +165,10 @@ Real volume(const int& i, const int& j, const int& k,
     // Note that Castro has no support for angular coordinates, so
     // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     // in 2D, and Spherical in 1D.
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
 
     auto dx = geomdata.CellSize();
 
@@ -219,6 +233,12 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real area(const int& i, const int& j, const int& k,
           const int& idir, const GeometryData& geomdata)
 {
+
+    amrex::ignore_unused(i);
+    amrex::ignore_unused(j);
+    amrex::ignore_unused(k);
+    amrex::ignore_unused(idir);
+
     auto dx = geomdata.CellSize();
 
     Real a;

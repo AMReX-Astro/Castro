@@ -75,6 +75,10 @@ void problem_initialize_state_data (int i, int j, int k,
     Real eps = 1.e-10_rt;
     bool input_ye_is_valid = true;
 
+    // manually set the tolerance. Set a really large number to assure we're in NSE
+    // since here we only test nse_burn() in this unit test.
+    ase_tol = problem::nse_tol;
+
     // we need an initial guess for the mass fractions -- make them all the same
     for (int n = 0; n < NumSpec; ++n) {
         burn_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
@@ -100,7 +104,12 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; n++) {
         burn_state.xn[n] /= sumX;
     }
-
+    
+#ifdef NSE_NET
+    state(i,j,k,UMUP) = burn_state.mu_p;
+    state(i,j,k,UMUN) = burn_state.mu_n;
+#endif
+    
 #ifdef AUX_THERMO
     burn_state.aux[AuxZero::iye] = ye;
     burn_state.aux[AuxZero::iabar] = abar;

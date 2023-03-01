@@ -68,8 +68,12 @@ Castro::estdt_cfl (int is_new)
       // Compute velocity and then calculate CFL timestep.
 
       Real ux = u(i,j,k,UMX) * rhoInv;
+#if AMREX_SPACEDIM >= 2
       Real uy = u(i,j,k,UMY) * rhoInv;
+#endif
+#if AMREX_SPACEDIM == 3
       Real uz = u(i,j,k,UMZ) * rhoInv;
+#endif
 
       Real c = eos_state.cs;
 
@@ -431,6 +435,11 @@ Castro::estdt_burning (int is_new)
 
         burn_state.y[SEINT] = burn_state.rho * burn_state.e;
 
+#endif
+
+#ifdef NSE_NET
+	burn_state.mu_p = S(i,j,k,UMUP);
+	burn_state.mu_n = S(i,j,k,UMUN);
 #endif
 
         if (!in_nse(burn_state)) {
