@@ -576,7 +576,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
         // of the RHS by the number of points. This correction should probably be
         // volume weighted if we somehow got here without being Cartesian.
 
-        Real local_correction = rhs[0]->sum() / grids[crse_level].numPts();
+        Real local_correction = rhs[0]->sum() / static_cast<Real>(grids[crse_level].numPts());
 
         if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
             std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
@@ -597,7 +597,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
 
-        Real local_correction = delta_phi[0]->sum() / grids[crse_level].numPts();
+        Real local_correction = delta_phi[0]->sum() / static_cast<Real>(grids[crse_level].numPts());
 
         for (int lev = crse_level; lev <= fine_level; ++lev)
             delta_phi[lev - crse_level]->plus(-local_correction, 0, 1, 1);
@@ -1295,7 +1295,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 {
     BL_PROFILE("Gravity::interpolate_monopole_grav()");
     
-    int n1d = radial_grav.size();
+    int n1d = static_cast<int>(radial_grav.size());
 
     const Geometry& geom = parent->Geom(level);
     const auto dx = geom.CellSizeArray();
@@ -2041,9 +2041,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     Gpu::synchronize();
 
-    ParallelDescriptor::ReduceRealSum(qL0_ptr, boxq0.numPts());
-    ParallelDescriptor::ReduceRealSum(qLC_ptr, boxqC.numPts());
-    ParallelDescriptor::ReduceRealSum(qLS_ptr, boxqS.numPts());
+    ParallelDescriptor::ReduceRealSum(qL0_ptr, static_cast<int>(boxq0.numPts()));
+    ParallelDescriptor::ReduceRealSum(qLC_ptr, static_cast<int>(boxqC.numPts()));
+    ParallelDescriptor::ReduceRealSum(qLS_ptr, static_cast<int>(boxqS.numPts()));
 
     if (!ParallelDescriptor::UseGpuAwareMpi()) {
         if (The_Arena() == The_Managed_Arena()) {
@@ -2091,9 +2091,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
         Gpu::synchronize();
 
-        ParallelDescriptor::ReduceRealSum(qU0_ptr, boxq0.numPts());
-        ParallelDescriptor::ReduceRealSum(qUC_ptr, boxqC.numPts());
-        ParallelDescriptor::ReduceRealSum(qUS_ptr, boxqS.numPts());
+        ParallelDescriptor::ReduceRealSum(qU0_ptr, static_cast<int>(boxq0.numPts()));
+        ParallelDescriptor::ReduceRealSum(qUC_ptr, static_cast<int>(boxqC.numPts()));
+        ParallelDescriptor::ReduceRealSum(qUS_ptr, static_cast<int>(boxqS.numPts()));
 
         if (!ParallelDescriptor::UseGpuAwareMpi()) {
             if (The_Arena() == The_Managed_Arena()) {
@@ -3097,7 +3097,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
-        int n1d = radial_mass[lev].size();
+        int n1d = static_cast<int>(radial_mass[lev].size());
 
 #ifdef GR_GRAV
         Real* const lev_pres = radial_pres[lev].dataPtr();
@@ -3217,7 +3217,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
     if (do_diag > 0 && ParallelDescriptor::IOProcessor())
         std::cout << "Gravity::make_radial_gravity: Sum of mass over all levels " << sum_over_levels << std::endl;
 
-    int n1d = radial_mass[level].size();
+    int n1d = static_cast<int>(radial_mass[level].size());
     RealVector radial_mass_summed(n1d,0);
 
     Real* const level_mass = radial_mass[level].dataPtr();
