@@ -994,10 +994,8 @@ Castro::plotFileOutput(const std::string& dir,
         //
         // Names of variables -- first state, then derived
         //
-        for (auto& p : plot_var_map)
+        for (const auto& [type, comp] : plot_var_map)
         {
-            int typ = p.first;
-            int comp = p.second;
             os << desc_lst[typ].name(comp) << '\n';
         }
 
@@ -1141,10 +1139,7 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (int i = 0; i < static_cast<int>(plot_var_map.size()); i++)
-    {
-        int typ  = plot_var_map[i].first;
-        int comp = plot_var_map[i].second;
+    for (const auto& [typ, comp] : plot_var_map) {
         this_dat = &state[typ].newData();
         MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
         cnt++;
