@@ -467,6 +467,7 @@ Castro::read_params ()
         amrex::Error();
       }
     }
+
     if (dgeom.IsRZ() == 1) {
         rot_axis = 2;
     }
