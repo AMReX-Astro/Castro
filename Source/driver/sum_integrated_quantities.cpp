@@ -305,7 +305,7 @@ Castro::sum_integrated_quantities ()
 
             std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
             std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
-#ifdef REACTION
+#ifdef REACTIONS
             std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
 #endif
 
@@ -596,7 +596,7 @@ Castro::sum_integrated_quantities ()
                     std::string outString  = "";
                     std::string massString = "Mass ";
                     std::string specString = species_names[i];
-                    while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
+                    while (static_cast<int>(outString.length() + specString.length() + massString.length()) < datwidth) outString += " ";
                     outString += massString;
                     outString += specString;
                     header << std::setw(datwidth) << outString; ++n;

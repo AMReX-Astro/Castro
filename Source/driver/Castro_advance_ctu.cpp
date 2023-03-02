@@ -19,6 +19,9 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -365,7 +368,7 @@ Castro::do_advance_ctu(Real time,
 
             // Do the ODE integration to capture the reaction source terms.
 
-            bool burn_success = react_state(time, dt);
+            burn_success = react_state(time, dt);
 
             // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -374,8 +377,6 @@ Castro::do_advance_ctu(Real time,
                 status.reason = "burn unsuccessful";
                 return status;
             }
-
-            MultiFab& S_new = get_new_data(State_Type);
 
             clean_state(S_new, time + dt, S_new.nGrow());
 
@@ -391,10 +392,7 @@ Castro::do_advance_ctu(Real time,
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
             SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 
-            MultiFab& R_old = get_old_data(Reactions_Type);
             R_old.setVal(0.0, R_old.nGrow());
-
-            MultiFab& R_new = get_new_data(Reactions_Type);
             R_new.setVal(0.0, R_new.nGrow());
 
         }
@@ -488,30 +486,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
-
-            if (!prev_state[k]->hasOldData()) {
-
-#ifdef AMREX_USE_GPU
-                Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
-#endif
-                *prev_state[k] = state[k];
-#ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
-#endif
-            }
-
-        }
+        save_data_for_retry();
 
         // Clear the contribution to the fluxes from this step.
 

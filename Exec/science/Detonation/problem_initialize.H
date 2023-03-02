@@ -4,9 +4,6 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 
 AMREX_INLINE
 void problem_initialize ()
@@ -61,6 +58,11 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n]  = problem::ambient_comp[n];
     }
+
+#ifdef AUX_THERMO
+    // set the aux quantities -- we need to do this if we are using the NSE network
+    set_aux_comp_from_X(eos_state);
+#endif
 
     eos_state.T = problem::T_l;
 

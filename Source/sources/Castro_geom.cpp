@@ -113,7 +113,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
 
 void
-Castro::fill_geom_source (Real time, Real dt,
+Castro::fill_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
                           MultiFab& cons_state, MultiFab& geom_src)
 {
 
@@ -123,9 +123,6 @@ Castro::fill_geom_source (Real time, Real dt,
 
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
-
-  auto coord = geom.Coord();
-
 
 #ifdef _OPENMP
 #pragma omp parallel

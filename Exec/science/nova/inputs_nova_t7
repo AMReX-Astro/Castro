@@ -1,22 +1,22 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 100000
+max_step = 300000
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1      0
+geometry.is_periodic = 1          0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0      0
-geometry.prob_hi     = 8.192e7 4.096e7
-amr.n_cell           = 256    128
+geometry.prob_lo     = 0          0
+geometry.prob_hi     = 16.192e7   8.096e7
+amr.n_cell           = 512        256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   1
+castro.lo_bc       =  0   3
 castro.hi_bc       =  0   2
-
 castro.yl_ext_bc_type = 1
+
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
@@ -27,25 +27,34 @@ castro.ambient_outflow_vel = 1
 # WHICH PHYSICS
 castro.do_hydro = 1           #hydrodynamics
 castro.do_react = 1           #microphysics
-castro.add_ext_src = 0        #external sources
 castro.do_grav = 1            #gravity
 castro.do_sponge = 0          #using sponge
+castro.diffuse_temp = 1
+
 castro.ppm_type = 1
-castro.riemann_solver = 0
+castro.grav_source_type = 2
+castro.use_pslope = 1
+castro.pslope_cutoff_density = 6.0e1
+
 castro.use_flattening = 1
 
-castro.small_temp = 1.0e5
+castro.small_temp = 5.0e5
 castro.small_dens = 1.0e-6
-castro.retry_small_density_cutoff = 1.0
+castro.retry_small_density_cutoff = 2.0e-5
+castro.limit_fluxes_on_small_dens = 1
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.06e8
-castro.react_rho_min = 1.0e2
-castro.react_T_min = 1.0e7
+
+castro.react_rho_min = 6.0e1
+castro.react_T_min = 5.0e6
+
+castro.diffuse_cutoff_density = 1.0e2
+castro.diffuse_cutoff_density_hi = 2.0e4
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
-#castro.init_shrink    = 0.1   # scale back initial timestep
+castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
@@ -55,16 +64,18 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 1       # maximum level number allowed
-amr.ref_ratio       = 2 2 2 2 # refinement ratio
-amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 32     # block factor in grid generation
-amr.max_grid_size   = 128
-amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+amr.max_level       = 5            # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2    # refinement ratio
+amr.regrid_int      = 2 2 2 2 2    # how often to regrid
+amr.max_grid_size   = 192
+amr.blocking_factor = 32
+amr.n_error_buf     = 2 2 2 2 2    # number of buffer cells in error est
+amr.refine_grid_layout = 0
+
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 200       # number of timesteps between checkpoints
+amr.check_int       = 200        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
@@ -76,15 +87,9 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T71600.hse"
+problem.model_name =  "glasner_T7_1e+04cm.hse"
 
 problem.apply_vel_field = 0
-#problem.velpert_scale = 5.0e5
-#problem.velpert_scale_ratio = 7.0
-#problem.velpert_amplitude = 7.0e5
-#problem.num_vortices = 8
-
-
 problem.apply_temp_field = 1
 problem.width = 1.0e6
 problem.amplitude = 0.5
@@ -93,19 +98,24 @@ problem.width_ratio = 1.8
 
 # Microphysics
 
-integrator.jacobian = 2
+integrator.jacobian = 1
 integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
+integrator.abort_on_failure = 0 
 
 # refinement
 
-amr.refinement_indicators = dens temp
+amr.refinement_indicators = dens temp edot
 
-amr.refine.dens.max_level = 1
+amr.refine.dens.max_level = 5
 amr.refine.dens.value_greater = 1.0e2
 amr.refine.dens.field_name = density
 
-amr.refine.temp.max_level = 1
+amr.refine.temp.max_level = 5
 amr.refine.temp.value_greater = 1.0e7
 amr.refine.temp.field_name = Temp
+
+amr.refine.edot.max_level = 5
+amr.refine.edot.value_greater = 1.0e11
+amr.refine.edot.field_name = enuc

@@ -25,7 +25,6 @@ Castro::problem_post_timestep()
 
     if (level != 0) return;
 
-    int finest_level = parent->finestLevel();
     Real time = state[State_Type].curTime();
     Real dt = parent->dtLevel(0);
 
@@ -95,7 +94,6 @@ Castro::wd_update (Real time, Real dt)
 
       GeometryData geomdata = c_lev.geom.data();
 
-      const auto dx = c_lev.geom.CellSizeArray();
       const auto problo = c_lev.geom.ProbLoArray();
       const auto probhi = c_lev.geom.ProbHiArray();
       int coord_type = c_lev.geom.Coord();
@@ -211,12 +209,12 @@ Castro::wd_update (Real time, Real dt)
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
 
-              if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
+              if (stellar_mask(i, j, k, geomdata, rho(i,j,k), true) * maskFactor > 0.0_rt) {
 
                   primary_factor = 1.0_rt;
 
               }
-              else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
+              else if (stellar_mask(i, j, k, geomdata, rho(i,j,k), false) * maskFactor > 0.0_rt) {
 
                   secondary_factor = 1.0_rt;
 
@@ -381,6 +379,9 @@ Castro::wd_update (Real time, Real dt)
 
 void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff, bool local)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::volInBoundary()");
 
     using namespace wdmerger;
@@ -439,12 +440,12 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
               if (rho(i,j,k) * maskFactor > rho_cutoff) {
 
-                  if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
+                  if (stellar_mask(i, j, k, geomdata, rho(i,j,k), true) * maskFactor > 0.0_rt) {
 
                       primary_factor = 1.0_rt;
 
                   }
-                  else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
+                  else if (stellar_mask(i, j, k, geomdata, rho(i,j,k), false) * maskFactor > 0.0_rt) {
 
                       secondary_factor = 1.0_rt;
 
@@ -597,7 +598,7 @@ Castro::update_relaxation(Real time, Real dt) {
         const Real old_time = getLevel(lev).state[State_Type].prevTime();
         const Real new_time = getLevel(lev).state[State_Type].curTime();
 
-        const Real dt = new_time - old_time;
+        const Real ldt = new_time - old_time;
 
         force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
         force[lev]->setVal(0.0);
@@ -615,7 +616,7 @@ Castro::update_relaxation(Real time, Real dt) {
         // We'll use the "old" gravity source constructor, which is really just a first-order
         // predictor for rho * g, and apply it at the new time.
 
-        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, dt);
+        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, ldt);
 
         // Mask out regions covered by fine grids.
 
@@ -725,11 +726,11 @@ Castro::update_relaxation(Real time, Real dt) {
                 Real primary_factor = 0.0_rt;
                 Real secondary_factor = 0.0_rt;
 
-                if (stellar_mask(i, j, k, geomdata, rho_arr, true) > 0.0_rt) {
+                if (stellar_mask(i, j, k, geomdata, rho_arr(i,j,k), true) > 0.0_rt) {
 
                     primary_factor = 1.0_rt;
 
-                } else if (stellar_mask(i, j, k, geomdata, rho_arr, false) > 0.0_rt) {
+                } else if (stellar_mask(i, j, k, geomdata, rho_arr(i,j,k), false) > 0.0_rt) {
 
                     secondary_factor = 1.0_rt;
 
@@ -951,11 +952,7 @@ Castro::problem_sums ()
 
     if (level > 0) return;
 
-    int finest_level  = parent->finestLevel();
     Real time         = state[State_Type].curTime();
-    Real dt           = parent->dtLevel(0);
-
-    if (time == 0.0) dt = 0.0; // dtLevel returns the next timestep for t = 0, so overwrite
 
     int timestep = parent->levelSteps(0);
 

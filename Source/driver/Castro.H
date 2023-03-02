@@ -23,21 +23,6 @@ using namespace castro;
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
 
-// for backwards compatibility with the old way of naming variables
-// these keys are deprecated and may be removed in the future
-constexpr int Density = URHO;
-constexpr int Xmom = UMX;
-constexpr int Ymom = UMY;
-constexpr int Zmom = UMZ;
-constexpr int Eden = UEDEN;
-constexpr int Eint = UEINT;
-constexpr int Temp = UTEMP;
-constexpr int FirstAdv = UFA;
-constexpr int FirstSpec = UFS;
-constexpr int FirstAux = UFX;
-#ifdef SHOCK_VAR
-constexpr int Shock = USHK;
-#endif
 
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
@@ -458,6 +443,11 @@ public:
 #endif
 
 ///
+/// Save a copy of the old state data in case for the purposes of a retry.
+///
+    void save_data_for_retry();
+
+///
 /// Should we retry advancing the simulation? By default, we
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
@@ -498,9 +488,8 @@ public:
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration);
 
 ///
 /// If required, adds material lost in timestep to cumulative
@@ -554,26 +543,26 @@ public:
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_cfl (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
 
 
 #ifdef MHD
 ///
 /// Compute the CFL timestep
 ///
-    amrex::Real estdt_mhd (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
 #endif
 
 ///
 /// Diffusion-limited timestep
 ///
-    amrex::Real estdt_temp_diffusion (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
 
 #ifdef REACTIONS
 ///
 /// Reactions-limited timestep
 ///
-    amrex::Real estdt_burning (int is_new = 1);
+    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
 #endif
 
 #ifdef RADIATION

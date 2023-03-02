@@ -9,16 +9,27 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
     // We do not apply any sponge at the old time.
+
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_in);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
     return;
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(time);
+
     const Real strt_time = ParallelDescriptor::second();
 
     if (!do_sponge) return;

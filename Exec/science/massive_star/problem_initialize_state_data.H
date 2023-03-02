@@ -4,9 +4,8 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <model_parser.H>
-
-#ifdef NSE_THERMO
-#include <nse.H>
+#ifdef NSE_TABLE
+#include <nse_table_check.H>
 #endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -51,19 +50,32 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,UFX+AuxZero::iye) = interpolate(dist, model::iaux+AuxZero::iye);
 
-    eos_t eos_state;
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
+    burn_t burn_state;
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n);
+        burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-    eos_state.aux[AuxZero::iye] = state(i,j,k,UFX+AuxZero::iye);
+    burn_state.aux[AuxZero::iye] = state(i,j,k,UFX+AuxZero::iye);
+
+#ifdef SIMPLIFIED_SDC
+    // if we are doing simplified-SDC + NSE, then the `in_nse()`
+    // check will use burn_state.y[], so we need to ensure that
+    // those are initialized
+    for (int n = 0; n < NumSpec; ++n) {
+        burn_state.y[SFS+n] = burn_state.rho * burn_state.xn[n];
+    }
+
+    // not used
+    burn_state.y[SEINT] = 0.0;
+#endif
+
 
     // now we use Ye if we are in NSE and use X if we are not.  In
     // either case, we sync up the other composition variables.
 
-    auto nse_check = in_nse(eos_state);
+    auto nse_check = in_nse(burn_state);
 
     if (nse_check) {
 
@@ -92,31 +104,33 @@ void problem_initialize_state_data (int i, int j, int k,
 
     } else {
         // we are not in NSE, so set the aux quantities from X-- this
-        // will fill eos_state.aux[]
+        // will fill burn_state.aux[]
 
-        set_nse_aux_from_X(eos_state);
+        set_aux_comp_from_X(burn_state);
 
         for (int n = 0; n < NumAux; n++) {
-            state(i,j,k,UFX+n) = eos_state.aux[n];
+            state(i,j,k,UFX+n) = burn_state.aux[n];
         }
     }
 
     // now call the EOS -- reload the eos_state since composition may
     // have changed
 
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n);
+        burn_state.xn[n] = state(i,j,k,UFS+n);
     }
     for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = state(i,j,k,UFX+n);
+        burn_state.aux[n] = state(i,j,k,UFX+n);
     }
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rt, burn_state);
 
-    state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
-    state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
+    state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
+
+    // add density scaling to composition
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);

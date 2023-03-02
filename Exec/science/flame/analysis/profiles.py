@@ -22,7 +22,7 @@ def rgba_to_hex(rgba):
 
 def get_Te_profile(plotfile):
 
-    ds = yt.load(plotfile)
+    ds = yt.load(plotfile, hint="castro")
 
     time = float(ds.current_time)
     ad = ds.all_data()

@@ -84,6 +84,11 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     F(i,j,k,USHK) = 0.0;
 #endif
 
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
+
 #ifdef RADIATION
     if (radiation::fspace_advection_type == 1) {
         for (int g = 0; g < NGROUPS; g++) {
@@ -223,8 +228,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          RiemannState& qint,
-          const int idir) {
+          RiemannState& qint) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
   // (1985)
@@ -590,13 +594,11 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
 /// @param qaux_arr    the auxillary state
 /// @param qint        the full Godunov state on the interface
 /// @param lambda_int  the radiation flux limiter on the interface
-/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          RiemannState& qint,
-          const int idir) {
+          RiemannState& qint) {
 
   // Colella, Glaz, and Ferguson solver
   //
@@ -1264,7 +1266,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real> const& qp,
               Array4<Real const> const& qaux_arr,
               RiemannState& qint,
-              const GeometryData& geom,
               const bool special_bnd_lo, const bool special_bnd_hi,
               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
@@ -1364,16 +1365,14 @@ riemann_state(const int i, const int j, const int k, const int idir,
       // Colella, Glaz, & Ferguson solver
 
       riemannus(ql, qr, raux,
-                qint,
-                idir);
+                qint);
 
   } else if (riemann_solver == 1) {
       // Colella & Glaz solver
 
 #ifndef RADIATION
       riemanncg(ql, qr, raux,
-                qint,
-                idir);
+                qint);
 #endif
 
 #ifndef AMREX_USE_GPU

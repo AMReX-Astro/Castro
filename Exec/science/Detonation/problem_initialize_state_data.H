@@ -4,17 +4,12 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-
-    int coord_type = geomdata.Coord();
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
@@ -42,9 +37,9 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = problem::xn[n];
     }
 
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
     // set the aux quantities -- we need to do this if we are using the NSE network
-    set_nse_aux_from_X(eos_state);
+    set_aux_comp_from_X(eos_state);
 
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];

@@ -91,6 +91,10 @@ Castro::compute_flux_from_q(const Box& bx,
     F(i,j,k,USHK) = 0.0;
 #endif
 
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n  = upassmap(ipassive);
