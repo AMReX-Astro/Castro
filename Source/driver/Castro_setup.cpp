@@ -314,8 +314,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Geometry& dgeom = DefaultGeometry();
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were

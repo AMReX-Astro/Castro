@@ -48,7 +48,7 @@ Castro::advance (Real time,
 
     Real dt_new = dt;
 
-    initialize_advance(time, dt, amr_iteration, amr_ncycle);
+    initialize_advance(time, dt, amr_iteration);
 
     // Do the advance.
 
@@ -126,6 +126,8 @@ Castro::advance (Real time,
 void
 Castro::initialize_do_advance(Real time)
 {
+
+    amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::initialize_do_advance()");
 
@@ -232,7 +234,7 @@ Castro::finalize_do_advance()
 
 
 void
-Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 {
     BL_PROFILE("Castro::initialize_advance()");
 

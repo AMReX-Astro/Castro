@@ -16,6 +16,9 @@ using namespace amrex;
 bool
 Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::react_state()");
 
     // Sanity check: should only be in here if we're doing CTU.
@@ -73,7 +76,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
+#ifdef CXX_MODEL_PARSER
         const auto problo = geom.ProbLoArray();
+#endif
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -311,6 +316,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 bool
 Castro::react_state(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
 
     // The goal is to update S_old to S_new with the effects of both
     // advection and reactions.  We come into this S_new having seen
