@@ -763,7 +763,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // if it is negligible compared to the amount of work
     // needed to just do the burn as normal.
 
-    int small_size = small_limiters.size();
+    int small_size = static_cast<int>(small_limiters.size());
 
     if (small_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMin(small_limiters.dataPtr(), small_size);
@@ -778,7 +778,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
         }
     }
 
-    int large_size = large_limiters.size();
+    int large_size = static_cast<int>(large_limiters.size());
 
     if (large_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMax(large_limiters.dataPtr(), large_size);
