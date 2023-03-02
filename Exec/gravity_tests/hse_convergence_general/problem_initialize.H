@@ -33,7 +33,7 @@ void problem_initialize ()
     }
 
     int ifuel2 = -1;
-    if (problem::fuel2_name != "") {
+    if (!problem::fuel2_name.empty()) {
         ifuel2 = network_spec_index(problem::fuel2_name);
         if (ifuel2 < 0) {
             species_defined = false;
@@ -41,7 +41,7 @@ void problem_initialize ()
     }
 
     int ifuel3 = -1;
-    if (problem::fuel3_name != "") {
+    if (!problem::fuel3_name.empty()) {
         ifuel3 = network_spec_index(problem::fuel3_name);
         if (ifuel3 < 0) {
             species_defined = false;
@@ -49,7 +49,7 @@ void problem_initialize ()
     }
 
     int ifuel4 = -1;
-    if (problem::fuel4_name != "") {
+    if (!problem::fuel4_name.empty()) {
         ifuel4 = network_spec_index(problem::fuel4_name);
         if (ifuel4 < 0) {
             species_defined = false;
@@ -62,7 +62,7 @@ void problem_initialize ()
     }
 
     int iash2 = -1;
-    if (problem::ash2_name != "") {
+    if (!problem::ash2_name.empty()) {
         iash2 = network_spec_index(problem::ash2_name);
         if (iash2 < 0) {
             species_defined = false;
@@ -70,7 +70,7 @@ void problem_initialize ()
     }
 
     int iash3 = -1;
-    if (problem::ash3_name != "") {
+    if (!problem::ash3_name.empty()) {
         iash3 = network_spec_index(problem::ash3_name);
         if (iash3 < 0) {
             species_defined = false;
@@ -92,10 +92,10 @@ void problem_initialize ()
         model_params.xn_star[n] = problem::smallx;
     }
     model_params.xn_star[iash1] = problem::ash1_frac;
-    if (problem::ash2_name != "") {
+    if (!problem::ash2_name.empty()) {
         model_params.xn_star[iash2] = problem::ash2_frac;
     }
-    if (problem::ash3_name != "") {
+    if (!problem::ash3_name.empty()) {
         model_params.xn_star[iash3] = problem::ash3_frac;
     }
 
@@ -105,13 +105,13 @@ void problem_initialize ()
         model_params.xn_base[n] = problem::smallx;
     }
     model_params.xn_base[ifuel1] = problem::fuel1_frac;
-    if (problem::fuel2_name != "") {
+    if (!problem::fuel2_name.empty()) {
         model_params.xn_base[ifuel2] = problem::fuel2_frac;
     }
-    if (problem::fuel3_name != "") {
+    if (!problem::fuel3_name.empty()) {
         model_params.xn_base[ifuel3] = problem::fuel3_frac;
     }
-    if (problem::fuel4_name != "") {
+    if (!problem::fuel4_name.empty()) {
         model_params.xn_base[ifuel4] = problem::fuel4_frac;
     }
 
