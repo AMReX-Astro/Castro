@@ -94,7 +94,7 @@ void problem_initialize ()
 
     // set the composition of the underlying star
 
-    for (double & X : model_params.xn_star) {
+    for (Real & X : model_params.xn_star) {
         X = problem::smallx;
     }
     model_params.xn_star[iash1] = problem::ash1_frac;
@@ -107,7 +107,7 @@ void problem_initialize ()
 
     // and the composition of the accreted layer
 
-    for (double & X : model_params.xn_base) {
+    for (Real & X : model_params.xn_base) {
         X = problem::smallx;
     }
     model_params.xn_base[ifuel1] = problem::fuel1_frac;
@@ -124,7 +124,7 @@ void problem_initialize ()
     // check if they sum to 1
 
     Real sumX = 0.0_rt;
-    for (double X : model_params.xn_star) {
+    for (Real X : model_params.xn_star) {
         sumX += X;
     }
     if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
@@ -132,7 +132,7 @@ void problem_initialize ()
     }
 
     sumX = 0.0_rt;
-    for (double X : model_params.xn_base) {
+    for (Real X : model_params.xn_base) {
         sumX += X;
     }
     if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
