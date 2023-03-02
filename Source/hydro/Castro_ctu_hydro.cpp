@@ -1174,6 +1174,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef NSE_NET
 	      flux_arr(i,j,k,UMUP) = 0.e0;
 	      flux_arr(i,j,k,UMUN) = 0.e0;
+	      flux_arr(i,j,k,UNSE) = 0;
 #endif
           });
 

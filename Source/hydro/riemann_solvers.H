@@ -87,6 +87,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #ifdef NSE_NET
     F(i,j,k,UMUP) = 0.0;
     F(i,j,k,UMUN) = 0.0;
+    F(i,j,k,UNSE) = 0;
 #endif
 
 #ifdef RADIATION

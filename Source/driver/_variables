@@ -22,6 +22,7 @@
    shock                  USHK      None                                  1                 SHOCK_VAR
    mu_p                   UMUP      None                                  1                 NSE_NET
    mu_n                   UMUN      None                                  1                 NSE_NET
+   nse                    UNSE      None                                  1                 NSE_NET
 
 # the primitive variable state
 @set: primitive NQ

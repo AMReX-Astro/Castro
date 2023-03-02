@@ -575,6 +575,10 @@ Castro::variableSetUp ()
   set_scalar_bc(bc, phys_bc);
   bcs[UMUN] = bc;
   name[UMUN] = "mu_n";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UNSE] = bc;
+  name[UNSE] = "nse";
 #endif
   
   BndryFunc stateBndryFunc(ca_statefill);

@@ -356,7 +356,7 @@ Castro::apply_av(const Box& bx,
 #endif
     
 #ifdef NSE_NET
-    if (n == UMUP || n == UMUN) return;
+    if (n == UMUP || n == UMUN || n == UNSE) return;
 #endif
     Real div1;
     if (idir == 0) {
