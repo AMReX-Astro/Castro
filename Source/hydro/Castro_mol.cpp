@@ -225,6 +225,7 @@ Castro::mol_consup(const Box& bx,
 #endif
                    Array4<Real const> const& vol) {
 
+  amrex::ignore_unused(dt);
 
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to

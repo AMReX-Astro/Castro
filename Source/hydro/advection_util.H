@@ -238,7 +238,7 @@ void
 dflux(const GpuArray<Real, NUM_STATE>& u,
       const GpuArray<Real, NQ>& q,
       int dir, int coord,
-      const GeometryData& geomdata,
+      GeometryData& geomdata,
       const GpuArray<int, 3>& idx,
       GpuArray<Real, NUM_STATE>& flux)
 {
@@ -247,6 +247,9 @@ dflux(const GpuArray<Real, NUM_STATE>& u,
 
     // Set everything to zero; this default matters because some
     // quantities like temperature are not updated through fluxes.
+
+    amrex::ignore_unused(geomdata);
+    amrex::ignore_unused(idx);
 
     for (int n = 0; n < NUM_STATE; ++n) {
         flux[n] = 0.0_rt;

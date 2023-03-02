@@ -586,28 +586,15 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
-    GpuArray<Real, NumSpec+2> rtol;
-    GpuArray<Real, NumSpec+2> atol;
-
     // relative tolerances
-    rtol[0] = tol_dens;
-    for (int n = 0; n < NumSpec; ++n) {
-        rtol[1+n] = tol_spec;
-    }
-    rtol[NumSpec+1] = tol_ener;
+    dvode_state.rtol_dens = tol_dens;
+    dvode_state.rtol_spec = tol_spec;
+    dvode_state.rtol_enuc = tol_ener;
 
     // absolute tolerances
-    atol[0] = sdc_solver_atol * U_old[URHO];
-    for (int n = 0; n < NumSpec; ++n) {
-        atol[1+n] = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
-    }
-
-    atol[NumSpec+1] = sdc_solver_atol * U_old[UEINT];
-
-    for (int n = 1; n <= NumSpec+2; ++n) {
-        dvode_state.atol(n) = atol[n-1];
-        dvode_state.rtol(n) = rtol[n-1];
-    }
+    dvode_state.atol_dens = sdc_solver_atol * U_old[URHO];
+    dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
+    dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
 
     int istate = dvode(burn_state, dvode_state);
 

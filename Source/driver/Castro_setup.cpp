@@ -17,9 +17,6 @@
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 #include <ambient.H>
 
 using std::string;
@@ -267,8 +264,8 @@ Castro::variableSetUp ()
   for (int n = 0; n < NumSpec; ++n) {
       eos_state.xn[n] = 1.0_rt / NumSpec;
   }
-#ifdef NSE_THERMO
-  set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+  set_aux_comp_from_X(eos_state);
 #endif
 
   eos(eos_input_rt, eos_state);
@@ -317,8 +314,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Geometry& dgeom = DefaultGeometry();
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
@@ -338,17 +333,20 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  Interpolater* interp;
+  MFInterpolater* interp = nullptr;
 
   if (state_interp_order == 0) {
-    interp = &pc_interp;
+    interp = &mf_pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1) {
-      interp = &lincc_interp;
+    if (lin_limit_state_interp == 2) {
+      interp = &mf_linear_slope_minmax_interp;
+    }
+    else if (lin_limit_state_interp == 1) {
+      interp = &mf_lincc_interp;
     }
     else {
-      interp = &cell_cons_interp;
+      interp = &mf_cell_cons_interp;
     }
   }
 
@@ -569,6 +567,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -650,12 +658,12 @@ Castro::variableSetUp ()
   if (store_burn_weights) {
 
 #ifdef STRANG
-      burn_weight_names.push_back("burn_weights_firsthalf");
-      burn_weight_names.push_back("burn_weights_secondhalf");
+      burn_weight_names.emplace_back("burn_weights_firsthalf");
+      burn_weight_names.emplace_back("burn_weights_secondhalf");
 #endif
 #ifdef SIMPLIFIED_SDC
       for (int n = 0; n < sdc_iters+1; n++) {
-          burn_weight_names.push_back("burn_weights_iter_" + std::to_string(n+1));
+          burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }
@@ -879,14 +887,20 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
-#ifndef NSE_THERMO
+#ifndef AUX_THERMO
   //
-  // Abar
-  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
+  // Abar and Ye
+  // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+
+#ifdef REACTIONS
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
@@ -1018,39 +1032,39 @@ Castro::variableSetUp ()
   //
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
-  err_list_names.push_back("density");
+  err_list_names.emplace_back("density");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("Temp");
+  err_list_names.emplace_back("Temp");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("pressure");
+  err_list_names.emplace_back("pressure");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("x_velocity");
+  err_list_names.emplace_back("x_velocity");
   err_list_ng.push_back(1);
 
 #if (AMREX_SPACEDIM >= 2)
-  err_list_names.push_back("y_velocity");
+  err_list_names.emplace_back("y_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #if (AMREX_SPACEDIM == 3)
-  err_list_names.push_back("z_velocity");
+  err_list_names.emplace_back("z_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #ifdef REACTIONS
-  err_list_names.push_back("t_sound_t_enuc");
+  err_list_names.emplace_back("t_sound_t_enuc");
   err_list_ng.push_back(0);
 
-  err_list_names.push_back("enuc");
+  err_list_names.emplace_back("enuc");
   err_list_ng.push_back(0);
 #endif
 
 #ifdef RADIATION
   if (do_radiation && !Radiation::do_multigroup) {
-      err_list_names.push_back("rad");
+      err_list_names.emplace_back("rad");
       err_list_ng.push_back(1);
   }
 #endif
@@ -1058,7 +1072,7 @@ Castro::variableSetUp ()
   // Save the number of built-in functions; this will help us
   // distinguish between those, and the ones the user is about to add.
 
-  num_err_list_default = err_list_names.size();
+  num_err_list_default = static_cast<int>(err_list_names.size());
 
   //
   // Construct an array holding the names of the source terms.

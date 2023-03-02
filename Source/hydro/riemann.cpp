@@ -81,7 +81,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
             riemann_state(i, j, k, idir,
                           qm, qp, qaux_arr,
                           qint,
-                          geomdata,
                           special_bnd_lo, special_bnd_hi,
                           domlo, domhi);
 

@@ -210,6 +210,19 @@ Runtime Errors
    ``castro.limit_fluxes_on_small_dens = 1``.  This will use a flux
    limiter to prevent the density from going negative.
 
+#. *There might be a problem when Castro tries to normalize mass fractions
+   and encounters: ``Invalid mass fraction in Castro::normalize_species()``.*
+
+   If the error happens at the beginning of the timestep, it is possible that
+   something unexpected happened durng the interpolation from the coarse-level
+   to the fine-level. Try to set ``castro.state_interp_order = 0`` in the
+   input file. This allows piecewise constant refinement, but sacrifices
+   some benefit of the refinement.
+
+   If the error continues, try to increase the tolerance of determining
+   specie abundance validity check by setting ``castro.abundance_failure_tolerance``
+   to a higher value. 
+   
 Visualization
 =============
 

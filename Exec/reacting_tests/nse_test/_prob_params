@@ -1,9 +1,23 @@
-
+# ambient density
 rho0         real          1.4_rt          y
 
+# ambient temperature
 T0           real          1.0_rt          y
 
+# amplitude of temperature perturbation
 dT_fact      real          1.5_rt          y
 
+# scale of the temperature perturbation
 L_pert       real          0.5_rt          y
 
+# ambient x-velocity
+u0           real          0.0_rt          y
+
+# ambient y-velocity field
+v0           real          0.0_rt          y
+
+# ambient z-velocity field
+w0           real          0.0_rt          y
+
+# tolerance for self-consistent nse
+nse_tol      real          0.1_rt          y
