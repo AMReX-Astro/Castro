@@ -1498,7 +1498,7 @@ Castro::init ()
     Real cur_time  = getLevel(level-1).state[State_Type].curTime();
     Real prev_time = getLevel(level-1).state[State_Type].prevTime();
 
-    Real dt_old = (cur_time - prev_time)/(Real)parent->MaxRefRatio(level-1);
+    Real dt_old = (cur_time - prev_time) / static_cast<Real>(parent->MaxRefRatio(level-1));
 
     Real time = cur_time;
 
