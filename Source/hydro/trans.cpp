@@ -347,7 +347,7 @@ Castro::actual_trans_single(const Box& bx,
 
         // Reset to original value if adding transverse terms made density negative
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;
@@ -802,7 +802,7 @@ Castro::actual_trans_final(const Box& bx,
         // Reset to original value if adding transverse terms
         // made density negative
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;

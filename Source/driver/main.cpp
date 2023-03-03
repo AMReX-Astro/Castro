@@ -123,7 +123,7 @@ main (int   argc,
 
     time_t time_type;
 
-    struct tm* time_pointer;
+    struct tm* time_pointer = nullptr;
 
     time(&time_type);
 
@@ -198,7 +198,7 @@ main (int   argc,
     // object because we need to scale it by the number of zones on the coarse grid.
 
     long numPtsCoarseGrid = amrptr->getLevel(0).boxArray().numPts();
-    Real fom = Castro::num_zones_advanced * numPtsCoarseGrid;
+    Real fom = Castro::num_zones_advanced * static_cast<Real>(numPtsCoarseGrid);
 
     time(&time_type);
 
