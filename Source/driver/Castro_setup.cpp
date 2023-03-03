@@ -320,7 +320,7 @@ Castro::variableSetUp ()
   // not (which is reflected by whether ambient_density is positive)
   // then we use the "small" quantities.
 
-  for (double & s : ambient::ambient_state) {
+  for (Real & s : ambient::ambient_state) {
       s = 0.0;
   }
 
