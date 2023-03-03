@@ -1265,7 +1265,7 @@ extern "C"
       burn_state.y[SEINT] = burn_state.rho * burn_state.e;
 #endif
 
-      der(i,j,k,0) = nse(burn_state);
+      der(i,j,k,0) = in_nse(burn_state);
 
     });
   }
