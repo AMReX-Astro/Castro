@@ -72,9 +72,8 @@ void problem_initialize_state_data (int i, int j, int k,
       state(i,j,k,UMUP) = nse_state.mu_p;
       state(i,j,k,UMUN) = nse_state.mu_n;
     }
-
 #endif
-    
+
     eos(eos_input_rt, eos_state);
 
     state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::vel - 2 * problem::vel * (1.0_rt - sigma));
