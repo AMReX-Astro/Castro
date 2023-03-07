@@ -633,7 +633,7 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
-  
+
   if (store_omegadot == 1) {
 
       // Reactions_Type includes the species -- we put those after rho_enuc
