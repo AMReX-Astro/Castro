@@ -440,8 +440,9 @@ Castro::estdt_burning (int is_new)
 #ifdef NSE_NET
 	burn_state.mu_p = S(i,j,k,UMUP);
 	burn_state.mu_n = S(i,j,k,UMUN);
-	burn_state.nse = S(i,j,k,UNSE);
 #endif
+
+	burn_state.nse = S(i,j,k,UNSE);
 
         if (!in_nse(burn_state)) {
 #endif

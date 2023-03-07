@@ -83,11 +83,12 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #ifdef SHOCK_VAR
     F(i,j,k,USHK) = 0.0;
 #endif
-
+#ifdef NSE
+    F(i,j,k,UNSE) = 0;
+#endif
 #ifdef NSE_NET
     F(i,j,k,UMUP) = 0.0;
     F(i,j,k,UMUN) = 0.0;
-    F(i,j,k,UNSE) = 0;
 #endif
 
 #ifdef RADIATION
