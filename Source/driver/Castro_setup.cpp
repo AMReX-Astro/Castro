@@ -656,7 +656,7 @@ Castro::variableSetUp ()
 #endif
   }
 #ifdef NSE
-  set_scalar_bc(bc,physc_bc);
+  set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   if (store_omegadot == 1) {
     desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "nse", bc, genericBndryFunc);
