@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <memory>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -517,13 +518,13 @@ Castro::read_params ()
 
        data_logs.resize(4);
 
-       data_logs[0].reset(new std::fstream);
+       data_logs[0] = std::make_unique<std::fstream>();
        data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[0]->good()) {
            amrex::FileOpenFailed("grid_diag.out");
        }
 
-       data_logs[1].reset(new std::fstream);
+       data_logs[1] = std::make_unique<std::fstream>();
 #ifdef GRAVITY
        data_logs[1]->open("gravity_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[1]->good()) {
@@ -531,13 +532,13 @@ Castro::read_params ()
        }
 #endif
 
-       data_logs[2].reset(new std::fstream);
+       data_logs[2] = std::make_unique<std::fstream>();
        data_logs[2]->open("species_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[2]->good()) {
            amrex::FileOpenFailed("species_diag.out");
        }
 
-       data_logs[3].reset(new std::fstream);
+       data_logs[3] = std::make_unique<std::fstream>();
        data_logs[3]->open("amr_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[3]->good()) {
            amrex::FileOpenFailed("amr_diag.out");
@@ -830,21 +831,21 @@ Castro::initMFs()
     fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+      fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
     }
 
     for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
-      fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+      fluxes[dir] = std::make_unique<MultiFab>(MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
     }
 
     mass_fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+      mass_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
     }
 
     for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
-      mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+      mass_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
     }
 
 #if (AMREX_SPACEDIM <= 2)
@@ -857,7 +858,7 @@ Castro::initMFs()
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
+            rad_fluxes[dir] = std:make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
         }
     }
 #endif
@@ -2205,7 +2206,7 @@ Castro::postCoarseTimeStep (Real cumtime)
     AmrLevel::postCoarseTimeStep(cumtime);
 #ifdef GRAVITY
     if (do_grav) {
-        gravity->set_mass_offset(cumtime, 0);
+        gravity->set_mass_offset(cumtime, false);
     }
 #endif
 
@@ -2661,8 +2662,8 @@ Castro::reflux(int crse_level, int fine_level)
             const auto& ba = amrlevel.boxArray();
             const auto& dm = amrlevel.DistributionMap();
 
-            drho[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
-            dphi[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
+            drho[lev - crse_level] = std::make_unique<MultiFab>(ba, dm, 1, 0);
+            dphi[lev - crse_level] = std::make_unique<MultiFab>(ba, dm, 1, 0);
 
             drho[lev - crse_level]->setVal(0.0);
             dphi[lev - crse_level]->setVal(0.0);
@@ -4434,7 +4435,7 @@ Castro::build_interior_boundary_mask (int ng)
     }
 
     //  If we got here, we need to build a new one
-    ib_mask.push_back(std::unique_ptr<iMultiFab>(new iMultiFab(grids, dmap, 1, ng)));
+    ib_mask.push_back(std::make_unique<iMultiFab>(grids, dmap, 1, ng));
 
     iMultiFab& imf = *ib_mask.back();
 

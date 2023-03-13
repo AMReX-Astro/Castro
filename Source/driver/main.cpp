@@ -19,14 +19,14 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_AmrLevel.H>
 
-#include <time.h>
+#include <ctime>
 
 #include <Castro.H>
 #include <Castro_io.H>
 
 using namespace amrex;
 
-std::string inputs_name = "";
+std::string inputs_name{};
 
 amrex::LevelBld* getLevelBld ();
 
