@@ -147,8 +147,8 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     LPInfo info;
     info.setMetricTerm(true);
     info.setMaxCoarseningLevel(0);
-    info.setAgglomeration(False);
-    info.setConsolidation(False);
+    info.setAgglomeration(false);
+    info.setConsolidation(false);
 
     MLABecLaplacian mlabec({geom}, {ba}, {dm}, info);
     mlabec.setMaxOrder(diffusion::mlmg_maxorder);
