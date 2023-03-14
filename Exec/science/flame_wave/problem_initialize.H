@@ -94,7 +94,8 @@ void problem_initialize ()
 
     // set the composition of the underlying star
 
-    for (Real & X : model_params.xn_star) {
+
+    for (Real &X : model_params.xn_star) {
         X = problem::smallx;
     }
     model_params.xn_star[iash1] = problem::ash1_frac;
@@ -107,7 +108,7 @@ void problem_initialize ()
 
     // and the composition of the accreted layer
 
-    for (Real & X : model_params.xn_base) {
+    for (Real &X : model_params.xn_base) {
         X = problem::smallx;
     }
     model_params.xn_base[ifuel1] = problem::fuel1_frac;
