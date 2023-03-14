@@ -123,20 +123,19 @@ main (int   argc,
 
     time_t time_type;
 
-    struct tm* time_pointer;
+    struct tm* time_pointer = nullptr;
 
     time(&time_type);
 
     time_pointer = gmtime(&time_type);
 
-    if (ParallelDescriptor::IOProcessor())
-      std::cout << std::setfill('0') << "\nStarting run at "
-                << std::setw(2) << time_pointer->tm_hour << ":"
-                << std::setw(2) << time_pointer->tm_min << ":"
-                << std::setw(2) << time_pointer->tm_sec << " UTC on "
-                << time_pointer->tm_year + 1900 << "-"
-                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
-                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+    amrex::Print() << std::setfill('0') << "\nStarting run at "
+                   << std::setw(2) << time_pointer->tm_hour << ":"
+                   << std::setw(2) << time_pointer->tm_min << ":"
+                   << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                   << time_pointer->tm_year + 1900 << "-"
+                   << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                   << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
     //
     // Initialize random seed after we're running in parallel.
@@ -198,20 +197,19 @@ main (int   argc,
     // object because we need to scale it by the number of zones on the coarse grid.
 
     long numPtsCoarseGrid = amrptr->getLevel(0).boxArray().numPts();
-    Real fom = Castro::num_zones_advanced * numPtsCoarseGrid;
+    Real fom = Castro::num_zones_advanced * static_cast<Real>(numPtsCoarseGrid);
 
     time(&time_type);
 
     time_pointer = gmtime(&time_type);
 
-    if (ParallelDescriptor::IOProcessor())
-      std::cout << std::setfill('0') << "\nEnding run at "
-                << std::setw(2) << time_pointer->tm_hour << ":"
-                << std::setw(2) << time_pointer->tm_min << ":"
-                << std::setw(2) << time_pointer->tm_sec << " UTC on "
-                << time_pointer->tm_year + 1900 << "-"
-                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
-                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+    amrex::Print() << std::setfill('0') << "\nEnding run at "
+                   << std::setw(2) << time_pointer->tm_hour << ":"
+                   << std::setw(2) << time_pointer->tm_min << ":"
+                   << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                   << time_pointer->tm_year + 1900 << "-"
+                   << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                   << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
     delete amrptr;
     //

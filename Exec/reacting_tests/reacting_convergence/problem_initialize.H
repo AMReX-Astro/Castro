@@ -31,7 +31,7 @@ void problem_initialize ()
     }
 
     int ispec2;
-    if (problem::spec2_name != "") {
+    if (!problem::spec2_name.empty()) {
         ispec2 = network_spec_index(problem::spec2_name);
         if (ispec2 < 0) {
             species_defined = false;
@@ -39,7 +39,7 @@ void problem_initialize ()
     }
 
     int ispec3;
-    if (problem::spec3_name != "") {
+    if (!problem::spec3_name.empty()) {
         ispec3 = network_spec_index(problem::spec3_name);
         if (ispec3 < 0) {
             species_defined = false;
@@ -47,7 +47,7 @@ void problem_initialize ()
     }
 
     int ispec4;
-    if (problem::spec4_name != "") {
+    if (!problem::spec4_name.empty()) {
         ispec4 = network_spec_index(problem::spec4_name);
         if (ispec4 < 0) {
             species_defined = false;
@@ -55,7 +55,7 @@ void problem_initialize ()
     }
 
     int ispec5;
-    if (problem::spec5_name != "") {
+    if (!problem::spec5_name.empty()) {
         ispec5 = network_spec_index(problem::spec5_name);
         if (ispec5 < 0) {
             species_defined = false;
@@ -63,7 +63,7 @@ void problem_initialize ()
     }
 
     int ispec6;
-    if (problem::spec6_name != "") {
+    if (!problem::spec6_name.empty()) {
         ispec6 = network_spec_index(problem::spec6_name);
         if (ispec6 < 0) {
             species_defined = false;
@@ -79,19 +79,19 @@ void problem_initialize ()
     // xn[0] = 1.0_rt - (NumSpec-1)*small_x;
 
     xn[ispec1] = problem::spec1_frac;
-    if (problem::spec2_name != "") {
+    if (!problem::spec2_name.empty()) {
         xn[ispec2] = problem::spec2_frac;
     }
-    if (problem::spec3_name != "") {
+    if (!problem::spec3_name.empty()) {
         xn[ispec3] = problem::spec3_frac;
     }
-    if (problem::spec4_name != "") {
+    if (!problem::spec4_name.empty()) {
         xn[ispec4] = problem::spec4_frac;
     }
-    if (problem::spec5_name != "") {
+    if (!problem::spec5_name.empty()) {
         xn[ispec5] = problem::spec5_frac;
     }
-    if (problem::spec6_name != "") {
+    if (!problem::spec6_name.empty()) {
         xn[ispec6] = problem::spec6_frac;
     }
 

@@ -12,7 +12,9 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
     amrex::ignore_unused(dt);
 
 #ifndef MHD
-  if (!(time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) {
+      return;
+  }
 #endif
 
   const Real strt_time = ParallelDescriptor::second();
@@ -37,8 +39,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -60,7 +61,9 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
     amrex::ignore_unused(dt);
 
 #ifndef MHD
-  if (!(time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) {
+      return;
+  }
 
   amrex::Abort("you should not get here!");
 #else

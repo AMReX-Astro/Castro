@@ -908,7 +908,9 @@ HLL(const Real* ql, const Real* qr,
 
   Real bd = bp - bm;
 
-  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) return;
+  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) {
+      return;
+  }
 
   // we'll overwrite the passed in flux with the HLL flux
 

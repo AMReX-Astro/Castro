@@ -93,18 +93,18 @@ Vector<Real> Castro::node_weights;
 
 #ifdef GRAVITY
 // the gravity object
-Gravity*     Castro::gravity  = 0;
+Gravity*     Castro::gravity  = nullptr;
 #endif
 
 #ifdef DIFFUSION
 // the diffusion object
-Diffusion*    Castro::diffusion  = 0;
+Diffusion*    Castro::diffusion  = nullptr;
 #endif
 
 #ifdef RADIATION
 
 // the radiation object
-Radiation*   Castro::radiation = 0;
+Radiation*   Castro::radiation = nullptr;
 #endif
 
 
@@ -155,35 +155,36 @@ void
 Castro::variableCleanUp ()
 {
 #ifdef GRAVITY
-  if (gravity != 0) {
+  if (gravity != nullptr) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
     delete gravity;
-    gravity = 0;
+    gravity = nullptr;
   }
 #endif
 
 #ifdef DIFFUSION
-  if (diffusion != 0) {
+  if (diffusion != nullptr) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
     delete diffusion;
-    diffusion = 0;
+    diffusion = nullptr;
   }
 #endif
 
 #ifdef RADIATION
-  if (radiation != 0) { int report = (verbose || radiation->verbose);
-    if (report && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Deleting radiation in variableCleanUp..." << '\n';
-    }
-    delete radiation;
-    radiation = 0;
-    if (report && ParallelDescriptor::IOProcessor()) {
-      std::cout << "                                        done" << std::endl;
-    }
+  if (radiation != nullptr) {
+      int report = (verbose || radiation->verbose);
+      if (report && ParallelDescriptor::IOProcessor()) {
+          std::cout << "Deleting radiation in variableCleanUp..." << '\n';
+      }
+      delete radiation;
+      radiation = nullptr;
+      if (report && ParallelDescriptor::IOProcessor()) {
+          std::cout << "                                        done" << std::endl;
+      }
   }
 #endif
 
@@ -204,7 +205,9 @@ Castro::read_params ()
 {
     static bool done = false;
 
-    if (done) return;
+    if (done) {
+        return;
+    }
 
     done = true;
 
@@ -447,7 +450,7 @@ Castro::read_params ()
     // may be used in variableSetUp, well before the call to the
     // Radiation constructor,
 
-    if (do_radiation) {
+    if (do_radiation == 1) {
       Radiation::read_static_params();
     }
 
@@ -458,24 +461,26 @@ Castro::read_params ()
 #endif
 
 #ifdef ROTATION
-    if (do_rotation) {
+    if (do_rotation == 1) {
       if (rotational_period <= 0.0) {
         std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
         amrex::Error();
       }
     }
-    if (dgeom.IsRZ())
-      rot_axis = 2;
+
+    if (dgeom.IsRZ() == 1) {
+        rot_axis = 2;
+    }
 #if (AMREX_SPACEDIM == 1)
-      if (do_rotation) {
+    if (do_rotation == 1) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
         amrex::Error();
-      }
+    }
 #endif
 #endif
 
 #ifdef SPONGE
-    if (do_sponge) {
+    if (do_sponge == 1) {
         if (sponge_timescale <= 0.0) {
             amrex::Error("If using the sponge, the sponge_timescale must be positive.");
         }
@@ -657,7 +662,7 @@ Castro::Castro (Amr&            papa,
 
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
-    if (do_hydro && do_reflux) {
+    if (do_hydro == 1 && do_reflux == 1) {
         for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
             if (parent->nErrorBuf(ilev) == 0) {
                 amrex::Error("n_error_buf = 0 is unsupported when using hydro.");
@@ -673,14 +678,14 @@ Castro::Castro (Amr&            papa,
 
 #ifdef GRAVITY
 
-    if (do_grav) {
+    if (do_grav == 1) {
       // gravity is a static object, only alloc if not already there
-      if (gravity == 0) {
+      if (gravity == nullptr) {
         gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
       }
 
       // Passing numpts_1d at level 0
-      if (!level_geom.isAllPeriodic() && gravity != 0)
+      if (!level_geom.isAllPeriodic() && gravity != nullptr)
       {
          int numpts_1d = get_numpts();
 
@@ -712,7 +717,7 @@ Castro::Castro (Amr&            papa,
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
-      if (diffusion == 0) {
+      if (diffusion == nullptr) {
         diffusion = new Diffusion(parent,&phys_bc);
       }
 
@@ -721,7 +726,7 @@ Castro::Castro (Amr&            papa,
 
 #ifdef RADIATION
     if (do_radiation) {
-      if (radiation == 0) {
+      if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         radiation = new Radiation(parent, this);
       }
@@ -753,7 +758,7 @@ Castro::buildMetrics ()
 {
     BL_PROFILE("Castro::buildMetrics()");
 
-    const int ngrd = grids.size();
+    const int ngrd = static_cast<int>(grids.size());
 
     radius.resize(ngrd);
 
@@ -1493,7 +1498,7 @@ Castro::init ()
     Real cur_time  = getLevel(level-1).state[State_Type].curTime();
     Real prev_time = getLevel(level-1).state[State_Type].prevTime();
 
-    Real dt_old = (cur_time - prev_time)/(Real)parent->MaxRefRatio(level-1);
+    Real dt_old = (cur_time - prev_time) / static_cast<Real>(parent->MaxRefRatio(level-1));
 
     Real time = cur_time;
 
@@ -1702,8 +1707,9 @@ Castro::computeNewDt (int                    finest_level,
     // We are at the start of a coarse grid timecycle.
     // Compute the timesteps for the next iteration.
     //
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
@@ -1850,8 +1856,9 @@ Castro::computeNewDt (int                    finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
+                if (verbose) {
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                }
             }
 
         }
@@ -1866,8 +1873,9 @@ Castro::computeNewDt (int                    finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            if (verbose)
+            if (verbose) {
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            }
         }
     }
 
@@ -1964,9 +1972,9 @@ Castro::post_timestep (int iteration_local)
 
     // Ensure consistency with finer grids.
 
-    if (level < finest_level)
+    if (level < finest_level) {
         avgDown();
-
+    }
 
 #ifdef MHD
     MultiFab& Bx_new = get_new_data(Mag_Type_x);
@@ -2063,7 +2071,7 @@ Castro::post_timestep (int iteration_local)
 
     // Check to see if the user-supplied stopping criterion has been met.
 
-    if (castro::stopping_criterion_field != "" && level == 0) {
+    if (!castro::stopping_criterion_field.empty() && level == 0) {
         Real max_field_val = std::numeric_limits<Real>::min();
 
         for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
@@ -2154,29 +2162,33 @@ Castro::post_restart ()
                    gravity->update_max_rhs();
 
                    gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1)
+                   if (gravity->test_results_of_solves() == 1) {
                        gravity->test_composite_phi(level);
+                   }
                 }
             }
 
-            if (grown_factor > 1)
+            if (grown_factor > 1) {
                 post_grown_restart();
+            }
         }
     }
 #endif
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
-      if (diffusion == 0)
-        diffusion = new Diffusion(parent,&phys_bc);
+      if (diffusion == nullptr) {
+          diffusion = new Diffusion(parent,&phys_bc);
+      }
 
-      if (level == 0)
-         for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-            AmrLevel& this_level = getLevel(lev);
-                Castro& cs_level = getLevel(lev);
-            diffusion->install_level(lev,&this_level,
-                                     cs_level.Volume(),cs_level.Area());
-         }
+      if (level == 0) {
+          for (int lev = 0; lev <= parent->finestLevel(); lev++) {
+              AmrLevel& this_level = getLevel(lev);
+              Castro& cs_level = getLevel(lev);
+              diffusion->install_level(lev,&this_level,
+                                       cs_level.Volume(),cs_level.Area());
+          }
+      }
 #endif
 
 #ifdef DO_PROBLEM_POST_RESTART
@@ -2192,8 +2204,9 @@ Castro::postCoarseTimeStep (Real cumtime)
     BL_ASSERT(level == 0);
     AmrLevel::postCoarseTimeStep(cumtime);
 #ifdef GRAVITY
-    if (do_grav)
+    if (do_grav) {
         gravity->set_mass_offset(cumtime, 0);
+    }
 #endif
 
 }
@@ -2408,7 +2421,9 @@ Castro::post_init (Real /*stop_time*/)
         int nstep = parent->levelSteps(0);
         Real dtlev = parent->dtLevel(0);
         Real cumtime = parent->cumTime();
-        if (cumtime != 0.0) cumtime += dtlev;
+        if (cumtime != 0.0) {
+            cumtime += dtlev;
+        }
 
         bool sum_int_test = false;
 
@@ -2449,8 +2464,9 @@ Castro::post_grown_restart ()
 
     BL_PROFILE("Castro::post_grown_restart()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
 #ifdef GRAVITY
     if (do_grav) {
@@ -2656,7 +2672,7 @@ Castro::reflux(int crse_level, int fine_level)
     }
 #endif
 
-    FluxRegister* reg;
+    FluxRegister* reg = nullptr;
 
     for (int lev = fine_level; lev > crse_level; --lev) {
 
@@ -2710,7 +2726,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             // Start with a MultiFab version of the flux register.
 
-            for (OrientationIter fi; fi; ++fi) {
+            for (OrientationIter fi; fi.isValid(); ++fi) {
                 const FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
                     fs.copyTo(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
@@ -2775,7 +2791,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             // Update the flux register now that we may have modified some of the flux corrections.
 
-            for (OrientationIter fi; fi; ++fi) {
+            for (OrientationIter fi; fi.isValid(); ++fi) {
                 FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
                     fs.copyFrom(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
@@ -2836,7 +2852,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                 tmp_fluxes.setVal(0.0);
 
-                for (OrientationIter fi; fi; ++fi)
+                for (OrientationIter fi; fi.isValid(); ++fi)
                 {
                     const FabSet& fs = (*reg)[fi()];
                     if (fi().coordDir() == 0) {
@@ -2875,7 +2891,7 @@ Castro::reflux(int crse_level, int fine_level)
 
                     temp_fluxes.setVal(0.0);
 
-                    for (OrientationIter fi; fi; ++fi) {
+                    for (OrientationIter fi; fi.isValid(); ++fi) {
                         const FabSet& fs = (*reg)[fi()];
                         if (fi().coordDir() == idir) {
                             fs.copyTo(temp_fluxes, 0, 0, 0, temp_fluxes.nComp());
@@ -3060,7 +3076,9 @@ Castro::avgDown ()
 {
   BL_PROFILE("Castro::avgDown()");
 
-  if (level == parent->finestLevel()) return;
+  if (level == parent->finestLevel()) {
+      return;
+  }
 
   for (int k = 0; k < num_state_type; k++) {
       avgDown(k);
@@ -3247,7 +3265,9 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
     // This routine sets the velocity in state_in to be no larger than the
     // speed limit, if one has been applied.
 
-    if (castro::speed_limit <= 0.0_rt) return;
+    if (castro::speed_limit <= 0.0_rt) {
+        return;
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3290,7 +3310,9 @@ Castro::avgDown (int state_indx)
 {
     BL_PROFILE("Castro::avgDown(state_indx)");
 
-    if (level == parent->finestLevel()) return;
+    if (level == parent->finestLevel()) {
+        return;
+    }
 
     Castro& fine_lev = getLevel(level+1);
 
@@ -3312,8 +3334,9 @@ Castro::allocOldData ()
 
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
     MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
-    for (int k = 0; k < num_state_type; k++)
+    for (int k = 0; k < num_state_type; k++) {
         state[k].allocOldData();
+    }
 }
 
 void
@@ -3346,7 +3369,7 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < error_tags.size(); j++) {
         std::unique_ptr<MultiFab> mf;
-        if (error_tags[j].Field() != std::string()) {
+        if (!error_tags[j].Field().empty()) {
             mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
         }
         error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
