@@ -939,25 +939,25 @@ Castro::plotFileOutput(const std::string& dir,
     std::list<std::string> derive_names;
     const std::list<DeriveRec>& dlist = derive_lst.dlist();
 
-    for (auto it = dlist.begin(); it != dlist.end(); ++it)
-    {
-        if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-            (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
+    for (const auto & dd : dlist) {
+
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
-            if (it->name() == "particle_count" ||
-                it->name() == "total_particle_count")
+            if (dd.name() == "particle_count" ||
+                dd.name() == "total_particle_count")
             {
                 if (Castro::theTracerPC())
                 {
-                    derive_names.push_back(it->name());
-                    num_derive = num_derive + it->numDerive();
+                    derive_names.push_back(dd.name());
+                    num_derive = num_derive + dd.numDerive();
                 }
             } else
 #endif
             {
-               derive_names.push_back(it->name());
-               num_derive = num_derive + it->numDerive();
+               derive_names.push_back(dd.name());
+               num_derive = num_derive + dd.numDerive();
             }
         }
     }
@@ -1021,7 +1021,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef REACTIONS
 #ifndef TRUE_SDC
         if (store_burn_weights) {
-            for (auto name: Castro::burn_weight_names) {
+            for (const auto& name: Castro::burn_weight_names) {
                 os << name << '\n';
             }
         }
@@ -1141,23 +1141,22 @@ Castro::plotFileOutput(const std::string& dir,
     //
     for (const auto& [typ, comp] : plot_var_map) {
         this_dat = &state[typ].newData();
-        MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
+        MultiFab::Copy(plotMF, *this_dat, comp, cnt, 1, nGrow);
         cnt++;
     }
     //
     // Cull data from derived variables.
     //
-    if (dlist.size() > 0)
+    if (!dlist.empty())
     {
-        for (auto it = dlist.begin(); it != dlist.end(); ++it)
-        {
-            if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-                (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
+        for (const auto & dd : dlist) {
 
-                auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
-                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
-                cnt = cnt + it->numDerive();
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+                (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
+                auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);
+                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, dd.numDerive(), nGrow);
+                cnt = cnt + dd.numDerive();
             }
         }
     }

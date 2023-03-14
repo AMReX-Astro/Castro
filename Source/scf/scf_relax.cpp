@@ -728,7 +728,9 @@ Castro::do_hscf_solve()
 
         }
 
-        if (is_relaxed == 1) break;
+        if (is_relaxed == 1) {
+            break;
+        }
 
         ctr++;
 
