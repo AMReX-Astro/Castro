@@ -27,7 +27,7 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
 Diffusion::~Diffusion() = default;
 
 
-static void
+void
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
 #include <diffusion_job_info_tests.H>
