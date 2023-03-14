@@ -239,7 +239,7 @@ main (int   argc,
         std::cout << "\n";
     }
 
-    if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
+    if (auto* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
     {
         //
         // A barrier to make sure our output follows that of RunStats.

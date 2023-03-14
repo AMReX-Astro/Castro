@@ -596,9 +596,9 @@ Castro::sum_integrated_quantities ()
                 // We need to be careful here since the species names have differing numbers of characters
 
                 for (int i = 0; i < NumSpec; i++) {
-                    std::string outString  = "";
-                    std::string massString = "Mass ";
-                    std::string specString = species_names[i];
+                    std::string outString{};
+                    std::string massString{"Mass "};
+                    std::string specString{species_names[i]};
                     while (static_cast<int>(outString.length() + specString.length() + massString.length()) < datwidth) {
                         outString += " ";
                     }
