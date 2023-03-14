@@ -56,7 +56,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
             MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
             for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
+                comp_gphi[n] = std::make_unique<MultiFab>(getEdgeBoxArray(n), dmap, 1, 0);
                 MultiFab::Copy(*comp_gphi[n], *gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
             }
 

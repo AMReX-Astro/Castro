@@ -100,7 +100,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      max_rhs = 0.0;
 }
 
-Gravity::~Gravity() {}
+Gravity::~Gravity() = default;
 
 void
 Gravity::read_params ()
@@ -314,11 +314,11 @@ Gravity::install_level (int                   level,
 
        grad_phi_prev[level].resize(AMREX_SPACEDIM);
        for (int n=0; n<AMREX_SPACEDIM; ++n) {
-           grad_phi_prev[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));
+           grad_phi_prev[level][n] = std::make_unique<MultiFab>(level_data->getEdgeBoxArray(n),dm,1,1);
        }
        grad_phi_curr[level].resize(AMREX_SPACEDIM);
        for (int n=0; n<AMREX_SPACEDIM; ++n) {
-           grad_phi_curr[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));
+           grad_phi_curr[level][n] = std::make_unique<MultiFab>(level_data->getEdgeBoxArray(n),dm,1,1);
        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
@@ -514,7 +514,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     Vector<std::unique_ptr<MultiFab> > delta_phi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-        delta_phi[lev - crse_level].reset(new MultiFab(grids[lev], dmap[lev], 1, 1));
+        delta_phi[lev - crse_level] = std::make_unique<MultiFab>(grids[lev], dmap[lev], 1, 1);
         delta_phi[lev - crse_level]->setVal(0.0);
     }
 
@@ -525,7 +525,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
         const DistributionMapping& dm = LevelData[lev]->DistributionMap();
         for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-            ec_gdPhi[lev - crse_level][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n), dm, 1, 0));
+            ec_gdPhi[lev - crse_level][n] = std::make_unique<MultiFab>(LevelData[lev]->getEdgeBoxArray(n), dm, 1, 0);
             ec_gdPhi[lev - crse_level][n]->setVal(0.0);
         }
     }
@@ -542,7 +542,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-        rhs[lev - crse_level].reset( new MultiFab(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0));
+        rhs[lev - crse_level] = std::make_unique<MultiFab>(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0);
         MultiFab::Copy(*rhs[lev - crse_level], *dphi[lev - crse_level], 0, 0, 1, 0);
         rhs[lev - crse_level]->mult(1.0 / Ggravity);
         MultiFab::Add(*rhs[lev - crse_level], *drho[lev - crse_level], 0, 0, 1, 0);
@@ -714,8 +714,8 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
        BL_ASSERT(grad_phi_curr[lev].size()==AMREX_SPACEDIM);
        for (int n=0; n<AMREX_SPACEDIM; ++n)
        {
-           grad_phi_curr[lev][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n),
-                                                    LevelData[lev]->DistributionMap(),1,1));
+           grad_phi_curr[lev][n] = std::make_unique<MultiFab>(LevelData[lev]->getEdgeBoxArray(n),
+                                                              LevelData[lev]->DistributionMap(),1,1);
        }
     }
 
@@ -914,7 +914,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 #endif
 
-    Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
+    auto* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
         MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
         add_pointmass_to_gravity(level,phi,grav_vector);
@@ -986,7 +986,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 #endif
 
-    Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
+    auto* cs = dynamic_cast<Castro*>(&parent->getLevel(level));
     if (cs->using_point_mass()) {
         MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
         add_pointmass_to_gravity(level,phi,grav_vector);
@@ -1200,8 +1200,8 @@ Gravity::create_comp_minus_level_grad_phi(int level,
 
     comp_minus_level_grad_phi.resize(AMREX_SPACEDIM);
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-        comp_minus_level_grad_phi[n].reset(new MultiFab(LevelData[level]->getEdgeBoxArray(n),
-                                                        LevelData[level]->DistributionMap(), 1, 0));
+        comp_minus_level_grad_phi[n] = std::make_unique<MultiFab>(LevelData[level]->getEdgeBoxArray(n),
+                                                                  LevelData[level]->DistributionMap(), 1, 0);
         MultiFab::Copy(*comp_minus_level_grad_phi[n], *comp_gphi[n], 0, 0, 1, 0);
         comp_minus_level_grad_phi[n]->minus(*grad_phi_prev[level][n], 0, 1, 0);
     }
@@ -1234,7 +1234,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     {
         BoxArray eba = crse_gphi_fine_BA;
         eba.surroundingNodes(n);
-        crse_gphi_fine[n].reset(new MultiFab(eba,dmap[level+1],1,0));
+        crse_gphi_fine[n] = std::make_unique<MultiFab>(eba,dmap[level+1],1,0);
     }
 
     auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
@@ -1271,17 +1271,17 @@ Gravity::test_composite_phi (int crse_level)
     {
         int amr_lev = crse_level + ilev;
 
-        phi[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+        phi[ilev] = std::make_unique<MultiFab>(grids[amr_lev],dmap[amr_lev],1,1);
         MultiFab::Copy(*phi[ilev],
                        LevelData[amr_lev]->get_new_data(PhiGrav_Type),
                        0,0,1,1);
 
-        rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+        rhs[ilev] = std::make_unique<MultiFab>(grids[amr_lev],dmap[amr_lev],1,1);
         MultiFab::Copy(*rhs[ilev],
                        LevelData[amr_lev]->get_new_data(State_Type),
                        URHO, 0,1,0);
 
-        res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+        res[ilev] = std::make_unique<MultiFab>(grids[amr_lev],dmap[amr_lev],1,0);
         res[ilev]->setVal(0.);
     }
 
@@ -3487,7 +3487,7 @@ Gravity::get_rhs (int crse_level, int nlevs, int is_new)
     for (int ilev = 0; ilev < nlevs; ++ilev)
     {
         int amr_lev = ilev + crse_level;
-        rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+        rhs[ilev] = std::make_unique<MultiFab>(grids[amr_lev],dmap[amr_lev],1,0);
         MultiFab& state = (is_new == 1) ?
             LevelData[amr_lev]->get_new_data(State_Type) :
             LevelData[amr_lev]->get_old_data(State_Type);
@@ -3574,9 +3574,9 @@ Gravity::update_max_rhs()
             coeffs[lev].resize(AMREX_SPACEDIM);
 
             for (int i = 0; i < AMREX_SPACEDIM ; i++) {
-                coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
-                                                  IntVect::TheDimensionVector(i)),
-                                                  dmap[lev], 1, 0));
+                coeffs[lev][i] = std::make_unique<MultiFab>(amrex::convert(grids[lev],
+                                                                           IntVect::TheDimensionVector(i)),
+                                                            dmap[lev], 1, 0);
 
                 coeffs[lev][i]->setVal(1.0);
             }
