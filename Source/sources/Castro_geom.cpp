@@ -42,8 +42,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -100,8 +99,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif

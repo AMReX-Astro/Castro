@@ -40,8 +40,9 @@ Diffusion::install_level (int                   level,
                           MultiFab&             _volume,
                           MultiFab*             _area)
 {
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "Installing Diffusion level " << level << '\n';
+    if (verbose) {
+        amrex::Print() << "Installing Diffusion level " << level << '\n';
+    }
 
     LevelData[level] = level_data;
 
