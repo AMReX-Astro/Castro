@@ -1172,7 +1172,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifndef TRUE_SDC
     if (store_burn_weights) {
         MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, static_cast<int>(Castro::burn_weight_names.size()), 0);
-        cnt += static_cast<int>(Castro::burn_weight_names.size());  // NOLINT
+        cnt += static_cast<int>(Castro::burn_weight_names.size());  // NOLINT(clang-analyzer-deadcode.DeadStores)
     }
 #endif
 #endif
