@@ -112,11 +112,14 @@ integrator.atol_enuc = 1.e-5
 
 integrator.abort_on_failure = 0
 
-integrator.jacobian = 3
+integrator.jacobian = 1
 
-network.rho_nse = 2.e6
+network.rho_nse = 1.e7
 network.T_nse = 3.e9
 
 network.small_x = 1.e-10
 
 network.nse_relax_factor = 0.9
+
+# use cubic interpolation from the NSE table
+network.nse_table_interp_linear = 0

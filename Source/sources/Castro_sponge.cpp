@@ -32,7 +32,9 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!do_sponge) return;
+    if (!do_sponge) {
+        return;
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -86,11 +88,7 @@ Castro::apply_sponge(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-    Real src[NSRC];
-
-    for (int n = 0; n < NSRC; n++) {
-      src[n] = 0.0;
-    }
+    Real src[NSRC] = {0.0};
 
     GpuArray<Real, 3> r;
 
