@@ -135,8 +135,8 @@
 /// @param dt           timestep (will multiply the update)
 /// @param source_name  string to associate with this source
 ///
-    void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
-                                          std::string source_name);
+    static void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
+                                                 std::string source_name);
 
 
 
