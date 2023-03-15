@@ -858,7 +858,7 @@ Castro::initMFs()
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            rad_fluxes[dir] = std:make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
+            rad_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
         }
     }
 #endif
