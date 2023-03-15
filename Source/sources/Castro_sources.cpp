@@ -431,7 +431,7 @@ Castro::print_source_change(Vector<Real> update)
 // and also print the results.
 
 void
-Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::string source_name)
+Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, const std::string& source_name)
 {
     bool local = true;
     Vector<Real> update = evaluate_source_change(source, dt, local);

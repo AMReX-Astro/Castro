@@ -19,7 +19,6 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
-    return;
 }
 
 void

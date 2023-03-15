@@ -930,7 +930,7 @@ Castro::plotFileOutput(const std::string& dir,
         if (((parent->isStatePlotVar(desc_lst[typ].name(comp)) && is_small == 0) ||
              (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) && is_small == 1)) &&
             desc_lst[typ].getType() == IndexType::TheCellType()) {
-          plot_var_map.push_back(std::pair<int,int>(typ,comp));
+            plot_var_map.emplace_back(typ, comp);
         }
       }
     }
@@ -999,9 +999,9 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
+        for (auto &name : derive_names)
         {
-            const DeriveRec* rec = derive_lst.get(*it);
+            const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
                     os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
@@ -1172,7 +1172,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifndef TRUE_SDC
     if (store_burn_weights) {
         MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, static_cast<int>(Castro::burn_weight_names.size()), 0);
-        cnt += static_cast<int>(Castro::burn_weight_names.size());
+        cnt += static_cast<int>(Castro::burn_weight_names.size());  // NOLINT(clang-analyzer-deadcode.DeadStores)
     }
 #endif
 #endif

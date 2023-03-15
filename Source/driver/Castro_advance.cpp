@@ -398,7 +398,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     // always ask if it has valid data.
 
     for (int k = 0; k < num_state_type; ++k) {
-        prev_state[k].reset(new StateData());
+        prev_state[k] = std::make_unique<StateData>();
     }
 
 
