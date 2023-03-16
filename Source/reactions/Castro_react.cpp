@@ -232,7 +232,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                     }
 #ifdef NSE
 		    if (store_omegadot == 1) {
-		      reactions(i,j,k,NumSpec+NumAux) = burn_state.nse;
+		      reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
 		    }
 		    else {
 		      reactions(i,j,k,1) = burn_state.nse;
