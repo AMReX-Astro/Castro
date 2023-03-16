@@ -350,13 +350,19 @@ Castro::apply_av(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
-    if (n == UTEMP) return;
+    if (n == UTEMP) {
+        return;
+    }
 #ifdef SHOCK_VAR
-    if (n == USHK) return;
+    if (n == USHK) {
+        return;
+    }
 #endif
-    
+
 #ifdef NSE_NET
-    if (n == UMUP || n == UMUN) return;
+    if (n == UMUP || n == UMUN) {
+        return;
+    }
 #endif
     Real div1;
     if (idir == 0) {

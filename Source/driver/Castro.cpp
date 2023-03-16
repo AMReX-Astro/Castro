@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+#include <memory>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -205,7 +206,9 @@ Castro::read_params ()
 {
     static bool done = false;
 
-    if (done) return;
+    if (done) {
+        return;
+    }
 
     done = true;
 
@@ -465,13 +468,15 @@ Castro::read_params ()
         amrex::Error();
       }
     }
-    if (dgeom.IsRZ() == 1)
-      rot_axis = 2;
+
+    if (dgeom.IsRZ() == 1) {
+        rot_axis = 2;
+    }
 #if (AMREX_SPACEDIM == 1)
-      if (do_rotation == 1) {
+    if (do_rotation == 1) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
         amrex::Error();
-      }
+    }
 #endif
 #endif
 
@@ -513,13 +518,13 @@ Castro::read_params ()
 
        data_logs.resize(4);
 
-       data_logs[0].reset(new std::fstream);
+       data_logs[0] = std::make_unique<std::fstream>();
        data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[0]->good()) {
            amrex::FileOpenFailed("grid_diag.out");
        }
 
-       data_logs[1].reset(new std::fstream);
+       data_logs[1] = std::make_unique<std::fstream>();
 #ifdef GRAVITY
        data_logs[1]->open("gravity_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[1]->good()) {
@@ -527,13 +532,13 @@ Castro::read_params ()
        }
 #endif
 
-       data_logs[2].reset(new std::fstream);
+       data_logs[2] = std::make_unique<std::fstream>();
        data_logs[2]->open("species_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[2]->good()) {
            amrex::FileOpenFailed("species_diag.out");
        }
 
-       data_logs[3].reset(new std::fstream);
+       data_logs[3] = std::make_unique<std::fstream>();
        data_logs[3]->open("amr_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[3]->good()) {
            amrex::FileOpenFailed("amr_diag.out");
@@ -826,21 +831,21 @@ Castro::initMFs()
     fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+      fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
     }
 
     for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
-      fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+      fluxes[dir] = std::make_unique<MultiFab>(MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
     }
 
     mass_fluxes.resize(3);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+      mass_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
     }
 
     for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
-      mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+      mass_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
     }
 
 #if (AMREX_SPACEDIM <= 2)
@@ -853,7 +858,7 @@ Castro::initMFs()
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
+            rad_fluxes[dir] = std::make_unique<MultiFab>(MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
         }
     }
 #endif
@@ -1494,7 +1499,7 @@ Castro::init ()
     Real cur_time  = getLevel(level-1).state[State_Type].curTime();
     Real prev_time = getLevel(level-1).state[State_Type].prevTime();
 
-    Real dt_old = (cur_time - prev_time)/(Real)parent->MaxRefRatio(level-1);
+    Real dt_old = (cur_time - prev_time) / static_cast<Real>(parent->MaxRefRatio(level-1));
 
     Real time = cur_time;
 
@@ -1703,8 +1708,9 @@ Castro::computeNewDt (int                    finest_level,
     // We are at the start of a coarse grid timecycle.
     // Compute the timesteps for the next iteration.
     //
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
@@ -1851,8 +1857,9 @@ Castro::computeNewDt (int                    finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
+                if (verbose) {
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                }
             }
 
         }
@@ -1867,8 +1874,9 @@ Castro::computeNewDt (int                    finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            if (verbose)
+            if (verbose) {
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            }
         }
     }
 
@@ -1965,9 +1973,9 @@ Castro::post_timestep (int iteration_local)
 
     // Ensure consistency with finer grids.
 
-    if (level < finest_level)
+    if (level < finest_level) {
         avgDown();
-
+    }
 
 #ifdef MHD
     MultiFab& Bx_new = get_new_data(Mag_Type_x);
@@ -2064,7 +2072,7 @@ Castro::post_timestep (int iteration_local)
 
     // Check to see if the user-supplied stopping criterion has been met.
 
-    if (castro::stopping_criterion_field != "" && level == 0) {
+    if (!castro::stopping_criterion_field.empty() && level == 0) {
         Real max_field_val = std::numeric_limits<Real>::min();
 
         for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
@@ -2155,13 +2163,15 @@ Castro::post_restart ()
                    gravity->update_max_rhs();
 
                    gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1)
+                   if (gravity->test_results_of_solves() == 1) {
                        gravity->test_composite_phi(level);
+                   }
                 }
             }
 
-            if (grown_factor > 1)
+            if (grown_factor > 1) {
                 post_grown_restart();
+            }
         }
     }
 #endif
@@ -2195,8 +2205,9 @@ Castro::postCoarseTimeStep (Real cumtime)
     BL_ASSERT(level == 0);
     AmrLevel::postCoarseTimeStep(cumtime);
 #ifdef GRAVITY
-    if (do_grav)
-        gravity->set_mass_offset(cumtime, 0);
+    if (do_grav) {
+        gravity->set_mass_offset(cumtime, false);
+    }
 #endif
 
 }
@@ -2411,7 +2422,9 @@ Castro::post_init (Real /*stop_time*/)
         int nstep = parent->levelSteps(0);
         Real dtlev = parent->dtLevel(0);
         Real cumtime = parent->cumTime();
-        if (cumtime != 0.0) cumtime += dtlev;
+        if (cumtime != 0.0) {
+            cumtime += dtlev;
+        }
 
         bool sum_int_test = false;
 
@@ -2452,8 +2465,9 @@ Castro::post_grown_restart ()
 
     BL_PROFILE("Castro::post_grown_restart()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
 #ifdef GRAVITY
     if (do_grav) {
@@ -2648,8 +2662,8 @@ Castro::reflux(int crse_level, int fine_level)
             const auto& ba = amrlevel.boxArray();
             const auto& dm = amrlevel.DistributionMap();
 
-            drho[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
-            dphi[lev - crse_level].reset(new MultiFab(ba, dm, 1, 0));
+            drho[lev - crse_level] = std::make_unique<MultiFab>(ba, dm, 1, 0);
+            dphi[lev - crse_level] = std::make_unique<MultiFab>(ba, dm, 1, 0);
 
             drho[lev - crse_level]->setVal(0.0);
             dphi[lev - crse_level]->setVal(0.0);
@@ -3063,7 +3077,9 @@ Castro::avgDown ()
 {
   BL_PROFILE("Castro::avgDown()");
 
-  if (level == parent->finestLevel()) return;
+  if (level == parent->finestLevel()) {
+      return;
+  }
 
   for (int k = 0; k < num_state_type; k++) {
       avgDown(k);
@@ -3250,7 +3266,9 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
     // This routine sets the velocity in state_in to be no larger than the
     // speed limit, if one has been applied.
 
-    if (castro::speed_limit <= 0.0_rt) return;
+    if (castro::speed_limit <= 0.0_rt) {
+        return;
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3293,7 +3311,9 @@ Castro::avgDown (int state_indx)
 {
     BL_PROFILE("Castro::avgDown(state_indx)");
 
-    if (level == parent->finestLevel()) return;
+    if (level == parent->finestLevel()) {
+        return;
+    }
 
     Castro& fine_lev = getLevel(level+1);
 
@@ -3315,8 +3335,9 @@ Castro::allocOldData ()
 
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
     MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
-    for (int k = 0; k < num_state_type; k++)
+    for (int k = 0; k < num_state_type; k++) {
         state[k].allocOldData();
+    }
 }
 
 void
@@ -3349,7 +3370,7 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < error_tags.size(); j++) {
         std::unique_ptr<MultiFab> mf;
-        if (error_tags[j].Field() != std::string()) {
+        if (!error_tags[j].Field().empty()) {
             mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
         }
         error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
@@ -4414,7 +4435,7 @@ Castro::build_interior_boundary_mask (int ng)
     }
 
     //  If we got here, we need to build a new one
-    ib_mask.push_back(std::unique_ptr<iMultiFab>(new iMultiFab(grids, dmap, 1, ng)));
+    ib_mask.push_back(std::make_unique<iMultiFab>(grids, dmap, 1, ng));
 
     iMultiFab& imf = *ib_mask.back();
 

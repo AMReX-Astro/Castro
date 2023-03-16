@@ -546,12 +546,12 @@ read_model_file(std::string& model_file, const int model_index=0) {
         found_temp = false;
         found_pres = false;
         found_velr = false;
-        for (int n = 0; n < NumSpec; n++) {
-            found_spec[n] = false;
+        for (bool & e : found_spec) {
+            e = false;
         }
 #if NAUX_NET > 0
-        for (int n = 0; n < NumAux; n++) {
-            found_aux[n] = false;
+        for (bool & e : found_aux) {
+            e = false;
         }
 #endif
 

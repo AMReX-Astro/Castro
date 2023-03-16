@@ -28,8 +28,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+  if (verbose) {
+      amrex::Print() << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -1480,8 +1481,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+  if (verbose) {
+      amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
   if (verbose > 0)
     {
@@ -1493,8 +1495,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
