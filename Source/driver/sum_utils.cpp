@@ -67,8 +67,9 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -156,8 +157,9 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -217,8 +219,9 @@ Castro::volProductSum (const MultiFab& mf1,
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -300,8 +303,9 @@ Castro::locSquaredSum (const std::string& name,
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }

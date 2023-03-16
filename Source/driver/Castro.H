@@ -456,7 +456,7 @@ public:
 ///                    time + dt)
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real dt, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, const advance_status& status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.

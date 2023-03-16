@@ -305,8 +305,9 @@ Castro::do_advance_ctu(Real time,
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
-    if (moving_center == 1)
-      define_new_center(S_new, time);
+    if (moving_center == 1) {
+        define_new_center(S_new, time);
+    }
 #endif
 
 #ifdef GRAVITY
@@ -459,14 +460,15 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real dt, advance_status status)
+Castro::retry_advance_ctu(Real dt, const advance_status& status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
     bool do_retry = false;
 
-    if (!status.success)
+    if (!status.success) {
         do_retry = true;
+    }
 
     if (do_retry) {
 
@@ -551,8 +553,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     // that is different from the initial value we assigned,
     // for example from the post-step regrid algorithm.
 
-    if (dt_subcycle == 1.e200)
+    if (dt_subcycle == 1.e200) {
         dt_subcycle = dt;
+    }
 
     Real subcycle_time = time;
 
@@ -757,8 +760,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "  Subcycling complete" << std::endl << std::endl;
+    if (verbose) {
+        amrex::Print() << "  Subcycling complete" << std::endl << std::endl;
+    }
 
     // Record the number of subcycles we took for diagnostic purposes.
 
@@ -774,9 +778,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         for (int k = 0; k < num_state_type; k++) {
 
-            if (prev_state[k]->hasOldData())
+            if (prev_state[k]->hasOldData()) {
                 state[k].replaceOldData(*prev_state[k]);
-
+            }
             state[k].setTimeLevel(time + dt, dt, 0.0);
             prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
 

@@ -930,7 +930,7 @@ Castro::plotFileOutput(const std::string& dir,
         if (((parent->isStatePlotVar(desc_lst[typ].name(comp)) && is_small == 0) ||
              (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) && is_small == 1)) &&
             desc_lst[typ].getType() == IndexType::TheCellType()) {
-          plot_var_map.push_back(std::pair<int,int>(typ,comp));
+            plot_var_map.emplace_back(typ, comp);
         }
       }
     }
@@ -939,25 +939,25 @@ Castro::plotFileOutput(const std::string& dir,
     std::list<std::string> derive_names;
     const std::list<DeriveRec>& dlist = derive_lst.dlist();
 
-    for (auto it = dlist.begin(); it != dlist.end(); ++it)
-    {
-        if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-            (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
+    for (const auto & dd : dlist) {
+
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
-            if (it->name() == "particle_count" ||
-                it->name() == "total_particle_count")
+            if (dd.name() == "particle_count" ||
+                dd.name() == "total_particle_count")
             {
                 if (Castro::theTracerPC())
                 {
-                    derive_names.push_back(it->name());
-                    num_derive = num_derive + it->numDerive();
+                    derive_names.push_back(dd.name());
+                    num_derive = num_derive + dd.numDerive();
                 }
             } else
 #endif
             {
-               derive_names.push_back(it->name());
-               num_derive = num_derive + it->numDerive();
+               derive_names.push_back(dd.name());
+               num_derive = num_derive + dd.numDerive();
             }
         }
     }
@@ -999,9 +999,9 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
+        for (auto &name : derive_names)
         {
-            const DeriveRec* rec = derive_lst.get(*it);
+            const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
                     os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
@@ -1021,7 +1021,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifdef REACTIONS
 #ifndef TRUE_SDC
         if (store_burn_weights) {
-            for (auto name: Castro::burn_weight_names) {
+            for (const auto& name: Castro::burn_weight_names) {
                 os << name << '\n';
             }
         }
@@ -1141,23 +1141,22 @@ Castro::plotFileOutput(const std::string& dir,
     //
     for (const auto& [typ, comp] : plot_var_map) {
         this_dat = &state[typ].newData();
-        MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
+        MultiFab::Copy(plotMF, *this_dat, comp, cnt, 1, nGrow);
         cnt++;
     }
     //
     // Cull data from derived variables.
     //
-    if (dlist.size() > 0)
+    if (!dlist.empty())
     {
-        for (auto it = dlist.begin(); it != dlist.end(); ++it)
-        {
-            if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-                (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
+        for (const auto & dd : dlist) {
 
-                auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
-                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
-                cnt = cnt + it->numDerive();
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+                (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
+                auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);
+                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, dd.numDerive(), nGrow);
+                cnt = cnt + dd.numDerive();
             }
         }
     }
@@ -1173,7 +1172,7 @@ Castro::plotFileOutput(const std::string& dir,
 #ifndef TRUE_SDC
     if (store_burn_weights) {
         MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, static_cast<int>(Castro::burn_weight_names.size()), 0);
-        cnt += static_cast<int>(Castro::burn_weight_names.size());
+        cnt += static_cast<int>(Castro::burn_weight_names.size());  // NOLINT(clang-analyzer-deadcode.DeadStores)
     }
 #endif
 #endif

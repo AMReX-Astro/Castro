@@ -9,7 +9,9 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     MultiFab ext_src(grids, dmap, source.nComp(), 0);
 
@@ -31,8 +33,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -46,7 +47,9 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     // In this routine, we have two options: we can either do an
     // explicit predictor-corrector solve, or an implicit solve.
@@ -101,8 +104,7 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
