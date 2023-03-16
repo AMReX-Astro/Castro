@@ -101,7 +101,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
    // Fill coefficients at this level.
    Vector<std::unique_ptr<MultiFab> > coeffs(AMREX_SPACEDIM);
    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-       coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+       coeffs[dir] = std::make_unique<MultiFab>(getEdgeBoxArray(dir), dmap, 1, 0);
    }
 
    // Fill temperature at this level.

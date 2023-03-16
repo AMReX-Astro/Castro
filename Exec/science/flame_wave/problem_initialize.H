@@ -94,6 +94,7 @@ void problem_initialize ()
 
     // set the composition of the underlying star
 
+
     for (Real &X : model_params.xn_star) {
         X = problem::smallx;
     }

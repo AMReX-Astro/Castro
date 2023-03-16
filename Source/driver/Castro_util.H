@@ -170,7 +170,7 @@ Real volume(const int& i, const int& j, const int& k,
     amrex::ignore_unused(j);
     amrex::ignore_unused(k);
 
-    auto dx = geomdata.CellSize();
+    const auto* dx = geomdata.CellSize();
 
     Real vol;
 
@@ -239,7 +239,7 @@ Real area(const int& i, const int& j, const int& k,
     amrex::ignore_unused(k);
     amrex::ignore_unused(idir);
 
-    auto dx = geomdata.CellSize();
+    const auto* dx = geomdata.CellSize();
 
     Real a;
 

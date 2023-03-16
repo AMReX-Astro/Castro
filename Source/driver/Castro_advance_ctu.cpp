@@ -460,7 +460,7 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real dt, advance_status status)
+Castro::retry_advance_ctu(Real dt, const advance_status& status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
