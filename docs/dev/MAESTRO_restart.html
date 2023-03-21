@@ -12,6 +12,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -137,9 +139,9 @@
            <div itemprop="articleBody">
              
   <section id="restarting-from-maestro">
-<h1>Restarting from Maestro<a class="headerlink" href="#restarting-from-maestro" title="Permalink to this heading">¶</a></h1>
+<h1>Restarting from Maestro<a class="headerlink" href="#restarting-from-maestro" title="Permalink to this heading"></a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
 <p>We can now initialize a Castro simulation using data from a Maestro plotfile. This should not be thought of as a restart mode, but rather
 a new simulation with a special initialization. In order to use this
 feature, you must make sure the Maestro plotfile has the proper
@@ -151,7 +153,7 @@ steps relating to the fact that you have to supply a grids file
 consistent with the Maestro grid structure.</p>
 </section>
 <section id="maestro-plotfile-requirements">
-<h2>MAESTRO Plotfile Requirements<a class="headerlink" href="#maestro-plotfile-requirements" title="Permalink to this heading">¶</a></h2>
+<h2>MAESTRO Plotfile Requirements<a class="headerlink" href="#maestro-plotfile-requirements" title="Permalink to this heading"></a></h2>
 <p>The Maestro plotfile needs to have the following variables:</p>
 <ul class="simple">
 <li><p>“x_vel”, “y_vel”, (and “z_vel”, depending on
@@ -171,7 +173,7 @@ base_r, rho0, p0, gamma1bar, rhoh0, div_coeff, psi, tempbar,
 etarho_cc, tempbar_init.</p>
 </section>
 <section id="list-of-parameters">
-<h2>List of Parameters<a class="headerlink" href="#list-of-parameters" title="Permalink to this heading">¶</a></h2>
+<h2>List of Parameters<a class="headerlink" href="#list-of-parameters" title="Permalink to this heading"></a></h2>
 <p>Here are the additional parameters you must add to your inputs file.</p>
 <table class="docutils align-default">
 <thead>
@@ -246,7 +248,7 @@ problem</p></td>
 </tbody>
 </table>
 <section id="examples-of-usage">
-<h3>Examples of Usage<a class="headerlink" href="#examples-of-usage" title="Permalink to this heading">¶</a></h3>
+<h3>Examples of Usage<a class="headerlink" href="#examples-of-usage" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><strong>castro.MAESTRO_plotfile</strong> = “wd_384_6.25e8K_norotate_plt120578”</p></li>
 <li><p><strong>castro.MAESTRO_modelfile</strong> = “./wd_384_6.25e8K_norotate_plt120578/model_cc_120578”</p></li>
@@ -307,7 +309,7 @@ are based on the value of <strong>castro.MAESTRO_init_type</strong>:</div>
 </section>
 </section>
 <section id="new-subroutines-in-prob-xd-f90">
-<h2>New Subroutines in Prob_Xd.f90<a class="headerlink" href="#new-subroutines-in-prob-xd-f90" title="Permalink to this heading">¶</a></h2>
+<h2>New Subroutines in Prob_Xd.f90<a class="headerlink" href="#new-subroutines-in-prob-xd-f90" title="Permalink to this heading"></a></h2>
 <p>There are three routines that need to be added to your local copy of
 Prob_Xd.f90. See Castro/Exec/wdconvect/Prob_3d.f90 for
 a standard spherical Maestro initialization.</p>
@@ -335,7 +337,7 @@ radial coordinates greater than r_model_start.</div>
 </ol>
 </section>
 <section id="additional-notes">
-<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this heading">¶</a></h2>
+<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this heading"></a></h2>
 <p>Note that for both single-level and multilevel Maestro to Castro initialization, the Castro base grid structure does not have to match
 the Maestro base grid structure, as long as the problem domain is the
 same. For example, if the coarsest level in a Maestro plotfile
@@ -346,7 +348,7 @@ same size. As is normally the case, the Castro base grid structure is
 created based on the parameters in the Castro inputs file, such as
 <strong>amr.max_grid_size</strong>, <strong>amr.blocking_factor</strong>, etc.</p>
 <section id="multilevel-restart">
-<h3>Multilevel Restart<a class="headerlink" href="#multilevel-restart" title="Permalink to this heading">¶</a></h3>
+<h3>Multilevel Restart<a class="headerlink" href="#multilevel-restart" title="Permalink to this heading"></a></h3>
 <p>When initialing from a multilevel Maestro plotfile, there are some
 extra steps. First, you need to create a Castro-compatible grids file
 from the Maestro plotfile. This can be done with the

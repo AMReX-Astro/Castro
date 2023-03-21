@@ -12,6 +12,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -145,11 +147,11 @@
            <div itemprop="articleBody">
              
   <section id="gravity">
-<span id="ch-gravity"></span><h1>Gravity<a class="headerlink" href="#gravity" title="Permalink to this heading">¶</a></h1>
+<span id="ch-gravity"></span><h1>Gravity<a class="headerlink" href="#gravity" title="Permalink to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
 <section id="gravity-types">
-<h3>Gravity Types<a class="headerlink" href="#gravity-types" title="Permalink to this heading">¶</a></h3>
+<h3>Gravity Types<a class="headerlink" href="#gravity-types" title="Permalink to this heading"></a></h3>
 <p>Castro can incorporate gravity as a constant, monopole approximation,
 or a full Poisson solve. To enable gravity in the code, set:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_GRAV</span> <span class="o">=</span> <span class="n">TRUE</span>
@@ -177,7 +179,7 @@ setting it in the <code class="docutils literal notranslate"><span class="pre">p
 </div>
 </section>
 <section id="integration-strategy">
-<h3>Integration Strategy<a class="headerlink" href="#integration-strategy" title="Permalink to this heading">¶</a></h3>
+<h3>Integration Strategy<a class="headerlink" href="#integration-strategy" title="Permalink to this heading"></a></h3>
 <p>Castro uses subcycling to integrate levels at different timesteps.
 The gravity algorithm needs to respect this to obtain full accuracy.
 When self-gravity is computed via a multigrid solve
@@ -234,7 +236,7 @@ the fine level(s) cover essentially all of the mass on the grid for
 all time.</p>
 </section>
 <section id="controls">
-<h3>Controls<a class="headerlink" href="#controls" title="Permalink to this heading">¶</a></h3>
+<h3>Controls<a class="headerlink" href="#controls" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>For the full Poisson solver
 (<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>), the behavior
@@ -304,9 +306,9 @@ determines how many levels can be tracked by the <code class="docutils literal n
 </section>
 </section>
 <section id="types-of-approximations">
-<h2>Types of Approximations<a class="headerlink" href="#types-of-approximations" title="Permalink to this heading">¶</a></h2>
+<h2>Types of Approximations<a class="headerlink" href="#types-of-approximations" title="Permalink to this heading"></a></h2>
 <section id="constantgrav">
-<h3><code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code><a class="headerlink" href="#constantgrav" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code><a class="headerlink" href="#constantgrav" title="Permalink to this heading"></a></h3>
 <p>Gravity can be defined as constant in direction and magnitude,
 defined in the inputs file by:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gravity</span><span class="o">.</span><span class="n">const_grav</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9.8</span>
@@ -324,7 +326,7 @@ The actual setting is done in Gravity.cpp as:</p>
 (vertical for 2D axisymmetric).</p>
 </section>
 <section id="monopolegrav">
-<span id="sec-monopole-grav"></span><h3><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code><a class="headerlink" href="#monopolegrav" title="Permalink to this heading">¶</a></h3>
+<span id="sec-monopole-grav"></span><h3><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code><a class="headerlink" href="#monopolegrav" title="Permalink to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> integrates the mass distribution on the grid
 in spherical shells, defining an enclosed mass and uses this
 to compute the gravitational potential and acceleration in a
@@ -389,18 +391,18 @@ that is not part of the grid.</p>
 <code class="docutils literal notranslate"><span class="pre">make_radial_phi</span></code> come into play?</p>
 </section>
 <section id="poissongrav">
-<h3><code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code><a class="headerlink" href="#poissongrav" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code><a class="headerlink" href="#poissongrav" title="Permalink to this heading"></a></h3>
 <p>The most general case is a self-induced gravitational field,</p>
 <div class="math notranslate nohighlight">
 \[\mathbf{g}(\mathbf{x},t) = \nabla \phi\]</div>
 <p>where <span class="math notranslate nohighlight">\(\phi\)</span> is defined by solving</p>
 <div class="math notranslate nohighlight" id="equation-eq-self-gravity">
-<span class="eqno">(4)<a class="headerlink" href="#equation-eq-self-gravity" title="Permalink to this equation">¶</a></span>\[\mathbf{\Delta} \phi = 4 \pi G \rho\]</div>
+<span class="eqno">(4)<a class="headerlink" href="#equation-eq-self-gravity" title="Permalink to this equation"></a></span>\[\mathbf{\Delta} \phi = 4 \pi G \rho\]</div>
 <p>We only allow <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code> in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
 accurate than solving the Poisson equation.</p>
 <section id="poisson-boundary-conditions-2d">
-<h4>Poisson Boundary Conditions: 2D<a class="headerlink" href="#poisson-boundary-conditions-2d" title="Permalink to this heading">¶</a></h4>
+<h4>Poisson Boundary Conditions: 2D<a class="headerlink" href="#poisson-boundary-conditions-2d" title="Permalink to this heading"></a></h4>
 <p>In 2D, if boundary conditions are not periodic in both directions, we
 use a monopole approximation at the coarsest level. This involves
 computing an effective 1D radial density profile (on level = 0 only),
@@ -411,7 +413,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 0\)</span>). For more details, see Section <a class="reference external" href="#sec-monopole-grav">2.2</a>.</p>
 </section>
 <section id="poisson-boundary-conditions-3d">
-<span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this heading">¶</a></h4>
+<span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this heading"></a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
 is <span id="id2">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">48</a>]</span>.</p>
@@ -423,7 +425,7 @@ of the boundary conditions. According to, for example, Jackson’s
 Poisson’s equation for electric charges and gravitational
 ”charges”), an expansion in spherical harmonics for <span class="math notranslate nohighlight">\(\phi\)</span> is</p>
 <div class="math notranslate nohighlight" id="equation-spherical-harmonic-expansion">
-<span class="eqno">(5)<a class="headerlink" href="#equation-spherical-harmonic-expansion" title="Permalink to this equation">¶</a></span>\[\phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}},\]</div>
+<span class="eqno">(5)<a class="headerlink" href="#equation-spherical-harmonic-expansion" title="Permalink to this equation"></a></span>\[\phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}},\]</div>
 <p>The origin of the coordinate system is taken to be the <code class="docutils literal notranslate"><span class="pre">center</span></code>
 variable, that must be declared and stored in the <code class="docutils literal notranslate"><span class="pre">probdata</span></code>
 module in your project directory. The validity of the expansion used
@@ -510,7 +512,7 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </section>
 </section>
 <section id="point-mass">
-<h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this heading">¶</a></h3>
+<h3>Point Mass<a class="headerlink" href="#point-mass" title="Permalink to this heading"></a></h3>
 <p>Pointmass gravity works with all other forms of gravity, it is not a
 separate option. Since the Poisson equation is linear in potential
 (and its derivative, the acceleration, is also linear), the point mass
@@ -532,7 +534,7 @@ back to the grid). This calculation is done in
 </section>
 </section>
 <section id="gr-correction">
-<h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this heading">¶</a></h2>
+<h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this heading"></a></h2>
 <p>In the cases of compact objects or very massive stars, the general
 relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id7" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
@@ -544,7 +546,7 @@ set in the <code class="docutils literal notranslate"><span class="pre">GNUmakef
 <span id="id5">[<a class="reference internal" href="zreferences.html#id48" title="Y. B. Zeldovich and D. Novikov. Relativistic astrophysics. Vol.1: Stars and relativity. University of Chicago Press, 1971.">67</a>]</span>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
-<span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
+<span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation"></a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
 \kappa=\frac{8\pi G}{c^{2}}\quad ,\]</div>
 <p>where <span class="math notranslate nohighlight">\(R_{ik}\)</span> is the Ricci tensor, <span class="math notranslate nohighlight">\(g_{ik}\)</span> is the metric
 tensor, <span class="math notranslate nohighlight">\(R\)</span> is the Riemann curvature, <span class="math notranslate nohighlight">\(c\)</span> is the speed of
@@ -565,16 +567,16 @@ put the expression of <span class="math notranslate nohighlight">\(T_{ik}\)</spa
 then field equations can be reduced to 3 ordinary differential
 equations:</p>
 <div class="math notranslate nohighlight" id="equation-diff1">
-<span class="eqno">(7)<a class="headerlink" href="#equation-diff1" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
+<span class="eqno">(7)<a class="headerlink" href="#equation-diff1" title="Permalink to this equation"></a></span>\[\frac{\kappa P}{c^{2}} =
    e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
    \quad ,\]</div>
 <div class="math notranslate nohighlight" id="equation-diff2">
-<span class="eqno">(8)<a class="headerlink" href="#equation-diff2" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
+<span class="eqno">(8)<a class="headerlink" href="#equation-diff2" title="Permalink to this equation"></a></span>\[\frac{\kappa P}{c^{2}} =
   \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
     {\prime}-\lambda^{\prime}}{r}
    -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,\]</div>
 <div class="math notranslate nohighlight" id="equation-diff3">
-<span class="eqno">(9)<a class="headerlink" href="#equation-diff3" title="Permalink to this equation">¶</a></span>\[\kappa \varrho =
+<span class="eqno">(9)<a class="headerlink" href="#equation-diff3" title="Permalink to this equation"></a></span>\[\kappa \varrho =
   e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,\]</div>
 <p>where primes means the derivatives with respect to <span class="math notranslate nohighlight">\(r\)</span>. After
 multiplying with <span class="math notranslate nohighlight">\(4\pi r^2\)</span>, <a class="reference internal" href="#equation-diff3">(9)</a> can be
@@ -599,7 +601,7 @@ energy density <span class="math notranslate nohighlight">\(U\)</span> and rest-
 <em>Tolman-Oppenheinmer-Volkoff (TOV)</em> equation for hydrostatic
 equilibrium in general relativity:</p>
 <div class="math notranslate nohighlight" id="equation-tov">
-<span class="eqno">(10)<a class="headerlink" href="#equation-tov" title="Permalink to this equation">¶</a></span>\[\frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
+<span class="eqno">(10)<a class="headerlink" href="#equation-tov" title="Permalink to this equation"></a></span>\[\frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
     c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .\]</div>
 <p>For Newtonian case <span class="math notranslate nohighlight">\(c^2 \rightarrow  \infty\)</span>, it reverts to usual form</p>
 <div class="math notranslate nohighlight">
@@ -607,7 +609,7 @@ equilibrium in general relativity:</p>
   \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \quad .\]</div>
 <p>Now we take effective monopole gravity as</p>
 <div class="math notranslate nohighlight" id="equation-tov2">
-<span class="eqno">(11)<a class="headerlink" href="#equation-tov2" title="Permalink to this equation">¶</a></span>\[\tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
+<span class="eqno">(11)<a class="headerlink" href="#equation-tov2" title="Permalink to this equation"></a></span>\[\tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
   c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .\]</div>
 <p>For general situations, we neglect the <span class="math notranslate nohighlight">\(U/c^2\)</span> and potential
 energy in m because they are usually much smaller than
@@ -622,7 +624,7 @@ really makes a difference. So <a class="reference internal" href="#equation-tov2
 <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code> approximation.</p>
 </section>
 <section id="hydrodynamics-source-terms">
-<h2>Hydrodynamics Source Terms<a class="headerlink" href="#hydrodynamics-source-terms" title="Permalink to this heading">¶</a></h2>
+<h2>Hydrodynamics Source Terms<a class="headerlink" href="#hydrodynamics-source-terms" title="Permalink to this heading"></a></h2>
 <p>There are several options to incorporate the effects of gravity into
 the hydrodynamics system. The main parameter here is
 <code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code>.</p>

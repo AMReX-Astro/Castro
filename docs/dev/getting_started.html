@@ -12,6 +12,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -134,7 +136,7 @@
            <div itemprop="articleBody">
              
   <section id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h1>
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Castro has two source dependencies: <a class="reference external" href="https://github.com/AMReX-Codes/amrex">AMReX</a>, the adaptive mesh
@@ -161,7 +163,7 @@ general requirements to build Castro are:</p>
 <p>More information on parallel builds is given in section
 <a class="reference internal" href="mpi_plus_x.html#ch-mpiplusx"><span class="std std-ref">Running Options: CPUs and GPUs</span></a>.</p>
 <section id="downloading-the-code">
-<h2>Downloading the Code<a class="headerlink" href="#downloading-the-code" title="Permalink to this heading">¶</a></h2>
+<h2>Downloading the Code<a class="headerlink" href="#downloading-the-code" title="Permalink to this heading"></a></h2>
 <p>Castro is maintained as a repository on GitHub, and can be obtained
 via standard git clone commands. First, make sure that git
 is installed on your machine—we recommend version 1.7.x or higher.</p>
@@ -230,7 +232,7 @@ look there instead of in its local <code class="docutils literal notranslate"><s
 </ol>
 </section>
 <section id="building-the-code">
-<h2>Building the Code<a class="headerlink" href="#building-the-code" title="Permalink to this heading">¶</a></h2>
+<h2>Building the Code<a class="headerlink" href="#building-the-code" title="Permalink to this heading"></a></h2>
 <p>In Castro each different problem setup is stored in its own
 sub-directory under <code class="docutils literal notranslate"><span class="pre">Castro/Exec/</span></code>. You build the
 Castro executable in the problem sub-directory. Here we’ll
@@ -277,7 +279,7 @@ of the code compiled with <code class="docutils literal notranslate"><span class
 <p>More information on the various build options is given in <a class="reference internal" href="build_system.html#ch-buildsystem"><span class="std std-ref">Build System Overview</span></a>.</p>
 </section>
 <section id="running-the-code">
-<h2>Running the Code<a class="headerlink" href="#running-the-code" title="Permalink to this heading">¶</a></h2>
+<h2>Running the Code<a class="headerlink" href="#running-the-code" title="Permalink to this heading"></a></h2>
 <ol class="arabic">
 <li><p>Castro takes an input file that overrides the runtime parameter defaults.
 The code is run as:</p>
@@ -294,13 +296,13 @@ files are used for restarting the code.</p></li>
 </ol>
 </section>
 <section id="visualization-of-the-results">
-<h2>Visualization of the Results<a class="headerlink" href="#visualization-of-the-results" title="Permalink to this heading">¶</a></h2>
+<h2>Visualization of the Results<a class="headerlink" href="#visualization-of-the-results" title="Permalink to this heading"></a></h2>
 <p>There are several options for visualizing the data. The popular
 packages yt and VisIt both support the AMReX file format
 natively <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.</p>
 <section id="yt">
-<span id="sec-gettingstartedyt"></span><h3>yt<a class="headerlink" href="#yt" title="Permalink to this heading">¶</a></h3>
+<span id="sec-gettingstartedyt"></span><h3>yt<a class="headerlink" href="#yt" title="Permalink to this heading"></a></h3>
 <p>yt is the primary visualization and analysis tool used by the
 developers.  Install yt following their instructions: <a class="reference external" href="https://yt-project.org/#getyt">Getting yt</a> .</p>
 <p>You should be able to read in your plotfiles using <code class="docutils literal notranslate"><span class="pre">yt.load()</span></code> and
@@ -311,7 +313,7 @@ Jupyter notebook which can be found in
 <code class="docutils literal notranslate"><span class="pre">Docs/source/yt_example.ipynb</span></code> in the Castro repo.</p>
 </section>
 <section id="amrvis">
-<h3>Amrvis<a class="headerlink" href="#amrvis" title="Permalink to this heading">¶</a></h3>
+<h3>Amrvis<a class="headerlink" href="#amrvis" title="Permalink to this heading"></a></h3>
 <p>Amrvis is a tool developed at LBNL to visualize AMReX data.  It
 provides a simple GUI that allows you to quickly visualize slices and
 the grid structure.</p>
