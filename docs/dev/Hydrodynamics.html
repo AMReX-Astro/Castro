@@ -92,7 +92,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#temperature-fixes">Temperature Fixes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resets">Resets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#density-resets">Density Resets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#flux-limiting">Flux Limiting</a></li>
 </ul>
 </li>
@@ -1238,13 +1237,9 @@ from this.</p></li>
 </section>
 <section id="resets">
 <h2>Resets<a class="headerlink" href="#resets" title="Permalink to this heading"></a></h2>
-<section id="density-resets">
-<h3>Density Resets<a class="headerlink" href="#density-resets" title="Permalink to this heading"></a></h3>
-<p>Need to document density_reset_method</p>
-</section>
 <section id="flux-limiting">
 <span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Permalink to this heading"></a></h3>
-<p>Multi-dimensional hydrodynamic simulations often have numerical
+<p id="index-5">Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
 occur as a result of a hydro update. Castro contains a prescription
@@ -1260,7 +1255,7 @@ limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
 implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equa tions. Journal of Computational Physics, 242:169-180, June 2013. arXiv:1203.1540, doi:10.1016/j.jcp.2013.01.024.">43</a>]</span>. This
 behavior is controlled by
-castro.limit_fluxes_on_small_dens.</p>
+<code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code>.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
 over every face of the zone where a flux crosses the face over the
 timestep. The central insight of the positivity-preserving method is
@@ -1282,7 +1277,7 @@ guaranteed to preserve positivity as long as <span class="math notranslate nohig
 <span class="math notranslate nohighlight">\(\theta_{{\rm i}+1/2}\)</span> is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,
-castro.small_dens, and solving
+<code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>, and solving
 for the value of <span class="math notranslate nohighlight">\(\theta\)</span> at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
