@@ -17,7 +17,12 @@ CASTRO_HOME = ../../..
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox19
+ifeq ($(USE_NSE_NET), TRUE)
+	NETWORK_DIR := ase
+	SCREEN_METHOD := chabrier1998
+else
+	NETWORK_DIR := aprox19
+endif
 
 Bpack   := ./Make.package
 Blocs   := .
