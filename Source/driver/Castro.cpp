@@ -1444,7 +1444,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    Castro* oldlev = (Castro*) &old;
+    auto* oldlev = (Castro*) &old;
 
     //
     // Create new grid data by fillpatching from old.
@@ -3671,7 +3671,7 @@ Castro::reset_internal_energy(
                               MultiFab& By,
                               MultiFab& Bz,
 #endif
-                              MultiFab& S_new, int ng)
+                              MultiFab& State, int ng)
 
 {
 
@@ -3683,15 +3683,15 @@ Castro::reset_internal_energy(
 
     if (print_update_diagnostics)
     {
-        old_state.define(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
-        MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
+        old_state.define(State.boxArray(), State.DistributionMap(), State.nComp(), 0);
+        MultiFab::Copy(old_state, State, 0, 0, State.nComp(), 0);
     }
 
     // Ensure (rho e) isn't too small or negative
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
@@ -3699,16 +3699,16 @@ Castro::reset_internal_energy(
 #ifdef MHD
                               Bx.array(mfi), By.array(mfi), Bz.array(mfi),
 #endif
-                              S_new.array(mfi));
+                              State.array(mfi));
     }
 
     if (print_update_diagnostics)
     {
         // Evaluate what the effective reset source was.
 
-        MultiFab reset_source(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
+        MultiFab reset_source(State.boxArray(), State.DistributionMap(), State.nComp(), 0);
 
-        MultiFab::Copy(reset_source, S_new, 0, 0, S_new.nComp(), 0);
+        MultiFab::Copy(reset_source, State, 0, 0, State.nComp(), 0);
 
         MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
 

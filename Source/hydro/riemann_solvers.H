@@ -468,7 +468,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real gameo;
 
   if (ustar > 0.0_rt) {
-      ro = ql.rho;
+      //ro = ql.rho;
       uo = ql.un;
       po = ql.p;
       tauo = taul;
@@ -476,7 +476,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamel;
 
   } else if (ustar < 0.0_rt) {
-      ro = qr.rho;
+      //ro = qr.rho;
       uo = qr.un;
       po = qr.p;
       tauo = taur;
@@ -484,7 +484,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamer;
 
   } else {
-      ro = 0.5_rt * (ql.rho + qr.rho);
+      //ro = 0.5_rt * (ql.rho + qr.rho);
       uo = 0.5_rt * (ql.un + qr.un);
       po = 0.5_rt * (ql.p + qr.p);
       tauo = 0.5_rt * (taul + taur);
