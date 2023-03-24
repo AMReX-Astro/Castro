@@ -795,7 +795,7 @@
                                amrex::Array4<amrex::Real> const& qp);
 
 
-    static void scale_flux(const amrex::Box& bx,
+    void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
                     amrex::Array4<amrex::Real const> const& qint,
 #endif
