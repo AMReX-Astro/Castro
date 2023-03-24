@@ -326,8 +326,8 @@ pstar_bisection(Real& pstar_lo, Real& pstar_hi,
   wsqge(pr, taur, gamer, gdot,
         gamstar, gmin, gmax, clsqr, pstar_hi, wrsq);
 
-  wl = 1.0_rt / std::sqrt(wlsq);
-  wr = 1.0_rt / std::sqrt(wrsq);
+  // wl = 1.0_rt / std::sqrt(wlsq);
+  // wr = 1.0_rt / std::sqrt(wrsq);
 
   //ustar_l = ul - (pstar_hi - pstar)*wl;
   //ustar_r = ur + (pstar_hi - pstar)*wr;

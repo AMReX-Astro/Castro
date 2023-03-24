@@ -744,7 +744,7 @@ Castro::Castro (Amr&            papa,
 
 }
 
-Castro::~Castro ()
+Castro::~Castro ()  // NOLINT(modernize-use-equals-default)
 {
 #ifdef RADIATION
     if (radiation != 0) {

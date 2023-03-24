@@ -570,7 +570,7 @@ Castro::gwstrain (Real time,
 
         r *= C::parsec * 1.e3_rt; // Convert from kpc to cm
 
-        for (int j = 0; j < 3; ++j) {
+        for (int j = 0; j < 3; ++j) {   // NOLINT(modernize-loop-convert)
             for (int i = 0; i < 3; ++i) {
                 h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
             }

@@ -261,8 +261,8 @@ Castro::variableSetUp ()
 
   eos_state.rho = castro::small_dens;
   eos_state.T = castro::small_temp;
-  for (int n = 0; n < NumSpec; ++n) {
-      eos_state.xn[n] = 1.0_rt / NumSpec;
+  for (double& X : eos_state.xn) {
+      X = 1.0_rt / NumSpec;
   }
 #ifdef AUX_THERMO
   set_aux_comp_from_X(eos_state);
