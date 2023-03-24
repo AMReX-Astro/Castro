@@ -772,6 +772,7 @@
     void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
 #ifndef MHD
+    void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
