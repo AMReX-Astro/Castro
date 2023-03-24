@@ -13,6 +13,8 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real tim
 {
     BL_PROFILE("Castro::construct_old_diff_source()");
 
+    amrex::ignore_unused(dt);
+
     const Real strt_time = ParallelDescriptor::second();
 
     MultiFab TempDiffTerm(grids, dmap, 1, 0);

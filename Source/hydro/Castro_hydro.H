@@ -583,7 +583,6 @@
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
-     static
      void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
                              amrex::Array4<amrex::Real const> const& q_arr,
@@ -770,10 +769,9 @@
 #endif
                         amrex::Array4<amrex::Real> const& qgdnv);
 
-    static void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
+    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
 #ifndef MHD
-    static void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
@@ -812,19 +810,17 @@
 #endif
 
 #ifndef MHD
-    static
     void reset_edge_state_thermo(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qedge);
 
-    static
     void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
 #endif
 
-    static void do_enforce_minimum_density(const amrex::Box& bx,
-                                           amrex::Array4<amrex::Real> const& state_arr,
-                                           const int verbose);
+    void do_enforce_minimum_density(const amrex::Box& bx,
+                                    amrex::Array4<amrex::Real> const& state_arr,
+                                    const int verbose);
 
 #ifdef HYBRID_MOMENTUM
 
