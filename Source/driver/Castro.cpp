@@ -1049,10 +1049,6 @@ Castro::initData ()
     {
 
 #ifdef MHD
-       int nbx = Bx_new.nComp();
-       int nby = By_new.nComp();
-       int nbz = Bz_new.nComp();
-
        Bx_new.setVal(0.0);
        By_new.setVal(0.0);
        Bz_new.setVal(0.0);

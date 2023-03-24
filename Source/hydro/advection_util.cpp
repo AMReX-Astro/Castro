@@ -522,7 +522,7 @@ Castro::scale_rad_flux(const Box& bx,
 #endif
 
 
-
+#ifndef MHD
 void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
@@ -626,7 +626,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     });
 }
-
+#endif
 
 
 void
