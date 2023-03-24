@@ -103,20 +103,20 @@
 /// @param q_arr     output primitive state
 /// @param qaux_arr  output auxillary quantities
 ///
-    static void ctoprim(const amrex::Box& bx,
-                        const amrex::Real time,
-                        amrex::Array4<amrex::Real const> const& uin,
+    void ctoprim(const amrex::Box& bx,
+                 const amrex::Real time,
+                 amrex::Array4<amrex::Real const> const& uin,
 #ifdef MHD
-                        amrex::Array4<amrex::Real const> const& Bx,
-                        amrex::Array4<amrex::Real const> const& By,
-                        amrex::Array4<amrex::Real const> const& Bz,
+                 amrex::Array4<amrex::Real const> const& Bx,
+                 amrex::Array4<amrex::Real const> const& By,
+                 amrex::Array4<amrex::Real const> const& Bz,
 #endif
 #ifdef RADIATION
-                        amrex::Array4<amrex::Real const> const& Erin,
-                        amrex::Array4<amrex::Real const> const& lam,
+                 amrex::Array4<amrex::Real const> const& Erin,
+                 amrex::Array4<amrex::Real const> const& lam,
 #endif
-                        amrex::Array4<amrex::Real> const& q_arr,
-                        amrex::Array4<amrex::Real> const& qaux_arr);
+                 amrex::Array4<amrex::Real> const& q_arr,
+                 amrex::Array4<amrex::Real> const& qaux_arr);
 
 ///
 /// compute the flattening coefficient.  This is 0 if we are in a shock and
