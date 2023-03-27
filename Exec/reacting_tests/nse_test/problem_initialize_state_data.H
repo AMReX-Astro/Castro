@@ -46,7 +46,7 @@ void problem_initialize_state_data (int i, int j, int k,
             (1.0_rt + problem::dT_fact *
              std::exp(-(dist/problem::L_pert) * (dist/problem::L_pert)) *
              std::pow(std::cos(M_PI*(dist/(probhi[0]-problo[0]))), 6));
-             ye = ye0 *
+        ye = ye0 *
              (1.0_rt + dye * std::exp(-(dist/problem::L_pert) * (dist/problem::L_pert) ) *
               std::pow(std::cos(M_PI*(dist/(probhi[0]-problo[0]))), 6));
     } else {
@@ -57,8 +57,6 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMX) = problem::rho0 * problem::u0;
     state(i,j,k,UMY) = problem::rho0 * problem::v0;
     state(i,j,k,UMZ) = problem::rho0 * problem::w0;
-
-    // we are isentropic, so find rho
 
     burn_t burn_state;
     burn_state.T = T;
