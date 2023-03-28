@@ -613,10 +613,10 @@ Castro::react_state(Real time, Real dt)
                      }
 #ifdef NSE
 		    if (store_omegadot == 1) {
-		      reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+		      react_src(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
 		    }
 		    else {
-		      reactions(i,j,k,1) = burn_state.nse;
+		      react_src(i,j,k,1) = burn_state.nse;
 		    }
 #endif
                  }
