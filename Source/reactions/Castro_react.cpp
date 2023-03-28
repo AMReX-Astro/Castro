@@ -414,6 +414,8 @@ Castro::react_state(Real time, Real dt)
 #ifdef NSE_NET
 	    burn_state.mu_p = U_old(i,j,k,UMUP);
 	    burn_state.mu_n = U_old(i,j,k,UMUN);
+
+	    burn_state.y_e = 0.0_rt;
 #endif
             // Initialize some data for later.
 
