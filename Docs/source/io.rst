@@ -49,7 +49,7 @@ checkpoint files (which are really directories):
   * ``amr.checkpoint_on_restart``: should we write a
     checkpoint immediately after restarting? (0 or 1; default: 0)
 
-  * ``castro.output_at_completion``: should we write a final checkpoit/plotfile? (0 or 1)
+  * ``castro.output_at_completion``: should we write a final checkpoint/plotfile? (0 or 1)
 
   * ``castro.grown_factor``: factor by which domain has been
     grown (Integer :math:`\geq 1`; default: 1)
