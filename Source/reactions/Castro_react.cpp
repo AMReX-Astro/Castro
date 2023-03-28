@@ -611,7 +611,14 @@ Castro::react_state(Real time, Real dt)
                              weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
                          }
                      }
-
+#ifdef NSE
+		    if (store_omegadot == 1) {
+		      reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+		    }
+		    else {
+		      reactions(i,j,k,1) = burn_state.nse;
+		    }
+#endif
                  }
 
             }
