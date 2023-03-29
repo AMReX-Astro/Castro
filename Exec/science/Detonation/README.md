@@ -1,5 +1,7 @@
-A simple carbon detonation.  The reaction network should be set through the
-GNUmakefile.
+# detonation
+
+A simple carbon detonation.  The reaction network should be set
+through the GNUmakefile.
 
 This sets up a domain with a uniform density (dens).  A large
 temperature (T_l) is placed in the left side of the domain, and an
@@ -16,8 +18,12 @@ When run, the large temperature in the left side instantly flashes the
 C fuel, generating a lot of energy and a large overpressure.  The
 signature of a propagating detonation is that a narrow energy
 generation zone will keep pace with the rightward propagating
-shockwave (as seen in the pressure field).  
+shockwave (as seen in the pressure field).
 
 Note: if the domain is too small, then the burning will decouple from
 the shock wave, and you will not get a detonation.
 
+Some important inputs files:
+
+* `inputs-det-x.nse` : this produces a nice detonation that gets hot
+  enough for the ash to be in NSE.

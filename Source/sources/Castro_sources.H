@@ -136,7 +136,7 @@
 /// @param source_name  string to associate with this source
 ///
     void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
-                                          std::string source_name);
+                                          const std::string& source_name);
 
 
 

@@ -13,6 +13,10 @@ using namespace amrex;
 void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_old_gravity()");
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -21,8 +25,9 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
     // Always set phi to zero initially since some gravity modes
     // don't use it and we want to have valid data.
 
-    if (gravity->get_gravity_type() != "PoissonGrav")
+    if (gravity->get_gravity_type() != "PoissonGrav") {
         phi_old.setVal(0.0);
+    }
 
     if (!do_grav) {
 
@@ -51,7 +56,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
             MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
             for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
+                comp_gphi[n] = std::make_unique<MultiFab>(getEdgeBoxArray(n), dmap, 1, 0);
                 MultiFab::Copy(*comp_gphi[n], *gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
             }
 
@@ -115,6 +120,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     BL_PROFILE("Castro::construct_new_gravity()");
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
@@ -123,8 +132,9 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
     // Always set phi to zero initially since some gravity modes
     // don't use it and we want to have valid data.
 
-    if (gravity->get_gravity_type() != "PoissonGrav")
+    if (gravity->get_gravity_type() != "PoissonGrav") {
         phi_new.setVal(0.0);
+    }
 
     if (!do_grav) {
 
@@ -148,8 +158,9 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
         // Subtract off the (composite - level) contribution for the purposes
         // of the level solve. We'll add it back later.
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level())
+        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
             phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+        }
 
         if (castro::verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "... new-time level Poisson gravity solve at level " << level << std::endl << std::endl;
@@ -181,8 +192,9 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
             // calculate, so it is slightly more accurate than it would have been.
 
             phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-            for (int n = 0; n < AMREX_SPACEDIM; ++n)
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
                 gravity->get_grad_phi_curr(level)[n]->plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
+            }
 
             if (gravity->test_results_of_solves() == 1) {
 
@@ -215,8 +227,9 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
                 phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
-                for (int n = 0; n < AMREX_SPACEDIM; ++n)
+                for (int n = 0; n < AMREX_SPACEDIM; ++n) {
                     gravity->get_grad_phi_curr(level)[n]->minus(*comp_minus_level_grad_phi[n], 0, 1, 0);
+                }
 
             }
 
@@ -233,14 +246,18 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_old_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
 
-    const MultiFab& phi_old = get_old_data(PhiGrav_Type);
     const MultiFab& grav_old = get_old_data(Gravity_Type);
 
-    if (!do_grav) return;
+    if (!do_grav) {
+        return;
+    }
 
     // Gravitational source term for the time-level n data.
 
@@ -372,8 +389,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -381,8 +397,12 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 }
 
-void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                          Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_new_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -390,7 +410,9 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
 
-    if (!do_grav) return;
+    if (!do_grav) {
+        return;
+    }
 
     GpuArray<Real, 3> dx;
     for (int i = 0; i < AMREX_SPACEDIM; ++i) {
@@ -605,8 +627,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

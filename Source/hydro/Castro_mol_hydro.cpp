@@ -403,7 +403,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
                   } else if (n == USHK) {
-                    flux_arr(i,j,k,n) == 0.0;
+                    flux_arr(i,j,k,n) = 0.0;
+#endif
+#ifdef NSE_NET
+		  } else if (n == UMUP || n == UMUN) {
+		    flux_arr(i,j,k,n) = 0.0;
 #endif
                   } else {
 
@@ -523,6 +527,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
                 flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+#ifdef NSE_NET
+		flux_arr(i,j,k,UMUP) = 0.e0;
+		flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
               });
 
