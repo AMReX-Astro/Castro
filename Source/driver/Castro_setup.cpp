@@ -1032,11 +1032,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-#ifdef NSE
-  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
-  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
-#endif
-
   //
   // Problem-specific adds
 #include <Problem_Derives.H>
