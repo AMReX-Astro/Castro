@@ -659,10 +659,10 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   if (store_omegadot == 1) {
-    desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "nse", bc, genericBndryFunc);
+    desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "in_nse", bc, genericBndryFunc);
   }
   else {
-    desc_lst.setComponent(Reactions_Type, 1, "nse", bc, genericBndryFunc);
+    desc_lst.setComponent(Reactions_Type, 1, "in_nse", bc, genericBndryFunc);
   }
 #endif
   // names for the burn_weights that are manually added to the plotfile
