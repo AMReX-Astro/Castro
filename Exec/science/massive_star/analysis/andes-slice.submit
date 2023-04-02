@@ -14,7 +14,9 @@ source activate andes_env
 
 for i in plt?????
 do
-    srun python massive_star_multi.py ${i}
+    if [ ! -f all_${i}_slice.png ]; then
+      srun python massive_star_multi.py ${i}
+    fi
 done
 
 
