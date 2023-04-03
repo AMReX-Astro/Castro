@@ -860,7 +860,7 @@ limiters is determined by castro.ppm_type.</p>
 of <span id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">27</a>]</span> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock  Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">52</a>]</span>. We
+described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">52</a>]</span>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -1253,7 +1253,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equa tions. Journal of Computational Physics, 242:169-180, June 2013. arXiv:1203.1540, doi:10.1016/j.jcp.2013.01.024.">43</a>]</span>. This
+implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">43</a>]</span>. This
 behavior is controlled by
 <code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code>.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1283,21 +1283,21 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equa tions. Journal of Computational Physics, 242:169-180, June 2013. arXiv:1203.1540, doi:10.1016/j.jcp.2013.01.024.">43</a>]</span>.</p>
+found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">43</a>]</span>.</p>
 </section>
 </section>
 <section id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this heading"></a></h2>
-<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. \apjs , 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.
+<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. \apjs , 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.</p>
+source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. \mnras , 208:721-750, June 1984. doi:10.1093/mnras/208.4.721.">57</a>]</span>.  The
+originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. Monthly Notices of the Royal Astronomical Society, 208:721-750, June 1984. URL: http://adsabs.harvard.edu/abs/1984MNRAS.208..721P.">57</a>]</span>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <figure class="align-default" id="id23">

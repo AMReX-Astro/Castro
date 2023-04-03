@@ -92,7 +92,7 @@ Acknowledging and Citing Castro
 If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
 testing. A list of these can be found in the `CITATION
-<https://github.com/AMReX-Astro/Castro/blob/main/CITATION>`_ file in
+<https://github.com/AMReX-Astro/Castro/blob/main/CITATION.md>`_ file in
 the root ``Castro/`` directory.
 
 The development Castro is supported by the science application
