@@ -123,3 +123,6 @@ network.nse_relax_factor = 0.9
 
 # use cubic interpolation from the NSE table
 network.nse_table_interp_linear = 0
+
+# disable jacobian caching in VODE
+integrator.use_jacobian_caching = 0
