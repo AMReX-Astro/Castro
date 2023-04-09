@@ -118,6 +118,8 @@ inertial_to_rotational_velocity (const int i, const int j, const int k,
                                  const GeometryData& geomdata,
                                  const Real time, GpuArray<Real, 3>& v) {
 
+  amrex::ignore_unused(time);
+
   // Given a velocity vector in the inertial frame, transform it to a
   // velocity vector in the rotating frame.
 
@@ -145,6 +147,8 @@ void
 rotational_to_inertial_velocity (const int i, const int j, const int k,
                                  const GeometryData& geomdata,
                                  const Real time, GpuArray<Real, 3>& v) {
+
+  amrex::ignore_unused(time);
 
   // Given a velocity vector in the rotating frame, transform it to a
   // velocity vector in the inertial frame.

@@ -55,7 +55,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
         for (int n = 0; n < NumSpec; n++) {
             eos_state.xn[n] = dat(i,j,k,UFS+n) / dat(i,j,k,URHO);
         }
-#if NAUX > 0
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
             eos_state.aux[n] = dat(i,j,k,UFX+n) / dat(i,j,k,URHO);
         }
@@ -132,7 +132,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
         for (int n = 0; n < NumSpec; n++) {
             eos_state.xn[n] = dat(i,j,k,UFS+n) / dat(i,j,k,URHO);
         }
-#if NAUX > 0
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
             eos_state.aux[n] = dat(i,j,k,UFX+n) / dat(i,j,k,URHO);
         }

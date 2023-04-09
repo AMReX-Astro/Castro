@@ -23,6 +23,9 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
                        Real& period, Real eccentricity, Real phi, Real& a,
                        Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p)
 {
+    amrex::ignore_unused(radius_1);
+    amrex::ignore_unused(radius_2);
+
     Real M  = mass_1 + mass_2;     // Total mass
     Real mu = mass_1 * mass_2 / M; // Reduced mass
 

@@ -148,7 +148,8 @@ def parse_params(infile, out_directory):
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
-        ifdefs = {q.ifdef for q in params_nm}
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
 
         # write name_declares.H
         try:

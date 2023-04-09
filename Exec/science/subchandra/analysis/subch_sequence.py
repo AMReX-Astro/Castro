@@ -20,11 +20,14 @@ from yt.funcs import just_one
 from yt.fields.derived_field import ValidateSpatial
 
 #times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35]
-times = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+times = [0.0, 0.1, 0.2, 0.4, 0.6, 0.75]
 #times = [0.0, 0.15, 0.3, 0.45]
 
 clip_val = -35
 max_val = -19
+
+# how much to coarsen for the contouring
+blocking_factor = 8
 
 def find_files(plist):
 
@@ -57,7 +60,7 @@ def _lap_rho(field, data):
 
     # r-component
     _lap[1:-1, :] = 1 / (r[1:-1, :] * dr**2) * (
-        -(rl[1:-1,:] + rr[1:-1,:]) * dens[1:-1:, :] +
+        - 2.0 * r[1:-1, :] * dens[1:-1:, :] +
         rl[1:-1, :] * dens[:-2, :] + rr[1:-1, :] * dens[2:, :])
 
     _lap[:, 1:-1] += 1 / dz**2 * (dens[:, 2:] + dens[:, :-2] - 2.0 * dens[:, 1:-1])
@@ -65,7 +68,7 @@ def _lap_rho(field, data):
     lapl_field[lapl_field < clip_val] = clip_val
     return lapl_field
 
-def doit(field, pfiles):
+def doit(field, add_contours, pfiles):
 
     print("looking to plot: ", pfiles)
 
@@ -93,7 +96,7 @@ def doit(field, pfiles):
 
         ds = CastroDataset(pf)
 
-        if field == "lap_rho":
+        if field == "lap_rho" or add_contours:
             ds.force_periodicity()
             ds.add_field(name=("gas", "lap_rho"), sampling_type="local",
                          function=_lap_rho, units="",
@@ -122,7 +125,7 @@ def doit(field, pfiles):
             sp.set_zlim(field, 5.e7, 4e9)
             sp.set_cmap(field, "magma_r")
         elif field == "enuc":
-            sp.set_log(field, True, linthresh=1.e18)
+            sp.set_log(field, True, linthresh=1.e15)
             sp.set_zlim(field, -1.e22, 1.e22)
             sp.set_cmap(field, "bwr")
         elif field == "abar":
@@ -133,6 +136,9 @@ def doit(field, pfiles):
             sp.set_zlim(field, clip_val, max_val)
             sp.set_log(field, False)
             sp.set_cmap(field, "bone_r")
+
+        if add_contours:
+            sp.annotate_contour(("gas", "lap_rho"), take_log=False, ncont=12, clim=(clip_val, max_val), factor=blocking_factor)
 
         sp.set_axes_unit("km")
 
@@ -155,6 +161,7 @@ if __name__ == "__main__":
 
     p.add_argument("--var", type=str, default="Temp",
                    help="variable to plot")
+    p.add_argument("--add_contours", action="store_true", help="add lap{rho}/rho contours")
     p.add_argument("plotfiles", type=str, nargs="+",
                    help="list of plotfiles to plot")
 
@@ -162,4 +169,4 @@ if __name__ == "__main__":
     print(args)
     plist = find_files(args.plotfiles)
 
-    doit(args.var, plist)
+    doit(args.var, args.add_contours,  plist)

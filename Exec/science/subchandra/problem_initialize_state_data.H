@@ -43,26 +43,29 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) /= sumX;
     }
 
-    eos_t eos_state;
+    burn_t burn_state;
 
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n);
+        burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rt, burn_state);
 
-    state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
-    state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
+    state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
+#ifdef NSE_NET
+    state(i,j,k,UMUP) = problem::mu_p;
+    state(i,j,k,UMUN) = problem::mu_n;
+#endif
 
     // initial velocities = 0
-
     state(i,j,k,UMX) = 0.0_rt;
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
@@ -87,22 +90,22 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
     // convolve the temperature perturbation with the amount of He
-    Real X_he = eos_state.xn[problem::ihe4];
+    Real X_he = burn_state.xn[problem::ihe4];
 
     state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::pert_temp_factor *
                                (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
 
 
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = state(i,j,k,UTEMP);
     // we don't need to refill xn, since it still holds unchanged from above
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rt, burn_state);
 
     // the internal energy changed
 
-    state(i,j,k,UEINT) = eos_state.e * state(i,j,k,URHO);
-    state(i,j,k,UEDEN) = eos_state.e * state(i,j,k,URHO);
+    state(i,j,k,UEINT) = burn_state.e * state(i,j,k,URHO);
+    state(i,j,k,UEDEN) = burn_state.e * state(i,j,k,URHO);
 
 }
 

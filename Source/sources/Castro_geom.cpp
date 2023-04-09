@@ -42,8 +42,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -100,8 +99,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -113,7 +111,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
 
 void
-Castro::fill_geom_source (Real time, Real dt,
+Castro::fill_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
                           MultiFab& cons_state, MultiFab& geom_src)
 {
 
@@ -123,9 +121,6 @@ Castro::fill_geom_source (Real time, Real dt,
 
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
-
-  auto coord = geom.Coord();
-
 
 #ifdef _OPENMP
 #pragma omp parallel

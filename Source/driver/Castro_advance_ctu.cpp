@@ -19,6 +19,9 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
+    amrex::ignore_unused(amr_iteration);
+    amrex::ignore_unused(amr_ncycle);
+
     // this routine will advance the old state data (called S_old here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -302,8 +305,9 @@ Castro::do_advance_ctu(Real time,
 #ifdef GRAVITY
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
-    if (moving_center == 1)
-      define_new_center(S_new, time);
+    if (moving_center == 1) {
+        define_new_center(S_new, time);
+    }
 #endif
 
 #ifdef GRAVITY
@@ -365,7 +369,7 @@ Castro::do_advance_ctu(Real time,
 
             // Do the ODE integration to capture the reaction source terms.
 
-            bool burn_success = react_state(time, dt);
+            burn_success = react_state(time, dt);
 
             // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -374,8 +378,6 @@ Castro::do_advance_ctu(Real time,
                 status.reason = "burn unsuccessful";
                 return status;
             }
-
-            MultiFab& S_new = get_new_data(State_Type);
 
             clean_state(S_new, time + dt, S_new.nGrow());
 
@@ -391,10 +393,7 @@ Castro::do_advance_ctu(Real time,
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
             SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 
-            MultiFab& R_old = get_old_data(Reactions_Type);
             R_old.setVal(0.0, R_old.nGrow());
-
-            MultiFab& R_new = get_new_data(Reactions_Type);
             R_new.setVal(0.0, R_new.nGrow());
 
         }
@@ -461,14 +460,15 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real dt, advance_status status)
+Castro::retry_advance_ctu(Real dt, const advance_status& status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
     bool do_retry = false;
 
-    if (!status.success)
+    if (!status.success) {
         do_retry = true;
+    }
 
     if (do_retry) {
 
@@ -488,30 +488,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
-
-            if (!prev_state[k]->hasOldData()) {
-
-#ifdef AMREX_USE_GPU
-                Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
-#endif
-                *prev_state[k] = state[k];
-#ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
-#endif
-            }
-
-        }
+        save_data_for_retry();
 
         // Clear the contribution to the fluxes from this step.
 
@@ -576,8 +553,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     // that is different from the initial value we assigned,
     // for example from the post-step regrid algorithm.
 
-    if (dt_subcycle == 1.e200)
+    if (dt_subcycle == 1.e200) {
         dt_subcycle = dt;
+    }
 
     Real subcycle_time = time;
 
@@ -782,8 +760,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "  Subcycling complete" << std::endl << std::endl;
+    if (verbose) {
+        amrex::Print() << "  Subcycling complete" << std::endl << std::endl;
+    }
 
     // Record the number of subcycles we took for diagnostic purposes.
 
@@ -799,9 +778,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         for (int k = 0; k < num_state_type; k++) {
 
-            if (prev_state[k]->hasOldData())
+            if (prev_state[k]->hasOldData()) {
                 state[k].replaceOldData(*prev_state[k]);
-
+            }
             state[k].setTimeLevel(time + dt, dt, 0.0);
             prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
 

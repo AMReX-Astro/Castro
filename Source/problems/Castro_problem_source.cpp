@@ -9,7 +9,9 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     MultiFab ext_src(grids, dmap, source.nComp(), 0);
 
@@ -31,8 +33,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -46,7 +47,9 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     // In this routine, we have two options: we can either do an
     // explicit predictor-corrector solve, or an implicit solve.
@@ -101,8 +104,7 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -112,10 +114,13 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
 
 void
-Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_old, const MultiFab& state_new, MultiFab& ext_src)
+Castro::fill_ext_source (const Real time, const Real dt,
+                         const MultiFab& state_old, const MultiFab& state_new,
+                         MultiFab& ext_src)
 {
-    const Real* dx = geom.CellSize();
-    const Real* prob_lo = geom.ProbLo();
+
+    amrex::ignore_unused(state_old);
+
     GeometryData geomdata = geom.data();
 
 #ifdef _OPENMP
@@ -125,7 +130,6 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
     {
         const Box& bx = mfi.tilebox();
 
-        Array4<Real const> const sold = state_old.array(mfi);
         Array4<Real const> const snew = state_new.array(mfi);
         Array4<Real> const src = ext_src.array(mfi);
 

@@ -29,8 +29,7 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real tim
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_diff_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_diff_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -67,8 +66,7 @@ Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFa
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_diff_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_diff_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -103,7 +101,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
    // Fill coefficients at this level.
    Vector<std::unique_ptr<MultiFab> > coeffs(AMREX_SPACEDIM);
    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-       coeffs[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+       coeffs[dir] = std::make_unique<MultiFab>(getEdgeBoxArray(dir), dmap, 1, 0);
    }
 
    // Fill temperature at this level.
