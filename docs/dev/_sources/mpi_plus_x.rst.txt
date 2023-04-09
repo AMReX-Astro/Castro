@@ -107,11 +107,6 @@ To enable this, compile with::
   USE_HIP = TRUE
 
 
-.. note::
-
-   AMD + HIP support is new and considered experimental.
-
-
 Working at Supercomputing Centers
 =================================
 
