@@ -7,7 +7,7 @@
 /// @param checkpoint_dir   Name of the checkpoint directory
 ///
 AMREX_INLINE
-void problem_checkpoint (std::string checkpoint_dir) {
+void problem_checkpoint (const std::string& checkpoint_dir) {
 
     amrex::ignore_unused(checkpoint_dir);
 

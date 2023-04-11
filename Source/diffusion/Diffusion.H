@@ -20,7 +20,7 @@ public:
 /// @param _phys_bc
 ///
   Diffusion(amrex::Amr* Parent, amrex::BCRec* _phys_bc);
-  ~Diffusion ();
+  ~Diffusion () = default;
   void read_params ();
 
 

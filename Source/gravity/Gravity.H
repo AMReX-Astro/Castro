@@ -46,9 +46,9 @@ public:
 /// @param Parent           Parent ``Amr`` object
 /// @param _finest_level    finest level
 /// @param _phys_bc         ``BCRec`` object, physical boundary conditions
-/// @param _Density         index of density component
+/// @param _density         index of density component
 ///
-  Gravity(amrex::Amr* Parent, int _finest_level, amrex::BCRec* _phys_bc, int _Density);
+  Gravity(amrex::Amr* Parent, int _finest_level, amrex::BCRec* _phys_bc, int _density);
 
 ///
 /// Deconstructor
@@ -565,10 +565,7 @@ public:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
-
-public:
-
-  inline amrex::Real
+  static inline amrex::Real
   get_const_grav() {
     return gravity::const_grav;
   }
