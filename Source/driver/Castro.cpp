@@ -2752,6 +2752,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifndef MHD
                 auto A = crse_lev.area[idir][mfi].array();
                 Real dt = parent->dtLevel(crse_level);
+#ifndef MHD
                 bool scale_by_dAdt = false;
                 crse_lev.limit_hydro_fluxes_on_small_dens(nbx, idir, U, V, F, A, dt, scale_by_dAdt);
 #endif

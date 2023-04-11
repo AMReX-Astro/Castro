@@ -9,7 +9,7 @@ Restart Capability
 
 .. index:: amr.check_file, amr.check_int, amr.check_per, amr.restart
 .. index:: amr.checkpoint_files_output, amr.check_nfiles, amr.checkpoint_on_restart
-.. index:: castro.grown_factor
+.. index:: castro.output_at_completion, castro.grown_factor
 
 Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
@@ -48,6 +48,8 @@ checkpoint files (which are really directories):
 
   * ``amr.checkpoint_on_restart``: should we write a
     checkpoint immediately after restarting? (0 or 1; default: 0)
+
+  * ``castro.output_at_completion``: should we write a final checkpoint/plotfile? (0 or 1)
 
   * ``castro.grown_factor``: factor by which domain has been
     grown (Integer :math:`\geq 1`; default: 1)

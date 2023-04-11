@@ -20,10 +20,6 @@ evaluates where additional refinement is needed
 and grid generation procedures dynamically create or
 remove rectangular fine grid patches as resolution requirements change.
 
-A good introduction to the style of AMR used here is in Lecture 1
-of the Adaptive Mesh Refinement Short Course at
-https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf.
-
 .. _sec:tagging:
 
 Tagging for Refinement

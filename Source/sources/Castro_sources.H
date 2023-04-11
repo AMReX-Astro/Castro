@@ -275,9 +275,8 @@
 ///
 /// Fill ``ext_src`` with thermal sources
 ///
-/// @param S_old    Old state
-/// @param S_new    New state
-/// @param ext_src  MultiFab to fill with sources
+/// @param state_in    input state
+/// @param thermo_src  MultiFab to fill with sources
 ///
     void fill_thermo_source(amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
 

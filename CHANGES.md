@@ -1,3 +1,14 @@
+# 23.04
+
+  * burn_t now stores whether we are in NSE (#2390)
+
+  * Detonation and subchandra now work with self-consistent NSE
+    (#2369, #2391)
+
+  * clang-tidy fixes (#2380, #2392)
+
+  * added a code of conduct (#2393)
+
 # 23.03
 
   * add Ye to plotfile output (#2361)
