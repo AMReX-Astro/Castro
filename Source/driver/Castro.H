@@ -695,7 +695,7 @@ public:
 ///
 /// Error estimation for regridding.
 ///
-/// @param tb           TagBoxArray of tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval     integer
 /// @param tagval       integer
 /// @param time         current time
