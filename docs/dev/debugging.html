@@ -190,18 +190,19 @@ it.</p>
 pull requests using a <a class="reference external" href="https://github.com/AMReX-Astro/cpp-linter-action">GitHub action</a>. <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code>
 analyzes the source code, produces warnings for potential bugs and
 offers suggestions for performance improvements.</p>
-<p>It can also be run locally. This requires the <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code> and
-<code class="docutils literal notranslate"><span class="pre">bear</span></code> packages, and the python script <code class="docutils literal notranslate"><span class="pre">run-clang-tidy.py</span></code> (which
-can be downloaded from <a class="reference external" href="https://github.com/AMReX-Astro/cpp-linter-action/blob/main/run-clang-tidy.py">here</a>). The
-analysis is performed by first compiling a problem using the <code class="docutils literal notranslate"><span class="pre">bear</span></code>
-package, then running the python script to analyze the source
-files. From within a problem directory, run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bear<span class="w"> </span>make<span class="w"> </span><span class="nv">COMP</span><span class="o">=</span>llvm<span class="w"> </span>-j<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="nv">USE_OMP</span><span class="o">=</span>FALSE<span class="w"> </span><span class="nv">USE_MPI</span><span class="o">=</span>FALSE<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>TRUE
-
-python3<span class="w"> </span>run-clang-tidy.py<span class="w"> </span>-header-filter<span class="o">=</span><span class="s1">&#39;Castro&#39;</span><span class="w"> </span>-ignore-files<span class="o">=</span><span class="s1">&#39;amrex|Microphysics&#39;</span><span class="w"> </span>-j<span class="w"> </span><span class="m">20</span><span class="w"> </span>&gt;<span class="w"> </span>clang-tidy-report.txt
-</pre></div>
-</div>
-<p>The compiler flags can be modified to suit the problem to be analyzed, but the <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> flag must be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>. The <code class="docutils literal notranslate"><span class="pre">header-filter</span></code> option for the python script tells the script to only analyze header files containing the given regex pattern, and the <code class="docutils literal notranslate"><span class="pre">ignore-files</span></code> flag tells it to ignore any source files containing the given regex pattern. The <code class="docutils literal notranslate"><span class="pre">-j</span></code> option tells the script to run a given number of processes in parallel. The output is then redirected to a text file.</p>
+<p>It can also be run locally. Support for this is enabled via the AMReX build system,
+and requires that you have  <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code> installed locally.  You build via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><style type="text/css">
+span.prompt1:before {
+  content: "$ ";
+}
+</style><span class="prompt1">make<span class="w"> </span><span class="nv">USE_CLANG_TIDY</span><span class="o">=</span>TRUE</span>
+</pre></div></div><p>and this will use the clang-tidy options set in
+<code class="docutils literal notranslate"><span class="pre">Castro/.clang-tidy</span></code>.  If you do a parallel build, you should use
+the <code class="docutils literal notranslate"><span class="pre">-O</span></code> flag to ensure that output is not mixed between files.</p>
+<p>You can also use ask it to fix errors automatically via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_CLANG_TIDY</span><span class="o">=</span>TRUE<span class="w"> </span><span class="nv">CLANG_TIDY</span><span class="o">=</span><span class="s2">&quot;clang-tidy --fix-errors&quot;</span></span>
+</pre></div></div><p>and you can treat warnings as errors by adding <code class="docutils literal notranslate"><span class="pre">CLANG_TIDY_WARN_ERROR=TRUE</span></code>.</p>
 </section>
 <section id="thread-sanitizer">
 <h3>Thread sanitizer<a class="headerlink" href="#thread-sanitizer" title="Permalink to this heading"></a></h3>

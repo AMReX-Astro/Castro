@@ -66,21 +66,26 @@ pull requests using a `GitHub action
 analyzes the source code, produces warnings for potential bugs and
 offers suggestions for performance improvements.
 
-It can also be run locally. This requires the ``clang-tidy`` and
-``bear`` packages, and the python script ``run-clang-tidy.py`` (which
-can be downloaded from `here
-<https://github.com/AMReX-Astro/cpp-linter-action/blob/main/run-clang-tidy.py>`_). The
-analysis is performed by first compiling a problem using the ``bear``
-package, then running the python script to analyze the source
-files. From within a problem directory, run
+It can also be run locally. Support for this is enabled via the AMReX build system,
+and requires that you have  ``clang-tidy`` installed locally.  You build via:
 
-.. code-block:: bash
+.. prompt:: bash
 
-    bear make COMP=llvm -j 20 USE_OMP=FALSE USE_MPI=FALSE DEBUG=TRUE 
+   make USE_CLANG_TIDY=TRUE
 
-    python3 run-clang-tidy.py -header-filter='Castro' -ignore-files='amrex|Microphysics' -j 20 > clang-tidy-report.txt
+and this will use the clang-tidy options set in
+``Castro/.clang-tidy``.  If you do a parallel build, you should use
+the ``-O`` flag to ensure that output is not mixed between files.
 
-The compiler flags can be modified to suit the problem to be analyzed, but the ``DEBUG`` flag must be set to ``TRUE``. The ``header-filter`` option for the python script tells the script to only analyze header files containing the given regex pattern, and the ``ignore-files`` flag tells it to ignore any source files containing the given regex pattern. The ``-j`` option tells the script to run a given number of processes in parallel. The output is then redirected to a text file. 
+You can also use ask it to fix errors automatically via:
+
+.. prompt:: bash
+
+   make USE_CLANG_TIDY=TRUE CLANG_TIDY="clang-tidy --fix-errors"
+
+and you can treat warnings as errors by adding ``CLANG_TIDY_WARN_ERROR=TRUE``.
+
+
 
 Thread sanitizer
 ----------------
