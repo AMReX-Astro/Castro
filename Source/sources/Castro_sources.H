@@ -174,7 +174,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    static void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
 
 
@@ -268,7 +268,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    static void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 

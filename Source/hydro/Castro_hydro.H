@@ -66,7 +66,7 @@
 /// @param qright      right state at the interface
 /// @param sdc_source  primitive variable SDC source array
 ///
-    void add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
+    static void add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
                                       Array4<Real> const& qleft,
                                       Array4<Real> const& qright,
                                       Array4<Real const> const& sdc_src);
@@ -103,7 +103,7 @@
 /// @param q_arr     output primitive state
 /// @param qaux_arr  output auxillary quantities
 ///
-    void ctoprim(const amrex::Box& bx,
+    static void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
                  amrex::Array4<amrex::Real const> const& uin,
 #ifdef MHD
@@ -127,7 +127,7 @@
 /// @param flatn      the flattening coefficient
 /// @param pres_comp  index into q_arr of the pressure component
 ///
-    void uflatten(const amrex::Box& bx,
+    static void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const& q_arr,
                   amrex::Array4<amrex::Real> const& flatn,
                   const int pres_comp);
@@ -583,7 +583,7 @@
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
-     void actual_trans_final(const amrex::Box& bx,
+     static void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
                              amrex::Array4<amrex::Real const> const& q_arr,
                              amrex::Array4<amrex::Real> const& qo_arr,
@@ -699,7 +699,7 @@
 ///
 /// @param bx      the box to operate over
 /// @param shk     the shock flag
-/// @param update  the hydrodynamics update term, -div{F} + S(U)
+/// @param U_new   the new hydrodynamics conserved state
 /// @param flux0   flux in the x direction
 /// @param qx      Godunov state in the x direction
 /// @param flux1   flux in the y direction
@@ -712,7 +712,7 @@
 #ifdef SHOCK_VAR
                       amrex::Array4<amrex::Real const> const& shk,
 #endif
-                      amrex::Array4<amrex::Real> const& update,
+                      amrex::Array4<amrex::Real> const& U_new,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,
 #if AMREX_SPACEDIM >= 2
@@ -761,7 +761,7 @@
                         amrex::Array4<amrex::Real> const& F,
                         const int idir);
 
-    void
+    static void
     store_godunov_state(const amrex::Box& bx,
                         amrex::Array4<amrex::Real const> const& qint,
 #ifdef RADIATION
@@ -769,9 +769,9 @@
 #endif
                         amrex::Array4<amrex::Real> const& qgdnv);
 
-    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
+    static void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
-    void
+    static void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
@@ -794,7 +794,7 @@
                                amrex::Array4<amrex::Real> const& qp);
 
 
-    void scale_flux(const amrex::Box& bx,
+    static void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
                     amrex::Array4<amrex::Real const> const& qint,
 #endif
@@ -809,15 +809,15 @@
                         const amrex::Real dt);
 #endif
 
-    void reset_edge_state_thermo(const amrex::Box& bx,
+    static void reset_edge_state_thermo(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qedge);
 
-    void edge_state_temp_to_pres(const amrex::Box& bx,
+    static void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
 
 
-    void do_enforce_minimum_density(const amrex::Box& bx,
+    static void do_enforce_minimum_density(const amrex::Box& bx,
                                     amrex::Array4<amrex::Real> const& state_arr,
                                     const int verbose);
 
