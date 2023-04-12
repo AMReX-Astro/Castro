@@ -142,7 +142,14 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
                                      const MultiFab& Er, const MultiFab& Fr, int iflx,
                                      const Real lab_factor)
 {
-    int nflx = Fr.nComp();
+    int icomp_flux = -1;
+    if (plot_com_flux) {
+        icomp_flux = icomp_com_Fr;
+    }
+    else if (plot_lab_flux) {
+        icomp_flux = icomp_lab_Fr;
+    }
+
     int nlambda = lambda[0].nComp();
 
     GpuArray<Real, NGROUPS> dlognu = {0.0};
@@ -193,16 +200,16 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
             }
 
             int ifix = iflx;
-            int ifox = nflx;
+            int ifox = icomp_flux;
 
 #if AMREX_SPACEDIM >= 2
             int ifiy = iflx + NGROUPS;
-            int ifoy = nflx + NGROUPS;
+            int ifoy = icomp_flux + NGROUPS;
 #endif
 
 #if AMREX_SPACEDIM == 3
             int ifiz = iflx + NGROUPS * NGROUPS;
-            int ifoz = nflx + NGROUPS * NGROUPS;
+            int ifoz = icomp_flux + NGROUPS * NGROUPS;
 #endif
 
             Real rhoInv = 1.0_rt / Snew_arr(i,j,k,URHO);
