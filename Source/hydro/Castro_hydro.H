@@ -541,7 +541,7 @@
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
-     void trans_final(const amrex::Box& bx,
+     static void trans_final(const amrex::Box& bx,
                       int idir_n, int idir_t1, int idir_t2,
                       amrex::Array4<amrex::Real const> const& qm,
                       amrex::Array4<amrex::Real> const& qmo,
@@ -794,7 +794,7 @@
                                amrex::Array4<amrex::Real> const& qp);
 
 
-    static void scale_flux(const amrex::Box& bx,
+    void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
                     amrex::Array4<amrex::Real const> const& qint,
 #endif
@@ -817,7 +817,7 @@
                                  amrex::Array4<amrex::Real> const& qp);
 
 
-    static void do_enforce_minimum_density(const amrex::Box& bx,
+    void do_enforce_minimum_density(const amrex::Box& bx,
                                     amrex::Array4<amrex::Real> const& state_arr,
                                     const int verbose);
 

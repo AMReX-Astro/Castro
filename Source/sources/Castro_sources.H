@@ -268,7 +268,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    static void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
