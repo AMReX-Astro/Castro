@@ -771,6 +771,7 @@
 
     static void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
+#ifndef MHD
     static void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
@@ -780,7 +781,7 @@
                                      amrex::Array4<amrex::Real const> const& area,
                                      amrex::Real dt,
                                      bool scale_by_dAdt = true);
-
+#endif
 
 
 ///
@@ -809,13 +810,14 @@
                         const amrex::Real dt);
 #endif
 
+#ifndef MHD
     static void reset_edge_state_thermo(const amrex::Box& bx,
-                                 amrex::Array4<amrex::Real> const& qedge);
+                                        amrex::Array4<amrex::Real> const& qedge);
 
     static void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
-
+#endif
 
     void do_enforce_minimum_density(const amrex::Box& bx,
                                     amrex::Array4<amrex::Real> const& state_arr,
