@@ -49,7 +49,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 
 
 
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {

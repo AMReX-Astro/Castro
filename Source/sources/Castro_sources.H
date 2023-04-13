@@ -174,7 +174,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    static void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
 
 
