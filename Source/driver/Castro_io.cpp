@@ -962,7 +962,7 @@ Castro::plotFileOutput(const std::string& dir,
         }
     }
 
-    int n_data_items = plot_var_map.size() + num_derive;
+    int n_data_items = static_cast<int>(plot_var_map.size()) + num_derive;
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;

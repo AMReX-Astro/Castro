@@ -261,8 +261,8 @@ Castro::variableSetUp ()
 
   eos_state.rho = castro::small_dens;
   eos_state.T = castro::small_temp;
-  for (int n = 0; n < NumSpec; ++n) {
-      eos_state.xn[n] = 1.0_rt / NumSpec;
+  for (double& X : eos_state.xn) {
+      X = 1.0_rt / NumSpec;
   }
 #ifdef AUX_THERMO
   set_aux_comp_from_X(eos_state);
@@ -433,6 +433,7 @@ Castro::variableSetUp ()
   // Component is  rho_enuc = rho * (eout-ein)
   // next NumSpec are rho * omegadot_i
   // next NumAux are rho * auxdot_i
+  // next is nse status indication
   store_in_checkpoint = false;
 
   int num_react = 1;
@@ -440,7 +441,9 @@ Castro::variableSetUp ()
   if (store_omegadot == 1) {
       num_react += NumSpec + NumAux;
   }
-
+#ifdef NSE
+  num_react += 1;
+#endif
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, 0, num_react,
                          interp, state_data_extrap, store_in_checkpoint);
@@ -652,7 +655,16 @@ Castro::variableSetUp ()
       }
 #endif
   }
-
+#ifdef NSE
+  set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
+  if (store_omegadot == 1) {
+    desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "in_nse", bc, genericBndryFunc);
+  }
+  else {
+    desc_lst.setComponent(Reactions_Type, 1, "in_nse", bc, genericBndryFunc);
+  }
+#endif
   // names for the burn_weights that are manually added to the plotfile
   
   if (store_burn_weights) {
@@ -1018,11 +1030,6 @@ Castro::variableSetUp ()
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-#endif
-
-#ifdef NSE
-  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
-  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //

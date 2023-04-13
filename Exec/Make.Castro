@@ -1,5 +1,8 @@
 CASTRO_HOME ?= /path/to/Castro
 
+# clang-tidy support via AMReX
+CLANG_TIDY_CONFIG_FILE := $(CASTRO_HOME)/.clang-tidy
+
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
