@@ -64,7 +64,7 @@ public:
 ///
 /// @param jobInfoFile      std::ostream object
 ///
-  void output_job_info_params(std::ostream& jobInfoFile);
+  static void output_job_info_params(std::ostream& jobInfoFile);
 
 
 ///
@@ -90,32 +90,32 @@ public:
 ///
 /// Returns ``gravity_type``
 ///
-  std::string get_gravity_type ();
+  static std::string get_gravity_type ();
 
 ///
 /// Returns ``max_solve_level``
 ///
-  int get_max_solve_level();
+  static int get_max_solve_level();
 
 ///
 /// Returns ``no_sync``
 ///
-  int NoSync();
+  static int NoSync();
 
 ///
 /// Returns ``no_composite``
 ///
-  int NoComposite();
+  static int NoComposite();
 
 ///
 /// Returns ``do_composite_phi_correction``
 ///
-  int DoCompositeCorrection();
+  static int DoCompositeCorrection();
 
 ///
 /// Returns ``test_solves``
 ///
-  int test_results_of_solves ();
+  static int test_results_of_solves ();
 
 
 ///
@@ -293,7 +293,7 @@ public:
 /// @param ecz         gradients wrt z
 /// @param coord_type  coordinate system
 
-  void test_residual (const amrex::Box& bx,
+  static void test_residual (const amrex::Box& bx,
                       amrex::Array4<amrex::Real> const& rhs,
                       amrex::Array4<amrex::Real> const& ecx,
 #if AMREX_SPACEDIM >= 2

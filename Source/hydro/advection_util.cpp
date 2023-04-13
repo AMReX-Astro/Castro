@@ -478,7 +478,7 @@ Castro::normalize_species_fluxes(const Box& bx,
 }
 
 
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::scale_flux(const Box& bx,
 #if AMREX_SPACEDIM == 1
                    Array4<Real const> const& qint,
@@ -522,7 +522,7 @@ Castro::scale_rad_flux(const Box& bx,
 #endif
 
 
-
+#ifndef MHD
 void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
@@ -626,10 +626,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     });
 }
+#endif
 
 
-
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
                                    const int verbose) {
