@@ -183,7 +183,7 @@ def doit(variables_file, odir, defines, nadv):
                 for v in q.adds_to:
                     adds_to.append(v)
 
-        adds_to = set(adds_to)
+        adds_to = sorted(set(adds_to))
 
         # initialize the counters
         counter_main = Counter(default_set[s])
@@ -227,7 +227,7 @@ def doit(variables_file, odir, defines, nadv):
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
-        for s in unique_sets:
+        for s in sorted(unique_sets):
             set_indices = [q for q in indices if q.iset == s]
             f.write("\n   // {}\n".format(s))
             for i in set_indices:

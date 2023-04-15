@@ -88,9 +88,13 @@ Castro::trace_ppm(const Box& bx,
             break;
           }
         }
-        if (do_source_trace[n] == 1) break;
+        if (do_source_trace[n] == 1) {
+            break;
+        }
       }
-      if (do_source_trace[n] == 1) break;
+      if (do_source_trace[n] == 1) {
+          break;
+      }
     }
   }
 #endif

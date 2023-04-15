@@ -129,7 +129,7 @@ void position(int i, int j, int k,
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
 
-        if (geomdata.isPeriodic(dir)) {
+        if (geomdata.isPeriodic(dir) == 1) {
             if (idx[dir] < domlo[dir]) {
                 offset[dir] += probhi[dir] - problo[dir];
             }
@@ -170,7 +170,7 @@ Real volume(const int& i, const int& j, const int& k,
     amrex::ignore_unused(j);
     amrex::ignore_unused(k);
 
-    auto dx = geomdata.CellSize();
+    const auto* dx = geomdata.CellSize();
 
     Real vol;
 
@@ -239,7 +239,7 @@ Real area(const int& i, const int& j, const int& k,
     amrex::ignore_unused(k);
     amrex::ignore_unused(idir);
 
-    auto dx = geomdata.CellSize();
+    const auto* dx = geomdata.CellSize();
 
     Real a;
 

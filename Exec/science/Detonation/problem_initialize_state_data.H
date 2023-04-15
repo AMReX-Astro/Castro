@@ -46,6 +46,34 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 #endif
 
+#ifdef NSE_NET
+    // set initial conditions for NSE_NET
+    state(i,j,k,UMUP) = problem::mu_p;
+    state(i,j,k,UMUN) = problem::mu_n;
+
+    burn_t burn_state;
+    burn_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+    for (int n = 0; n < NumSpec; ++n) {
+      burn_state.xn[n] = problem::xn[n];
+    }
+    // initialize y_e.
+    burn_state.y_e = 0.5_rt;
+    burn_state.mu_p = problem::mu_p;
+    burn_state.mu_n = problem::mu_n;
+
+    if (burn_state.T > 2.0e9) {
+      auto nse_state = get_actual_nse_state(burn_state);
+
+      for (int n = 0; n < NumSpec; ++n) {
+	state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
+      }
+
+      state(i,j,k,UMUP) = nse_state.mu_p;
+      state(i,j,k,UMUN) = nse_state.mu_n;
+    }
+#endif
+
     eos(eos_input_rt, eos_state);
 
     state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::vel - 2 * problem::vel * (1.0_rt - sigma));

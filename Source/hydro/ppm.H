@@ -2,8 +2,8 @@
 #include <cmath>
 #include <reconstruction.H>
 
-#ifndef _ppm_H_
-#define _ppm_H_
+#ifndef PPM_H
+#define PPM_H
 
 using namespace amrex;
 

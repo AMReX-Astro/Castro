@@ -14,10 +14,13 @@ amr.n_cell           = 256     768
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   1
+castro.lo_bc       =  0   3
 castro.hi_bc       =  0   2
 
-castro.yl_ext_bc_type = 1
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -25,6 +28,11 @@ castro.do_react = 1
 castro.add_ext_src   = 0
 castro.do_grav = 1
 castro.do_sponge = 1
+
+castro.ppm_type = 1
+castro.grav_source_type = 2
+castro.use_pslope = 1
+castro.pslope_cutoff_density = 1.e4
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -2.45e14
@@ -62,7 +70,7 @@ amr.plot_int        = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
-problem.model_name =  "toy_xrb.hi_dens.hse.tanh.delta_12.000cm.dx_6.000cm.CNO"
+problem.model_name =  "toy_xrb.hi_dens.hse.tanh.delta_12cm.dx_6cm"
 
 problem.apply_vel_field = 1
 problem.velpert_height_loc = 1475.0
@@ -73,10 +81,5 @@ problem.num_vortices = 16
 # MICROPHYSICS
 integrator.jacobian = 1
 
-integrator.call_eos_in_rhs = 0
-
-integrator.atol_spec = 1.e-11
-integrator.rtol_spec = 1.e-12
-
-integrator.atol_enuc = 1.e-8
-integrator.rtol_enuc = 1.e-8
+integrator.atol_spec = 1.e-6
+integrator.rtol_spec = 1.e-6
