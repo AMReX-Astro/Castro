@@ -73,7 +73,7 @@ Castro::advance (Real time,
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && !use_retry) {
+    if (cfl_violation == 1 && use_retry != 0) {
         amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
     }
 
@@ -83,7 +83,7 @@ Castro::advance (Real time,
 
     // If the user requests, indicate that we want a regrid at the end of the step.
 
-    if (use_post_step_regrid) {
+    if (use_post_step_regrid == 1) {
         post_step_regrid = 1;
     }
 
@@ -103,7 +103,7 @@ Castro::advance (Real time,
 
 #ifdef GRAVITY
     // Update the point mass.
-    if (use_point_mass) {
+    if (use_point_mass == 1) {
         pointmass_update(time, dt);
     }
 #endif
@@ -251,12 +251,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 
     // Reset the retry information.
 
-    in_retry = false;
+    in_retry = 0;
     num_subcycles_taken = 1;
 
-    if (use_post_step_regrid && level > 0) {
+    if (use_post_step_regrid == 1 && level > 0) {
 
-        if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
+        if (getLevel(level-1).post_step_regrid == 1 && amr_iteration == 1) {
 
             // If the level below this just triggered a special regrid,
             // the coarse contribution to this level's FluxRegister
@@ -287,7 +287,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
 
-    if (level == 0 && do_grav && gravity->get_gravity_type() == "PoissonGrav") {
+    if (level == 0 && do_grav == 1 && gravity->get_gravity_type() == "PoissonGrav") {
         gravity->update_max_rhs();
     }
 #endif
@@ -302,7 +302,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     swap_state_time_levels(dt);
 
 #ifdef GRAVITY
-    if (do_grav) {
+    if (do_grav == 1) {
         gravity->swapTimeLevels(level);
     }
 #endif
@@ -318,7 +318,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     const Real cur_time = state[State_Type].curTime();
     const Real dt_level = parent->dtLevel(level);
 
-    if (drive_initial_convection && cur_time <= drive_initial_convection_tmax) {
+    if (drive_initial_convection == 1 && cur_time <= drive_initial_convection_tmax) {
 
         // Calculate the new dt by comparing to the dt needed to get
         // to the next multiple of drive_initial_convection_reinit_period
@@ -398,7 +398,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     // always ask if it has valid data.
 
     for (int k = 0; k < num_state_type; ++k) {
-        prev_state[k].reset(new StateData());
+        prev_state[k] = std::make_unique<StateData>();
     }
 
 
@@ -484,7 +484,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 #endif
 
 #ifdef REACTIONS
-    if (store_burn_weights) {
+    if (store_burn_weights == 1) {
         burn_weights.setVal(0.0);
     }
 #endif
@@ -498,7 +498,7 @@ Castro::finalize_advance()
 {
     BL_PROFILE("Castro::finalize_advance()");
 
-    if (do_reflux) {
+    if (do_reflux == 1) {
         FluxRegCrseInit();
         FluxRegFineAdd();
     }
@@ -508,7 +508,7 @@ Castro::finalize_advance()
     // the fluxes from the full timestep (this will be used
     // later during the reflux operation).
 
-    if (do_reflux && update_sources_after_reflux) {
+    if (do_reflux == 1 && update_sources_after_reflux == 1) {
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
             MultiFab::Copy(*mass_fluxes[idir], *fluxes[idir], URHO, 0, 1, 0);
         }
@@ -552,10 +552,10 @@ Castro::finalize_advance()
 
     // Record how many zones we have advanced.
 
-    num_zones_advanced += static_cast<Real>(grids.numPts()) / getLevel(0).grids.numPts();
+    num_zones_advanced += static_cast<Real>(grids.numPts()) / static_cast<Real>(getLevel(0).grids.numPts());
 
     Real wall_time = ParallelDescriptor::second() - wall_time_start;
-    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+    Real fom_advance = static_cast<Real>(grids.numPts()) / wall_time / 1.e6;
 
     if (verbose >= 1) {
         amrex::Print() << "  Zones advanced per microsecond at this level: "

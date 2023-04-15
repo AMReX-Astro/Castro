@@ -21,8 +21,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     auto domlo = geom.Domain().loVect3d();
     auto domhi = geom.Domain().hiVect3d();
 
-    auto lo = bx.loVect();
-    auto hi = bx.hiVect();
+    const auto *lo = bx.loVect();
+    const auto *hi = bx.hiVect();
 
     auto adv_bx = Box(adv);
     auto adv_lo = adv_bx.loVect3d();

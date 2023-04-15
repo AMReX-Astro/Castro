@@ -14,7 +14,7 @@ Castro::uflatten(const Box& bx,
                  Array4<Real const> const& q_arr,
                  Array4<Real> const& flatn, const int pres_comp) {
 
-  constexpr Real small_pres = 1.e-200_rt;
+  constexpr Real small_pres_flatn = 1.e-200_rt;
 
   // Knobs for detection of strong shock
   constexpr Real shktst = 0.33_rt;
@@ -32,7 +32,7 @@ Castro::uflatten(const Box& bx,
 
     int ishft = dp > 0.0_rt ? 1 : -1;
 
-    Real denom = amrex::max(small_pres, std::abs(q_arr(i+2,j,k,pres_comp) - q_arr(i-2,j,k,pres_comp)));
+    Real denom = amrex::max(small_pres_flatn, std::abs(q_arr(i+2,j,k,pres_comp) - q_arr(i-2,j,k,pres_comp)));
     Real zeta = std::abs(dp) / denom;
     Real z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
@@ -51,7 +51,7 @@ Castro::uflatten(const Box& bx,
 
     dp = q_arr(i+1-ishft,j,k,pres_comp) - q_arr(i-1-ishft,j,k,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i+2-ishft,j,k,pres_comp)-q_arr(i-2-ishft,j,k,pres_comp)));
+    denom = amrex::max(small_pres_flatn, std::abs(q_arr(i+2-ishft,j,k,pres_comp)-q_arr(i-2-ishft,j,k,pres_comp)));
     zeta = std::abs(dp) / denom;
     Real z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
@@ -77,7 +77,7 @@ Castro::uflatten(const Box& bx,
 
     ishft = dp > 0.0_rt ? 1 : -1;
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
+    denom = amrex::max(small_pres_flatn, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
     zeta = std::abs(dp) / denom;
     z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
@@ -96,7 +96,7 @@ Castro::uflatten(const Box& bx,
 
     dp = q_arr(i,j+1-ishft,k,pres_comp) - q_arr(i,j-1-ishft,k,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
+    denom = amrex::max(small_pres_flatn, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
     zeta = std::abs(dp) / denom;
     z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
@@ -123,7 +123,7 @@ Castro::uflatten(const Box& bx,
 
     ishft = dp > 0.0_rt ? 1: -1;
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j,k+2,pres_comp) - q_arr(i,j,k-2,pres_comp)));
+    denom = amrex::max(small_pres_flatn, std::abs(q_arr(i,j,k+2,pres_comp) - q_arr(i,j,k-2,pres_comp)));
     zeta = std::abs(dp) / denom;
     z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
@@ -142,7 +142,7 @@ Castro::uflatten(const Box& bx,
 
     dp = q_arr(i,j,k+1-ishft,pres_comp) - q_arr(i,j,k-1-ishft,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j,k+2-ishft,pres_comp) - q_arr(i,j,k-2-ishft,pres_comp)));
+    denom = amrex::max(small_pres_flatn, std::abs(q_arr(i,j,k+2-ishft,pres_comp) - q_arr(i,j,k-2-ishft,pres_comp)));
     zeta = std::abs(dp) / denom;
     z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 

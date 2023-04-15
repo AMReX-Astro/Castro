@@ -230,7 +230,14 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                             weights(i,j,k,strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
                         }
                     }
-
+#ifdef NSE
+		    if (store_omegadot == 1) {
+		      reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+		    }
+		    else {
+		      reactions(i,j,k,1) = burn_state.nse;
+		    }
+#endif
                 }
 
                 // update the state
@@ -407,6 +414,8 @@ Castro::react_state(Real time, Real dt)
 #ifdef NSE_NET
 	    burn_state.mu_p = U_old(i,j,k,UMUP);
 	    burn_state.mu_n = U_old(i,j,k,UMUN);
+
+	    burn_state.y_e = 0.0_rt;
 #endif
             // Initialize some data for later.
 
@@ -604,7 +613,14 @@ Castro::react_state(Real time, Real dt)
                              weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs));
                          }
                      }
-
+#ifdef NSE
+		    if (store_omegadot == 1) {
+		      react_src(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+		    }
+		    else {
+		      react_src(i,j,k,1) = burn_state.nse;
+		    }
+#endif
                  }
 
             }
@@ -763,7 +779,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // if it is negligible compared to the amount of work
     // needed to just do the burn as normal.
 
-    int small_size = small_limiters.size();
+    int small_size = static_cast<int>(small_limiters.size());
 
     if (small_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMin(small_limiters.dataPtr(), small_size);
@@ -778,7 +794,7 @@ Castro::valid_zones_to_burn(MultiFab& State)
         }
     }
 
-    int large_size = large_limiters.size();
+    int large_size = static_cast<int>(large_limiters.size());
 
     if (large_size > 0) {
         amrex::ParallelDescriptor::ReduceRealMax(large_limiters.dataPtr(), large_size);
