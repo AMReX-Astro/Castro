@@ -217,7 +217,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>s</strong> – Real(\5) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>s</strong> – Real(\nslp) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
 <li><p><strong>flatn</strong> – The flattening coefficient </p></li>
 <li><p><strong>sm</strong> – The value of the parabola on the left edge of the zone </p></li>
 <li><p><strong>sp</strong> – The value of the parabola on the right edge of the zone </p></li>
@@ -233,9 +233,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rho</strong> – Real(\5) giving the density in zones i-2, i-1, i, i+1, i+2 </p></li>
-<li><p><strong>p</strong> – Real(\5) giving the pressure in zones i-2, i-1, i, i+1, i+2 </p></li>
-<li><p><strong>src</strong> – Real(\5) the source in the velocity equation (e.g. g) in zones i-2, i-1, i, i+2, i+2 </p></li>
+<li><p><strong>rho</strong> – Real(\nslp) giving the density in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>p</strong> – Real(\nslp) giving the pressure in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>src</strong> – Real(\nslp) the source in the velocity equation (e.g. g) in zones i-2, i-1, i, i+2, i+2 </p></li>
 <li><p><strong>flatn</strong> – flattening coefficient </p></li>
 <li><p><strong>lo_bc_test</strong> – true if a physical boundary is just to the left of this zone </p></li>
 <li><p><strong>hi_bc_test</strong> – true if a physical boundary is just to the right of this zone</p></li>
