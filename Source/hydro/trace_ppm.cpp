@@ -13,6 +13,7 @@
 #include <flatten.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::trace_ppm(const Box& bx,
@@ -169,8 +170,8 @@ Castro::trace_ppm(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
+    Real s[nslp];
 
-    Real s[7];
     Real flat = 1.0;
 
     if (castro::first_order_hydro) {
@@ -228,8 +229,8 @@ Castro::trace_ppm(const Box& bx,
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
 
     if (use_pslope) {
-        Real trho[7];
-        Real src[7];
+        Real trho[nslp];
+        Real src[nslp];
 
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);
