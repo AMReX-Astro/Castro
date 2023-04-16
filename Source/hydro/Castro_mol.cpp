@@ -49,7 +49,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                   (idir == 1 && j == domhi[1]) ||
                                   (idir == 2 && k == domhi[2]));
 
-    Real s[7];
+    Real s[nslp];
     Real flat = flatn_arr(i,j,k);
 
     load_stencil(q_arr, idir, i, j, k, n, s);
