@@ -13,7 +13,7 @@
 #include <flatten.H>
 
 using namespace amrex;
-using namespace reconstruction
+using namespace reconstruction;
 
 void
 Castro::trace_ppm(const Box& bx,
