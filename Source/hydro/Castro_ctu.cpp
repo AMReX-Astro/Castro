@@ -116,7 +116,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
     if (idir == 0) {
-        trace_ppm(bx,
+      trace_ppm(bx,
                 idir,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qxm, qxp,
