@@ -1210,67 +1210,6 @@ extern "C"
 
 #endif
 
-#ifdef NSE
-  void ca_dernse(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& geomdata,
-                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    auto dx = geomdata.CellSizeArray();
-    
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
-
-      burn_t burn_state;
-      burn_state.rho  = dat(i,j,k,URHO);
-      burn_state.T = dat(i,j,k,UTEMP);
-      burn_state.e = dat(i,j,k,UEINT) * rhoInv;
-
-#ifdef NSE_NET
-      burn_state.mu_p = dat(i,j,k,UMUP);
-      burn_state.mu_n = dat(i,j,k,UMUN);
-#endif
-      
-#if AMREX_SPACEDIM == 1
-      burn_state.dx = dx[0];
-#else
-      burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
-#endif
-
-      for (int n = 0; n < NumSpec; n++) {
-        burn_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
-      }
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        burn_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
-      }
-#endif
-
-      eos(eos_input_re, burn_state);
-
-#ifdef SIMPLIFIED_SDC
-      // if we are doing simplified-SDC + NSE, then the `in_nse()`
-      // check will use burn_state.y[], so we need to ensure that
-      // those are initialized
-      for (int n = 0; n < NumSpec; ++n) {
-          burn_state.y[SFS+n] = burn_state.rho * burn_state.xn[n];
-      }
-
-      burn_state.y[SEINT] = burn_state.rho * burn_state.e;
-#endif
-
-      der(i,j,k,0) = in_nse(burn_state);
-
-    });
-  }
-#endif
-
-
 #ifdef __cplusplus
 }
 #endif

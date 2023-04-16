@@ -1,6 +1,8 @@
 Checks: >
      -*,
      bugprone-*,
+       -bugprone-easily-swappable-parameters,
+       -bugprone-implicit-widening-of-multiplication-result,
      clang-analyzer-*,
      clang-diagnostic-*,
      cppcoreguidelines-*,
@@ -21,6 +23,7 @@ Checks: >
        -modernize-use-using,
      performance-*,
      readability-*,
+       -readability-avoid-const-params-in-decls,
        -readability-braces-around-statements,
        -readability-else-after-return,
        -readability-function-cognitive-complexity,
@@ -31,5 +34,8 @@ Checks: >
        -readability-magic-numbers,
        -readability-named-parameter,
        -readability-simplify-boolean-expr,
+       -readability-static-accessed-through-instance,
      mpi-*,
      openmp-*
+
+HeaderFilterRegex: '(/Source/*/|/Util/model_parser_cxx|^\./|^\./tmp_build_dir/castro_sources/*/).*\.H$'

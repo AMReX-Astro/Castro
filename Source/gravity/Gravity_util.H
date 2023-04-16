@@ -143,7 +143,9 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
         for (int m = 1; m <= gravity::lnum; ++m) {
             for (int l = 1; l <= gravity::lnum; ++l) {
 
-                if (m > l) continue;
+                if (m > l) {
+                    continue;
+                }
 
                 calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta);
 
