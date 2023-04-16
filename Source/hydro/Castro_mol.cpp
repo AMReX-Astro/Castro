@@ -162,6 +162,8 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   bool lo_bc_test = lo_bc[idir] == Symmetry;
   bool hi_bc_test = hi_bc[idir] == Symmetry;
 
+  bool is_axisymmetric = geom.Coord() == 1
+;
   amrex::ParallelFor(bx, NQ,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
@@ -173,7 +175,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, n, s);
     ppm_reconstruct(s, i, j, k, idir,
-                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi,
                     flat, sm, sp);
 
     if (idir == 0) {

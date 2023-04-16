@@ -55,7 +55,7 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const int i, const int j, const int k, const int idir,
-                const bool lo_bc_test, const bool hi_bc_test,
+                const bool lo_bc_test, const bool hi_bc_test, const bool is_axisymmetric,
                 const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                 const Real flatn, Real& sm, Real& sp) {
 
@@ -65,37 +65,48 @@ ppm_reconstruct(const Real* s,
                      (idir == 1 && j == domlo[1]) ||
                      (idir == 2 && k == domlo[2]))) {
 
-    // use a stencil for when the current zone is on the left physical
-    // boundary.  Then the left interface is on the physical boundary,
-    // MC Eq. 21
-    sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+      // use a stencil for when the current zone is on the left physical
+      // boundary.  Then the left interface is on the physical boundary,
+      // MC Eq. 21
+
+      if (idir == 0 && is_axisymmetric) {
+          sm = (1.0_rt/144.0_rt)*(415.0_rt*s[i0] - 483.0_rt*s[ip1] + 275.0_rt*s[ip2] - 63.0_rt*s[ip3]);
+      } else {
+          // Cartesian
+          sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+      }
 
   } else if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
                             (idir == 1 && j == domlo[1]+1) ||
                             (idir == 2 && k == domlo[2]+1))) {
 
-    // use a stencil for when the current zone is one zone away from
-    // the left physical boundary, and then the left interface is one
-    // zone away from the boundary, MC Eq. 22
-    sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
+      // use a stencil for when the current zone is one zone away from
+      // the left physical boundary, and then the left interface is one
+      // zone away from the boundary, MC Eq. 22
 
-    // Make sure sedge lies in between adjacent cell-centered values
+      if (idir == 0 && is_axisymmetric) {
+          sm  = (1.0_rt/96.0_rt)*(37.0_rt*s[im1] + 87.0_rt*s[i0] - 35.0_rt*s[ip1] + 7.0_rt*s[ip2]);
+      } else {
+          sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
+      }
 
-    sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-    sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+      // Make sure sedge lies in between adjacent cell-centered values
+
+      sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+      sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
   } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
                             (idir == 1 && j == domhi[1]) ||
                             (idir == 2 && k == domhi[2]))) {
 
-    // use a stencil for when the current zone is on the right physical boundary
-    // then the left interface is one zone away from the physical boundary
-    sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
+      // use a stencil for when the current zone is on the right physical boundary
+      // then the left interface is one zone away from the physical boundary
+      sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
 
-    // Make sure sedge lies in between adjacent cell-centered values
+      // Make sure sedge lies in between adjacent cell-centered values
 
-    sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-    sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+      sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+      sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
   } else {
 
@@ -139,7 +150,12 @@ ppm_reconstruct(const Real* s,
       // use a stencil for when the current zone is on the left physical
       // boundary.  Then the right interface is one zone away from the
       // physical boundary,
-      sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
+
+      if (idir == 0 && is_axisymmetric) {
+          sp = (1.0_rt/96.0_rt)*(37.0_rt*s[i0] + 87.0_rt*s[ip1] - 35.0_rt*s[ip2] + 7.0_rt*s[ip3]);
+      } else {
+          sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
+      }
 
       // Make sure sedge lies in between adjacent cell-centered values
 
@@ -244,7 +260,7 @@ void
 ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
                        const Real dx,
                        const int i, const int j, const int k, const int idir,
-                       bool lo_bc_test, bool hi_bc_test,
+                       bool lo_bc_test, bool hi_bc_test, const bool is_axisymmetric,
                        const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                        const Real flatn,
                        Real& sm, Real& sp) {
@@ -300,7 +316,7 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
         tp[ip3] = p[ip3];
     }
 
-    ppm_reconstruct(tp, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flatn, sm, sp);
+    ppm_reconstruct(tp, i, j, k, idir, lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi, flatn, sm, sp);
 
 
     // now correct sm and sp to be back to the full pressure by
