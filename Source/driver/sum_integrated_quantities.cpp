@@ -275,7 +275,7 @@ Castro::sum_integrated_quantities ()
             i = 0;
             T_max     = foo_max[i++];
             rho_max   = foo_max[i++];
-            ts_te_max = foo_max[i++];
+            ts_te_max = foo_max[i++];    // NOLINT(clang-analyzer-deadcode.DeadStores)
 
             std::cout << '\n';
             std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
