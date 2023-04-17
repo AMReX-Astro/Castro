@@ -215,8 +215,8 @@ def doit(variables_file, odir, defines, nadv):
     with open(os.path.join(odir, "state_indices.H"), "w") as f:
 
         # first write out the counter sizes
-        f.write("#ifndef _state_indices_H_\n")
-        f.write("#define _state_indices_H_\n")
+        f.write("#ifndef STATE_INDICES_H\n")
+        f.write("#define STATE_INDICES_H\n")
 
         f.write("#include <network_properties.H>\n\n")
 

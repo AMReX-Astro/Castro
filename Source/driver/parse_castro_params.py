@@ -158,8 +158,8 @@ def parse_params(infile, out_directory):
             sys.exit(f"unable to open {nm}_declares.H for writing")
 
         cd.write(CWARNING)
-        cd.write(f"#ifndef _{nm.upper()}_DECLARES_H_\n")
-        cd.write(f"#define _{nm.upper()}_DECLARES_H_\n")
+        cd.write(f"#ifndef {nm.upper()}_DECLARES_H\n")
+        cd.write(f"#define {nm.upper()}_DECLARES_H\n")
 
         for ifdef in ifdefs:
             if ifdef is None:
@@ -181,8 +181,8 @@ def parse_params(infile, out_directory):
             sys.exit(f"unable to open {nm}_params.H for writing")
 
         cp.write(CWARNING)
-        cp.write(f"#ifndef _{nm.upper()}_PARAMS_H_\n")
-        cp.write(f"#define _{nm.upper()}_PARAMS_H_\n")
+        cp.write(f"#ifndef {nm.upper()}_PARAMS_H\n")
+        cp.write(f"#define {nm.upper()}_PARAMS_H\n")
 
         cp.write("\n")
         cp.write(f"namespace {nm} {{\n")
