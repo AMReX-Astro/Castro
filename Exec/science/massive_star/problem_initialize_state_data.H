@@ -181,14 +181,7 @@ void problem_initialize_state_data (int i, int j, int k,
         }
 
         // set perturbational velocity to zero
-        Real vpert[3];
-
-        for (auto n = 0; n < 3; ++n) {
-            vpert[n] = 0.0_rt;
-        }
-
-        // compute distance to the center of the star
-        Real rloc = std::sqrt(x * x + y * y + z * z);
+        Real vpert[3] = {0.0_rt};
 
         // loop over the 27 combinations of Fourier components
         for (int kk = 1; kk <= 3; ++kk) {

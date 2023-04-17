@@ -1,0 +1,32 @@
+#
+# 3-d flame_wave run on Summit
+#
+# EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+# NETWORK: /ccs/home/zingale/Microphysics/networks/iso7
+# CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+#
+# Castro       git describe: 23.04-2-gabeccccb9
+# AMReX        git describe: 23.04-9-g1e73fa8ec
+# Microphysics git describe: 23.04-3-gdc41ef4e
+#
+# note: unable to run on fewer than 256 nodes
+
+# runs with rate tabulation disabled
+# nodes  mag_grid_size   avg time /   std dev
+#                          step
+ 256       128           16.2514      0.250215
+ 342       128           12.3959      0.150047
+ 512       128           10.6554      0.210806
+ 683       128            9.35414     0.143993
+ 768       128            9.19837     0.141706
+1366       128            7.62067     0.315424
+
+# runs with rate tabulation enabled
+# nodes  mag_grid_size   avg time /   std dev
+#                          step
+# 256       128           15.7173      0.146342
+# 342       128           12.2387      0.165243
+# 512       128           10.476       0.198743
+# 683       128           9.29589      0.184105
+# 768       128           
+#1366       128           
