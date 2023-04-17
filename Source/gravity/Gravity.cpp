@@ -2956,13 +2956,13 @@ Gravity::set_mass_offset (Real time, bool multi_level)
         if (multi_level)
         {
             for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-                Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
+                auto* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
                 mass_offset += cs->volWgtSum("density", time);
             }
         }
         else
         {
-            Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
+            auto* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
             mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
         }
 
@@ -3120,7 +3120,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         if (lev < level)
         {
-            Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+            auto* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
             const MultiFab& mask = fine_level->build_fine_mask();
             for (int n = 0; n < NUM_STATE; ++n) {
                 MultiFab::Multiply(S, mask, 0, n, 1, 0);
