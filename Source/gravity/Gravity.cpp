@@ -1930,8 +1930,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     Real r = std::sqrt(x * x + y * y + z * z);
 
-                    Real cosTheta, phiAngle;
-                    int index;
+                    Real cosTheta{}, phiAngle{};
+                    int index{};
 
                     if (AMREX_SPACEDIM == 3) {
                         index = static_cast<int>(r * drInv);
@@ -2245,7 +2245,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
                     return;
                 }
 
-                Real cosTheta, phiAngle;
+                Real cosTheta{}, phiAngle{};
                 if (AMREX_SPACEDIM == 3) {
                     cosTheta = z / r;
                     phiAngle = std::atan2(y, x);
