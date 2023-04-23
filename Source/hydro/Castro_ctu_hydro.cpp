@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_util.H>
 #include <Castro_F.H>
-#include <Castro_hydro.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -591,9 +590,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdy);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
       // solve the final Riemann problem axross the x-interfaces
 
@@ -635,9 +634,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdx);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 
       // solve the final Riemann problem axross the y-interfaces
@@ -968,9 +967,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdy, hdtdz);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -1047,9 +1046,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp1_arr,
                   hdtdx, hdtdz);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -1128,9 +1127,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdx, hdtdy);
 
-      reset_edge_state_thermo(zbx, ql.array());
+      reset_edge_state_thermo(zbx, ql_arr);
 
-      reset_edge_state_thermo(zbx, qr.array());
+      reset_edge_state_thermo(zbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS

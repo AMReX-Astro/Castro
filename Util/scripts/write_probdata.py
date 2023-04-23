@@ -32,8 +32,8 @@ import sys
 import runtime_parameters as rp
 
 CXX_HEADER = """
-#ifndef problem_parameters_H
-#define problem_parameters_H
+#ifndef PROBLEM_PARAMETERS_H
+#define PROBLEM_PARAMETERS_H
 #include <AMReX_REAL.H>
 #include <AMReX_Vector.H>
 #include <network_properties.H>

@@ -1,17 +1,24 @@
 #ifndef CASTRO_RECONSTRUCTION_H
 #define CASTRO_RECONSTRUCTION_H
 
-constexpr int im2 = 0;
-constexpr int im1 = 1;
-constexpr int i0 = 2;
-constexpr int ip1 = 3;
-constexpr int ip2 = 4;
+namespace reconstruction {
+   enum slope_indices {
+       im2 = 0,
+       im1,
+       i0,
+       ip1,
+       ip2,
+       nslp
+   };
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 load_stencil(Array4<Real const> const& q_arr, const int idir,
              const int i, const int j, const int k, const int ncomp,
              Real* s) {
+
+    using namespace reconstruction;
 
     if (idir == 0) {
         s[im2] = q_arr(i-2,j,k,ncomp);
@@ -43,6 +50,8 @@ void
 load_passive_stencil(Array4<Real const> const& U_arr, Array4<Real const> const& rho_inv_arr, const int idir,
                      const int i, const int j, const int k, const int ncomp,
                      Real* s) {
+
+    using namespace reconstruction;
 
     if (idir == 0) {
         s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
