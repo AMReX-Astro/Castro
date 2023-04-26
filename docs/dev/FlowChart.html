@@ -194,7 +194,7 @@ multilevel domains.  Note: because of differences in the interfaces with the
 default Strang method, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
 method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">EXTRA_THERMO</span></code> which enables some
 additional EOS derivatives).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplifed SDC method
+<li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplified SDC method
 described above that uses the CTU hydro advection and an ODE
 reaction solve.  Note: because this requires a different set of
 state variables, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
@@ -290,7 +290,7 @@ See <a class="reference internal" href="timestepping.html#ch-retry"><span class=
 <p>Only Strang+CTU and simplified-SDC support retries.</p>
 </div>
 </li>
-<li><p>[AUX_UPDATE] <em>Auxiliary quantitiy evolution</em></p>
+<li><p>[AUX_UPDATE] <em>Auxiliary quantity evolution</em></p>
 <p>Auxiliary variables in Castro are those that obey a continuity
 equation (with optional sources) that are passed into the EOS, but
 not subjected to the constraint on mass fractions (summing to one).</p>
@@ -578,7 +578,7 @@ in the <code class="docutils literal notranslate"><span class="pre">new_sources<
 make it consistent with the new state.</p>
 </li>
 <li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
-<p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, begining with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
+<p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, beginning with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
 give us the final state on this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
 <p>This is largely the same as <code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code>, but
 it does not currently fill the reactions in the ghost cells.</p>

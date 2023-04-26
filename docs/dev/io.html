@@ -871,7 +871,7 @@ reading in the <code class="docutils literal notranslate"><span class="pre">Mult
 the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> was written to disk.</p>
 <p>Think of the number <span class="math notranslate nohighlight">\(N\)</span> as the number of independent I/O pathways in
 your underlying parallel filesystem. Of course a “real” parallel
-filesytem should be able to handle any reasonable value of <span class="math notranslate nohighlight">\(N\)</span>. The
+filesystem should be able to handle any reasonable value of <span class="math notranslate nohighlight">\(N\)</span>. The
 value -1 forces <span class="math notranslate nohighlight">\(N\)</span> to the number of CPUs on which you’re
 running, which means that each CPU writes to a unique file, which can
 create a very large number of files, which can lead to inode issues.</p>

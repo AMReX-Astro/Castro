@@ -396,7 +396,7 @@ be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
-We use a publically available code, <code class="docutils literal notranslate"><span class="pre">sedov3.f</span></code>
+We use a publicly available code, <code class="docutils literal notranslate"><span class="pre">sedov3.f</span></code>
 <span id="id6">[<a class="reference internal" href="zreferences.html#id42" title="J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.asu.edu/research_pages/sedov.shtml. URL: http://cococubed.asu.edu/papers/la-ur-07-2849.pdf.">46</a>]</span>, to generate the analytic solutions.</p>
 <p>The Castro implementation of the Sedov problem is <code class="docutils literal notranslate"><span class="pre">in</span>
 <span class="pre">Exec/hydro_tests/Sedov/</span></code>.  A number of different inputs files
@@ -453,7 +453,7 @@ initial state of the full zone.</p>
 <span class="math notranslate nohighlight">\(p_\mathrm{ambient} = 10^{-5}\)</span>, <span class="math notranslate nohighlight">\(E_\mathrm{exp} = 1\)</span>, <span class="math notranslate nohighlight">\(r_\mathrm{init} = 0.01\)</span>,
 and <span class="math notranslate nohighlight">\(N_\mathrm{sub} = 10\)</span>. A base grid with 32 zones in each
 coordinate direction plus 3 levels of refinement is used (the finest
-mesh would coorespond to 256 zones in a coordinate direction). The
+mesh would correspond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.</p>
 <p>An analysis routines for the Sedov problem is provided in
 <code class="docutils literal notranslate"><span class="pre">Castro/Diagnostics/Sedov/</span></code>.  Typing <code class="docutils literal notranslate"><span class="pre">make</span></code> should build it (you

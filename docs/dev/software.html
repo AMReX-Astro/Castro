@@ -173,7 +173,7 @@ Parallelization is achieved by domain decomposition. We divide our
 domain into many smaller boxes, and distributed these across
 processors. When information is needed at the boundaries of the
 boxes, messages are exchanged and this data is held in a perimeter of
-<em>ghost cells</em>. AMReX manages this decompostion and
+<em>ghost cells</em>. AMReX manages this decomposition and
 communication for us. Additionally, AMReX implements adaptive mesh
 refinement. In addition to the coarse decomposition of our domain
 into zones and boxes, we can refine rectangular regions by adding
@@ -310,7 +310,7 @@ we can easily fill in C++ kernels.</p>
 </section>
 <section id="multifab">
 <h3><code class="docutils literal notranslate"><span class="pre">MultiFab</span></code><a class="headerlink" href="#multifab" title="Permalink to this heading"></a></h3>
-<p>At the highest abstraction level, we have the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> (mulitple
+<p>At the highest abstraction level, we have the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> (multiple
 FArrayBoxes). A <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> contains an array of <code class="docutils literal notranslate"><span class="pre">Box</span></code> es, including
 boxes owned by other processors for the purpose of communication,
 an array of MPI ranks specifying which MPI processor owns each <code class="docutils literal notranslate"><span class="pre">Box</span></code>,
@@ -377,7 +377,7 @@ pure hydro and a single ghost cell by default when <code class="docutils literal
 is enabled. There is an option to force them to have ghost cells by
 setting the parameter <code class="docutils literal notranslate"><span class="pre">castro.state_nghost</span></code> at runtime.</p>
 <p>Note that the prediction of the hydrodynamic state to the interface
-will require 4 ghost cells. This accomodated by creating a separate
+will require 4 ghost cells. This accommodated by creating a separate
 MultiFab, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> that lives at the old-time level and
 has the necessary ghost cells. We will describe this more later.</p>
 </li>
@@ -617,7 +617,7 @@ starting with component strtComp and including a total of
 <p>In general, one should never assume that ghostcells are valid, and
 instead do a fill patch operation when in doubt. Sometimes we will
 use a <code class="docutils literal notranslate"><span class="pre">FillPatchIterator</span></code> to fill the ghost cells into a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>
-without an explict look. This is done as:</p>
+without an explicit look. This is done as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FillPatchIterator</span> <span class="n">fpi</span><span class="p">(</span><span class="o">*</span><span class="n">this</span><span class="p">,</span><span class="n">S_old</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">State_Type</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">NUM_STATE</span><span class="p">);</span>
 <span class="n">MultiFab</span><span class="o">&amp;</span> <span class="n">state_old</span> <span class="o">=</span> <span class="n">fpi</span><span class="o">.</span><span class="n">get_mf</span><span class="p">();</span>
 </pre></div>

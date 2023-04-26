@@ -156,7 +156,7 @@ Most of these are parameters from AMReX.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_ALL_CASTRO</span></code>: compile all of the core Castro directories.
-This is the defailt (<code class="docutils literal notranslate"><span class="pre">TRUE</span></code>), and should not be changed for
+This is the default (<code class="docutils literal notranslate"><span class="pre">TRUE</span></code>), and should not be changed for
 general simulations.  The purpose of this flag is for unit tests, which
 do not need all of the Castro directories compiled.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_AMR_CORE</span></code>: compile all of the core AMReX directories, including
@@ -288,10 +288,10 @@ location of a shock.</p>
 <span id="index-12"></span><h3>Simulation Flow Parameters<a class="headerlink" href="#simulation-flow-parameters" title="Permalink to this heading"></a></h3>
 <blockquote>
 <div><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_AUX_UPDATE</span></code>: some networks define auxillary quantities, which in general
+<li><p><code class="docutils literal notranslate"><span class="pre">USE_AUX_UPDATE</span></code>: some networks define auxiliary quantities, which in general
 Castro will advect, but not otherwise change.  If we set <code class="docutils literal notranslate"><span class="pre">USE_AUX_UPDATE=TRUE</span></code>
 then Castro will call a user-supplied routine <code class="docutils literal notranslate"><span class="pre">advance_aux()</span></code> that can
-change the auxillary quantities.</p>
+change the auxiliary quantities.</p>
 </li>
 <li id="index-13"><p><code class="docutils literal notranslate"><span class="pre">USE_POST_SIM</span></code>: if this is defined, then Castro will call the user-defined
 routine <code class="docutils literal notranslate"><span class="pre">problem_post_simulation()</span></code> after the full evolution of the problem

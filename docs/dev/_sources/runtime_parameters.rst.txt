@@ -489,7 +489,7 @@ namespace: ``castro``
 |                                            | object                                                      |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``gw_dist``                                | Distance (in kpc) used for calculation of the gravitational | 0.0           |
-|                                            | wave amplitude (this wil be calculated along all three      |               |
+|                                            | wave amplitude (this will be calculated along all three     |               |
 |                                            | coordinate axes). Only relevant if castro.sum_interval > 0  |               |
 |                                            | and if set to a positive number. A standard value in the    |               |
 |                                            | literature is 10.0 (kpc).                                   |               |
