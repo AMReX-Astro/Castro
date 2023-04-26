@@ -221,7 +221,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 /// @param bx         the box to operate over
 /// @param ql         the left interface state
 /// @param qr         the right interface state
-/// @param qaux_arr   the auxillary state
+/// @param qaux_arr   the auxiliary state
 /// @param qint       the full Godunov state on the interface
 /// @param idir       coordinate direction for the solve (0 = x, 1 = y, 2 = z)
 ///
@@ -591,7 +591,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
 /// @param bx          the box to operate over
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param qint        the full Godunov state on the interface
 /// @param lambda_int  the radiation flux limiter on the interface
 ///
@@ -985,7 +985,7 @@ HLL(const Real* ql, const Real* qr,
 ///
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param uflx        the flux through the interface
 /// @param qint        an approximate Godunov state on the interface
 /// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)

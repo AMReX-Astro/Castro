@@ -375,10 +375,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #endif
 
-            // add artifical viscosity
+            // add artificial viscosity
             if (do_hydro == 1) {
 
-              // avisc_coefficient is the coefficent we use.  The
+              // avisc_coefficient is the coefficient we use.  The
               // McCorquodale & Colella paper suggest alpha = 0.3, but
               // our other hydro solvers use a coefficient on the
               // divergence that defaults to 0.1, so we normalize to

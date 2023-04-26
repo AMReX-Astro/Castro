@@ -4,7 +4,7 @@
 Running Options: CPUs and GPUs
 ******************************
 
-Castro uses MPI for coarse parallelization, distributing boxs across
+Castro uses MPI for coarse parallelization, distributing boxes across
 compute nodes.  For fine-grained parallelism, OpenMP is used for
 CPU-based computing and CUDA is used for GPUs.
 

@@ -607,7 +607,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           Elixir elix_div = div.elixir();
           auto div_arr = div.array();
 
-          // compute divu -- we'll use this later when doing the artifical viscosity
+          // compute divu -- we'll use this later when doing the artificial viscosity
           divu(obx, q_arr, div_arr);
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {

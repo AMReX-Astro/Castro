@@ -598,7 +598,7 @@ the ``MultiFab`` was written to disk.
 
 Think of the number :math:`N` as the number of independent I/O pathways in
 your underlying parallel filesystem. Of course a “real” parallel
-filesytem should be able to handle any reasonable value of :math:`N`. The
+filesystem should be able to handle any reasonable value of :math:`N`. The
 value -1 forces :math:`N` to the number of CPUs on which you’re
 running, which means that each CPU writes to a unique file, which can
 create a very large number of files, which can lead to inode issues.
