@@ -58,7 +58,7 @@ Castro::corner_couple(const Box& bx,
   // in d2 to get a difference across the interface.  We also need to shift by a zone in d1
   // for the left interface.  cr(:) and cl(:) will hold these shifts.
 
-  // the first term of the flxd2 substraction is shifted by 1 on the direction d2
+  // the first term of the flxd2 subtraction is shifted by 1 on the direction d2
   cr[d2] = 1;
 
   // for the normal B component
@@ -288,8 +288,8 @@ Castro::half_step(const Box& bx,
   e2rl[d] = 1;
 
   // for the normal component of B
-  a1[d2] = 1;  // shift on first term of Ed1 substraction, in d2 direction
-  a2[d1] = 1;  // shift on first term of Ed2 substraction, in d1 direction
+  a1[d2] = 1;  // shift on first term of Ed1 subtraction, in d2 direction
+  a2[d1] = 1;  // shift on first term of Ed2 subtraction, in d1 direction
 
 
   amrex::ParallelFor(bx,

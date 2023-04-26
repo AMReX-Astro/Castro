@@ -2761,7 +2761,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
     } // end loop over levels
 
-    // because the number of elments in mpi_reduce is int
+    // because the number of elements in mpi_reduce is int
     BL_ASSERT(nPtsXY <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsXZ <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsYZ <= std::numeric_limits<int>::max());
