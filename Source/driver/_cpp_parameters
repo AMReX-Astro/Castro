@@ -523,7 +523,7 @@ point_mass                   Real          0.0                n        GRAVITY
 point_mass_fix_solution      int           0                  n        GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes). Only relevant if
+# (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
