@@ -29,7 +29,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   int fine_level =  parent->finestLevel();
 
-  // allocation and intialization
+  // allocation and initialization
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
   const DistributionMapping& dmap = castro->DistributionMap();
