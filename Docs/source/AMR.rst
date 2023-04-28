@@ -71,7 +71,7 @@ If a refinement indicator is added, either
    using the Poisson gravity solver. If your tagging criteria are met in these
    zones, they will be ignored.
 
-Sometimes, we wish to force the code to derefine based on a critera,
+Sometimes, we wish to force the code to derefine based on a criteria,
 even if other indicators tagged a zone for refinement.  This is
 accomplished by created another refinement indicator and setting the
 ``derefine`` field to ``1``.  For example, to derefine any zone where

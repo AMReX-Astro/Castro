@@ -387,7 +387,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += div.nBytes();
       auto div_arr = div.array();
 
-      // compute divu -- we'll use this later when doing the artifical viscosity
+      // compute divu -- we'll use this later when doing the artificial viscosity
       divu(obx, q_arr, div_arr);
 
       flux[0].resize(gxbx, NUM_STATE);
