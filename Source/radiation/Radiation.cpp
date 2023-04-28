@@ -33,12 +33,7 @@ int Radiation::nGroups = NGROUPS;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
 int Radiation::Er_Lorentz_term = 1;
-int Radiation::plot_lambda   = 0;
-int Radiation::plot_kappa_p  = 0;
-int Radiation::plot_kappa_r  = 0;
-int Radiation::plot_lab_Er   = 0;
-int Radiation::plot_lab_flux = 0;
-int Radiation::plot_com_flux = 0;
+
 int Radiation::icomp_lambda  = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
@@ -167,13 +162,6 @@ void Radiation::read_static_params()
       amrex::Error("Unknown Radiation::SolverType");
   }
 
-
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  if (radiation::comoving) pp.query("plot_lab_Er", plot_lab_Er);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_com_flux", plot_com_flux);
 
   // set up the extra plot variables
   {
