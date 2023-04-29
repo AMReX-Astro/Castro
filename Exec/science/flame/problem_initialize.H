@@ -93,7 +93,7 @@ void problem_initialize ()
     // equilibrium
 
     eos_state.rho = problem::rho_fuel;  // initial guess
-    eos_state.p = problem::p_fuel;      // pressure equilibrum
+    eos_state.p = problem::p_fuel;      // pressure equilibrium
     eos_state.T = problem::T_ash;
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = problem::xn_ash[n];
