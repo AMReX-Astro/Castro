@@ -62,7 +62,7 @@ Castro::wd_update (Real time, Real dt)
     using namespace problem;
 
     // Ensure we are either on the coarse level, or on the finest level
-    // when we are not doing subcycling. The data should be sychronized
+    // when we are not doing subcycling. The data should be synchronized
     // in both of these cases.
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));

@@ -276,7 +276,7 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                     amrex::Error("ERROR: failed to convergence in initial model generation");
                 }
 
-                // initialze zone
+                // initialize zone
 
                 model::profile(0).state(i, model::idens) = dens_zone;
                 model::profile(0).state(i, model::ipres) = p_want;
@@ -331,7 +331,7 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 amrex::Error("failed to convergence in initial model generation (down)");
             }
 
-            // initialze zone
+            // initialize zone
 
             model::profile(0).state(i, model::idens) = dens_zone;
             model::profile(0).state(i, model::ipres) = p_want;

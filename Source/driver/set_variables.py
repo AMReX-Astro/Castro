@@ -169,7 +169,7 @@ def doit(variables_file, odir, defines, nadv):
     # the size of each set
     all_counters = []
 
-    # loop over sets, create the counters, and store any indicies that belong to those
+    # loop over sets, create the counters, and store any indices that belong to those
     for s in sorted(unique_sets):
 
         # these are the indices that belong to the default set s.
