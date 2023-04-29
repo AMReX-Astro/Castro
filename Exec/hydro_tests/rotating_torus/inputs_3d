@@ -85,7 +85,7 @@ amr.derive_plot_vars = NONE
 # problem initialization
 
 problem.inner_radius = 0.75
-problme.outer_radius = 1.50
+problem.outer_radius = 1.50
 
 problem.ambient_density = 1.0e-8
 
