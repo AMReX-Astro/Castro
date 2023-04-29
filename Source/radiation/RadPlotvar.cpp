@@ -60,7 +60,7 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
 #endif
 
 #if AMREX_SPACEDIM == 3
-    int ifz = iflx + NGROUPS * NGROUPS;
+    int ifz = iflx + 2 * NGROUPS;
 #else
     int ifz = 0;
 #endif
@@ -208,8 +208,8 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
 #endif
 
 #if AMREX_SPACEDIM == 3
-            int ifiz = iflx + NGROUPS * NGROUPS;
-            int ifoz = icomp_flux + NGROUPS * NGROUPS;
+            int ifiz = iflx + 2 * NGROUPS;
+            int ifoz = icomp_flux + 2 * NGROUPS;
 #endif
 
             Real rhoInv = 1.0_rt / Snew_arr(i,j,k,URHO);
