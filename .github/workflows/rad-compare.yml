@@ -37,4 +37,4 @@ jobs:
         run: |
           export AMREX_HYPRE_HOME=${PWD}/hypre-2.26.0/src/hypre
           cd Exec/radiation_tests/Rad2Tshock
-          make DEBUG=TRUE USE_MPI=FALSE DIM=1 -j 4
+          make DEBUG=TRUE USE_MPI=TRUE DIM=1 -j 4
