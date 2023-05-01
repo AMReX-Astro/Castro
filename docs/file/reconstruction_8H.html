@@ -75,7 +75,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
@@ -216,34 +216,50 @@
 <dd></dd></dl>
 
 </div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43im2">
-<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="reconstruction_8H_1a541226b9ae2d734669d83eb543d95dce"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">im2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition"></a><br /></dt>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv414reconstruction">
+<span id="_CPPv314reconstruction"></span><span id="_CPPv214reconstruction"></span><span id="reconstruction"></span><span class="target" id="namespacereconstruction"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">reconstruction</span></span></span><a class="headerlink" href="#_CPPv414reconstruction" title="Permalink to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indicesE">
+<span id="_CPPv3N14reconstruction13slope_indicesE"></span><span id="_CPPv2N14reconstruction13slope_indicesE"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21da"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">slope_indices</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indicesE" title="Permalink to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices3im2E">
+<span id="_CPPv3N14reconstruction13slope_indices3im2E"></span><span id="_CPPv2N14reconstruction13slope_indices3im2E"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daa89aa784c1794f52f2c76cb9c8b8ed0f5"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">im2</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices3im2E" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43im1">
-<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="reconstruction_8H_1a2850db016736ebdb1cd32845e6deca08"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">im1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices3im1E">
+<span id="_CPPv3N14reconstruction13slope_indices3im1E"></span><span id="_CPPv2N14reconstruction13slope_indices3im1E"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daabf922ec17c7b8f494a4aab0e49087285"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">im1</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices3im1E" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv42i0">
-<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="reconstruction_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">i0</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices2i0E">
+<span id="_CPPv3N14reconstruction13slope_indices2i0E"></span><span id="_CPPv2N14reconstruction13slope_indices2i0E"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daa3616b434e2a0fc8b3abd461aea70e548"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">i0</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices2i0E" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43ip1">
-<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="reconstruction_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ip1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices3ip1E">
+<span id="_CPPv3N14reconstruction13slope_indices3ip1E"></span><span id="_CPPv2N14reconstruction13slope_indices3ip1E"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daa6f6fd81309632e7c05bc37419b53278c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ip1</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices3ip1E" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43ip2">
-<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="reconstruction_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ip2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices3ip2E">
+<span id="_CPPv3N14reconstruction13slope_indices3ip2E"></span><span id="_CPPv2N14reconstruction13slope_indices3ip2E"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daaa6bc956475a08299c445f107b52c1d88"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ip2</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices3ip2E" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N14reconstruction13slope_indices4nslpE">
+<span id="_CPPv3N14reconstruction13slope_indices4nslpE"></span><span id="_CPPv2N14reconstruction13slope_indices4nslpE"></span><span class="target" id="namespacereconstruction_1ae799d55542bb38126fa7aa45ca4f21daaa8ebb9bf0b0637857bca675baf8e6372"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">nslp</span></span></span><a class="headerlink" href="#_CPPv4N14reconstruction13slope_indices4nslpE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 

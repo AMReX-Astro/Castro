@@ -77,7 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
@@ -150,9 +150,6 @@ user-specified criteria (described in Section <a class="reference external" href
 evaluates where additional refinement is needed
 and grid generation procedures dynamically create or
 remove rectangular fine grid patches as resolution requirements change.</p>
-<p>A good introduction to the style of AMR used here is in Lecture 1
-of the Adaptive Mesh Refinement Short Course at
-<a class="reference external" href="https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf">https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf</a>.</p>
 <section id="tagging-for-refinement">
 <span id="sec-tagging"></span><h2>Tagging for Refinement<a class="headerlink" href="#tagging-for-refinement" title="Permalink to this heading"></a></h2>
 <p>Castro determines what zones should be tagged for refinement at the
@@ -197,7 +194,7 @@ describing when to tag. These are:</p>
 using the Poisson gravity solver. If your tagging criteria are met in these
 zones, they will be ignored.</p>
 </div>
-<p>Sometimes, we wish to force the code to derefine based on a critera,
+<p>Sometimes, we wish to force the code to derefine based on a criteria,
 even if other indicators tagged a zone for refinement.  This is
 accomplished by created another refinement indicator and setting the
 <code class="docutils literal notranslate"><span class="pre">derefine</span></code> field to <code class="docutils literal notranslate"><span class="pre">1</span></code>.  For example, to derefine any zone where

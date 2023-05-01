@@ -77,7 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
@@ -151,7 +151,7 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">
-<span id="_CPPv3N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"></span><span id="_CPPv2N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"></span><span id="Gravity::Gravity__amrex::AmrP.i.amrex::BCRecP.i"></span><span class="target" id="classGravity_1abe8f44802d38219bbeb34bfa244fc31e"></span><span class="sig-name descname"><span class="n"><span class="pre">Gravity</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Amr</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">Parent</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_finest_level</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BCRec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">_phys_bc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_Density</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"></span><span id="_CPPv2N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"></span><span id="Gravity::Gravity__amrex::AmrP.i.amrex::BCRecP.i"></span><span class="target" id="classGravity_1a19d2502982ff5d00f246b94d3613d2de"></span><span class="sig-name descname"><span class="n"><span class="pre">Gravity</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Amr</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">Parent</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_finest_level</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BCRec</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">_phys_bc</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_density</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Constructor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -159,7 +159,7 @@
 <li><p><strong>Parent</strong> – Parent <code class="docutils literal notranslate"><span class="pre">Amr</span></code> object </p></li>
 <li><p><strong>_finest_level</strong> – finest level </p></li>
 <li><p><strong>_phys_bc</strong> – <code class="docutils literal notranslate"><span class="pre">BCRec</span></code> object, physical boundary conditions </p></li>
-<li><p><strong>_Density</strong> – index of density component </p></li>
+<li><p><strong>_density</strong> – index of density component </p></li>
 </ul>
 </dd>
 </dl>
@@ -172,19 +172,30 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity11read_paramsEv">
-<span id="_CPPv3N7Gravity11read_paramsEv"></span><span id="_CPPv2N7Gravity11read_paramsEv"></span><span id="Gravity::read_params"></span><span class="target" id="classGravity_1a6069f195122b406d09303ee22a7c8f0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">read_params</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity11read_paramsEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Read gravity-related parameters from parameter file </p>
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity7GravityERK7Gravity">
+<span id="_CPPv3N7Gravity7GravityERK7Gravity"></span><span id="_CPPv2N7Gravity7GravityERK7Gravity"></span><span id="Gravity::Gravity__GravityCR"></span><span class="target" id="classGravity_1a49fdf857bb0dfa2e67e32c54450d088a"></span><span class="sig-name descname"><span class="n"><span class="pre">Gravity</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7Gravity7GravityERK7Gravity" title="Gravity::Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7Gravity7GravityERK7Gravity" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Remove copy/move constructors/assignment operators. </p>
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE">
-<span id="_CPPv3N7Gravity22output_job_info_paramsERNSt7ostreamE"></span><span id="_CPPv2N7Gravity22output_job_info_paramsERNSt7ostreamE"></span><span id="Gravity::output_job_info_params__osR"></span><span class="target" id="classGravity_1a84d911d64f05675bab39370a25b2ea81"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output_job_info_params</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">jobInfoFile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>jobInfoFile</strong> – std::ostream object </p>
-</dd>
-</dl>
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity7GravityERR7Gravity">
+<span id="_CPPv3N7Gravity7GravityERR7Gravity"></span><span id="_CPPv2N7Gravity7GravityERR7Gravity"></span><span id="Gravity::Gravity__GravityRR"></span><span class="target" id="classGravity_1a969b76f4447216d37c13450bf4ed31c7"></span><span class="sig-name descname"><span class="n"><span class="pre">Gravity</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N7Gravity7GravityERR7Gravity" title="Gravity::Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7Gravity7GravityERR7Gravity" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7GravityaSERK7Gravity">
+<span id="_CPPv3N7GravityaSERK7Gravity"></span><span id="_CPPv2N7GravityaSERK7Gravity"></span><span id="Gravity::assign-operator__GravityCR"></span><span class="target" id="classGravity_1aefd8baa915d0ec7f106bfcda4cc368e9"></span><a class="reference internal" href="#_CPPv47Gravity" title="Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47Gravity" title="Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7GravityaSERK7Gravity" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7GravityaSERR7Gravity">
+<span id="_CPPv3N7GravityaSERR7Gravity"></span><span id="_CPPv2N7GravityaSERR7Gravity"></span><span id="Gravity::assign-operator__GravityRR"></span><span class="target" id="classGravity_1a086acba6a9e57b081d7185a4a1c257b5"></span><a class="reference internal" href="#_CPPv47Gravity" title="Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv47Gravity" title="Gravity"><span class="n"><span class="pre">Gravity</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7GravityaSERR7Gravity" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity11read_paramsEv">
+<span id="_CPPv3N7Gravity11read_paramsEv"></span><span id="_CPPv2N7Gravity11read_paramsEv"></span><span id="Gravity::read_params"></span><span class="target" id="classGravity_1a6069f195122b406d09303ee22a7c8f0c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">read_params</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity11read_paramsEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Read gravity-related parameters from parameter file </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -212,42 +223,6 @@
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity16get_gravity_typeEv">
-<span id="_CPPv3N7Gravity16get_gravity_typeEv"></span><span id="_CPPv2N7Gravity16get_gravity_typeEv"></span><span id="Gravity::get_gravity_type"></span><span class="target" id="classGravity_1ac1111ad311c18e7134d528cee52d55f7"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_gravity_type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity16get_gravity_typeEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">gravity_type</span></code></p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity19get_max_solve_levelEv">
-<span id="_CPPv3N7Gravity19get_max_solve_levelEv"></span><span id="_CPPv2N7Gravity19get_max_solve_levelEv"></span><span id="Gravity::get_max_solve_level"></span><span class="target" id="classGravity_1ac4877092ceb2ab6e203ed67703b9b08e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_max_solve_level</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19get_max_solve_levelEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">max_solve_level</span></code></p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity6NoSyncEv">
-<span id="_CPPv3N7Gravity6NoSyncEv"></span><span id="_CPPv2N7Gravity6NoSyncEv"></span><span id="Gravity::NoSync"></span><span class="target" id="classGravity_1adfaecdab2be564bab494067c5e108f1d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NoSync</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity6NoSyncEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_sync</span></code></p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity11NoCompositeEv">
-<span id="_CPPv3N7Gravity11NoCompositeEv"></span><span id="_CPPv2N7Gravity11NoCompositeEv"></span><span id="Gravity::NoComposite"></span><span class="target" id="classGravity_1ac11d16a91195fbd220fc03b87bdd213e"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NoComposite</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity11NoCompositeEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_composite</span></code></p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity21DoCompositeCorrectionEv">
-<span id="_CPPv3N7Gravity21DoCompositeCorrectionEv"></span><span id="_CPPv2N7Gravity21DoCompositeCorrectionEv"></span><span id="Gravity::DoCompositeCorrection"></span><span class="target" id="classGravity_1a77c7d155d9abfffe10bb529f20a29b76"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoCompositeCorrection</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity21DoCompositeCorrectionEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">do_composite_phi_correction</span></code></p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity22test_results_of_solvesEv">
-<span id="_CPPv3N7Gravity22test_results_of_solvesEv"></span><span id="_CPPv2N7Gravity22test_results_of_solvesEv"></span><span id="Gravity::test_results_of_solves"></span><span class="target" id="classGravity_1a1e23dadc99e7bde2dbe3ddd96c78d18d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">test_results_of_solves</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22test_results_of_solvesEv" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">test_solves</span></code></p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -467,24 +442,6 @@
 <li><p><strong>level</strong> – Level index </p></li>
 <li><p><strong>grav_vector</strong> – MultiFab containing gravity vector </p></li>
 <li><p><strong>time</strong> – Current time </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi">
-<span id="_CPPv3N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="_CPPv2N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="Gravity::test_residual__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.i"></span><span class="target" id="classGravity_1a1f5722b41d2a8021f2c7d044f21cb6b1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">test_residual</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Box</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rhs</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecy</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecz</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">GpuArray</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">AMREX_SPACEDIM</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">GpuArray</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">AMREX_SPACEDIM</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">problo</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">coord_type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi" title="Permalink to this definition"></a><br /></dt>
-<dd><p>Test whether using the edge-based gradients to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bx</strong> – box </p></li>
-<li><p><strong>rhs</strong> – right-hand-side </p></li>
-<li><p><strong>ecx</strong> – gradients wrt x </p></li>
-<li><p><strong>ecy</strong> – gradients wrt y </p></li>
-<li><p><strong>ecz</strong> – gradients wrt z </p></li>
-<li><p><strong>coord_type</strong> – coordinate system </p></li>
 </ul>
 </dd>
 </dl>
@@ -747,11 +704,6 @@
 </dl>
 </dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7Gravity14get_const_gravEv">
-<span id="_CPPv3N7Gravity14get_const_gravEv"></span><span id="_CPPv2N7Gravity14get_const_gravEv"></span><span id="Gravity::get_const_grav"></span><span class="target" id="classGravity_1a02c1820217c0ff4390f3cebb6b87ffba"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_const_grav</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity14get_const_gravEv" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
@@ -881,6 +833,78 @@
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7Gravity11radial_presE">
 <span id="_CPPv3N7Gravity11radial_presE"></span><span id="_CPPv2N7Gravity11radial_presE"></span><span id="Gravity::radial_pres__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1a26b8b6b0d575266e3c5d949504cc3749"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Gravity_8H.html#_CPPv410RealVector" title="RealVector"><span class="n"><span class="pre">RealVector</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">radial_pres</span></span></span><a class="headerlink" href="#_CPPv4N7Gravity11radial_presE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE">
+<span id="_CPPv3N7Gravity22output_job_info_paramsERNSt7ostreamE"></span><span id="_CPPv2N7Gravity22output_job_info_paramsERNSt7ostreamE"></span><span id="Gravity::output_job_info_params__osR"></span><span class="target" id="classGravity_1ac952ff3ed1a0b5316d2e3da8c8c2642c"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">output_job_info_params</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">jobInfoFile</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE" title="Permalink to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>jobInfoFile</strong> – std::ostream object </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity16get_gravity_typeEv">
+<span id="_CPPv3N7Gravity16get_gravity_typeEv"></span><span id="_CPPv2N7Gravity16get_gravity_typeEv"></span><span id="Gravity::get_gravity_type"></span><span class="target" id="classGravity_1a8acf20db6265b0e7482988e12ba05f98"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_gravity_type</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity16get_gravity_typeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">gravity_type</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity19get_max_solve_levelEv">
+<span id="_CPPv3N7Gravity19get_max_solve_levelEv"></span><span id="_CPPv2N7Gravity19get_max_solve_levelEv"></span><span id="Gravity::get_max_solve_level"></span><span class="target" id="classGravity_1ad6385907e21039d8249c2e5aa3bf64b5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_max_solve_level</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19get_max_solve_levelEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">max_solve_level</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity6NoSyncEv">
+<span id="_CPPv3N7Gravity6NoSyncEv"></span><span id="_CPPv2N7Gravity6NoSyncEv"></span><span id="Gravity::NoSync"></span><span class="target" id="classGravity_1a0cb55610051f165a0cf5ea41bff6edd0"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NoSync</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity6NoSyncEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_sync</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity11NoCompositeEv">
+<span id="_CPPv3N7Gravity11NoCompositeEv"></span><span id="_CPPv2N7Gravity11NoCompositeEv"></span><span id="Gravity::NoComposite"></span><span class="target" id="classGravity_1a3c5e7535e96ec0bcf652e1c5be880662"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NoComposite</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity11NoCompositeEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">no_composite</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity21DoCompositeCorrectionEv">
+<span id="_CPPv3N7Gravity21DoCompositeCorrectionEv"></span><span id="_CPPv2N7Gravity21DoCompositeCorrectionEv"></span><span id="Gravity::DoCompositeCorrection"></span><span class="target" id="classGravity_1a24ab70544b4e5c27d876797ee5795d56"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DoCompositeCorrection</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity21DoCompositeCorrectionEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">do_composite_phi_correction</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity22test_results_of_solvesEv">
+<span id="_CPPv3N7Gravity22test_results_of_solvesEv"></span><span id="_CPPv2N7Gravity22test_results_of_solvesEv"></span><span id="Gravity::test_results_of_solves"></span><span class="target" id="classGravity_1a6789fc6db678fd764f87938db928a2d5"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">test_results_of_solves</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22test_results_of_solvesEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">test_solves</span></code></p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi">
+<span id="_CPPv3N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="_CPPv2N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="Gravity::test_residual__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.i"></span><span class="target" id="classGravity_1a186253e68b40b5c867f2e1b053729092"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">test_residual</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Box</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rhs</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecy</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ecz</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">GpuArray</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">AMREX_SPACEDIM</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dx</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">GpuArray</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">AMREX_SPACEDIM</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">problo</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">coord_type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Test whether using the edge-based gradients to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – box </p></li>
+<li><p><strong>rhs</strong> – right-hand-side </p></li>
+<li><p><strong>ecx</strong> – gradients wrt x </p></li>
+<li><p><strong>ecy</strong> – gradients wrt y </p></li>
+<li><p><strong>ecz</strong> – gradients wrt z </p></li>
+<li><p><strong>coord_type</strong> – coordinate system </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7Gravity14get_const_gravEv">
+<span id="_CPPv3N7Gravity14get_const_gravEv"></span><span id="_CPPv2N7Gravity14get_const_gravEv"></span><span id="Gravity::get_const_grav"></span><span class="target" id="classGravity_1aac19c1b9a5d37e662416386eb714bec9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_const_grav</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity14get_const_gravEv" title="Permalink to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>

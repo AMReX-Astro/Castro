@@ -89,7 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
@@ -882,7 +882,7 @@ object</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gw_dist</span></code></p></td>
 <td><p>Distance (in kpc) used for calculation of the gravitational
-wave amplitude (this wil be calculated along all three
+wave amplitude (this will be calculated along all three
 coordinate axes). Only relevant if castro.sum_interval &gt; 0
 and if set to a positive number. A standard value in the
 literature is 10.0 (kpc).</p></td>
@@ -1370,6 +1370,30 @@ Bruenn 22: square root 32: Minerbo</p></td>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fspace_advection_type</span></code></p></td>
 <td><p>frequency space advection type</p></td>
 <td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_lambda</span></code></p></td>
+<td><p>do we plot the flux limiter lambda?</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_kappa_p</span></code></p></td>
+<td><p>do we plot the Planck mean opacity?</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_kappa_r</span></code></p></td>
+<td><p>do we plot the Rosseland mean opacity?</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_lab_Er</span></code></p></td>
+<td><p>do we plot the lab radiation energy?</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_lab_flux</span></code></p></td>
+<td><p>do we plot the lab radiation flux?</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_com_flux</span></code></p></td>
+<td><p>do we plot the comoving frame radiation flux?</p></td>
+<td><p>0</p></td>
 </tr>
 </tbody>
 </table>

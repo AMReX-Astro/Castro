@@ -77,7 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Radiation</a><ul>
@@ -163,7 +163,7 @@
 <p>Castro has three radiation solvers:</p>
 <ul class="simple">
 <li><p>SingleGroupSolver: this solver does not have radiation
-pressre. It is pure hydro plus radiation diffusion. This is only
+pressure. It is pure hydro plus radiation diffusion. This is only
 applicable when the medium is optically thick and the pressure is small.</p></li>
 <li><p>SGFLDSolver: this is the gray flux-limited diffusion
 radiation hydrodymamics solver. Here the radiation pressure is
@@ -568,7 +568,7 @@ irrelevant to the gray solver.</p>
 </dd>
 <dt>radiation.convergence_check_type = 0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
-<div class="line">For the MG solver only. This specifiy the way of checking the
+<div class="line">For the MG solver only. This specify the way of checking the
 convergence of an outer iteration. Possible values are</div>
 </div>
 <ul class="simple">

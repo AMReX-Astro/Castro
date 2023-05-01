@@ -72,7 +72,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
@@ -198,10 +198,10 @@
 </li>
       <li><a href="io.html#index-1">amr.checkpoint_on_restart</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-6">amr.derive_plot_vars</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-4">amr.plot_file</a>
 </li>
       <li><a href="io.html#index-3">amr.plot_files_output</a>
@@ -233,6 +233,8 @@
       <li><a href="file/Castro__hydro_8H.html#_CPPv412apply_av_radRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">apply_av_rad (C++ function)</a>
 </li>
       <li><a href="file/MGutils_8H.html#_CPPv412apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3Box8GpuArrayI4Real14AMREX_SPACEDIMEKi">apply_metric (C++ function)</a>
+</li>
+      <li><a href="file/Castro__sources_8H.html#_CPPv421apply_source_to_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">apply_source_to_state (C++ function)</a>
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv413apply_sourcesv">apply_sources (C++ function)</a>
 </li>
@@ -386,8 +388,6 @@
 </li>
       <li><a href="file/Derive_8H.html#_CPPv413ca_dermagvortRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">ca_dermagvort (C++ function)</a>
 </li>
-      <li><a href="file/Derive_8H.html#_CPPv49ca_dernseRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">ca_dernse (C++ function)</a>
-</li>
       <li><a href="file/Derive_8H.html#_CPPv410ca_dernullF18BL_FORT_FAB_ARG_3D3derEPKiFK18BL_FORT_FAB_ARG_3D4dataEPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi">ca_dernull (C++ function)</a>
 </li>
       <li><a href="file/Derive_8H.html#_CPPv410ca_derpresRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">ca_derpres (C++ function)</a>
@@ -504,9 +504,9 @@
 </li>
       <li><a href="runtime_parameters.html#index-4">castro.diffuse_temp</a>
 </li>
-      <li><a href="diffusion.html#index-1">castro.diffusion_cutoff_density</a>
+      <li><a href="diffusion.html#index-0">castro.diffusion_cutoff_density</a>
 </li>
-      <li><a href="diffusion.html#index-1">castro.diffusion_cutoff_density_hi</a>
+      <li><a href="diffusion.html#index-0">castro.diffusion_cutoff_density_hi</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.difmag</a>
 </li>
@@ -790,10 +790,10 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.xl_ext_bc_type</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-1">castro.xr_ext_bc_type</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-1">castro.yl_ext_bc_type</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.yr_ext_bc_type</a>
@@ -817,8 +817,6 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro12allocOldDataEv">Castro::allocOldData (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12allocOldDataEv">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE">Castro::apply_problem_tags (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE">[1]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro21apply_source_to_stateERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">Castro::apply_source_to_state (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21apply_source_to_stateERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro26apply_tagging_restrictionsERN5amrex11TagBoxArrayEN5amrex4RealE">Castro::apply_tagging_restrictions (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro26apply_tagging_restrictionsERN5amrex11TagBoxArrayEN5amrex4RealE">[1]</a>
 </li>
@@ -844,7 +842,7 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro10Bz_old_tmpE">Castro::Bz_old_tmp (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro10Bz_old_tmpE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">Castro::Castro (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroEv">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroEv">[3]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro6CastroERK6Castro">Castro::Castro (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">[1]</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroERR6Castro">[2]</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroEv">[3]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERK6Castro">[4]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">[5]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERR6Castro">[6]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroEv">[7]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13cfl_violationE">Castro::cfl_violation (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13cfl_violationE">[1]</a>
 </li>
@@ -1032,6 +1030,8 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro12okToContinueEv">Castro::okToContinue (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12okToContinueEv">[1]</a>
 </li>
+      <li><a href="class/classCastro.html#_CPPv4N6CastroaSERK6Castro">Castro::operator= (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6CastroaSERR6Castro">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6CastroaSERK6Castro">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6CastroaSERR6Castro">[3]</a>
+</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro15oversubscribingEv">Castro::oversubscribing (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15oversubscribingEv">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro8P_radialE">Castro::P_radial (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro8P_radialE">[1]</a>
@@ -1216,7 +1216,7 @@
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv416compute_lap_termRK3BoxRK6Array4IK4RealERK6Array4I4RealEKiRK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">compute_lap_term (C++ function)</a>
 </li>
-      <li><a href="build_system.html#index-7">CONDUCTIVITY_DIR</a>, <a href="diffusion.html#index-0">[1]</a>
+      <li><a href="build_system.html#index-7">CONDUCTIVITY_DIR</a>, <a href="diffusion.html#index-1">[1]</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv412cons_to_primKN5amrex4RealE">cons_to_prim (C++ function)</a>, <a href="file/Castro__hydro_8H.html#_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE">[1]</a>
 </li>
@@ -1314,7 +1314,7 @@
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion4areaE">Diffusion::area (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion4areaE">[1]</a>
 </li>
-      <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion9DiffusionEPN5amrex3AmrEPN5amrex5BCRecE">Diffusion::Diffusion (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9DiffusionEPN5amrex3AmrEPN5amrex5BCRecE">[1]</a>
+      <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion9DiffusionEPN5amrex3AmrEPN5amrex5BCRecE">Diffusion::Diffusion (C++ function)</a>, <a href="class/classDiffusion.html#_CPPv4N9Diffusion9DiffusionERK9Diffusion">[1]</a>, <a href="class/classDiffusion.html#_CPPv4N9Diffusion9DiffusionERR9Diffusion">[2]</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9DiffusionEPN5amrex3AmrEPN5amrex5BCRecE">[3]</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9DiffusionERK9Diffusion">[4]</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9DiffusionERR9Diffusion">[5]</a>
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion5gridsE">Diffusion::grids (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion5gridsE">[1]</a>
 </li>
@@ -1327,6 +1327,8 @@
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion9mlmg_hibcE">Diffusion::mlmg_hibc (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9mlmg_hibcE">[1]</a>
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion9mlmg_lobcE">Diffusion::mlmg_lobc (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9mlmg_lobcE">[1]</a>
+</li>
+      <li><a href="class/classDiffusion.html#_CPPv4N9DiffusionaSERK9Diffusion">Diffusion::operator= (C++ function)</a>, <a href="class/classDiffusion.html#_CPPv4N9DiffusionaSERR9Diffusion">[1]</a>, <a href="file/Diffusion_8H.html#_CPPv4N9DiffusionaSERK9Diffusion">[2]</a>, <a href="file/Diffusion_8H.html#_CPPv4N9DiffusionaSERR9Diffusion">[3]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -1546,7 +1548,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity13grad_phi_prevE">Gravity::grad_phi_prev (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity13grad_phi_prevE">[1]</a>
 </li>
-      <li><a href="class/classGravity.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">Gravity::Gravity (C++ function)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">[1]</a>
+      <li><a href="class/classGravity.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">Gravity::Gravity (C++ function)</a>, <a href="class/classGravity.html#_CPPv4N7Gravity7GravityERK7Gravity">[1]</a>, <a href="class/classGravity.html#_CPPv4N7Gravity7GravityERR7Gravity">[2]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">[3]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityERK7Gravity">[4]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityERR7Gravity">[5]</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE">Gravity::gravity_sync (C++ function)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE">[1]</a>
 </li>
@@ -1583,6 +1585,8 @@
       <li><a href="class/classGravity.html#_CPPv4N7Gravity6NoSyncEv">Gravity::NoSync (C++ function)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity6NoSyncEv">[1]</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity15numpts_at_levelE">Gravity::numpts_at_level (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity15numpts_at_levelE">[1]</a>
+</li>
+      <li><a href="class/classGravity.html#_CPPv4N7GravityaSERK7Gravity">Gravity::operator= (C++ function)</a>, <a href="class/classGravity.html#_CPPv4N7GravityaSERR7Gravity">[1]</a>, <a href="file/Gravity_8H.html#_CPPv4N7GravityaSERK7Gravity">[2]</a>, <a href="file/Gravity_8H.html#_CPPv4N7GravityaSERR7Gravity">[3]</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE">Gravity::output_job_info_params (C++ function)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE">[1]</a>
 </li>
@@ -1826,8 +1830,6 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="file/reconstruction_8H.html#_CPPv42i0">i0 (C++ member)</a>
-</li>
       <li><a href="file/mhd__sizes_8H.html#_CPPv48IEIGN_BT">IEIGN_BT (C++ member)</a>
 </li>
       <li><a href="file/mhd__sizes_8H.html#_CPPv49IEIGN_BTT">IEIGN_BTT (C++ member)</a>
@@ -1841,10 +1843,6 @@
       <li><a href="file/mhd__sizes_8H.html#_CPPv47IEIGN_V">IEIGN_V (C++ member)</a>
 </li>
       <li><a href="file/mhd__sizes_8H.html#_CPPv47IEIGN_W">IEIGN_W (C++ member)</a>
-</li>
-      <li><a href="file/reconstruction_8H.html#_CPPv43im1">im1 (C++ member)</a>
-</li>
-      <li><a href="file/reconstruction_8H.html#_CPPv43im2">im2 (C++ member)</a>
 </li>
       <li><a href="creating_a_problem.html#index-1">initialize_problem</a>
 </li>
@@ -1865,10 +1863,6 @@
       <li><a href="io.html#index-9">integral diagnostics</a>
 </li>
       <li><a href="build_system.html#index-8">INTEGRATOR_DIR</a>
-</li>
-      <li><a href="file/reconstruction_8H.html#_CPPv43ip1">ip1 (C++ member)</a>
-</li>
-      <li><a href="file/reconstruction_8H.html#_CPPv43ip2">ip2 (C++ member)</a>
 </li>
       <li><a href="file/Castro__react__util_8H.html#_CPPv43iwe">iwe (C++ member)</a>
 </li>
@@ -2122,6 +2116,18 @@
 </li>
       <li><a href="runtime_parameters.html#index-17">radiation.limiter</a>
 </li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_com_flux</a>
+</li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_kappa_p</a>
+</li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_kappa_r</a>
+</li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_lab_Er</a>
+</li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_lab_flux</a>
+</li>
+      <li><a href="runtime_parameters.html#index-17">radiation.plot_lambda</a>
+</li>
       <li><a href="runtime_parameters.html#index-17">radiation.prop_temp_floor</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation8absInTolE">Radiation::absInTol (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation8absInTolE">[1]</a>
@@ -2318,21 +2324,9 @@
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation7nugroupE">Radiation::nugroup (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation7nugroupE">[1]</a>
 </li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation6parentE">Radiation::parent (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation6parentE">[1]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation13plot_com_fluxE">Radiation::plot_com_flux (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation13plot_com_fluxE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation12plot_kappa_pE">Radiation::plot_kappa_p (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation12plot_kappa_pE">[1]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation12plot_kappa_rE">Radiation::plot_kappa_r (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation12plot_kappa_rE">[1]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation11plot_lab_ErE">Radiation::plot_lab_Er (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation11plot_lab_ErE">[1]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation13plot_lab_fluxE">Radiation::plot_lab_flux (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation13plot_lab_fluxE">[1]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation11plot_lambdaE">Radiation::plot_lambda (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation11plot_lambdaE">[1]</a>
+      <li><a href="class/classRadiation.html#_CPPv4N9Radiation6parentE">Radiation::parent (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation6parentE">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation7plotvarE">Radiation::plotvar (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation7plotvarE">[1]</a>
 </li>
@@ -2521,6 +2515,22 @@
       <li><a href="file/Castro__react_8H.html#_CPPv411react_stateN5amrex4RealEN5amrex4RealE">react_state (C++ function)</a>, <a href="file/Castro__react_8H.html#_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEKi">[1]</a>
 </li>
       <li><a href="file/Gravity_8H.html#_CPPv410RealVector">RealVector (C++ type)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv414reconstruction">reconstruction (C++ type)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indicesE">reconstruction::slope_indices (C++ enum)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices2i0E">reconstruction::slope_indices::i0 (C++ enumerator)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices3im1E">reconstruction::slope_indices::im1 (C++ enumerator)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices3im2E">reconstruction::slope_indices::im2 (C++ enumerator)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices3ip1E">reconstruction::slope_indices::ip1 (C++ enumerator)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices3ip2E">reconstruction::slope_indices::ip2 (C++ enumerator)</a>
+</li>
+      <li><a href="file/reconstruction_8H.html#_CPPv4N14reconstruction13slope_indices4nslpE">reconstruction::slope_indices::nslp (C++ enumerator)</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv423reset_edge_state_thermoRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEE">reset_edge_state_thermo (C++ function)</a>
 </li>

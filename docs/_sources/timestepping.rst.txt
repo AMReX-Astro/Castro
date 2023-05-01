@@ -5,7 +5,7 @@ Timestepping and Retries
 Simulation Time
 ---------------
 
-There are two paramters that can define when a simulation ends:
+There are two parameters that can define when a simulation ends:
 
   * ``max_step``: maximum number of level 0 time steps (integer
     :math:`\geq 0`; default: -1)

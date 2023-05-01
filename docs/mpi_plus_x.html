@@ -84,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
@@ -134,7 +134,7 @@
              
   <section id="running-options-cpus-and-gpus">
 <span id="ch-mpiplusx"></span><h1>Running Options: CPUs and GPUs<a class="headerlink" href="#running-options-cpus-and-gpus" title="Permalink to this heading"></a></h1>
-<p>Castro uses MPI for coarse parallelization, distributing boxs across
+<p>Castro uses MPI for coarse parallelization, distributing boxes across
 compute nodes.  For fine-grained parallelism, OpenMP is used for
 CPU-based computing and CUDA is used for GPUs.</p>
 <section id="running-on-cpus">
@@ -216,10 +216,6 @@ To enable this, compile with:</p>
 <span class="n">USE_OMP</span> <span class="o">=</span> <span class="n">FALSE</span>
 <span class="n">USE_HIP</span> <span class="o">=</span> <span class="n">TRUE</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>AMD + HIP support is new and considered experimental.</p>
 </div>
 </section>
 </section>

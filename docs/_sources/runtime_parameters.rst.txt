@@ -489,7 +489,7 @@ namespace: ``castro``
 |                                            | object                                                      |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``gw_dist``                                | Distance (in kpc) used for calculation of the gravitational | 0.0           |
-|                                            | wave amplitude (this wil be calculated along all three      |               |
+|                                            | wave amplitude (this will be calculated along all three     |               |
 |                                            | coordinate axes). Only relevant if castro.sum_interval > 0  |               |
 |                                            | and if set to a positive number. A standard value in the    |               |
 |                                            | literature is 10.0 (kpc).                                   |               |
@@ -806,7 +806,7 @@ namespace: ``particles``
 namespace: ``radiation``
 ------------------------
 
-.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold, radiation.comoving, radiation.closure, radiation.limiter, radiation.fspace_advection_type
+.. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold, radiation.comoving, radiation.closure, radiation.limiter, radiation.fspace_advection_type, radiation.plot_lambda, radiation.plot_kappa_p, radiation.plot_kappa_r, radiation.plot_lab_Er, radiation.plot_lab_flux, radiation.plot_com_flux
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -826,6 +826,18 @@ namespace: ``radiation``
 |                                            | Bruenn 22: square root 32: Minerbo                          |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``fspace_advection_type``                  | frequency space advection type                              | 2             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_lambda``                            | do we plot the flux limiter lambda?                         | 0             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_kappa_p``                           | do we plot the Planck mean opacity?                         | 0             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_kappa_r``                           | do we plot the Rosseland mean opacity?                      | 0             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_lab_Er``                            | do we plot the lab radiation energy?                        | 0             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_lab_flux``                          | do we plot the lab radiation flux?                          | 0             |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``plot_com_flux``                          | do we plot the comoving frame radiation flux?               | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 
 

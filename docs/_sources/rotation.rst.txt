@@ -7,7 +7,7 @@ Rotation
 Introduction
 ============
 
-Currently, Castro supports contant, solid-body rotation about a fixed
+Currently, Castro supports constant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
@@ -141,7 +141,7 @@ vector notation, we have
    :label: eq:r-dot
 
 
-The left hand side of :eq:`eq:r-dot` is interpretted as the velocity
+The left hand side of :eq:`eq:r-dot` is interpreted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
 stationary observer in the rotating frame :math:`\widetilde{C}`. The second

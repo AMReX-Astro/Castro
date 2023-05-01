@@ -140,7 +140,7 @@ hydrostatic boundary condition here, we set::
 
 The first parameter tells Castro to use the HSE boundary condition for the lower
 y direction.
-In filling the ghost cells, hydrostatic equilibrum will be integrated
+In filling the ghost cells, hydrostatic equilibrium will be integrated
 from the last interior zone into the boundary.  We need one more
 equation for this integration, so we either interpolate the density or
 temperature into the ghost cells, depending on the value of

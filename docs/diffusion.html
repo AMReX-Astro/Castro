@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Diffusion &mdash; Castro  documentation</title>
+  <title>Thermal Diffusion &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -77,8 +77,11 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Diffusion</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#thermal-diffusion">Thermal Diffusion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Thermal Diffusion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#timestep-limiter">Timestep Limiter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conductivities">Conductivities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unit-tests">Unit Tests</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -118,7 +121,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Diffusion</li>
+      <li class="breadcrumb-item active">Thermal Diffusion</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/diffusion.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -128,16 +131,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="diffusion">
-<span id="ch-diffusion"></span><h1>Diffusion<a class="headerlink" href="#diffusion" title="Permalink to this heading"></a></h1>
-<section id="thermal-diffusion">
-<h2>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Permalink to this heading"></a></h2>
+  <section id="thermal-diffusion">
+<span id="ch-diffusion"></span><h1>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Permalink to this heading"></a></h1>
 <p>Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>, this appears as:</p>
 <div class="math notranslate nohighlight">
 \[\rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot \kth \nabla T\]</div>
 <p>where <span class="math notranslate nohighlight">\(\kth\)</span> is the thermal conductivity, with units
 <span class="math notranslate nohighlight">\(\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To enable diffusion, you need to compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_DIFFUSION</span><span class="o">=</span><span class="n">TRUE</span>
+</pre></div>
+</div>
+</div>
+<p>It is treated explicitly, by constructing the contribution to the evolution as a
+source term. This is time-centered to achieve second-order accuracy
+in time.</p>
+<section id="timestep-limiter">
+<h2>Timestep Limiter<a class="headerlink" href="#timestep-limiter" title="Permalink to this heading"></a></h2>
+<p>Castro integrates diffusion explicitly in time&amp;mdash;this means that
+there is a diffusion timestep limiter.</p>
 <p>To see the similarity to the thermal diffusion equation, consider the
 special case of constant conductivity, <span class="math notranslate nohighlight">\(\kth\)</span>, and density, and
 assume an ideal gas, so <span class="math notranslate nohighlight">\(e = c_v T\)</span>, where <span class="math notranslate nohighlight">\(c_v\)</span> is the
@@ -145,38 +160,53 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 <span class="math notranslate nohighlight">\(\ub = 0\)</span>. This gives:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial T}{\partial t} = D \nabla^2 T\]</div>
-<p>where <span class="math notranslate nohighlight">\(D \equiv \kth/(\rho c_v)\)</span>. Solving this equation
-explicitly requires a timestep limiter of</p>
+<p>where <span class="math notranslate nohighlight">\(D \equiv \kth/(\rho c_v)\)</span>.</p>
+<p>The timestep limiter for this is:</p>
 <div class="math notranslate nohighlight">
 \[\Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}\]</div>
-<p>(this is implemented in <code class="docutils literal notranslate"><span class="pre">ca_estdt_temp_diffusion</span></code> in
-<code class="docutils literal notranslate"><span class="pre">Castro/Source/driver/timestep.F90</span></code>).</p>
-<p>Support for diffusion must be compiled into the code by setting
-<code class="docutils literal notranslate"><span class="pre">USE_DIFFUSION</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. It is treated
-explicitly, by constructing the contribution to the evolution as a
-source term. This is time-centered to achieve second-order accuracy
-in time.</p>
+<p>This is implemented in <code class="docutils literal notranslate"><span class="pre">estdt_temp_diffusion</span></code>.</p>
+</section>
+<section id="runtime-parameters">
+<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
 <p>The following parameter affects diffusion:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</p></li>
-</ul>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</p>
 <p>A pure diffusion problem (with no hydrodynamics) can be run by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">diffuse_temp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">castro</span><span class="o">.</span><span class="n">do_hydro</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 </div>
-<p>To complete the setup, a thermal conductivity must be specified. The
-interface for the conductivity is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">actual_conductivity</span><span class="p">(</span><span class="n">eos_state</span><span class="p">)</span>
-
-  <span class="nb">type</span> <span class="p">(</span><span class="n">eos_t</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">eos_state</span>
-</pre></div>
+</li>
+</ul>
+<p id="index-0">The diffusion approximation breaks down at the surface of stars,
+where the density rapidly drops and the mean free path becomes
+large. In those instances, you should use the flux limited diffusion
+module in Castro to evolve a radiation field. However, if your
+interest is only on the diffusion in the interior, you can use
+the parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>to specify a density,
+below which, diffusion is not modeled. This is implemented in the
+code by linearly scaling the conductivity to zero between these limits, e.g.,</p>
+<div class="math notranslate nohighlight">
+\[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
+</section>
+<section id="conductivities">
+<h2>Conductivities<a class="headerlink" href="#conductivities" title="Permalink to this heading"></a></h2>
+<p>To complete the setup, a thermal conductivity must be specified. These
+are supplied by Microphysics, and use an interface similar to the
+equation of state interface.</p>
+<div class="admonition note" id="index-1">
+<p class="admonition-title">Note</p>
+<p>The choice of conductivity must be specified at compile-time via
+the <code class="docutils literal notranslate"><span class="pre">CONDUCTIVITY_DIR</span></code> option.</p>
 </div>
-<p>The density, temperature, and mass fractions come in through the
-<code class="docutils literal notranslate"><span class="pre">eos_state</span></code> type. An EOS call is done in Castro just before the call to
-<code class="docutils literal notranslate"><span class="pre">thermal_conductivity</span></code>, so you can assume that the entire state is
-consistent.  The conductivity is filled in <code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">conductivity</span></code>.</p>
-<p id="index-0">There are two conductivity routines provided with Castro by default:</p>
+<p>The current choices of conductivity are:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">constant</span></code> : A simple constant thermal conductivity. This can be
 selected by setting:</p>
@@ -205,24 +235,12 @@ This is selected by setting:</p>
 </div>
 <p>in the inputs file.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stellar</span></code> : This is the set of conductivities and radiative opacities
+appropriate for stellar interiors described in <span id="id1">[<a class="reference internal" href="zreferences.html#id75" title="F. X. Timmes. Physical Properties of Laminar Helium Deflagrations. Astrophysical Journal, 528(2):913-945, January 2000. doi:10.1086/308203.">65</a>]</span>.</p></li>
 </ul>
-<p id="index-1">The diffusion approximation breaks down at the surface of stars,
-where the density rapidly drops and the mean free path becomes
-large. In those instances, you should use the flux limited diffusion
-module in Castro to evolve a radiation field. However, if your
-interest is only on the diffusion in the interior, you can use
-the parameters:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></p></li>
-</ul>
-</div></blockquote>
-<p>to specify a density,
-below which, diffusion is not modeled. This is implemented in the
-code by linearly scaling the conductivity to zero between these limits, e.g.,</p>
-<div class="math notranslate nohighlight">
-\[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
+</section>
+<section id="unit-tests">
+<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
 <p>A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as <code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>.</p>
 </section>
