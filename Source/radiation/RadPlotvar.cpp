@@ -143,10 +143,10 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
                                      const Real lab_factor)
 {
     int icomp_flux = -1;
-    if (plot_com_flux) {
+    if (radiation::plot_com_flux) {
         icomp_flux = icomp_com_Fr;
     }
-    else if (plot_lab_flux) {
+    else if (radiation::plot_lab_flux) {
         icomp_flux = icomp_lab_Fr;
     }
 
