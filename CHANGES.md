@@ -1,3 +1,11 @@
+# 23.05
+
+  * fixed some radiation solver indexing for plotting lab/com frame
+    flux (#2415)
+
+  * removed the derived in_nse plot file variable and instead use the
+    value that is returned from the burner (#2409)
+
 # 23.04
 
   * burn_t now stores whether we are in NSE (#2390)
