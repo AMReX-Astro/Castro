@@ -76,7 +76,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             // first find the interface state on the current interface
 
-            RiemannState qint;
+            RiemannState qint{};
 
             riemann_state(i, j, k, idir,
                           qm, qp, qaux_arr,

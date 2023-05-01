@@ -29,7 +29,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   int fine_level =  parent->finestLevel();
 
-  // allocation and intialization
+  // allocation and initialization
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
   const DistributionMapping& dmap = castro->DistributionMap();
@@ -179,10 +179,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   std::unique_ptr<MultiFab> flxsave;
   MultiFab* flxcc;
   int icomp_flux = -1;
-  if (plot_com_flux) {
+  if (radiation::plot_com_flux) {
       flxcc = plotvar[level].get();
       icomp_flux = icomp_com_Fr;
-  } else if (plot_lab_Er || plot_lab_flux) {
+  } else if (radiation::plot_lab_Er || radiation::plot_lab_flux) {
       flxsave.reset(new MultiFab(grids, dmap, nGroups*AMREX_SPACEDIM, 0));
       flxcc = flxsave.get();
       icomp_flux = 0;
@@ -549,19 +549,19 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
   }
 
-  if (plot_lambda) {
+  if (radiation::plot_lambda) {
       save_lambda_in_plotvar(level, lambda);
   }
 
-  if (plot_kappa_p) {
+  if (radiation::plot_kappa_p) {
       MultiFab::Copy(*plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
   }
 
-  if (plot_kappa_r) {
+  if (radiation::plot_kappa_r) {
       MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
-  if (plot_lab_Er) {
+  if (radiation::plot_lab_Er) {
       save_lab_Er_in_plotvar(level, S_new, Er_new, *flxcc, icomp_flux);
   }
 
@@ -569,7 +569,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   //     already done when calling solver->levelFluxFaceToCenter()
   // }
 
-  if (plot_lab_flux) {
+  if (radiation::plot_lab_flux) {
       save_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 

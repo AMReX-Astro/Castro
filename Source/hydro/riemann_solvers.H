@@ -221,7 +221,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 /// @param bx         the box to operate over
 /// @param ql         the left interface state
 /// @param qr         the right interface state
-/// @param qaux_arr   the auxillary state
+/// @param qaux_arr   the auxiliary state
 /// @param qint       the full Godunov state on the interface
 /// @param idir       coordinate direction for the solve (0 = x, 1 = y, 2 = z)
 ///
@@ -468,7 +468,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real gameo;
 
   if (ustar > 0.0_rt) {
-      ro = ql.rho;
+      //ro = ql.rho;
       uo = ql.un;
       po = ql.p;
       tauo = taul;
@@ -476,7 +476,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamel;
 
   } else if (ustar < 0.0_rt) {
-      ro = qr.rho;
+      //ro = qr.rho;
       uo = qr.un;
       po = qr.p;
       tauo = taur;
@@ -484,7 +484,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamer;
 
   } else {
-      ro = 0.5_rt * (ql.rho + qr.rho);
+      //ro = 0.5_rt * (ql.rho + qr.rho);
       uo = 0.5_rt * (ql.un + qr.un);
       po = 0.5_rt * (ql.p + qr.p);
       tauo = 0.5_rt * (taul + taur);
@@ -591,7 +591,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
 /// @param bx          the box to operate over
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param qint        the full Godunov state on the interface
 /// @param lambda_int  the radiation flux limiter on the interface
 ///
@@ -985,7 +985,7 @@ HLL(const Real* ql, const Real* qr,
 ///
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param uflx        the flux through the interface
 /// @param qint        an approximate Godunov state on the interface
 /// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)

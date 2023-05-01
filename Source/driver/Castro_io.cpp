@@ -159,7 +159,7 @@ Castro::restart (Amr&     papa,
     // get the elapsed CPU time to now;
     if (level == 0 && ParallelDescriptor::IOProcessor())
     {
-      // get ellapsed CPU time
+      // get elapsed CPU time
       std::ifstream CPUFile;
       std::string FullPathCPUFile = parent->theRestartFile();
       FullPathCPUFile += "/CPUtime";
@@ -962,7 +962,7 @@ Castro::plotFileOutput(const std::string& dir,
         }
     }
 
-    int n_data_items = plot_var_map.size() + num_derive;
+    int n_data_items = static_cast<int>(plot_var_map.size()) + num_derive;
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;

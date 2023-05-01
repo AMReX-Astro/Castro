@@ -27,7 +27,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 
   Real mult_factor = 1.0;
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -49,7 +49,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 
 
 
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {
@@ -74,14 +74,11 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
   thermo_src.setVal(0.0);
 
-  //Substract off the old-time value first
-  Real old_time = time - dt;
-
   fill_thermo_source(state_old, thermo_src);
 
   Real mult_factor = -0.5;
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   //Time center with the new data
 
@@ -95,7 +92,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
   fill_thermo_source(grown_state, thermo_src);
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {

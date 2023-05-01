@@ -607,17 +607,17 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           Elixir elix_div = div.elixir();
           auto div_arr = div.array();
 
-          // compute divu -- we'll use this later when doing the artifical viscosity
+          // compute divu -- we'll use this later when doing the artificial viscosity
           divu(obx, q_arr, div_arr);
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-            const Box& nbx = amrex::surroundingNodes(bx, idir);
+            const Box& nbox = amrex::surroundingNodes(bx, idir);
 
             Array4<Real> const flux_arr = (flux[idir]).array();
 
             // Zero out shock and temp fluxes -- these are physically meaningless here
-            amrex::ParallelFor(nbx,
+            amrex::ParallelFor(nbox,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
               flux_arr(i,j,k,UTEMP) = 0.e0;
@@ -626,9 +626,9 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 #endif
             });
 
-            apply_av(nbx, idir, div_arr, u_arr, flux_arr);
+            apply_av(nbox, idir, div_arr, u_arr, flux_arr);
 
-            normalize_species_fluxes(nbx, flux_arr);
+            normalize_species_fluxes(nbox, flux_arr);
 
           }
 

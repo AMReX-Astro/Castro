@@ -66,7 +66,7 @@
 /// @param qright      right state at the interface
 /// @param sdc_source  primitive variable SDC source array
 ///
-    void add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
+    static void add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
                                       Array4<Real> const& qleft,
                                       Array4<Real> const& qright,
                                       Array4<Real const> const& sdc_src);
@@ -101,9 +101,9 @@
 /// @param Erin      radiation energy (if USE_RAD=TRUE)
 /// @param lam       radiation flux limiter (if USE_RAD=TRUE)
 /// @param q_arr     output primitive state
-/// @param qaux_arr  output auxillary quantities
+/// @param qaux_arr  output auxiliary quantities
 ///
-    void ctoprim(const amrex::Box& bx,
+    static void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
                  amrex::Array4<amrex::Real const> const& uin,
 #ifdef MHD
@@ -127,7 +127,7 @@
 /// @param flatn      the flattening coefficient
 /// @param pres_comp  index into q_arr of the pressure component
 ///
-    void uflatten(const amrex::Box& bx,
+    static void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const& q_arr,
                   amrex::Array4<amrex::Real> const& flatn,
                   const int pres_comp);
@@ -155,7 +155,7 @@
               amrex::Array4<amrex::Real> const& div);
 
 ///
-/// Update the flux with the artifical viscosity.  This is a 2nd order
+/// Update the flux with the artificial viscosity.  This is a 2nd order
 /// accurate implementation.
 ///
 /// @param bx    the box to operate over
@@ -172,7 +172,7 @@
 
 #ifdef RADIATION
 ///
-/// Update the radiation flux with the artifical viscosity.  This is a 2nd order
+/// Update the radiation flux with the artificial viscosity.  This is a 2nd order
 /// accurate implementation.
 ///
 /// @param bx       the box to operate over
@@ -221,7 +221,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -262,7 +262,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -304,7 +304,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -454,7 +454,7 @@
 /// @param qmo       updated left interface state
 /// @param qp        input right interface state
 /// @param qpo       updated right interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t    flux in the idir_t direction
 /// @param rflux_t   radiation flux in the idir_t direction
 /// @param q_t       Godunov state in the idir_t direction
@@ -492,7 +492,7 @@
 ///                  we are updating
 /// @param q_arr     input interface state
 /// @param qo_arr    updated interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t    flux in the idir_t direction
 /// @param rflux_t   radiation flux in the idir_t direction
 /// @param q_t       Godunov state in the idir_t direction
@@ -530,7 +530,7 @@
 /// @param qmo       updated left interface state
 /// @param qp        input right interface state
 /// @param qpo       updated right interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t1   flux in the idir_t1 direction
 /// @param rflux_t1  radiation flux in the idir_t1 direction
 /// @param flux_t2   flux in the idir_t2 direction
@@ -541,7 +541,7 @@
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
-     void trans_final(const amrex::Box& bx,
+     static void trans_final(const amrex::Box& bx,
                       int idir_n, int idir_t1, int idir_t2,
                       amrex::Array4<amrex::Real const> const& qm,
                       amrex::Array4<amrex::Real> const& qmo,
@@ -571,7 +571,7 @@
 /// @param d         a flag set by the driver to indicate which state we are operating on
 /// @param q_arr     input interface state
 /// @param qo_arr    updated interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t1   flux in the idir_t1 direction
 /// @param rflux_t1  radiation flux in the idir_t1 direction
 /// @param flux_t2   flux in the idir_t2 direction
@@ -583,7 +583,7 @@
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
-     void actual_trans_final(const amrex::Box& bx,
+     static void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
                              amrex::Array4<amrex::Real const> const& q_arr,
                              amrex::Array4<amrex::Real> const& qo_arr,
@@ -608,7 +608,7 @@
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr     primitive variable state
-/// @param qaux_arr  the auxillary state
+/// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
@@ -639,7 +639,7 @@
 /// @param bx           the box to operate over
 /// @param idir         coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr        primitive variable state
-/// @param qaux_arr     the auxillary state
+/// @param qaux_arr     the auxiliary state
 /// @param qm           left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp           right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga        geometric factor dlog(area)
@@ -670,7 +670,7 @@
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr     primitive variable state
-/// @param qaux_arr  the auxillary state
+/// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
@@ -699,7 +699,7 @@
 ///
 /// @param bx      the box to operate over
 /// @param shk     the shock flag
-/// @param update  the hydrodynamics update term, -div{F} + S(U)
+/// @param U_new   the new hydrodynamics conserved state
 /// @param flux0   flux in the x direction
 /// @param qx      Godunov state in the x direction
 /// @param flux1   flux in the y direction
@@ -712,7 +712,7 @@
 #ifdef SHOCK_VAR
                       amrex::Array4<amrex::Real const> const& shk,
 #endif
-                      amrex::Array4<amrex::Real> const& update,
+                      amrex::Array4<amrex::Real> const& U_new,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,
 #if AMREX_SPACEDIM >= 2
@@ -738,7 +738,7 @@
 /// @param flx         flux through the interface
 /// @param rflux       radiation fluxes through the interface
 /// @param qgdnv       Godunov state on the interface [either NQ or NGDNV]
-/// @param qaux        auxillary state
+/// @param qaux        auxiliary state
 /// @param shk         shock flag
 /// @param idir        coordinate direction of the solve (0 = x, 1 = y, 2 = z)
 /// @param store_full_state do we store all NQ or just the NGDNV subset in qgdnv
@@ -761,7 +761,7 @@
                         amrex::Array4<amrex::Real> const& F,
                         const int idir);
 
-    void
+    static void
     store_godunov_state(const amrex::Box& bx,
                         amrex::Array4<amrex::Real const> const& qint,
 #ifdef RADIATION
@@ -769,9 +769,10 @@
 #endif
                         amrex::Array4<amrex::Real> const& qgdnv);
 
-    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
+    static void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
-    void
+#ifndef MHD
+    static void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
                                      int idir,
                                      amrex::Array4<amrex::Real const> const& u,
@@ -780,7 +781,7 @@
                                      amrex::Array4<amrex::Real const> const& area,
                                      amrex::Real dt,
                                      bool scale_by_dAdt = true);
-
+#endif
 
 
 ///
@@ -809,13 +810,14 @@
                         const amrex::Real dt);
 #endif
 
-    void reset_edge_state_thermo(const amrex::Box& bx,
-                                 amrex::Array4<amrex::Real> const& qedge);
+#ifndef MHD
+    static void reset_edge_state_thermo(const amrex::Box& bx,
+                                        amrex::Array4<amrex::Real> const& qedge);
 
-    void edge_state_temp_to_pres(const amrex::Box& bx,
+    static void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
-
+#endif
 
     void do_enforce_minimum_density(const amrex::Box& bx,
                                     amrex::Array4<amrex::Real> const& state_arr,

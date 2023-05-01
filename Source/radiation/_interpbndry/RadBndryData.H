@@ -87,7 +87,7 @@ protected:
     amrex::Vector<amrex::Real>    bcloc[2*AMREX_SPACEDIM];
 //@ManDoc: Array (on orientation) of boundary condition mask arrays (FAB-like)
     amrex::Vector<std::unique_ptr<amrex::Mask> > masks[2*AMREX_SPACEDIM];
-//@ManDoc: Domain used for mask defintions
+//@ManDoc: Domain used for mask definitions
     amrex::Geometry geom;
 
 public:
@@ -99,7 +99,7 @@ public:
                  int _ncomp, const ProxyGeometry& geom);
 //@ManDoc: destructor
     virtual ~RadBndryData();
-//@ManDoc: alocate bndry fabs along given face
+//@ManDoc: allocate bndry fabs along given face
     void define(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                 int _ncomp, const ProxyGeometry& geom);
 

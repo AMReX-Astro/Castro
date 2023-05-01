@@ -2,6 +2,7 @@ Checks: >
      -*,
      bugprone-*,
        -bugprone-easily-swappable-parameters,
+       -bugprone-implicit-widening-of-multiplication-result,
      clang-analyzer-*,
      clang-diagnostic-*,
      cppcoreguidelines-*,
@@ -36,3 +37,5 @@ Checks: >
        -readability-static-accessed-through-instance,
      mpi-*,
      openmp-*
+
+HeaderFilterRegex: '(/Source/*/|/Util/model_parser_cxx|^\./|^tmp_build_dir/castro_sources/*/).*\.H$'

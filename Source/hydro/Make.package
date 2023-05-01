@@ -45,4 +45,6 @@ ifneq ($(DIM), 1)
   CEXE_sources += trans.cpp
 endif
 
+ifneq ($(USE_MHD),TRUE)
 CEXE_sources += edge_util.cpp
+endif

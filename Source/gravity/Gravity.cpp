@@ -61,7 +61,7 @@ AMREX_GPU_MANAGED Array2D<Real, 0, multipole::lnum_max, 0, multipole::lnum_max> 
 AMREX_GPU_MANAGED Array1D<Real, 0, multipole::lnum_max> multipole::parity_q0;
 AMREX_GPU_MANAGED Array2D<Real, 0, multipole::lnum_max, 0, multipole::lnum_max> multipole::parity_qC_qS;
 
-Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
+Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _density)
   :
     parent(Parent),
     LevelData(MAX_LEV),
@@ -81,7 +81,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
 
      AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
 
-     Density = _Density;
+     Density = _density;
      read_params();
      finest_level_allocated = -1;
 
@@ -1930,8 +1930,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     Real r = std::sqrt(x * x + y * y + z * z);
 
-                    Real cosTheta, phiAngle;
-                    int index;
+                    Real cosTheta{}, phiAngle{};
+                    int index{};
 
                     if (AMREX_SPACEDIM == 3) {
                         index = static_cast<int>(r * drInv);
@@ -2245,7 +2245,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
                     return;
                 }
 
-                Real cosTheta, phiAngle;
+                Real cosTheta{}, phiAngle{};
                 if (AMREX_SPACEDIM == 3) {
                     cosTheta = z / r;
                     phiAngle = std::atan2(y, x);
@@ -2761,7 +2761,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
     } // end loop over levels
 
-    // because the number of elments in mpi_reduce is int
+    // because the number of elements in mpi_reduce is int
     BL_ASSERT(nPtsXY <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsXZ <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsYZ <= std::numeric_limits<int>::max());
@@ -2956,13 +2956,13 @@ Gravity::set_mass_offset (Real time, bool multi_level)
         if (multi_level)
         {
             for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-                Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
+                auto* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
                 mass_offset += cs->volWgtSum("density", time);
             }
         }
         else
         {
-            Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
+            auto* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
             mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
         }
 
@@ -3120,7 +3120,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         if (lev < level)
         {
-            Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+            auto* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
             const MultiFab& mask = fine_level->build_fine_mask();
             for (int n = 0; n < NUM_STATE; ++n) {
                 MultiFab::Multiply(S, mask, 0, n, 1, 0);

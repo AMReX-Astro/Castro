@@ -128,19 +128,19 @@ Castro::estdt_mhd (int is_new)
   // MHD timestep limiter
   const auto dx = geom.CellSizeArray();
 
-  const MultiFab& state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+  const MultiFab& U_state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const MultiFab& bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
   const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
   const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
-  auto const& ua = state.const_arrays();
+  auto const& ua = U_state.const_arrays();
 
   auto const& bxa = bx.const_arrays();
   auto const& bya = by.const_arrays();
   auto const& bza = bz.const_arrays();
 
-  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, state,
+  auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, U_state,
   [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
   {
 

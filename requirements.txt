@@ -10,3 +10,4 @@ nbconvert
 pandoc
 jupyter
 sphinx-prompt
+codespell
