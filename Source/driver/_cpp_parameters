@@ -403,7 +403,7 @@ stopping_criterion_field     string        ""
 stopping_criterion_value     Real          1.e200
 
 # whether to do nse_net bailout when max_subcycles is reached
-nse_bailout                  int           0
+do_nse_bailout               int           0
 
 #-----------------------------------------------------------------------------
 # category: reactions

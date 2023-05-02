@@ -573,6 +573,13 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     Real last_dt_subcycle = 1.e200;
 
+#ifdef NSE_NET
+    bool do_bailout = true;
+    bool old_nse_dx_independent = nse_dx_independent;
+    bool old_nse_molar_independent = nse_molar_independent;
+    bool old_nse_skip_molar = nse_skip_molar;
+#endif
+    
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
         // Save the dt_subcycle before modifying it, we will use it later.
@@ -614,19 +621,27 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (num_subcycles_remaining > max_subcycles) {
 #ifdef NSE_NET
-	  if (do_nse_bailout) {
+	  if (do_nse_bailout && do_bailout) {
 
 	    // find the smallest allowed dt_subcycle and then enable nse_net bailout
 
 	    dt_subcycle = ((time + dt) - subcycle_time) / max_subcycles;
+	    nse_dx_independent = true;
 	    nse_molar_independent = true;
 	    nse_skip_molar = true;
+
+	    do_bailout = false;
+
+	    amrex::Print() << std::endl
+			   << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
+			   << "  Reperforming subcycle with smallest possible dt_subcycle and nse_bailout." << std::endl;
 	  }
 #else	  
             amrex::Print() << std::endl
                            << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
             amrex::Abort("Error: too many subcycles.");
+#endif
         }
 
         // If we get to this point, we survived the sanity checks. Print out the current subcycle iteration.
@@ -813,6 +828,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
+    // Restore the original nse configuration
+
+#ifdef NSE_NET	
+	nse_dx_independent = old_nse_dx_independent;
+	nse_molar_independent = old_nse_molar_independent;
+	nse_skip_molar = old_nse_skip_molar;
+#endif
+    
     // We want to return the subcycled timestep as a suggestion.
     // Let's be sure to return the subcycled timestep that was
     // unmodified by anything we had to do in the last subcycle
