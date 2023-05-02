@@ -613,6 +613,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
 
         if (num_subcycles_remaining > max_subcycles) {
+#ifdef NSE_NET
+	  if (do_nse_bailout) {
+
+	    // find the smallest allowed dt_subcycle and then enable nse_net bailout
+
+	    dt_subcycle = ((time + dt) - subcycle_time) / max_subcycles;
+	    nse_molar_independent = true;
+	    nse_skip_molar = true;
+	  }
+#else	  
             amrex::Print() << std::endl
                            << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
