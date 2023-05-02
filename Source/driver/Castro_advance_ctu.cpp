@@ -635,12 +635,15 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 	    amrex::Print() << std::endl
 			   << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
 			   << "  Reperforming subcycle with smallest possible dt_subcycle and nse_bailout." << std::endl;
-	  }
+	  } else {
 #endif
             amrex::Print() << std::endl
                            << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
             amrex::Abort("Error: too many subcycles.");
+#ifdef NSE_NET
+	  }
+#endif
         }
 
         // If we get to this point, we survived the sanity checks. Print out the current subcycle iteration.
