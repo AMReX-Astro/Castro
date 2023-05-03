@@ -625,11 +625,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
 	    // find the smallest allowed dt_subcycle and then enable nse_net bailout
 
-	    dt_subcycle = ((time + dt) - subcycle_time) / max_subcycles;
+	    dt_subcycle = ((time + dt) - subcycle_time) / (max_subcycles);
+	    number_subcycles_remaining = max_subcycles;
+
 	    nse_dx_independent = true;
 	    nse_molar_independent = true;
 	    nse_skip_molar = true;
-
 	    do_bailout = false;
 
 	    amrex::Print() << std::endl
