@@ -38,3 +38,20 @@ jobs:
           export AMREX_HYPRE_HOME=${PWD}/hypre-2.26.0/src/hypre
           cd Exec/radiation_tests/Rad2Tshock
           make DEBUG=TRUE USE_MPI=TRUE DIM=1 -j 4
+
+      - name: Run Rad2Tshock-1d
+        run: |
+          cd Exec/radiation_tests/Rad2Tshock
+          ./Castro1d.gnu.DEBUG.MPI.ex inputs.M2 max_step=25
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j 2
+
+      - name: Check the extrema
+        run: |
+          cd Exec/radiation_tests/Rad2Tshock
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt_00025 > fextrema.out
+          diff fextrema.out ci-benchmarks/Rad2TShock-1d.out
+
