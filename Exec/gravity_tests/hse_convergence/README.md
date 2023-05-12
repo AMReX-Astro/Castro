@@ -24,7 +24,7 @@ To run this problem, use one of the convergence scripts:
 
   * convergence_sdc.sh :
 
-    this uses the TRUE_SDC integation, first with SDC-2 + PLM  and reflecting BCs,
+    this uses the TRUE_SDC integration, first with SDC-2 + PLM  and reflecting BCs,
     the SDC-2 + PPM and reflecting BCs, then the same but HSE BCs, and finally
     SDC-4 + reflect
 

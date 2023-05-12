@@ -523,7 +523,7 @@ point_mass                   Real          0.0                n        GRAVITY
 point_mass_fix_solution      int           0                  n        GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes). Only relevant if
+# (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
@@ -820,6 +820,7 @@ beta                         Real          1.0
 
 (v, verbose)                 int           0
 
+
 @namespace: radiation
 
 prop_temp_floor              Real          0.0                y
@@ -847,3 +848,23 @@ limiter                      int           2
 
 # frequency space advection type
 fspace_advection_type        int           2
+
+
+# do we plot the flux limiter lambda?
+plot_lambda                  int           0
+
+# do we plot the Planck mean opacity?
+plot_kappa_p                 int           0
+
+# do we plot the Rosseland mean opacity?
+plot_kappa_r                 int           0
+
+# do we plot the lab radiation energy?
+plot_lab_Er                  int           0
+
+# do we plot the lab radiation flux?
+plot_lab_flux                int           0
+
+# do we plot the comoving frame radiation flux?
+plot_com_flux                int           0
+

@@ -267,7 +267,7 @@ be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical :math:`r`-:math:`z`), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
-We use a publically available code, ``sedov3.f``
+We use a publicly available code, ``sedov3.f``
 :cite:`timmes_sedov_code`, to generate the analytic solutions.
 
 The Castro implementation of the Sedov problem is ``in
@@ -323,7 +323,7 @@ For these runs, we use :math:`\rho_\mathrm{ambient} = 1`,
 :math:`p_\mathrm{ambient} = 10^{-5}`, :math:`E_\mathrm{exp} = 1`, :math:`r_\mathrm{init} = 0.01`,
 and :math:`N_\mathrm{sub} = 10`. A base grid with 32 zones in each
 coordinate direction plus 3 levels of refinement is used (the finest
-mesh would coorespond to 256 zones in a coordinate direction). The
+mesh would correspond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.
 
 An analysis routines for the Sedov problem is provided in

@@ -20,10 +20,6 @@ evaluates where additional refinement is needed
 and grid generation procedures dynamically create or
 remove rectangular fine grid patches as resolution requirements change.
 
-A good introduction to the style of AMR used here is in Lecture 1
-of the Adaptive Mesh Refinement Short Course at
-https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf.
-
 .. _sec:tagging:
 
 Tagging for Refinement
@@ -75,7 +71,7 @@ If a refinement indicator is added, either
    using the Poisson gravity solver. If your tagging criteria are met in these
    zones, they will be ignored.
 
-Sometimes, we wish to force the code to derefine based on a critera,
+Sometimes, we wish to force the code to derefine based on a criteria,
 even if other indicators tagged a zone for refinement.  This is
 accomplished by created another refinement indicator and setting the
 ``derefine`` field to ``1``.  For example, to derefine any zone where

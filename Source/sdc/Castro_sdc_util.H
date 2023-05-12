@@ -145,7 +145,7 @@ f_sdc_jac(const Real dt_m,
         f[n] = U[n] - dt_m * R_react[n] - f_source[n];
     }
 
-    // get dRdw -- this may do a numerical approxiation or use the
+    // get dRdw -- this may do a numerical approximation or use the
     // network's analytic Jac
     single_zone_jac(U_full, burn_state, dt_m, dRdw);
 

@@ -169,7 +169,7 @@ def doit(variables_file, odir, defines, nadv):
     # the size of each set
     all_counters = []
 
-    # loop over sets, create the counters, and store any indicies that belong to those
+    # loop over sets, create the counters, and store any indices that belong to those
     for s in sorted(unique_sets):
 
         # these are the indices that belong to the default set s.
@@ -183,7 +183,7 @@ def doit(variables_file, odir, defines, nadv):
                 for v in q.adds_to:
                     adds_to.append(v)
 
-        adds_to = set(adds_to)
+        adds_to = sorted(set(adds_to))
 
         # initialize the counters
         counter_main = Counter(default_set[s])
@@ -215,8 +215,8 @@ def doit(variables_file, odir, defines, nadv):
     with open(os.path.join(odir, "state_indices.H"), "w") as f:
 
         # first write out the counter sizes
-        f.write("#ifndef _state_indices_H_\n")
-        f.write("#define _state_indices_H_\n")
+        f.write("#ifndef STATE_INDICES_H\n")
+        f.write("#define STATE_INDICES_H\n")
 
         f.write("#include <network_properties.H>\n\n")
 
@@ -227,7 +227,7 @@ def doit(variables_file, odir, defines, nadv):
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
-        for s in unique_sets:
+        for s in sorted(unique_sets):
             set_indices = [q for q in indices if q.iset == s]
             f.write("\n   // {}\n".format(s))
             for i in set_indices:

@@ -753,7 +753,7 @@ Castro::fourth_avisc(const Box& bx,
                      Array4<Real> const& avis,
                      const int idir) {
 
-  // this computes the *face-centered* artifical viscosity using the
+  // this computes the *face-centered* artificial viscosity using the
   // 4th order expression from McCorquodale & Colella (Eq. 35)
 
   constexpr Real beta = 0.3_rt;

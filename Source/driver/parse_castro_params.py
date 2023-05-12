@@ -148,7 +148,8 @@ def parse_params(infile, out_directory):
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
-        ifdefs = {q.ifdef for q in params_nm}
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
 
         # write name_declares.H
         try:
@@ -157,8 +158,8 @@ def parse_params(infile, out_directory):
             sys.exit(f"unable to open {nm}_declares.H for writing")
 
         cd.write(CWARNING)
-        cd.write(f"#ifndef _{nm.upper()}_DECLARES_H_\n")
-        cd.write(f"#define _{nm.upper()}_DECLARES_H_\n")
+        cd.write(f"#ifndef {nm.upper()}_DECLARES_H\n")
+        cd.write(f"#define {nm.upper()}_DECLARES_H\n")
 
         cd.write("\n")
         cd.write(f"namespace {nm} {{\n")
@@ -183,8 +184,8 @@ def parse_params(infile, out_directory):
             sys.exit(f"unable to open {nm}_params.H for writing")
 
         cp.write(CWARNING)
-        cp.write(f"#ifndef _{nm.upper()}_PARAMS_H_\n")
-        cp.write(f"#define _{nm.upper()}_PARAMS_H_\n")
+        cp.write(f"#ifndef {nm.upper()}_PARAMS_H\n")
+        cp.write(f"#define {nm.upper()}_PARAMS_H\n")
 
         cp.write("\n")
         cp.write(f"namespace {nm} {{\n")

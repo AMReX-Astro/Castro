@@ -6,8 +6,8 @@ stop_time =  6.e-5
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0        0    0
-geometry.prob_hi     = 1.6384e5
-amr.n_cell           = 256
+geometry.prob_hi     = 3.2768e5
+amr.n_cell           = 512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -39,7 +39,7 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
-castro.dtnuc_e        = 0.25
+#castro.dtnuc_e        = 0.25
 castro.use_retry      = 1
 castro.max_subcycles  = 32
 
@@ -101,7 +101,7 @@ integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
 
-integrator.jacobian = 2
+integrator.jacobian = 1
 integrator.ode_max_steps = 1500000
 
 integrator.abort_on_failure = 0

@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_util.H>
 #include <Castro_F.H>
-#include <Castro_hydro.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -28,8 +27,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+  if (verbose) {
+      amrex::Print() << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -39,7 +39,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   int coord = geom.Coord();
 #endif
 
+#if AMREX_SPACEDIM >= 2
   const Real *dx = geom.CellSize();
+#endif
 
   MultiFab& S_new = get_new_data(State_Type);
 
@@ -74,7 +76,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // Record a running total of the number of bytes allocated as temporary Fab data.
 
   size_t fab_size = 0;
+#ifdef AMREX_USE_GPU
   size_t mf_size = 0;
+#endif
   IntVect maximum_tile_size{0};
 
   // Our strategy for launching work on GPUs in the hydro is incompatible with OpenMP,
@@ -218,17 +222,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
               q_arr, qaux_arr);
 
-
-
+#if AMREX_SPACEDIM == 2
       Array4<Real const> const areax_arr = area[0].array(mfi);
-#if AMREX_SPACEDIM >= 2
       Array4<Real const> const areay_arr = area[1].array(mfi);
-#endif
-#if AMREX_SPACEDIM == 3
-      Array4<Real const> const areaz_arr = area[2].array(mfi);
-#endif
-
       Array4<Real> const vol_arr = volume.array(mfi);
+#endif
 
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
@@ -389,7 +387,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += div.nBytes();
       auto div_arr = div.array();
 
-      // compute divu -- we'll use this later when doing the artifical viscosity
+      // compute divu -- we'll use this later when doing the artificial viscosity
       divu(obx, q_arr, div_arr);
 
       flux[0].resize(gxbx, NUM_STATE);
@@ -592,9 +590,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdy);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
       // solve the final Riemann problem axross the x-interfaces
 
@@ -636,9 +634,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    vol_arr,
                    hdt, hdtdx);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 
       // solve the final Riemann problem axross the y-interfaces
@@ -969,9 +967,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdy, hdtdz);
 
-      reset_edge_state_thermo(xbx, ql.array());
+      reset_edge_state_thermo(xbx, ql_arr);
 
-      reset_edge_state_thermo(xbx, qr.array());
+      reset_edge_state_thermo(xbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -1048,9 +1046,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp1_arr,
                   hdtdx, hdtdz);
 
-      reset_edge_state_thermo(ybx, ql.array());
+      reset_edge_state_thermo(ybx, ql_arr);
 
-      reset_edge_state_thermo(ybx, qr.array());
+      reset_edge_state_thermo(ybx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -1129,9 +1127,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   qgdnvtmp2_arr,
                   hdtdx, hdtdy);
 
-      reset_edge_state_thermo(zbx, ql.array());
+      reset_edge_state_thermo(zbx, ql_arr);
 
-      reset_edge_state_thermo(zbx, qr.array());
+      reset_edge_state_thermo(zbx, qr_arr);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -1172,6 +1170,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
               flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+#ifdef NSE_NET
+	      flux_arr(i,j,k,UMUP) = 0.e0;
+	      flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
           });
 
@@ -1478,8 +1480,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+  if (verbose) {
+      amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
   if (verbose > 0)
     {
@@ -1491,8 +1494,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

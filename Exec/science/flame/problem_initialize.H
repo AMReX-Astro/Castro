@@ -93,7 +93,7 @@ void problem_initialize ()
     // equilibrium
 
     eos_state.rho = problem::rho_fuel;  // initial guess
-    eos_state.p = problem::p_fuel;      // pressure equilibrum
+    eos_state.p = problem::p_fuel;      // pressure equilibrium
     eos_state.T = problem::T_ash;
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = problem::xn_ash[n];
@@ -107,5 +107,20 @@ void problem_initialize ()
     // mass flux will be constant across the flame
 
     problem::mass_flux = problem::rho_fuel * problem::v_inflow;
+
+    // Set up Castro data logs for this problem
+
+    if (castro::sum_interval > 0 && amrex::ParallelDescriptor::IOProcessor()) {
+
+        Castro::problem_data_logs.resize(1);
+
+        Castro::problem_data_logs[0].reset(new std::fstream);
+        Castro::problem_data_logs[0]->open("toy_flame.log", std::ios::out | std::ios::app);
+        if (!Castro::problem_data_logs[0]->good()) {
+            amrex::FileOpenFailed("toy_flame.log");
+        }
+
+    }
+
 }
 #endif

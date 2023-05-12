@@ -8,6 +8,8 @@ void
 Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
 
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_old_rotation_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -18,10 +20,6 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
         return;
 
     }
-
-    const Real *dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -44,8 +42,7 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -57,6 +54,9 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
 void
 Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::construct_new_rotation_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -69,10 +69,6 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
     }
 
     // Now do corrector part of rotation source term update
-
-    const Real *dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -100,8 +96,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_rotation_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

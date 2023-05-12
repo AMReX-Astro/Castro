@@ -95,7 +95,7 @@ Castro computes the edge state of the radiation energy density as:
 
 .. math:: {E_r}_\mathrm{int} = {E_r}_\mathrm{ref} - (\beta^{(+)}+ \beta^{(-)}) h_r - \beta^{(0)}_{E_r}
 
-and we see that the total pressure can be constructued as
+and we see that the total pressure can be constructed as
 :math:`{p_\mathrm{tot}}_\mathrm{int} = p_\mathrm{int} + \lambda_f
 {E_r}_\mathrm{int}`, giving:
 
