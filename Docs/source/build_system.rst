@@ -25,7 +25,7 @@ These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
 
   * ``USE_ALL_CASTRO``: compile all of the core Castro directories.
-    This is the defailt (``TRUE``), and should not be changed for
+    This is the default (``TRUE``), and should not be changed for
     general simulations.  The purpose of this flag is for unit tests, which
     do not need all of the Castro directories compiled.  
 
@@ -177,10 +177,10 @@ Hydrodynamics and Source Term Parameters
 Simulation Flow Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  * ``USE_AUX_UPDATE``: some networks define auxillary quantities, which in general
+  * ``USE_AUX_UPDATE``: some networks define auxiliary quantities, which in general
     Castro will advect, but not otherwise change.  If we set ``USE_AUX_UPDATE=TRUE``
     then Castro will call a user-supplied routine ``advance_aux()`` that can
-    change the auxillary quantities.
+    change the auxiliary quantities.
 
     .. index:: USE_AUX_UPDATE
 

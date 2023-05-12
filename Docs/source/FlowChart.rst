@@ -59,7 +59,7 @@ The time-integration method used is controlled by
     method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
     additional EOS derivatives).
 
-  * ``time_integration_method = 3``: this is the simplifed SDC method
+  * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
@@ -175,7 +175,7 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantitiy evolution*
+#. [AUX_UPDATE] *Auxiliary quantity evolution*
 
    Auxiliary variables in Castro are those that obey a continuity
    equation (with optional sources) that are passed into the EOS, but
@@ -539,7 +539,7 @@ In the code, the objective is to evolve the state from the old time,
 
 #. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   We do the final :math:`\dt/2` reacting on the state, beginning with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
    This is largely the same as ``strang_react_first_half()``, but

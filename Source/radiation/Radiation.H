@@ -40,8 +40,6 @@ public:
   static int rad_hydro_combined;
   static int Er_Lorentz_term;
 
-  static int plot_lambda, plot_kappa_p, plot_kappa_r;
-  static int plot_lab_Er, plot_lab_flux, plot_com_flux;
   static int icomp_lambda, icomp_kp, icomp_kr;
   static int icomp_lab_Er, icomp_lab_Fr, icomp_com_Fr;
   static int nplotvar;   // extra plot variables

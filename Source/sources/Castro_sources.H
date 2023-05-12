@@ -174,7 +174,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    static void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
 
 
@@ -236,14 +236,14 @@
 ///
 /// Fill ``ext_src`` with external sources
 ///
-/// @param time     current time
-/// @param dt       timestep
-/// @param S_old    Old state
-/// @param S_new    New state
-/// @param ext_src MultiFab to save sources to
+/// @param time         current time
+/// @param dt           timestep
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param ext_src      MultiFab to save sources to
 ///
     void fill_ext_source(const amrex::Real time, const amrex::Real dt,
-                         const amrex::MultiFab& S_old, const amrex::MultiFab& S_new,
+                         const amrex::MultiFab& state_old, const amrex::MultiFab& state_new,
                          amrex::MultiFab& ext_src);
 
 
@@ -315,4 +315,4 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& S, amrex::MultiFab& ext_src);
+                          amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);

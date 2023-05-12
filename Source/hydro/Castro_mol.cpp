@@ -13,6 +13,7 @@
 #include <slope.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::mol_plm_reconstruct(const Box& bx,
@@ -48,7 +49,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                   (idir == 1 && j == domhi[1]) ||
                                   (idir == 2 && k == domhi[2]));
 
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn_arr(i,j,k);
 
     load_stencil(q_arr, idir, i, j, k, n, s);
@@ -65,11 +66,11 @@ Castro::mol_plm_reconstruct(const Box& bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
-      Real s[5];
+      Real s[nslp];
       Real flat = flatn_arr(i,j,k);
 
-      Real trho[5];
-      Real src[5];
+      Real trho[nslp];
+      Real src[nslp];
 
       bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
                                     (idir == 1 && j == domlo[1]) ||
@@ -155,7 +156,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn_arr(i,j,k);
     Real sm;
     Real sp;
