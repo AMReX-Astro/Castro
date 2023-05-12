@@ -6,7 +6,7 @@
 using namespace amrex;
 
 // Avoid the singularity in cylindrical coordinates
-static AMREX_GPU_MANAGED Real R_min = std::numeric_limits<Real>::min();
+constexpr Real R_min = std::numeric_limits<Real>::min();
 
 ///
 /// For hybrid momentum advection, convert the linear momentum into the
