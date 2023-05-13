@@ -152,6 +152,94 @@ void problem_source (int i, int j, int k,
             src(i,j,k,UEDEN) += rhoInv * mom[dir] * Sr[dir];
         } 
     }
+
+    // This is a different version of a inspiral driving force that matches the method
+    // from Pakmor et al. 2021 (https://academic.oup.com/mnras/article-abstract/503/4/4734/6166776),
+    // where a constant drift velocity is applied (see Equation 1 and 2).
+
+    if (problem::problem == 1 && problem::radial_drift_velocity > 0.0_rt && problem::mass_S > 0.0_rt &&
+        time < problem::radial_drift_time) {
+
+        GpuArray<Real, 3> acceleration = {0.0};
+
+        Real a_curr = 0.0_rt;
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            a_curr += (problem::com_P[dir] - problem::com_S[dir]) * (problem::com_P[dir] - problem::com_S[dir]);
+        }
+        a_curr = std::sqrt(a_curr);
+
+        Real mass_sum = problem::mass_P + problem::mass_S;
+        Real prefactor = 0.5_rt * C::Gconst / (a_curr * mass_sum);
+
+        if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), true) > 0.0_rt) {
+            GpuArray<Real, 3> v = {0.0_rt};
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v[dir] = problem::vel_P[dir];
+            }
+            if (castro::do_rotation == 1) {
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, v);
+            }
+
+            Real v_sq = 0.0_rt;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v_sq += v[dir] * v[dir];
+            }
+            v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
+
+            Real M = problem::mass_S;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                acceleration[dir] = -prefactor * (M * M) * (v[dir] / v_sq) * problem::radial_drift_velocity;
+            }
+        }
+        else if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), false) > 0.0_rt) {
+            GpuArray<Real, 3> v = {0.0_rt};
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v[dir] = problem::vel_S[dir];
+            }
+            if (castro::do_rotation == 1) {
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, v);
+            }
+
+            Real v_sq = 0.0_rt;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v_sq += v[dir] * v[dir];
+            }
+            v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
+
+            Real M = problem::mass_P;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                acceleration[dir] = -prefactor * (M * M) * (v[dir] / v_sq) * problem::radial_drift_velocity;
+            }
+        }
+
+        // if (castro::do_rotation == 1) {
+        //     inertial_to_rotational_velocity(i, j, k, geomdata, time, acceleration);
+        // }
+
+        GpuArray<Real, 3> Sr = {0.0};
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            Sr[dir] = state(i,j,k,URHO) * acceleration[dir];
+        }
+
+#ifdef HYBRID_MOMENTUM
+        GpuArray<Real, 3> loc;
+        position(i, j, k, geomdata, loc);
+
+        GpuArray<Real, 3> hybrid_Sr = {0.0};
+        linear_to_hybrid(loc, Sr, hybrid_Sr);
+
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            src(i,j,k,UMR+dir) += hybrid_Sr[dir];
+        }
+#endif
+
+        Real rhoInv = 1.0_rt / state(i,j,k,URHO);
+
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            src(i,j,k,UMX+dir) += Sr[dir];
+            src(i,j,k,UEDEN) += rhoInv * state(i,j,k,UMX+dir) * Sr[dir];
+        }
+    }
 }
 
 #endif
