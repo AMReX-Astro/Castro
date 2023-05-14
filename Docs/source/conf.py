@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
@@ -117,7 +116,7 @@ todo_include_todos = False
 # -- Options for MathJax
 mathjax3_config = {'tex': {'macros': {}}}
 
-with open('mathsymbols.tex', 'r') as f:
+with open('mathsymbols.tex') as f:
     for line in f:
         macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
         for macro in macros:
