@@ -53,7 +53,7 @@ int main(){
   Td = 1500.0;                              //T_deep : the temperature at the top of the atmosphere[K]
   P_char = 1.0e6;
   T_char = 250.0;
-  dP = 1.0e+3;                              //dP defaul value
+  dP = 1.0e+3;                              //dP default value
   Lad = (2.0/7.0);                          //the adiabatic index of an ideal diatomic gas
   Lin = (1.0/2.0);
   grav = -1.0e3;                            //constant gravity [cm/s^2]
@@ -84,7 +84,7 @@ int main(){
   z_at_1opticaldepth=0.0;
   data_output.open ("newmodelcpp.hse",ios::out);
 
-  //Choosing either continous pressure or density at the boundary between the buffer and the atmosphere
+  //Choosing either continuous pressure or density at the boundary between the buffer and the atmosphere
   continuous_P = true;
   continuous_rho = false;
   

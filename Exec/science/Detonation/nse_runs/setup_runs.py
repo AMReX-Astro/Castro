@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import shlex
 import shutil
 import subprocess
-import shlex
 from multiprocessing import Pool
 
 # parameters for all methods
@@ -60,7 +60,7 @@ def setup_runs():
 
     job_list.append(odir)
 
-    # dump the metdata file
+    # dump the metadata file
     with open(f"{odir}/run.meta", "w") as meta:
         meta.write(f"cfl = {REFERENCE_CFL}\n")
         meta.write(f"nzones = {REFERENCE_NZONES}\n")
@@ -93,7 +93,7 @@ def setup_runs():
 
                     job_list.append(odir)
 
-                    # dump the metdata file
+                    # dump the metadata file
                     with open(f"{odir}/run.meta", "w") as meta:
                         meta.write(f"cfl = {c}\n")
                         meta.write(f"nzones = {nz}\n")
@@ -126,7 +126,7 @@ def setup_runs():
 
                         job_list.append(odir)
 
-                        # dump the metdata file
+                        # dump the metadata file
                         with open(f"{odir}/run.meta", "w") as meta:
                             meta.write(f"cfl = {c}\n")
                             meta.write(f"nzones = {nz}\n")
@@ -161,7 +161,7 @@ def setup_runs():
 
                             job_list.append(odir)
 
-                            # dump the metdata file
+                            # dump the metadata file
                             with open(f"{odir}/run.meta", "w") as meta:
                                 meta.write(f"cfl = {c}\n")
                                 meta.write(f"nzones = {nz}\n")

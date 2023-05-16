@@ -153,6 +153,14 @@ public:
     ~Castro () override;
 
 ///
+/// Remove copy/move constructors/assignment operators.
+///
+    Castro (const Castro&) = delete;
+    Castro (Castro&&) = delete;
+    Castro& operator= (const Castro&) = delete;
+    Castro& operator= (Castro&&) = delete;
+
+///
 /// Restart from a checkpoint file.
 ///
 /// @param papa             parent ``amrex::Amr`` object

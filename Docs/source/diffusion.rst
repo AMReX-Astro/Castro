@@ -1,12 +1,8 @@
 .. _ch:diffusion:
 
-*********
-Diffusion
-*********
-
-
+*****************
 Thermal Diffusion
-=================
+*****************
 
 Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, :math:`e`, this appears as:
@@ -16,6 +12,25 @@ In terms of the specific internal energy, :math:`e`, this appears as:
 where :math:`\kth` is the thermal conductivity, with units
 :math:`\mathrm{erg~cm^{-1}~s^{-1}~K^{-1}}`.
 
+.. note::
+
+   To enable diffusion, you need to compile with:
+
+   ::
+
+     USE_DIFFUSION=TRUE
+
+It is treated explicitly, by constructing the contribution to the evolution as a
+source term. This is time-centered to achieve second-order accuracy
+in time.
+
+
+Timestep Limiter
+================
+
+Castro integrates diffusion explicitly in time&mdash;this means that
+there is a diffusion timestep limiter.
+
 To see the similarity to the thermal diffusion equation, consider the
 special case of constant conductivity, :math:`\kth`, and density, and
 assume an ideal gas, so :math:`e = c_v T`, where :math:`c_v` is the
@@ -24,71 +39,26 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 
 .. math:: \frac{\partial T}{\partial t} = D \nabla^2 T
 
-where :math:`D \equiv \kth/(\rho c_v)`. Solving this equation
-explicitly requires a timestep limiter of
+where :math:`D \equiv \kth/(\rho c_v)`. 
+
+The timestep limiter for this is:
 
 .. math:: \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 
-(this is implemented in ``ca_estdt_temp_diffusion`` in
-``Castro/Source/driver/timestep.F90``).
+This is implemented in ``estdt_temp_diffusion``.
 
-Support for diffusion must be compiled into the code by setting
-``USE_DIFFUSION = TRUE`` in your ``GNUmakefile``. It is treated
-explicitly, by constructing the contribution to the evolution as a
-source term. This is time-centered to achieve second-order accuracy
-in time.
+
+Runtime Parameters
+==================
 
 The following parameter affects diffusion:
 
--  ``castro.diffuse_temp``: enable thermal diffusion (0 or 1; default 0)
+*  ``castro.diffuse_temp``: enable thermal diffusion (0 or 1; default 0)
 
-A pure diffusion problem (with no hydrodynamics) can be run by setting::
+   A pure diffusion problem (with no hydrodynamics) can be run by setting::
 
-    castro.diffuse_temp = 1
-    castro.do_hydro = 0
-
-To complete the setup, a thermal conductivity must be specified. The
-interface for the conductivity is::
-
-      subroutine actual_conductivity(eos_state)
-
-        type (eos_t), intent(inout) :: eos_state
-
-The density, temperature, and mass fractions come in through the
-``eos_state`` type. An EOS call is done in Castro just before the call to
-``thermal_conductivity``, so you can assume that the entire state is
-consistent.  The conductivity is filled in ``eos_state % conductivity``.
-
-.. index:: CONDUCTIVITY_DIR
-
-There are two conductivity routines provided with Castro by default:
-
--  ``constant`` : A simple constant thermal conductivity. This can be
-   selected by setting::
-
-       CONDUCTIVITY_DIR := constant
-
-   in your ``GNUmakefile``. To set the value of the conductivity (e.g., to
-   :math:`100`), you add to your input file::
-
-       conductivity.const_conductivity = 100.0
-
--  ``constant_opacity`` : A simple constant opacity. This is
-   converted to an opacity as:
-
-   .. math:: \kth = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
-
-   where :math:`\kappa_\mathrm{const}` is the opacity, with units :math:`\mathrm{cm^2~g^{-1}}`.
-   This is selected by setting::
-
-       CONDUCTIVITY_DIR := constant_opacity
-
-   in your ``GNUmakefile``. To set the value of the opacity, e.g., to
-   0.2 (for electron scattering), set::
-
-       conductivity.const_opacity = 0.2
-
-   in the inputs file.
+      castro.diffuse_temp = 1
+      castro.do_hydro = 0
 
 .. index:: castro.diffusion_cutoff_density, castro.diffusion_cutoff_density_hi
 
@@ -111,6 +81,57 @@ code by linearly scaling the conductivity to zero between these limits, e.g.,
 
    \kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}
 
+Conductivities
+==============
+
+To complete the setup, a thermal conductivity must be specified. These 
+are supplied by Microphysics, and use an interface similar to the
+equation of state interface.
+
+.. index:: CONDUCTIVITY_DIR
+
+.. note::
+
+   The choice of conductivity must be specified at compile-time via
+   the ``CONDUCTIVITY_DIR`` option.
+
+The current choices of conductivity are:
+
+* ``constant`` : A simple constant thermal conductivity. This can be
+  selected by setting::
+
+       CONDUCTIVITY_DIR := constant
+
+  in your ``GNUmakefile``. To set the value of the conductivity (e.g., to
+  :math:`100`), you add to your input file::
+
+       conductivity.const_conductivity = 100.0
+
+* ``constant_opacity`` : A simple constant opacity. This is
+  converted to an opacity as:
+
+  .. math::
+
+      \kth = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}
+
+  where :math:`\kappa_\mathrm{const}` is the opacity, with units :math:`\mathrm{cm^2~g^{-1}}`.
+  This is selected by setting::
+
+       CONDUCTIVITY_DIR := constant_opacity
+
+  in your ``GNUmakefile``. To set the value of the opacity, e.g., to
+  0.2 (for electron scattering), set::
+
+       conductivity.const_opacity = 0.2
+
+  in the inputs file.
+
+* ``stellar`` : This is the set of conductivities and radiative opacities
+  appropriate for stellar interiors described in :cite:`timmes_he_flames`.
+
+
+Unit Tests
+==========
 
 A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as ``diffusion_test``.

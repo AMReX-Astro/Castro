@@ -101,7 +101,7 @@
 /// @param Erin      radiation energy (if USE_RAD=TRUE)
 /// @param lam       radiation flux limiter (if USE_RAD=TRUE)
 /// @param q_arr     output primitive state
-/// @param qaux_arr  output auxillary quantities
+/// @param qaux_arr  output auxiliary quantities
 ///
     static void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
@@ -155,7 +155,7 @@
               amrex::Array4<amrex::Real> const& div);
 
 ///
-/// Update the flux with the artifical viscosity.  This is a 2nd order
+/// Update the flux with the artificial viscosity.  This is a 2nd order
 /// accurate implementation.
 ///
 /// @param bx    the box to operate over
@@ -172,7 +172,7 @@
 
 #ifdef RADIATION
 ///
-/// Update the radiation flux with the artifical viscosity.  This is a 2nd order
+/// Update the radiation flux with the artificial viscosity.  This is a 2nd order
 /// accurate implementation.
 ///
 /// @param bx       the box to operate over
@@ -221,7 +221,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -262,7 +262,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -304,7 +304,7 @@
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
 /// @param q_arr    the primitive variable state
-/// @param qaux_arr the auxillary state
+/// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
 /// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
 /// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
@@ -454,7 +454,7 @@
 /// @param qmo       updated left interface state
 /// @param qp        input right interface state
 /// @param qpo       updated right interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t    flux in the idir_t direction
 /// @param rflux_t   radiation flux in the idir_t direction
 /// @param q_t       Godunov state in the idir_t direction
@@ -492,7 +492,7 @@
 ///                  we are updating
 /// @param q_arr     input interface state
 /// @param qo_arr    updated interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t    flux in the idir_t direction
 /// @param rflux_t   radiation flux in the idir_t direction
 /// @param q_t       Godunov state in the idir_t direction
@@ -530,7 +530,7 @@
 /// @param qmo       updated left interface state
 /// @param qp        input right interface state
 /// @param qpo       updated right interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t1   flux in the idir_t1 direction
 /// @param rflux_t1  radiation flux in the idir_t1 direction
 /// @param flux_t2   flux in the idir_t2 direction
@@ -571,7 +571,7 @@
 /// @param d         a flag set by the driver to indicate which state we are operating on
 /// @param q_arr     input interface state
 /// @param qo_arr    updated interface state
-/// @param qaux      auxillary state
+/// @param qaux      auxiliary state
 /// @param flux_t1   flux in the idir_t1 direction
 /// @param rflux_t1  radiation flux in the idir_t1 direction
 /// @param flux_t2   flux in the idir_t2 direction
@@ -608,7 +608,7 @@
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr     primitive variable state
-/// @param qaux_arr  the auxillary state
+/// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
@@ -668,7 +668,7 @@
 /// @param bx           the box to operate over
 /// @param idir         coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr        primitive variable state
-/// @param qaux_arr     the auxillary state
+/// @param qaux_arr     the auxiliary state
 /// @param qm           left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp           right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga        geometric factor dlog(area)
@@ -699,7 +699,7 @@
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr     primitive variable state
-/// @param qaux_arr  the auxillary state
+/// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
@@ -767,7 +767,7 @@
 /// @param flx         flux through the interface
 /// @param rflux       radiation fluxes through the interface
 /// @param qgdnv       Godunov state on the interface [either NQ or NGDNV]
-/// @param qaux        auxillary state
+/// @param qaux        auxiliary state
 /// @param shk         shock flag
 /// @param idir        coordinate direction of the solve (0 = x, 1 = y, 2 = z)
 /// @param store_full_state do we store all NQ or just the NGDNV subset in qgdnv

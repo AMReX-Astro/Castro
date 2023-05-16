@@ -24,7 +24,7 @@ dt < 0.5 dx^2/D
 
 For constant diffusion coefficient, there is an analytic solution: the
 diffusion of a Gaussian remains Gaussian, with the amplitude
-descreasing and the width increasing with time.
+decreasing and the width increasing with time.
 
 
 # Testing

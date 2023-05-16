@@ -131,7 +131,7 @@ Profiling
 
 #. *How can I get line-by-line profiling information?*
 
-   With the GNU compliers, you can enabling profiling with gprof
+   With the GNU compilers, you can enabling profiling with gprof
    by compiling with
 
    ::

@@ -56,6 +56,14 @@ public:
   ~Gravity ();
 
 ///
+/// Remove copy/move constructors/assignment operators.
+///
+  Gravity (const Gravity&) = delete;
+  Gravity (Gravity&&) = delete;
+  Gravity& operator= (const Gravity&) = delete;
+  Gravity& operator= (Gravity&&) = delete;
+
+///
 /// Read gravity-related parameters from parameter file
 ///
   void read_params ();
