@@ -11,3 +11,5 @@ pandoc
 jupyter
 sphinx-prompt
 codespell
+sphinx-math-dollar
+sphinx-copybutton
