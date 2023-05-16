@@ -42,3 +42,8 @@ jobs:
         run: |
           cd Docs/
           make SPHINXOPTS=-v NO_DOXYGEN=TRUE html
+
+      - name: Check links
+        run: |
+          cd Docs/
+          make SPHINXOPTS=-v NO_DOXYGEN=TRUE linkcheck

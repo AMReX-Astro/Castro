@@ -99,13 +99,13 @@ validate_runparams()
     check_namespaces.push_back("conductivity");
 #endif
 
-    for (auto nm: check_namespaces)
+    for (const auto& nm: check_namespaces)
     {
         // "castro"
         if (ParmParse::hasUnusedInputs(nm)) {
             amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
             auto unused = ParmParse::getUnusedInputs(nm); 
-            for (auto p: unused) {
+            for (const auto& p: unused) {
                 amrex::Print() << p << "\n";
             }
             amrex::Print() << std::endl;

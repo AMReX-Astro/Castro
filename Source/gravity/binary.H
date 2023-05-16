@@ -25,6 +25,9 @@ Real cforce (Real M, Real a, Real r)
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real dcforcedr (Real M, Real a, Real r)
 {
+
+    amrex::ignore_unused(r);
+
     return C::Gconst * M / (a * a * a);
 }
 
@@ -42,12 +45,12 @@ Real fL (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real fdLdr (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 {
-    Real dg1 = dgforcedr(M1, r - r1);
-    Real dg2 = dgforcedr(M2, r - r2);
+    Real dg_1 = dgforcedr(M1, r - r1);
+    Real dg_2 = dgforcedr(M2, r - r2);
 
     Real dc = dcforcedr(M1 + M2, a, r);
 
-    return dg1 + dg2 + dc;
+    return dg_1 + dg_2 + dc;
 }
 
 

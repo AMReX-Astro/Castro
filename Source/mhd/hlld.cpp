@@ -55,7 +55,7 @@ Castro::hlld(const Box& bx,
     UMAGP1 = UMAGZ;
     UMAGP2 = UMAGX;
 
-  } else if (dir == 2) {
+  } else {  // dir == 2
     QMAGN  = QMAGZ;
     QMAGP1 = QMAGX;
     QMAGP2 = QMAGY;

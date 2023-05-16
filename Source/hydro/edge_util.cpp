@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_hydro.H>
 
 using namespace amrex;
 

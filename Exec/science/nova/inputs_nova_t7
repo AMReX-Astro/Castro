@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 200000
+max_step = 300000
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1          0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0          0
-geometry.prob_hi     = 12.288e7   6.144e7
-amr.n_cell           = 384        192
+geometry.prob_hi     = 16.192e7   8.096e7
+amr.n_cell           = 512        256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -29,6 +29,7 @@ castro.do_hydro = 1           #hydrodynamics
 castro.do_react = 1           #microphysics
 castro.do_grav = 1            #gravity
 castro.do_sponge = 0          #using sponge
+castro.diffuse_temp = 1
 
 castro.ppm_type = 1
 castro.grav_source_type = 2
@@ -48,6 +49,9 @@ gravity.const_grav   = -7.06e8
 castro.react_rho_min = 6.0e1
 castro.react_T_min = 5.0e6
 
+castro.diffuse_cutoff_density = 1.0e2
+castro.diffuse_cutoff_density_hi = 2.0e4
+
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
@@ -60,12 +64,14 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 5             # maximum level number allowed
-amr.ref_ratio       = 2 2 2 2 2 2   # refinement ratio
-amr.regrid_int      = 2 2 2 2 2 2   # how often to regrid
-amr.blocking_factor = 32            # block factor in grid generation
-#amr.max_grid_size   = 256
-amr.n_error_buf     = 2 2 2 2 2 2   # number of buffer cells in error est
+amr.max_level       = 5            # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2    # refinement ratio
+amr.regrid_int      = 2 2 2 2 2    # how often to regrid
+amr.max_grid_size   = 192
+amr.blocking_factor = 32
+amr.n_error_buf     = 2 2 2 2 2    # number of buffer cells in error est
+amr.refine_grid_layout = 0
+
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
@@ -92,7 +98,7 @@ problem.width_ratio = 1.8
 
 # Microphysics
 
-integrator.jacobian = 2
+integrator.jacobian = 1
 integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6

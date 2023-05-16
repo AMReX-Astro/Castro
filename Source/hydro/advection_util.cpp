@@ -39,6 +39,8 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
+  amrex::ignore_unused(time);
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -230,15 +232,12 @@ Castro::divu(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const int coord_type = geom.Coord();
-#endif
-
   const auto problo = geom.ProbLoArray();
+#endif
 
   Real dxinv = 1.0_rt / dx[0];
 #if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt / dx[1];
-#else
-  Real dyinv = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
@@ -351,13 +350,19 @@ Castro::apply_av(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
-    if (n == UTEMP) return;
+    if (n == UTEMP) {
+        return;
+    }
 #ifdef SHOCK_VAR
-    if (n == USHK) return;
+    if (n == USHK) {
+        return;
+    }
 #endif
-    
+
 #ifdef NSE_NET
-    if (n == UMUP || n == UMUN) return;
+    if (n == UMUP || n == UMUN) {
+        return;
+    }
 #endif
     Real div1;
     if (idir == 0) {
@@ -473,7 +478,7 @@ Castro::normalize_species_fluxes(const Box& bx,
 }
 
 
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::scale_flux(const Box& bx,
 #if AMREX_SPACEDIM == 1
                    Array4<Real const> const& qint,
@@ -517,14 +522,14 @@ Castro::scale_rad_flux(const Box& bx,
 #endif
 
 
-
+#ifndef MHD
 void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
                                          Array4<Real const> const& u,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt,
                                          bool scale_by_dAdt)
 {
@@ -579,8 +584,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         Real flux_coefL = 1.0_rt / volL;
 
         if (scale_by_dAdt) {
-            flux_coefR *= dt * area(i,j,k);
-            flux_coefL *= dt * area(i,j,k);
+            flux_coefR *= dt * area_arr(i,j,k);
+            flux_coefL *= dt * area_arr(i,j,k);
         }
 
         // Updates to the zones on either side of the interface.
@@ -621,10 +626,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     });
 }
+#endif
 
 
-
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
                                    const int verbose) {

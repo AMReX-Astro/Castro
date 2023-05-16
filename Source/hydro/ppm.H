@@ -2,11 +2,11 @@
 #include <cmath>
 #include <reconstruction.H>
 
-#ifndef _ppm_H_
-#define _ppm_H_
+#ifndef PPM_H
+#define PPM_H
 
 using namespace amrex;
-
+using namespace reconstruction;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int
@@ -46,7 +46,7 @@ check_trace_source(Array4<Real const> const& srcQ, const int idir,
 /// Compute the coefficients of a parabolic reconstruction of the data in a zone.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
 ///
-/// @param s      Real[5] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
+/// @param s      Real[nslp] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
 /// @param flatn  The flattening coefficient
 /// @param sm     The value of the parabola on the left edge of the zone
 /// @param sp     The value of the parabola on the right edge of the zone
@@ -145,9 +145,9 @@ ppm_reconstruct(const Real* s,
 /// the gravitational force by only limiting on the wave-generating pressure.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
 ///
-/// @param rho          Real[5] giving the density in zones i-2, i-1, i, i+1, i+2
-/// @param p           Real[5] giving the pressure in zones i-2, i-1, i, i+1, i+2
-/// @param src         Real[5] the source in the velocity equation (e.g. g) in zones
+/// @param rho          Real[nslp] giving the density in zones i-2, i-1, i, i+1, i+2
+/// @param p           Real[nslp] giving the pressure in zones i-2, i-1, i, i+1, i+2
+/// @param src         Real[nslp] the source in the velocity equation (e.g. g) in zones
 ///                    i-2, i-1, i, i+2, i+2
 /// @param flatn       flattening coefficient
 /// @param lo_bc_test  true if a physical boundary is just to the left of this zone
@@ -162,7 +162,7 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src, const Re
                        const Real dx,
                        Real& sm, Real& sp) {
 
-    Real tp[5];
+    Real tp[nslp];
 
     // compute the hydrostatic pressure in each zone center starting with i0
 
