@@ -3,10 +3,6 @@
 
 #include <state_indices.H>
 
-#ifdef MHD
-#include <mhd_sizes.H>
-#endif
-
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
@@ -155,6 +151,14 @@ public:
 /// The destructor.
 ///
     ~Castro () override;
+
+///
+/// Remove copy/move constructors/assignment operators.
+///
+    Castro (const Castro&) = delete;
+    Castro (Castro&&) = delete;
+    Castro& operator= (const Castro&) = delete;
+    Castro& operator= (Castro&&) = delete;
 
 ///
 /// Restart from a checkpoint file.
@@ -456,7 +460,7 @@ public:
 ///                    time + dt)
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real dt, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, const advance_status& status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -518,7 +522,7 @@ public:
 /// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
-    void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+    static void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
 
 #include <Castro_sources.H>
@@ -699,14 +703,14 @@ public:
 ///
 /// Error estimation for regridding.
 ///
-/// @param tb           TagBoxArray of tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval     integer
 /// @param tagval       integer
 /// @param time         current time
 /// @param n_error_buf  integer
 /// @param ngrow        Number of ghost cells
 ///
-    void errorEst (amrex::TagBoxArray& tb,
+    void errorEst (amrex::TagBoxArray& tags,
                    int          clearval,
                    int          tagval,
                    amrex::Real  time,
@@ -799,7 +803,7 @@ public:
 /// @param bx       Box to update
 /// @param u        Current state (Fab)
 ///
-    void reset_internal_energy (const amrex::Box& bx,
+    static void reset_internal_energy (const amrex::Box& bx,
 #ifdef MHD
                                 amrex::Array4<amrex::Real> const Bx,
                                 amrex::Array4<amrex::Real> const By,
@@ -976,24 +980,13 @@ public:
 ///
 /// Are we using point mass gravity?
 ///
-    int using_point_mass ();
+    static int using_point_mass ();
 
 ///
 /// Return the value of the point mass.
 ///
-    amrex::Real get_point_mass ();
+    static amrex::Real get_point_mass ();
 #endif
-
-
-///
-/// Add source terms to ``state``
-///
-/// @param state    State
-/// @param source   Source terms
-/// @param dt       timestep
-/// @param ng       number of ghost cells
-///
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -1065,7 +1058,7 @@ public:
 /// @param S_new    State
 /// @param ng       number of ghost cells
 ///
-    void normalize_species (amrex::MultiFab& S_new, int ng);
+    static void normalize_species (amrex::MultiFab& S_new, int ng);
 
 
 ///
@@ -1076,7 +1069,7 @@ public:
 ///
 /// @param S  State
 ///
-    void enforce_consistent_e (
+    static void enforce_consistent_e (
 #ifdef MHD
                                amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
 #endif
@@ -1098,7 +1091,7 @@ public:
 /// @param state        state
 /// @param ng           number of ghost cells
 ///
-    void enforce_speed_limit (amrex::MultiFab& state, int ng);
+    static void enforce_speed_limit (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -1170,13 +1163,13 @@ public:
     void pointmass_update(amrex::Real time, amrex::Real dt);
 #endif
 
-    void stopJob ();
+    static void stopJob ();
 
 ///
 /// Returns true if we're on the GPU and the total
 /// memory on this level oversubscribes GPU memory.
 ///
-    bool oversubscribing() {
+    bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
         return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
 #else

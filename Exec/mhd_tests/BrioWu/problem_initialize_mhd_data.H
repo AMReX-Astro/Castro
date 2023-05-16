@@ -6,7 +6,6 @@ void problem_initialize_mhd_data (int i, int j, int k,
                                   Array4<Real> const& B, const int ibdir,
                                   const GeometryData& geomdata)
 {
-    int coord_type = geomdata.Coord();
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();

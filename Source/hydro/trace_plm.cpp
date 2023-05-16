@@ -13,6 +13,7 @@
 #include <flatten.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::trace_plm(const Box& bx, const int idir,
@@ -50,7 +51,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
 #ifndef AMREX_USE_GPU
   if (ppm_type != 0) {
-    std::cout << "Oops -- shouldnt be in tracexy with ppm_type != 0" << std::endl;
+    std::cout << "Oops -- shouldn't be in tracexy with ppm_type != 0" << std::endl;
     amrex::Error("Error:: trace_3d.f90 :: tracexy");
   }
 #endif
@@ -121,7 +122,7 @@ Castro::trace_plm(const Box& bx, const int idir,
     Real enth = (rhoe+p)/(rho*csq);
 
     Real dq[NEIGN];
-    Real s[5];
+    Real s[nslp];
 
     Real flat = 1.0;
 
@@ -158,8 +159,8 @@ Castro::trace_plm(const Box& bx, const int idir,
     // are we doing well-balanced?
     if (use_pslope == 1) {
 
-      Real trho[5];
-      Real src[5];
+      Real trho[nslp];
+      Real src[nslp];
 
       load_stencil(q_arr, idir, i, j, k, QPRES, s);
       load_stencil(q_arr, idir, i, j, k, QRHO, trho);

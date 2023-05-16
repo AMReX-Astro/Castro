@@ -21,8 +21,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     auto domlo = geom.Domain().loVect3d();
     auto domhi = geom.Domain().hiVect3d();
 
-    auto lo = bx.loVect();
-    auto hi = bx.hiVect();
+    const auto *lo = bx.loVect();
+    const auto *hi = bx.hiVect();
 
     auto adv_bx = Box(adv);
     auto adv_lo = adv_bx.loVect3d();
@@ -48,8 +48,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domlo[0]-1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE ([[maybe_unused]] int i, int j, int k)
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+
+                amrex::ignore_unused(i);
 
                 Real dens_above = adv(domlo[0],j,k,URHO);
                 Real temp_above = adv(domlo[0],j,k,UTEMP);
@@ -242,8 +244,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE ([[maybe_unused]] int i, int j, int k)
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+
+                amrex::ignore_unused(i);
 
                 Real dens_below = adv(domhi[0],j,k,URHO);
                 Real temp_below = adv(domhi[0],j,k,UTEMP);
@@ -436,8 +440,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domlo[1]-1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, [[maybe_unused]] int j, int k)
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+
+                amrex::ignore_unused(j);
 
                 Real dens_above = adv(i,domlo[1],k,URHO);
                 Real temp_above = adv(i,domlo[1],k,UTEMP);
@@ -628,8 +634,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domhi[1]+1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, [[maybe_unused]] int j, int k)
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+
+                amrex::ignore_unused(j);
 
                 Real dens_below = adv(i,domhi[1],k,URHO);
                 Real temp_below = adv(i,domhi[1],k,UTEMP);
@@ -821,8 +829,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], hi[1], domlo[2]-1)));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, [[maybe_unused]] int k)
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
+
+                amrex::ignore_unused(k);
 
                 Real dens_above = adv(i,j,domlo[2],URHO);
                 Real temp_above = adv(i,j,domlo[2],UTEMP);

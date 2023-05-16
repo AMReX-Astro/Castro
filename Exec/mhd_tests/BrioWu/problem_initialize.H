@@ -9,7 +9,6 @@ void problem_initialize ()
 {
     const Geometry& dgeom = DefaultGeometry();
 
-    const int coord_type = dgeom.Coord();
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
 

@@ -10,7 +10,7 @@ Introduction
 Castro has three radiation solvers:
 
 -  SingleGroupSolver: this solver does not have radiation
-   pressre. It is pure hydro plus radiation diffusion. This is only
+   pressure. It is pure hydro plus radiation diffusion. This is only
    applicable when the medium is optically thick and the pressure is small.
 
 -  SGFLDSolver: this is the gray flux-limited diffusion
@@ -481,7 +481,7 @@ radiation.absInTol = 0.0
 
 radiation.convergence_check_type = 0
     |
-    | For the MG solver only. This specifiy the way of checking the
+    | For the MG solver only. This specify the way of checking the
       convergence of an outer iteration. Possible values are
 
     -  0: Check :math:`T`, :math:`Y_e`, and the residues of the equations for

@@ -30,7 +30,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 
   Real mult_factor = 1.0;
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -42,8 +42,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -78,7 +77,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
   Real mult_factor = -0.5;
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);   // NOLINT(readability-suspicious-call-argument)
 
   // Time center with the new data
 
@@ -88,7 +87,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
   fill_geom_source(time, dt, state_new, geom_src);
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);   // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -100,8 +99,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif

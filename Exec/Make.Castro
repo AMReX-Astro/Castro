@@ -1,5 +1,8 @@
 CASTRO_HOME ?= /path/to/Castro
 
+# clang-tidy support via AMReX
+CLANG_TIDY_CONFIG_FILE := $(CASTRO_HOME)/.clang-tidy
+
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
@@ -59,7 +62,7 @@ CXXSTD := c++17
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
-# number of passively advected quantities that are not species or auxillary
+# number of passively advected quantities that are not species or auxiliary
 NUMADV ?= 0
 
 # number of radiation groups
@@ -357,7 +360,7 @@ clean::
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
-# can get rid of explicitly removing them (this is for backwards compatability)
+# can get rid of explicitly removing them (this is for backwards compatibility)
 clean::
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 

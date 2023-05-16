@@ -1123,15 +1123,13 @@ which takes values:
 Resets
 ======
 
-Density Resets
---------------
-
-Need to document density_reset_method
 
 .. _app:hydro:flux_limiting:
 
 Flux Limiting
 -------------
+
+.. index:: castro.limit_fluxes_on_small_dens, castro.small_dens
 
 Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
@@ -1149,7 +1147,7 @@ limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
 implements the positivity-preserving method of :cite:`hu:2013`. This
 behavior is controlled by
-castro.limit_fluxes_on_small_dens.
+``castro.limit_fluxes_on_small_dens``.
 
 A hydrodynamical update to a zone can be broken down into an update
 over every face of the zone where a flux crosses the face over the
@@ -1174,7 +1172,7 @@ guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,
-castro.small_dens, and solving
+``castro.small_dens``, and solving
 for the value of :math:`\theta` at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 :math:`\theta \approx 1` and the original hydrodynamic update is recovered.

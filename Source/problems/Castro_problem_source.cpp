@@ -9,7 +9,9 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     MultiFab ext_src(grids, dmap, source.nComp(), 0);
 
@@ -19,7 +21,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 
     Real mult_factor = 1.0;
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
     if (verbose > 1)
     {
@@ -31,8 +33,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -46,7 +47,9 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 {
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!add_ext_src) return;
+    if (!add_ext_src) {
+        return;
+    }
 
     // In this routine, we have two options: we can either do an
     // explicit predictor-corrector solve, or an implicit solve.
@@ -75,7 +78,7 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     fill_ext_source(old_time, dt, state_old, state_old, ext_src);
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
     // Time center with the new data.
 
@@ -89,7 +92,7 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     fill_ext_source(time, dt, state_old, state_new, ext_src);
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
     if (verbose > 1)
     {
@@ -101,8 +104,7 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

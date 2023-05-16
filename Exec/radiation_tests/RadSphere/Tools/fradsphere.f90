@@ -111,7 +111,7 @@ program fradsphere
   endif
 
   ! get the index bounds and dx for the coarse level.  Note, lo and hi are
-  ! ZERO based indicies
+  ! ZERO based indices
   lo(:) = ZERO
   hi(:) = ZERO
 

@@ -46,14 +46,22 @@ public:
 /// @param Parent           Parent ``Amr`` object
 /// @param _finest_level    finest level
 /// @param _phys_bc         ``BCRec`` object, physical boundary conditions
-/// @param _Density         index of density component
+/// @param _density         index of density component
 ///
-  Gravity(amrex::Amr* Parent, int _finest_level, amrex::BCRec* _phys_bc, int _Density);
+  Gravity(amrex::Amr* Parent, int _finest_level, amrex::BCRec* _phys_bc, int _density);
 
 ///
 /// Deconstructor
 ///
   ~Gravity ();
+
+///
+/// Remove copy/move constructors/assignment operators.
+///
+  Gravity (const Gravity&) = delete;
+  Gravity (Gravity&&) = delete;
+  Gravity& operator= (const Gravity&) = delete;
+  Gravity& operator= (Gravity&&) = delete;
 
 ///
 /// Read gravity-related parameters from parameter file
@@ -64,7 +72,7 @@ public:
 ///
 /// @param jobInfoFile      std::ostream object
 ///
-  void output_job_info_params(std::ostream& jobInfoFile);
+  static void output_job_info_params(std::ostream& jobInfoFile);
 
 
 ///
@@ -90,32 +98,32 @@ public:
 ///
 /// Returns ``gravity_type``
 ///
-  std::string get_gravity_type ();
+  static std::string get_gravity_type ();
 
 ///
 /// Returns ``max_solve_level``
 ///
-  int get_max_solve_level();
+  static int get_max_solve_level();
 
 ///
 /// Returns ``no_sync``
 ///
-  int NoSync();
+  static int NoSync();
 
 ///
 /// Returns ``no_composite``
 ///
-  int NoComposite();
+  static int NoComposite();
 
 ///
 /// Returns ``do_composite_phi_correction``
 ///
-  int DoCompositeCorrection();
+  static int DoCompositeCorrection();
 
 ///
 /// Returns ``test_solves``
 ///
-  int test_results_of_solves ();
+  static int test_results_of_solves ();
 
 
 ///
@@ -293,7 +301,7 @@ public:
 /// @param ecz         gradients wrt z
 /// @param coord_type  coordinate system
 
-  void test_residual (const amrex::Box& bx,
+  static void test_residual (const amrex::Box& bx,
                       amrex::Array4<amrex::Real> const& rhs,
                       amrex::Array4<amrex::Real> const& ecx,
 #if AMREX_SPACEDIM >= 2
@@ -565,10 +573,7 @@ public:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
-
-public:
-
-  inline amrex::Real
+  static inline amrex::Real
   get_const_grav() {
     return gravity::const_grav;
   }

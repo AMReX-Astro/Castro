@@ -497,7 +497,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
     // first the header line -- this tells us the number of points
 
     getline(initial_model_file, line);
-    std::string npts_string = line.substr(line.find("=")+1, line.length());
+    std::string npts_string = line.substr(line.find('=')+1, line.length());
     model::npts = std::stoi(npts_string);
 
     if (model::npts > NPTS_MODEL) {
@@ -507,7 +507,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
     // next line tells use the number of variables
 
     getline(initial_model_file, line);
-    std::string num_vars_string = line.substr(line.find("=")+1, line.length());
+    std::string num_vars_string = line.substr(line.find('=')+1, line.length());
     int nvars_model_file = std::stoi(num_vars_string);
 
     // now read in the names of the variables
@@ -515,7 +515,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
     std::vector<std::string> varnames_stored;
     for (int n = 0; n < nvars_model_file; n++) {
         getline(initial_model_file, line);
-        std::string var_string = line.substr(line.find("#")+1, line.length());
+        std::string var_string = line.substr(line.find('#')+1, line.length());
         varnames_stored.push_back(model_string::ltrim(model_string::rtrim(var_string)));
     }
 
@@ -546,12 +546,12 @@ read_model_file(std::string& model_file, const int model_index=0) {
         found_temp = false;
         found_pres = false;
         found_velr = false;
-        for (int n = 0; n < NumSpec; n++) {
-            found_spec[n] = false;
+        for (bool & e : found_spec) {
+            e = false;
         }
 #if NAUX_NET > 0
-        for (int n = 0; n < NumAux; n++) {
-            found_aux[n] = false;
+        for (bool & e : found_aux) {
+            e = false;
         }
 #endif
 
