@@ -1,0 +1,36 @@
+#!/bin/sh
+#PBS -l select=1:ncpus=32:system=polaris
+#PBS -l filesystems=home:eagle:grand 
+#PBS -l place=scatter
+#PBS -l walltime=00:30:00
+#PBS -q debug
+#PBS -A AstroExplosions
+shopt -s nullglob
+
+#Loading Modules
+module load gnu-parallel
+module load conda
+conda activate projectA
+
+# Change to working directory
+cd $PBS_O_WORKDIR
+outdir="./stats"
+mkdir -p $outdir
+
+script=./HorizontalAvg2d.cray.x86-rome.ex
+
+# GNU Parallel options
+declare -a plts
+for plotfile in ./*plt* ./stats/*plt*; do
+    [[ ! -d "$plotfile" ]] && continue
+    [[ "$plotfile" == *plt*.old.* ]] && continue
+    [[ -e "$(basename $plotfile)_profile.dat" ]] && continue
+    plts+=($plotfile)
+done
+
+NTASK=$((PBS_NNODES * 32))
+
+parallel="parallel -j $NTASK --delay .2 -X"
+$parallel "$script {}" ::: "${plts[@]}"
+
+
