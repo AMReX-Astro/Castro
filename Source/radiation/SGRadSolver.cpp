@@ -373,27 +373,27 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   // update dflux[level] (== dflux_old)
   MultiFab::Copy(dflux_old, dflux_new, 0, 0, 1, 0);
 
-  if (plot_lambda) {
+  if (radiation::plot_lambda) {
       save_lambda_in_plotvar(level, lambda);
   }
 
-  if (plot_kappa_p) {
+  if (radiation::plot_kappa_p) {
       MultiFab::Copy(*plotvar[level], fkp, 0, icomp_kp, 1, 0);
   }
 
-  if (plot_kappa_r) {
+  if (radiation::plot_kappa_r) {
       MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, 1, 0);
   }
 
-  if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
+  if (radiation::plot_lab_Er || radiation::plot_lab_flux || radiation::plot_com_flux) {
       MultiFab flx(grids, dmap, AMREX_SPACEDIM, 0);
       solver->levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
-      if (plot_lab_Er) {
+      if (radiation::plot_lab_Er) {
           save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);
       }
 
-      if (plot_lab_flux) {
+      if (radiation::plot_lab_flux) {
           if (radiation::comoving) {
               save_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
           } else {
@@ -401,7 +401,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
           }
       }
 
-      if (plot_com_flux) {
+      if (radiation::plot_com_flux) {
           if (radiation::comoving) {
               MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, AMREX_SPACEDIM, 0);
           } else {

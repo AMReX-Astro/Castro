@@ -55,7 +55,7 @@ void problem_initialize ()
         problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
     }
 
-    // Temperature perturbation x-axis nodes lenght
+    // Temperature perturbation x-axis nodes length
     problem::L = probhi[0] - problo[0];
 
     // Finding the h1 layer, and max temp location.

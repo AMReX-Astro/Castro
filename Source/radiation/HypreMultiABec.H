@@ -485,7 +485,7 @@ class HypreMultiABec {
 /// every level.  No numerical data is used---the only info used from
 /// the boundary object are the masks at the coarse-fine interfaces.
 /// If there is only one level then it is not necessary for the call
-/// to setBndry to preceed this one.
+/// to setBndry to precede this one.
 ///
 /// buildMatrixStructure also allocates the coefficient arrays and
 /// initializes the vector objects as well as the matrix object, so

@@ -51,7 +51,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
 #ifndef AMREX_USE_GPU
   if (ppm_type != 0) {
-    std::cout << "Oops -- shouldnt be in tracexy with ppm_type != 0" << std::endl;
+    std::cout << "Oops -- shouldn't be in tracexy with ppm_type != 0" << std::endl;
     amrex::Error("Error:: trace_3d.f90 :: tracexy");
   }
 #endif

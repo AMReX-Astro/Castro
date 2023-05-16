@@ -387,7 +387,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += div.nBytes();
       auto div_arr = div.array();
 
-      // compute divu -- we'll use this later when doing the artifical viscosity
+      // compute divu -- we'll use this later when doing the artificial viscosity
       divu(obx, q_arr, div_arr);
 
       flux[0].resize(gxbx, NUM_STATE);
@@ -1251,7 +1251,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
               loc[dir] -= problem::center[dir];
 
-          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                              std::numeric_limits<Real>::min());
           Real RInv = 1.0_rt / R;
 
           update_arr(i,j,k,UMR) -= dt * (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];

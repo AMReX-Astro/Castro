@@ -32,7 +32,7 @@ to be investigated).
 ## Running
 
 Command line arguments must be passed to the executables to provide the plotfile(s)
-to be anaylzed and problem parameters:
+to be analyzed and problem parameters:
 
 - `gaussian_pulse`: `-p plotfile_name` (or `--plotfile`) to provide the plotfile,
     `-s slicefile_name` (or `--slicefile`) to provide the name of the file to

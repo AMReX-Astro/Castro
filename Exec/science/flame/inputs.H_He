@@ -61,7 +61,7 @@ amr.plot_per        = 1.e-3
 amr.derive_plot_vars = ALL
 castro.store_omegadot = 1
 
-# problem initializaiton
+# problem initialization
 
 problem.rho_fuel = 2.e6
 problem.T_fuel = 5.e7

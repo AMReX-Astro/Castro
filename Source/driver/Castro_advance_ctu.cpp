@@ -149,7 +149,7 @@ Castro::do_advance_ctu(Real time,
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
     // later.  Note -- this does not affect the prediction of the
-    // interface state, an explict source will be traced there as
+    // interface state, an explicit source will be traced there as
     // needed.
 
 #ifdef GRAVITY
