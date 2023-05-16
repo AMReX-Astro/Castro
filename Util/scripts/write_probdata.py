@@ -69,7 +69,7 @@ def parse_param_file(params_list, param_file):
     namespace = "problem"
 
     try:
-        f = open(param_file, "r")
+        f = open(param_file)
     except FileNotFoundError:
         sys.exit(f"write_probdata.py: ERROR: file {param_file} does not exist")
 
