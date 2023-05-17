@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 import sys
 from functools import reduce
 
@@ -22,20 +23,25 @@ matplotlib.use('agg')
 
 # define ash
 def _ash(field, data):
-    """ash is anything aside from H1, He4, and Fe56"""
+    """ash is anything beyond O, excluding Fe and Ni"""
 
-    sum = None
-    for i, f in enumerate(data.ds.field_list):
+    ash_sum = None
+    for f in data.ds.field_list:
         field_name = f[-1]
-        if field_name.startswith("X(") and field_name.endswith(")"):
-            if field_name in ["X(f17)", "X(f18)", "X(f19)",
-                              "X(ne18)", "X(ne19)", "X(ne20)",
-                              "X(mg22)", "X(mg24)"]:
-                if sum is None:
-                    sum = data[f]
-                else:
-                    sum += data[f]
-    return sum
+        # matches names like "X(ne21)" or "X(He4)"
+        m = re.match(r"^X\(([A-Za-z]+)(\d+)\)$", field_name)
+        if m is None:
+            continue
+        element = m[1].lower()
+        aion = int(m[2])
+        if element not in {"h", "he", "c", "n", "o", "fe", "ni"}:
+            if ash_sum is None:
+                ash_sum = data[f]
+            else:
+                ash_sum += data[f]
+    if ash_sum is None:
+        raise ValueError("no ash found")
+    return ash_sum
 
 
 def doit(plotfiles):
@@ -64,7 +70,7 @@ def doit(plotfiles):
 
         ds = CastroDataset(pf)
 
-        ds.add_field(("gas", "ash"), function=_ash, display_name="ash", units=None, sampling_type="cell")
+        ds.add_field(("gas", "ash"), function=_ash, display_name="ash", units="(dimensionless)", sampling_type="cell")
 
         field = "ash"
         sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="12")
