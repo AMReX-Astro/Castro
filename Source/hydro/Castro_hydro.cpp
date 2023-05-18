@@ -62,7 +62,7 @@ Castro::cons_to_prim(const Real time)
 #endif
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
 {
 

@@ -16,6 +16,7 @@ state_interp_order           int           1
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables
+# 2: preserve linear combinations and prevent new extrema
 lin_limit_state_interp       int           0
 
 # Number of ghost zones for state data to have. Note that
@@ -30,6 +31,10 @@ do_reflux                    int           1
 # Note: this only works for the CTU and simple-SDC time_integration_method
 # drivers
 update_sources_after_reflux  int           1
+
+# Castro was originally written assuming dx = dy = dz.  This assumption is
+# enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
+allow_non_unit_aspect_zones  int           0
 
 
 #-----------------------------------------------------------------------------
@@ -158,7 +163,7 @@ dual_energy_eta2             Real          1.0e-4
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?  This is a well-balanced method that
 # does well with HSE
-use_pslope                   int           1
+use_pslope                   int           0
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
@@ -347,6 +352,9 @@ init_shrink                  Real          1.0
 # on the timestep.
 change_max                   Real          1.1
 
+# whether to check that we will take a valid timestep before the advance
+check_dt_before_advance      int           1
+
 # whether to check that we took a valid timestep after the advance
 check_dt_after_advance       int           1
 
@@ -387,6 +395,12 @@ max_subcycles                int           10
 
 # Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
+
+# Field to use for determining whether to stop the simulation.
+stopping_criterion_field     string        ""
+
+# Threshold value for determining whether to stop.
+stopping_criterion_value     Real          1.e200
 
 #-----------------------------------------------------------------------------
 # category: reactions
@@ -509,7 +523,7 @@ point_mass                   Real          0.0                n        GRAVITY
 point_mass_fix_solution      int           0                  n        GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes). Only relevant if
+# (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
@@ -806,6 +820,7 @@ beta                         Real          1.0
 
 (v, verbose)                 int           0
 
+
 @namespace: radiation
 
 prop_temp_floor              Real          0.0                y
@@ -833,3 +848,23 @@ limiter                      int           2
 
 # frequency space advection type
 fspace_advection_type        int           2
+
+
+# do we plot the flux limiter lambda?
+plot_lambda                  int           0
+
+# do we plot the Planck mean opacity?
+plot_kappa_p                 int           0
+
+# do we plot the Rosseland mean opacity?
+plot_kappa_r                 int           0
+
+# do we plot the lab radiation energy?
+plot_lab_Er                  int           0
+
+# do we plot the lab radiation flux?
+plot_lab_flux                int           0
+
+# do we plot the comoving frame radiation flux?
+plot_com_flux                int           0
+

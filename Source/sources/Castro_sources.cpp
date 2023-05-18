@@ -36,23 +36,26 @@ Castro::source_flag(int src)
 
 #ifdef SPONGE
     case sponge_src:
-        if (do_sponge)
+        if (do_sponge) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     case ext_src:
-        if (add_ext_src)
+        if (add_ext_src) {
             return true;
-        else
+        } else {
             return false;
+        }
 #ifndef MHD
     case thermo_src:
-        if (time_integration_method == SpectralDeferredCorrections)
-          return true;
-        else
+        if (time_integration_method == SpectralDeferredCorrections) {
+            return true;
+        } else {
           return false;
+        }
 #else
     case thermo_src:
         return true;
@@ -83,18 +86,20 @@ Castro::source_flag(int src)
 
 #ifdef GRAVITY
     case grav_src:
-        if (do_grav)
+        if (do_grav) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
 #ifdef ROTATION
     case rot_src:
-        if (do_rotation)
+        if (do_rotation) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     default:
@@ -156,8 +161,7 @@ Castro::do_old_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -218,8 +222,7 @@ Castro::do_new_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -353,8 +356,9 @@ Castro::apply_sources()
 {
 
     for (int n = 0; n < num_src; ++n) {
-        if (source_flag(n))
+        if (source_flag(n)) {
             return true;
+        }
     }
 
     return false;
@@ -427,7 +431,7 @@ Castro::print_source_change(Vector<Real> update)
 // and also print the results.
 
 void
-Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::string source_name)
+Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, const std::string& source_name)
 {
     bool local = true;
     Vector<Real> update = evaluate_source_change(source, dt, local);
@@ -435,7 +439,7 @@ Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::
 #ifdef BL_LAZY
     Lazy::QueueReduction( [=] () mutable {
 #endif
-        ParallelDescriptor::ReduceRealSum(update.dataPtr(), update.size(), ParallelDescriptor::IOProcessorNumber());
+        ParallelDescriptor::ReduceRealSum(update.dataPtr(), static_cast<int>(update.size()), ParallelDescriptor::IOProcessorNumber());
 
         if (ParallelDescriptor::IOProcessor()) {
             if (std::abs(update[URHO]) != 0.0 || std::abs(update[UEDEN]) != 0.0) {

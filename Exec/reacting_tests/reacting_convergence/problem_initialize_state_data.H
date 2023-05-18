@@ -5,9 +5,6 @@
 #include <eos.H>
 #include <network.H>
 #include <network_properties.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -64,8 +61,8 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = xn[n];
     }
 
-#ifdef NSE_THERMO
-    set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
 #endif
 
     eos(eos_input_ps, eos_state);
@@ -79,7 +76,7 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
     }
 
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];
     }

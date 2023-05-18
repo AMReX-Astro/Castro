@@ -18,7 +18,7 @@ geometry.prob_lo =   0.0e0 -5.12e9
 geometry.prob_hi =  5.12e9  5.12e9
 
 # System center of mass
-castro.center    =   0.0e0   0.0e0
+problem.center    =   0.0e0   0.0e0
 
 ############################################################################################
 # Boundary conditions
@@ -239,7 +239,7 @@ integrator.renormalize_abundances = 1
 # Maximum temperature allowed in the burn
 integrator.MAX_TEMP = 1.0e10
 
-# Use tabular rate evaluation when availble
+# Use tabular rate evaluation when available
 network.use_tables = 1
 
 ############################################################################################
@@ -334,9 +334,6 @@ castro.output_at_completion = 0
 # Do not write a plotfile or checkpoint on restart
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
-
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
 
 # Control verbosity in Amr.cpp
 amr.v = 1

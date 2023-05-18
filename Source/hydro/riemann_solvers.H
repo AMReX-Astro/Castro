@@ -84,6 +84,11 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     F(i,j,k,USHK) = 0.0;
 #endif
 
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
+
 #ifdef RADIATION
     if (radiation::fspace_advection_type == 1) {
         for (int g = 0; g < NGROUPS; g++) {
@@ -216,15 +221,14 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 /// @param bx         the box to operate over
 /// @param ql         the left interface state
 /// @param qr         the right interface state
-/// @param qaux_arr   the auxillary state
+/// @param qaux_arr   the auxiliary state
 /// @param qint       the full Godunov state on the interface
 /// @param idir       coordinate direction for the solve (0 = x, 1 = y, 2 = z)
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          RiemannState& qint,
-          const int idir) {
+          RiemannState& qint) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
   // (1985)
@@ -464,7 +468,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real gameo;
 
   if (ustar > 0.0_rt) {
-      ro = ql.rho;
+      //ro = ql.rho;
       uo = ql.un;
       po = ql.p;
       tauo = taul;
@@ -472,7 +476,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamel;
 
   } else if (ustar < 0.0_rt) {
-      ro = qr.rho;
+      //ro = qr.rho;
       uo = qr.un;
       po = qr.p;
       tauo = taur;
@@ -480,7 +484,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       gameo = gamer;
 
   } else {
-      ro = 0.5_rt * (ql.rho + qr.rho);
+      //ro = 0.5_rt * (ql.rho + qr.rho);
       uo = 0.5_rt * (ql.un + qr.un);
       po = 0.5_rt * (ql.p + qr.p);
       tauo = 0.5_rt * (taul + taur);
@@ -587,16 +591,14 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
 /// @param bx          the box to operate over
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param qint        the full Godunov state on the interface
 /// @param lambda_int  the radiation flux limiter on the interface
-/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          RiemannState& qint,
-          const int idir) {
+          RiemannState& qint) {
 
   // Colella, Glaz, and Ferguson solver
   //
@@ -906,7 +908,9 @@ HLL(const Real* ql, const Real* qr,
 
   Real bd = bp - bm;
 
-  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) return;
+  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) {
+      return;
+  }
 
   // we'll overwrite the passed in flux with the HLL flux
 
@@ -981,7 +985,7 @@ HLL(const Real* ql, const Real* qr,
 ///
 /// @param ql          the left interface state
 /// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
+/// @param qaux_arr    the auxiliary state
 /// @param uflx        the flux through the interface
 /// @param qint        an approximate Godunov state on the interface
 /// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
@@ -1264,7 +1268,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real> const& qp,
               Array4<Real const> const& qaux_arr,
               RiemannState& qint,
-              const GeometryData& geom,
               const bool special_bnd_lo, const bool special_bnd_hi,
               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
@@ -1364,16 +1367,14 @@ riemann_state(const int i, const int j, const int k, const int idir,
       // Colella, Glaz, & Ferguson solver
 
       riemannus(ql, qr, raux,
-                qint,
-                idir);
+                qint);
 
   } else if (riemann_solver == 1) {
       // Colella & Glaz solver
 
 #ifndef RADIATION
       riemanncg(ql, qr, raux,
-                qint,
-                idir);
+                qint);
 #endif
 
 #ifndef AMREX_USE_GPU

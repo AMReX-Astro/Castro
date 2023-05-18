@@ -5,9 +5,6 @@
 
 using namespace amrex;
 
-// Avoid the singularity in cylindrical coordinates
-static AMREX_GPU_MANAGED Real R_min = std::numeric_limits<Real>::min();
-
 ///
 /// For hybrid momentum advection, convert the linear momentum into the
 /// hybrid / angular momentum components
@@ -24,7 +21,8 @@ void linear_to_hybrid(const GpuArray<Real, 3>& loc,
     // Convert a linear momentum into the "hybrid" scheme
     // that has radial and angular components.
 
-    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                        std::numeric_limits<Real>::min());
     Real RInv = 1.0_rt / R;
 
     // This conversion is Eqs. 25 and 26 in Byerly et al. 2014.
@@ -53,7 +51,8 @@ void hybrid_to_linear(const GpuArray<Real, 3>& loc,
 {
     // Convert a "hybrid" momentum into a linear one.
 
-    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                        std::numeric_limits<Real>::min());
     Real RInv = 1.0_rt / R;
 
     // This is the inverse of Byerly et al., Equations 25 and 26.
@@ -77,7 +76,8 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
                                 const GpuArray<Real, 3>& linear_source,
                                 GpuArray<Real, 3>& hybrid_source)
 {
-    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+    Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                        std::numeric_limits<Real>::min());
     Real RInv = 1.0_rt / R;
 
     // This is analogous to the conversion of linear momentum to hybrid momentum.

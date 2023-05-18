@@ -13,4 +13,8 @@ pert_temp_factor      real           10.0_rt         y
 # the physical scale of the perturbation
 pert_rad_factor       real            2.0_rt         y
 
+# initial chemical potential guess
+mu_p                  real           -5.0_rt         y
+mu_n                  real           -11.0_rt        y
+
 ihe4                  integer         -1

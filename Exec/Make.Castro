@@ -1,5 +1,8 @@
 CASTRO_HOME ?= /path/to/Castro
 
+# clang-tidy support via AMReX
+CLANG_TIDY_CONFIG_FILE := $(CASTRO_HOME)/.clang-tidy
+
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
@@ -30,8 +33,6 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-USE_FORT_MICROPHYSICS := FALSE
-
 # only radiation builds need Fortran
 ifeq ($(USE_RAD), TRUE)
   BL_NO_FORT := FALSE
@@ -61,7 +62,7 @@ CXXSTD := c++17
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
-# number of passively advected quantities that are not species or auxillary
+# number of passively advected quantities that are not species or auxiliary
 NUMADV ?= 0
 
 # number of radiation groups
@@ -113,6 +114,10 @@ ifeq ($(USE_CUDA),TRUE)
   CUDA_VERBOSE = FALSE
 endif
 
+AMREX_NO_PROBINIT := TRUE
+
+include $(AMREX_HOME)/Tools/GNUMake/Make.defs
+
 ifeq ($(USE_GPU),TRUE)
   # We don't currently support host-side OpenMP being enabled
   # when using GPUs. Throw an error to prevent this case.
@@ -120,10 +125,6 @@ ifeq ($(USE_GPU),TRUE)
     $(error OpenMP is not supported by Castro when building with GPU support)
   endif
 endif
-
-AMREX_NO_PROBINIT := TRUE
-
-include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
@@ -195,8 +196,6 @@ ifeq ($(USE_REACT), TRUE)
     # we only implement this for C++ reactions
   endif
 
-  USE_CXX_REACTIONS = TRUE
-  DEFINES += -DCXX_REACTIONS
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -361,7 +360,7 @@ clean::
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
-# can get rid of explicitly removing them (this is for backwards compatability)
+# can get rid of explicitly removing them (this is for backwards compatibility)
 clean::
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 

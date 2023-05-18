@@ -143,7 +143,9 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
         for (int m = 1; m <= gravity::lnum; ++m) {
             for (int l = 1; l <= gravity::lnum; ++l) {
 
-                if (m > l) continue;
+                if (m > l) {
+                    continue;
+                }
 
                 calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta);
 
@@ -209,6 +211,9 @@ void multipole_symmetric_add(Real x, Real y, Real z,
                              int npts, int nlo, int index,
                              amrex::Gpu::Handler const& handler)
 {
+
+    amrex::ignore_unused(probhi);
+
     Real xLo = (2.0_rt * (problo[0] - problem::center[0])) / multipole::rmax - x;
 
 #if AMREX_SPACEDIM >= 2

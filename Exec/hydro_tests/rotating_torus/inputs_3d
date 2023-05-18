@@ -7,7 +7,7 @@ geometry.is_periodic =  0    0    0
 geometry.coord_sys   =  0
 geometry.prob_lo     = -2.0 -2.0 -2.0
 geometry.prob_hi     =  2.0  2.0  2.0
-castro.center        =  0.0  0.0  0.0
+problem.center        =  0.0  0.0  0.0
 
 amr.n_cell           =  64   64   64
 
@@ -85,7 +85,7 @@ amr.derive_plot_vars = NONE
 # problem initialization
 
 problem.inner_radius = 0.75
-problme.outer_radius = 1.50
+problem.outer_radius = 1.50
 
 problem.ambient_density = 1.0e-8
 

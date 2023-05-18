@@ -904,6 +904,28 @@ extern "C"
     }
 
 
+  void ca_derye(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
+
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+
+        Real sum = 0.0_rt;
+        Real xn;
+        for (int n = 0; n < NumSpec; n++) {
+          xn = dat(i,j,k,1+n) / dat(i,j,k,0);
+          sum += xn * zion[n] / aion[n];
+        }
+        der(i,j,k,0) = sum;
+      });
+    }
+
   void ca_derabar(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
@@ -1158,75 +1180,6 @@ extern "C"
 
   }
 
-  void ca_derex(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_x = -(V X B)_x
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_y,mag_z,density,ymom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vy = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vy*dat(i,j,k,1) + vz*dat(i,j,k,0);
-
-    });
-
-  }
-
-  void ca_derey(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_y = -(V X B)_y
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_z,density,xmom,zmom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vz*dat(i,j,k,0) + vx*dat(i,j,k,1);
-
-    });
-
-  }
-
-  void ca_derez(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    // compute E_z = -(V X B)_z
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    // here dat contains (mag_x,mag_y,density,xmom,ymom)
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
-      Real vy = dat(i,j,k,4) / dat(i,j,k,2);
-      der(i,j,k,0) = -vx*dat(i,j,k,1) + vy*dat(i,j,k,0);
-
-    });
-
-  }
-
   void ca_derdivb(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& geomdata,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
@@ -1256,40 +1209,6 @@ extern "C"
   }
 
 #endif
-
-#ifdef NSE
-  void ca_dernse(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
-  {
-
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
-      Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
-
-      eos_t eos_state;
-      eos_state.rho  = dat(i,j,k,URHO);
-      eos_state.T = dat(i,j,k,UTEMP);
-      eos_state.e = dat(i,j,k,UEINT) * rhoInv;
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
-      }
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
-      }
-#endif
-
-      eos(eos_input_re, eos_state);
-      der(i,j,k,0) = in_nse(eos_state);
-    });
-  }
-#endif
-
 
 #ifdef __cplusplus
 }

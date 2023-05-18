@@ -34,15 +34,18 @@ castro.ppm_type = 1
 castro.riemann_solver = 0
 castro.use_flattening = 1
 
-castro.small_temp = 1.0e6
+castro.small_temp = 1.0e5
+castro.small_dens = 1.0e-6
+castro.retry_small_density_cutoff = 1.0
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.34e8
 castro.react_rho_min = 1.0e2
-castro.react_T_min = 5.0e6
+castro.react_T_min = 1.0e6
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
-#castro.init_shrink    = 0.1   # scale back initial timestep
+#castro.init_shrink    = 0.8   # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
@@ -55,8 +58,8 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 64     # block factor in grid generation
-amr.max_grid_size   = 256
+amr.blocking_factor = 16     # block factor in grid generation
+amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -65,7 +68,7 @@ amr.check_int       = 200       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_int         = 1000        # number of timesteps between plotfiles
+amr.plot_int         = 500        # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 # DATA LOG
@@ -75,10 +78,18 @@ amr.data_log = log
 
 problem.model_name =  "glasner_T51600.hse"
 
-problem.apply_vel_field = 1
-problem.velpert_scale = 2.0e5
-problem.velpert_amplitude = 1.0e6
-problem.num_vortices = 4
+problem.apply_vel_field = 0
+#problem.velpert_scale = 5.0e5
+#problem.velpert_scale_ratio = 7.0
+#problem.velpert_amplitude = 7.0e5
+#problem.num_vortices = 8
+
+
+problem.apply_temp_field = 1
+problem.width = 1.0e6
+problem.amplitude = 0.5
+problem.num_vortices = 10
+problem.width_ratio = 1.4
 
 # Microphysics
 
@@ -89,20 +100,12 @@ integrator.rtol_enuc = 1.e-6
 
 # refinement
 
-amr.refinement_indicators = dengrad tempgrad
+amr.refinement_indicators = dens temp
 
-amr.refine.dengrad.gradient = 30.0
-amr.refine.dengrad.field_name = density
-amr.refine.dengrad.max_level = 1
+amr.refine.dens.max_level = 1
+amr.refine.dens.value_greater = 1.0e2
+amr.refine.dens.field_name = density
 
-#amr.refine.denerr.value_greater = 0.1
-#amr.refine.denerr.field_name = density
-#amr.refine.denerr.max_level = 2
-
-amr.refine.tempgrad.gradient = 20000.0
-amr.refine.tempgrad.field_name = Temp
-amr.refine.tempgrad.max_level = 1
-
-#amr.refine.temperr.value_greater = 1.e6
-#amr.refine.temperr.field_name = Temp
-#amr.refine.temperr.max_level = 2
+amr.refine.temp.max_level = 1
+amr.refine.temp.value_greater = 1.0e7
+amr.refine.temp.field_name = Temp

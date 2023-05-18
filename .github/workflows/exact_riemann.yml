@@ -1,0 +1,40 @@
+name: exact Riemann
+
+on: [pull_request]
+jobs:
+  exact_riemann:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+
+      - name: Compile exact_riemann
+        run: |
+          cd Util/exact_riemann
+          make -j 4
+
+      - name: Run test1
+        run: |
+          cd Util/exact_riemann
+          ./Castro3d.gnu.ex inputs.test1.helm
+
+      - name: Compare to stored output
+        run: |
+          cd Util/exact_riemann
+          diff riemann.out ci-benchmarks/test1-riemann.out
+

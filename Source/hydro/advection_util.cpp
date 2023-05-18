@@ -39,6 +39,8 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
+  amrex::ignore_unused(time);
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -52,7 +54,7 @@ Castro::ctoprim(const Box& bx,
 #ifdef RADIATION
                                        Erin, lam,
 #endif
-                                       q, qaux);
+                                       q, qaux, q_arr.nComp() == NQ);
   });
 }
 
@@ -230,15 +232,12 @@ Castro::divu(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const int coord_type = geom.Coord();
-#endif
-
   const auto problo = geom.ProbLoArray();
+#endif
 
   Real dxinv = 1.0_rt / dx[0];
 #if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt / dx[1];
-#else
-  Real dyinv = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
@@ -351,11 +350,20 @@ Castro::apply_av(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
-    if (n == UTEMP) return;
+    if (n == UTEMP) {
+        return;
+    }
 #ifdef SHOCK_VAR
-    if (n == USHK) return;
+    if (n == USHK) {
+        return;
+    }
 #endif
 
+#ifdef NSE_NET
+    if (n == UMUP || n == UMUN) {
+        return;
+    }
+#endif
     Real div1;
     if (idir == 0) {
 
@@ -470,7 +478,7 @@ Castro::normalize_species_fluxes(const Box& bx,
 }
 
 
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::scale_flux(const Box& bx,
 #if AMREX_SPACEDIM == 1
                    Array4<Real const> const& qint,
@@ -514,16 +522,16 @@ Castro::scale_rad_flux(const Box& bx,
 #endif
 
 
-
+#ifndef MHD
 void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
                                          Array4<Real const> const& u,
-                                         Array4<Real const> const& q,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
                                          Array4<Real const> const& area_arr,
-                                         Real dt)
+                                         Real dt,
+                                         bool scale_by_dAdt)
 {
     // Hu, Adams, and Shu (2013), JCP, 242, 169, "Positivity-preserving method for
     // high-order conservative schemes solving compressible Euler equations," proposes
@@ -572,8 +580,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Coefficients of fluxes on either side of the interface.
 
-        Real flux_coefR = dt * area_arr(i,j,k) / volR;
-        Real flux_coefL = dt * area_arr(i,j,k) / volL;
+        Real flux_coefR = 1.0_rt / volR;
+        Real flux_coefL = 1.0_rt / volL;
+
+        if (scale_by_dAdt) {
+            flux_coefR *= dt * area_arr(i,j,k);
+            flux_coefL *= dt * area_arr(i,j,k);
+        }
 
         // Updates to the zones on either side of the interface.
 
@@ -598,24 +611,25 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // weaker fluxes, and perhaps only consider fluxes that subtract from
         // the zone, but this would also be more complicated to implement.
 
-        if (rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
+        if (rhoR >= density_floor && std::abs(drhoR) > 0.0_rt && rhoR + 2 * AMREX_SPACEDIM * drhoR < density_floor) {
             Real limiting_factor = std::abs((density_floor - rhoR) / (2 * AMREX_SPACEDIM * drhoR));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
-        else if (rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
+        else if (rhoL >= density_floor && std::abs(drhoL) > 0.0_rt && rhoL - 2 * AMREX_SPACEDIM * drhoL < density_floor) {
             Real limiting_factor = std::abs((density_floor - rhoL) / (2 * AMREX_SPACEDIM * drhoL));
             for (int n = 0; n < NUM_STATE; ++n) {
                 flux(i,j,k,n) = flux(i,j,k,n) * limiting_factor;
             }
         }
+
     });
 }
+#endif
 
 
-
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
                                    const int verbose) {
@@ -707,4 +721,69 @@ Castro::do_enforce_minimum_density(const Box& bx,
 #endif
     }
   });
+}
+
+
+void
+Castro::enforce_reflect_states(const Box& bx, const int idir,
+                               Array4<Real> const& qm,
+                               Array4<Real> const& qp) {
+
+    // special care for reflecting BCs
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+
+    const auto domlo = geom.Domain().loVect3d();
+    const auto domhi = geom.Domain().hiVect3d();
+
+    bool lo_bc_test = lo_bc[idir] == Symmetry;
+    bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+    // normal velocity
+    const int QUN = QU + idir;
+
+    // this is a loop over interfaces
+
+    if (lo_bc_test) {
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+            // reset the left state at domlo if needed -- it is outside the domain
+            if ((idir == 0 && i == domlo[0]) ||
+                (idir == 1 && j == domlo[1]) ||
+                (idir == 2 && k == domlo[2])) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qm(i,j,k,QUN) = -qp(i,j,k,QUN);
+                    } else {
+                        qm(i,j,k,n) = qp(i,j,k,n);
+                    }
+                }
+            }
+        });
+    }
+
+    if (hi_bc_test) {
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+            // reset the right state at domhi+1 if needed -- it is outside the domain
+            if ((idir == 0 && i == domhi[0]+1) ||
+                (idir == 1 && j == domhi[1]+1) ||
+                (idir == 2 && k == domhi[2]+1)) {
+                for (int n = 0; n < NQ; n++) {
+                    if (n == QUN) {
+                        qp(i,j,k,QUN) = -qm(i,j,k,QUN);
+                    } else {
+                        qp(i,j,k,n) = qm(i,j,k,n);
+                    }
+                }
+            }
+        });
+
+    }
 }

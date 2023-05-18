@@ -65,7 +65,15 @@ the reconstruction part, this step is identical between CTU and true-SDC.
 PPM
 ---
 
-There is currently no hydrostatic version of PPM
+The PPM version of ``use_pslope`` is essentially the same as the PLM
+version described above.  We first compute the excess pressure,
+:math:`\tilde{p}`, and then fit a cubic to the 4 cells surrounding an
+interface to get the initial interface values.  These become the left
+and right values of the parabola in each zone.  The PPM limiting is
+then done on the parabola, again working with :math:`\tilde{p}`.
+Finally, the parabola values are updated to include the hydrostatic
+pressure.
+
 
 Fully fourth-order method
 -------------------------
@@ -140,16 +148,13 @@ The temperature in the ghost cells is controlled by:
 Interface states at reflecting boundary
 =======================================
 
-PLM
----
-
-When using PLM, with both the CTU and true-SDC method, since we did a
-special construction for the normal velocity at reflecting boundaries,
-we enforce the reflecting condition on the interface states directly
-by reflecting the state just inside the domain to overwrite the state
-on the reflecting boundary just outside of the domain.  This is done
-for all variables (flipping the sign on the normal velocity state).
-
+For all methods, we enforce the reflecting condition on the interface
+states directly by reflecting the state just inside the domain to
+overwrite the state on the reflecting boundary just outside of the
+domain.  This is done for all variables (flipping the sign on the
+normal velocity state).  This is especially important for
+reconstruction that used a one-sided stencil (like the 4th order
+method).
 
 
 Test problems

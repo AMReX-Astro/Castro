@@ -165,7 +165,7 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            psi[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -183,7 +183,7 @@ Castro::do_hscf_solve()
         // Construct a local MultiFab for the enthalpy.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            enthalpy[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            enthalpy[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, 1, 0);
         }
 
         // Construct a local MultiFab for the state data. We do
@@ -192,8 +192,8 @@ Castro::do_hscf_solve()
         // copy of the data to work with.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            state_vec[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-            phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            state_vec[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0);
+            phi[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, 1, 0);
         }
 
         // Copy in the state data. Mask it out on coarse levels.
@@ -243,8 +243,8 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    auto dx = geomdata.CellSize();
-                    auto problo = geomdata.ProbLo();
+                    const auto *dx = geomdata.CellSize();
+                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
@@ -376,8 +376,8 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    auto dx = geomdata.CellSize();
-                    auto problo = geomdata.ProbLo();
+                    const auto *dx = geomdata.CellSize();
+                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
@@ -456,8 +456,8 @@ Castro::do_hscf_solve()
                     // enthalpy + gravitational potential + rotational potential = const
                     // We already have the constant, so our goal is to construct the enthalpy field.
 
-                    auto dx = geomdata.CellSize();
-                    auto problo = geomdata.ProbLo();
+                    const auto *dx = geomdata.CellSize();
+                    const auto *problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
 
@@ -728,7 +728,9 @@ Castro::do_hscf_solve()
 
         }
 
-        if (is_relaxed == 1) break;
+        if (is_relaxed == 1) {
+            break;
+        }
 
         ctr++;
 
