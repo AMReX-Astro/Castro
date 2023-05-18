@@ -811,10 +811,10 @@ integral quantities (this is used as an alternate to
 </div></blockquote>
 <p>By default, 4 output files are created:</p>
 <blockquote>
-<div><ul class="simple">
+<div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">amr_diag.out</span></code> : This includes timestep information, in the
 following columns:</p>
-<ul>
+<ul class="simple">
 <li><p>timestep</p></li>
 <li><p>time</p></li>
 <li><p>dt</p></li>
@@ -825,7 +825,7 @@ following columns:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity_diag.out</span></code> : For problems with Poisson gravity, this
 includes the gravitational wave amplitudes</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">grid_diag.out</span></code> : This includes integrals of the state data:</p>
-<ul>
+<ul class="simple">
 <li><p>time</p></li>
 <li><p>mass</p></li>
 <li><p>x-, y-, and z-momentum</p></li>
@@ -837,7 +837,12 @@ includes the gravitational wave amplitudes</p></li>
 <li><p>total energy (including gravitational potential energy)</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">species_diag.out</span></code> : This contains the mass of each of the nuclear species on the grid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">species_diag.out</span></code> : This contains the mass of each of the nuclear species on the grid.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The species masses are given in units of solar masses.</p>
+</div>
+</li>
 </ul>
 </div></blockquote>
 <p>Some problems have custom versions of the diagnostics with additional information.</p>
