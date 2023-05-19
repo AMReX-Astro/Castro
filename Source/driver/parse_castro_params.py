@@ -74,7 +74,7 @@ def parse_params(infile, out_directory):
 
     try:
         f = open(infile)
-    except IOError:
+    except OSError:
         sys.exit("error opening the input file")
 
     for line in f:
@@ -154,7 +154,7 @@ def parse_params(infile, out_directory):
         # write name_declares.H
         try:
             cd = open(f"{out_directory}/{nm}_declares.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_declares.H for writing")
 
         cd.write(CWARNING)
@@ -180,7 +180,7 @@ def parse_params(infile, out_directory):
         # write name_params.H
         try:
             cp = open(f"{out_directory}/{nm}_params.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_params.H for writing")
 
         cp.write(CWARNING)
@@ -206,7 +206,7 @@ def parse_params(infile, out_directory):
         # write castro_queries.H
         try:
             cq = open(f"{out_directory}/{nm}_queries.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_queries.H for writing")
 
         cq.write(CWARNING)
@@ -230,7 +230,7 @@ def parse_params(infile, out_directory):
         # write the job info tests
         try:
             jo = open(f"{out_directory}/{nm}_job_info_tests.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_job_info_tests.H")
 
         for ifdef in ifdefs:

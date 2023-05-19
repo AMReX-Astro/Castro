@@ -508,7 +508,7 @@ can be plotted very easily to monitor the time step.
 Integral Diagnostics
 --------------------
 
-.. index:: castro.sum_interval, integral diagnostics
+.. index:: castro.sum_interval, integral diagnostics, amr_diag.out, gravity_diag.out, grid_diag.out, species_diag.out
 
 Castro can calculate integrals of quantities on the grid and other
 global quantities and output them to both the screen and to a runtime
@@ -557,6 +557,10 @@ By default, 4 output files are created:
     * total energy (including gravitational potential energy)
 
   * ``species_diag.out`` : This contains the mass of each of the nuclear species on the grid.
+
+    .. note::
+
+       The species masses are given in units of solar masses.
 
 Some problems have custom versions of the diagnostics with additional information.
 

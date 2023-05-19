@@ -55,7 +55,7 @@ class Index:
         is 0-based, we subtract 1, so we sync with the Fortran
         value
         """
-        sstr = "  constexpr int {} = {};\n".format(self.var, self.cxx_value)
+        sstr = f"  constexpr int {self.var} = {self.cxx_value};\n"
         return sstr
 
 
@@ -89,7 +89,7 @@ class Counter:
         if self.cxx_strings:
             val = "{} + {}".format(self.numeric - offset - 1, " + ".join(self.cxx_strings))
         else:
-            val = "{}".format(self.numeric - offset - 1)
+            val = f"{self.numeric - offset - 1}"
 
         return val
 
@@ -108,7 +108,7 @@ def doit(variables_file, odir, defines, nadv):
     # (e.g., conserved, primitive, ...)
     default_set = {}
 
-    with open(variables_file, "r") as f:
+    with open(variables_file) as f:
         current_set = None
         default_group = None
         for line in f:
@@ -220,16 +220,16 @@ def doit(variables_file, odir, defines, nadv):
 
         f.write("#include <network_properties.H>\n\n")
 
-        f.write("  constexpr int NumAdv = {};\n".format(nadv))
+        f.write(f"  constexpr int NumAdv = {nadv};\n")
         for ac in all_counters:
-            f.write("  {}\n".format(ac.get_cxx_set_string()))
+            f.write(f"  {ac.get_cxx_set_string()}\n")
         f.write("  constexpr int npassive = NumSpec + NumAux + NumAdv;\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
         for s in sorted(unique_sets):
             set_indices = [q for q in indices if q.iset == s]
-            f.write("\n   // {}\n".format(s))
+            f.write(f"\n   // {s}\n")
             for i in set_indices:
                 f.write(i.get_cxx_set_string())
 
