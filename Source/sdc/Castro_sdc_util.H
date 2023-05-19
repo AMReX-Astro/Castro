@@ -37,7 +37,7 @@ normalize_species_sdc(const int i, const int j, const int k,
 
     for (int n = 0; n < NumSpec; ++n) {
         xn[n] = u(i,j,k,UFS+n);
-        xn[n] = amrex::max(small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
+        xn[n] = amrex::max(network_rp::small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
         xn_sum += xn[n];
     }
 
@@ -95,7 +95,7 @@ f_sdc_jac(const Real dt_m,
     // normalize the species
     auto sum_rhoX = 0.0_rt;
     for (int n = 0; n < NumSpec; ++n) {
-        U_full[UFS+n] = amrex::max(small_x, U_full[UFS+n]);
+        U_full[UFS+n] = amrex::max(network_rp::small_x, U_full[UFS+n]);
         sum_rhoX += U_full[UFS+n];
     }
 
@@ -471,7 +471,7 @@ sdc_newton_subdivide(const Real dt_m,
             // normalize species
             Real sum_rhoX = 0.0_rt;
             for (int n = 0; n < NumSpec; ++n) {
-                U_begin[UFS + n] = amrex::max(small_x, U_begin[UFS + n]);
+                U_begin[UFS + n] = amrex::max(network_rp::small_x, U_begin[UFS + n]);
                 sum_rhoX += U_begin[UFS + n];
             }
             for (int n = 0; n < NumSpec; ++n) {
