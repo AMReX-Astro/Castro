@@ -342,21 +342,10 @@ in low density regions by setting <code class="docutils literal notranslate"><sp
 densities by setting <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_rho_cutoff</span></code> to
 the density below which we want to silently renormalize the species.</p></li>
 <li><p>Integration failure in the burner</p>
-<p>Note: this requires that the following be set in your <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">integrator</span><span class="o">.</span><span class="n">abort_on_failure</span> <span class="o">=</span> <span class="mi">0</span>
-</pre></div>
-</div>
-<p>This instructs the integration routine in Microphysics to not
-abort when the integration fails, but instead to tell the calling
-Castro routine that the integration failed so Castro can handle
-the retry itself.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The combination of <code class="docutils literal notranslate"><span class="pre">castro.use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">integrator.abort_on_failure</span> <span class="pre">=</span> <span class="pre">0</span></code>
-is unsafe and not supported.</p>
-<p>For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
-always be true, since retry is not supported for that integration.</p>
-</div>
+<p>By construction, the integration routines in Microphysics will not
+abort if the integration fails, but instead return control to the
+calling function and set <a href="#id1"><span class="problematic" id="id2">``</span></a>burn_t burn_state.success=false`.  This
+allows Castro to handle the failure.</p>
 </li>
 </ul>
 </div></blockquote>
