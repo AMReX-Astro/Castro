@@ -171,6 +171,10 @@ void problem_source (int i, int j, int k,
         Real mass_sum = problem::mass_P + problem::mass_S;
         Real prefactor = 0.5_rt * C::Gconst / (a_curr * mass_sum);
 
+        Real v_a = problem::radial_drift_velocity;
+        Real G = C::Gconst;
+        Real a_cubed_inv = 1.0_rt / (a_curr * a_curr * a_curr);
+
         if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), true) > 0.0_rt) {
             GpuArray<Real, 3> v = {0.0_rt};
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -185,10 +189,11 @@ void problem_source (int i, int j, int k,
                 v_sq += v[dir] * v[dir];
             }
             v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
+            Real mag_v = std::sqrt(v_sq);
 
-            Real M = problem::mass_S;
+            Real M2 = problem::mass_S;
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -prefactor * (M * M) * (v[dir] / v_sq) * problem::radial_drift_velocity;
+                acceleration[dir] = -2.0_rt * G * M2 * v_a * a_cubed_inv * v[dir] / mag_v;
             }
         }
         else if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), false) > 0.0_rt) {
@@ -205,16 +210,13 @@ void problem_source (int i, int j, int k,
                 v_sq += v[dir] * v[dir];
             }
             v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
+            Real mag_v = std::sqrt(v_sq);
 
-            Real M = problem::mass_P;
+            Real M1 = problem::mass_P;
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -prefactor * (M * M) * (v[dir] / v_sq) * problem::radial_drift_velocity;
+                acceleration[dir] = -2.0_rt * G * M1 * v_a * a_cubed_inv * v[dir] / mag_v;
             }
         }
-
-        // if (castro::do_rotation == 1) {
-        //     inertial_to_rotational_velocity(i, j, k, geomdata, time, acceleration);
-        // }
 
         GpuArray<Real, 3> Sr = {0.0};
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
