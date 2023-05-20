@@ -3090,7 +3090,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 {
     BL_PROFILE("Castro::normalize_species()");
 
-    Real lsmall_x = small_x;
+    Real lsmall_x = network_rp::small_x;
 
     ReduceOps<ReduceOpMin, ReduceOpMax> reduce_op;
     ReduceData<Real, Real> reduce_data(reduce_op);

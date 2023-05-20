@@ -9,7 +9,6 @@
             "orcid": "0000-0003-2103-312X"
         },
         {
-            "affiliation": "Department of Physics and Astronomy, Stony Brook University",
             "orcid": "0000-0002-3185-9809",
             "name": "Barrios Sazo, Maria"
         },
@@ -19,12 +18,16 @@
             "orcid": "0000-0002-5749-334X"
         },
         {
-            "affiliation": "Department of Physics and Astronomy, Stony Brook University",
             "name": "Harpole, Alice",
             "orcid": "0000-0002-1530-781X"
         },
         {
-            "affiliation": "NVIDIA Corporation",
+            "affiliation": "Department of Physics and Astronomy, Stony Brook University",
+            "name": "Johnson, Eric",
+            "orcid": "0000-0003-3603-6868"
+        },
+        {
+            "affiliation": "Department of Physics and Astronomy, Stony Brook University",
             "name": "Katz, Maximilian",
             "orcid": "0000-0003-0439-4556"
         },
