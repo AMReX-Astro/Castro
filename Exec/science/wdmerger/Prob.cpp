@@ -1072,6 +1072,7 @@ Castro::problem_sums ()
 
 	     header << std::setw(datwidth) << "              WD DISTANCE"; ++n;
 	     header << std::setw(fixwidth) << "                 WD ANGLE"; ++n;
+             header << std::setw(datwidth) << "                     ADOT"; ++n;
 	     header << std::setw(datwidth) << "                     MDOT"; ++n;
 
 	     header << std::endl;
@@ -1098,6 +1099,9 @@ Castro::problem_sums ()
 
 	   log << std::fixed;
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << angle;
+
+           log << std::scientific;
+           log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad + vel_S_rad;
 
 	   log << std::scientific;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot;
