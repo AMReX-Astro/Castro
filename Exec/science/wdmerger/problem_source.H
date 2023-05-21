@@ -90,9 +90,7 @@ void problem_source (int i, int j, int k,
     // the center of mass) so that it is fixed, while the a in the denominator will be the
     // current distance.
 
-    if (problem::problem == 1 && problem::radial_damping_factor > 0.0_rt && problem::mass_S > 0.0_rt &&
-        time < problem::radial_damping_time) {
-
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
         GpuArray<Real, 3> acceleration = {0.0};
 
         // Calculate the current stellar distance.
@@ -117,7 +115,7 @@ void problem_source (int i, int j, int k,
             }
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -0.5_rt * (problem::radial_damping_factor * v_init / a_curr) * v[dir];
+                acceleration[dir] = -0.5_rt * (problem::radial_damping_velocity_factor * v_init / a_curr) * v[dir];
             }
         }
         else if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), false) > 0.0_rt) {
@@ -130,7 +128,7 @@ void problem_source (int i, int j, int k,
             }
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -0.5_rt * (problem::radial_damping_factor * v_init / a_curr) * v[dir];
+                acceleration[dir] = -0.5_rt * (problem::radial_damping_velocity_factor * v_init / a_curr) * v[dir];
             }
         }
 

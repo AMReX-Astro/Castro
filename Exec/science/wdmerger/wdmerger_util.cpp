@@ -386,7 +386,6 @@ void set_small ()
 void set_star_data ()
 {
     if (problem::mass_P > 0.0_rt && problem::mass_S > 0.0_rt) {
-
         Real r = std::sqrt(std::pow(problem::com_P[0] - problem::com_S[0], 2) +
                            std::pow(problem::com_P[1] - problem::com_S[1], 2) +
                            std::pow(problem::com_P[2] - problem::com_S[2], 2));
@@ -418,6 +417,30 @@ void set_star_data ()
             problem::t_ff_P = 0.0_rt;
         }
 
+        // Determine when the radial damping force terminates.
+
+        if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+            bool terminated = false;
+
+            // It does not make sense to do damping if there's only one star remaining.
+
+            if (problem::mass_S == 0.0_rt) {
+                terminated = true;
+            }
+
+            // Only do radial damping until the stars get sufficiently close. The way we will measure this
+            // is with respect to the Roche radius of the secondary: if the outer edge of the star is overflowing
+            // the Roche lobe, we terminate the damping and let Newtownian gravity do the rest of the work.
+
+            if (problem::radius_S > problem::radial_damping_roche_factor * problem::roche_rad_S) {
+                terminated = true;
+            }
+
+            if (terminated) {
+                amrex::Print() << "\n\n  Terminating radial damping force since secondary is about to overflow its Roche lobe.\n\n";
+                problem::radial_damping_velocity_factor = 0.0_rt;
+            }
+        }
     }
 }
 

@@ -364,7 +364,7 @@ Castro::wd_update (Real time, Real dt)
         t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
-    // Send this updated information back to the Fortran module
+    // Compute some other updated information about the stars
 
     set_star_data();
 }
