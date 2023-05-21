@@ -162,18 +162,11 @@ void problem_source (int i, int j, int k,
 
         GpuArray<Real, 3> acceleration = {0.0};
 
-        Real a_curr = 0.0_rt;
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            a_curr += (problem::com_P[dir] - problem::com_S[dir]) * (problem::com_P[dir] - problem::com_S[dir]);
-        }
-        a_curr = std::sqrt(a_curr);
-
-        Real mass_sum = problem::mass_P + problem::mass_S;
-        Real prefactor = 0.5_rt * C::Gconst / (a_curr * mass_sum);
-
-        Real v_a = problem::radial_drift_velocity;
+        Real M1 = problem::mass_P;
+        Real M2 = problem::mass_S;
+        Real M = M1 + M2;
         Real G = C::Gconst;
-        Real a_cubed_inv = 1.0_rt / (a_curr * a_curr * a_curr);
+        Real v_a = problem::radial_drift_velocity;
 
         if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), true) > 0.0_rt) {
             GpuArray<Real, 3> v = {0.0_rt};
@@ -188,12 +181,9 @@ void problem_source (int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 v_sq += v[dir] * v[dir];
             }
-            v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
-            Real mag_v = std::sqrt(v_sq);
 
-            Real M2 = problem::mass_S;
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -2.0_rt * G * M2 * v_a * a_cubed_inv * v[dir] / mag_v;
+                acceleration[dir] = -(v_sq * M * v_a) / (2.0_rt * G * M2 * M2) * v[dir];
             }
         }
         else if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), false) > 0.0_rt) {
@@ -209,12 +199,9 @@ void problem_source (int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 v_sq += v[dir] * v[dir];
             }
-            v_sq = amrex::max(v_sq, std::numeric_limits<Real>::epsilon());
-            Real mag_v = std::sqrt(v_sq);
 
-            Real M1 = problem::mass_P;
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                acceleration[dir] = -2.0_rt * G * M1 * v_a * a_cubed_inv * v[dir] / mag_v;
+                acceleration[dir] = -(v_sq * M * v_a) / (2.0_rt * G * M1 * M1) * v[dir];
             }
         }
 
