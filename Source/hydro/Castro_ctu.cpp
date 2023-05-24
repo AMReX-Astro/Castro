@@ -152,7 +152,6 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                         vbx, dt);
 
 
-#endif
         } else {
             trace_ppm(bx,
                       idir,
@@ -165,6 +164,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
         }
 
         enforce_reflect_states(bx, 1, qym, qyp);
+#endif
 
 
 #if AMREX_SPACEDIM == 3
