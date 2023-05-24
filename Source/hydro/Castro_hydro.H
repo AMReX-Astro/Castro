@@ -637,7 +637,7 @@
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
 /// @param q_arr     primitive variable state
-/// @param qaux_arr  the auxillary state
+/// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
 /// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
