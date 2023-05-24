@@ -104,6 +104,4 @@ integrator.rtol_enuc = 1.e-6
 integrator.jacobian = 1
 integrator.ode_max_steps = 1500000
 
-integrator.abort_on_failure = 0
-
 network.rho_nse = 1.e10

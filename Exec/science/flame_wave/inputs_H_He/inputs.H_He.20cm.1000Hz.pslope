@@ -154,7 +154,6 @@ integrator.atol_spec = 1.e-6
 network.use_tables = 1
 
 integrator.retry_burn = 0
-integrator.abort_on_failure = 0
 integrator.jacobian = 2
 
 # vim: ft=conf
