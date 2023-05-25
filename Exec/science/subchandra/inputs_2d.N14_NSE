@@ -2,8 +2,8 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 100000
-stop_time = 1.0
+max_step = 1000000
+stop_time = 10.0
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -135,11 +135,10 @@ integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-8
 integrator.jacobian = 2
 
-integrator.abort_on_failure = 0
-
 integrator.X_reject_buffer = 4.0
 
-#integrator.use_jacobian_caching = 0
+# disable jacobian caching in VODE
+integrator.use_jacobian_caching = 0
 
 integrator.ode_max_steps = 500000
 

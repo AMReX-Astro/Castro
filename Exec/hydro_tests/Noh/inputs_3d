@@ -6,7 +6,7 @@ geometry.coord_sys   =  0
 geometry.is_periodic =  0      0      0
 geometry.prob_lo     =  0.0    0.0    0.0
 geometry.prob_hi     =  1.0    1.0    1.0
-castro.center        =  0.0    0.0    0.0
+problem.center        =  0.0    0.0    0.0
 amr.n_cell           =  200    200    200
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
