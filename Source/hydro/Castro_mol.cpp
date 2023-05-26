@@ -159,6 +159,8 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
+  const auto dx = geom.CellSizeArray();
+  
   bool lo_bc_test = lo_bc[idir] == Symmetry;
   bool hi_bc_test = hi_bc[idir] == Symmetry;
 
@@ -174,7 +176,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sp;
 
     load_stencil(q_arr, idir, i, j, k, n, s);
-    ppm_reconstruct(s, i, j, k, idir,
+    ppm_reconstruct(s, i, j, k, idir, dx,
                     lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi,
                     flat, sm, sp);
 

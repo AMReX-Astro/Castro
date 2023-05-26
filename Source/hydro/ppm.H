@@ -55,6 +55,7 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const int i, const int j, const int k, const int idir,
+                const GpuArray<Real, AMREX_SPACEDIM>& dx,
                 const bool lo_bc_test, const bool hi_bc_test, const bool is_axisymmetric,
                 const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                 const Real flatn, Real& sm, Real& sp) {
@@ -110,35 +111,53 @@ ppm_reconstruct(const Real* s,
 
   } else {
 
-      // Compute van Leer slopes
+      if (idir == 0 && is_axisymmetric) {
 
-      Real dsl = 2.0_rt * (s[im1] - s[im2]);
-      Real dsr = 2.0_rt * (s[i0] - s[im1]);
+          const Real dr = dx[0];
+          const Real r_m12 = (static_cast<int>(i) - 0.5_rt) * dr;
 
-      Real dsvl_l = 0.0_rt;
-      if (dsl*dsr > 0.0_rt) {
-          Real dsc = 0.5_rt * (s[i0] - s[im2]);
-          dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+          Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im2] + 60.0_rt * s[im1]  + 60.0_rt * s[i0] - 12.0_rt * s[ip1]);
+          Real dr3_term = r_m12 * std::pow(dr, 3) * (-s[im2]  - 27.0_rt * s[im1] + 27.0_rt * s[i0] + s[ip1]);
+          Real dr2_term = std::pow(r_m12, 2) * std::pow(dr, 2) * (30.0_rt * s[im2] - 210.0_rt * s[im1] - 210.0_rt * s[i0] + 30.0_rt * s[ip1]);
+          Real dr1_term = std::pow(r_m12, 3) * dr * (-s[im2] - 13.0_rt * s[im1] - 13.0_rt * s[i0] + s[ip1]);
+          Real dr0_term = std::pow(r_m12, 4) * (-10.0_rt * s[im2] + 70.0_rt * s[im1] + 70.0_rt * s[i0] - 10.0_rt * s[ip1]);
+
+          Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_m12, 2) + 5.0_rt * std::pow(r_m12, 4));
+
+          sm = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
+
+      } else {
+
+          // Compute van Leer slopes
+
+          Real dsl = 2.0_rt * (s[im1] - s[im2]);
+          Real dsr = 2.0_rt * (s[i0] - s[im1]);
+
+          Real dsvl_l = 0.0_rt;
+          if (dsl*dsr > 0.0_rt) {
+              Real dsc = 0.5_rt * (s[i0] - s[im2]);
+              dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+          }
+
+          dsl = 2.0_rt * (s[i0] - s[im1]);
+          dsr = 2.0_rt * (s[ip1] - s[i0]);
+
+          Real dsvl_r = 0.0_rt;
+          if (dsl*dsr > 0.0_rt) {
+              Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+              dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+          }
+
+          // Interpolate s to edges
+
+          sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
       }
-
-      dsl = 2.0_rt * (s[i0] - s[im1]);
-      dsr = 2.0_rt * (s[ip1] - s[i0]);
-
-      Real dsvl_r = 0.0_rt;
-      if (dsl*dsr > 0.0_rt) {
-          Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-          dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-      }
-
-      // Interpolate s to edges
-
-      sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
       // Make sure sedge lies in between adjacent cell-centered values
 
       sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
       sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
-
   }
 
   // now we compute s_{i+1/2} -- the right interface value for zone i
@@ -186,29 +205,48 @@ ppm_reconstruct(const Real* s,
 
   } else {
 
-      // Compute van Leer slopes
+      if (idir == 0 && is_axisymmetric) {
 
-      Real dsl = 2.0_rt * (s[i0] - s[im1]);
-      Real dsr = 2.0_rt * (s[ip1] - s[i0]);
+          const Real dr = dx[0];
+          const Real r_p12 = (static_cast<int>(i) + 0.5_rt) * dr;
 
-      Real dsvl_l = 0.0_rt;
-      if (dsl*dsr > 0.0_rt) {
-        Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-        dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+          Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im1] + 60.0_rt * s[i0]  + 60.0_rt * s[ip1] - 12.0_rt * s[ip2]);
+          Real dr3_term = r_p12 * std::pow(dr, 3) * (-s[im1]  - 27.0_rt * s[i0] + 27.0_rt * s[ip1] + s[ip2]);
+          Real dr2_term = std::pow(r_p12, 2) * std::pow(dr, 2) * (30.0_rt * s[im1] - 210.0_rt * s[i0] - 210.0_rt * s[ip1] + 30.0_rt * s[ip2]);
+          Real dr1_term = std::pow(r_p12, 3) * dr * (-s[im1] - 13.0_rt * s[i0] - 13.0_rt * s[ip1] + s[ip2]);
+          Real dr0_term = std::pow(r_p12, 4) * (-10.0_rt * s[im1] + 70.0_rt * s[i0] + 70.0_rt * s[ip1] - 10.0_rt * s[ip2]);
+
+          Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_p12, 2) + 5.0_rt * std::pow(r_p12, 4));
+
+          sp = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
+
+      } else {
+
+          // Compute van Leer slopes
+
+          Real dsl = 2.0_rt * (s[i0] - s[im1]);
+          Real dsr = 2.0_rt * (s[ip1] - s[i0]);
+
+          Real dsvl_l = 0.0_rt;
+          if (dsl*dsr > 0.0_rt) {
+            Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+            dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+          }
+
+          dsl = 2.0_rt * (s[ip1] - s[i0]);
+          dsr = 2.0_rt * (s[ip2] - s[ip1]);
+
+          Real dsvl_r = 0.0_rt;
+          if (dsl*dsr > 0.0_rt) {
+            Real dsc = 0.5_rt * (s[ip2] - s[i0]);
+            dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+          }
+
+          // Interpolate s to edges
+
+          sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
       }
-
-      dsl = 2.0_rt * (s[ip1] - s[i0]);
-      dsr = 2.0_rt * (s[ip2] - s[ip1]);
-
-      Real dsvl_r = 0.0_rt;
-      if (dsl*dsr > 0.0_rt) {
-        Real dsc = 0.5_rt * (s[ip2] - s[i0]);
-        dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-      }
-
-      // Interpolate s to edges
-
-      sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
       // Make sure sedge lies in between adjacent cell-centered values
 
@@ -258,7 +296,7 @@ ppm_reconstruct(const Real* s,
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
-                       const Real dx,
+                       const GpuArray<Real, AMREX_SPACEDIM>& dx,
                        const int i, const int j, const int k, const int idir,
                        bool lo_bc_test, bool hi_bc_test, const bool is_axisymmetric,
                        const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
@@ -271,13 +309,13 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 
     Real p0_hse = p[i0];
 
-    Real pp1_hse = p0_hse + 0.5_rt*dx * (rho[i0] * src[i0] + rho[ip1] * src[ip1]);
-    Real pp2_hse = pp1_hse + 0.5_rt*dx * (rho[ip1] * src[ip1] + rho[ip2] * src[ip2]);
-    Real pp3_hse = pp2_hse + 0.5_rt*dx * (rho[ip2] * src[ip2] + rho[ip3] * src[ip3]);
+    Real pp1_hse = p0_hse + 0.5_rt * dx[idir] * (rho[i0] * src[i0] + rho[ip1] * src[ip1]);
+    Real pp2_hse = pp1_hse + 0.5_rt * dx[idir] * (rho[ip1] * src[ip1] + rho[ip2] * src[ip2]);
+    Real pp3_hse = pp2_hse + 0.5_rt * dx[idir] * (rho[ip2] * src[ip2] + rho[ip3] * src[ip3]);
 
-    Real pm1_hse = p0_hse - 0.5_rt*dx * (rho[i0] * src[i0] + rho[im1] * src[im1]);
-    Real pm2_hse = pm1_hse - 0.5_rt*dx * (rho[im1] * src[im1] + rho[im2] * src[im2]);
-    Real pm3_hse = pm2_hse - 0.5_rt*dx * (rho[im2] * src[im2] + rho[im3] * src[im3]);
+    Real pm1_hse = p0_hse - 0.5_rt * dx[idir] * (rho[i0] * src[i0] + rho[im1] * src[im1]);
+    Real pm2_hse = pm1_hse - 0.5_rt * dx[idir] * (rho[im1] * src[im1] + rho[im2] * src[im2]);
+    Real pm3_hse = pm2_hse - 0.5_rt * dx[idir] * (rho[im2] * src[im2] + rho[im3] * src[im3]);
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
@@ -316,15 +354,15 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
         tp[ip3] = p[ip3];
     }
 
-    ppm_reconstruct(tp, i, j, k, idir, lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi, flatn, sm, sp);
+    ppm_reconstruct(tp, i, j, k, idir, dx, lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi, flatn, sm, sp);
 
 
     // now correct sm and sp to be back to the full pressure by
     // adding in the hydrostatic pressure at the interface
 
     if (!ptest && rho[i0] >= pslope_cutoff_density) {
-        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
-        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
+        sp += p[i0] + 0.5_rt * dx[idir] * rho[i0] * src[i0];
+        sm += p[i0] - 0.5_rt * dx[idir] * rho[i0] * src[i0];
     }
 
 }
