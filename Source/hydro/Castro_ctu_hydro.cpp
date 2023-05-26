@@ -1309,19 +1309,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
             // get the scaled radial pressure -- we need to treat this specially
 #if AMREX_SPACEDIM <= 2
-
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-#endif
                 amrex::ParallelFor(nbx,
                 [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
             }
-
 #endif
         }
 
@@ -1359,11 +1353,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
 
-#if AMREX_SPACEDIM == 1
-            if (idir == 0 && !Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-#endif
                 Array4<Real> pradial_fab = pradial.array();
                 Array4<Real> P_radial_fab = P_radial.array(mfi);
 
