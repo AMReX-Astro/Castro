@@ -30,12 +30,6 @@
 #include <omp.h>
 #endif
 
-#ifdef REACTIONS
-#ifdef SCREENING
-#include <screen.H>
-#endif
-#endif
-
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
@@ -653,9 +647,6 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
   }
 
-#ifdef SCREENING
-  jobInfoFile << "screening: " << screen_name << "\n";
-#endif
   jobInfoFile << "\n";
 
   const char* githash1 = buildInfoGetGitHash(1);
