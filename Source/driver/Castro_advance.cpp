@@ -470,7 +470,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
     }
 
 #if (AMREX_SPACEDIM <= 2)
-    if (!Geom().IsCartesian()) {
+    if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
         P_radial.setVal(0.0);
     }
 #endif

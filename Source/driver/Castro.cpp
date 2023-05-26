@@ -849,7 +849,7 @@ Castro::initMFs()
     }
 
 #if (AMREX_SPACEDIM <= 2)
-    if (!Geom().IsCartesian()) {
+    if (AMREX_SPADCE_DIM == 1 || !Geom().IsCartesian()) {
       P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
     }
 #endif
@@ -2589,7 +2589,7 @@ Castro::FluxRegCrseInit() {
     }
 
 #if (AMREX_SPACEDIM <= 2)
-    if (!Geom().IsCartesian()) {
+    if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
       fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
     }
 #endif
@@ -2619,7 +2619,7 @@ Castro::FluxRegFineAdd() {
     }
 
 #if (AMREX_SPACEDIM <= 2)
-    if (!Geom().IsCartesian()) {
+    if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
       getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
     }
 #endif
@@ -2832,7 +2832,7 @@ Castro::reflux(int crse_level, int fine_level)
         reg->setVal(0.0);
 
 #if (AMREX_SPACEDIM <= 2)
-        if (!Geom().IsCartesian()) {
+        if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
 
             reg = &getLevel(lev).pres_reg;
 

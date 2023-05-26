@@ -501,7 +501,7 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
         }
 
 #if (AMREX_SPACEDIM <= 2)
-        if (!Geom().IsCartesian()) {
+        if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
           P_radial.setVal(0.0);
         }
 #endif
