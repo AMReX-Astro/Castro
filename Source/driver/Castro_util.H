@@ -69,18 +69,14 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
     if (mom_dir == 0 && flux_dir == 0) {
 
-        if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && coord == CoordSys::RZ)) {
+        if (coord != CoordSys::cartesian) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
 
-    }
-    else {
-
+    } else {
         return (mom_dir == flux_dir);
-
     }
 
 #else // AMREX_SPACEDIM == 3; Cartesian
