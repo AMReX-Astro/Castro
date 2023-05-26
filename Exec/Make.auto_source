@@ -24,7 +24,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/exter
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
-           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern --use_namespace \
            --pa "$(EXTERN_PARAMETERS)"
 
 

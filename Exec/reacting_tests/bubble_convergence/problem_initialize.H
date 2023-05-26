@@ -29,9 +29,9 @@ void problem_initialize ()
     model_params.T_base = problem::temp_base;
     model_params.dens_base = problem::dens_base;
     for (int n = 0; n < NumSpec; n++) {
-        model_params.xn[n] = 100*small_x;
+        model_params.xn[n] = 100 * network_rp::small_x;
     }
-    model_params.xn[ihe4] = 1.0_rt - (NumSpec - 1) * 100*small_x;
+    model_params.xn[ihe4] = 1.0_rt - (NumSpec - 1) * 100 * network_rp::small_x;
 
     // we add some buffer to the model so we can use it to fill ghost
     // cells in the boundary conditions
