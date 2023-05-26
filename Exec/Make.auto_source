@@ -104,13 +104,17 @@ CEXE_headers += $(AMREX_HOME)/Tools/C_scripts/AMReX_buildInfo.H
 INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
 
 
-MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH) INTEGRATOR=$(INTEGRATOR_DIR) SCREENING=$(SCREEN_METHOD)
+MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
 ifeq ($(USE_DIFFUSION), TRUE)
    MNAMES += CONDUCTIVITY=$(CONDUCTIVITY_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
    MNAMES += OPACITY=$(OPAC_PATH)
+endif
+
+ifeq ($(USE_REACT), TRUE)
+   MNAMES += INTEGRATOR=$(INTEGRATOR_DIR) SCREENING=$(SCREEN_METHOD)
 endif
 
 # we make AMReX_buildInfo.cpp as we make the .o file, so we can delete
