@@ -849,7 +849,7 @@ Castro::initMFs()
     }
 
 #if (AMREX_SPACEDIM <= 2)
-    if (AMREX_SPADCE_DIM == 1 || !Geom().IsCartesian()) {
+    if (AMREX_SPACEDIM == 1 || !Geom().IsCartesian()) {
       P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
     }
 #endif
