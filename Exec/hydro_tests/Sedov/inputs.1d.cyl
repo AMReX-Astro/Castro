@@ -75,6 +75,3 @@ problem.nsub = 10
 
 # EOS
 eos.eos_assume_neutral = 1
-
-# FAB FORMAT
-fab.format = ASCII
