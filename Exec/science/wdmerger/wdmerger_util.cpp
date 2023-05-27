@@ -381,9 +381,9 @@ void set_small ()
 
 
 
-// Set the locations of the stellar centers of mass
+// Update the locations of the Roche radii
 
-void set_star_data ()
+void update_roche_radii ()
 {
     if (problem::mass_P > 0.0_rt && problem::mass_S > 0.0_rt) {
         Real r = std::sqrt(std::pow(problem::com_P[0] - problem::com_S[0], 2) +
@@ -416,37 +416,30 @@ void set_star_data ()
             problem::roche_rad_P = 0.0_rt;
             problem::t_ff_P = 0.0_rt;
         }
+    }
 
-        // Determine when the radial damping force terminates.
+    // Determine when the radial damping force terminates.
 
-        if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
-            bool terminated = false;
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        bool terminated = false;
 
-            // It does not make sense to do damping if there's only one star remaining.
+        // It does not make sense to do damping if there's only one star remaining.
 
-            if (problem::mass_S == 0.0_rt) {
-                terminated = true;
-            }
+        if (problem::mass_S == 0.0_rt) {
+            terminated = true;
+        }
 
-            // Only do radial damping until the stars get sufficiently close. The way we will measure this
-            // is when the secondary overflows the Roche lobe (that is, the outer edge of the star gets to
-            // within a Roche radius of the primary, scaled by an optional factor). At that point we
-            // terminate the damping and let Newtonian gravity do the rest of the work.
+        // Only do radial damping until the stars get sufficiently close. The way we will measure this
+        // is when the secondary overflows the Roche lobe. At that point we terminate the damping and
+        // let Newtonian gravity do the rest of the work.
 
-            Real a_curr = 0.0_rt;
-            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                a_curr += (problem::com_P[dir] - problem::com_S[dir]) * (problem::com_P[dir] - problem::com_S[dir]);
-            }
-            a_curr = std::sqrt(a_curr);
+        if (problem::roche_rad_S <= problem::radial_damping_roche_factor * problem::radius_S) {
+            terminated = true;
+        }
 
-            if (a_curr <= problem::radial_damping_roche_factor * problem::roche_rad_S) {
-                terminated = true;
-            }
-
-            if (terminated) {
-                amrex::Print() << "\n\n  Terminating radial damping force since secondary is about to overflow its Roche lobe.\n\n";
-                problem::radial_damping_velocity_factor = 0.0_rt;
-            }
+        if (terminated) {
+            amrex::Print() << "\n\n  Terminating radial damping force since the secondary is about to overflow its Roche lobe.\n\n";
+            problem::radial_damping_velocity_factor = 0.0_rt;
         }
     }
 }

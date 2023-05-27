@@ -240,8 +240,8 @@ Castro::wd_update (Real time, Real dt)
                 Real m_S = dmSymmetric * secondary_factor;
 
                 return {com_P_x, com_P_y, com_P_z, com_S_x, com_S_y, com_S_z,
-                    vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
-                    m_P, m_S};
+                        vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
+                        m_P, m_S};
             });
 
         }
@@ -279,18 +279,18 @@ Castro::wd_update (Real time, Real dt)
     Real foo_sum[nfoo_sum] = { 0.0 };
 
     for (int i = 0; i <= 6; ++i) {
-      foo_sum[i  ] = vol_P[i];
-      foo_sum[i+7] = vol_S[i];
+        foo_sum[i  ] = vol_P[i];
+        foo_sum[i+7] = vol_S[i];
     }
 
     foo_sum[14] = mass_P;
     foo_sum[15] = mass_S;
 
     for (int i = 0; i <= 2; ++i) {
-      foo_sum[i+16] = com_P[i];
-      foo_sum[i+19] = com_S[i];
-      foo_sum[i+22] = vel_P[i];
-      foo_sum[i+25] = vel_S[i];
+        foo_sum[i+16] = com_P[i];
+        foo_sum[i+19] = com_S[i];
+        foo_sum[i+22] = vel_P[i];
+        foo_sum[i+25] = vel_S[i];
     }
 
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
@@ -364,9 +364,9 @@ Castro::wd_update (Real time, Real dt)
         t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
-    // Compute some other updated information about the stars
+    // Compute updated roche Radii
 
-    set_star_data();
+    update_roche_radii();
 }
 
 
@@ -551,6 +551,10 @@ void Castro::problem_post_restart() {
       }
 
   }
+
+  // Update Roche radii to ensure consistency of initial conditions
+
+  update_roche_radii();
 
 }
 
