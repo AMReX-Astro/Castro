@@ -1155,6 +1155,7 @@ Castro::problem_sums ()
                   header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
 #endif
                   header << std::setw(datwidth) << "       PRIMARY T_FREEFALL"; ++n;
+                  header << std::setw(datwidth) << "     PRIMARY ROCHE RADIUS"; ++n;
                   for (int i = 0; i <= 6; ++i) {
                       header << "       PRIMARY 1E" << i << " RADIUS";          ++n;
                   }
@@ -1198,6 +1199,7 @@ Castro::problem_sums ()
               log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
               log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << roche_rad_P;
               for (int i = 0; i <= 6; ++i) {
                   log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
               }
@@ -1251,6 +1253,7 @@ Castro::problem_sums ()
                   header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
 #endif
                   header << std::setw(datwidth) << "     SECONDARY T_FREEFALL"; ++n;
+                  header << std::setw(datwidth) << "   SECONDARY ROCHE RADIUS"; ++n;
                   for (int i = 0; i <= 6; ++i) {
                       header << "     SECONDARY 1E" << i << " RADIUS";          ++n;
                   }
@@ -1294,6 +1297,7 @@ Castro::problem_sums ()
               log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
               log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << roche_rad_S;
               for (int i = 0; i <= 6; ++i) {
                   log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
               }

@@ -429,10 +429,17 @@ void set_star_data ()
             }
 
             // Only do radial damping until the stars get sufficiently close. The way we will measure this
-            // is with respect to the Roche radius of the secondary: if the outer edge of the star is overflowing
-            // the Roche lobe, we terminate the damping and let Newtownian gravity do the rest of the work.
+            // is when the secondary overflows the Roche lobe (that is, the outer edge of the star gets to
+            // within a Roche radius of the primary, scaled by an optional factor). At that point we
+            // terminate the damping and let Newtonian gravity do the rest of the work.
 
-            if (problem::radius_S > problem::radial_damping_roche_factor * problem::roche_rad_S) {
+            Real a_curr = 0.0_rt;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                a_curr += (problem::com_P[dir] - problem::com_S[dir]) * (problem::com_P[dir] - problem::com_S[dir]);
+            }
+            a_curr = std::sqrt(a_curr);
+
+            if (a_curr <= problem::radial_damping_roche_factor * problem::roche_rad_S) {
                 terminated = true;
             }
 
