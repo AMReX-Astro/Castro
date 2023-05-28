@@ -236,9 +236,7 @@ Castro::mol_consup(const Box& bx,
   const auto dx = geom.CellSizeArray();
 #endif
 
-#if AMREX_SPACEDIM == 2
   auto coord = geom.Coord();
-#endif
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
@@ -257,24 +255,14 @@ Castro::mol_consup(const Box& bx,
                         flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1) ) / vol(i,j,k);
 #endif
 
-#if AMREX_SPACEDIM == 1
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
-      }
-    }
-#endif
+    if (n == UMX) {
+        // Add gradp term to momentum equation -- only for axisymmetric
+        // coords (and only for the radial flux).
 
-#if AMREX_SPACEDIM == 2
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        // add the pressure source term for axisymmetry
-        if (coord > 0) {
-          update(i,j,k,n) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
+        if (!mom_flux_has_p(0, 0, coord)) {
+            update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
         }
-      }
     }
-#endif
 
     // this assumes that the species are at the end of the conserved state
     if (n < NSRC) {
