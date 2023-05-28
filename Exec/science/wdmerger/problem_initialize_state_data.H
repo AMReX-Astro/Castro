@@ -12,8 +12,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    const Real time = 0.0_rt;
-
     // Set the zone state depending on whether we are inside the primary
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
