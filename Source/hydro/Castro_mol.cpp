@@ -255,6 +255,7 @@ Castro::mol_consup(const Box& bx,
                         flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1) ) / vol(i,j,k);
 #endif
 
+#if AMREX_SPACEDIM <= 2
     if (n == UMX) {
         // Add gradp term to momentum equation -- only for axisymmetric
         // coords (and only for the radial flux).
@@ -263,6 +264,7 @@ Castro::mol_consup(const Box& bx,
             update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
         }
     }
+#endif
 
     // this assumes that the species are at the end of the conserved state
     if (n < NSRC) {
