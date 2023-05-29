@@ -234,9 +234,8 @@ Castro::mol_consup(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
-#endif
-
   auto coord = geom.Coord();
+#endif
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
