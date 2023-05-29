@@ -255,7 +255,7 @@ Castro::mol_consup(const Box& bx,
 #endif
 
 #if AMREX_SPACEDIM <= 2
-    if (n == UMX) {
+    if (n == UMX && do_hydro == 1) {
         // Add gradp term to momentum equation -- only for axisymmetric
         // coords (and only for the radial flux).
 
