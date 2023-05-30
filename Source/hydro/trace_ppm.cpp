@@ -83,7 +83,7 @@ Castro::trace_ppm(const Box& bx,
     do_source_trace[n] = 0;
 
     // geometric source terms in r-direction need tracing
-    if (coord > 0 && idir == 0 && (n == QRHO || n == QPRES || n == QRHOE)) {
+    if (coord > 0 && idir == 0 && (n == QRHO || n == QPRES || n == QREINT)) {
         do_source_trace[n] = 1;
         continue;
     }
@@ -338,6 +338,9 @@ Castro::trace_ppm(const Box& bx,
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QPRES, s);
+        if (idir == 0 && coord > 0) {
+            add_geometric_p_source(q_arr, qaux_arr, dloga, i, j, k, s);
+        }
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_p, Im_src_p);
     }
@@ -359,6 +362,9 @@ Castro::trace_ppm(const Box& bx,
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QREINT, s);
+        if (idir == 0 && coord > 0) {
+            add_geometric_rhoe_source(q_arr, dloga, i, j, k, s);
+        }
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rhoe, Im_src_rhoe);
     }
@@ -624,35 +630,6 @@ Castro::trace_ppm(const Box& bx,
       }
 
     }
-
-    // geometry source terms
-#if (AMREX_SPACEDIM < 3)
-    // these only apply for x states (idir = 0)
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real rho = q_arr(i,j,k,QRHO);
-
-      Real courn = dt/dx[0]*(cc+std::abs(un));
-      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
-      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
-      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-      Real sourcp = sourcr*csq;
-      Real source = sourcp*((q_arr(i,j,k,QPRES) + q_arr(i,j,k,QREINT))/rho)/csq;
-
-      if (i <= vhi[0]) {
-        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-        qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
-        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
-      }
-
-      if (i >= vlo[0]) {
-        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
-        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
-      }
-    }
-#endif
 
   });
 }
