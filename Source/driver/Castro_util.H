@@ -184,8 +184,16 @@ Real volume(const int& i, const int& j, const int& k,
 
         vol = dx[0];
 
-    }
-    else {
+    } else if (coord == 1) {
+
+        // 1-d cylindrical
+
+        Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real rr = rl + dx[0];
+
+        vol = M_PI * dx[0] * (rr + rl);
+
+   } else {
 
         // Spherical
 
@@ -253,8 +261,15 @@ Real area(const int& i, const int& j, const int& k,
 
         a = 1.0_rt;
 
-    }
-    else {
+    } else if (coord == 1) {
+
+        // 1-D cylindrical
+
+        Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+
+        a = 2.0_rt * M_PI * r;
+
+    } else {
 
         // Spherical
 

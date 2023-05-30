@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
@@ -50,14 +49,16 @@ def get_version():
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
+              'sphinx_math_dollar',
               'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
               'sphinxcontrib.bibtex',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
-              'sphinx-prompt',
               'sphinx_rtd_theme',
+              'sphinx_copybutton',
+              'sphinx-prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -115,9 +116,17 @@ todo_include_todos = False
 
 
 # -- Options for MathJax
-mathjax3_config = {'tex': {'macros': {}}}
+# for sphinx-math-dollar
+mathjax3_config = {}
 
-with open('mathsymbols.tex', 'r') as f:
+mathjax3_config["tex"] = {
+    "inlineMath": [['\\(', '\\)']],
+    "displayMath": [["\\[", "\\]"]],
+  }
+
+mathjax3_config["tex"]["macros"] = {}
+
+with open('mathsymbols.tex') as f:
     for line in f:
         macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
         for macro in macros:
@@ -149,13 +158,7 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        '_static/css/theme.css',
-        '_static/pygments.css'
-    ],
-}
+html_css_files = ["theme_overrides.css"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

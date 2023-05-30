@@ -1,0 +1,57 @@
+name: Rad2Tshock
+
+on: [pull_request]
+jobs:
+  Rad2Tshock-1d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0 libopenmpi-dev  openmpi-bin
+
+      - name: Install hypre
+        run: |
+          wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.26.0.tar.gz
+          tar xfz v2.26.0.tar.gz
+          cd hypre-2.26.0/src
+          ./configure --with-cxxstandard=17
+          make -j 2
+          make install
+          cd ../../
+
+      - name: Compile Rad2Tshock
+        run: |
+          export AMREX_HYPRE_HOME=${PWD}/hypre-2.26.0/src/hypre
+          cd Exec/radiation_tests/Rad2Tshock
+          make DEBUG=TRUE USE_MPI=TRUE DIM=1 -j 4
+
+      - name: Run Rad2Tshock-1d
+        run: |
+          cd Exec/radiation_tests/Rad2Tshock
+          ./Castro1d.gnu.DEBUG.MPI.ex inputs.M2 max_step=25
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j 2
+
+      - name: Check the extrema
+        run: |
+          cd Exec/radiation_tests/Rad2Tshock
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt_00025 > fextrema.out
+          diff fextrema.out ci-benchmarks/Rad2TShock-1d.out
+

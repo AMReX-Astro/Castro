@@ -111,7 +111,8 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mul
             loc[0] -= problem::center[0];
             loc[1] -= problem::center[1];
 
-            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                                std::numeric_limits<Real>::min());
 
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
             Real RInv = 1.0_rt / R;
