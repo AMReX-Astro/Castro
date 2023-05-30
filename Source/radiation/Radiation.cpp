@@ -33,12 +33,7 @@ int Radiation::nGroups = NGROUPS;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
 int Radiation::Er_Lorentz_term = 1;
-int Radiation::plot_lambda   = 0;
-int Radiation::plot_kappa_p  = 0;
-int Radiation::plot_kappa_r  = 0;
-int Radiation::plot_lab_Er   = 0;
-int Radiation::plot_lab_flux = 0;
-int Radiation::plot_com_flux = 0;
+
 int Radiation::icomp_lambda  = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
@@ -168,16 +163,9 @@ void Radiation::read_static_params()
   }
 
 
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  if (radiation::comoving) pp.query("plot_lab_Er", plot_lab_Er);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_com_flux", plot_com_flux);
-
   // set up the extra plot variables
   {
-      if (plot_lambda) {
+      if (radiation::plot_lambda) {
           icomp_lambda = plotvar_names.size();
 
           if (!do_multigroup || radiation::limiter == 0) {
@@ -190,7 +178,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_p) {
+      if (radiation::plot_kappa_p) {
           icomp_kp = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_P");
@@ -202,7 +190,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_r) {
+      if (radiation::plot_kappa_r) {
           icomp_kr = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_R");
@@ -214,7 +202,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_Er) {
+      if (radiation::plot_lab_Er) {
           icomp_lab_Er = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("Erlab");
@@ -226,7 +214,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_flux) {
+      if (radiation::plot_lab_flux) {
           icomp_lab_Fr = plotvar_names.size();
           std::string frame = "lab";
           Vector<std::string> dimname;
@@ -249,7 +237,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_com_flux) {
+      if (radiation::plot_com_flux) {
           icomp_com_Fr = plotvar_names.size();
           std::string frame = "com";
           Vector<std::string> dimname;

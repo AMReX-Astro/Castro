@@ -375,10 +375,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #endif
 
-            // add artifical viscosity
+            // add artificial viscosity
             if (do_hydro == 1) {
 
-              // avisc_coefficient is the coefficent we use.  The
+              // avisc_coefficient is the coefficient we use.  The
               // McCorquodale & Colella paper suggest alpha = 0.3, but
               // our other hydro solvers use a coefficient on the
               // divergence that defaults to 0.1, so we normalize to
@@ -403,7 +403,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
                   } else if (n == USHK) {
-                    flux_arr(i,j,k,n) == 0.0;
+                    flux_arr(i,j,k,n) = 0.0;
+#endif
+#ifdef NSE_NET
+		  } else if (n == UMUP || n == UMUN) {
+		    flux_arr(i,j,k,n) = 0.0;
 #endif
                   } else {
 
@@ -482,7 +486,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 amrex::ParallelFor(qbx,
                 [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
-                    hydro::src_to_prim(i, j, k, dt, q_arr, source_in_arr, src_q_arr);
+                    hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
                 });
 
                 mol_plm_reconstruct(obx, idir,
@@ -523,6 +527,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
                 flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+#ifdef NSE_NET
+		flux_arr(i,j,k,UMUP) = 0.e0;
+		flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
               });
 
@@ -586,7 +594,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -642,7 +649,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
             loc[dir] -= problem::center[dir];
 
-          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                              std::numeric_limits<Real>::min());
           Real RInv = 1.0_rt / R;
 
           source_out_arr(i,j,k,UMR) -= ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +

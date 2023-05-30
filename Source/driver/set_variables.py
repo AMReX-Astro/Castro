@@ -7,17 +7,15 @@
 
 The indices are all 0-based.
 
+For the adds-to column, we can take a list of counters or tuples, e.g.,
+  [N1, (N2, DEFINE)]
+where we only add to N2 is DEFINE is defined as a preprocessor variable.
 """
 
 import argparse
 import os
 import re
 
-
-def split_pair(pair_string):
-    """given an option of the form "(val1, val2)", split it into val1 and
-    val2"""
-    return pair_string.replace("(", "").replace(")", "").replace(" ", "").split(",")
 
 class Index:
     """an index that we want to set"""
@@ -57,7 +55,7 @@ class Index:
         is 0-based, we subtract 1, so we sync with the Fortran
         value
         """
-        sstr = "  constexpr int {} = {};\n".format(self.var, self.cxx_value)
+        sstr = f"  constexpr int {self.var} = {self.cxx_value};\n"
         return sstr
 
 
@@ -91,7 +89,7 @@ class Counter:
         if self.cxx_strings:
             val = "{} + {}".format(self.numeric - offset - 1, " + ".join(self.cxx_strings))
         else:
-            val = "{}".format(self.numeric - offset - 1)
+            val = f"{self.numeric - offset - 1}"
 
         return val
 
@@ -110,7 +108,7 @@ def doit(variables_file, odir, defines, nadv):
     # (e.g., conserved, primitive, ...)
     default_set = {}
 
-    with open(variables_file, "r") as f:
+    with open(variables_file) as f:
         current_set = None
         default_group = None
         for line in f:
@@ -125,34 +123,43 @@ def doit(variables_file, odir, defines, nadv):
             else:
 
                 # this splits the line into separate fields.  A field is a
-                # single word or a pair in parentheses like "(a, b)"
-                fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
+                # single word or, for the "also adds to" section, a group in []
+                fields = re.findall(r'[\w-]+|\[.*?\]', line)
 
                 name = fields[0]
                 var = fields[1]
-                adds_to = fields[2]
+                adds_to_temp = fields[2]
                 count = fields[3]
                 ifdef = fields[4]
 
                 # we may be fed a pair of the form (SET, DEFINE),
                 # in which case we only add to SET if we define
                 # DEFINE
-                if adds_to.startswith("("):
-                    add_set, define = split_pair(adds_to)
-                    if not define in defines:
+                if adds_to_temp.startswith("["):
+                    # now split it into entities that are either single
+                    # (counter, ifdef) or just (counter)
+                    subfields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', adds_to_temp)
+
+                    # loop over the subfields and build a list of tuples
+                    adds_to = []
+                    for s in subfields:
+                        if s.startswith("("):
+                            counter, define = re.findall(r'[\w]+', s)
+                            if define in defines:
+                                adds_to.append(counter)
+                        else:
+                            adds_to.append(s)
+                else:
+                    if adds_to_temp == "None":
                         adds_to = None
                     else:
-                        adds_to = add_set
-
-                if adds_to == "None":
-                    adds_to = None
+                        adds_to = [adds_to_temp]
 
                 # only recognize the index if we defined any required preprocessor variable
                 if ifdef == "None" or ifdef in defines:
                     indices.append(Index(name, var, default_group=default_group,
                                          iset=current_set, also_adds_to=adds_to,
                                          count=count))
-
 
     # find the set of set names
     unique_sets = {q.iset for q in indices}
@@ -162,7 +169,7 @@ def doit(variables_file, odir, defines, nadv):
     # the size of each set
     all_counters = []
 
-    # loop over sets, create the counters, and store any indicies that belong to those
+    # loop over sets, create the counters, and store any indices that belong to those
     for s in sorted(unique_sets):
 
         # these are the indices that belong to the default set s.
@@ -170,7 +177,13 @@ def doit(variables_file, odir, defines, nadv):
         set_indices = [q for q in indices if q.iset == s]
 
         # these indices may also add to other counters
-        adds_to = {q.adds_to for q in set_indices if q.adds_to is not None}
+        adds_to = []
+        for q in set_indices:
+            if q.adds_to is not None:
+                for v in q.adds_to:
+                    adds_to.append(v)
+
+        adds_to = sorted(set(adds_to))
 
         # initialize the counters
         counter_main = Counter(default_set[s])
@@ -187,11 +200,10 @@ def doit(variables_file, odir, defines, nadv):
 
             # increment the counters
             counter_main.add_index(i)
-            if i.adds_to is not None:
+            if i.adds_to:
                 for ca in counter_adds:
-                    if ca.name == i.adds_to:
+                    if ca.name in i.adds_to:
                         ca.add_index(i)
-
 
         # store the counters for later writing
         all_counters += [counter_main]
@@ -203,21 +215,21 @@ def doit(variables_file, odir, defines, nadv):
     with open(os.path.join(odir, "state_indices.H"), "w") as f:
 
         # first write out the counter sizes
-        f.write("#ifndef _state_indices_H_\n")
-        f.write("#define _state_indices_H_\n")
+        f.write("#ifndef STATE_INDICES_H\n")
+        f.write("#define STATE_INDICES_H\n")
 
         f.write("#include <network_properties.H>\n\n")
 
-        f.write("  constexpr int NumAdv = {};\n".format(nadv))
+        f.write(f"  constexpr int NumAdv = {nadv};\n")
         for ac in all_counters:
-            f.write("  {}\n".format(ac.get_cxx_set_string()))
+            f.write(f"  {ac.get_cxx_set_string()}\n")
         f.write("  constexpr int npassive = NumSpec + NumAux + NumAdv;\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
-        for s in unique_sets:
+        for s in sorted(unique_sets):
             set_indices = [q for q in indices if q.iset == s]
-            f.write("\n   // {}\n".format(s))
+            f.write(f"\n   // {s}\n")
             for i in set_indices:
                 f.write(i.get_cxx_set_string())
 

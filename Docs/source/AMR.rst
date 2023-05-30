@@ -20,10 +20,6 @@ evaluates where additional refinement is needed
 and grid generation procedures dynamically create or
 remove rectangular fine grid patches as resolution requirements change.
 
-A good introduction to the style of AMR used here is in Lecture 1
-of the Adaptive Mesh Refinement Short Course at
-https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf.
-
 .. _sec:tagging:
 
 Tagging for Refinement
@@ -67,13 +63,34 @@ describing when to tag. These are:
 * ``field_name`` : name of the string defining the field in the code
 
 If a refinement indicator is added, either
-``value_greater``, ``value_less``, or ``gradient`` must be provided.
+``value_greater``, ``value_less``, ``gradient`` or ``relative_gradient`` must be provided.
 
 .. note::
 
    Zones adjacent to a physical boundary cannot be tagged for refinement when
    using the Poisson gravity solver. If your tagging criteria are met in these
    zones, they will be ignored.
+
+Sometimes, we wish to force the code to derefine based on a criteria,
+even if other indicators tagged a zone for refinement.  This is
+accomplished by created another refinement indicator and setting the
+``derefine`` field to ``1``.  For example, to derefine any zone where
+the density is less than ``1.e4``, we could do:
+
+::
+
+    amr.refine.dencutoff.derefine = 1
+    amr.refine.dencutoff.field_name = density
+    amr.refine.dencutoff.value_less = 1.e4
+
+where ``dencutoff`` is lised under ``amr.refinement_indicators``.
+
+.. note::
+
+   Any derefinement indicators should appear after those that tag for
+   refinement in the ``amr.refinement_indicators`` list, so it is
+   applied after all the refinement tagging is done.
+
 
 .. index:: problem_tagging.H
 

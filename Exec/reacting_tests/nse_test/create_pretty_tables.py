@@ -123,7 +123,8 @@ if __name__ == "__main__":
                  "rho_Fe56": r"$\rho X(\isotm{Fe}{56})$",
                  "rho_Ye": r"$\rho Y_e$",
                  "rho_abar": r"$\rho \bar{A}$",
-                 "rho_bea": r"$\rho (B/A)$"
+                 "rho_bea": r"$\rho (B/A)$",
+                 "rho_enuc": r"$\rho \dot{S}$"
                  }
 
     # sdc4
@@ -134,5 +135,9 @@ if __name__ == "__main__":
 
     for v in sdc4.data:
         if v.name in good_vars.keys():
-            print(v.get_table_line(pretty_name=good_vars[v.name], simple=args.simple))
+            if args.simple:
+                name = v.name
+            else:
+                name = good_vars[v.name]
+            print(v.get_table_line(pretty_name=name, simple=args.simple))
 

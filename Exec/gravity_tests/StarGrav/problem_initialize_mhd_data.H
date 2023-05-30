@@ -21,7 +21,7 @@ Real compute_A_x(const Real x, const Real y, const Real z)
         A_x = -problem::m_0 * dist * std::sin(theta) * std::sin(phi) / (1.0e24);
 
     } else {
-        // outside the star radius treshold
+        // outside the star radius threshold
         A_x = -problem::m_0 * std::sin(theta) * std::sin(phi) / (dist*dist);
     }
 
@@ -48,7 +48,7 @@ Real compute_A_y(const Real x, const Real y, const Real z)
         A_y = problem::m_0 * dist * std::sin(theta) * std::cos(phi) / (1.0e24);
 
     } else {
-        // outside the star radius treshold
+        // outside the star radius threshold
         A_y = problem::m_0 * std::sin(theta) * std::cos(phi) / (dist*dist);
     }
 
@@ -90,7 +90,7 @@ void problem_initialize_mhd_data (int i, int j, int k,
     // We'll compute B from the vector potential A
     // A is of the form A = (A_x, A_y, 0)
 
-    // inside the star radius treshold (R) the vector potential
+    // inside the star radius threshold (R) the vector potential
     // will be of the form A_x = constant * x
     //                         = constant * rsin(theta) * cos(phi)
     // the constant is then obtained by matching B.C with

@@ -326,11 +326,11 @@ pstar_bisection(Real& pstar_lo, Real& pstar_hi,
   wsqge(pr, taur, gamer, gdot,
         gamstar, gmin, gmax, clsqr, pstar_hi, wrsq);
 
-  wl = 1.0_rt / std::sqrt(wlsq);
-  wr = 1.0_rt / std::sqrt(wrsq);
+  // wl = 1.0_rt / std::sqrt(wlsq);
+  // wr = 1.0_rt / std::sqrt(wrsq);
 
-  ustar_l = ul - (pstar_hi - pstar)*wl;
-  ustar_r = ur + (pstar_hi - pstar)*wr;
+  //ustar_l = ul - (pstar_hi - pstar)*wl;
+  //ustar_r = ur + (pstar_hi - pstar)*wr;
 
   //Real f_hi = ustar_l - ustar_r;
 
@@ -399,6 +399,11 @@ cons_state(const Real* qstate, Real* U) {
   U[USHK] = 0.0;
 #endif
 
+#ifdef NSE_NET
+  U[UMUP] = 0.0;
+  U[UMUN] = 0.0;
+#endif
+  
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
     int n  = upassmap(ipassive);
     int nqs = qpassmap(ipassive);
@@ -450,6 +455,11 @@ HLLC_state(const int idir, const Real S_k, const Real S_c,
   U[USHK] = 0.0;
 #endif
 
+#ifdef NSE_NET
+  U[UMUP] = 0.0;
+  U[UMUN] = 0.0;
+#endif
+  
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
     int n  = upassmap(ipassive);
     int nqs = qpassmap(ipassive);
@@ -494,6 +504,11 @@ compute_flux(const int idir, const Real bnd_fac, const int coord,
   F[USHK] = 0.0;
 #endif
 
+#ifdef NSE_NET
+  F[UMUP] = 0.0;
+  F[UMUN] = 0.0;
+#endif
+  
   for (int ipassive=0; ipassive < npassive; ipassive++) {
     int n = upassmap(ipassive);
     F[n] = U[n]*u_flx;

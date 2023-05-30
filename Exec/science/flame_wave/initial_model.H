@@ -49,7 +49,7 @@
 //  P(i-1) = P_eos(rho(i-1), T(i-1), X(i-1)
 //
 
-// this version allows for mutiple initial models
+// this version allows for multiple initial models
 
 namespace fw {
     constexpr Real MAX_ITER = 250;

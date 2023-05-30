@@ -15,6 +15,7 @@ namespace hydro {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void src_to_prim(int i, int j, int k, const Real dt,
+                 Array4<Real const> const& U_arr,
                  Array4<Real const> const& q_arr,
                  Array4<Real const> const& old_src,
 #ifndef TRUE_SDC
@@ -53,11 +54,11 @@ void src_to_prim(int i, int j, int k, const Real dt,
     eos_state.rho = q_arr(i,j,k,QRHO);
     eos_state.e = q_arr(i,j,k,QREINT) * rhoinv;
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
+      eos_state.xn[n]  = U_arr(i,j,k,UFS+n) * rhoinv;
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = q_arr(i,j,k,QFX+n);
+      eos_state.aux[n] = U_arr(i,j,k,UFX+n) * rhoinv;
     }
 #endif
 
@@ -104,7 +105,7 @@ void conservative_to_primitive(int i, int j, int k,
                                Array4<Real const> const& Erin,
                                Array4<Real const> const& lam,
 #endif
-                               T& q, U& qaux)
+                               T& q, U& qaux, const bool fill_passives)
 {
 #ifndef AMREX_USE_GPU
     if (uin(i,j,k,URHO) <= 0.0_rt) {
@@ -156,11 +157,13 @@ void conservative_to_primitive(int i, int j, int k,
     }
 #endif
 
-    // Load passively advected quantities into q
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-        int n  = upassmap(ipassive);
-        int iq = qpassmap(ipassive);
-        q(iq) = uin(i,j,k,n) * rhoinv;
+    if (fill_passives) {
+        // Load passively advected quantities into q
+        for (int ipassive = 0; ipassive < npassive; ipassive++) {
+            int n  = upassmap(ipassive);
+            int iq = qpassmap(ipassive);
+            q(iq) = uin(i,j,k,n) * rhoinv;
+        }
     }
 
     // get gamc, p, T, c, csml using q state
@@ -169,11 +172,11 @@ void conservative_to_primitive(int i, int j, int k,
     eos_state.rho = q(QRHO);
     eos_state.e = q(QREINT);
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n]  = q(QFS+n);
+      eos_state.xn[n]  = uin(i,j,k,UFS+n) * rhoinv;
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = q(QFX+n);
+        eos_state.aux[n] = uin(i,j,k,UFX+n) * rhoinv;
     }
 #endif
 
@@ -227,76 +230,6 @@ void conservative_to_primitive(int i, int j, int k,
     qaux(QC) = eos_state.cs;
 #endif
 }
-
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void
-dflux(const GpuArray<Real, NUM_STATE>& u,
-      const GpuArray<Real, NQ>& q,
-      int dir, int coord,
-      const GeometryData& geomdata,
-      const GpuArray<int, 3>& idx,
-      GpuArray<Real, NUM_STATE>& flux)
-{
-    // Given a conservative state and its corresponding primitive state, calculate the
-    // corresponding flux in a given direction.
-
-    // Set everything to zero; this default matters because some
-    // quantities like temperature are not updated through fluxes.
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        flux[n] = 0.0_rt;
-    }
-
-    // Determine the advection speed based on the flux direction.
-
-    Real v_adv = q[QU + dir];
-
-    // Core quantities (density, momentum, energy).
-
-    flux[URHO] = u[URHO] * v_adv;
-    flux[UMX] = u[UMX] * v_adv;
-    flux[UMY] = u[UMY] * v_adv;
-    flux[UMZ] = u[UMZ] * v_adv;
-    flux[UEDEN] = (u[UEDEN] + q[QPRES]) * v_adv;
-    flux[UEINT] = u[UEINT] * v_adv;
-
-    // Optionally include the pressure term in the momentum flux.
-    // It is optional because for some geometries we cannot write
-    // the pressure term in a conservative form.
-
-    if (mom_flux_has_p(dir, dir, coord)) {
-        flux[UMX + dir] = flux[UMX + dir] + q[QPRES];
-    }
-
-    // Hybrid flux.
-
-#ifdef HYBRID_MOMENTUM
-    // Create a temporary edge-based q for this routine.
-    GpuArray<Real, NGDNV> qgdnv;
-    for (int n = 0; n < NGDNV; ++n) {
-        qgdnv[n] = 0.0_rt;
-    }
-    qgdnv[GDRHO] = q[QRHO];
-    qgdnv[GDU] = q[QU];
-    qgdnv[GDV] = q[QV];
-    qgdnv[GDW] = q[QW];
-    qgdnv[GDPRES] = q[QPRES];
-    bool cell_centered = true;
-    compute_hybrid_flux(qgdnv, geomdata, dir,
-                        idx[0], idx[1], idx[2],
-                        flux, cell_centered);
-#endif
-
-    // Passively advected quantities.
-
-    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-
-        int n = upassmap(ipassive);
-        flux[n] = u[n] * v_adv;
-
-    }
 
 }
 

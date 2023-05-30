@@ -4,17 +4,12 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-
-    int coord_type = geomdata.Coord();
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
@@ -42,12 +37,40 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = problem::xn[n];
     }
 
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
     // set the aux quantities -- we need to do this if we are using the NSE network
-    set_nse_aux_from_X(eos_state);
+    set_aux_comp_from_X(eos_state);
 
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];
+    }
+#endif
+
+#ifdef NSE_NET
+    // set initial conditions for NSE_NET
+    state(i,j,k,UMUP) = problem::mu_p;
+    state(i,j,k,UMUN) = problem::mu_n;
+
+    burn_t burn_state;
+    burn_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+    for (int n = 0; n < NumSpec; ++n) {
+      burn_state.xn[n] = problem::xn[n];
+    }
+    // initialize y_e.
+    burn_state.y_e = 0.5_rt;
+    burn_state.mu_p = problem::mu_p;
+    burn_state.mu_n = problem::mu_n;
+
+    if (burn_state.T > 2.0e9) {
+      auto nse_state = get_actual_nse_state(burn_state);
+
+      for (int n = 0; n < NumSpec; ++n) {
+	state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
+      }
+
+      state(i,j,k,UMUP) = nse_state.mu_p;
+      state(i,j,k,UMUN) = nse_state.mu_n;
     }
 #endif
 

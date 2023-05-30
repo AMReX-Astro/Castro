@@ -77,7 +77,7 @@ problems are:
 
    * ``Sod``: A one-dimensional shock tube setup, including the
      classic Sod problem. This setup was used in the original Castro
-     paper.
+     paper :cite:`castro_I`.
 
    * ``Sod_stellar``: A version of the Sod shock tube for the general
      stellar equation of state. This setup and the included inputs
@@ -147,7 +147,7 @@ problems are:
      Maestro reaction paper :cite:`maestro:III`.
 
    * ``reacting_convergence``: a simple reacting hydrodynamics problem for measuring convergence,
-     used in :cite:`castro-sdc`.
+     used in :cite:`castro-sdc` and :cite:`strang_rnaas`
 
 * ``science``:
 
@@ -161,7 +161,7 @@ problems are:
      was used for the testing in :cite:`eiden:2020`.
 
    * ``flame_wave``: this is a model of a flame propagating across a neutron star as a model for
-     an X-ray burst.  This was presented in :cite:`eiden:2020`.
+     an X-ray burst.  This was presented in :cite:`eiden:2020` and :cite:`harpole2021dynamics`.
 
    * ``nova``: this models convection at the base of an accreted layer
      on a white dwarf as a model of a nova.

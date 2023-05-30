@@ -59,7 +59,7 @@ The time-integration method used is controlled by
     method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
     additional EOS derivatives).
 
-  * ``time_integration_method = 3``: this is the simplifed SDC method
+  * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
@@ -175,7 +175,7 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantitiy evolution*
+#. [AUX_UPDATE] *Auxiliary quantity evolution*
 
    Auxiliary variables in Castro are those that obey a continuity
    equation (with optional sources) that are passed into the EOS, but
@@ -312,8 +312,8 @@ here, consistent with the names used in the code:
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
 
-Single Step Flowchat
---------------------
+Single Step Flowchart
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
@@ -322,7 +322,8 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. Check for NaNs in the initial state, ``S_old``.
+   B. Call ``clean_state()`` to make sure the thermodynamics are in sync, in particular,
+      compute the temperature.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -391,7 +392,12 @@ In the code, the objective is to evolve the state from the old time,
       rather than computing it from the Riemann problem.  This source is
       computed here for the internal energy equation.
 
-   D. [``DIFFUSION``] diffusion : thermal diffusion can be
+   D. geometry source: this is applied only for 2-d axisymmetric data
+      and captures the geometric term arising from applying the
+      cylindrical divergence in :math:`\nabla \cdot (\rho \Ub \Ub)` in
+      the momentum equation.  See :cite:`bernard-champmartin_eulerian_2012`.
+
+   E. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -402,10 +408,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   E. [``HYBRID_MOMENTUM``] angular momentum
+   F. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   F. [``GRAVITY``] gravity:
+   G. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -420,7 +426,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   G. [``ROTATION``] rotation
+   H. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -533,7 +539,7 @@ In the code, the objective is to evolve the state from the old time,
 
 #. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   We do the final :math:`\dt/2` reacting on the state, beginning with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
    This is largely the same as ``strang_react_first_half()``, but

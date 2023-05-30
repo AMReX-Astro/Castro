@@ -41,8 +41,7 @@ void set_star_data ();
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real stellar_mask (int i, int j, int k,
                    const amrex::GeometryData& geomdata,
-                   Array4<Real const> const rho,
-                   bool is_primary = true)
+                   Real rho, bool is_primary = true)
 {
     // By default, assume we're not inside the star.
 
@@ -75,7 +74,7 @@ Real stellar_mask (int i, int j, int k,
 
     // Ignore zones whose density is too low.
 
-    if (rho(i,j,k) < problem::stellar_density_threshold) return mask;
+    if (rho < problem::stellar_density_threshold) return mask;
 
     Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
                          (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
@@ -86,8 +85,8 @@ Real stellar_mask (int i, int j, int k,
                          (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
 
-    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-        loc[i] -= problem::center[i];
+    for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+        loc[iloc] -= problem::center[iloc];
     }
 
     Real phi_rot = rotational_potential(loc);

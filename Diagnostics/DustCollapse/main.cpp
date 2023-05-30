@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 	if (argc < 2)
 		Abort("ERROR: Missing plotfiles");
 
-	Print() << "\nUsing a density threshhold of half the maximum analytic density" << std::endl;
+	Print() << "\nUsing a density threshold of half the maximum analytic density" << std::endl;
 
 	auto farg = 1;
 	bool profile = false;

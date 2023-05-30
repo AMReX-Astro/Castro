@@ -37,7 +37,7 @@ normalize_species_sdc(const int i, const int j, const int k,
 
     for (int n = 0; n < NumSpec; ++n) {
         xn[n] = u(i,j,k,UFS+n);
-        xn[n] = amrex::max(small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
+        xn[n] = amrex::max(network_rp::small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
         xn_sum += xn[n];
     }
 
@@ -95,7 +95,7 @@ f_sdc_jac(const Real dt_m,
     // normalize the species
     auto sum_rhoX = 0.0_rt;
     for (int n = 0; n < NumSpec; ++n) {
-        U_full[UFS+n] = amrex::max(small_x, U_full[UFS+n]);
+        U_full[UFS+n] = amrex::max(network_rp::small_x, U_full[UFS+n]);
         sum_rhoX += U_full[UFS+n];
     }
 
@@ -145,7 +145,7 @@ f_sdc_jac(const Real dt_m,
         f[n] = U[n] - dt_m * R_react[n] - f_source[n];
     }
 
-    // get dRdw -- this may do a numerical approxiation or use the
+    // get dRdw -- this may do a numerical approximation or use the
     // network's analytic Jac
     single_zone_jac(U_full, burn_state, dt_m, dRdw);
 
@@ -471,7 +471,7 @@ sdc_newton_subdivide(const Real dt_m,
             // normalize species
             Real sum_rhoX = 0.0_rt;
             for (int n = 0; n < NumSpec; ++n) {
-                U_begin[UFS + n] = amrex::max(small_x, U_begin[UFS + n]);
+                U_begin[UFS + n] = amrex::max(network_rp::small_x, U_begin[UFS + n]);
                 sum_rhoX += U_begin[UFS + n];
             }
             for (int n = 0; n < NumSpec; ++n) {
@@ -586,28 +586,15 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
-    GpuArray<Real, NumSpec+2> rtol;
-    GpuArray<Real, NumSpec+2> atol;
-
     // relative tolerances
-    rtol[0] = tol_dens;
-    for (int n = 0; n < NumSpec; ++n) {
-        rtol[1+n] = tol_spec;
-    }
-    rtol[NumSpec+1] = tol_ener;
+    dvode_state.rtol_dens = tol_dens;
+    dvode_state.rtol_spec = tol_spec;
+    dvode_state.rtol_enuc = tol_ener;
 
     // absolute tolerances
-    atol[0] = sdc_solver_atol * U_old[URHO];
-    for (int n = 0; n < NumSpec; ++n) {
-        atol[1+n] = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
-    }
-
-    atol[NumSpec+1] = sdc_solver_atol * U_old[UEINT];
-
-    for (int n = 1; n <= NumSpec+2; ++n) {
-        dvode_state.atol(n) = atol[n-1];
-        dvode_state.rtol(n) = rtol[n-1];
-    }
+    dvode_state.atol_dens = sdc_solver_atol * U_old[URHO];
+    dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
+    dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
 
     int istate = dvode(burn_state, dvode_state);
 

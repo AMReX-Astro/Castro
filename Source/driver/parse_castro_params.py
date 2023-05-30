@@ -74,7 +74,7 @@ def parse_params(infile, out_directory):
 
     try:
         f = open(infile)
-    except IOError:
+    except OSError:
         sys.exit("error opening the input file")
 
     for line in f:
@@ -148,17 +148,21 @@ def parse_params(infile, out_directory):
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
-        ifdefs = {q.ifdef for q in params_nm}
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
 
         # write name_declares.H
         try:
             cd = open(f"{out_directory}/{nm}_declares.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_declares.H for writing")
 
         cd.write(CWARNING)
-        cd.write(f"#ifndef _{nm.upper()}_DECLARES_H_\n")
-        cd.write(f"#define _{nm.upper()}_DECLARES_H_\n")
+        cd.write(f"#ifndef {nm.upper()}_DECLARES_H\n")
+        cd.write(f"#define {nm.upper()}_DECLARES_H\n")
+
+        cd.write("\n")
+        cd.write(f"namespace {nm} {{\n")
 
         for ifdef in ifdefs:
             if ifdef is None:
@@ -169,19 +173,19 @@ def parse_params(infile, out_directory):
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cd.write(p.get_declare_string())
                 cd.write("#endif\n")
-
+        cd.write("}\n\n")
         cd.write("#endif\n")
         cd.close()
 
         # write name_params.H
         try:
             cp = open(f"{out_directory}/{nm}_params.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_params.H for writing")
 
         cp.write(CWARNING)
-        cp.write(f"#ifndef _{nm.upper()}_PARAMS_H_\n")
-        cp.write(f"#define _{nm.upper()}_PARAMS_H_\n")
+        cp.write(f"#ifndef {nm.upper()}_PARAMS_H\n")
+        cp.write(f"#define {nm.upper()}_PARAMS_H\n")
 
         cp.write("\n")
         cp.write(f"namespace {nm} {{\n")
@@ -189,11 +193,11 @@ def parse_params(infile, out_directory):
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
-                    cp.write(p.get_decl_string())
+                    cp.write(p.get_declare_string(with_extern=True))
             else:
                 cp.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cp.write(p.get_decl_string())
+                    cp.write(p.get_declare_string(with_extern=True))
                 cp.write("#endif\n")
         cp.write("}\n\n")
         cp.write("#endif\n")
@@ -202,7 +206,7 @@ def parse_params(infile, out_directory):
         # write castro_queries.H
         try:
             cq = open(f"{out_directory}/{nm}_queries.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_queries.H for writing")
 
         cq.write(CWARNING)
@@ -226,7 +230,7 @@ def parse_params(infile, out_directory):
         # write the job info tests
         try:
             jo = open(f"{out_directory}/{nm}_job_info_tests.H", "w")
-        except IOError:
+        except OSError:
             sys.exit(f"unable to open {nm}_job_info_tests.H")
 
         for ifdef in ifdefs:

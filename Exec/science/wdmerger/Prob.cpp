@@ -25,7 +25,6 @@ Castro::problem_post_timestep()
 
     if (level != 0) return;
 
-    int finest_level = parent->finestLevel();
     Real time = state[State_Type].curTime();
     Real dt = parent->dtLevel(0);
 
@@ -63,12 +62,12 @@ Castro::wd_update (Real time, Real dt)
     using namespace problem;
 
     // Ensure we are either on the coarse level, or on the finest level
-    // when we are not doing subcycling. The data should be sychronized
+    // when we are not doing subcycling. The data should be synchronized
     // in both of these cases.
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    for ( int i = 0; i < 3; i++ ) {
+    for (int i = 0; i < 3; i++) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;
     }
@@ -90,163 +89,162 @@ Castro::wd_update (Real time, Real dt)
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      Castro& c_lev = getLevel(lev);
-      MultiFab& S_new = c_lev.get_new_data(State_Type);
+        Castro& c_lev = getLevel(lev);
+        MultiFab& S_new = c_lev.get_new_data(State_Type);
 
-      GeometryData geomdata = c_lev.geom.data();
+        GeometryData geomdata = c_lev.geom.data();
 
-      const auto dx = c_lev.geom.CellSizeArray();
-      const auto problo = c_lev.geom.ProbLoArray();
-      const auto probhi = c_lev.geom.ProbHiArray();
-      int coord_type = c_lev.geom.Coord();
+        const auto problo = c_lev.geom.ProbLoArray();
+        const auto probhi = c_lev.geom.ProbHiArray();
+        int coord_type = c_lev.geom.Coord();
 
-      GpuArray<bool, 3> symm_bound_lo{false};
-      GpuArray<bool, 3> symm_bound_hi{false};
+        GpuArray<bool, 3> symm_bound_lo{false};
+        GpuArray<bool, 3> symm_bound_hi{false};
 
-      for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-          if (phys_bc.lo()[n] == Symmetry) {
-              symm_bound_lo[n] = true;
-          }
-          if (phys_bc.hi()[n] == Symmetry) {
-              symm_bound_hi[n] = true;
-          }
-      }
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+            if (phys_bc.lo()[n] == Symmetry) {
+                symm_bound_lo[n] = true;
+            }
+            if (phys_bc.hi()[n] == Symmetry) {
+                symm_bound_hi[n] = true;
+            }
+        }
 
-      bool mask_available = true;
-      if (lev == parent->finestLevel()) {
-          mask_available = false;
-      }
+        bool mask_available = true;
+        if (lev == parent->finestLevel()) {
+            mask_available = false;
+        }
 
-      MultiFab tmp_mf;
-      const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
+        MultiFab tmp_mf;
+        const MultiFab& mask_mf = mask_available ? getLevel(lev+1).build_fine_mask() : tmp_mf;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          auto rho   = S_new[mfi].array(URHO);
-          auto xmom  = S_new[mfi].array(UMX);
-          auto ymom  = S_new[mfi].array(UMY);
-          auto zmom  = S_new[mfi].array(UMZ);
-          auto vol   = c_lev.volume[mfi].array();
-          auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            auto rho   = S_new[mfi].array(URHO);
+            auto xmom  = S_new[mfi].array(UMX);
+            auto ymom  = S_new[mfi].array(UMY);
+            auto zmom  = S_new[mfi].array(UMZ);
+            auto vol   = c_lev.volume[mfi].array();
+            auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
-          const Box& box  = mfi.tilebox();
+            const Box& box  = mfi.tilebox();
 
-          // Return the mass-weighted center of mass and velocity
-          // for the primary and secondary, for a given FAB.
-          // Note that ultimately what we are doing here is to use
-          // an old guess at the effective potential of the primary
-          // and secondary to generate a new estimate.
+            // Return the mass-weighted center of mass and velocity
+            // for the primary and secondary, for a given FAB.
+            // Note that ultimately what we are doing here is to use
+            // an old guess at the effective potential of the primary
+            // and secondary to generate a new estimate.
 
-          reduce_op.eval(box, reduce_data,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
-          {
-              // Add to the COM locations and velocities of the primary and secondary
-              // depending on which potential dominates, ignoring unbound material.
-              // Note that in this routine we actually are summing mass-weighted
-              // quantities for the COM and the velocity; we will account for this at
-              // the end of the calculation in post_timestep() by dividing by the mass.
+            reduce_op.eval(box, reduce_data,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+            {
+                // Add to the COM locations and velocities of the primary and secondary
+                // depending on which potential dominates, ignoring unbound material.
+                // Note that in this routine we actually are summing mass-weighted
+                // quantities for the COM and the velocity; we will account for this at
+                // the end of the calculation in post_timestep() by dividing by the mass.
 
-              // Our convention is that the COM locations for the WDs are 
-              // absolute positions on the grid, not relative to the center.
+                // Our convention is that the COM locations for the WDs are
+                // absolute positions on the grid, not relative to the center.
 
-              GpuArray<Real, 3> r;
-              position(i, j, k, geomdata, r);
+                GpuArray<Real, 3> r;
+                position(i, j, k, geomdata, r);
 
-              // We account for symmetric boundaries in this sum as usual,
-              // by adding to the position the locations that would exist
-              // on the opposite side of the symmetric boundary. Note that
-              // in axisymmetric coordinates, some of this work is already
-              // done for us in the definition of the zone volume.
+                // We account for symmetric boundaries in this sum as usual,
+                // by adding to the position the locations that would exist
+                // on the opposite side of the symmetric boundary. Note that
+                // in axisymmetric coordinates, some of this work is already
+                // done for us in the definition of the zone volume.
 
-              GpuArray<Real, 3> rSymmetric{r[0], r[1], r[2]};
-              for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                  if (symm_bound_lo[n]) {
-                      rSymmetric[n] = rSymmetric[n] + (problo[n] - rSymmetric[n]);
-                  }
-                  if (symm_bound_hi[n]) {
-                      rSymmetric[n] = rSymmetric[n] + (rSymmetric[n] - probhi[n]);
-                  }
-              }
+                GpuArray<Real, 3> rSymmetric{r[0], r[1], r[2]};
+                for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                    if (symm_bound_lo[n]) {
+                        rSymmetric[n] = rSymmetric[n] + (problo[n] - rSymmetric[n]);
+                    }
+                    if (symm_bound_hi[n]) {
+                        rSymmetric[n] = rSymmetric[n] + (rSymmetric[n] - probhi[n]);
+                    }
+                }
 
-              Real maskFactor = 1.0;
+                Real maskFactor = 1.0;
 
-              if (mask_available) {
-                  maskFactor = level_mask(i,j,k);
-              }
+                if (mask_available) {
+                    maskFactor = level_mask(i,j,k);
+                }
 
-              Real dm = rho(i,j,k) * vol(i,j,k) * maskFactor;
+                Real dm = rho(i,j,k) * vol(i,j,k) * maskFactor;
 
-              Real dmSymmetric = dm;
-              GpuArray<Real, 3> momSymmetric{xmom(i,j,k) * maskFactor,
-                                             ymom(i,j,k) * maskFactor,
-                                             zmom(i,j,k) * maskFactor};
+                Real dmSymmetric = dm;
+                GpuArray<Real, 3> momSymmetric{xmom(i,j,k) * maskFactor,
+                                               ymom(i,j,k) * maskFactor,
+                                               zmom(i,j,k) * maskFactor};
 
-              if (coord_type == 0) {
+                if (coord_type == 0) {
 
-                  if (symm_bound_lo[0]) {
-                      dmSymmetric *= 2.0_rt;
-                      for (int n = 0; n < 3; ++n) {
-                          momSymmetric[n] *= 2.0_rt;
-                      }
-                  }
+                    if (symm_bound_lo[0]) {
+                        dmSymmetric *= 2.0_rt;
+                        for (int n = 0; n < 3; ++n) {
+                            momSymmetric[n] *= 2.0_rt;
+                        }
+                    }
 
-                  if (symm_bound_lo[1]) {
-                      dmSymmetric *= 2.0_rt;
-                      for (int n = 0; n < 3; ++n) {
-                          momSymmetric[n] *= 2.0_rt;
-                      }
-                  }
+                    if (symm_bound_lo[1]) {
+                        dmSymmetric *= 2.0_rt;
+                        for (int n = 0; n < 3; ++n) {
+                            momSymmetric[n] *= 2.0_rt;
+                        }
+                    }
 
-                  if (symm_bound_lo[2]) {
-                      dmSymmetric *= 2.0_rt;
-                      for (int n = 0; n < 3; ++n) {
-                          momSymmetric[n] *= 2.0_rt;
-                      }
-                  }
+                    if (symm_bound_lo[2]) {
+                        dmSymmetric *= 2.0_rt;
+                        for (int n = 0; n < 3; ++n) {
+                            momSymmetric[n] *= 2.0_rt;
+                        }
+                    }
 
-              }
+                }
 
-              Real primary_factor = 0.0_rt;
-              Real secondary_factor = 0.0_rt;
+                Real primary_factor = 0.0_rt;
+                Real secondary_factor = 0.0_rt;
 
-              if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
+                if (stellar_mask(i, j, k, geomdata, rho(i,j,k), true) * maskFactor > 0.0_rt) {
 
-                  primary_factor = 1.0_rt;
+                    primary_factor = 1.0_rt;
 
-              }
-              else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
+                }
+                else if (stellar_mask(i, j, k, geomdata, rho(i,j,k), false) * maskFactor > 0.0_rt) {
 
-                  secondary_factor = 1.0_rt;
+                    secondary_factor = 1.0_rt;
 
-              }
+                }
 
-              Real com_P_x = dmSymmetric * rSymmetric[0] * primary_factor;
-              Real com_P_y = dmSymmetric * rSymmetric[1] * primary_factor;
-              Real com_P_z = dmSymmetric * rSymmetric[2] * primary_factor;
+                Real com_P_x = dmSymmetric * rSymmetric[0] * primary_factor;
+                Real com_P_y = dmSymmetric * rSymmetric[1] * primary_factor;
+                Real com_P_z = dmSymmetric * rSymmetric[2] * primary_factor;
 
-              Real com_S_x = dmSymmetric * rSymmetric[0] * secondary_factor;
-              Real com_S_y = dmSymmetric * rSymmetric[1] * secondary_factor;
-              Real com_S_z = dmSymmetric * rSymmetric[2] * secondary_factor;
+                Real com_S_x = dmSymmetric * rSymmetric[0] * secondary_factor;
+                Real com_S_y = dmSymmetric * rSymmetric[1] * secondary_factor;
+                Real com_S_z = dmSymmetric * rSymmetric[2] * secondary_factor;
 
-              Real vel_P_x = momSymmetric[0] * vol(i,j,k) * primary_factor;
-              Real vel_P_y = momSymmetric[1] * vol(i,j,k) * primary_factor;
-              Real vel_P_z = momSymmetric[2] * vol(i,j,k) * primary_factor;
+                Real vel_P_x = momSymmetric[0] * vol(i,j,k) * primary_factor;
+                Real vel_P_y = momSymmetric[1] * vol(i,j,k) * primary_factor;
+                Real vel_P_z = momSymmetric[2] * vol(i,j,k) * primary_factor;
 
-              Real vel_S_x = momSymmetric[0] * vol(i,j,k) * secondary_factor;
-              Real vel_S_y = momSymmetric[1] * vol(i,j,k) * secondary_factor;
-              Real vel_S_z = momSymmetric[2] * vol(i,j,k) * secondary_factor;
+                Real vel_S_x = momSymmetric[0] * vol(i,j,k) * secondary_factor;
+                Real vel_S_y = momSymmetric[1] * vol(i,j,k) * secondary_factor;
+                Real vel_S_z = momSymmetric[2] * vol(i,j,k) * secondary_factor;
 
-              Real m_P = dmSymmetric * primary_factor;
-              Real m_S = dmSymmetric * secondary_factor;
+                Real m_P = dmSymmetric * primary_factor;
+                Real m_S = dmSymmetric * secondary_factor;
 
-              return {com_P_x, com_P_y, com_P_z, com_S_x, com_S_y, com_S_z,
-                      vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
-                      m_P, m_S};
-          });
+                return {com_P_x, com_P_y, com_P_z, com_S_x, com_S_y, com_S_z,
+                    vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
+                    m_P, m_S};
+            });
 
-      }
+        }
 
     }
 
@@ -254,8 +252,9 @@ Castro::wd_update (Real time, Real dt)
 
     bool local_flag = true;
 
-    for (int i = 0; i <= 6; ++i)
+    for (int i = 0; i <= 6; ++i) {
         Castro::volInBoundary(time, vol_P[i], vol_S[i], pow(10.0,i), local_flag);
+    }
 
     // Do all of the reductions.
 
@@ -297,43 +296,39 @@ Castro::wd_update (Real time, Real dt)
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
 
     for (int i = 0; i <= 6; ++i) {
-      vol_P[i] = foo_sum[i  ];
-      vol_S[i] = foo_sum[i+7];
+        vol_P[i] = foo_sum[i  ];
+        vol_S[i] = foo_sum[i+7];
     }
 
     mass_P = foo_sum[14];
     mass_S = foo_sum[15];
 
     for (int i = 0; i <= 2; ++i) {
-      com_P[i] = foo_sum[i+16];
-      com_S[i] = foo_sum[i+19];
-      vel_P[i] = foo_sum[i+22];
-      vel_S[i] = foo_sum[i+25];
+        com_P[i] = foo_sum[i+16];
+        com_S[i] = foo_sum[i+19];
+        vel_P[i] = foo_sum[i+22];
+        vel_S[i] = foo_sum[i+25];
     }
 
     // Compute effective WD radii
 
     for (int i = 0; i <= 6; ++i) {
-
         rad_P[i] = std::pow(vol_P[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
         rad_S[i] = std::pow(vol_S[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
-
     }
 
      // Complete calculations for center of mass quantities
 
-    for ( int i = 0; i < 3; i++ ) {
+    for (int i = 0; i < 3; i++) {
+        if (mass_P > 0.0) {
+            com_P[i] = com_P[i] / mass_P;
+            vel_P[i] = vel_P[i] / mass_P;
+        }
 
-      if ( mass_P > 0.0 ) {
-        com_P[i] = com_P[i] / mass_P;
-        vel_P[i] = vel_P[i] / mass_P;
-      }
-
-      if ( mass_S > 0.0 ) {
-        com_S[i] = com_S[i] / mass_S;
-        vel_S[i] = vel_S[i] / mass_S;
-      }
-
+        if (mass_S > 0.0) {
+            com_S[i] = com_S[i] / mass_S;
+            vel_S[i] = vel_S[i] / mass_S;
+        }
     }
 
     // For 1D we force the masses to remain constant
@@ -343,32 +338,35 @@ Castro::wd_update (Real time, Real dt)
     mass_S = old_mass_S;
 #endif
 
-    if (mass_P > 0.0 && dt > 0.0)
-      mdot_P = (mass_P - old_mass_P) / dt;
-    else
-      mdot_P = 0.0;
+    if (mass_P > 0.0 && dt > 0.0) {
+        mdot_P = (mass_P - old_mass_P) / dt;
+    }
+    else {
+        mdot_P = 0.0;
+    }
 
-    if (mass_S > 0.0 && dt > 0.0)
-      mdot_S = (mass_S - old_mass_S) / dt;
-    else
-      mdot_S = 0.0;
+    if (mass_S > 0.0 && dt > 0.0) {
+        mdot_S = (mass_S - old_mass_S) / dt;
+    }
+    else {
+        mdot_S = 0.0;
+    }
 
     // Free-fall timescale ~ 1 / sqrt(G * rho_avg}
 
     if (mass_P > 0.0 && vol_P[2] > 0.0) {
-      rho_avg_P = mass_P / vol_P[2];
-      t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
+        rho_avg_P = mass_P / vol_P[2];
+        t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
     }
 
     if (mass_S > 0.0 && vol_S[2] > 0.0) {
-      rho_avg_S = mass_S / vol_S[2];
-      t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
+        rho_avg_S = mass_S / vol_S[2];
+        t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
     // Send this updated information back to the Fortran module
 
     set_star_data();
-
 }
 
 
@@ -381,6 +379,9 @@ Castro::wd_update (Real time, Real dt)
 
 void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff, bool local)
 {
+
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::volInBoundary()");
 
     using namespace wdmerger;
@@ -418,7 +419,7 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
           auto vol   = c_lev.volume[mfi].array();
           auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
-	  const Box& box  = mfi.tilebox();
+          const Box& box  = mfi.tilebox();
 
           // This function uses the known center of mass of the two white dwarfs,
           // and given a density cutoff, computes the total volume of all zones
@@ -439,12 +440,12 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
               if (rho(i,j,k) * maskFactor > rho_cutoff) {
 
-                  if (stellar_mask(i, j, k, geomdata, rho, true) * maskFactor > 0.0_rt) {
+                  if (stellar_mask(i, j, k, geomdata, rho(i,j,k), true) * maskFactor > 0.0_rt) {
 
                       primary_factor = 1.0_rt;
 
                   }
-                  else if (stellar_mask(i, j, k, geomdata, rho, false) * maskFactor > 0.0_rt) {
+                  else if (stellar_mask(i, j, k, geomdata, rho(i,j,k), false) * maskFactor > 0.0_rt) {
 
                       secondary_factor = 1.0_rt;
 
@@ -493,7 +494,7 @@ Real Castro::norm(const Real a[]) {
 
   Real n = 0.0;
 
-  n = sqrt( dot_product(a, a) );
+  n = std::sqrt(dot_product(a, a));
 
   return n;
 
@@ -539,8 +540,9 @@ void Castro::problem_post_restart() {
           std::ifstream log;
           log.open(datalogname, std::ios::ate);
 
-          if (log.tellg() == 0)
+          if (log.tellg() == 0) {
               do_sums = true;
+          }
           log.close();
 
           if (do_sums && (sum_interval > 0 || sum_per > 0))
@@ -597,7 +599,7 @@ Castro::update_relaxation(Real time, Real dt) {
         const Real old_time = getLevel(lev).state[State_Type].prevTime();
         const Real new_time = getLevel(lev).state[State_Type].curTime();
 
-        const Real dt = new_time - old_time;
+        const Real ldt = new_time - old_time;
 
         force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
         force[lev]->setVal(0.0);
@@ -615,7 +617,7 @@ Castro::update_relaxation(Real time, Real dt) {
         // We'll use the "old" gravity source constructor, which is really just a first-order
         // predictor for rho * g, and apply it at the new time.
 
-        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, dt);
+        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, ldt);
 
         // Mask out regions covered by fine grids.
 
@@ -672,7 +674,6 @@ Castro::update_relaxation(Real time, Real dt) {
 #pragma omp parallel
 #endif
         for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
             const Box& bx = mfi.tilebox();
 
             // Compute the sum of the hydrodynamic and gravitational forces acting on the WDs.
@@ -725,11 +726,11 @@ Castro::update_relaxation(Real time, Real dt) {
                 Real primary_factor = 0.0_rt;
                 Real secondary_factor = 0.0_rt;
 
-                if (stellar_mask(i, j, k, geomdata, rho_arr, true) > 0.0_rt) {
+                if (stellar_mask(i, j, k, geomdata, rho_arr(i,j,k), true) > 0.0_rt) {
 
                     primary_factor = 1.0_rt;
 
-                } else if (stellar_mask(i, j, k, geomdata, rho_arr, false) > 0.0_rt) {
+                } else if (stellar_mask(i, j, k, geomdata, rho_arr(i,j,k), false) > 0.0_rt) {
 
                     secondary_factor = 1.0_rt;
 
@@ -754,7 +755,6 @@ Castro::update_relaxation(Real time, Real dt) {
         force_S[0] += amrex::get<3>(hv);
         force_S[1] += amrex::get<4>(hv);
         force_S[2] += amrex::get<5>(hv);
-
     }
 
     // Do the reduction over processors.
@@ -769,14 +769,14 @@ Castro::update_relaxation(Real time, Real dt) {
     Real ap = std::sqrt(std::pow(com_P[0], 2) + std::pow(com_P[1], 2) + std::pow(com_P[2], 2));
     Real as = std::sqrt(std::pow(com_S[0], 2) + std::pow(com_S[1], 2) + std::pow(com_S[2], 2));
 
-    Real omega = 0.5 * ( std::sqrt((fp / mass_P) / ap) + std::sqrt((fs / mass_S) / as) );
+    Real omega = 0.5 * (std::sqrt((fp / mass_P) / ap) + std::sqrt((fs / mass_S) / as));
 
     Real period = 2.0 * M_PI / omega;
 
     if (amrex::ParallelDescriptor::IOProcessor()) {
-          std::cout << "\n";
-          std::cout << "  Updating the rotational period from " << rotational_period << " s to " << period << " s." << "\n";
-	  std::cout << "\n";
+        std::cout << "\n";
+        std::cout << "  Updating the rotational period from " << rotational_period << " s to " << period << " s." << "\n";
+        std::cout << "\n";
     }
 
     rotational_period = period;
@@ -936,7 +936,7 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     if (relaxation_is_done > 0) {
-	relaxation_damping_factor = -1.0;
+        relaxation_damping_factor = -1.0;
     }
 
 }
@@ -951,11 +951,7 @@ Castro::problem_sums ()
 
     if (level > 0) return;
 
-    int finest_level  = parent->finestLevel();
-    Real time         = state[State_Type].curTime();
-    Real dt           = parent->dtLevel(0);
-
-    if (time == 0.0) dt = 0.0; // dtLevel returns the next timestep for t = 0, so overwrite
+    Real time = state[State_Type].curTime();
 
     int timestep = parent->levelSteps(0);
 
@@ -993,10 +989,10 @@ Castro::problem_sums ()
 
     wd_dist_init[problem::axis_1 - 1] = 1.0;
 
-    com_P_mag += std::pow( std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5 );
-    com_S_mag += std::pow( std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5 );
-    vel_P_mag += std::pow( std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5 );
-    vel_S_mag += std::pow( std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5 );
+    com_P_mag += std::pow(std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5);
+    com_S_mag += std::pow(std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5);
+    vel_P_mag += std::pow(std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5);
+    vel_S_mag += std::pow(std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5);
 
 #if (AMREX_SPACEDIM == 3)
     if (mass_P > 0.0) {
@@ -1028,8 +1024,9 @@ Castro::problem_sums ()
 
       // Calculate the distance between the primary and secondary.
 
-      for ( int i = 0; i < 3; i++ )
-	wd_dist[i] = com_S[i] - com_P[i];
+      for (int i = 0; i < 3; i++) {
+          wd_dist[i] = com_S[i] - com_P[i];
+      }
 
       separation = norm(wd_dist);
 
@@ -1048,7 +1045,7 @@ Castro::problem_sums ()
 
     // Write data out to the log.
 
-    if ( amrex::ParallelDescriptor::IOProcessor() )
+    if (amrex::ParallelDescriptor::IOProcessor())
     {
 
       // The data logs are only defined on the IO processor
@@ -1056,151 +1053,154 @@ Castro::problem_sums ()
 
       if (parent->NumDataLogs() > 0) {
 
-	 std::ostream& log = parent->DataLog(0);
+          std::ostream& log = parent->DataLog(0);
 
-	 if ( log.good() ) {
+          if (log.good()) {
 
-	   if (time == 0.0) {
+              if (time == 0.0) {
 
-	     // Output the git commit hashes used to build the executable.
+                  // Output the git commit hashes used to build the executable.
 
-	     writeGitHashes(log);
+                  writeGitHashes(log);
 
-             int n = 0;
+                  int n = 0;
 
-             std::ostringstream header;
+                  std::ostringstream header;
 
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
+                  header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                  header << std::setw(fixwidth) << "                     TIME"; ++n;
 
-	     header << std::setw(datwidth) << "              WD DISTANCE"; ++n;
-	     header << std::setw(fixwidth) << "                 WD ANGLE"; ++n;
-	     header << std::setw(datwidth) << "                     MDOT"; ++n;
+                  header << std::setw(datwidth) << "              WD DISTANCE"; ++n;
+                  header << std::setw(fixwidth) << "                 WD ANGLE"; ++n;
+                  header << std::setw(datwidth) << "                     MDOT"; ++n;
 
-	     header << std::endl;
+                  header << std::endl;
 
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
+                  log << std::setw(intwidth) << "#   COLUMN 1";
+                  log << std::setw(fixwidth) << "                        2";
 
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
+                  for (int i = 3; i <= n; ++i) {
+                      log << std::setw(datwidth) << i;
+                  }
 
-             log << std::endl;
+                  log << std::endl;
 
-             log << header.str();
+                  log << header.str();
 
-	   }
+              }
 
-	   log << std::fixed;
+              log << std::fixed;
 
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+              log << std::setw(intwidth)                                     << timestep;
+              log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 
-	   log << std::scientific;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << separation;
+              log << std::scientific;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << separation;
 
-	   log << std::fixed;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << angle;
+              log << std::fixed;
+              log << std::setw(fixwidth) << std::setprecision(dataprecision) << angle;
 
-	   log << std::scientific;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot;
+              log << std::scientific;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot;
 
-	   log << std::endl;
+              log << std::endl;
 
-	 }
+          }
       }
 
       // Primary star
 
       if (parent->NumDataLogs() > 1) {
 
-	std::ostream& log = parent->DataLog(1);
+          std::ostream& log = parent->DataLog(1);
 
-	 if ( log.good() ) {
+          if (log.good()) {
 
-	   if (time == 0.0) {
+              if (time == 0.0) {
 
-	     // Output the git commit hashes used to build the executable.
+                  // Output the git commit hashes used to build the executable.
 
-	     writeGitHashes(log);
+                  writeGitHashes(log);
 
-             int n = 0;
+                  int n = 0;
 
-             std::ostringstream header;
+                  std::ostringstream header;
 
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "             PRIMARY MASS"; ++n;
-	     header << std::setw(datwidth) << "             PRIMARY MDOT"; ++n;
-	     header << std::setw(datwidth) << "          PRIMARY MAG COM"; ++n;
+                  header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                  header << std::setw(fixwidth) << "                     TIME"; ++n;
+                  header << std::setw(datwidth) << "             PRIMARY MASS"; ++n;
+                  header << std::setw(datwidth) << "             PRIMARY MDOT"; ++n;
+                  header << std::setw(datwidth) << "          PRIMARY MAG COM"; ++n;
 #if (AMREX_SPACEDIM == 3)
-	     header << std::setw(datwidth) << "            PRIMARY X COM"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Y COM"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY X COM"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Y COM"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
 #else
-	     header << std::setw(datwidth) << "            PRIMARY R COM"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY R COM"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Z COM"; ++n;
 #endif
-	     header << std::setw(datwidth) << "          PRIMARY MAG VEL"; ++n;
-	     header << std::setw(datwidth) << "          PRIMARY RAD VEL"; ++n;
-	     header << std::setw(datwidth) << "          PRIMARY ANG VEL"; ++n;
+                  header << std::setw(datwidth) << "          PRIMARY MAG VEL"; ++n;
+                  header << std::setw(datwidth) << "          PRIMARY RAD VEL"; ++n;
+                  header << std::setw(datwidth) << "          PRIMARY ANG VEL"; ++n;
 #if (AMREX_SPACEDIM == 3)
-	     header << std::setw(datwidth) << "            PRIMARY X VEL"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Y VEL"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY X VEL"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Y VEL"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
 #else
-	     header << std::setw(datwidth) << "            PRIMARY R VEL"; ++n;
-	     header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY R VEL"; ++n;
+                  header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
 #endif
-	     header << std::setw(datwidth) << "       PRIMARY T_FREEFALL"; ++n;
-	     for (int i = 0; i <= 6; ++i) {
-                 header << "       PRIMARY 1E" << i << " RADIUS";          ++n;
-             }
+                  header << std::setw(datwidth) << "       PRIMARY T_FREEFALL"; ++n;
+                  for (int i = 0; i <= 6; ++i) {
+                      header << "       PRIMARY 1E" << i << " RADIUS";          ++n;
+                  }
 
-	     header << std::endl;
+                  header << std::endl;
 
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
+                  log << std::setw(intwidth) << "#   COLUMN 1";
+                  log << std::setw(fixwidth) << "                        2";
 
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
+                  for (int i = 3; i <= n; ++i) {
+                      log << std::setw(datwidth) << i;
+                  }
 
-             log << std::endl;
+                  log << std::endl;
 
-             log << header.str();
+                  log << header.str();
 
-	   }
+              }
 
-	   log << std::fixed;
+              log << std::fixed;
 
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+              log << std::setw(intwidth)                                     << timestep;
+              log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 
-	   log << std::scientific;
+              log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_P;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_P;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_P;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_P;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
 #if (AMREX_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
 #if (AMREX_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
-	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
+              for (int i = 0; i <= 6; ++i) {
+                  log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
+              }
 
-	   log << std::endl;
+              log << std::endl;
 
-	 }
+          }
 
       }
 
@@ -1208,93 +1208,95 @@ Castro::problem_sums ()
 
       if (parent->NumDataLogs() > 2) {
 
-	std::ostream& log = parent->DataLog(2);
+          std::ostream& log = parent->DataLog(2);
 
-	 if ( log.good() ) {
+          if (log.good()) {
 
-	   if (time == 0.0) {
+              if (time == 0.0) {
 
-	     // Output the git commit hashes used to build the executable.
+                  // Output the git commit hashes used to build the executable.
 
-	     writeGitHashes(log);
+                  writeGitHashes(log);
 
-             int n = 0;
+                  int n = 0;
 
-             std::ostringstream header;
+                  std::ostringstream header;
 
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "           SECONDARY MASS"; ++n;
-	     header << std::setw(datwidth) << "           SECONDARY MDOT"; ++n;
-	     header << std::setw(datwidth) << "        SECONDARY MAG COM"; ++n;
+                  header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                  header << std::setw(fixwidth) << "                     TIME"; ++n;
+                  header << std::setw(datwidth) << "           SECONDARY MASS"; ++n;
+                  header << std::setw(datwidth) << "           SECONDARY MDOT"; ++n;
+                  header << std::setw(datwidth) << "        SECONDARY MAG COM"; ++n;
 #if (AMREX_SPACEDIM == 3)
-	     header << std::setw(datwidth) << "          SECONDARY X COM"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Y COM"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY X COM"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Y COM"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
 #else
-	     header << std::setw(datwidth) << "          SECONDARY R COM"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY R COM"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Z COM"; ++n;
 #endif
-	     header << std::setw(datwidth) << "        SECONDARY MAG VEL"; ++n;
-	     header << std::setw(datwidth) << "        SECONDARY RAD VEL"; ++n;
-	     header << std::setw(datwidth) << "        SECONDARY ANG VEL"; ++n;
+                  header << std::setw(datwidth) << "        SECONDARY MAG VEL"; ++n;
+                  header << std::setw(datwidth) << "        SECONDARY RAD VEL"; ++n;
+                  header << std::setw(datwidth) << "        SECONDARY ANG VEL"; ++n;
 #if (AMREX_SPACEDIM == 3)
-	     header << std::setw(datwidth) << "          SECONDARY X VEL"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Y VEL"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY X VEL"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Y VEL"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
 #else
-	     header << std::setw(datwidth) << "          SECONDARY R VEL"; ++n;
-	     header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY R VEL"; ++n;
+                  header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
 #endif
-	     header << std::setw(datwidth) << "     SECONDARY T_FREEFALL"; ++n;
-	     for (int i = 0; i <= 6; ++i) {
-                 header << "     SECONDARY 1E" << i << " RADIUS";          ++n;
-             }
+                  header << std::setw(datwidth) << "     SECONDARY T_FREEFALL"; ++n;
+                  for (int i = 0; i <= 6; ++i) {
+                      header << "     SECONDARY 1E" << i << " RADIUS";          ++n;
+                  }
 
-	     header << std::endl;
+                  header << std::endl;
 
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
+                  log << std::setw(intwidth) << "#   COLUMN 1";
+                  log << std::setw(fixwidth) << "                        2";
 
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
+                  for (int i = 3; i <= n; ++i) {
+                      log << std::setw(datwidth) << i;
+                  }
 
-             log << std::endl;
+                  log << std::endl;
 
-             log << header.str();
+                  log << header.str();
 
-	   }
+              }
 
-	   log << std::fixed;
+              log << std::fixed;
 
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+              log << std::setw(intwidth)                                     << timestep;
+              log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 
-	   log << std::scientific;
+              log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_S;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_S;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_S;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_S;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
 #if (AMREX_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_rad;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
 #if (AMREX_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
-	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
+              for (int i = 0; i <= 6; ++i) {
+                  log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
+              }
 
-	   log << std::endl;
+              log << std::endl;
 
-	 }
+          }
 
       }
 
@@ -1302,52 +1304,53 @@ Castro::problem_sums ()
 
       if (parent->NumDataLogs() > 4) {
 
-	 std::ostream& log = parent->DataLog(4);
+          std::ostream& log = parent->DataLog(4);
 
-	 if ( log.good() ) {
+          if (log.good()) {
 
-	   if (time == 0.0) {
+              if (time == 0.0) {
 
-	     // Output the git commit hashes used to build the executable.
+                  // Output the git commit hashes used to build the executable.
 
-	     writeGitHashes(log);
+                  writeGitHashes(log);
 
-             int n = 0;
+                  int n = 0;
 
-             std::ostringstream header;
+                  std::ostringstream header;
 
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "          ROTATION PERIOD"; ++n;
-             header << std::setw(datwidth) << "       ROTATION FREQUENCY"; ++n;
+                  header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                  header << std::setw(fixwidth) << "                     TIME"; ++n;
+                  header << std::setw(datwidth) << "          ROTATION PERIOD"; ++n;
+                  header << std::setw(datwidth) << "       ROTATION FREQUENCY"; ++n;
 
-	     header << std::endl;
+                  header << std::endl;
 
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
+                  log << std::setw(intwidth) << "#   COLUMN 1";
+                  log << std::setw(fixwidth) << "                        2";
 
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
+                  for (int i = 3; i <= n; ++i) {
+                      log << std::setw(datwidth) << i;
+                  }
 
-             log << std::endl;
+                  log << std::endl;
 
-             log << header.str();
+                  log << header.str();
 
-	   }
+              }
 
-	   log << std::fixed;
+              log << std::fixed;
 
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
+              log << std::setw(intwidth)                                     << timestep;
+              log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
 
-	   log << std::scientific;
+              log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_period;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << (2.0 * M_PI / rotational_period);
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << rotational_period;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << (2.0 * M_PI / rotational_period);
 
-	   log << std::endl;
+              log << std::endl;
 
-	 }
+          }
 
       }
 

@@ -9,4 +9,6 @@ CEXE_headers += Castro_gravity.H
 
 CEXE_sources += Castro_gravity.cpp
 
+CEXE_headers += binary.H
+
 CEXE_sources += Castro_pointmass.cpp

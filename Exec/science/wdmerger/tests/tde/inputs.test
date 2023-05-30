@@ -18,7 +18,7 @@ geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 geometry.prob_hi =  1.28e11  1.28e11  1.28e11
 
 # System center of mass
-castro.center    =   0.0e0   0.0e0   0.0e0
+problem.center    =   0.0e0   0.0e0   0.0e0
 
 # Boundary conditions on lo x, y, and z edges
 castro.lo_bc = 2 2 2

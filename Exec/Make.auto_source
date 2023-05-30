@@ -16,18 +16,15 @@ CEXE_headers += extern_parameters.H
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
-# these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE)
-EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
-
-EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
+# this is for finding runtime parameters
+EXTERN_PARAMETERS := $(foreach dir, $(INCLUDE_LOCATIONS),$(realpath $(wildcard $(dir)/_parameters)))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
-           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern --use_namespace \
            --pa "$(EXTERN_PARAMETERS)"
 
 
@@ -114,6 +111,10 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
    MNAMES += OPACITY=$(OPAC_PATH)
+endif
+
+ifeq ($(USE_REACT), TRUE)
+   MNAMES += INTEGRATOR=$(INTEGRATOR_DIR) SCREENING=$(SCREEN_METHOD)
 endif
 
 # we make AMReX_buildInfo.cpp as we make the .o file, so we can delete
