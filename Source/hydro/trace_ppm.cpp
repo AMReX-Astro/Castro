@@ -56,6 +56,7 @@ Castro::trace_ppm(const Box& bx,
 
 
   const auto dx = geom.CellSizeArray();
+  const int coord = geom.Coord();
 
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
@@ -80,6 +81,12 @@ Castro::trace_ppm(const Box& bx,
 
   for (int n = 0; n < NQSRC; n++) {
     do_source_trace[n] = 0;
+
+    // geometric source terms in r-direction need tracing
+    if (coord > 0 && idir == 0 && (n == QRHO || n == QPRES || n == QRHOE)) {
+        do_source_trace[n] = 1;
+        continue;
+    }
 
     for (int k = lo[2]-2*dg2; k <= hi[2]+2*dg2; k++) {
       for (int j = lo[1]-2*dg1; j <= hi[1]+2*dg1; j++) {
@@ -278,11 +285,18 @@ Castro::trace_ppm(const Box& bx,
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QRHO];
 #else
-    do_trace = check_trace_source(srcQ, idir, i, j, k, QRHO);
+    if (idir == 0 && coord > 0) {
+        do_trace = 1;
+    } else {
+        do_trace = check_trace_source(srcQ, idir, i, j, k, QRHO);
+    }
 #endif
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QRHO, s);
+        if (idir == 0 && coord > 0) {
+            add_geometric_rho_source(q_arr, dloga, i, j, k, s);
+        }
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rho, Im_src_rho);
     }
@@ -315,7 +329,11 @@ Castro::trace_ppm(const Box& bx,
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QPRES];
 #else
-    do_trace = check_trace_source(srcQ, idir, i, j, k, QPRES);
+    if (idir == 0 && coord > 0) {
+        do_trace = 1;
+    } else {
+        do_trace = check_trace_source(srcQ, idir, i, j, k, QPRES);
+    }
 #endif
 
     if (do_trace) {
@@ -332,7 +350,11 @@ Castro::trace_ppm(const Box& bx,
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QREINT];
 #else
-    do_trace = check_trace_source(srcQ, idir, i, j, k, QREINT);
+    if (idir == 0 && coord > 0) {
+        do_trace = 1;
+    } else {
+        do_trace = check_trace_source(srcQ, idir, i, j, k, QREINT);
+    }
 #endif
 
     if (do_trace) {

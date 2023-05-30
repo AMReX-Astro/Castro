@@ -78,5 +78,22 @@ load_passive_stencil(Array4<Real const> const& U_arr, Array4<Real const> const& 
 
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+add_geometric_rho_source(Array4<Real const> const& q_arr,
+                         Array4<Real const> const& dloga,
+                         const int i, const int j, const int k,
+                         Real* s) {
+
+    // note: this is assumed to be working only in the x-direction
+
+    s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QRHO) * q_arr(i-2,j,k,QU);
+    s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QRHO) * q_arr(i-1,j,k,QU);
+    s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,QU);
+    s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QRHO) * q_arr(i+1,j,k,QU);
+    s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QRHO) * q_arr(i+2,j,k,QU);
+}
+
+
 #endif
 
