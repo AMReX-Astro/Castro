@@ -113,6 +113,10 @@ ifeq ($(USE_RAD), TRUE)
    MNAMES += OPACITY=$(OPAC_PATH)
 endif
 
+ifeq ($(USE_REACT), TRUE)
+   MNAMES += INTEGRATOR=$(INTEGRATOR_DIR) SCREENING=$(SCREEN_METHOD)
+endif
+
 # we make AMReX_buildInfo.cpp as we make the .o file, so we can delete
 # it immediately.  this way if the build is interrupted, we are
 # guaranteed to remake it
