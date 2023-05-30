@@ -294,9 +294,11 @@ Castro::trace_ppm(const Box& bx,
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QRHO, s);
+#if AMREX_SPACEDIM <= 2
         if (idir == 0 && coord > 0) {
             add_geometric_rho_source(q_arr, dloga, i, j, k, s);
         }
+#endif
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rho, Im_src_rho);
     }
@@ -338,9 +340,11 @@ Castro::trace_ppm(const Box& bx,
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QPRES, s);
+#if AMREX_SPACEDIM <= 2
         if (idir == 0 && coord > 0) {
             add_geometric_p_source(q_arr, qaux_arr, dloga, i, j, k, s);
         }
+#endif
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_p, Im_src_p);
     }
@@ -362,9 +366,11 @@ Castro::trace_ppm(const Box& bx,
 
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QREINT, s);
+#if AMREX_SPACEDIM <= 2
         if (idir == 0 && coord > 0) {
             add_geometric_rhoe_source(q_arr, dloga, i, j, k, s);
         }
+#endif
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rhoe, Im_src_rhoe);
     }
