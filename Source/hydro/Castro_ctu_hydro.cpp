@@ -205,12 +205,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real const> const U_old_arr = Sborder.array(mfi);
 
-      rho_inv.resize(qbx3, 1);
+      rho_inv.resize(qbx, 1);
       Elixir elix_rho_inv = rho_inv.elixir();
       fab_size += rho_inv.nBytes();
       Array4<Real> const rho_inv_arr = rho_inv.array();
 
-      amrex::ParallelFor(qbx3,
+      amrex::ParallelFor(qbx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
