@@ -1,3 +1,5 @@
+.. _sec:flowchart:
+
 *********
 Flowchart
 *********
@@ -30,7 +32,7 @@ the different code paths.  These fall into two categories:
      reaction source as inputs and do the final conservative update by
      integrating the reaction system using an ODE solver with the
      explicit advective source included in a
-     piecewise-constant-in-time fastion.
+     piecewise-constant-in-time fastion.  This is described in :cite:`castro_simple_sdc`.
 
    - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
