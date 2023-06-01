@@ -108,6 +108,23 @@ In ``Castro_react.cpp``, the flow is:
 * If we are doing ``castro.drive_initial_convection`` then we set
   ``burn_state.T_fixed`` by interpolating from the initial model.
 
+* Initialize the metadata that is used for diagnostics
+
+* Call the burner:
+
+  * We check to make sure that $T$ and $\rho$ are within the limits given
+    by ``castro.react_T_min``, ``castro.react_T_max``, ``castro_react_rho_min``,
+    and ``castro.react_rho_max``.
+
+  * The burner will set ``burn_state.success = false`` if it failed.  This can happen
+    for a number of reasons and is integrator-dependent.
+
+    .. note::
+
+       Castro will not abort by default here if the burn failed.
+       Instead we leave it to the :ref:`ch:retry` mechanism to attempt
+       the step again with a smaller timestep.
+
 
  
 Simplified-SDC
