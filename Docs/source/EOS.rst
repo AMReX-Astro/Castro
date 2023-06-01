@@ -5,7 +5,7 @@ Equation of State
 Castro is written in a modular fashion so that the EOS
 can be supplied by the user.   No equations of state
 are distributed with Castro, instead they are part 
-of the separate [Microphysics repository](https://github.com/amrex-astro/Microphysics).
+of the separate `Microphysics repository <https://github.com/amrex-astro/Microphysics>`_.
 
 Most equations of state are written to take :math:`(\rho, T, X_k)` as
 input and return the needed thermodynamic quantities.  For other

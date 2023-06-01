@@ -9,13 +9,12 @@ The nuclear network serves two purposes: it defines the fluid
 components used in both the equation of state and the hydrodynamics,
 and it evolves those components through a nuclear burning step.  All
 of the reaction networks that Castro uses are provided by the
-[Microphysics
-repository](https://github.com/amrex-astro/Microphysics).
+`Microphysics repository <https://github.com/amrex-astro/Microphysics>`_.
 
 .. note::
 
    An arbitrary reaction network can be created for Castro via the
-   [pynucastro library](https://pynucastro.github.io/pynucastro/).
+   `pynucastro library <https://pynucastro.github.io/pynucastro/>`_.
 
 Microphysics comes with a ``general_null``
 network. This is a bare interface for a
@@ -60,5 +59,19 @@ the efficiency).
 It is possible to set the maximum and minimum temperature and density for allowing
 reactions to occur in a zone using the parameters ``castro.react_T_min``,
 ``castro.react_T_max``, ``castro.react_rho_min`` and ``castro.react_rho_max``.
+
+Reactions Flowchart
+===================
+
+Here we describe how the ``burn_t`` is setup before the burn and how we update the
+castro state afterwards for both Strang and simplified-SDC.
+
+Strang
+------
+
+
+
+Simplified-SDC
+--------------
 
 
