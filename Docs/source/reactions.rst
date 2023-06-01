@@ -69,8 +69,47 @@ castro state afterwards for both Strang and simplified-SDC.
 Strang
 ------
 
+In ``Castro_react.cpp``, the flow is:
+
+* create ``burn_t burn_state``
+
+* if ``NSE_NET`` is defined, initialize the chemical potentials that
+  will be used as an initial guess for the NSE solve
+
+  * ``burn_state.mu_p`` $= U(\mu_p)$
+
+  * ``burn_state.mu_n`` $= U(\mu_n)$
+
+  * ``burn_state.y_e`` $= 0$ (this will be filled if needed by the NSE routines)
+
+* initialize ``burn_state.dx`` -- this is used for some NSE conditions.
+
+* set ``burn_state.success = true`` : we assume that the burn was successful.  The
+  integrator will set this to ``false`` is a problem occurred.
+
+* fill the thermodynamic quantities for input to the burner:
+
+  * ``burn_state.rho`` $= U(\rho)$
+
+  * ``burn_state.e`` $= U(\rho e) / U(\rho)$
+
+  * ``burn_state.T`` $= U(T)$
+
+    .. note::
+
+       It is assumed here that the temperature is thermodynamically
+       consistent with the energy.  For most networks, the temperature
+       passed in will be used to set the thermodynamics in the burner.
+
+  * ``burn_state.xn[]`` $= U(\rho X_k) / U(\rho)$
+
+  * if ``NAUX_NET > 0``: ``burn_state.aux[]`` $= U(\rho \alpha_k) / U(\rho)$
+
+* If we are doing ``castro.drive_initial_convection`` then we set
+  ``burn_state.T_fixed`` by interpolating from the initial model.
 
 
+ 
 Simplified-SDC
 --------------
 
