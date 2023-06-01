@@ -116,10 +116,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.rho = U(i,j,k,URHO);
 
-	    // Need to store current internal energy for self-consistent nse burn
-#ifdef NSE_NET
+	    // e is used as an input for some NSE solvers
+
 	    burn_state.e = U(i,j,k,UEINT) * rhoInv;
-#endif
+
             // this T is consistent with UEINT because we did an EOS call before
             // calling this function
 
