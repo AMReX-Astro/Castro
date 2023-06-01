@@ -125,8 +125,52 @@ In ``Castro_react.cpp``, the flow is:
        Instead we leave it to the :ref:`ch:retry` mechanism to attempt
        the step again with a smaller timestep.
 
+* Store the burning sources for plotting
 
- 
+  .. index:: Reactions_Type
+
+  We use the ``Reactions_Type`` ``StateData`` to hold the reactive
+  sources that are output to the plotfile and the ``burn_weights``
+  ``MultiFab`` to hold the number of righthand side evaluations for
+  diagnostics.
+
+  We fill these as:
+
+  .. index:: castro.store_omega_dot
+
+  * energy generation rate:
+
+    $\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}$
+
+  * species and auxiliary creation rates (only if ``castro.store_omegadot = 1``):
+
+    * $\mathtt{reactions}(\rho X_k) = U(\rho) \dfrac{\mathtt{burn\_state.xn[k]}\, -\, U(\rho X_k) / U(\rho)}{\Delta t}$
+
+    * $\mathtt{reactions}(\rho \alpha_k) = U(\rho) \dfrac{\mathtt{burn\_state.aux[k]}\, -\, U(\rho \alpha_k) / U(\rho)}{\Delta t}$
+
+  * NSE flag (only if ``NSE`` is defined).  This simply stores the value of ``burn_state.nse``.
+
+* Update the conserved state:
+
+  .. note::
+
+     $\rho$ and $\rho \ub$ are unchanged by reactions so those variables are not
+     updated here.  They are already the "new" state.
+
+  * $U^\mathrm{new}(\rho e) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.e}$
+
+  * $U^\mathrm{new}(\rho E) = U^\mathrm{old}(\rho E) + (U^\mathrm{new}(\rho e) - U^\mathrm{old}(\rho e))$
+
+  * $U^\mathrm{new}(\rho X_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.xn[k]}$
+
+  * if ``NAUX_NET > 0``: $U^\mathrm{new}(\rho \alpha_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.aux[k]}$
+  
+  * if ``NSE_NET`` :
+
+    * $U(\mu_p) = \mathtt{burn\_state.mu\_p}$
+
+    * $U(\mu_n) = \mathtt{burn\_state.mu\_n}$
+
 Simplified-SDC
 --------------
 
