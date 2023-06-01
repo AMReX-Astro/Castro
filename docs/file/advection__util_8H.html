@@ -5,9 +5,10 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File advection_util.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -17,6 +18,8 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -203,14 +206,6 @@
              
   <section id="file-advection-util-h">
 <h1>File advection_util.H<a class="headerlink" href="#file-advection-util-h" title="Permalink to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="advection__util_8H_1a73cb236af433ff19bee63af7e59402f9"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">dflux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;u,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NQ</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">int</span> <span class="pre">dir,</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;idx,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux)</span></span></dt>
-<dd></dd></dl>
-
-</div>
 <dl class="cpp type">
 <dt class="sig sig-object cpp" id="_CPPv45hydro">
 <span id="_CPPv35hydro"></span><span id="_CPPv25hydro"></span><span id="hydro"></span><span class="target" id="namespacehydro"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydro</span></span></span><a class="headerlink" href="#_CPPv45hydro" title="Permalink to this definition"></a><br /></dt>
