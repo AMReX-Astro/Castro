@@ -190,15 +190,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             if (do_burn) {
                 burner(burn_state, dt);
-            }
 
-            // If we were unsuccessful, update the failure count.
+                // If we were unsuccessful, update the failure count.
 
-            if (!burn_state.success) {
-                burn_failed = 1.0_rt;
-            }
-
-            if (do_burn) {
+                if (!burn_state.success) {
+                    burn_failed = 1.0_rt;
+                }
 
                 // Add burning rates to reactions MultiFab, but be
                 // careful because the reactions and state MFs may
@@ -257,7 +254,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 U(i,j,k,UEINT) = U(i,j,k,URHO) * burn_state.e;
                 U(i,j,k,UEDEN) += U(i,j,k,UEINT) - reint_old;
 
-            } else {
+            } else {  // do_burn = false
 
                 if (reactions.contains(i,j,k)) {
                     for (int n = 0; n < reactions.nComp(); n++) {
