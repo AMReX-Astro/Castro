@@ -91,7 +91,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
 	    burn_state.y_e = 0.0_rt;
 #endif
-	    
+
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
@@ -502,23 +502,19 @@ Castro::react_state(Real time, Real dt)
             //   -div{F} + (1/2) (S^n + S^{n+1})
 
             Real dtInv = 1.0_rt / dt;
-            Real asrc[NUM_STATE];
-            for (int n = 0; n < NUM_STATE; ++n) {
-                asrc[n] = (U_new(i,j,k,n) - U_old(i,j,k,n)) * dtInv;
-            }
 
-            burn_state.ydot_a[SRHO] = asrc[URHO];
-            burn_state.ydot_a[SMX] = asrc[UMX];
-            burn_state.ydot_a[SMY] = asrc[UMY];
-            burn_state.ydot_a[SMZ] = asrc[UMZ];
-            burn_state.ydot_a[SEDEN] = asrc[UEDEN];
-            burn_state.ydot_a[SEINT] = asrc[UEINT];
+            burn_state.ydot_a[SRHO] = (U_new(i,j,k,URHO) - U_old(i,j,k,URHO)) * dtInv;
+            burn_state.ydot_a[SMX] = (U_new(i,j,k,UMX) - U_old(i,j,k,UMX)) * dtInv;
+            burn_state.ydot_a[SMY] = (U_new(i,j,k,UMY) - U_old(i,j,k,UMY)) * dtInv;
+            burn_state.ydot_a[SMZ] = (U_new(i,j,k,UMZ) - U_old(i,j,k,UMZ)) * dtInv;
+            burn_state.ydot_a[SEDEN] = (U_new(i,j,k,UEDEN) - U_old(i,j,k,UEDEN)) * dtInv;
+            burn_state.ydot_a[SEINT] = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) * dtInv;
             for (int n = 0; n < NumSpec; n++) {
-                burn_state.ydot_a[SFS+n] = asrc[UFS+n];
+                burn_state.ydot_a[SFS+n] = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) * dtInv;
             }
 #if NAUX_NET > 0
             for (int n = 0; n < NumAux; n++) {
-                burn_state.ydot_a[SFX+n] = asrc[UFX+n];
+                burn_state.ydot_a[SFX+n] = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) * dtInv;
             }
 #endif
 
@@ -526,13 +522,13 @@ Castro::react_state(Real time, Real dt)
             // This state is U* = U_old + dt A where A = -div U + S_hydro.
 
             Array1D<Real, 0, NQ-1> q_noreact;
-            Array1D<Real, 0, NQAUX-1> qaux_noreact;
+            Array1D<Real, 0, NQAUX-1> qaux_dummy;
 
             hydro::conservative_to_primitive(i, j, k, U_new,
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_noreact, qaux_noreact, q_noreact.len() == NQ);
+                                             q_noreact, qaux_dummy, q_noreact.len() == NQ);
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -551,15 +547,12 @@ Castro::react_state(Real time, Real dt)
 
             if (do_burn) {
                 burner(burn_state, dt);
-            }
 
-            // If we were unsuccessful, update the failure count.
+                // If we were unsuccessful, update the failure count.
 
-            if (!burn_state.success) {
-                burn_failed = 1.0_rt;
-            }
-
-            if (do_burn) {
+                if (!burn_state.success) {
+                    burn_failed = 1.0_rt;
+                }
 
                 // update the state data.
 #ifdef NSE_NET
@@ -584,17 +577,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc[UEINT];
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - burn_state.ydot_a[SEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc[UFS+n];
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - burn_state.ydot_a[SFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc[UFX+n];
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - burn_state.ydot_a[SFX+n];
                         }
 #endif
                     }
@@ -625,13 +618,12 @@ Castro::react_state(Real time, Real dt)
             // Convert the updated state (with the contribution from burning) to primitive data.
 
             Array1D<Real, 0, NQ-1> q_new;
-            Array1D<Real, 0, NQAUX-1> qaux_new;
 
             hydro::conservative_to_primitive(i, j, k, U_new,
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_new, qaux_new, q_new.len() == NQ);
+                                             q_new, qaux_dummy, q_new.len() == NQ);
 
             // Compute the reaction source term.
 
@@ -828,4 +820,3 @@ Castro::valid_zones_to_burn(MultiFab& State)
 }
 
 #endif
-
