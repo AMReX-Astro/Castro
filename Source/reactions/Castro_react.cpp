@@ -531,7 +531,7 @@ Castro::react_state(Real time, Real dt)
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_noreact, qaux_noreact, q_noreact.len() == NQ);
+                                             q_noreact, qaux_dummy, q_noreact.len() == NQ);
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -580,17 +580,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc[UEINT];
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - burn_state.ydot_a[SEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc[UFS+n];
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - burn_state.ydot_a[SFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc[UFX+n];
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - burn_state.ydot_a[SFX+n];
                         }
 #endif
                     }
