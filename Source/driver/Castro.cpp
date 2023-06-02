@@ -1645,7 +1645,7 @@ Castro::estTimeStep (int is_new)
     // Dummy value to start with
     Real estdt_burn = max_dt;
 
-    if (do_react) {
+    if (do_react && (castro::dtnuc_e < 1.e199_rt || castro::dtnuc_X < 1.e199_rt)) {
 
         // Compute burning-limited timestep.
 
