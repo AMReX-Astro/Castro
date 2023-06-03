@@ -316,6 +316,12 @@ void finalize_probdata ()
         problem::relaxation_is_done = 0;
     }
 
+    // As above, but for radial damping.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        problem::radial_damping_is_done = 0;
+    }
+
     // TDE sanity checks
 
     if (problem::problem == 2) {
@@ -420,13 +426,11 @@ void update_roche_radii ()
 
     // Determine when the radial damping force terminates.
 
-    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
-        bool terminated = false;
-
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
         // It does not make sense to do damping if there's only one star remaining.
 
         if (problem::mass_S == 0.0_rt) {
-            terminated = true;
+            problem::radial_damping_is_done = 1;
         }
 
         // Only do radial damping until the stars get sufficiently close. The way we will measure this
@@ -434,12 +438,11 @@ void update_roche_radii ()
         // let Newtonian gravity do the rest of the work.
 
         if (problem::roche_rad_S <= problem::radial_damping_roche_factor * problem::radius_S) {
-            terminated = true;
+            problem::radial_damping_is_done = 1;
         }
 
-        if (terminated) {
+        if (problem::radial_damping_is_done == 1) {
             amrex::Print() << "\n\n  Terminating radial damping force since the secondary is about to overflow its Roche lobe.\n\n";
-            problem::radial_damping_velocity_factor = 0.0_rt;
         }
     }
 }

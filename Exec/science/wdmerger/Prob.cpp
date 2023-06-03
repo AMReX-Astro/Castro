@@ -939,10 +939,9 @@ Castro::update_relaxation(Real time, Real dt) {
                        << std::endl;
     }
 
-    if (relaxation_is_done > 0) {
-        relaxation_damping_factor = -1.0;
+    if (relaxation_is_done == 1 && radial_damping_velocity_factor > 0.0_rt && radial_damping_is_done != 1) {
+        amrex::Print() << "Radial damping force will now take effect." << std::endl;
     }
-
 }
 
 

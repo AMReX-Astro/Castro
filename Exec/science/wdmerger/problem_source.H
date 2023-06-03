@@ -92,7 +92,7 @@ void problem_source (int i, int j, int k,
 
     bool do_radial_damping = false;
 
-    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
         do_radial_damping = true;
     }
 

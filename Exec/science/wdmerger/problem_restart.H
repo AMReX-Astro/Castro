@@ -37,8 +37,17 @@ void problem_restart (std::string checkpoint_dir)
         }
     }
 
-    if (problem::relaxation_is_done == 1) {
-        problem::relaxation_damping_factor = -1.0_rt;
+    std::ifstream radial_damping;
+    radial_damping.open(checkpoint_dir + "/RadialDamping", std::ios::in);
+
+    if (radial_damping.is_open()) {
+        radial_damping >> problem::radial_damping_is_done;
+        radial_damping.close();
+    }
+    else {
+        if (problem::problem == 1) {
+            amrex::Error("No RadialDamping file found in the checkpoint.");
+        }
     }
 }
 
