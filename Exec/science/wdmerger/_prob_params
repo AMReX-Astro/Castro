@@ -193,8 +193,9 @@ relaxation_is_done              integer               1                        n
 
 # Radial damping parameters
 
-radial_damping_factor           real                 -1.0e3_rt                 y
-initial_radial_velocity_factor  real                 -1.0e-3_rt                y
+radial_damping_velocity_factor  real                  0.0e0_rt                 y
+radial_damping_roche_factor     real                  1.0e0_rt                 y
+radial_damping_is_done          integer               1                        n
 
 
 
