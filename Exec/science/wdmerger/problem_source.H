@@ -88,9 +88,19 @@ void problem_source (int i, int j, int k,
     // a parameter the ratio [(da/dt) / a], which should be relatively small. To match their
     // method, we choose da/dt to be measured with respect to the initial velocity (relative to
     // the center of mass) so that it is fixed, while the a in the denominator will be the
-    // current distance.
+    // current distance. We do not apply this force until the relaxation phase has completed.
+
+    bool do_radial_damping = false;
 
     if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        do_radial_damping = true;
+    }
+
+    if (problem::problem == 1 && problem::relaxation_damping_factor > 0.0_rt && problem::relaxation_is_done != 1) {
+        do_radial_damping = false;
+    }
+
+    if (do_radial_damping) {
         GpuArray<Real, 3> acceleration = {0.0};
 
         // Calculate the current stellar distance.
