@@ -1,3 +1,9 @@
+# 23.06
+
+  * The job_info file now reports the integrator used (#2463)
+  
+  * 1-d cylindrical geometry was fixed (#2465, #2470)
+
 # 23.05
 
   * fixed some radiation solver indexing for plotting lab/com frame
