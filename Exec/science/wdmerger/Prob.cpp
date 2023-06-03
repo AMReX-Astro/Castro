@@ -1313,9 +1313,9 @@ Castro::problem_sums ()
 
       // Rotation period over time
 
-      if (parent->NumDataLogs() > 4) {
+      if (parent->NumDataLogs() > 3) {
 
-          std::ostream& log = parent->DataLog(4);
+          std::ostream& log = parent->DataLog(3);
 
           if (log.good()) {
 
