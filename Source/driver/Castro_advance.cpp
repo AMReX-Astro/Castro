@@ -92,16 +92,6 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    // We do this again here because the solution will have changed
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-#endif
-
-#ifdef GRAVITY
     // Update the point mass.
     if (use_point_mass == 1) {
         pointmass_update(time, dt);
@@ -151,13 +141,6 @@ Castro::initialize_do_advance(Real time)
     if (moving_center == 1) {
         define_new_center(get_old_data(State_Type), time);
     }
-
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 0;
-       make_radial_data(is_new);
-    }
-#endif
 #endif
 
     // For the hydrodynamics update we need to have NUM_GROW ghost

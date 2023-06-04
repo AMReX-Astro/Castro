@@ -1405,13 +1405,6 @@ Castro::initData ()
 
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     MultiFab& G_new = get_new_data(Gravity_Type);
     G_new.setVal(0.);
 
@@ -4228,8 +4221,6 @@ Castro::swap_state_time_levels(const Real dt)
 
 }
 
-
-
 #ifdef GRAVITY
 int
 Castro::get_numpts ()
@@ -4253,110 +4244,10 @@ Castro::get_numpts ()
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
-       std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
      }
 
      return numpts_1d;
-}
-
-void
-Castro::make_radial_data(int is_new)
-{
-#if (AMREX_SPACEDIM > 1)
-
-   BL_PROFILE("Castro::make_radial_data()");
-
-   // We only call this for level = 0
-   BL_ASSERT(level == 0);
-
-   int numpts_1d = get_numpts();
-
-   auto dx = geom.CellSizeArray();
-   Real  dr = dx[0];
-
-   auto problo = geom.ProbLoArray();
-
-   MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
-   const int nc = S.nComp();
-
-   Gpu::ManagedVector<Real> radial_vol(numpts_1d, 0.0_rt);
-   Real* const radial_vol_ptr = radial_vol.dataPtr();
-
-   Gpu::ManagedVector<Real> radial_state(numpts_1d * nc, 0.0_rt);
-   Real* const radial_state_ptr = radial_state.dataPtr();
-
-   for (MFIter mfi(S); mfi.isValid(); ++mfi)
-   {
-       Box bx(mfi.validbox());
-
-       auto state_arr = S[mfi].array();
-       auto vol_arr   = volume[mfi].array();
-
-       amrex::ParallelFor(bx,
-       [=] AMREX_GPU_DEVICE(int i, int j, int k)
-       {
-           Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-
-           Real y = 0.0_rt;
-#if AMREX_SPACEDIM >= 2
-           y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-
-           Real z = 0.0_rt;
-#if AMREX_SPACEDIM == 3
-           z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
-           Real r = std::sqrt(x * x + y * y + z * z);
-
-           int index = int(r / dr);
-
-#ifndef AMREX_USE_GPU
-           if (index > numpts_1d-1) {
-               std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
-               std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
-               std::cout << "R / DR " << r << " " << dr << "\n";
-               amrex::Error("Error:: Castro_util.H :: compute_avgstate");
-           }
-#endif
-
-           Gpu::Atomic::Add(&radial_state_ptr[URHO + index * nc],
-                            vol_arr(i,j,k) * state_arr(i,j,k,URHO));
-
-           // Store the radial component of the momentum in the
-           // UMX, UMY and UMZ components for now.
-
-           Real x_mom = state_arr(i,j,k,UMX);
-           Real y_mom = state_arr(i,j,k,UMY);
-           Real z_mom = state_arr(i,j,k,UMZ);
-           Real radial_mom = x_mom * (x / r) + y_mom * (y / r) + z_mom * (z / r);
-
-           Gpu::Atomic::Add(&radial_state_ptr[UMX + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMY + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMZ + index * nc], vol_arr(i,j,k) * radial_mom);
-
-           for (int n = UMZ + 1; n <= nc; ++n) {
-               Gpu::Atomic::Add(&radial_state_ptr[n + index * nc],
-                                vol_arr(i,j,k) * state_arr(i,j,k,n));
-           }
-
-           Gpu::Atomic::Add(&radial_vol_ptr[index], vol_arr(i,j,k));
-       });
-   }
-
-   ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
-   ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
-
-   for (int i = 0; i < numpts_1d; i++) {
-       if (radial_vol[i] > 0.)
-       {
-           for (int j = 0; j < nc; j++) {
-               radial_state[nc*i+j] /= radial_vol[i];
-           }
-       }
-   }
-
-#endif
 }
 
 void
