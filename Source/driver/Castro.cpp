@@ -3256,6 +3256,95 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
 }
 
+advance_status
+Castro::check_for_negative_density ()
+{
+    BL_PROFILE("check_for_negative_density()");
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+    ReduceData<int, int> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+
+        auto S_old_arr = S_old.array(mfi);
+        auto S_new_arr = S_new.array(mfi);
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+        {
+            int rho_check_failed = 0;
+            int X_check_failed = 0;
+
+            Real rho = S_new_arr(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            // Optionally, the user can ignore this if the starting
+            // density is lower than a certain threshold. This is useful
+            // if the minimum density occurs in material that is not
+            // dynamically important; in that case, a density reset suffices.
+
+            if (S_old_arr(i,j,k,URHO) >= retry_small_density_cutoff && rho < small_dens) {
+#ifndef AMREX_USE_GPU
+                std::cout << "Invalid density = " << rho << " at index " << i << ", " << j << ", " << k << "\n";
+#endif
+                rho_check_failed = 1;
+            }
+
+            if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+
+                for (int n = 0; n < NumSpec; ++n) {
+                    Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+
+                    if (X < -castro::abundance_failure_tolerance ||
+                        X > 1.0_rt + castro::abundance_failure_tolerance) {
+#ifndef AMREX_USE_GPU
+                        std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                  << i << ", " << j << ", " << k
+                                  << " with density = " << rho << "\n";
+#endif
+                        X_check_failed = 1;
+                    }
+                }
+
+            }
+
+            return {rho_check_failed, X_check_failed};
+        });
+
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    int rho_check_failed = amrex::get<0>(hv);
+    int X_check_failed = amrex::get<1>(hv);
+
+    ParallelDescriptor::ReduceIntMax(rho_check_failed);
+    ParallelDescriptor::ReduceIntMax(X_check_failed);
+
+    advance_status status;
+    status.success = true;
+    status.reason = "";
+
+    if (rho_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid density";
+    }
+
+    if (X_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid X";
+    }
+
+    return status;
+}
+
 void
 Castro::enforce_speed_limit (MultiFab& state_in, int ng)
 {
