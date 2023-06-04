@@ -356,11 +356,6 @@ int Gravity::NoSync()
   return gravity::no_sync;
 }
 
-int Gravity::NoComposite()
-{
-  return gravity::no_composite;
-}
-
 int Gravity::DoCompositeCorrection()
 {
   return gravity::do_composite_phi_correction;
