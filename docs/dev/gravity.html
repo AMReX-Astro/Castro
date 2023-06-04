@@ -204,7 +204,7 @@ boundary conditions for the current-level-solve.</p></li>
 the discussion in <span id="id1">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">17</a>]</span>. Briefly:</p>
 <ul>
 <li><p>At the beginning of a simulation, we do a multilevel composite
-solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
+solve.</p>
 <p>We also do a multilevel composite solve after each regrid.</p>
 </li>
 <li><p>The old-time gravity on the coarse level is defined based on
@@ -232,11 +232,6 @@ result as if you had done a full composite solve at the end of the
 timestep (assuming <code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> = 0).</p>
 </li>
 </ul>
-<p>If you do <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 1, then you never do a full
-multilevel solve, and the gravity on any level is defined only by the
-solve on that level. The only time this would be appropriate is if
-the fine level(s) cover essentially all of the mass on the grid for
-all time.</p>
 </section>
 <section id="controls">
 <h3>Controls<a class="headerlink" href="#controls" title="Permalink to this heading"></a></h3>
@@ -244,7 +239,7 @@ all time.</p>
 <li><p>For the full Poisson solver
 (<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>), the behavior
 of the full Poisson solve / multigrid solver is controlled by
-<code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> and <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code>.</p></li>
 <li><p>For isolated boundary conditions, and when
 <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, the parameters
 <code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code> and
@@ -263,9 +258,6 @@ Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav
 <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, set the value of constant gravity (default: 0.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> : <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
 <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, do we perform the “sync solve”? (0 or 1; default: 0)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> : if gravity.gravity_type
-= <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, whether to perform a composite solve (0 or 1;
-default: 0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.max_solve_level</span></code> : maximum level to solve
 for <span class="math notranslate nohighlight">\(\phi\)</span> and <span class="math notranslate nohighlight">\(\mathbf{g}\)</span>; above this level, interpolate from
 below (default: <code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code>-1)</p></li>

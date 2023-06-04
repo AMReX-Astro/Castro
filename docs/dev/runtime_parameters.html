@@ -1240,43 +1240,39 @@ means more output on the status of the solve / multigrid</p></td>
 interfaces?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_composite</span></code></p></td>
-<td><p>do we do a composite solve?</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_composite_phi_correction</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_composite_phi_correction</span></code></p></td>
 <td><p>should we apply a lagged correction to the potential that
 gets us closer to the composite solution? This makes the
 resulting fine grid calculation slightly more accurate, at
 the cost of an additional Poisson solve per timestep.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_solve_level</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_solve_level</span></code></p></td>
 <td><p>For all gravity types, we can choose a maximum level for
 explicitly calculating the gravity and associated
 potential. Above that level, we interpolate from coarser
 levels.</p></td>
 <td><p>MAX_LEV-1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_g_from_phi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_g_from_phi</span></code></p></td>
 <td><p>For non-Poisson gravity, do we want to construct the
 gravitational acceleration by taking the gradient of the
 potential, rather than constructing it directly?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_max_fmg_iter</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_max_fmg_iter</span></code></p></td>
 <td><p>how many FMG cycles?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_agglomeration</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_agglomeration</span></code></p></td>
 <td><p>Do agglomeration?</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_consolidation</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_consolidation</span></code></p></td>
 <td></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_nsolve</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mlmg_nsolve</span></code></p></td>
 <td><p>Do N-Solve?</p></td>
 <td><p>0</p></td>
 </tr>
