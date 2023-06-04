@@ -4136,29 +4136,29 @@ Castro::swap_state_time_levels(const Real dt)
 int
 Castro::get_numpts ()
 {
-    int numpts_1d;
+     int numpts_1d;
 
-    Box bx(geom.Domain());
-    long nx = bx.size()[0];
+     Box bx(geom.Domain());
+     long nx = bx.size()[0];
 
 #if (AMREX_SPACEDIM == 1)
-    numpts_1d = nx;
+     numpts_1d = nx;
 #elif (AMREX_SPACEDIM == 2)
-    long ny = bx.size()[1];
-    Real ndiagsq = Real(nx*nx + ny*ny);
-    numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     long ny = bx.size()[1];
+     Real ndiagsq = Real(nx*nx + ny*ny);
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
-    long ny = bx.size()[1];
-    long nz = bx.size()[2];
-    Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-    numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     long ny = bx.size()[1];
+     long nz = bx.size()[2];
+     Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
+     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-        std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
-    }
+     if (verbose && ParallelDescriptor::IOProcessor()) {
+         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     }
 
-    return numpts_1d;
+     return numpts_1d;
 }
 
 void
