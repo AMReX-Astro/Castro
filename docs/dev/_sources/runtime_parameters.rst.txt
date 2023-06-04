@@ -596,15 +596,13 @@ namespace: ``castro``
 
 **refinement**
 
-.. index:: castro.do_special_tagging, castro.spherical_star, castro.max_tagging_radius
+.. index:: castro.do_special_tagging, castro.max_tagging_radius
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | parameter                                  | description                                                 | default value |
 +============================================+=============================================================+===============+
 | ``do_special_tagging``                     |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``spherical_star``                         |                                                             | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``max_tagging_radius``                     | Maximum radius from the center (in units of the domain      | 10.0e0        |
 |                                            | width) where tagging is allowed. The default choice implies |               |
