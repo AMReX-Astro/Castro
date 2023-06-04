@@ -999,16 +999,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef GRAVITY
-
-///
-/// Calculate state in radial direction by averaging
-///
-/// @param is_new   do we use new (0) or old (1) data?
-///
-    void make_radial_data (int is_new);
-#endif
-
 #ifdef AUX_UPDATE
 
 ///

@@ -240,18 +240,6 @@ Castro::do_advance_ctu(Real time,
     }
 #endif
 
-#ifdef GRAVITY
-    // We need to make the new radial data now so that we can use it when we
-    // FillPatch in creating the new source.
-
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-      int is_new = 1;
-      make_radial_data(is_new);
-    }
-#endif
-#endif
-
     // Construct and apply new-time source terms.
 
 #ifdef GRAVITY
