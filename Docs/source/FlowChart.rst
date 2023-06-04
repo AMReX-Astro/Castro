@@ -186,13 +186,7 @@ of each step.
    ca_auxupdate can be provided here to further update these
    quantities.
 
-#. *Radial data and [POINTMASS] point mass*
-
-   If ``castro.spherical_star`` is set, then we average the state data
-   over angles here to create a radial profile. This is then used in the
-   boundary filling routines to properly set Dirichlet BCs when our domain
-   is smaller than the star, so the profile on the boundaries will not
-   be uniform.
+#. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
    change the mass of the point mass that optionally contributes to the

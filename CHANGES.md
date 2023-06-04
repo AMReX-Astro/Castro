@@ -1,3 +1,7 @@
+# 23.07
+
+  * The parameter spherical_star was removed (#2482)
+
 # 23.06
 
   * The job_info file now reports the integrator used (#2463)
