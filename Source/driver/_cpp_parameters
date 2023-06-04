@@ -761,9 +761,6 @@ drdxfac                     int            1
 # do we perform the synchronization at coarse-fine interfaces?
 no_sync                     int            0
 
-# do we do a composite solve?
-no_composite                int            0
-
 # should we apply a lagged correction to the potential that
 # gets us closer to the composite solution? This makes the
 # resulting fine grid calculation slightly more accurate,

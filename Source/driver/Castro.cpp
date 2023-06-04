@@ -705,12 +705,6 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) {
         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
       }
-
-      if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
-      {
-          std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
-          amrex::Error();
-      }
    }
 
 #endif
@@ -2145,16 +2139,13 @@ Castro::post_restart ()
 
             if ( gravity->get_gravity_type() == "PoissonGrav")
             {
-                if (gravity->NoComposite() != 1)
-                {
-                   // Update the maximum density, used in setting the solver tolerance.
+                // Update the maximum density, used in setting the solver tolerance.
 
-                   gravity->update_max_rhs();
+                gravity->update_max_rhs();
 
-                   gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1) {
-                       gravity->test_composite_phi(level);
-                   }
+                gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
+                if (gravity->test_results_of_solves() == 1) {
+                    gravity->test_composite_phi(level);
                 }
             }
 
@@ -2266,7 +2257,7 @@ Castro::post_regrid (int lbase,
             const Real cur_time = state[State_Type].curTime();
             if ( (level == lbase) && cur_time > 0.)
             {
-                if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+                if (gravity->get_gravity_type() == "PoissonGrav") {
                     // Update the maximum density, used in setting the solver tolerance.
 
                     if (level == 0) {
@@ -2351,11 +2342,9 @@ Castro::post_init (Real /*stop_time*/)
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-               gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
@@ -2472,11 +2461,9 @@ Castro::post_grown_restart ()
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-                gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
