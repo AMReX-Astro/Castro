@@ -1085,6 +1085,11 @@ public:
     void enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
+/// After a hydro advance, check to see whether any density went too small.
+///
+    advance_status check_for_negative_density ();
+
+///
 /// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
 /// in any zone.
 ///
