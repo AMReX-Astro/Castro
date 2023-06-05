@@ -101,24 +101,13 @@ Castro::do_advance_ctu(Real time,
 
     }
 
-    // Since we are Strang splitting the reactions, do them now
+    // If we are Strang splitting the reactions, do the old-time contribution now
 
 #ifdef REACTIONS
-    bool burn_success = true;
+    status = do_old_reactions(time, dt);
 
-    MultiFab& R_old = get_old_data(Reactions_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-
-    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-
-        // The result of the reactions is added directly to Sborder.
-        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt, 0);
-        clean_state(
-#ifdef MHD
-                    Bx_old_tmp, By_old_tmp, Bz_old_tmp,
-#endif
-                    Sborder, prev_time, Sborder.nGrow());
-
+    if (status.success == false) {
+        return status;
     }
 #endif
 
@@ -126,25 +115,6 @@ Castro::do_advance_ctu(Real time,
     // reactions.
 
     MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
-
-#ifdef REACTIONS
-    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-
-        // Do this for the reactions as well, in case we cut the timestep
-        // short due to it being rejected.
-
-        MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
-
-        // Skip the rest of the advance if the burn was unsuccessful.
-
-        if (!burn_success) {
-            status.success = false;
-            status.reason = "first Strang burn unsuccessful";
-            return status;
-        }
-
-    }
-#endif
 
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
@@ -278,69 +248,11 @@ Castro::do_advance_ctu(Real time,
     // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
 #ifdef REACTIONS
+    status = do_new_reactions(cur_time, dt);
 
-#ifdef SIMPLIFIED_SDC
-
-    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-        if (do_react) {
-
-            // Do the ODE integration to capture the reaction source terms.
-
-            burn_success = react_state(time, dt);
-
-            // Skip the rest of the advance if the burn was unsuccessful.
-
-            if (!burn_success) {
-                status.success = false;
-                status.reason = "burn unsuccessful";
-                return status;
-            }
-
-            clean_state(S_new, time + dt, S_new.nGrow());
-
-            // Check for NaN's.
-
-            check_for_nan(S_new);
-
-        }
-        else {
-
-            // If we're not burning, just initialize the reactions data to zero.
-
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
-
-            R_old.setVal(0.0, R_old.nGrow());
-            R_new.setVal(0.0, R_new.nGrow());
-
-        }
-
+    if (status.success == false) {
+        return status;
     }
-
-#else // SIMPLIFIED_SDC
-
-    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-
-        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt, 1);
-        clean_state(
-#ifdef MHD
-                    Bx_new, By_new, Bz_new,
-#endif
-                    S_new, cur_time, S_new.nGrow());
-
-        // Skip the rest of the advance if the burn was unsuccessful.
-
-        if (!burn_success) {
-            status.success = false;
-            status.reason = "second Strang burn unsuccessful";
-            return status;
-        }
-
-    }
-
-#endif // SIMPLIFIED_SDC
-
 #endif // REACTIONS
 
     // Check if this timestep violated our stability criteria. Our idea is,
