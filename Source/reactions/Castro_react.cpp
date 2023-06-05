@@ -14,12 +14,14 @@ using namespace amrex;
 advance_status
 Castro::do_old_reactions (Real time, Real dt)
 {
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     bool burn_success = true;
 
+#ifndef SIMPLIFIED_SDC
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
-
-#ifndef SIMPLIFIED_SDC
 
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
         // The result of the reactions is added directly to Sborder.
@@ -32,7 +34,6 @@ Castro::do_old_reactions (Real time, Real dt)
 
         MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
     }
-
 #endif
 
     advance_status status;
@@ -50,13 +51,15 @@ Castro::do_old_reactions (Real time, Real dt)
 advance_status
 Castro::do_new_reactions (Real time, Real dt)
 {
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     bool burn_success = true;
 
     MultiFab& R_new = get_new_data(Reactions_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef SIMPLIFIED_SDC
-
     MultiFab& R_old = get_old_data(Reactions_Type);
 
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
