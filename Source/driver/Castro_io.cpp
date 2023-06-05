@@ -306,13 +306,6 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == 0);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);

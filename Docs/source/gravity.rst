@@ -63,7 +63,7 @@ The overall integration strategy is as follows, and is similar to
 the discussion in :cite:`castro_I`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
-   solve (if ``gravity.no_composite`` = 0).
+   solve.
 
    We also do a multilevel composite solve after each regrid.
 
@@ -95,19 +95,13 @@ the discussion in :cite:`castro_I`. Briefly:
    result as if you had done a full composite solve at the end of the
    timestep (assuming ``gravity.no_sync`` = 0).
 
-If you do ``gravity.no_composite`` = 1, then you never do a full
-multilevel solve, and the gravity on any level is defined only by the
-solve on that level. The only time this would be appropriate is if
-the fine level(s) cover essentially all of the mass on the grid for
-all time.
-
 Controls
 --------
 
 -  For the full Poisson solver
    (``gravity.gravity_type`` = ``PoissonGrav``), the behavior
    of the full Poisson solve / multigrid solver is controlled by
-   ``gravity.no_sync`` and ``gravity.no_composite``.
+   ``gravity.no_sync``.
 
 -  For isolated boundary conditions, and when
    ``gravity.gravity_type`` = ``PoissonGrav``, the parameters
@@ -130,10 +124,6 @@ solves:
 
 -  ``gravity.no_sync`` : ``gravity.gravity_type`` =
    ``PoissonGrav``, do we perform the “sync solve"? (0 or 1; default: 0)
-
--  ``gravity.no_composite`` : if gravity.gravity_type
-   = ``PoissonGrav``, whether to perform a composite solve (0 or 1;
-   default: 0)
 
 -  ``gravity.max_solve_level`` : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from

@@ -44,13 +44,12 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     if (gravity->get_gravity_type() == "PoissonGrav" && parent->finestLevel() > 0)
     {
-
         // Create a copy of the current (composite) data on this level.
 
         MultiFab comp_phi;
         Vector<std::unique_ptr<MultiFab> > comp_gphi(AMREX_SPACEDIM);
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             comp_phi.define(phi_old.boxArray(), phi_old.DistributionMap(), phi_old.nComp(), phi_old.nGrow());
             MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
@@ -77,7 +76,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
                                amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level)),
                                is_new);
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             // Subtract the level solve from the composite solution.
 
@@ -158,7 +157,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
         // Subtract off the (composite - level) contribution for the purposes
         // of the level solve. We'll add it back later.
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
             phi_new.minus(comp_minus_level_phi, 0, 1, 0);
         }
 
@@ -173,7 +172,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
                                amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
                                is_new);
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             if (gravity->test_results_of_solves() == 1) {
 
@@ -217,7 +216,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level()) {
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
+        if (gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 
             // Now that we have calculated the force, if we are going to do a sync
             // solve then subtract off the (composite - level) contribution, as it
