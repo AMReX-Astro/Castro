@@ -52,12 +52,12 @@ Castro::do_new_reactions (Real time, Real dt)
 {
     bool burn_success = true;
 
-    MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
-
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef SIMPLIFIED_SDC
+
+    MultiFab& R_old = get_old_data(Reactions_Type);
 
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
