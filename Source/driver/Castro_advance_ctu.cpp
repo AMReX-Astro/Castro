@@ -492,12 +492,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     Real last_dt_subcycle = 1.e200;
 
 #ifdef NSE_NET
-    if (loosen_nse_bailout) {
-      bool do_loosen = true;
-      bool old_nse_dx_independent = nse_dx_independent;
-      bool old_nse_molar_independent = nse_molar_independent;
-      bool old_nse_skip_molar = nse_skip_molar;
-    }
+    bool do_loosen = true;
+    bool old_nse_dx_independent = nse_dx_independent;
+    bool old_nse_molar_independent = nse_molar_independent;
+    bool old_nse_skip_molar = nse_skip_molar;
 #endif
     
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
@@ -753,12 +751,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
 #ifdef NSE_NET
     // Restore the original nse configuration
-    
-    if (loosen_nse_bailout) {
-      nse_dx_independent = old_nse_dx_independent;
-      nse_molar_independent = old_nse_molar_independent;
-      nse_skip_molar = old_nse_skip_molar;
-    }
+
+    nse_dx_independent = old_nse_dx_independent;
+    nse_molar_independent = old_nse_molar_independent;
+    nse_skip_molar = old_nse_skip_molar;
 #endif
     
     // We want to return the subcycled timestep as a suggestion.
