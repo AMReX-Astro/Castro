@@ -555,7 +555,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
 	    amrex::Print() << std::endl
 			   << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
-			   << "  Reperforming subcycle with smallest possible dt_subcycle and nse_bailout." << std::endl;
+			   << "  Reperforming subcycle with smallest possible dt_subcycle and loosen nse bailout conditions." << std::endl;
 	  } else {
 #endif
             amrex::Print() << std::endl
