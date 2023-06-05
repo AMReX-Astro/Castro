@@ -316,6 +316,12 @@ void finalize_probdata ()
         problem::relaxation_is_done = 0;
     }
 
+    // As above, but for radial damping.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        problem::radial_damping_is_done = 0;
+    }
+
     // TDE sanity checks
 
     if (problem::problem == 2) {
@@ -381,12 +387,11 @@ void set_small ()
 
 
 
-// Set the locations of the stellar centers of mass
+// Update the locations of the Roche radii
 
-void set_star_data ()
+void update_roche_radii ()
 {
     if (problem::mass_P > 0.0_rt && problem::mass_S > 0.0_rt) {
-
         Real r = std::sqrt(std::pow(problem::com_P[0] - problem::com_S[0], 2) +
                            std::pow(problem::com_P[1] - problem::com_S[1], 2) +
                            std::pow(problem::com_P[2] - problem::com_S[2], 2));
@@ -417,7 +422,28 @@ void set_star_data ()
             problem::roche_rad_P = 0.0_rt;
             problem::t_ff_P = 0.0_rt;
         }
+    }
 
+    // Determine when the radial damping force terminates.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
+        // It does not make sense to do damping if there's only one star remaining.
+
+        if (problem::mass_S == 0.0_rt) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        // Only do radial damping until the stars get sufficiently close. The way we will measure this
+        // is when the secondary overflows the Roche lobe. At that point we terminate the damping and
+        // let Newtonian gravity do the rest of the work.
+
+        if (problem::roche_rad_S <= problem::radial_damping_roche_factor * problem::radius_S) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        if (problem::radial_damping_is_done == 1) {
+            amrex::Print() << "\n\n  Terminating radial damping force since the secondary is about to overflow its Roche lobe.\n\n";
+        }
     }
 }
 

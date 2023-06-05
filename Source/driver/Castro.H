@@ -999,16 +999,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef GRAVITY
-
-///
-/// Calculate state in radial direction by averaging
-///
-/// @param is_new   do we use new (0) or old (1) data?
-///
-    void make_radial_data (int is_new);
-#endif
-
 #ifdef AUX_UPDATE
 
 ///
@@ -1083,6 +1073,11 @@ public:
 /// @param ng           number of ghost cells
 ///
     void enforce_min_density (amrex::MultiFab& state, int ng);
+
+///
+/// After a hydro advance, check to see whether any density went too small.
+///
+    advance_status check_for_negative_density ();
 
 ///
 /// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``

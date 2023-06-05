@@ -630,8 +630,6 @@ scf_max_iterations           int           30
 
 do_special_tagging           int           0
 
-spherical_star               int           0
-
 # Maximum radius from the center (in units of the domain width)
 # where tagging is allowed. The default choice implies no restriction.
 max_tagging_radius           real          10.0e0
@@ -765,9 +763,6 @@ drdxfac                     int            1
 
 # do we perform the synchronization at coarse-fine interfaces?
 no_sync                     int            0
-
-# do we do a composite solve?
-no_composite                int            0
 
 # should we apply a lagged correction to the potential that
 # gets us closer to the composite solution? This makes the
