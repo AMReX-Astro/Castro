@@ -266,13 +266,25 @@ Castro::do_advance_ctu(Real time,
 
     if (castro::check_dt_after_advance) {
 
-        int is_new = 1;
-        Real new_dt = estTimeStep(is_new);
+        // But don't do this check if we're using simplified SDC and we're not yet
+        // on the final SDC iteration, since we're not yet at the final advance.
 
-        if (castro::change_max * new_dt < dt) {
-            status.success = false;
-            status.reason = "post-advance timestep validity check failed";
-            return status;
+        bool do_validity_check = true;
+
+        if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections &&
+            sdc_iteration < sdc_iters - 1) {
+            do_validity_check = false;
+        }
+
+        if (do_validity_check) {
+            int is_new = 1;
+            Real new_dt = estTimeStep(is_new);
+
+            if (castro::change_max * new_dt < dt) {
+                status.success = false;
+                status.reason = "post-advance timestep validity check failed";
+                return status;
+            }
         }
 
     }
