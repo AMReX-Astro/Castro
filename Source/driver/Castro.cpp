@@ -607,28 +607,28 @@ Castro::read_params ()
             ppr.getarr("value_greater", value, 0, ppr.countval("value_greater"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GREATER, field, info);
         }
         else if (ppr.countval("value_less")) {
             Vector<Real> value;
             ppr.getarr("value_less", value, 0, ppr.countval("value_less"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::LESS, field, info);
         }
         else if (ppr.countval("gradient")) {
             Vector<Real> value;
             ppr.getarr("gradient", value, 0, ppr.countval("gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GRAD, field, info);
         }
         else if (ppr.countval("relative_gradient")) {
             Vector<Real> value;
             ppr.getarr("relative_gradient", value, 0, ppr.countval("relative_gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
