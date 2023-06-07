@@ -22,11 +22,10 @@ Castro::do_advance_ctu(Real time,
     amrex::ignore_unused(amr_iteration);
     amrex::ignore_unused(amr_ncycle);
 
-    // this routine will advance the old state data (called S_old here)
+    // this routine will advance the old state data (called Sborder here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
-
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
@@ -39,7 +38,6 @@ Castro::do_advance_ctu(Real time,
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef MHD
