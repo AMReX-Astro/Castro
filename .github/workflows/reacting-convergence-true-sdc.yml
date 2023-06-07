@@ -42,6 +42,7 @@ jobs:
         run: |
           cd Exec/reacting_tests/reacting_convergence
           ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex react_converge_128_plt00010 > fextrema.out
-          diff fextrema.out ci-benchmarks/react_converge_128_true_sdc.out
+          # ignore angular momenta, since 0 and -0 don't compare
+          diff -I "^ angular_momentum" fextrema.out ci-benchmarks/react_converge_128_true_sdc.out
 
 
