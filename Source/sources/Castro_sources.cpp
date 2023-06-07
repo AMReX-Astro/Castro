@@ -124,16 +124,15 @@ Castro::do_old_sources(
 
     source.setVal(0.0, source.nGrow());
 
+    if (!apply_sources()) {
+        return;
+    }
+
     for (int n = 0; n < num_src; ++n) {
         construct_old_source(n, source, state_old, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
@@ -142,6 +141,13 @@ Castro::do_old_sources(
                      state_new, time, 0);
     }
 
+    // Fill the ghost cells (but only for CTU; the time would not be correct for true SDC, so
+    // the FillPatch is handled separately in the SDC advance).
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NSRC);
+    }
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -183,18 +189,17 @@ Castro::do_new_sources(
 
     source.setVal(0.0, NUM_GROW_SRC);
 
+    if (!apply_sources()) {
+        return;
+    }
+
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
         construct_new_source(n, source, state_old, state_new, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
