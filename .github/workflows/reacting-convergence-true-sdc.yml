@@ -31,7 +31,7 @@ jobs:
       - name: Run reacting_convergence
         run: |
           cd Exec/reacting_tests/reacting_convergence
-          ./Castro2d.gnu.MPI.TRUESDC.ex inputs.128.testsuite max_step=10
+          ./Castro2d.gnu.TRUESDC.ex inputs.128.testsuite max_step=10
 
       - name: Build the fextrema tool
         run: |
