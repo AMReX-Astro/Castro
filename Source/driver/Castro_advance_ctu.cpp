@@ -22,11 +22,10 @@ Castro::do_advance_ctu(Real time,
     amrex::ignore_unused(amr_iteration);
     amrex::ignore_unused(amr_ncycle);
 
-    // this routine will advance the old state data (called S_old here)
+    // this routine will advance the old state data (called Sborder here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
-
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
@@ -39,7 +38,6 @@ Castro::do_advance_ctu(Real time,
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef MHD
@@ -54,51 +52,10 @@ Castro::do_advance_ctu(Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time);
+    status = initialize_do_advance(time, dt);
 
-    // Create any correctors to the source term data. This must be done
-    // before the source term data is overwritten below. Note: we do
-    // not create the corrector source if we're currently retrying the
-    // step; we will already have done it, and aside from avoiding
-    // duplicate work, we have already lost the data needed to do this
-    // calculation since we overwrote the data from the previous step.
-
-    if (!in_retry) {
-        create_source_corrector();
-    }
-
-    // Check for NaN's.
-
-    check_for_nan(S_old);
-
-    // If we're doing a step later than the first on each level, the fluid
-    // state might have evolved to the point where the AMR timestep could be
-    // significantly too large, but we don't have freedom to adjust the AMR
-    // timestep at that point. Trying to evolve with a dt that is too large
-    // could result in catastrophic behavior such that we don't even get to
-    // the point where we can bail out later in the advance, so let's just
-    // go directly into a retry now if we're too far away from the needed dt.
-
-    bool is_first_step_on_this_level = true;
-
-    for (int lev = level; lev >= 0; --lev) {
-        if (getLevel(lev).iteration > 1) {
-            is_first_step_on_this_level = false;
-            break;
-        }
-    }
-
-    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
-
-        int is_new = 0;
-        Real old_dt = estTimeStep(is_new);
-
-        if (castro::change_max * old_dt < dt) {
-            status.success = false;
-            status.reason = "pre-advance timestep validity check failed";
-            return status;
-        }
-
+    if (status.success == false) {
+        return status;
     }
 
     // If we are Strang splitting the reactions, do the old-time contribution now
@@ -255,41 +212,11 @@ Castro::do_advance_ctu(Real time,
     }
 #endif // REACTIONS
 
-    // Check if this timestep violated our stability criteria. Our idea is,
-    // if the timestep created a velocity v and sound speed at the new time
-    // such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
-    // chosen timestep constraint and change_max is the factor that determines
-    // how much the timestep can change during an advance, consider the advance
-    // to have failed. This prevents the timestep from shrinking too much,
-    // whereas in computeNewDt change_max prevents the timestep from growing
-    // too much. The same reasoning applies for the other timestep limiters.
+    status = finalize_do_advance(cur_time, dt);
 
-    if (castro::check_dt_after_advance) {
-
-        // But don't do this check if we're using simplified SDC and we're not yet
-        // on the final SDC iteration, since we're not yet at the final advance.
-
-        bool do_validity_check = true;
-
-        if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration < sdc_iters - 1) {
-            do_validity_check = false;
-        }
-
-        if (do_validity_check) {
-            int is_new = 1;
-            Real new_dt = estTimeStep(is_new);
-
-            if (castro::change_max * new_dt < dt) {
-                status.success = false;
-                status.reason = "post-advance timestep validity check failed";
-                return status;
-            }
-        }
-
+    if (status.success == false) {
+        return status;
     }
-
-    finalize_do_advance();
 
 #endif
 
