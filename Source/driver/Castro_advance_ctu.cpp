@@ -40,6 +40,9 @@ Castro::do_advance_ctu(Real time,
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    MultiFab& old_source = get_old_data(Source_Type);
+    MultiFab& new_source = get_new_data(Source_Type);
+
 #ifdef MHD
     MultiFab& Bx_old = get_old_data(Mag_Type_x);
     MultiFab& By_old = get_old_data(Mag_Type_y);
@@ -85,28 +88,11 @@ Castro::do_advance_ctu(Real time,
 
     bool apply_sources_to_state = true;
 
-    MultiFab& old_source = get_old_data(Source_Type);
-
-    if (apply_sources()) {
-
-      do_old_sources(
+    do_old_sources(
 #ifdef MHD
-                      Bx_old, By_old, Bz_old,
+                   Bx_old, By_old, Bz_old,
 #endif                
-                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
-
-      if (do_hydro) {
-          // Fill the ghost cells of old_source / Source_Type
-
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
-      }
-
-
-    } else {
-      old_source.setVal(0.0, NUM_GROW_SRC);
-
-    }
-
+                   old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -173,21 +159,11 @@ Castro::do_advance_ctu(Real time,
     construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
-    MultiFab& new_source = get_new_data(Source_Type);
-
-    if (apply_sources()) {
-
-      do_new_sources(
+    do_new_sources(
 #ifdef MHD
-                              Bx_new, By_new, Bz_new,
+                    Bx_new, By_new, Bz_new,
 #endif  
-                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
-
-    } else {
-
-      new_source.setVal(0.0, NUM_GROW_SRC);
-
-    }
+                    new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
 
     // If the state has ghost zones, sync them up now
     // since the hydro source only works on the valid zones.
