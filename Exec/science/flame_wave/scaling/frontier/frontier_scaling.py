@@ -15,6 +15,12 @@ frontier_nodes = frontier_data[:, 0]
 frontier_times = frontier_data[:, 3]
 frontier_std = frontier_data[:, 4]
 
+frontier_rkc_data = np.loadtxt("frontier-scaling-rkc-2023-05-31.txt")
+
+frontier_rkc_nodes = frontier_rkc_data[:, 0]
+frontier_rkc_times = frontier_rkc_data[:, 3]
+frontier_rkc_std = frontier_rkc_data[:, 4]
+
 summit_data = np.loadtxt("../summit/scaling_20230407.txt")
 
 summit_nodes = summit_data[:, 0]
@@ -34,6 +40,7 @@ def trend_line(c, t):
 fig, ax = plt.subplots(1)
 
 ax.errorbar(frontier_nodes, frontier_times, yerr=frontier_std, ls="None", marker="x", label="Frontier (ROCm 5.3)")
+ax.errorbar(frontier_rkc_nodes, frontier_rkc_times, yerr=frontier_rkc_std, ls="None", marker="x", label="Frontier (RKC integrator)")
 ax.errorbar(summit_nodes, summit_times, yerr=summit_std, ls="None", marker="x", label="Summit (CUDA 11.4)")
 
 c, t = trend_line(frontier_nodes, frontier_times)

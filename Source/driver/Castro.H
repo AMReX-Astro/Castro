@@ -507,14 +507,18 @@ public:
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
+/// @param dt       the timestep to advance
 ///
-    void initialize_do_advance(amrex::Real time);
+    advance_status initialize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-    void finalize_do_advance();
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance
+///
+    advance_status finalize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -999,16 +1003,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef GRAVITY
-
-///
-/// Calculate state in radial direction by averaging
-///
-/// @param is_new   do we use new (0) or old (1) data?
-///
-    void make_radial_data (int is_new);
-#endif
-
 #ifdef AUX_UPDATE
 
 ///
@@ -1083,6 +1077,11 @@ public:
 /// @param ng           number of ghost cells
 ///
     void enforce_min_density (amrex::MultiFab& state, int ng);
+
+///
+/// After a hydro advance, check to see whether any density went too small.
+///
+    advance_status check_for_negative_density ();
 
 ///
 /// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
