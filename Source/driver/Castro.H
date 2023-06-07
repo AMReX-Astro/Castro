@@ -507,8 +507,9 @@ public:
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
+/// @param dt       the timestep to advance
 ///
-    void initialize_do_advance(amrex::Real time);
+    advance_status initialize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data

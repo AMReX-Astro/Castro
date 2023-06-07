@@ -54,51 +54,10 @@ Castro::do_advance_ctu(Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time);
+    status = initialize_do_advance(time, dt);
 
-    // Create any correctors to the source term data. This must be done
-    // before the source term data is overwritten below. Note: we do
-    // not create the corrector source if we're currently retrying the
-    // step; we will already have done it, and aside from avoiding
-    // duplicate work, we have already lost the data needed to do this
-    // calculation since we overwrote the data from the previous step.
-
-    if (!in_retry) {
-        create_source_corrector();
-    }
-
-    // Check for NaN's.
-
-    check_for_nan(S_old);
-
-    // If we're doing a step later than the first on each level, the fluid
-    // state might have evolved to the point where the AMR timestep could be
-    // significantly too large, but we don't have freedom to adjust the AMR
-    // timestep at that point. Trying to evolve with a dt that is too large
-    // could result in catastrophic behavior such that we don't even get to
-    // the point where we can bail out later in the advance, so let's just
-    // go directly into a retry now if we're too far away from the needed dt.
-
-    bool is_first_step_on_this_level = true;
-
-    for (int lev = level; lev >= 0; --lev) {
-        if (getLevel(lev).iteration > 1) {
-            is_first_step_on_this_level = false;
-            break;
-        }
-    }
-
-    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
-
-        int is_new = 0;
-        Real old_dt = estTimeStep(is_new);
-
-        if (castro::change_max * old_dt < dt) {
-            status.success = false;
-            status.reason = "pre-advance timestep validity check failed";
-            return status;
-        }
-
+    if (status.success == false) {
+        return status;
     }
 
     // If we are Strang splitting the reactions, do the old-time contribution now

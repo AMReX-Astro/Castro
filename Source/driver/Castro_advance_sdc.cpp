@@ -44,13 +44,11 @@ Castro::do_advance_sdc (Real time,
   auto domain_lo = geom.Domain().loVect3d();
   auto domain_hi = geom.Domain().hiVect3d();
 
+  advance_status status;
+
   // Perform initialization steps.
 
-  initialize_do_advance(time);
-
-  // Check for NaN's.
-
-  check_for_nan(S_old);
+  status = initialize_do_advance(time, dt);
 
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
