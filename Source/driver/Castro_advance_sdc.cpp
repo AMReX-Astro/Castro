@@ -275,7 +275,7 @@ Castro::do_advance_sdc (Real time,
     AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
-  finalize_do_advance();
+  status = finalize_do_advance(cur_time, dt);
 
 #ifdef REACTIONS
   // store the reaction information as well.  Note: this will be

@@ -515,7 +515,10 @@ public:
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-    void finalize_do_advance();
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance
+///
+    advance_status finalize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Check for NaNs in the given MultiFab

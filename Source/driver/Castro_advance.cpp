@@ -248,10 +248,50 @@ Castro::initialize_do_advance (Real time, Real dt)
 
 
 
-void
-Castro::finalize_do_advance()
+advance_status
+Castro::finalize_do_advance (Real time, Real dt)
 {
     BL_PROFILE("Castro::finalize_do_advance()");
+
+    advance_status status;
+    status.success = true;
+    status.reason = "";
+
+    // Check if this timestep violated our stability criteria. Our idea is,
+    // if the timestep created a velocity v and sound speed at the new time
+    // such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
+    // chosen timestep constraint and change_max is the factor that determines
+    // how much the timestep can change during an advance, consider the advance
+    // to have failed. This prevents the timestep from shrinking too much,
+    // whereas in computeNewDt change_max prevents the timestep from growing
+    // too much. The same reasoning applies for the other timestep limiters.
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (castro::check_dt_after_advance) {
+
+            // But don't do this check if we're using simplified SDC and we're not yet
+            // on the final SDC iteration, since we're not yet at the final advance.
+
+            bool do_validity_check = true;
+
+            if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections &&
+                sdc_iteration < sdc_iters - 1) {
+                do_validity_check = false;
+            }
+
+            if (do_validity_check) {
+                int is_new = 1;
+                Real new_dt = estTimeStep(is_new);
+
+                if (castro::change_max * new_dt < dt) {
+                    status.success = false;
+                    status.reason = "post-advance timestep validity check failed";
+                    return status;
+                }
+            }
+        }
+    }
 
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
@@ -263,6 +303,7 @@ Castro::finalize_do_advance()
 
     Sborder.clear();
 
+    return status;
 }
 
 
