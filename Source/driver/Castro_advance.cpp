@@ -251,6 +251,8 @@ Castro::initialize_do_advance (Real time, Real dt)
 advance_status
 Castro::finalize_do_advance (Real time, Real dt)
 {
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::finalize_do_advance()");
 
     advance_status status;
