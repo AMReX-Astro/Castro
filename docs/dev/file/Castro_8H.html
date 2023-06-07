@@ -803,20 +803,31 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealE">
-<span id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="Castro::initialize_do_advance__amrex::Real"></span><span class="target" id="classCastro_1af5557df72b1ea7e96b9e13bd6a1e8d44"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize_do_advance</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::initialize_do_advance__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1aa9b48fa4f075e47272d11c0a582389fd"></span><a class="reference internal" href="#_CPPv414advance_status" title="advance_status"><span class="n"><span class="pre">advance_status</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">initialize_do_advance</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Performed at the start of ::do_advance, resets flags and ensures required ghost zones are filled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>time</strong> – the current simulation time </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro19finalize_do_advanceEv">
-<span id="_CPPv3N6Castro19finalize_do_advanceEv"></span><span id="_CPPv2N6Castro19finalize_do_advanceEv"></span><span id="Castro::finalize_do_advance"></span><span class="target" id="classCastro_1a858ab43bc6c9aa537856ff19b152cb39"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">finalize_do_advance</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Performed at the end of ::do_advance, cleans up temporary data created by ::initialize_do_advance </p>
+<dt class="sig sig-object cpp" id="_CPPv4N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv3N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::finalize_do_advance__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a82910bbd5632a06ce1402e19ec841cd9"></span><a class="reference internal" href="#_CPPv414advance_status" title="advance_status"><span class="n"><span class="pre">advance_status</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">finalize_do_advance</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Performed at the end of ::do_advance, cleans up temporary data created by ::initialize_do_advance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance </p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="cpp function">
