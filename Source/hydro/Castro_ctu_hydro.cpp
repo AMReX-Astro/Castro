@@ -1481,6 +1481,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Sync up state after hydro source.
+
+  clean_state(
+#ifdef MHD
+               Bx_new, By_new, Bz_new,
+#endif
+               S_new, cur_time, 0);
+
+#ifdef GRAVITY
+  // Must define new value of "center" after advecting on the grid
+
+  if (moving_center == 1) {
+      define_new_center(S_new, time);
+  }
+#endif
+
   if (verbose) {
       amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
   }

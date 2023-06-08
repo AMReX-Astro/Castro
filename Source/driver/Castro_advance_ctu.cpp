@@ -112,10 +112,6 @@ Castro::do_advance_ctu(Real time,
     {
 #ifndef MHD
       construct_ctu_hydro_source(time, dt);
-
-//      if (print_update_diagnostics) {
-//          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
-//      }
 #else
       construct_ctu_mhd_source(time, dt);
 #endif
@@ -129,29 +125,6 @@ Castro::do_advance_ctu(Real time,
           return status;
       }
     }
-
-
-    // Sync up state after old sources and hydro source.
-    clean_state(
-#ifdef MHD
-                Bx_new, By_new, Bz_new,
-#endif
-                S_new, cur_time, 0);
-
-    // Check for NaN's.
-
-    check_for_nan(S_new);
-
-    // if we are done with the update do the source correction and
-    // then the second half of the reactions
-
-#ifdef GRAVITY
-    // Must define new value of "center" before we call new gravity
-    // solve or external source routine
-    if (moving_center == 1) {
-        define_new_center(S_new, time);
-    }
-#endif
 
     // Construct and apply new-time source terms.
 
