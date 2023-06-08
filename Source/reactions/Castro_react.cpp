@@ -36,9 +36,7 @@ Castro::do_old_reactions (Real time, Real dt)
     }
 #endif
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
     if (!burn_success) {
         status.success = false;
@@ -106,9 +104,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
 #endif // SIMPLIFIED_SDC
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
     if (!burn_success) {
         status.success = false;

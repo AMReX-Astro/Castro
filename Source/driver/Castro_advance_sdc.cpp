@@ -44,7 +44,7 @@ Castro::do_advance_sdc (Real time,
   auto domain_lo = geom.Domain().loVect3d();
   auto domain_hi = geom.Domain().hiVect3d();
 
-  advance_status status;
+  advance_status status {};
 
   // Perform initialization steps.
 

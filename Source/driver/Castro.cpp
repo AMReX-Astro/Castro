@@ -3308,9 +3308,7 @@ Castro::check_for_negative_density ()
     ParallelDescriptor::ReduceIntMax(rho_check_failed);
     ParallelDescriptor::ReduceIntMax(X_check_failed);
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
     if (rho_check_failed == 1) {
         status.success = false;

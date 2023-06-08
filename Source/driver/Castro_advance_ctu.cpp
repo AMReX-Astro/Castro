@@ -29,9 +29,7 @@ Castro::do_advance_ctu(Real time,
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
 #ifndef TRUE_SDC
 
@@ -217,7 +215,12 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
     if (do_retry) {
 
-        dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
+            dt_subcycle = status.suggested_dt;
+        }
+        else {
+            dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
@@ -424,7 +427,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             num_sub_iters = sdc_iters;
         }
 
-        advance_status status;
+        advance_status status {};
 
         for (int n = 0; n < num_sub_iters; ++n) {
 
