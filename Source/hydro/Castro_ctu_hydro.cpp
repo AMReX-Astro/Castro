@@ -1487,7 +1487,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef MHD
                Bx_new, By_new, Bz_new,
 #endif
-               S_new, cur_time, 0);
+               S_new, time + dt, 0);
 
 #ifdef GRAVITY
   // Must define new value of "center" after advecting on the grid
