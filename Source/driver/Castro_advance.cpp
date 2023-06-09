@@ -297,6 +297,14 @@ Castro::finalize_do_advance (Real time, Real dt)
 
     check_for_nan(S_new);
 
+    // Check for small/negative densities and X > 1 or X < 0.
+
+    status = check_for_negative_density();
+
+    if (status.success == false) {
+        return status;
+    }
+
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
         MultiFab& Er_old = get_old_data(Rad_Type);

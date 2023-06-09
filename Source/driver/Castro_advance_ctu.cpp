@@ -113,15 +113,6 @@ Castro::do_advance_ctu(Real time,
 #else
       construct_ctu_mhd_source(time, dt);
 #endif
-
-      // Check for small/negative densities and X > 1 or X < 0.
-      // If we detect this, return immediately.
-
-      status = check_for_negative_density();
-
-      if (status.success == false) {
-          return status;
-      }
     }
 
     // Construct and apply new-time source terms.
