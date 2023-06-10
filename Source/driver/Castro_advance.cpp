@@ -291,12 +291,6 @@ Castro::finalize_do_advance (Real time, Real dt)
         }
     }
 
-    // Check for NaN's.
-
-    MultiFab& S_new = get_new_data(State_Type);
-
-    check_for_nan(S_new);
-
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
         MultiFab& Er_old = get_old_data(Rad_Type);
