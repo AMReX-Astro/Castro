@@ -84,13 +84,11 @@ Castro::do_advance_ctu(Real time,
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-    bool apply_sources_to_state = true;
-
     do_old_sources(
 #ifdef MHD
                    Bx_old, By_old, Bz_old,
 #endif                
-                   old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
+                   old_source, Sborder, S_new, prev_time, dt);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -129,7 +127,7 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                     Bx_new, By_new, Bz_new,
 #endif  
-                    new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
+                    new_source, Sborder, S_new, cur_time, dt);
 
     // If the state has ghost zones, sync them up now
     // since the hydro source only works on the valid zones.
