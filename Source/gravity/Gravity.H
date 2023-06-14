@@ -111,11 +111,6 @@ public:
   static int NoSync();
 
 ///
-/// Returns ``no_composite``
-///
-  static int NoComposite();
-
-///
 /// Returns ``do_composite_phi_correction``
 ///
   static int DoCompositeCorrection();

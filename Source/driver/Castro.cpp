@@ -607,28 +607,28 @@ Castro::read_params ()
             ppr.getarr("value_greater", value, 0, ppr.countval("value_greater"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GREATER, field, info);
         }
         else if (ppr.countval("value_less")) {
             Vector<Real> value;
             ppr.getarr("value_less", value, 0, ppr.countval("value_less"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::LESS, field, info);
         }
         else if (ppr.countval("gradient")) {
             Vector<Real> value;
             ppr.getarr("gradient", value, 0, ppr.countval("gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GRAD, field, info);
         }
         else if (ppr.countval("relative_gradient")) {
             Vector<Real> value;
             ppr.getarr("relative_gradient", value, 0, ppr.countval("relative_gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
@@ -704,12 +704,6 @@ Castro::Castro (Amr&            papa,
 
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) {
         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
-      }
-
-      if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
-      {
-          std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
-          amrex::Error();
       }
    }
 
@@ -1405,13 +1399,6 @@ Castro::initData ()
 
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     MultiFab& G_new = get_new_data(Gravity_Type);
     G_new.setVal(0.);
 
@@ -1645,7 +1632,7 @@ Castro::estTimeStep (int is_new)
     // Dummy value to start with
     Real estdt_burn = max_dt;
 
-    if (do_react) {
+    if (do_react && (castro::dtnuc_e < 1.e199_rt || castro::dtnuc_X < 1.e199_rt)) {
 
         // Compute burning-limited timestep.
 
@@ -2152,16 +2139,13 @@ Castro::post_restart ()
 
             if ( gravity->get_gravity_type() == "PoissonGrav")
             {
-                if (gravity->NoComposite() != 1)
-                {
-                   // Update the maximum density, used in setting the solver tolerance.
+                // Update the maximum density, used in setting the solver tolerance.
 
-                   gravity->update_max_rhs();
+                gravity->update_max_rhs();
 
-                   gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1) {
-                       gravity->test_composite_phi(level);
-                   }
+                gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
+                if (gravity->test_results_of_solves() == 1) {
+                    gravity->test_composite_phi(level);
                 }
             }
 
@@ -2273,7 +2257,7 @@ Castro::post_regrid (int lbase,
             const Real cur_time = state[State_Type].curTime();
             if ( (level == lbase) && cur_time > 0.)
             {
-                if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+                if (gravity->get_gravity_type() == "PoissonGrav") {
                     // Update the maximum density, used in setting the solver tolerance.
 
                     if (level == 0) {
@@ -2358,11 +2342,9 @@ Castro::post_init (Real /*stop_time*/)
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-               gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
@@ -2479,11 +2461,9 @@ Castro::post_grown_restart ()
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-                gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
@@ -3254,6 +3234,93 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
+}
+
+advance_status
+Castro::check_for_negative_density ()
+{
+    BL_PROFILE("check_for_negative_density()");
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+    ReduceData<int, int> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+
+        auto S_old_arr = S_old.array(mfi);
+        auto S_new_arr = S_new.array(mfi);
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+        {
+            int rho_check_failed = 0;
+            int X_check_failed = 0;
+
+            Real rho = S_new_arr(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            // Optionally, the user can ignore this if the starting
+            // density is lower than a certain threshold. This is useful
+            // if the minimum density occurs in material that is not
+            // dynamically important; in that case, a density reset suffices.
+
+            if (S_old_arr(i,j,k,URHO) >= retry_small_density_cutoff && rho < small_dens) {
+#ifndef AMREX_USE_GPU
+                std::cout << "Invalid density = " << rho << " at index " << i << ", " << j << ", " << k << "\n";
+#endif
+                rho_check_failed = 1;
+            }
+
+            if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+
+                for (int n = 0; n < NumSpec; ++n) {
+                    Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+
+                    if (X < -castro::abundance_failure_tolerance ||
+                        X > 1.0_rt + castro::abundance_failure_tolerance) {
+#ifndef AMREX_USE_GPU
+                        std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                  << i << ", " << j << ", " << k
+                                  << " with density = " << rho << "\n";
+#endif
+                        X_check_failed = 1;
+                    }
+                }
+
+            }
+
+            return {rho_check_failed, X_check_failed};
+        });
+
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    int rho_check_failed = amrex::get<0>(hv);
+    int X_check_failed = amrex::get<1>(hv);
+
+    ParallelDescriptor::ReduceIntMax(rho_check_failed);
+    ParallelDescriptor::ReduceIntMax(X_check_failed);
+
+    advance_status status {};
+
+    if (rho_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid density";
+    }
+
+    if (X_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid X";
+    }
+
+    return status;
 }
 
 void
@@ -4139,8 +4206,6 @@ Castro::swap_state_time_levels(const Real dt)
 
 }
 
-
-
 #ifdef GRAVITY
 int
 Castro::get_numpts ()
@@ -4164,110 +4229,10 @@ Castro::get_numpts ()
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
-       std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
      }
 
      return numpts_1d;
-}
-
-void
-Castro::make_radial_data(int is_new)
-{
-#if (AMREX_SPACEDIM > 1)
-
-   BL_PROFILE("Castro::make_radial_data()");
-
-   // We only call this for level = 0
-   BL_ASSERT(level == 0);
-
-   int numpts_1d = get_numpts();
-
-   auto dx = geom.CellSizeArray();
-   Real  dr = dx[0];
-
-   auto problo = geom.ProbLoArray();
-
-   MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
-   const int nc = S.nComp();
-
-   Gpu::ManagedVector<Real> radial_vol(numpts_1d, 0.0_rt);
-   Real* const radial_vol_ptr = radial_vol.dataPtr();
-
-   Gpu::ManagedVector<Real> radial_state(numpts_1d * nc, 0.0_rt);
-   Real* const radial_state_ptr = radial_state.dataPtr();
-
-   for (MFIter mfi(S); mfi.isValid(); ++mfi)
-   {
-       Box bx(mfi.validbox());
-
-       auto state_arr = S[mfi].array();
-       auto vol_arr   = volume[mfi].array();
-
-       amrex::ParallelFor(bx,
-       [=] AMREX_GPU_DEVICE(int i, int j, int k)
-       {
-           Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-
-           Real y = 0.0_rt;
-#if AMREX_SPACEDIM >= 2
-           y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-
-           Real z = 0.0_rt;
-#if AMREX_SPACEDIM == 3
-           z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
-           Real r = std::sqrt(x * x + y * y + z * z);
-
-           int index = int(r / dr);
-
-#ifndef AMREX_USE_GPU
-           if (index > numpts_1d-1) {
-               std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
-               std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
-               std::cout << "R / DR " << r << " " << dr << "\n";
-               amrex::Error("Error:: Castro_util.H :: compute_avgstate");
-           }
-#endif
-
-           Gpu::Atomic::Add(&radial_state_ptr[URHO + index * nc],
-                            vol_arr(i,j,k) * state_arr(i,j,k,URHO));
-
-           // Store the radial component of the momentum in the
-           // UMX, UMY and UMZ components for now.
-
-           Real x_mom = state_arr(i,j,k,UMX);
-           Real y_mom = state_arr(i,j,k,UMY);
-           Real z_mom = state_arr(i,j,k,UMZ);
-           Real radial_mom = x_mom * (x / r) + y_mom * (y / r) + z_mom * (z / r);
-
-           Gpu::Atomic::Add(&radial_state_ptr[UMX + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMY + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMZ + index * nc], vol_arr(i,j,k) * radial_mom);
-
-           for (int n = UMZ + 1; n <= nc; ++n) {
-               Gpu::Atomic::Add(&radial_state_ptr[n + index * nc],
-                                vol_arr(i,j,k) * state_arr(i,j,k,n));
-           }
-
-           Gpu::Atomic::Add(&radial_vol_ptr[index], vol_arr(i,j,k));
-       });
-   }
-
-   ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
-   ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
-
-   for (int i = 0; i < numpts_1d; i++) {
-       if (radial_vol[i] > 0.)
-       {
-           for (int j = 0; j < nc; j++) {
-               radial_state[nc*i+j] /= radial_vol[i];
-           }
-       }
-   }
-
-#endif
 }
 
 void

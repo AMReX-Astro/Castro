@@ -12,8 +12,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    const Real time = 0.0_rt;
-
     // Set the zone state depending on whether we are inside the primary
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
@@ -172,34 +170,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (AMREX_SPACEDIM == 2) {
             state(i,j,k,UMZ) = std::abs(state(i,j,k,UMZ));
-        }
-
-    }
-
-    // If we're doing the merger problem and want to add an initial radial velocity, do that here.
-    // We're only going to impart this velocity to the stars themselves, so that we prevent
-    // artificial infall in the ambient regions.
-
-    if (problem::problem == 1 && problem::initial_radial_velocity_factor > 0.0_rt) {
-
-        if (dist_P < problem::radius_P || dist_P < problem::radius_S) {
-
-            Real R_prp    = std::sqrt(std::pow(loc[problem::axis_1-1], 2) + std::pow(loc[problem::axis_2-1], 2));
-            Real cosTheta = loc[problem::axis_1-1] / R_prp;
-            Real sinTheta = loc[problem::axis_2-1] / R_prp;
-
-            GpuArray<Real, 3> vel = {state(i,j,k,UMX), state(i,j,k,UMY), state(i,j,k,UMZ)};
-            GpuArray<Real, 3> inertial_vel{vel};
-#ifdef ROTATION
-            rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
-#endif
-            Real mag_vel = std::sqrt(inertial_vel[0] * inertial_vel[0] +
-                                     inertial_vel[1] * inertial_vel[1] +
-                                     inertial_vel[2] * inertial_vel[2]);
-
-            state(i,j,k,UMX+problem::axis_1-1) -= problem::initial_radial_velocity_factor * cosTheta * mag_vel;
-            state(i,j,k,UMX+problem::axis_2-1) -= problem::initial_radial_velocity_factor * sinTheta * mag_vel;
-
         }
 
     }

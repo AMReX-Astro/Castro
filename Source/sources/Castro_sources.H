@@ -44,7 +44,7 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
@@ -80,7 +80,7 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
