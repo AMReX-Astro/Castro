@@ -32,6 +32,9 @@ jobs:
           sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
           sudo apt-get update
           sudo apt-get -y install cuda-toolkit
+          ls /usr/local
+          ls /usr/local/cuda
+          ls /usr/local/cuda/include
 
       - name: Install hypre
         run: |
