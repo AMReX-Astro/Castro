@@ -1,6 +1,10 @@
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 
+#include <network_properties.H>
+#include <gravity_params.H>
+#include <model_parser.H>
+
 //  Create a 1-d hydrostatic, atmosphere with an isothermal region
 //  (T_star) representing the NS, a hyperbolic tangent rise to a
 //  peak temperature (T_hi) representing the base of an accreted
@@ -50,6 +54,8 @@
 //
 
 // this version allows for multiple initial models
+
+using namespace amrex;
 
 namespace fw {
     constexpr Real MAX_ITER = 250;

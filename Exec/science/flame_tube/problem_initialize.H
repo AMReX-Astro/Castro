@@ -1,6 +1,7 @@
 #ifndef problem_initialize_H
 #define problem_initialize_H
 
+#include <AMReX_Geometry.H>
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
@@ -20,13 +21,13 @@ void problem_initialize ()
     // check to make sure that small_dens is less than low_density_cutoff
     // if not, funny things can happen above the atmosphere
 
-    if (small_dens >= 0.99_rt * problem::low_density_cutoff) {
+    if (castro::small_dens >= 0.99_rt * problem::low_density_cutoff) {
         amrex::Error("ERROR: small_dens should be set lower than low_density_cutoff");
     }
 
     // make sure hse_fixed_temp is the same as T_star, if it's specified
 
-    if (hse_fixed_temp > 0.0_rt && hse_fixed_temp != problem::T_star) {
+    if (castro::hse_fixed_temp > 0.0_rt && castro::hse_fixed_temp != problem::T_star) {
         amrex::Error("ERROR: hse_fixed_temp should be the same as T_star");
     }
 
@@ -177,18 +178,11 @@ void problem_initialize ()
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 1);
 
-    // set center
+    // put the x- and z-center at zero and the y-center in the middle of the domain
 
-    for (int d = 0; d < AMREX_SPACEDIM; d++) {
-        problem::center[d] = 0.5_rt * (problo[d] + probhi[d]);
-    }
-
-#if AMREX_SPACEDIM == 2
-    // for axisymmetry, put the x-center on the x-axis
-    // and the y-center at 0, so the height computation is okay
     problem::center[0] = 0.0_rt;
-    problem::center[1] = 0.0_rt;
-#endif
+    problem::center[1] = 0.5_rt * (problo[1] + probhi[1]);
+    problem::center[2] = 0.0_rt;
 
     // set the ambient state for the upper boundary condition
 

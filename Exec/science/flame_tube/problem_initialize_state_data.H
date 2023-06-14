@@ -1,12 +1,15 @@
 #ifndef problem_initialize_state_data_H
 #define problem_initialize_state_data_H
 
+#include <AMReX_Geometry.H>
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
 #include <model_parser.H>
 #include <initial_model.H>
 #include <ambient.H>
+
+using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -19,33 +22,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 
-    Real y = 0.0;
-#if AMREX_SPACEDIM >= 2
-    y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
-#endif
-
-    Real z = 0.0;
-#if AMREX_SPACEDIM == 3
-    z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
-#endif
+    Real z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 
     // lateral distance and height
 
     Real r;
     Real height;
 
-    if (AMREX_SPACEDIM == 1) {
-        r = 1.0_rt;
-        height = x;
-
-    } else if (AMREX_SPACEDIM == 2) {
-        r = x;
-        height = y;
-
-    } else if (AMREX_SPACEDIM == 3) {
-        r = std::sqrt(x * x + y * y);
-        height = z;
-    }
+    // this should technically be std::sqrt(x*x + y*y), but we want the flame
+    // front to be uniform across y
+    r = x;
+    height = z;
 
     // blending factor
 
