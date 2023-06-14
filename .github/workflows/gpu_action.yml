@@ -33,6 +33,16 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install cuda
 
+      - name: Install hypre
+        run: |
+          wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.26.0.tar.gz
+          tar xfz v2.26.0.tar.gz
+          cd hypre-2.26.0/src
+          ./configure --with-cxxstandard=17 --with-cuda --enable-unified-memory
+          make -j 2
+          make install
+          cd ../../
+
       - name: Get cpp linter repo
         run: |
           cd external
