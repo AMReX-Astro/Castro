@@ -55,11 +55,12 @@ using namespace amrex;
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
 // 11: PhiRot_Type was removed from Castro
+// 12: State_Type's additional ghost zone, used when radiation is enabled, has been removed
 
 namespace
 {
     int input_version = -1;
-    int current_version = 11;
+    int current_version = 12;
 }
 
 // I/O routines for Castro
