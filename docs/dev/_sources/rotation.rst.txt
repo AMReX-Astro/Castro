@@ -224,7 +224,7 @@ a rotating frame
 
 
 The kinetic energy equation can be obtained from :eq:`eq:v-rot` by
-mulitplying by :math:`\rho\vbt`:
+multiplying by :math:`\rho\vbt`:
 
 .. math::
    \begin{align}
