@@ -22,14 +22,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
-          sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0 libopenmpi-dev openmpi-bin
+          sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
 
       - name: Install hypre
         run: |
           wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.28.0.tar.gz
           tar xfz v2.28.0.tar.gz
           cd hypre-2.28.0/src
-          ./configure --with-cxxstandard=17
+          ./configure --with-cxxstandard=17 --without-MPI
           make -j 2
           make install
           cd ../../
