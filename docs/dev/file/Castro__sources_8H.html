@@ -265,6 +265,20 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414do_old_sourcesN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv314do_old_sourcesN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv214do_old_sourcesN5amrex4RealEN5amrex4RealE"></span><span id="do_old_sources__amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1aa0eeee61b4c640e0db9fbf68aa2f984e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">do_old_sources</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414do_old_sourcesN5amrex4RealEN5amrex4RealE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct source terms at old time (convenience wrapper for CTU advance)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv420construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv320construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv220construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_source__i.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1af41fbe3d60ab5a9ff01bbc40785eb786"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">construct_old_source</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">src</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">source</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition"></a><br /></dt>
 <dd><p>Construct the old-time source</p>
@@ -294,6 +308,20 @@
 <li><p><strong>time</strong> – the current simulation time </p></li>
 <li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
 <li><p><strong>apply_to_state</strong> – whether to apply the source to state_new </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414do_new_sourcesN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv314do_new_sourcesN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv214do_new_sourcesN5amrex4RealEN5amrex4RealE"></span><span id="do_new_sources__amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a42b9ec298b94e0c1a5d0fcc1f52b1610"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">do_new_sources</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414do_new_sourcesN5amrex4RealEN5amrex4RealE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Construct new time sources (convenience wrapper for CTU advance)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
 </ul>
 </dd>
 </dl>
