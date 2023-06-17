@@ -41,8 +41,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Real oldtime = castro->get_state_data(Rad_Type).prevTime();
 
   MultiFab& S_new = castro->get_new_data(State_Type);
-  FillPatchIterator fpi(*castro, S_new, ngrow, time, State_Type, 0, S_new.nComp());
-  MultiFab& S_new_border = fpi.get_mf();
+  FillPatchIterator fpi_new(*castro, S_new, ngrow, time, State_Type, 0, S_new.nComp());
+  MultiFab& S_new_border = fpi_new.get_mf();
 
   Array<MultiFab, AMREX_SPACEDIM> lambda;
   if (radiation::limiter > 0) {
@@ -56,8 +56,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Er_lag.FillBoundary(parent->Geom(level).periodicity());
 
       MultiFab& S_old = castro->get_old_data(State_Type);
-      FillPatchIterator fpi(*castro, S_old, ngrow, oldtime, State_Type, 0, S_old.nComp());
-      MultiFab& S_lag = fpi.get_mf();
+      FillPatchIterator fpi_old(*castro, S_old, ngrow, oldtime, State_Type, 0, S_old.nComp());
+      MultiFab& S_lag = fpi_old.get_mf();
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
       MGFLD_compute_rosseland(kpr_lag, S_lag); 
