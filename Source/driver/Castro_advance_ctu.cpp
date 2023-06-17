@@ -122,13 +122,6 @@ Castro::do_advance_ctu (Real time, Real dt)
 #endif  
                     new_source, Sborder, S_new, cur_time, dt);
 
-    // If the state has ghost zones, sync them up now since the hydro
-    // source and new-time sources only work on the valid zones.
-
-    if (S_new.nGrow() > 0) {
-        expand_state(S_new, cur_time, S_new.nGrow());
-    }
-
     // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
 #ifdef REACTIONS
