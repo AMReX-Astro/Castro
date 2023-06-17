@@ -11,12 +11,8 @@
 using namespace amrex;
 
 void
-Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
+Castro::construct_old_gravity (Real time)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     BL_PROFILE("Castro::construct_old_gravity()");
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
@@ -113,16 +109,11 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
     // Define the old gravity vector.
 
     gravity->get_old_grav_vector(level, grav_old, time);
-
 }
 
 void
-Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
+Castro::construct_new_gravity (Real time)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     BL_PROFILE("Castro::construct_new_gravity()");
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
@@ -393,7 +384,6 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
         });
 #endif
     }
-
 }
 
 void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
