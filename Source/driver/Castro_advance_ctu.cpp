@@ -29,8 +29,6 @@ Castro::do_advance_ctu (Real time, Real dt)
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    MultiFab& S_new = get_new_data(State_Type);
-
     // Perform initialization steps.
 
     status = initialize_do_advance(time, dt);
@@ -39,77 +37,74 @@ Castro::do_advance_ctu (Real time, Real dt)
         return status;
     }
 
-    // If we are Strang splitting the reactions, do the old-time contribution now
+    // Perform all pre-advance operations and then initialize
+    // the new-time state with the output of those operators.
 
-#ifdef REACTIONS
-    status = do_old_reactions(time, dt);
+    status = pre_advance_operators(prev_time, dt);
 
     if (status.success == false) {
         return status;
     }
-#endif
 
-    // Initialize the new-time data. This copy needs to come after the
-    // reactions.
-
-    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
-
-    // Construct the old-time sources from Sborder.  This will already
-    // be applied to S_new (with full dt weighting), to be correctly
-    // later.  Note -- this does not affect the prediction of the
-    // interface state, an explicit source will be traced there as
+    // Construct the old-time sources from Sborder. This will already
+    // be applied to S_new (with full dt weighting), to be corrected
+    // later. Note that this does not affect the prediction of the
+    // interface state; an explicit source will be traced there as
     // needed.
 
-#ifdef GRAVITY
-    construct_old_gravity(prev_time);
-#endif
+    status = do_old_sources(prev_time, dt);
 
-    do_old_sources(prev_time, dt);
+    if (status.success == false) {
+        return status;
+    }
 
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-    // the SDC reactive source ghost cells on coarse levels might not
-    // be in sync due to any average down done, so fill them here
+    // Perform any operations that occur after the sources but before the hydro.
 
-    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    status = pre_hydro_operators(prev_time, dt);
 
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
-#endif
-#endif
+    if (status.success == false) {
+        return status;
+    }
 
-    // Do the hydro update.  We build directly off of Sborder, which
-    // is the state that has already seen the burn
+    // Do the hydro update. We build directly off of Sborder, which
+    // is the state that has already seen the burn.
 
-    if (do_hydro)
-    {
 #ifndef MHD
-        status = construct_ctu_hydro_source(time, dt);
+    status = construct_ctu_hydro_source(prev_time, dt);
 #else
-        status = construct_ctu_mhd_source(time, dt);
+    status = construct_ctu_mhd_source(prev_time, dt);
 #endif
 
-        if (status.success == false) {
-            return status;
-        }
+    if (status.success == false) {
+        return status;
+    }
+
+    // Perform any operations that occur after the hydro but before
+    // the corrector sources.
+
+    status = post_hydro_operators(cur_time, dt);
+
+    if (status.success == false) {
+        return status;
     }
 
     // Construct and apply new-time source terms.
 
-#ifdef GRAVITY
-    construct_new_gravity(cur_time);
-#endif
-
-    do_new_sources(cur_time, dt);
-
-    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
-
-#ifdef REACTIONS
-    status = do_new_reactions(cur_time, dt);
+    status = do_new_sources(cur_time, dt);
 
     if (status.success == false) {
         return status;
     }
-#endif // REACTIONS
+
+    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
+
+    status = post_advance_operators(cur_time, dt);
+
+    if (status.success == false) {
+        return status;
+    }
+
+    // Perform finalization steps.
 
     status = finalize_do_advance(cur_time, dt);
 

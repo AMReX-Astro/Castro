@@ -54,7 +54,7 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 ///
-    void do_old_sources (amrex::Real time, amrex::Real dt);
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -100,7 +100,7 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 ///
-    void do_new_sources (amrex::Real time, amrex::Real dt);
+    advance_status do_new_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -336,3 +336,45 @@
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
                           amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Perform all operations that occur prior to computing the predictor sources
+/// and the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_advance_operators (amrex::Real time, amrex::Real dt);
+
+///
+/// Perform all operations that occur after computing the predictor sources
+/// but before the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the hydro source
+/// but before the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_advance_operators (amrex::Real time, amrex::Real dt);
