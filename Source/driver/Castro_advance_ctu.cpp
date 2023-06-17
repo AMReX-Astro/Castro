@@ -13,15 +13,8 @@
 using namespace amrex;
 
 advance_status
-Castro::do_advance_ctu(Real time,
-                       Real dt,
-                       int  amr_iteration,
-                       int  amr_ncycle)
+Castro::do_advance_ctu (Real time, Real dt)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     // this routine will advance the old state data (called Sborder here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -81,7 +74,7 @@ Castro::do_advance_ctu(Real time,
     // needed.
 
 #ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
+    construct_old_gravity(prev_time);
 #endif
 
     do_old_sources(
@@ -120,7 +113,7 @@ Castro::do_advance_ctu(Real time,
     // Construct and apply new-time source terms.
 
 #ifdef GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
+    construct_new_gravity(cur_time);
 #endif
 
     do_new_sources(
@@ -246,7 +239,6 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
     }
 
     return do_retry;
-
 }
 
 
@@ -398,7 +390,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             // We do the hydro advance here, and record whether we completed it.
 
-            status = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+            status = do_advance_ctu(subcycle_time, dt_subcycle);
 
             if (in_retry) {
                 in_retry = false;
