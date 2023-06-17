@@ -31,19 +31,6 @@ Castro::do_advance_ctu (Real time, Real dt)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    MultiFab& old_source = get_old_data(Source_Type);
-    MultiFab& new_source = get_new_data(Source_Type);
-
-#ifdef MHD
-    MultiFab& Bx_old = get_old_data(Mag_Type_x);
-    MultiFab& By_old = get_old_data(Mag_Type_y);
-    MultiFab& Bz_old = get_old_data(Mag_Type_z);
-
-    MultiFab& Bx_new = get_new_data(Mag_Type_x);
-    MultiFab& By_new = get_new_data(Mag_Type_y);
-    MultiFab& Bz_new = get_new_data(Mag_Type_z);
-#endif 
-
     // Perform initialization steps.
 
     status = initialize_do_advance(time, dt);
@@ -77,11 +64,7 @@ Castro::do_advance_ctu (Real time, Real dt)
     construct_old_gravity(prev_time);
 #endif
 
-    do_old_sources(
-#ifdef MHD
-                   Bx_old, By_old, Bz_old,
-#endif                
-                   old_source, Sborder, S_new, prev_time, dt);
+    do_old_sources(prev_time, dt);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -116,11 +99,7 @@ Castro::do_advance_ctu (Real time, Real dt)
     construct_new_gravity(cur_time);
 #endif
 
-    do_new_sources(
-#ifdef MHD
-                    Bx_new, By_new, Bz_new,
-#endif  
-                    new_source, Sborder, S_new, cur_time, dt);
+    do_new_sources(cur_time, dt);
 
     // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
