@@ -172,7 +172,26 @@ Castro::do_old_sources(
         });
 #endif
     }
+}
 
+void
+Castro::do_old_sources (Real time, Real dt)
+{
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& old_source = get_old_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+#endif
+
+    do_old_sources(
+#ifdef MHD
+                   Bx_old, By_old, Bz_old,
+#endif
+                   old_source, Sborder, S_new, time, dt);
 }
 
 void
@@ -233,6 +252,26 @@ Castro::do_new_sources(
 #endif
     }
 
+}
+
+void
+Castro::do_new_sources (Real time, Real dt)
+{
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_source = get_new_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif
+
+    do_new_sources(
+#ifdef MHD
+                   Bx_new, By_new, Bz_new,
+#endif
+                   new_source, Sborder, S_new, time, dt);
 }
 
 void
