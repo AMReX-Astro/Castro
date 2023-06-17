@@ -532,12 +532,14 @@ Castro::pre_advance_operators (Real time, Real dt)
 
     // If we are Strang splitting the reactions, do the old-time contribution now.
 
+#ifndef TRUE_SDC
 #ifdef REACTIONS
     status = do_old_reactions(time, dt);
 
     if (status.success == false) {
         return status;
     }
+#endif
 #endif
 
     // If we are using gravity, solve for the potential and gravatational field.
@@ -605,12 +607,14 @@ Castro::post_advance_operators (Real time, Real dt)
 {
     advance_status status {};
 
+#ifndef TRUE_SDC
 #ifdef REACTIONS
     status = do_new_reactions(time, dt);
 
     if (status.success == false) {
         return status;
     }
+#endif
 #endif
 
     return status;
