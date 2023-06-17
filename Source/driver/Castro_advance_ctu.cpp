@@ -29,9 +29,7 @@ Castro::do_advance_ctu(Real time,
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
 #ifndef TRUE_SDC
 
@@ -86,13 +84,11 @@ Castro::do_advance_ctu(Real time,
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
-    bool apply_sources_to_state = true;
-
     do_old_sources(
 #ifdef MHD
                    Bx_old, By_old, Bz_old,
 #endif                
-                   old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
+                   old_source, Sborder, S_new, prev_time, dt);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -111,47 +107,15 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      construct_ctu_hydro_source(time, dt);
-
-//      if (print_update_diagnostics) {
-//          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
-//      }
+        status = construct_ctu_hydro_source(time, dt);
 #else
-      construct_ctu_mhd_source(time, dt);
+        status = construct_ctu_mhd_source(time, dt);
 #endif
 
-      // Check for small/negative densities and X > 1 or X < 0.
-      // If we detect this, return immediately.
-
-      status = check_for_negative_density();
-
-      if (status.success == false) {
-          return status;
-      }
+        if (status.success == false) {
+            return status;
+        }
     }
-
-
-    // Sync up state after old sources and hydro source.
-    clean_state(
-#ifdef MHD
-                Bx_new, By_new, Bz_new,
-#endif
-                S_new, cur_time, 0);
-
-    // Check for NaN's.
-
-    check_for_nan(S_new);
-
-    // if we are done with the update do the source correction and
-    // then the second half of the reactions
-
-#ifdef GRAVITY
-    // Must define new value of "center" before we call new gravity
-    // solve or external source routine
-    if (moving_center == 1) {
-        define_new_center(S_new, time);
-    }
-#endif
 
     // Construct and apply new-time source terms.
 
@@ -163,19 +127,13 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                     Bx_new, By_new, Bz_new,
 #endif  
-                    new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
+                    new_source, Sborder, S_new, cur_time, dt);
 
-    // If the state has ghost zones, sync them up now
-    // since the hydro source only works on the valid zones.
+    // If the state has ghost zones, sync them up now since the hydro
+    // source and new-time sources only work on the valid zones.
 
     if (S_new.nGrow() > 0) {
-      clean_state(
-#ifdef MHD
-                  Bx_new, By_new, Bz_new,
-#endif                
-                  S_new, cur_time, 0);
-
-      expand_state(S_new, cur_time, S_new.nGrow());
+        expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
@@ -217,7 +175,12 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
     if (do_retry) {
 
-        dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
+            dt_subcycle = status.suggested_dt;
+        }
+        else {
+            dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
@@ -424,7 +387,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             num_sub_iters = sdc_iters;
         }
 
-        advance_status status;
+        advance_status status {};
 
         for (int n = 0; n < num_sub_iters; ++n) {
 

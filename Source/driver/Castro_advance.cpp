@@ -120,9 +120,7 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     BL_PROFILE("Castro::initialize_do_advance()");
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
     // Reset the CFL violation flag.
 
@@ -255,9 +253,7 @@ Castro::finalize_do_advance (Real time, Real dt)
 
     BL_PROFILE("Castro::finalize_do_advance()");
 
-    advance_status status;
-    status.success = true;
-    status.reason = "";
+    advance_status status {};
 
     // Check if this timestep violated our stability criteria. Our idea is,
     // if the timestep created a velocity v and sound speed at the new time

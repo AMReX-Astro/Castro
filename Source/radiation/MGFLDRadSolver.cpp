@@ -54,11 +54,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Er_lag.setBndry(-1.0);
       Er_lag.FillBoundary(parent->Geom(level).periodicity());
 
-      MultiFab& S_lag = castro->get_old_data(State_Type);
-      for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
-                                 0,S_lag.nComp()); fpi.isValid(); ++fpi) {
-          S_lag[fpi].copy<RunOn::Device>(fpi());
-      }
+      MultiFab& S_old = castro->get_old_data(State_Type);
+      FillPatchIterator fpi(*castro, S_old, ngrow, oldtime, State_Type, 0, S_old.nComp());
+      MultiFab& S_lag = fpi.get_mf();
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
       MGFLD_compute_rosseland(kpr_lag, S_lag); 

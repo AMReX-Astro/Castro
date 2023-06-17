@@ -5,11 +5,13 @@
 
 using namespace amrex;
 
-void
+advance_status
 Castro::construct_ctu_mhd_source(Real time, Real dt)
 {
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;
+
+      advance_status status {};
 
       const auto dx = geom.CellSizeArray();
 
@@ -724,5 +726,21 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
     }
 
-}
+    // Check for small/negative densities and X > 1 or X < 0.
 
+    status = check_for_negative_density();
+
+    if (status.success == false) {
+        return status;
+    }
+
+    // Sync up state after hydro source.
+
+    clean_state(Bx_new, By_new, Bz_new, S_new, time + dt, 0);
+
+    // Check for NaN's.
+
+    check_for_nan(S_new);
+
+    return status;
+}
