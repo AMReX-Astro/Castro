@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -15,10 +15,6 @@ namespace: ``castro``
 |                                            | only prevent new extrema 1: preserve linear combinations of |               |
 |                                            | state variables 2: preserve linear combinations and prevent |               |
 |                                            | new extrema                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``state_nghost``                           | Number of ghost zones for state data to have. Note that if  | 0             |
-|                                            | you are using radiation, choosing this to be zero will be   |               |
-|                                            | overridden since radiation needs at least one ghost zone.   |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``do_reflux``                              | do we do the hyperbolic reflux at coarse-fine interfaces?   | 1             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+

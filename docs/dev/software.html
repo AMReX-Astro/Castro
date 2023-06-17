@@ -375,9 +375,7 @@ three velocity components. The “out-of-plane” components will
 simply be advected, but we will allow rotation (in particular,
 the Coriolis force) to affect them.</p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s have no ghost cells by default.
-There is an option to force them to have ghost cells by
-setting the parameter <code class="docutils literal notranslate"><span class="pre">castro.state_nghost</span></code> at runtime.</p>
+<p><code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s have no ghost cells.</p>
 <p>Note that the prediction of the hydrodynamic state to the interface
 will require 4 ghost cells. This accommodated by creating a separate
 MultiFab, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> that lives at the old-time level and
