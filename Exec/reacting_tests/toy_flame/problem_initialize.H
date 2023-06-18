@@ -24,10 +24,10 @@ void problem_initialize ()
 
     eos(eos_input_rt, eos_state);
 
-    Real lambda_f = std::sqrt(const_conductivity * T_burn_ref/
+    Real lambda_f = std::sqrt(conductivity_rp::const_conductivity * T_burn_ref/
                               (rho_burn_ref * specific_q_burn * nu * rtilde));
 
-    Real v_f = std::sqrt(const_conductivity * specific_q_burn * nu * rtilde/
+    Real v_f = std::sqrt(conductivity_rp::const_conductivity * specific_q_burn * nu * rtilde/
                          (rho_burn_ref * eos_state.cp * eos_state.cp * T_burn_ref));
 
     std::cout << "flame width = " << lambda_f << std::endl;

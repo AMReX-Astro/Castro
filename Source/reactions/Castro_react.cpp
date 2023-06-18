@@ -11,6 +11,110 @@ using namespace amrex;
 
 #ifndef TRUE_SDC
 
+advance_status
+Castro::do_old_reactions (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    bool burn_success = true;
+
+#ifndef SIMPLIFIED_SDC
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+        // The result of the reactions is added directly to Sborder.
+        burn_success = react_state(Sborder, R_old, time, 0.5 * dt, 0);
+        clean_state(
+#ifdef MHD
+                    Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                    Sborder, time, Sborder.nGrow());
+
+        MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+    }
+#endif
+
+    advance_status status {};
+
+    if (!burn_success) {
+        status.success = false;
+        status.reason = "burn unsuccessful";
+    }
+
+    return status;
+}
+
+advance_status
+Castro::do_new_reactions (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    bool burn_success = true;
+
+    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef SIMPLIFIED_SDC
+    MultiFab& R_old = get_old_data(Reactions_Type);
+
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        if (do_react) {
+
+            // Do the ODE integration to capture the reaction source terms.
+
+            burn_success = react_state(time, dt);
+
+            clean_state(S_new, time + dt, S_new.nGrow());
+
+            // Check for NaN's.
+
+            check_for_nan(S_new);
+
+        }
+        else {
+
+            // If we're not burning, just initialize the reactions data to zero.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+
+            R_old.setVal(0.0, R_old.nGrow());
+            R_new.setVal(0.0, R_new.nGrow());
+
+        }
+
+    }
+
+#else // SIMPLIFIED_SDC
+
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+
+        burn_success = react_state(S_new, R_new, time - 0.5 * dt, 0.5 * dt, 1);
+        clean_state(
+#ifdef MHD
+                    Bx_new, By_new, Bz_new,
+#endif
+                    S_new, time, S_new.nGrow());
+
+    }
+
+#endif // SIMPLIFIED_SDC
+
+    advance_status status {};
+
+    if (!burn_success) {
+        status.success = false;
+        status.reason = "burn unsuccessful";
+    }
+
+    return status;
+
+}
+
 // Strang version
 
 bool
@@ -91,7 +195,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
 	    burn_state.y_e = 0.0_rt;
 #endif
-	    
+
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
@@ -116,10 +220,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.rho = U(i,j,k,URHO);
 
-	    // Need to store current internal energy for self-consistent nse burn
-#ifdef NSE_NET
+	    // e is used as an input for some NSE solvers
+
 	    burn_state.e = U(i,j,k,UEINT) * rhoInv;
-#endif
+
             // this T is consistent with UEINT because we did an EOS call before
             // calling this function
 
@@ -190,15 +294,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             if (do_burn) {
                 burner(burn_state, dt);
-            }
 
-            // If we were unsuccessful, update the failure count.
+                // If we were unsuccessful, update the failure count.
 
-            if (!burn_state.success) {
-                burn_failed = 1.0_rt;
-            }
-
-            if (do_burn) {
+                if (!burn_state.success) {
+                    burn_failed = 1.0_rt;
+                }
 
                 // Add burning rates to reactions MultiFab, but be
                 // careful because the reactions and state MFs may
@@ -257,7 +358,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 U(i,j,k,UEINT) = U(i,j,k,URHO) * burn_state.e;
                 U(i,j,k,UEDEN) += U(i,j,k,UEINT) - reint_old;
 
-            } else {
+            } else {  // do_burn = false
 
                 if (reactions.contains(i,j,k)) {
                     for (int n = 0; n < reactions.nComp(); n++) {
@@ -505,23 +606,19 @@ Castro::react_state(Real time, Real dt)
             //   -div{F} + (1/2) (S^n + S^{n+1})
 
             Real dtInv = 1.0_rt / dt;
-            Real asrc[NUM_STATE];
-            for (int n = 0; n < NUM_STATE; ++n) {
-                asrc[n] = (U_new(i,j,k,n) - U_old(i,j,k,n)) * dtInv;
-            }
 
-            burn_state.ydot_a[SRHO] = asrc[URHO];
-            burn_state.ydot_a[SMX] = asrc[UMX];
-            burn_state.ydot_a[SMY] = asrc[UMY];
-            burn_state.ydot_a[SMZ] = asrc[UMZ];
-            burn_state.ydot_a[SEDEN] = asrc[UEDEN];
-            burn_state.ydot_a[SEINT] = asrc[UEINT];
+            burn_state.ydot_a[SRHO] = (U_new(i,j,k,URHO) - U_old(i,j,k,URHO)) * dtInv;
+            burn_state.ydot_a[SMX] = (U_new(i,j,k,UMX) - U_old(i,j,k,UMX)) * dtInv;
+            burn_state.ydot_a[SMY] = (U_new(i,j,k,UMY) - U_old(i,j,k,UMY)) * dtInv;
+            burn_state.ydot_a[SMZ] = (U_new(i,j,k,UMZ) - U_old(i,j,k,UMZ)) * dtInv;
+            burn_state.ydot_a[SEDEN] = (U_new(i,j,k,UEDEN) - U_old(i,j,k,UEDEN)) * dtInv;
+            burn_state.ydot_a[SEINT] = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) * dtInv;
             for (int n = 0; n < NumSpec; n++) {
-                burn_state.ydot_a[SFS+n] = asrc[UFS+n];
+                burn_state.ydot_a[SFS+n] = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) * dtInv;
             }
 #if NAUX_NET > 0
             for (int n = 0; n < NumAux; n++) {
-                burn_state.ydot_a[SFX+n] = asrc[UFX+n];
+                burn_state.ydot_a[SFX+n] = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) * dtInv;
             }
 #endif
 
@@ -529,13 +626,13 @@ Castro::react_state(Real time, Real dt)
             // This state is U* = U_old + dt A where A = -div U + S_hydro.
 
             Array1D<Real, 0, NQ-1> q_noreact;
-            Array1D<Real, 0, NQAUX-1> qaux_noreact;
+            Array1D<Real, 0, NQAUX-1> qaux_dummy;
 
             hydro::conservative_to_primitive(i, j, k, U_new,
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_noreact, qaux_noreact, q_noreact.len() == NQ);
+                                             q_noreact, qaux_dummy, q_noreact.len() == NQ);
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -554,15 +651,12 @@ Castro::react_state(Real time, Real dt)
 
             if (do_burn) {
                 burner(burn_state, dt);
-            }
 
-            // If we were unsuccessful, update the failure count.
+                // If we were unsuccessful, update the failure count.
 
-            if (!burn_state.success) {
-                burn_failed = 1.0_rt;
-            }
-
-            if (do_burn) {
+                if (!burn_state.success) {
+                    burn_failed = 1.0_rt;
+                }
 
                 // update the state data.
 #ifdef NSE_NET
@@ -587,17 +681,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc[UEINT];
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - burn_state.ydot_a[SEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc[UFS+n];
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - burn_state.ydot_a[SFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc[UFX+n];
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - burn_state.ydot_a[SFX+n];
                         }
 #endif
                     }
@@ -628,13 +722,12 @@ Castro::react_state(Real time, Real dt)
             // Convert the updated state (with the contribution from burning) to primitive data.
 
             Array1D<Real, 0, NQ-1> q_new;
-            Array1D<Real, 0, NQAUX-1> qaux_new;
 
             hydro::conservative_to_primitive(i, j, k, U_new,
 #ifdef MHD
                                              Bx, By, Bz,
 #endif
-                                             q_new, qaux_new, q_new.len() == NQ);
+                                             q_new, qaux_dummy, q_new.len() == NQ);
 
             // Compute the reaction source term.
 
@@ -831,4 +924,3 @@ Castro::valid_zones_to_burn(MultiFab& State)
 }
 
 #endif
-

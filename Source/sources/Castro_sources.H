@@ -44,7 +44,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct source terms at old time (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    void do_old_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -80,7 +90,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct new time sources (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    void do_new_sources (amrex::Real time, amrex::Real dt);
 
 
 ///

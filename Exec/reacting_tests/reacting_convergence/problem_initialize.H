@@ -75,7 +75,7 @@ void problem_initialize ()
         amrex::Error("ERROR: species not defined");
     }
 
-    Real xn[NumSpec] = {small_x};
+    Real xn[NumSpec] = {network_rp::small_x};
     // xn[0] = 1.0_rt - (NumSpec-1)*small_x;
 
     xn[ispec1] = problem::spec1_frac;

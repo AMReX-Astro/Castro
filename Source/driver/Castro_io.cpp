@@ -30,12 +30,6 @@
 #include <omp.h>
 #endif
 
-#ifdef REACTIONS
-#ifdef SCREENING
-#include <screen.H>
-#endif
-#endif
-
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
@@ -61,11 +55,12 @@ using namespace amrex;
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
 // 11: PhiRot_Type was removed from Castro
+// 12: State_Type's additional ghost zone, used when radiation is enabled, has been removed
 
 namespace
 {
     int input_version = -1;
-    int current_version = 11;
+    int current_version = 12;
 }
 
 // I/O routines for Castro
@@ -312,13 +307,6 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == 0);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
@@ -653,9 +641,6 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
   }
 
-#ifdef SCREENING
-  jobInfoFile << "screening: " << screen_name << "\n";
-#endif
   jobInfoFile << "\n";
 
   const char* githash1 = buildInfoGetGitHash(1);
