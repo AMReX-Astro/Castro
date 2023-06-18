@@ -39,7 +39,7 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
 #endif
 
@@ -1047,8 +1047,10 @@ Castro::initData ()
        By_new.setVal(0.0);
        Bz_new.setVal(0.0);
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
 
           auto geomdata = geom.data();
 
@@ -1093,9 +1095,12 @@ Castro::initData ()
 
 #endif //MHD
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi)
        {
-          const Box& box     = mfi.validbox();
+          const Box& box = mfi.tilebox();
 
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
@@ -1131,7 +1136,7 @@ Castro::initData ()
        ReduceData<int, int> reduce_data(reduce_op);
        using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -1185,8 +1190,11 @@ Castro::initData ()
 
        // Verify that the sum of (rho X)_i = rho at every cell
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-         const Box& bx = mfi.validbox();
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+         const Box& bx = mfi.tilebox();
 
          auto S_arr = S_new.array(mfi);
 
@@ -1353,17 +1361,11 @@ Castro::initData ()
 
 #ifdef RADIATION
     if (do_radiation) {
-      for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-          int i = mfi.index();
-
-          if (radiation->verbose > 2) {
-            std::cout << "Calling RADINIT at level " << level << ", grid "
-                 << i << std::endl;
-          }
-
-          const Box& box = mfi.validbox();
-          const int* lo  = box.loVect();
-          const int* hi  = box.hiVect();
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+          const Box& box = mfi.tilebox();
 
           auto r = Rad_new[mfi].array();
           auto geomdata = geom.data();
@@ -1388,9 +1390,7 @@ Castro::initData ()
               // by a problem setup (defaults to an empty routine).
 
               problem_initialize_rad_data(i, j, k, r, xnu_pass, nugroup_pass, dnugroup_pass, geomdata);
-
           });
-
       }
     }
 #endif // RADIATION
@@ -2537,7 +2537,7 @@ Castro::advance_aux(Real time, Real dt)
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -2714,6 +2714,9 @@ Castro::reflux(int crse_level, int fine_level)
 
         // Now zero out any problematic flux corrections.
 
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
         for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
@@ -3076,7 +3079,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     ReduceData<Real, Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -3150,12 +3153,12 @@ Castro::enforce_consistent_e (
 
     BL_PROFILE("Castro::enforce_consistent_e()");
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        const Box& box     = mfi.tilebox();
+        const Box& box = mfi.tilebox();
 
         auto S_arr = S.array(mfi);
 
@@ -3214,15 +3217,13 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
     }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
         const Box& bx = mfi.growntilebox(ng);
 
         do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
-
     }
 
     if (print_update_diagnostics)
@@ -3248,7 +3249,7 @@ Castro::check_for_negative_density ()
     ReduceData<int, int> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
@@ -3335,11 +3336,10 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
         return;
     }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
         const Box& bx = mfi.growntilebox(ng);
 
         auto u = state_in[mfi].array();
@@ -3465,13 +3465,13 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
     int lev = level;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     {
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
+        for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi)
         {
-            const Box& bx = mfi.validbox();
+            const Box& bx = mfi.tilebox();
 
             TagBox& tagfab = tags[mfi];
 
@@ -3530,10 +3530,10 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             blocking_factor[dim] = parent->blockingFactor(lev)[dim];
         }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
             auto tag = tags[mfi].array();
@@ -3574,10 +3574,10 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
     auto geomdata = geom.data();
 
     // Allow the user to limit tagging outside of some distance from the problem center.
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
         auto tag = tags[mfi].array();
@@ -3753,7 +3753,7 @@ Castro::reset_internal_energy(
     }
 
     // Ensure (rho e) isn't too small or negative
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -3790,12 +3790,12 @@ Castro::add_magnetic_e( MultiFab& Bx,
                         MultiFab& State)
 {
            
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-      const Box& box     = mfi.tilebox();
+      const Box& box = mfi.tilebox();
       auto S_arr = State.array(mfi);
       auto Bx_arr = Bx.array(mfi);
       auto By_arr = By.array(mfi);
@@ -3835,12 +3835,12 @@ Castro::check_div_B( MultiFab& Bx,
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
            
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-      const Box& box     = mfi.tilebox();
+      const Box& box = mfi.tilebox();
       auto Bx_arr = Bx.array(mfi);
       auto By_arr = By.array(mfi);
       auto Bz_arr = Bz.array(mfi);
@@ -3971,12 +3971,11 @@ Castro::computeTemp(
   }
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-
       int num_ghost = ng;
 #ifdef TRUE_SDC
       if (sdc_order == 4) {
@@ -4036,7 +4035,6 @@ Castro::computeTemp(
               }
           });
       }
-
   }
 
 #ifdef TRUE_SDC
@@ -4356,7 +4354,7 @@ Castro::getCPUTime()
 {
 
   int numCores = ParallelDescriptor::NProcs();
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   numCores = numCores*omp_get_max_threads();
 #endif
 
