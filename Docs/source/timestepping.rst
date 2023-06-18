@@ -239,21 +239,7 @@ A retry can be triggered by a number of conditions:
 
   * Integration failure in the burner
 
-    Note: this requires that the following be set in your ``inputs``::
-
-      integrator.abort_on_failure = 0
-
-    This instructs the integration routine in Microphysics to not
-    abort when the integration fails, but instead to tell the calling
-    Castro routine that the integration failed so Castro can handle
-    the retry itself.
-
-    .. note::
-
-       The combination of ``castro.use_retry = 0`` and ``integrator.abort_on_failure = 0``
-       is unsafe and not supported.
-
-       For true SDC, we disable retry and reset ``abort_on_failure`` to
-       always be true, since retry is not supported for that integration.
-
-
+    By construction, the integration routines in Microphysics will not
+    abort if the integration fails, but instead return control to the
+    calling function and set ``burn_t burn_state.success=false`.  This
+    allows Castro to handle the failure.

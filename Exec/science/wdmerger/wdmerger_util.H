@@ -28,7 +28,7 @@ void binary_setup ();
 
 void set_small ();
 
-void set_star_data ();
+void update_roche_radii ();
 
 // Define a mask for all zones considered to be within either the
 // primary or secondary star. It uses the effective potential of

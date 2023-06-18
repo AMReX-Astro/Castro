@@ -960,7 +960,9 @@ extern "C"
 
       const int coord_type = geomdata.Coord();
 
+#if AMREX_SPACEDIM == 2
       auto problo = geomdata.ProbLoArray();
+#endif
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -1005,6 +1007,7 @@ extern "C"
          der(i,j,k,0) = std::sqrt(v1*v1 + v2*v2 + v3*v3);
 
         } else if (coord_type == 1) {
+#if AMREX_SPACEDIM == 2
           // 2-d axisymmetric -- the coordinate ordering is r, z, phi
 
           Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
@@ -1030,6 +1033,10 @@ extern "C"
           der(i,j,k,0) = std::sqrt(vphi_z*vphi_z +
                                    (vr_z - vz_r)*(vr_z - vz_r) +
                                    (rvphi_r/r)*(rvphi_r/r));
+#else
+          // for 1-d axisymmetric, we just set vorticity to 0
+          der(i,j,k,0) = 0.0_rt;
+#endif
 
         } else if (coord_type == 2) {
           // 1-d spherical -- we don't really have a vorticity in this

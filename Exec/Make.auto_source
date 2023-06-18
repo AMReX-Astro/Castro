@@ -24,7 +24,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/exter
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
-           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern --use_namespace \
            --pa "$(EXTERN_PARAMETERS)"
 
 
@@ -111,6 +111,10 @@ endif
 
 ifeq ($(USE_RAD), TRUE)
    MNAMES += OPACITY=$(OPAC_PATH)
+endif
+
+ifeq ($(USE_REACT), TRUE)
+   MNAMES += INTEGRATOR=$(INTEGRATOR_DIR) SCREENING=$(SCREEN_METHOD)
 endif
 
 # we make AMReX_buildInfo.cpp as we make the .o file, so we can delete

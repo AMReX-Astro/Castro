@@ -113,8 +113,6 @@ integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
 integrator.atol_enuc = 1.e-6
 
-integrator.abort_on_failure = 0
-
 integrator.renormalize_abundances = 1
 
 integrator.MAX_TEMP = 1.e10

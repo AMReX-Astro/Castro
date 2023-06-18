@@ -1,5 +1,5 @@
 
-    void construct_ctu_mhd_source(amrex::Real time, amrex::Real dt);
+    advance_status construct_ctu_mhd_source(amrex::Real time, amrex::Real dt);
 
     void
     plm(const amrex::Box& bx,
