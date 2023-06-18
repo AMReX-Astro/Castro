@@ -640,14 +640,34 @@ Castro::finalize_advance()
 
     // Record how many zones we have advanced.
 
-    num_zones_advanced += static_cast<Real>(grids.numPts()) / static_cast<Real>(getLevel(0).grids.numPts());
+    int max_level_to_advance = level;
 
-    Real wall_time = ParallelDescriptor::second() - wall_time_start;
-    Real fom_advance = static_cast<Real>(grids.numPts()) / wall_time / 1.e6;
-
-    if (verbose >= 1) {
-        amrex::Print() << "  Zones advanced per microsecond at this level: "
-                       << fom_advance << std::endl << std::endl;
+    if (parent->subcyclingMode() == "None") {
+        max_level_to_advance = parent->finestLevel();
     }
 
+    long num_pts_advanced = 0;
+
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        num_pts_advanced += getLevel(lev).grids.numPts();
+    }
+
+    num_zones_advanced += static_cast<Real>(num_pts_advanced) / static_cast<Real>(getLevel(0).grids.numPts());
+
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+
+    Real fom_advance = static_cast<Real>(num_pts_advanced) / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        if (max_level_to_advance > 0) {
+            if (level == 0) {
+                amrex::Print() << "  Zones advanced per microsecond from level " << level << " to level "
+                               << max_level_to_advance << ": " << fom_advance << std::endl << std::endl;
+            }
+        }
+        else {
+            amrex::Print() << "  Zones advanced per microsecond at this level: "
+                           << fom_advance << std::endl << std::endl;
+        }
+    }
 }
