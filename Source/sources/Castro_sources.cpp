@@ -593,6 +593,13 @@ Castro::post_hydro_operators (Real time, Real dt)
 
     advance_status status {};
 
+    if (parent->subcyclingMode() == "None") {
+        if (do_reflux == 1) {
+            FluxRegCrseInit();
+            FluxRegFineAdd();
+        }
+    }
+
 #ifdef GRAVITY
     construct_new_gravity(time);
 #endif

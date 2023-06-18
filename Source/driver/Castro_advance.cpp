@@ -586,7 +586,7 @@ Castro::finalize_advance()
 {
     BL_PROFILE("Castro::finalize_advance()");
 
-    if (do_reflux == 1) {
+    if (do_reflux == 1 && parent->subcyclingMode() != "None") {
         FluxRegCrseInit();
         FluxRegFineAdd();
     }
@@ -596,7 +596,7 @@ Castro::finalize_advance()
     // the fluxes from the full timestep (this will be used
     // later during the reflux operation).
 
-    if (do_reflux == 1 && update_sources_after_reflux == 1) {
+    if (do_reflux == 1 && update_sources_after_reflux == 1 && parent->subcyclingMode() != "None") {
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
             MultiFab::Copy(*mass_fluxes[idir], *fluxes[idir], URHO, 0, 1, 0);
         }
