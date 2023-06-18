@@ -91,7 +91,7 @@ Castro::do_advance_sdc (Real time,
 
       // TODO: this is not using the density at the current stage
 #ifdef GRAVITY
-      construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
+      construct_old_gravity(prev_time);
 #endif
 
       if (apply_sources()) {
