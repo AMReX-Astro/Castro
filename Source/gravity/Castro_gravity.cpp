@@ -15,6 +15,8 @@ Castro::construct_old_gravity (Real time)
 {
     BL_PROFILE("Castro::construct_old_gravity()");
 
+    const Real strt_time = ParallelDescriptor::second();
+
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
@@ -109,12 +111,30 @@ Castro::construct_old_gravity (Real time)
     // Define the old gravity vector.
 
     gravity->get_old_grav_vector(level, grav_old, time);
+
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
 Castro::construct_new_gravity (Real time)
 {
     BL_PROFILE("Castro::construct_new_gravity()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -232,6 +252,21 @@ Castro::construct_new_gravity (Real time)
 
     }
 
+    if (verbose > 0)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)

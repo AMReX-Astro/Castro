@@ -256,9 +256,7 @@ The current ``StateData`` names Castro carries are:
       simply be advected, but we will allow rotation (in particular,
       the Coriolis force) to affect them.
 
-   ``State_Type`` ``MultiFab`` s have no ghost cells by default.
-   There is an option to force them to have ghost cells by
-   setting the parameter ``castro.state_nghost`` at runtime.
+   ``State_Type`` ``MultiFab`` s have no ghost cells.
 
    Note that the prediction of the hydrodynamic state to the interface
    will require 4 ghost cells. This accommodated by creating a separate

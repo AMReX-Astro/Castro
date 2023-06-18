@@ -1,5 +1,8 @@
 # 23.07
 
+  * The parameter castro.state_nghost, which allowed State_Type to have ghost
+    zones, has been removed. (#2502)
+
   * The additional ghost zone in State_Type, used when radiation is enabled,
     has been removed. The checkpoint version number has been updated to avoid
     restarting from a checkpoint with the wrong number of ghost zones. (#2495)

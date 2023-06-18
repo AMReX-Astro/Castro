@@ -8,10 +8,14 @@ using namespace amrex;
 advance_status
 Castro::construct_ctu_mhd_source(Real time, Real dt)
 {
+      advance_status status {};
+
+      if (!do_hydro) {
+          return status;
+      }
+
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;
-
-      advance_status status {};
 
       const auto dx = geom.CellSizeArray();
 
