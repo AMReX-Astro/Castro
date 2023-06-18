@@ -1951,9 +1951,7 @@ Castro::post_timestep (int iteration_local)
     // will also do the sync solve associated with the reflux.
 
     if (do_reflux && level < parent->finestLevel()) {
-        auto level_range = no_subcycling_level_range();
-
-        if (level_range.first == -1 || level < level_range.first) {
+        if (parent->subcyclingMode() != "None") {
             reflux(level, level+1, true);
         }
     }

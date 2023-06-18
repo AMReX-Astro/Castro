@@ -31,70 +31,54 @@ Castro::do_advance_ctu (Real time, Real dt)
 
     int max_level_to_advance = level;
 
-    auto level_range = no_subcycling_level_range();
-
-    if (level_range.first >= 0) {
-        if (level_range.first == level) {
-            max_level_to_advance = level_range.second;
-        }
-        else {
-            amrex::Print() << "\n  Advance at this level has already been completed.\n\n";
-            return status;
-        }
+    if (parent->subcyclingMode() == "None" && level == 0) {
+        max_level_to_advance = parent->finestLevel();
     }
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    // Perform initialization steps.
-
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        // Perform initialization steps.
+
         status = getLevel(lev).initialize_do_advance(time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Perform all pre-advance operations and then initialize
-    // the new-time state with the output of those operators.
+        // Perform all pre-advance operations and then initialize
+        // the new-time state with the output of those operators.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).pre_advance_operators(prev_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Construct the old-time sources from Sborder. This will already
-    // be applied to S_new (with full dt weighting), to be corrected
-    // later. Note that this does not affect the prediction of the
-    // interface state; an explicit source will be traced there as
-    // needed.
+        // Construct the old-time sources from Sborder. This will already
+        // be applied to S_new (with full dt weighting), to be corrected
+        // later. Note that this does not affect the prediction of the
+        // interface state; an explicit source will be traced there as
+        // needed.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).do_old_sources(prev_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Perform any operations that occur after the sources but before the hydro.
+        // Perform any operations that occur after the sources but before the hydro.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).pre_hydro_operators(prev_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Do the hydro update. We build directly off of Sborder, which
-    // is the state that has already seen the burn.
+        // Do the hydro update. We build directly off of Sborder, which
+        // is the state that has already seen the burn.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
 #ifndef MHD
         status = getLevel(lev).construct_ctu_hydro_source(prev_time, dt);
 #else
@@ -113,40 +97,34 @@ Castro::do_advance_ctu (Real time, Real dt)
         reflux(level, max_level_to_advance, false);
     }
 
-    // Perform any operations that occur after the hydro but before
-    // the corrector sources.
-
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        // Perform any operations that occur after the hydro but before
+        // the corrector sources.
+
         status = getLevel(lev).post_hydro_operators(cur_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Construct and apply new-time source terms.
+        // Construct and apply new-time source terms.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).do_new_sources(cur_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
+        // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).post_advance_operators(cur_time, dt);
 
         if (status.success == false) {
             return status;
         }
-    }
 
-    // Perform finalization steps.
+        // Perform finalization steps.
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         status = getLevel(lev).finalize_do_advance(cur_time, dt);
 
         if (status.success == false) {

@@ -41,11 +41,9 @@ Castro::construct_old_gravity (Real time)
     // or all levels above this level, since the new-time composite solve
     // at the new time in the last step will still be valid.
 
-    auto level_range = no_subcycling_level_range();
-
     bool do_old_solve = true;
 
-    if (level >= level_range.first && level <= level_range.second) {
+    if (parent->subcyclingMode() == "None" || parent->finestLevel() == 0) {
         do_old_solve = false;
     }
 
@@ -147,27 +145,25 @@ Castro::construct_new_gravity (Real time)
 
     // If we're doing Poisson gravity, do the new-time level or composite solve here.
 
-    auto level_range = no_subcycling_level_range();
-
     if (gravity->get_gravity_type() == "PoissonGrav")
     {
-        if (level == level_range.first) {
+        if (level == 0 && parent->subcyclingMode() == "None") {
             if (castro::verbose && ParallelDescriptor::IOProcessor()) {
-                std::cout << "... new-time composite Poisson gravity solve from level " << level << " to level " << level_range.second << std::endl << std::endl;
+                std::cout << "... new-time composite Poisson gravity solve from level " << level << " to level " << parent->finestLevel() << std::endl << std::endl;
             }
 
             // Use the "old" phi from the current time step as a guess for this solve.
 
-            for (int lev = level; lev <= level_range.second; ++lev) {
+            for (int lev = level; lev <= parent->finestLevel(); ++lev) {
                 MultiFab& lev_phi_old = getLevel(lev).get_old_data(PhiGrav_Type);
                 MultiFab& lev_phi_new = getLevel(lev).get_new_data(PhiGrav_Type);
 
                 MultiFab::Copy(lev_phi_new, lev_phi_old, 0, 0, 1, lev_phi_new.nGrow());
             }
 
-            gravity->multilevel_solve_for_new_phi(level_range.first, level_range.second);
+            gravity->multilevel_solve_for_new_phi(level, parent->finestLevel());
         }
-        else if (level_range.first == -1 || level < level_range.first) {
+        else if (parent->subcyclingMode() != "None") {
             // Use the "old" phi from the current time step as a guess for this solve.
 
             MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -234,7 +230,7 @@ Castro::construct_new_gravity (Real time)
 
     gravity->get_new_grav_vector(level, grav_new, time);
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level() && (level_range.first == -1 || level < level_range.first)) {
+    if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level() && parent->subcyclingMode() != "None") {
 
         if (gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 

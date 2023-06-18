@@ -1502,39 +1502,6 @@ protected:
     int current_sdc_node;
 
 
-///
-/// Determine the range of levels over which there is no subcycling.
-/// At present we only support taking advantage of no subcycling if
-/// the finest non-subcycling level is also the finest level overall.
-/// So if we detect subcycling on any level above a level that doesn't
-/// subcycle, we abandon any attempt to take advantage of the structure
-/// and continue as normal with the Amr advance.
-///
-    std::pair<int, int> no_subcycling_level_range () {
-        int min_level = -1;
-        int max_level = -1;
-
-        for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
-            if (parent->nCycle(lev) == 1) {
-                if (min_level == -1) {
-                    // We only need to assign the minimum level once.
-                    min_level = lev;
-                }
-
-                // The maximum level updates for each non-subcycling level we detect.
-                max_level = lev;
-            }
-            else {
-                if (min_level >= 0 || max_level >= 0) {
-                    min_level = -1;
-                    max_level = -1;
-                    break;
-                }
-            }
-        }
-
-        return {min_level, max_level};
-    };
 
 /* problem-specific includes */
 public:

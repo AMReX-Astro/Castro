@@ -38,6 +38,11 @@ Castro::advance (Real time,
   //    amr_ncycle    : the number of subcycles at this level
 
 {
+    if (parent->subcyclingMode() == "None" && level > 0) {
+        amrex::Print() << "\n  Advance at this level has already been completed.\n\n";
+        return dt;
+    }
+
     BL_PROFILE("Castro::advance()");
 
     // Save the wall time when we started the step.
@@ -50,14 +55,8 @@ Castro::advance (Real time,
 
     int max_level_to_advance = level;
 
-    auto level_range = no_subcycling_level_range();
-
-    if (level_range.first == level) {
-        max_level_to_advance = level_range.second;
-    }
-    else {
-        amrex::Print() << "\n  Advance at this level has already been completed.\n\n";
-        return dt_new;
+    if (parent->subcyclingMode() == "None" && level == 0) {
+        max_level_to_advance = parent->finestLevel();
     }
 
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
@@ -101,27 +100,27 @@ Castro::advance (Real time,
         post_step_regrid = 1;
     }
 
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
 #ifdef AUX_UPDATE
-    advance_aux(time, dt);
+        getLevel(lev).advance_aux(time, dt);
 #endif
 
 #ifdef GRAVITY
-    // Update the point mass.
-    if (use_point_mass == 1) {
-        pointmass_update(time, dt);
-    }
+        // Update the point mass.
+        if (use_point_mass == 1) {
+            getLevel(lev).pointmass_update(time, dt);
+        }
 #endif
 
 #ifdef RADIATION
-    MultiFab& S_new = get_new_data(State_Type);
-    final_radiation_call(S_new, amr_iteration, amr_ncycle);
+        MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+        getLevel(lev).final_radiation_call(S_new, amr_iteration, amr_ncycle);
 #endif
 
 #ifdef AMREX_PARTICLES
-    advance_particles(amr_iteration, time, dt);
+        getLevel(lev).advance_particles(amr_iteration, time, dt);
 #endif
 
-    for (int lev = level; lev <= max_level_to_advance; ++lev) {
         getLevel(lev).finalize_advance();
     }
 
