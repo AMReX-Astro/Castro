@@ -1514,6 +1514,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Perform reflux (for non-subcycling advances).
+
+  if (parent->subcyclingMode() == "None") {
+      if (do_reflux == 1) {
+          FluxRegCrseInit();
+          FluxRegFineAdd();
+      }
+  }
+
   if (verbose) {
       amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
   }
