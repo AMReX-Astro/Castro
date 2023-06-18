@@ -13,15 +13,8 @@
 using namespace amrex;
 
 advance_status
-Castro::do_advance_ctu(Real time,
-                       Real dt,
-                       int  amr_iteration,
-                       int  amr_ncycle)
+Castro::do_advance_ctu (Real time, Real dt)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     // this routine will advance the old state data (called Sborder here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
@@ -36,21 +29,6 @@ Castro::do_advance_ctu(Real time,
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    MultiFab& S_new = get_new_data(State_Type);
-
-    MultiFab& old_source = get_old_data(Source_Type);
-    MultiFab& new_source = get_new_data(Source_Type);
-
-#ifdef MHD
-    MultiFab& Bx_old = get_old_data(Mag_Type_x);
-    MultiFab& By_old = get_old_data(Mag_Type_y);
-    MultiFab& Bz_old = get_old_data(Mag_Type_z);
-
-    MultiFab& Bx_new = get_new_data(Mag_Type_x);
-    MultiFab& By_new = get_new_data(Mag_Type_y);
-    MultiFab& Bz_new = get_new_data(Mag_Type_z);
-#endif 
-
     // Perform initialization steps.
 
     status = initialize_do_advance(time, dt);
@@ -59,98 +37,74 @@ Castro::do_advance_ctu(Real time,
         return status;
     }
 
-    // If we are Strang splitting the reactions, do the old-time contribution now
+    // Perform all pre-advance operations and then initialize
+    // the new-time state with the output of those operators.
 
-#ifdef REACTIONS
-    status = do_old_reactions(time, dt);
+    status = pre_advance_operators(prev_time, dt);
 
     if (status.success == false) {
         return status;
     }
-#endif
 
-    // Initialize the new-time data. This copy needs to come after the
-    // reactions.
-
-    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
-
-    // Construct the old-time sources from Sborder.  This will already
-    // be applied to S_new (with full dt weighting), to be correctly
-    // later.  Note -- this does not affect the prediction of the
-    // interface state, an explicit source will be traced there as
+    // Construct the old-time sources from Sborder. This will already
+    // be applied to S_new (with full dt weighting), to be corrected
+    // later. Note that this does not affect the prediction of the
+    // interface state; an explicit source will be traced there as
     // needed.
 
-#ifdef GRAVITY
-    construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
-#endif
+    status = do_old_sources(prev_time, dt);
 
-    do_old_sources(
-#ifdef MHD
-                   Bx_old, By_old, Bz_old,
-#endif                
-                   old_source, Sborder, S_new, prev_time, dt);
+    if (status.success == false) {
+        return status;
+    }
 
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-    // the SDC reactive source ghost cells on coarse levels might not
-    // be in sync due to any average down done, so fill them here
+    // Perform any operations that occur after the sources but before the hydro.
 
-    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    status = pre_hydro_operators(prev_time, dt);
 
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
-#endif
-#endif
+    if (status.success == false) {
+        return status;
+    }
 
-    // Do the hydro update.  We build directly off of Sborder, which
-    // is the state that has already seen the burn
+    // Do the hydro update. We build directly off of Sborder, which
+    // is the state that has already seen the burn.
 
-    if (do_hydro)
-    {
 #ifndef MHD
-        status = construct_ctu_hydro_source(time, dt);
+    status = construct_ctu_hydro_source(prev_time, dt);
 #else
-        status = construct_ctu_mhd_source(time, dt);
+    status = construct_ctu_mhd_source(prev_time, dt);
 #endif
 
-        if (status.success == false) {
-            return status;
-        }
+    if (status.success == false) {
+        return status;
+    }
+
+    // Perform any operations that occur after the hydro but before
+    // the corrector sources.
+
+    status = post_hydro_operators(cur_time, dt);
+
+    if (status.success == false) {
+        return status;
     }
 
     // Construct and apply new-time source terms.
 
-#ifdef GRAVITY
-    construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
-#endif
-
-    do_new_sources(
-#ifdef MHD
-                    Bx_new, By_new, Bz_new,
-#endif  
-                    new_source, Sborder, S_new, cur_time, dt);
-
-    // If the state has ghost zones, sync them up now
-    // since the hydro source only works on the valid zones.
-
-    if (S_new.nGrow() > 0) {
-      clean_state(
-#ifdef MHD
-                  Bx_new, By_new, Bz_new,
-#endif                
-                  S_new, cur_time, 0);
-
-      expand_state(S_new, cur_time, S_new.nGrow());
-    }
-
-    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
-
-#ifdef REACTIONS
-    status = do_new_reactions(cur_time, dt);
+    status = do_new_sources(cur_time, dt);
 
     if (status.success == false) {
         return status;
     }
-#endif // REACTIONS
+
+    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
+
+    status = post_advance_operators(cur_time, dt);
+
+    if (status.success == false) {
+        return status;
+    }
+
+    // Perform finalization steps.
 
     status = finalize_do_advance(cur_time, dt);
 
@@ -252,7 +206,6 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
     }
 
     return do_retry;
-
 }
 
 
@@ -404,7 +357,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             // We do the hydro advance here, and record whether we completed it.
 
-            status = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+            status = do_advance_ctu(subcycle_time, dt_subcycle);
 
             if (in_retry) {
                 in_retry = false;
