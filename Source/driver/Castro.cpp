@@ -1951,7 +1951,11 @@ Castro::post_timestep (int iteration_local)
     // will also do the sync solve associated with the reflux.
 
     if (do_reflux && level < parent->finestLevel()) {
-      reflux(level, level+1);
+        auto level_range = no_subcycling_level_range();
+
+        if (level_range.first == -1 || level < level_range.first) {
+            reflux(level, level+1, true);
+        }
     }
 
     // Ensure consistency with finer grids.
@@ -2616,7 +2620,7 @@ Castro::FluxRegFineAdd() {
 
 
 void
-Castro::reflux(int crse_level, int fine_level)
+Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 {
     BL_PROFILE("Castro::reflux()");
 
@@ -2630,7 +2634,7 @@ Castro::reflux(int crse_level, int fine_level)
     Vector<std::unique_ptr<MultiFab> > drho(nlevs);
     Vector<std::unique_ptr<MultiFab> > dphi(nlevs);
 
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep)  {
 
         for (int lev = crse_level; lev <= fine_level; ++lev) {
 
@@ -2780,7 +2784,7 @@ Castro::reflux(int crse_level, int fine_level)
             // Update the coarse fluxes MultiFabs using the reflux data. This should only make
             // a difference if we re-evaluate the source terms later.
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes[idir], 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
 
@@ -2800,7 +2804,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
         int ilev = lev - crse_level - 1;
 
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep) {
             reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, URHO, 1, crse_lev.geom);
             amrex::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
         }
@@ -2823,7 +2827,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 MultiFab tmp_fluxes(crse_lev.P_radial.boxArray(),
                                     crse_lev.P_radial.DistributionMap(),
@@ -2860,7 +2864,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             reg->Reflux(crse_lev.get_new_data(Rad_Type), crse_lev.volume, 1.0, 0, 0, Radiation::nGroups, crse_lev.geom);
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -2890,7 +2894,7 @@ Castro::reflux(int crse_level, int fine_level)
 #endif
 
 #ifdef GRAVITY
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep)  {
 
             reg = &getLevel(lev).phi_reg;
 
@@ -2919,7 +2923,7 @@ Castro::reflux(int crse_level, int fine_level)
     // Do the sync solve across all levels.
 
 #ifdef GRAVITY
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep) {
       gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
     }
 #endif
@@ -2935,7 +2939,7 @@ Castro::reflux(int crse_level, int fine_level)
     // ghost zone fills like diffusion depend on the data in the
     // coarser levels.
 
-    if (update_sources_after_reflux &&
+    if (update_sources_after_reflux && in_post_timestep &&
         (time_integration_method == CornerTransportUpwind ||
          time_integration_method == SimplifiedSpectralDeferredCorrections)) {
 

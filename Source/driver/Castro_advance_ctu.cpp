@@ -26,24 +26,45 @@ Castro::do_advance_ctu (Real time, Real dt)
 
 #ifndef TRUE_SDC
 
+    // Advance simultaneously on all levels that are not subcycling
+    // relative to this level.
+
+    int max_level_to_advance = level;
+
+    auto level_range = no_subcycling_level_range();
+
+    if (level_range.first >= 0) {
+        if (level_range.first == level) {
+            max_level_to_advance = level_range.second;
+        }
+        else {
+            amrex::Print() << "\n  Advance at this level has already been completed.\n\n";
+            return status;
+        }
+    }
+
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
     // Perform initialization steps.
 
-    status = initialize_do_advance(time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).initialize_do_advance(time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Perform all pre-advance operations and then initialize
     // the new-time state with the output of those operators.
 
-    status = pre_advance_operators(prev_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).pre_advance_operators(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Construct the old-time sources from Sborder. This will already
@@ -52,64 +73,85 @@ Castro::do_advance_ctu (Real time, Real dt)
     // interface state; an explicit source will be traced there as
     // needed.
 
-    status = do_old_sources(prev_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).do_old_sources(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Perform any operations that occur after the sources but before the hydro.
 
-    status = pre_hydro_operators(prev_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).pre_hydro_operators(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Do the hydro update. We build directly off of Sborder, which
     // is the state that has already seen the burn.
 
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
 #ifndef MHD
-    status = construct_ctu_hydro_source(prev_time, dt);
+        status = getLevel(lev).construct_ctu_hydro_source(prev_time, dt);
 #else
-    status = construct_ctu_mhd_source(prev_time, dt);
+        status = getLevel(lev).construct_ctu_mhd_source(prev_time, dt);
 #endif
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
+    }
+
+    // We can perform the reflux immediately if there's no subcycling
+    // above this level.
+
+    if (do_reflux && level < max_level_to_advance) {
+        reflux(level, max_level_to_advance, false);
     }
 
     // Perform any operations that occur after the hydro but before
     // the corrector sources.
 
-    status = post_hydro_operators(cur_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).post_hydro_operators(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Construct and apply new-time source terms.
 
-    status = do_new_sources(cur_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).do_new_sources(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
-    status = post_advance_operators(cur_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).post_advance_operators(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
     // Perform finalization steps.
 
-    status = finalize_do_advance(cur_time, dt);
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        status = getLevel(lev).finalize_do_advance(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
 #endif

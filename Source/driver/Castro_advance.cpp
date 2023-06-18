@@ -48,7 +48,21 @@ Castro::advance (Real time,
 
     Real dt_new = dt;
 
-    initialize_advance(time, dt, amr_iteration);
+    int max_level_to_advance = level;
+
+    auto level_range = no_subcycling_level_range();
+
+    if (level_range.first == level) {
+        max_level_to_advance = level_range.second;
+    }
+    else {
+        amrex::Print() << "\n  Advance at this level has already been completed.\n\n";
+        return dt_new;
+    }
+
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        getLevel(lev).initialize_advance(time, dt, amr_iteration);
+    }
 
     // Do the advance.
 
@@ -107,7 +121,9 @@ Castro::advance (Real time,
     advance_particles(amr_iteration, time, dt);
 #endif
 
-    finalize_advance();
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        getLevel(lev).finalize_advance();
+    }
 
     return dt_new;
 }
