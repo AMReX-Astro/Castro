@@ -541,7 +541,7 @@ sdc_vode_solve(const Real dt_m,
     }
     C_react[NumSpec+1] = C[UEINT];
 
-    dvode_t dvode_state;
+    dvode_t<NumSpec+2> dvode_state;
 
     burn_t burn_state;
 
