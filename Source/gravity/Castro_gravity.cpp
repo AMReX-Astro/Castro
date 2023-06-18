@@ -148,8 +148,8 @@ Castro::construct_new_gravity (Real time)
     if (gravity->get_gravity_type() == "PoissonGrav")
     {
         if (level == 0 && parent->subcyclingMode() == "None") {
-            if (castro::verbose && ParallelDescriptor::IOProcessor()) {
-                std::cout << "... new-time composite Poisson gravity solve from level " << level << " to level " << parent->finestLevel() << std::endl << std::endl;
+            if (castro::verbose > 0) {
+                amrex::Print() << "\n... new-time composite Poisson gravity solve from level " << level << " to level " << parent->finestLevel() << std::endl << std::endl;
             }
 
             // Use the "old" phi from the current time step as a guess for this solve.
