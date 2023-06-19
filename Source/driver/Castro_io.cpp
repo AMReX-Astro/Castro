@@ -283,7 +283,7 @@ Castro::restart (Amr&     papa,
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi)
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
            const Box& bx = mfi.tilebox();
 

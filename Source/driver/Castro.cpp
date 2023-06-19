@@ -1050,7 +1050,7 @@ Castro::initData ()
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
           auto geomdata = geom.data();
 
@@ -1098,7 +1098,7 @@ Castro::initData ()
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi)
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
           const Box& box = mfi.tilebox();
 
@@ -1193,7 +1193,7 @@ Castro::initData ()
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-       for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
          const Box& bx = mfi.tilebox();
 
          auto S_arr = S_new.array(mfi);
@@ -1364,7 +1364,7 @@ Castro::initData ()
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(S_new, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box& box = mfi.tilebox();
 
           auto r = Rad_new[mfi].array();
@@ -3469,7 +3469,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 #pragma omp parallel
 #endif
     {
-        for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi)
+        for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
             const Box& bx = mfi.tilebox();
 
@@ -3533,7 +3533,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
             auto tag = tags[mfi].array();
@@ -3577,7 +3577,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(tags, TilingIfNotGpu()); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
         auto tag = tags[mfi].array();
