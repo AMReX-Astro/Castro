@@ -420,7 +420,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi(S_old, TilingIfNotGpu()); mfi.isValid(); ++mfi)
+            for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box& box = mfi.tilebox();
 
