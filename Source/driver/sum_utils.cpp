@@ -38,7 +38,7 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -101,7 +101,7 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -195,7 +195,7 @@ Castro::volProductSum (const MultiFab& mf1,
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -250,7 +250,7 @@ Castro::locSquaredSum (const std::string& name,
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)

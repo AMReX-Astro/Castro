@@ -92,16 +92,6 @@ Castro::advance (Real time,
 #endif
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    // We do this again here because the solution will have changed
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-#endif
-
-#ifdef GRAVITY
     // Update the point mass.
     if (use_point_mass == 1) {
         pointmass_update(time, dt);
@@ -123,13 +113,14 @@ Castro::advance (Real time,
 }
 
 
-void
-Castro::initialize_do_advance(Real time)
+advance_status
+Castro::initialize_do_advance (Real time, Real dt)
 {
-
     amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::initialize_do_advance()");
+
+    advance_status status {};
 
     // Reset the CFL violation flag.
 
@@ -151,13 +142,6 @@ Castro::initialize_do_advance(Real time)
     if (moving_center == 1) {
         define_new_center(get_old_data(State_Type), time);
     }
-
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 0;
-       make_radial_data(is_new);
-    }
-#endif
 #endif
 
     // For the hydrodynamics update we need to have NUM_GROW ghost
@@ -210,14 +194,102 @@ Castro::initialize_do_advance(Real time)
     Sborder.setVal(0.0, USHK, 1, Sborder.nGrow());
 #endif
 
+    // Create any correctors to the source term data. This must be done
+    // before the source term data is overwritten below. Note: we do
+    // not create the corrector source if we're currently retrying the
+    // step; we will already have done it, and aside from avoiding
+    // duplicate work, we have already lost the data needed to do this
+    // calculation since we overwrote the data from the previous step.
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (!in_retry) {
+            create_source_corrector();
+        }
+    }
+
+    // Check for NaN's.
+
+    MultiFab& S_old = get_old_data(State_Type);
+
+    check_for_nan(S_old);
+
+    // If we're doing a step later than the first on each level, the fluid
+    // state might have evolved to the point where the AMR timestep could be
+    // significantly too large, but we don't have freedom to adjust the AMR
+    // timestep at that point. Trying to evolve with a dt that is too large
+    // could result in catastrophic behavior such that we don't even get to
+    // the point where we can bail out later in the advance, so let's just
+    // go directly into a retry now if we're too far away from the needed dt.
+
+    bool is_first_step_on_this_level = true;
+
+    for (int lev = level; lev >= 0; --lev) {
+        if (getLevel(lev).iteration > 1) {
+            is_first_step_on_this_level = false;
+            break;
+        }
+    }
+
+    if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
+        int is_new = 0;
+        Real old_dt = estTimeStep(is_new);
+
+        if (castro::change_max * old_dt < dt) {
+            status.success = false;
+            status.reason = "pre-advance timestep validity check failed";
+        }
+    }
+
+    return status;
 }
 
 
 
-void
-Castro::finalize_do_advance()
+advance_status
+Castro::finalize_do_advance (Real time, Real dt)
 {
+    amrex::ignore_unused(time);
+
     BL_PROFILE("Castro::finalize_do_advance()");
+
+    advance_status status {};
+
+    // Check if this timestep violated our stability criteria. Our idea is,
+    // if the timestep created a velocity v and sound speed at the new time
+    // such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
+    // chosen timestep constraint and change_max is the factor that determines
+    // how much the timestep can change during an advance, consider the advance
+    // to have failed. This prevents the timestep from shrinking too much,
+    // whereas in computeNewDt change_max prevents the timestep from growing
+    // too much. The same reasoning applies for the other timestep limiters.
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (castro::check_dt_after_advance) {
+
+            // But don't do this check if we're using simplified SDC and we're not yet
+            // on the final SDC iteration, since we're not yet at the final advance.
+
+            bool do_validity_check = true;
+
+            if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections &&
+                sdc_iteration < sdc_iters - 1) {
+                do_validity_check = false;
+            }
+
+            if (do_validity_check) {
+                int is_new = 1;
+                Real new_dt = estTimeStep(is_new);
+
+                if (castro::change_max * new_dt < dt) {
+                    status.success = false;
+                    status.reason = "post-advance timestep validity check failed";
+                    return status;
+                }
+            }
+        }
+    }
 
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
@@ -229,6 +301,7 @@ Castro::finalize_do_advance()
 
     Sborder.clear();
 
+    return status;
 }
 
 
@@ -344,9 +417,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 
           amrex::Print() << "<<<<< drive initial convection reset >>>>" << std::endl;
 
-            for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
-                const Box& box     = mfi.validbox();
+                const Box& box = mfi.tilebox();
 
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();

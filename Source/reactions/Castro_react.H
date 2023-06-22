@@ -1,4 +1,14 @@
 ///
+/// Perform any old-time reactions.
+///
+    advance_status do_old_reactions (Real time, Real dt);
+
+///
+/// Perform any new-time reactions.
+///
+    advance_status do_new_reactions (Real time, Real dt);
+
+///
 /// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
 ///
 /// @param state        Current state

@@ -111,7 +111,9 @@ enum int_method { CornerTransportUpwind = 0,
 
 struct advance_status {
     bool success;
+    Real suggested_dt;
     std::string reason;
+    advance_status() : success(true), suggested_dt(0.0_rt), reason("") {}
 };
 
 ///
@@ -427,16 +429,8 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    advance_status do_advance_ctu(amrex::Real time,
-                                  amrex::Real dt,
-                                  int  amr_iteration,
-                                  int  amr_ncycle);
+    advance_status do_advance_ctu (amrex::Real time, amrex::Real dt);
 
 
 #ifndef AMREX_USE_GPU
@@ -507,14 +501,18 @@ public:
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
+/// @param dt       the timestep to advance
 ///
-    void initialize_do_advance(amrex::Real time);
+    advance_status initialize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-    void finalize_do_advance();
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance
+///
+    advance_status finalize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -998,16 +996,6 @@ public:
 /// @param ng       number of ghost cells
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
-
-#ifdef GRAVITY
-
-///
-/// Calculate state in radial direction by averaging
-///
-/// @param is_new   do we use new (0) or old (1) data?
-///
-    void make_radial_data (int is_new);
-#endif
 
 #ifdef AUX_UPDATE
 

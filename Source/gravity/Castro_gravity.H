@@ -1,23 +1,17 @@
 ///
 /// Construct gravitational field at old timestep
 ///
-/// @param amr_iteration    where we are in the current AMR subcycle
-/// @param amr_ncycle       the number of subcycles at this level
 /// @param time             current time
 ///
-    void construct_old_gravity(int amr_iteration, int amr_ncycle,
-                               amrex::Real time);
+    void construct_old_gravity (amrex::Real time);
 
 
 ///
 /// Construct gravitational field at new timestep
 ///
-/// @param amr_iteration    where we are in the current AMR subcycle
-/// @param amr_ncycle       the number of subcycles at this level
 /// @param time             current time
 ///
-    void construct_new_gravity(int amr_iteration, int amr_ncycle,
-                               amrex::Real time);
+    void construct_new_gravity (amrex::Real time);
 
 ///
 /// Construct gravitational source terms at old timestep

@@ -474,7 +474,7 @@ Castro::estdt_rad (int is_new)
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)

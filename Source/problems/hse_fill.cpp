@@ -112,7 +112,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -304,7 +304,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -501,7 +501,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -694,7 +694,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -890,7 +890,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;

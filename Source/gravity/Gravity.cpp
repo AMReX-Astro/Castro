@@ -356,11 +356,6 @@ int Gravity::NoSync()
   return gravity::no_sync;
 }
 
-int Gravity::NoComposite()
-{
-  return gravity::no_composite;
-}
-
 int Gravity::DoCompositeCorrection()
 {
   return gravity::do_composite_phi_correction;
@@ -710,6 +705,8 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
         amrex::Print() << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level_in << std::endl;
     }
 
+    const Real strt = ParallelDescriptor::second();
+
     for (int lev = level; lev <= finest_level_in; lev++) {
        BL_ASSERT(grad_phi_curr[lev].size()==AMREX_SPACEDIM);
        for (int n=0; n<AMREX_SPACEDIM; ++n)
@@ -721,6 +718,21 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
 
     int is_new = 1;
     actual_multilevel_solve(level, finest_level_in, amrex::GetVecOfVecOfPtrs(grad_phi_curr), is_new);
+
+    if (gravity::verbose)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real      end    = ParallelDescriptor::second() - strt;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(end,IOProc);
+        amrex::Print() << "Gravity::multilevel_solve_for_new_phi() time = " << end << std::endl << std::endl;
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
