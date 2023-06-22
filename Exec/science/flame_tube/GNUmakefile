@@ -12,7 +12,7 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
-USE_ROTATION  = TRUE
+USE_ROTATION  = FALSE
 USE_DIFFUSION = TRUE
 
 # define the location of the CASTRO top directory

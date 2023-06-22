@@ -29,8 +29,7 @@ void problem_initialize_state_data (int i, int j, int k,
     Real r;
     Real height;
 
-    // this should technically be std::sqrt(x*x + y*y), but we want the flame
-    // front to be uniform across y
+    // we want the flame front to be parallel to the y-axis
     r = x;
     height = z;
 

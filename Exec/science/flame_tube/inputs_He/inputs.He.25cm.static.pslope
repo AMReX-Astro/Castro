@@ -5,11 +5,9 @@ stop_time =  3.0
 # PROBLEM SIZE & GEOMETRY
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
-# Push the lower x boundary out so the rotation is relatively uniform across
-# the y-direction.
-geometry.prob_lo     = 1.024e5      0          0
-geometry.prob_hi     = 3.072e5      2.56e4     2.56e4
-amr.n_cell           = 1024         128        128
+geometry.prob_lo     = 0          0          0
+geometry.prob_hi     = 2.048e5    2.56e4     2.56e4
+amr.n_cell           = 1024       128        128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -29,7 +27,7 @@ castro.domain_is_plane_parallel = 1
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
-castro.do_rotation = 1
+castro.do_rotation = 0
 castro.do_grav = 1
 castro.do_sponge = 1
 
@@ -44,8 +42,8 @@ castro.pslope_cutoff_density = 1.e4
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e14
 
-castro.rotational_period = 0.001
-castro.rotation_include_centrifugal = 0
+#castro.rotational_period = 0.001
+#castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
 castro.diffuse_cutoff_density_hi = 5.e4
@@ -61,6 +59,9 @@ castro.react_T_min = 6.e7
 castro.sponge_upper_density = 1.e2
 castro.sponge_lower_density = 1.e0
 castro.sponge_timescale     = 1.e-7
+
+# GPU options
+castro.hydro_memory_footprint_ratio = 3
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -89,17 +90,17 @@ amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = flame_tube_1000Hz_25cm_chk        # root name of checkpoint file
-amr.check_int       = 1000        # number of timesteps between checkpoints
+amr.check_file      = flame_tube_25cm_chk        # root name of checkpoint file
+amr.check_int       = 100        # number of timesteps between checkpoints
 amr.checkpoint_files_output = 1
 
 # PLOTFILES
-amr.plot_file        = flame_tube_1000Hz_25cm_plt        # root name of plotfile
+amr.plot_file        = flame_tube_25cm_plt        # root name of plotfile
 amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 amr.plot_files_output = 1
 
-amr.small_plot_file        = flame_tube_1000Hz_25cm_smallplt        # root name of plotfile
+amr.small_plot_file        = flame_tube_25cm_smallplt        # root name of plotfile
 amr.small_plot_per         = 5.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 
