@@ -149,12 +149,14 @@
               techniques are available: the simplified spectral
               deferred corrections (SDC) method uses the same
               hydrodynamics reconstruction but solves the coupled
-              hydro-reaction system using with the full still reaction
+              hydro-reaction system using the full stiff reaction
               integration and a piecewise-constant-in-time
               hydrodynamics source.  The true SDC method uses solves a
               nonlinear update for the coupled evolution of the
               reacting hydro system with either a 2nd order or 4th
-              order (in space and time) discretization.</p>
+              order (in space and time) discretization.  Both
+              of these methods strongly couple reactions and hydro,
+              which is important for explosive astrophysical flows.</p>
 
 	    <header class="major">
 	      <h3>reproducibility</h3>
@@ -218,11 +220,9 @@
 
 	    <p>Castro offloads to GPUs using using the same
               computational kernels as we do with MPI+OpenMP.
-              Presently the main hydrodynamics solve (CTU PPM), the
-              gamma-law and stellar EOS, gravity, diffusion, and other
-              source terms, and most of the nuclear reaction networks
-              run on GPUs, allowing us to run entire simulations on
-              GPUs.</p>
+              All of the solvers (aside from the true-SDC) run
+              fully on GPUs, allowing us to run entire simulations on
+              GPUs.  Castro has run with both NVIDIA and AMD GPUs.</p>
 
             <p><img class="intext" src="science-images/sedov_gpu.png"><br>
               <p class="caption">GPU weak scaling on Summit for the
