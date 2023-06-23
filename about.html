@@ -103,6 +103,26 @@
 
 	    <!-- <a href="#" class="image fit"><img src="images/pic07.jpg" alt="" /></a> -->
 
+	    <header class="major">
+	      <h3>adaptive mesh refinement</h3>
+	    </header>
+
+	    <p>Castro uses
+	      the <a href="github.com/amrex-codes/amrex">AMReX
+	      library</a> for adaptive mesh refinement (AMR).  Our
+	      approach uses a nested hierarchy of
+	      logically-rectangular grids with simultaneous refinement
+	      of the grids in both space and time.  The integration
+	      algorithm on the grid hierarchy is a recursive procedure
+	      in which coarse grids are advanced in time, fine grids
+	      are advanced multiple steps to reach the same time as
+	      the coarse grids and the data at different levels are
+	      then synchronized.  A separate synchronization is done
+	      for gravity.</p>
+
+            <p><img class="intext" src="science-images/slice_grid.png"><br>
+              <p class="caption">AMReX grid showing 2 levels.</p>
+
 
 	    <header class="major">
 	      <h3>radiation</h3>
@@ -127,17 +147,18 @@
               time integration code path.
 
 	    <header class="major">
-	      <h3>microphysics</h3>
+	      <h3>equations of state, reaction networks, and other microphysics</h3>
 	    </header>
 
-	    <p>A default &gamma;-law equation of state and
-	      general-composition non-reacting network as distributed
-	      in the main Castro git repo.  Additional equations of
-	      state (including a general stellar EOS) and many nuclear
-	      reaction networks are distributed in
-	      the <a href="https://github.com/StarKiller-astro/Microphysics">Microphysics</a>
+	    <p>A wide variety of equations of state, reaction networks, conductivities, and other physics inputs
+              are provided by the <a href="https://github.com/AMReX-Astro/Microphysics">Microphysics</a>
 	      git repo.  Maintaining them in a separate repo allows all of the
 	      AMReX astrophysics codes share the same microphysics.
+
+              A new reaction network can easily be created using
+              the <a href="https://pynucastro.github.io/pynucastro/">pynucastro</a>
+              library, which will directly output the C++ code needed
+              by Castro/Microphysics with all of the rates and network links.
 
 	    <header class="major">
 	      <h3>time-integration</h3>
@@ -175,23 +196,6 @@
 	      checks the output, bit-for-bit, against stored benchmarks
 	      for many of the problem setups (including real science
 	      runs).</p>
-
-	    <header class="major">
-	      <h3>adaptive mesh refinement</h3>
-	    </header>
-
-	    <p>The approach to AMR in Castro uses a nested hierarchy
-	      of logically-rectangular grids with simultaneous
-	      refinement of the grids in both space and time.  The
-	      integration algorithm on the grid hierarchy is a
-	      recursive procedure in which coarse grids are advanced
-	      in time, fine grids are advanced multiple steps to reach
-	      the same time as the coarse grids and the data at
-	      different levels are then synchronized.  A separate
-	      synchronization is done for gravity.</p>
-
-            <p><img class="intext" src="science-images/slice_grid.png"><br>
-              <p class="caption">AMReX grid showing 2 levels.</p>
 
 	    <a name="performance"></a>
 
