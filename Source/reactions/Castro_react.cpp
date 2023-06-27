@@ -11,6 +11,110 @@ using namespace amrex;
 
 #ifndef TRUE_SDC
 
+advance_status
+Castro::do_old_reactions (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    bool burn_success = true;
+
+#ifndef SIMPLIFIED_SDC
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+        // The result of the reactions is added directly to Sborder.
+        burn_success = react_state(Sborder, R_old, time, 0.5 * dt, 0);
+        clean_state(
+#ifdef MHD
+                    Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                    Sborder, time, Sborder.nGrow());
+
+        MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+    }
+#endif
+
+    advance_status status {};
+
+    if (!burn_success) {
+        status.success = false;
+        status.reason = "burn unsuccessful";
+    }
+
+    return status;
+}
+
+advance_status
+Castro::do_new_reactions (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    bool burn_success = true;
+
+    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+#ifdef SIMPLIFIED_SDC
+    MultiFab& R_old = get_old_data(Reactions_Type);
+
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        if (do_react) {
+
+            // Do the ODE integration to capture the reaction source terms.
+
+            burn_success = react_state(time, dt);
+
+            clean_state(S_new, time + dt, S_new.nGrow());
+
+            // Check for NaN's.
+
+            check_for_nan(S_new);
+
+        }
+        else {
+
+            // If we're not burning, just initialize the reactions data to zero.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+
+            R_old.setVal(0.0, R_old.nGrow());
+            R_new.setVal(0.0, R_new.nGrow());
+
+        }
+
+    }
+
+#else // SIMPLIFIED_SDC
+
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+
+        burn_success = react_state(S_new, R_new, time - 0.5 * dt, 0.5 * dt, 1);
+        clean_state(
+#ifdef MHD
+                    Bx_new, By_new, Bz_new,
+#endif
+                    S_new, time, S_new.nGrow());
+
+    }
+
+#endif // SIMPLIFIED_SDC
+
+    advance_status status {};
+
+    if (!burn_success) {
+        status.success = false;
+        status.reason = "burn unsuccessful";
+    }
+
+    return status;
+
+}
+
 // Strang version
 
 bool
