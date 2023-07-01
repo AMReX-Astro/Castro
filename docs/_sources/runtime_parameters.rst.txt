@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -15,10 +15,6 @@ namespace: ``castro``
 |                                            | only prevent new extrema 1: preserve linear combinations of |               |
 |                                            | state variables 2: preserve linear combinations and prevent |               |
 |                                            | new extrema                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``state_nghost``                           | Number of ghost zones for state data to have. Note that if  | 0             |
-|                                            | you are using radiation, choosing this to be zero will be   |               |
-|                                            | overridden since radiation needs at least one ghost zone.   |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``do_reflux``                              | do we do the hyperbolic reflux at coarse-fine interfaces?   | 1             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -596,15 +592,13 @@ namespace: ``castro``
 
 **refinement**
 
-.. index:: castro.do_special_tagging, castro.spherical_star, castro.max_tagging_radius
+.. index:: castro.do_special_tagging, castro.max_tagging_radius
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | parameter                                  | description                                                 | default value |
 +============================================+=============================================================+===============+
 | ``do_special_tagging``                     |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``spherical_star``                         |                                                             | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``max_tagging_radius``                     | Maximum radius from the center (in units of the domain      | 10.0e0        |
 |                                            | width) where tagging is allowed. The default choice implies |               |
@@ -718,7 +712,7 @@ namespace: ``diffusion``
 namespace: ``gravity``
 ----------------------
 
-.. index:: gravity.gravity_type, gravity.const_grav, gravity.direct_sum_bcs, gravity.drdxfac, gravity.max_multipole_order, gravity.v, gravity.no_sync, gravity.no_composite, gravity.do_composite_phi_correction, gravity.max_solve_level, gravity.get_g_from_phi, gravity.mlmg_max_fmg_iter, gravity.mlmg_agglomeration, gravity.mlmg_consolidation, gravity.mlmg_nsolve
+.. index:: gravity.gravity_type, gravity.const_grav, gravity.direct_sum_bcs, gravity.drdxfac, gravity.max_multipole_order, gravity.v, gravity.no_sync, gravity.do_composite_phi_correction, gravity.max_solve_level, gravity.get_g_from_phi, gravity.mlmg_max_fmg_iter, gravity.mlmg_agglomeration, gravity.mlmg_consolidation, gravity.mlmg_nsolve
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -742,8 +736,6 @@ namespace: ``gravity``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``no_sync``                                | do we perform the synchronization at coarse-fine            | 0             |
 |                                            | interfaces?                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``no_composite``                           | do we do a composite solve?                                 | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``do_composite_phi_correction``            | should we apply a lagged correction to the potential that   | 1             |
 |                                            | gets us closer to the composite solution? This makes the    |               |

@@ -195,8 +195,7 @@ the spectral deferred corrections formalism, with both 2nd and 4th
 order integration implemented.  At the moment, this does not support
 multilevel domains.  Note: because of differences in the interfaces with the
 default Strang method, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
-method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">EXTRA_THERMO</span></code> which enables some
-additional EOS derivatives).</p></li>
+method to work.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplified SDC method
 described above that uses the CTU hydro advection and an ODE
 reaction solve.  Note: because this requires a different set of
@@ -302,12 +301,7 @@ main hydrodynamics advance (above step). A user-supplied routine
 ca_auxupdate can be provided here to further update these
 quantities.</p>
 </li>
-<li><p><em>Radial data and [POINTMASS] point mass</em></p>
-<p>If <code class="docutils literal notranslate"><span class="pre">castro.spherical_star</span></code> is set, then we average the state data
-over angles here to create a radial profile. This is then used in the
-boundary filling routines to properly set Dirichlet BCs when our domain
-is smaller than the star, so the profile on the boundaries will not
-be uniform.</p>
+<li><p>[POINTMASS] <em>Point mass</em></p>
 <p>If <code class="docutils literal notranslate"><span class="pre">castro.point_mass_fix_solution</span></code> is set, then we
 change the mass of the point mass that optionally contributes to the
 gravitational potential by taking mass from the surrounding zones
