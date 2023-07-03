@@ -209,9 +209,9 @@ In ``Castro_react.cpp``, the flow is:
 
   * ``burn_state.y[SEINT]`` $= U(\rho e)$
 
-  * ``burn_state.y[SFS+k]`` $= U(\rho X_k)$ for $k = 0 \ldots N_\mathrm{spec} - 1$
+  * ``burn_state.y[SFS+k]`` $= U(\rho X_k)$ for $k = 0 \ldots N_{\mathrm{spec}} - 1$
 
-  * if ``NAUX_NET > 0`` : ``burn_state.y[SFX+k]`` $= U(\rho \alpha_k)$ for $k = 0 \ldots N_\mathrm{aux} - 1$
+  * if ``NAUX_NET > 0`` : ``burn_state.y[SFX+k]`` $= U(\rho \alpha_k)$ for $k = 0 \ldots N_{\mathrm{aux}} - 1$
 
 
 * fill the thermodynamic quantities in the ``burn_t`` :
