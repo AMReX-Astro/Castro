@@ -56,8 +56,7 @@ The time-integration method used is controlled by
     order integration implemented.  At the moment, this does not support
     multilevel domains.  Note: because of differences in the interfaces with the 
     default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
-    method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
-    additional EOS derivatives).
+    method to work.
 
   * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE

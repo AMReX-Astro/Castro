@@ -432,9 +432,12 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 
           amrex::Print() << "<<<<< drive initial convection reset >>>>" << std::endl;
 
-            for (MFIter mfi(S_old); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
-                const Box& box     = mfi.validbox();
+                const Box& box = mfi.tilebox();
 
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();
