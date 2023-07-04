@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Gravity" href="gravity.html" />
-    <link rel="prev" title="Hydrostatic Equilibrium" href="hse.html" /> 
+    <link rel="prev" title="Reactions" href="reactions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -78,6 +78,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">MHD</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#equations-and-data-structures">Equations and Data Structures</a></li>
@@ -92,7 +94,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -231,7 +232,7 @@ characteristic variables (the default) or the primitive variables.</p>
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this heading"></a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">38</a>]</span>.  The updated electric field then
+first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">39</a>]</span>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </section>
@@ -241,7 +242,7 @@ that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</sp
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="hse.html" class="btn btn-neutral float-left" title="Hydrostatic Equilibrium" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reactions.html" class="btn btn-neutral float-left" title="Reactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="gravity.html" class="btn btn-neutral float-right" title="Gravity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

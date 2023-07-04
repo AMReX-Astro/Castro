@@ -107,6 +107,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -114,7 +116,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -340,7 +341,7 @@ interact with in the C++ portions of the code.</p>
 </section>
 <section id="statedata">
 <span id="soft-sec-statedata"></span><h3><code class="docutils literal notranslate"><span class="pre">StateData</span></code><a class="headerlink" href="#statedata" title="Permalink to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">StateData</span></code> is a class that essentially holds a pair of
+<p id="index-0"><code class="docutils literal notranslate"><span class="pre">StateData</span></code> is a class that essentially holds a pair of
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s: one at the old time and one at the new
 time. AMReX knows how to interpolate in time between these states to
 get data at any intermediate point in time. The main data that we care
@@ -632,7 +633,7 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 </section>
 <section id="physical-boundaries">
 <span id="soft-phys-bcs"></span><h3>Physical Boundaries<a class="headerlink" href="#physical-boundaries" title="Permalink to this heading"></a></h3>
-<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> in
+<p id="index-1">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> in
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal

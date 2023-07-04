@@ -90,6 +90,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -97,7 +99,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -344,7 +345,7 @@ the density below which we want to silently renormalize the species.</p></li>
 <li><p>Integration failure in the burner</p>
 <p>By construction, the integration routines in Microphysics will not
 abort if the integration fails, but instead return control to the
-calling function and set <a href="#id1"><span class="problematic" id="id2">``</span></a>burn_t burn_state.success=false`.  This
+calling function and set <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state.success=false</span></code>.  This
 allows Castro to handle the failure.</p>
 </li>
 </ul>

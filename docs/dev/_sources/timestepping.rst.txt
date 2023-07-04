@@ -241,5 +241,5 @@ A retry can be triggered by a number of conditions:
 
     By construction, the integration routines in Microphysics will not
     abort if the integration fails, but instead return control to the
-    calling function and set ``burn_t burn_state.success=false`.  This
+    calling function and set ``burn_t burn_state.success=false``.  This
     allows Castro to handle the failure.
