@@ -37,6 +37,8 @@ https://github.com/amrex-astro/Castro
    debugging
    Hydrodynamics
    hse
+   EOS
+   reactions
    mhd
    gravity
    diffusion
@@ -44,7 +46,6 @@ https://github.com/amrex-astro/Castro
    sponge
    radiation
    Particles
-   EOSNetwork
    sdc
    AMR
    ConvertCheckpoint

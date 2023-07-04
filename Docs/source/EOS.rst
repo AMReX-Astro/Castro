@@ -1,24 +1,15 @@
-************
-Microphysics
-************
-
+*****************
 Equation of State
-=================
+*****************
 
-Standard Castro EOSes
----------------------
+Castro is written in a modular fashion so that the EOS
+can be supplied by the user.   No equations of state
+are distributed with Castro, instead they are part 
+of the separate `Microphysics repository <https://github.com/amrex-astro/Microphysics>`_.
 
-Castro is written in a modular fashion so that the EOS and network
-burning routines can be supplied by the user. However, for the
-examples presented later we use several EOS and network routines
-that come with the Microphysics distribution.
-
-Castro relies on routines to calculate the equation of state (EOS)
-of a fluid, as well as a species network to define the components of
-the fluid. The network optionally has the ability to do nuclear burning,
-but for this section its main purpose is in defining the species so that
-the EOS can calculate fluid properties that depend on composition, such
-as electron fraction.
+Most equations of state are written to take :math:`(\rho, T, X_k)` as
+input and return the needed thermodynamic quantities.  For other
+inputs, a Newton-Raphson root find is done.
 
 Most of the standard problem setups in Castro (such as the Sedov blast wave)
 use the ``gamma_law`` EOS. This represents a gamma law gas, with equation of state:
@@ -28,7 +19,7 @@ use the ``gamma_law`` EOS. This represents a gamma law gas, with equation of sta
 The gas is currently assumed to be monatomic and ideal.
 
 Runtime Parameters
-------------------
+==================
 
 When inverting the EOS (e.g. by using ``eos_input_re``), an initial guess for
 the temperature is required. This guess is provided by the runtime parameter
@@ -36,7 +27,7 @@ the temperature is required. This guess is provided by the runtime parameter
 (it will vary depending on which EOS is used).
 
 EOS Interfaces and Parameters
------------------------------
+=============================
 
 .. index:: eos_t
 
@@ -44,9 +35,11 @@ Each EOS should have two main routines by which it interfaces to the
 rest of Castro. At the beginning of the simulation, ``eos_init``
 will perform any initialization steps and save EOS variables (mainly
 ``smallt``, the temperature floor, and ``smalld``, the
-density floor). Then, whenever you want to call the EOS, use::
+density floor). Then, whenever you want to call the EOS, use:
 
- eos (eos_input, eos_state)
+.. code:: c++
+
+   eos (eos_input, eos_state)
 
 The first argument specifies the inputs to the EOS. The options
 that are currently available are stored in Microphysics in
@@ -69,19 +62,19 @@ set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
 that are the inputs, for example with
 
-::
+.. code:: c++
 
-      eos_t eos_state;
-      ...
-      eos_state.rho = state(i,j,k,URHO);
-      eos_state.T   = state(i,j,k,UTEMP);
-      eos_state.e   = state(i,j,k,UEINT) / state(i,j,k,URHO);
-      for (int n = 0; n < NumSpec; ++n) {
-          eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
-      }
-      for (int n = 0; n < NumAux; ++n) {
-          eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
-      }
+   eos_t eos_state;
+   ...
+   eos_state.rho = state(i,j,k,URHO);
+   eos_state.T   = state(i,j,k,UTEMP);
+   eos_state.e   = state(i,j,k,UEINT) / state(i,j,k,URHO);
+   for (int n = 0; n < NumSpec; ++n) {
+       eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
+   }
+   for (int n = 0; n < NumAux; ++n) {
+       eos_state.aux[n] = state(i,j,k,UFX+n) / state(i,j,k,URHO);
+   }
 
 Whenever the ``eos_state`` type is initialized, the thermodynamic
 state variables are filled with unphysical numbers. If you do not
@@ -94,15 +87,9 @@ will likely not converge. Usually a prior value of the temperature or
 density suffices if it’s available, but if not then use ``T_guess`` or
 ``small_dens``.
 
-The `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
-repository is the collection of microphysics routines that are compatible with the
-AMReX-Astro codes. We refer you to the documentation in that repository for how to set it up
-and for information on the equations of state provided. That documentation
-also goes into more detail about the details of the EOS code, in case you are interested in
-how it works (and in case you want to develop your own EOS).
 
 Required Thermodynamics Quantities
-----------------------------------
+==================================
 
 Three input quantities are required of any EOS:
 
@@ -145,7 +132,7 @@ variables that are optional output into the plotfiles.
 
 
 Composition derivatives
------------------------
+=======================
 
 .. index:: eos_xderivs_t
 
@@ -188,73 +175,3 @@ A separate type, ``eos_xderivs_t`` provides access to derivatives with respect t
       \end{align}
 
 (see :cite:`maestro:III`, Appendix A).
-
-
-Nuclear Network
-===============
-
-.. index:: burn_t
-
-The nuclear network serves two purposes: it defines the fluid components used
-in both the equation of state and the hydrodynamics, and it evolves those
-components through a nuclear burning step. Castro comes with a ``general_null``
-network (which lives in the ``networks/`` directory). This is a bare interface for a
-nuclear reaction network. No reactions are enabled, and no auxiliary variables
-are accepted.  It contains several sets of isotopes; for example,
-``networks/general_null/triple_alpha_plus_o.net`` would describe the
-isotopes needed to represent the triple-\ :math:`\alpha` reaction converting
-helium into carbon, as well as oxygen and iron.
-
-The main interface file, ``network.f90``, is a wrapper function. The
-actual network details are defined in ``actual_network.f90``, a
-file which is automatically generated in your work directory when you compile.
-It supplies the number and names of species and auxiliary variables, as
-well as other initializing data, such as their mass numbers, proton numbers,
-and the binding energies.
-
-The burning front-end interface, ``networks/burner.f90``, accepts a different
-derived type called the ``burn_t`` type. Like the ``eos_t``, it has entries
-for the basic thermodynamic quantities:
-
-::
-
-      use burn_type_module
-      ...
-      type (burn_t) :: burn_state
-      ...
-      burn_state % rho = state(i,j,k,URHO)
-      burn_state % T   = state(i,j,k,UTEMP)
-      burn_state % e   = state(i,j,k,UEINT) / state(i,j,k,URHO)
-      burn_state % xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
-
-It takes in an input ``burn_t`` and returns an output ``burn_t`` after
-the burning has completed. The nuclear energy release can be computed by
-taking the difference of ``burn_state_out % e`` and
-``burn_state_in % e``. The species change can be computed analogously.
-In normal operation in Castro  the integration occurs over a time interval
-of :math:`\Delta t/2`, where :math:`\Delta t` is the hydrodynamics timestep.
-
-If you are interested in using actual nuclear burning networks,
-you should download the `Microphysics <https://github.com/AMReX-Astro/Microphysics>`__
-repository. This is a collection of microphysics routines that are compatible with the
-AMReX Astro codes. We refer you to the documentation in that repository for how to set it up
-and for information on the networks provided. That documentation
-also goes into more detail about the details of the network code, in case you are interested in
-how it works (and in case you want to develop your own network).
-
-
-Controlling burning
--------------------
-
-There are a number of reactions-related parameters that can be set at runtime
-in the inputs file. Reactions are enabled by setting::
-
-    castro.do_react = 1
-
-(Note: turning reactions off for problems where they're not required can help improve
-the efficiency).
-
-It is possible to set the maximum and minimum temperature and density for allowing
-reactions to occur in a zone using the parameters ``castro.react_T_min``,
-``castro.react_T_max``, ``castro.react_rho_min`` and ``castro.react_rho_max``.
-
