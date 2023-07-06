@@ -19,6 +19,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 {
   advance_status status {};
 
+  if (!do_hydro) {
+      return status;
+  }
+
 #ifndef TRUE_SDC
 
   BL_PROFILE("Castro::construct_ctu_hydro_source()");
