@@ -1164,7 +1164,8 @@ public:
 ///
     bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= 
+                static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;
 #endif
