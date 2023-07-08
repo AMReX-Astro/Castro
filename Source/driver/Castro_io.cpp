@@ -308,7 +308,7 @@ Castro::restart (Amr&     papa,
 
 #ifdef GRAVITY
     if (do_grav && level == 0) {
-       BL_ASSERT(gravity == 0);
+       BL_ASSERT(gravity == nullptr);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
