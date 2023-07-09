@@ -250,6 +250,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     sub_iteration = 0;
 
+    int max_level_to_advance = level;
+
+    if (parent->subcyclingMode() == "None" && level == 0) {
+        max_level_to_advance = parent->finestLevel();
+    }
+
     // Subcycle until we've reached the target time.
     // Compare against a slightly smaller number to
     // avoid roundoff concerns.
@@ -371,7 +377,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         for (int n = 0; n < num_sub_iters; ++n) {
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-                sdc_iteration = n;
+                for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                    getLevel(lev).sdc_iteration = n;
+                }
+
                 amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 

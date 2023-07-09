@@ -1331,12 +1331,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         }
 
         // Store the fluxes from this advance. For simplified SDC integration we
-        // only need to do this on the last iteration if we're subcycling.
+        // only need to do this on the last iteration.
 
         bool add_fluxes = true;
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration != sdc_iters - 1 && parent->subcyclingMode() != "None") {
+            sdc_iteration != sdc_iters - 1) {
             add_fluxes = false;
         }
 
