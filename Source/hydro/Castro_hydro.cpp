@@ -391,7 +391,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
         cfl_violation = 1;
     }
 
-    // If we detect one, abort.
+    // If we detect a CFL violation, abort.
     if (cfl_violation) {
         amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number");
     }
