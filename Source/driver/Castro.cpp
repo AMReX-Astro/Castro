@@ -2616,6 +2616,28 @@ Castro::FluxRegFineAdd() {
 
 }
 
+// reflux() synchronizes fluxes between levels and has two modes of operation.
+//
+// When in_post_timestep = true, we are performing the reflux in AmrLevel's
+// post_timestep() routine. This takes place after this level has completed
+// its advance as well as all fine levels above this level have completed
+// their advance. The main activities are:
+//
+// (1) Limit the flux correction so that it won't cause unphysical densities.
+// (2) Update any copies of the full flux arrays with the flux correction.
+// (3) Perform the flux correction on StateData using FluxRegister's Reflux().
+// (4) Do a sync solve for Poisson gravity now that the density has changed.
+// (5) Recompute the new-time sources now that StateData has changed.
+//
+// When in_post_timestep = false, we are performing the reflux immediately
+// after the hydro step has taken place on all levels between crse_level and
+// fine_level. This happens when amr.subcycling_mode = None, or in general when
+// the fine level does not subcycle relative to the coarse level. In this mode
+// we can skip steps (4) and (5), as those steps are only necessary to fix the
+// updates on these levels that took place without full information about the
+// hydro solve being synchronized. The advance on crse_level and fine_level will
+// then be followed by a normal computation of the new-time gravity and new-time
+// sources, which will not need to be corrected later.
 
 void
 Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
