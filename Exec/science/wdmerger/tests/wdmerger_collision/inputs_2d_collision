@@ -74,6 +74,9 @@ amr.max_level = 0
 # Refinement ratio
 amr.ref_ratio = 4 4 4 4 4 4 4 4 4
 
+# Don't do AMR subcycling for this setup
+amr.subcycling_mode = None
+
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
 

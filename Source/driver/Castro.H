@@ -1337,11 +1337,6 @@ protected:
 #endif
 
 
-///
-/// Did we trigger a CFL violation?
-///
-    int cfl_violation;
-
 
 ///
 /// State data to hold if we want to do a retry.

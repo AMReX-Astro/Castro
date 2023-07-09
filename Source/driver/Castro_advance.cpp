@@ -84,16 +84,6 @@ Castro::advance (Real time,
 #endif //MHD    
     }
 
-    // Optionally kill the job at this point, if we've detected a violation.
-
-    if (cfl_violation == 1 && use_retry != 0) {
-        amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
-    }
-
-    // If we didn't kill the job, reset the violation counter.
-
-    cfl_violation = 0;
-
     // If the user requests, indicate that we want a regrid at the end of the step.
 
     if (use_post_step_regrid == 1) {
@@ -136,10 +126,6 @@ Castro::initialize_do_advance (Real time, Real dt)
     BL_PROFILE("Castro::initialize_do_advance()");
 
     advance_status status {};
-
-    // Reset the CFL violation flag.
-
-    cfl_violation = 0;
 
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
