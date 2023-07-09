@@ -163,10 +163,6 @@ Castro::do_advance_sdc (Real time,
       if (do_hydro) {
         // Check for CFL violations.
         check_for_cfl_violation(S_old, dt);
-
-        // If we detect one, return immediately.
-        if (cfl_violation)
-          return dt;
       }
 
       // construct the update for the current stage -- this fills
