@@ -33,7 +33,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // divergence) using the CTU framework for unsplit hydrodynamics
 
   if (verbose) {
-      amrex::Print() << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Entering construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
 #ifdef HYBRID_MOMENTUM
@@ -1524,7 +1524,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 
   if (verbose) {
-      amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Leaving construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
   if (verbose > 0)
@@ -1537,7 +1537,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

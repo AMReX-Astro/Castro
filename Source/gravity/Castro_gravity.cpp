@@ -131,7 +131,7 @@ Castro::construct_old_gravity (Real time)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -287,7 +287,7 @@ Castro::construct_new_gravity (Real time)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -439,7 +439,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -676,7 +676,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
