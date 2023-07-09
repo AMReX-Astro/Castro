@@ -2420,10 +2420,9 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     int physbc_lo[3];
     int physbc_hi[3];
 
-    for (int dir = 0; dir < 3; dir++)
-    {
-      physbc_lo[dir] = phys_bc->lo(dir);
-      physbc_lo[dir] = phys_bc->hi(dir);
+    for (int dir = 0; dir < 3; dir++) {
+        physbc_lo[dir] = phys_bc->lo(dir);
+        physbc_hi[dir] = phys_bc->hi(dir);
     }
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
