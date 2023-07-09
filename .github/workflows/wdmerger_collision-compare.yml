@@ -36,7 +36,9 @@ jobs:
       - name: Run wdmerger 2D
         run: |
           cd Exec/science/wdmerger
-          ./Castro2d.gnu.ex tests/wdmerger_collision/inputs_2d_collision.test amr.plot_files_output=1 castro.output_at_completion=1
+          cp tests/wdmerger_collision/inputs_2d_collision.test .
+          cp tests/wdmerger_collision/inputs_2d_collision .
+          ./Castro2d.gnu.ex inputs_2d_collision.test amr.plot_files_output=1 castro.output_at_completion=1
 
       - name: Check the extrema
         run: |
