@@ -17,15 +17,25 @@ Castro::do_old_reactions (Real time, Real dt)
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
-    bool burn_success = true;
+    advance_status status {};
 
 #ifndef SIMPLIFIED_SDC
+    bool burn_success = true;
+
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
 
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
         // The result of the reactions is added directly to Sborder.
         burn_success = react_state(Sborder, R_old, time, 0.5 * dt, 0);
+
+        if (!burn_success) {
+            status.success = false;
+            status.reason = "burn unsuccessful";
+
+            return status;
+        }
+
         clean_state(
 #ifdef MHD
                     Bx_old_tmp, By_old_tmp, Bz_old_tmp,
@@ -36,13 +46,6 @@ Castro::do_old_reactions (Real time, Real dt)
     }
 #endif
 
-    advance_status status {};
-
-    if (!burn_success) {
-        status.success = false;
-        status.reason = "burn unsuccessful";
-    }
-
     return status;
 }
 
@@ -51,6 +54,8 @@ Castro::do_new_reactions (Real time, Real dt)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
+
+    advance_status status {};
 
     bool burn_success = true;
 
@@ -67,6 +72,13 @@ Castro::do_new_reactions (Real time, Real dt)
             // Do the ODE integration to capture the reaction source terms.
 
             burn_success = react_state(time, dt);
+
+            if (!burn_success) {
+                status.success = false;
+                status.reason = "burn unsuccessful";
+
+                return status;
+            }
 
             clean_state(S_new, time + dt, S_new.nGrow());
 
@@ -94,6 +106,14 @@ Castro::do_new_reactions (Real time, Real dt)
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         burn_success = react_state(S_new, R_new, time - 0.5 * dt, 0.5 * dt, 1);
+
+        if (!burn_success) {
+            status.success = false;
+            status.reason = "burn unsuccessful";
+
+            return status;
+        }
+
         clean_state(
 #ifdef MHD
                     Bx_new, By_new, Bz_new,
@@ -104,15 +124,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
 #endif // SIMPLIFIED_SDC
 
-    advance_status status {};
-
-    if (!burn_success) {
-        status.success = false;
-        status.reason = "burn unsuccessful";
-    }
-
     return status;
-
 }
 
 // Strang version
