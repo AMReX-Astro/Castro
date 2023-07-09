@@ -175,6 +175,17 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         amrex::Print() << "... Entering burner on level " << level << " and doing half-timestep of burning." << std::endl << std::endl;
     }
 
+    // If we're not subcycling, we only need to do the burn on leaf cells.
+
+    bool mask_covered_zones = false;
+
+    if (level < parent->finestLevel() && parent->subcyclingMode() == "None") {
+        mask_covered_zones = true;
+    }
+
+    MultiFab tmp_mask_mf;
+    const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
+
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -190,6 +201,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
+        auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
 #ifdef CXX_MODEL_PARSER
@@ -227,6 +239,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 do_burn = false;
             }
 #endif
+            // Don't burn on zones that are masked out.
+
+            if (mask_covered_zones) {
+                if (mask(i,j,k) == 0.0_rt) {
+                    do_burn = false;
+                }
+            }
 
             Real rhoInv = 1.0_rt / U(i,j,k,URHO);
 
@@ -482,6 +501,17 @@ Castro::react_state(Real time, Real dt)
 
     reactions.setVal(0.0, reactions.nGrow());
 
+    // If we're not subcycling, we only need to do the burn on leaf cells.
+
+    bool mask_covered_zones = false;
+
+    if (level < parent->finestLevel() && parent->subcyclingMode() == "None") {
+        mask_covered_zones = true;
+    }
+
+    MultiFab tmp_mask_mf;
+    const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
+
     // Start off assuming a successful burn.
 
     int burn_success = 1;
@@ -493,7 +523,6 @@ Castro::react_state(Real time, Real dt)
 
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-
         const Box& bx = mfi.growntilebox(ng);
 
         auto U_old = S_old.array(mfi);
@@ -506,6 +535,7 @@ Castro::react_state(Real time, Real dt)
         auto I     = SDC_react.array(mfi);
         auto react_src = reactions.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
+        auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         int lsdc_iteration = sdc_iteration;
 
@@ -515,7 +545,6 @@ Castro::react_state(Real time, Real dt)
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
-
             burn_t burn_state;
 
 #if AMREX_SPACEDIM == 1
@@ -544,6 +573,14 @@ Castro::react_state(Real time, Real dt)
                 do_burn = false;
             }
 #endif
+
+            // Don't burn on zones that are masked out.
+
+            if (mask_covered_zones) {
+                if (mask(i,j,k) == 0.0_rt) {
+                    do_burn = false;
+                }
+            }
 
             // Feed in the old-time state data.
 
@@ -762,7 +799,6 @@ Castro::react_state(Real time, Real dt)
 
             return {burn_failed};
         });
-
     }
 
     ReduceTuple hv = reduce_data.value();
