@@ -26,12 +26,12 @@ jobs:
       - name: Build the fextrema tool
         run: |
           cd external/amrex/Tools/Plotfile
-          make programs=fextrema -j
+          make programs=fextrema -j4
 
       - name: Compile wdmerger 2D
         run: |
           cd Exec/science/wdmerger
-          make USE_MPI=FALSE DIM=2 -j
+          make USE_MPI=FALSE DIM=2 -j4
 
       - name: Run wdmerger 2D
         run: |
