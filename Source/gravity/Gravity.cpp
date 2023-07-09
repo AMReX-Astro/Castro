@@ -470,7 +470,7 @@ Gravity::solve_for_phi (int               level,
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        amrex::Print() << "Gravity::solve_for_phi() time = " << end << std::endl << std::endl;
+        amrex::Print() << "Gravity::solve_for_phi() time = " << end << " on level " << level << std::endl << std::endl;
 #ifdef BL_LAZY
         });
 #endif

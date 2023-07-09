@@ -1036,8 +1036,9 @@ public:
 ///
 /// @param crse_level
 /// @param fine_level
+/// @param in_post_timestep
 ///
-    void reflux (int crse_level, int fine_level);
+    void reflux (int crse_level, int fine_level, bool in_post_timestep);
 
 
 ///
