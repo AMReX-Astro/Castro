@@ -30,16 +30,16 @@ jobs:
 
       - name: Compile wdmerger 2D
         run: |
-          cd Exec/science/wdmerger/tests/wdmerger_collision
+          cd Exec/science/wdmerger
           make USE_MPI=FALSE DIM=2 -j
 
       - name: Run wdmerger 2D
         run: |
-          cd Exec/science/wdmerger/tests/wdmerger_collision
-          ./Castro2d.gnu.ex inputs_2d_collision.test amr.plot_files_output=1 castro.output_at_completion=1
+          cd Exec/science/wdmerger
+          ./Castro2d.gnu.ex tests/wdmerger_collision/inputs_2d_collision.test amr.plot_files_output=1 castro.output_at_completion=1
 
       - name: Check the extrema
         run: |
-          cd Exec/science/wdmerger/tests/wdmerger_collision
-          ../../../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt00095 > fextrema.out
+          cd Exec/science/wdmerger
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt00095 > fextrema.out
           diff fextrema.out ci-benchmarks/wdmerger_collision_2D.out
