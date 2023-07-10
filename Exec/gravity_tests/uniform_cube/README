@@ -1,0 +1,3 @@
+This is a simple test of Poisson gravity. It loads a cube of uniform density
+onto the grid. The goal is to determine whether the calculated potential
+converges to the analytical potential as resolution increases.
