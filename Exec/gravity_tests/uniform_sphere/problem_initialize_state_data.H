@@ -14,30 +14,13 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
     Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
     Real zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 
-    // Establish the cube or sphere
+    // Establish the sphere
 
-    if (problem::problem == 1 || problem::problem == 2) {
-
-        if (std::pow(xx * xx + yy * yy + zz * zz, 0.5_rt) < problem::diameter / 2) {
-            state(i,j,k,URHO) = problem::density;
-        } else {
-            state(i,j,k,URHO) = problem::ambient_dens;
-        }
-
-    } else if (problem::problem == 3) {
-
-        if (std::abs(xx) < problem::diameter/2 &&
-            std::abs(yy) < problem::diameter/2 &&
-            std::abs(zz) < problem::diameter/2) {
-            state(i,j,k,URHO) = problem::density;
-        } else {
-            state(i,j,k,URHO) = problem::ambient_dens;
-        }
-
-#ifndef AMREX_USE_GPU
-    } else {
-        amrex::Error("Problem not defined.");
-#endif
+    if (std::pow(xx * xx + yy * yy + zz * zz, 0.5_rt) < problem::diameter / 2) {
+        state(i,j,k,URHO) = problem::density;
+    }
+    else {
+        state(i,j,k,URHO) = problem::ambient_dens;
     }
 
     // Establish the thermodynamic quantities. They don't have to be
@@ -51,4 +34,5 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
         state(i,j,k,UFS+n) = state(i,j,k,URHO) / static_cast<Real>(NumSpec);
     }
 }
+
 #endif
