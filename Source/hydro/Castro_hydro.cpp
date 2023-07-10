@@ -233,8 +233,9 @@ Castro::cons_to_prim_fourth(const Real time)
 void
 Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
 {
-
     BL_PROFILE("Castro::check_for_cfl_violation()");
+
+    int cfl_violation = 0;
 
     auto dx = geom.CellSizeArray();
 
@@ -390,4 +391,8 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
         cfl_violation = 1;
     }
 
+    // If we detect a CFL violation, abort.
+    if (cfl_violation) {
+        amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number");
+    }
 }

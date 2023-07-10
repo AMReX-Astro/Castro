@@ -108,7 +108,7 @@ f_sdc_jac(const Real dt_m,
     // returned by single_zone_react_source, since it is
     // more consistent T from e
 
-    eos_t eos_state;
+    eos_extra_t eos_state;
     eos_state.rho = U_full[URHO];
     eos_state.T = T_old;   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
@@ -541,7 +541,7 @@ sdc_vode_solve(const Real dt_m,
     }
     C_react[NumSpec+1] = C[UEINT];
 
-    dvode_t dvode_state;
+    dvode_t<NumSpec+2> dvode_state;
 
     burn_t burn_state;
 

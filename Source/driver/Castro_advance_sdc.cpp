@@ -44,13 +44,11 @@ Castro::do_advance_sdc (Real time,
   auto domain_lo = geom.Domain().loVect3d();
   auto domain_hi = geom.Domain().hiVect3d();
 
+  advance_status status {};
+
   // Perform initialization steps.
 
-  initialize_do_advance(time);
-
-  // Check for NaN's.
-
-  check_for_nan(S_old);
+  status = initialize_do_advance(time, dt);
 
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
@@ -93,7 +91,7 @@ Castro::do_advance_sdc (Real time,
 
       // TODO: this is not using the density at the current stage
 #ifdef GRAVITY
-      construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
+      construct_old_gravity(prev_time);
 #endif
 
       if (apply_sources()) {
@@ -165,10 +163,6 @@ Castro::do_advance_sdc (Real time,
       if (do_hydro) {
         // Check for CFL violations.
         check_for_cfl_violation(S_old, dt);
-
-        // If we detect one, return immediately.
-        if (cfl_violation)
-          return dt;
       }
 
       // construct the update for the current stage -- this fills
@@ -277,7 +271,7 @@ Castro::do_advance_sdc (Real time,
     AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
-  finalize_do_advance();
+  status = finalize_do_advance(cur_time, dt);
 
 #ifdef REACTIONS
   // store the reaction information as well.  Note: this will be

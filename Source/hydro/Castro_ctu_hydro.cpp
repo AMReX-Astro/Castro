@@ -14,9 +14,14 @@
 
 using namespace amrex;
 
-void
+advance_status
 Castro::construct_ctu_hydro_source(Real time, Real dt)
 {
+  advance_status status {};
+
+  if (!do_hydro) {
+      return status;
+  }
 
 #ifndef TRUE_SDC
 
@@ -28,7 +33,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // divergence) using the CTU framework for unsplit hydrodynamics
 
   if (verbose) {
-      amrex::Print() << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Entering construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
 #ifdef HYBRID_MOMENTUM
@@ -1481,8 +1486,45 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Check for small/negative densities and X > 1 or X < 0.
+
+  status = check_for_negative_density();
+
+  if (status.success == false) {
+      return status;
+  }
+
+  // Sync up state after hydro source.
+
+  clean_state(
+#ifdef MHD
+               Bx_new, By_new, Bz_new,
+#endif
+               S_new, time + dt, 0);
+
+  // Check for NaN's.
+
+  check_for_nan(S_new);
+
+#ifdef GRAVITY
+  // Must define new value of "center" after advecting on the grid
+
+  if (moving_center == 1) {
+      define_new_center(S_new, time);
+  }
+#endif
+
+  // Perform reflux (for non-subcycling advances).
+
+  if (parent->subcyclingMode() == "None") {
+      if (do_reflux == 1) {
+          FluxRegCrseInit();
+          FluxRegFineAdd();
+      }
+  }
+
   if (verbose) {
-      amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Leaving construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
   if (verbose > 0)
@@ -1495,7 +1537,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -1503,4 +1545,5 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #endif
 
+  return status;
 }

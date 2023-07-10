@@ -39,7 +39,7 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
 #endif
 
@@ -607,28 +607,28 @@ Castro::read_params ()
             ppr.getarr("value_greater", value, 0, ppr.countval("value_greater"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GREATER, field, info);
         }
         else if (ppr.countval("value_less")) {
             Vector<Real> value;
             ppr.getarr("value_less", value, 0, ppr.countval("value_less"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::LESS, field, info);
         }
         else if (ppr.countval("gradient")) {
             Vector<Real> value;
             ppr.getarr("gradient", value, 0, ppr.countval("gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::GRAD, field, info);
         }
         else if (ppr.countval("relative_gradient")) {
             Vector<Real> value;
             ppr.getarr("relative_gradient", value, 0, ppr.countval("relative_gradient"));
             std::string field;
             ppr.get("field_name", field);
-            error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
+            error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
@@ -704,12 +704,6 @@ Castro::Castro (Amr&            papa,
 
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) {
         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
-      }
-
-      if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
-      {
-          std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
-          amrex::Error();
       }
    }
 
@@ -1053,8 +1047,10 @@ Castro::initData ()
        By_new.setVal(0.0);
        Bz_new.setVal(0.0);
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
           auto geomdata = geom.data();
 
@@ -1099,9 +1095,12 @@ Castro::initData ()
 
 #endif //MHD
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
-          const Box& box     = mfi.validbox();
+          const Box& box = mfi.tilebox();
 
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
@@ -1137,7 +1136,7 @@ Castro::initData ()
        ReduceData<int, int> reduce_data(reduce_op);
        using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -1191,8 +1190,11 @@ Castro::initData ()
 
        // Verify that the sum of (rho X)_i = rho at every cell
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-         const Box& bx = mfi.validbox();
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+         const Box& bx = mfi.tilebox();
 
          auto S_arr = S_new.array(mfi);
 
@@ -1359,17 +1361,11 @@ Castro::initData ()
 
 #ifdef RADIATION
     if (do_radiation) {
-      for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-          int i = mfi.index();
-
-          if (radiation->verbose > 2) {
-            std::cout << "Calling RADINIT at level " << level << ", grid "
-                 << i << std::endl;
-          }
-
-          const Box& box = mfi.validbox();
-          const int* lo  = box.loVect();
-          const int* hi  = box.hiVect();
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& box = mfi.tilebox();
 
           auto r = Rad_new[mfi].array();
           auto geomdata = geom.data();
@@ -1394,9 +1390,7 @@ Castro::initData ()
               // by a problem setup (defaults to an empty routine).
 
               problem_initialize_rad_data(i, j, k, r, xnu_pass, nugroup_pass, dnugroup_pass, geomdata);
-
           });
-
       }
     }
 #endif // RADIATION
@@ -1405,13 +1399,6 @@ Castro::initData ()
 
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     MultiFab& G_new = get_new_data(Gravity_Type);
     G_new.setVal(0.);
 
@@ -1645,7 +1632,7 @@ Castro::estTimeStep (int is_new)
     // Dummy value to start with
     Real estdt_burn = max_dt;
 
-    if (do_react) {
+    if (do_react && (castro::dtnuc_e < 1.e199_rt || castro::dtnuc_X < 1.e199_rt)) {
 
         // Compute burning-limited timestep.
 
@@ -1964,7 +1951,9 @@ Castro::post_timestep (int iteration_local)
     // will also do the sync solve associated with the reflux.
 
     if (do_reflux && level < parent->finestLevel()) {
-      reflux(level, level+1);
+        if (parent->subcyclingMode() != "None") {
+            reflux(level, level+1, true);
+        }
     }
 
     // Ensure consistency with finer grids.
@@ -2152,16 +2141,13 @@ Castro::post_restart ()
 
             if ( gravity->get_gravity_type() == "PoissonGrav")
             {
-                if (gravity->NoComposite() != 1)
-                {
-                   // Update the maximum density, used in setting the solver tolerance.
+                // Update the maximum density, used in setting the solver tolerance.
 
-                   gravity->update_max_rhs();
+                gravity->update_max_rhs();
 
-                   gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
-                   if (gravity->test_results_of_solves() == 1) {
-                       gravity->test_composite_phi(level);
-                   }
+                gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
+                if (gravity->test_results_of_solves() == 1) {
+                    gravity->test_composite_phi(level);
                 }
             }
 
@@ -2273,7 +2259,7 @@ Castro::post_regrid (int lbase,
             const Real cur_time = state[State_Type].curTime();
             if ( (level == lbase) && cur_time > 0.)
             {
-                if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
+                if (gravity->get_gravity_type() == "PoissonGrav") {
                     // Update the maximum density, used in setting the solver tolerance.
 
                     if (level == 0) {
@@ -2358,11 +2344,9 @@ Castro::post_init (Real /*stop_time*/)
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-               gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
@@ -2479,11 +2463,9 @@ Castro::post_grown_restart ()
           // Calculate offset before first multilevel solve.
           gravity->set_mass_offset(cur_time);
 
-          if (gravity->NoComposite() != 1)  {
-             gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1) {
-                gravity->test_composite_phi(level);
-             }
+          gravity->multilevel_solve_for_new_phi(level,finest_level);
+          if (gravity->test_results_of_solves() == 1) {
+              gravity->test_composite_phi(level);
           }
        }
 
@@ -2557,7 +2539,7 @@ Castro::advance_aux(Real time, Real dt)
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -2634,9 +2616,31 @@ Castro::FluxRegFineAdd() {
 
 }
 
+// reflux() synchronizes fluxes between levels and has two modes of operation.
+//
+// When in_post_timestep = true, we are performing the reflux in AmrLevel's
+// post_timestep() routine. This takes place after this level has completed
+// its advance as well as all fine levels above this level have completed
+// their advance. The main activities are:
+//
+// (1) Limit the flux correction so that it won't cause unphysical densities.
+// (2) Update any copies of the full flux arrays with the flux correction.
+// (3) Perform the flux correction on StateData using FluxRegister's Reflux().
+// (4) Do a sync solve for Poisson gravity now that the density has changed.
+// (5) Recompute the new-time sources now that StateData has changed.
+//
+// When in_post_timestep = false, we are performing the reflux immediately
+// after the hydro step has taken place on all levels between crse_level and
+// fine_level. This happens when amr.subcycling_mode = None, or in general when
+// the fine level does not subcycle relative to the coarse level. In this mode
+// we can skip steps (4) and (5), as those steps are only necessary to fix the
+// updates on these levels that took place without full information about the
+// hydro solve being synchronized. The advance on crse_level and fine_level will
+// then be followed by a normal computation of the new-time gravity and new-time
+// sources, which will not need to be corrected later.
 
 void
-Castro::reflux(int crse_level, int fine_level)
+Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 {
     BL_PROFILE("Castro::reflux()");
 
@@ -2650,7 +2654,7 @@ Castro::reflux(int crse_level, int fine_level)
     Vector<std::unique_ptr<MultiFab> > drho(nlevs);
     Vector<std::unique_ptr<MultiFab> > dphi(nlevs);
 
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep)  {
 
         for (int lev = crse_level; lev <= fine_level; ++lev) {
 
@@ -2734,6 +2738,9 @@ Castro::reflux(int crse_level, int fine_level)
 
         // Now zero out any problematic flux corrections.
 
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
         for (MFIter mfi(crse_state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
@@ -2800,7 +2807,7 @@ Castro::reflux(int crse_level, int fine_level)
             // Update the coarse fluxes MultiFabs using the reflux data. This should only make
             // a difference if we re-evaluate the source terms later.
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 MultiFab::Add(*crse_lev.fluxes[idir], temp_fluxes[idir], 0, 0, crse_lev.fluxes[idir]->nComp(), 0);
 
@@ -2820,7 +2827,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
         int ilev = lev - crse_level - 1;
 
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep) {
             reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, URHO, 1, crse_lev.geom);
             amrex::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
         }
@@ -2843,7 +2850,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 MultiFab tmp_fluxes(crse_lev.P_radial.boxArray(),
                                     crse_lev.P_radial.DistributionMap(),
@@ -2880,7 +2887,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             reg->Reflux(crse_lev.get_new_data(Rad_Type), crse_lev.volume, 1.0, 0, 0, Radiation::nGroups, crse_lev.geom);
 
-            if (update_sources_after_reflux) {
+            if (update_sources_after_reflux || !in_post_timestep) {
 
                 for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -2910,7 +2917,7 @@ Castro::reflux(int crse_level, int fine_level)
 #endif
 
 #ifdef GRAVITY
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep)  {
 
             reg = &getLevel(lev).phi_reg;
 
@@ -2939,7 +2946,7 @@ Castro::reflux(int crse_level, int fine_level)
     // Do the sync solve across all levels.
 
 #ifdef GRAVITY
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0 && in_post_timestep) {
       gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
     }
 #endif
@@ -2955,7 +2962,7 @@ Castro::reflux(int crse_level, int fine_level)
     // ghost zone fills like diffusion depend on the data in the
     // coarser levels.
 
-    if (update_sources_after_reflux &&
+    if (update_sources_after_reflux && in_post_timestep &&
         (time_integration_method == CornerTransportUpwind ||
          time_integration_method == SimplifiedSpectralDeferredCorrections)) {
 
@@ -3096,7 +3103,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     ReduceData<Real, Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -3170,12 +3177,12 @@ Castro::enforce_consistent_e (
 
     BL_PROFILE("Castro::enforce_consistent_e()");
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        const Box& box     = mfi.tilebox();
+        const Box& box = mfi.tilebox();
 
         auto S_arr = S.array(mfi);
 
@@ -3234,15 +3241,13 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
     }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
         const Box& bx = mfi.growntilebox(ng);
 
         do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
-
     }
 
     if (print_update_diagnostics)
@@ -3254,6 +3259,93 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
+}
+
+advance_status
+Castro::check_for_negative_density ()
+{
+    BL_PROFILE("check_for_negative_density()");
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
+
+    ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+    ReduceData<int, int> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+
+        auto S_old_arr = S_old.array(mfi);
+        auto S_new_arr = S_new.array(mfi);
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+        {
+            int rho_check_failed = 0;
+            int X_check_failed = 0;
+
+            Real rho = S_new_arr(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            // Optionally, the user can ignore this if the starting
+            // density is lower than a certain threshold. This is useful
+            // if the minimum density occurs in material that is not
+            // dynamically important; in that case, a density reset suffices.
+
+            if (S_old_arr(i,j,k,URHO) >= retry_small_density_cutoff && rho < small_dens) {
+#ifndef AMREX_USE_GPU
+                std::cout << "Invalid density = " << rho << " at index " << i << ", " << j << ", " << k << "\n";
+#endif
+                rho_check_failed = 1;
+            }
+
+            if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+
+                for (int n = 0; n < NumSpec; ++n) {
+                    Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
+
+                    if (X < -castro::abundance_failure_tolerance ||
+                        X > 1.0_rt + castro::abundance_failure_tolerance) {
+#ifndef AMREX_USE_GPU
+                        std::cout << "Invalid X[" << n << "] = " << X << " in zone "
+                                  << i << ", " << j << ", " << k
+                                  << " with density = " << rho << "\n";
+#endif
+                        X_check_failed = 1;
+                    }
+                }
+
+            }
+
+            return {rho_check_failed, X_check_failed};
+        });
+
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    int rho_check_failed = amrex::get<0>(hv);
+    int X_check_failed = amrex::get<1>(hv);
+
+    ParallelDescriptor::ReduceIntMax(rho_check_failed);
+    ParallelDescriptor::ReduceIntMax(X_check_failed);
+
+    advance_status status {};
+
+    if (rho_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid density";
+    }
+
+    if (X_check_failed == 1) {
+        status.success = false;
+        status.reason = "invalid X";
+    }
+
+    return status;
 }
 
 void
@@ -3268,11 +3360,10 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
         return;
     }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
         const Box& bx = mfi.growntilebox(ng);
 
         auto u = state_in[mfi].array();
@@ -3398,13 +3489,13 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
     int lev = level;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     {
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
+        for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
-            const Box& bx = mfi.validbox();
+            const Box& bx = mfi.tilebox();
 
             TagBox& tagfab = tags[mfi];
 
@@ -3463,10 +3554,10 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             blocking_factor[dim] = parent->blockingFactor(lev)[dim];
         }
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
             auto tag = tags[mfi].array();
@@ -3507,10 +3598,10 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
     auto geomdata = geom.data();
 
     // Allow the user to limit tagging outside of some distance from the problem center.
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
         auto tag = tags[mfi].array();
@@ -3686,7 +3777,7 @@ Castro::reset_internal_energy(
     }
 
     // Ensure (rho e) isn't too small or negative
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -3723,12 +3814,12 @@ Castro::add_magnetic_e( MultiFab& Bx,
                         MultiFab& State)
 {
            
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-      const Box& box     = mfi.tilebox();
+      const Box& box = mfi.tilebox();
       auto S_arr = State.array(mfi);
       auto Bx_arr = Bx.array(mfi);
       auto By_arr = By.array(mfi);
@@ -3768,12 +3859,12 @@ Castro::check_div_B( MultiFab& Bx,
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
            
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-      const Box& box     = mfi.tilebox();
+      const Box& box = mfi.tilebox();
       auto Bx_arr = Bx.array(mfi);
       auto By_arr = By.array(mfi);
       auto Bz_arr = Bz.array(mfi);
@@ -3904,12 +3995,11 @@ Castro::computeTemp(
   }
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
-
       int num_ghost = ng;
 #ifdef TRUE_SDC
       if (sdc_order == 4) {
@@ -3969,7 +4059,6 @@ Castro::computeTemp(
               }
           });
       }
-
   }
 
 #ifdef TRUE_SDC
@@ -4139,8 +4228,6 @@ Castro::swap_state_time_levels(const Real dt)
 
 }
 
-
-
 #ifdef GRAVITY
 int
 Castro::get_numpts ()
@@ -4164,110 +4251,10 @@ Castro::get_numpts ()
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
-       std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
      }
 
      return numpts_1d;
-}
-
-void
-Castro::make_radial_data(int is_new)
-{
-#if (AMREX_SPACEDIM > 1)
-
-   BL_PROFILE("Castro::make_radial_data()");
-
-   // We only call this for level = 0
-   BL_ASSERT(level == 0);
-
-   int numpts_1d = get_numpts();
-
-   auto dx = geom.CellSizeArray();
-   Real  dr = dx[0];
-
-   auto problo = geom.ProbLoArray();
-
-   MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
-   const int nc = S.nComp();
-
-   Gpu::ManagedVector<Real> radial_vol(numpts_1d, 0.0_rt);
-   Real* const radial_vol_ptr = radial_vol.dataPtr();
-
-   Gpu::ManagedVector<Real> radial_state(numpts_1d * nc, 0.0_rt);
-   Real* const radial_state_ptr = radial_state.dataPtr();
-
-   for (MFIter mfi(S); mfi.isValid(); ++mfi)
-   {
-       Box bx(mfi.validbox());
-
-       auto state_arr = S[mfi].array();
-       auto vol_arr   = volume[mfi].array();
-
-       amrex::ParallelFor(bx,
-       [=] AMREX_GPU_DEVICE(int i, int j, int k)
-       {
-           Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-
-           Real y = 0.0_rt;
-#if AMREX_SPACEDIM >= 2
-           y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-
-           Real z = 0.0_rt;
-#if AMREX_SPACEDIM == 3
-           z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
-           Real r = std::sqrt(x * x + y * y + z * z);
-
-           int index = int(r / dr);
-
-#ifndef AMREX_USE_GPU
-           if (index > numpts_1d-1) {
-               std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
-               std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
-               std::cout << "R / DR " << r << " " << dr << "\n";
-               amrex::Error("Error:: Castro_util.H :: compute_avgstate");
-           }
-#endif
-
-           Gpu::Atomic::Add(&radial_state_ptr[URHO + index * nc],
-                            vol_arr(i,j,k) * state_arr(i,j,k,URHO));
-
-           // Store the radial component of the momentum in the
-           // UMX, UMY and UMZ components for now.
-
-           Real x_mom = state_arr(i,j,k,UMX);
-           Real y_mom = state_arr(i,j,k,UMY);
-           Real z_mom = state_arr(i,j,k,UMZ);
-           Real radial_mom = x_mom * (x / r) + y_mom * (y / r) + z_mom * (z / r);
-
-           Gpu::Atomic::Add(&radial_state_ptr[UMX + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMY + index * nc], vol_arr(i,j,k) * radial_mom);
-           Gpu::Atomic::Add(&radial_state_ptr[UMZ + index * nc], vol_arr(i,j,k) * radial_mom);
-
-           for (int n = UMZ + 1; n <= nc; ++n) {
-               Gpu::Atomic::Add(&radial_state_ptr[n + index * nc],
-                                vol_arr(i,j,k) * state_arr(i,j,k,n));
-           }
-
-           Gpu::Atomic::Add(&radial_vol_ptr[index], vol_arr(i,j,k));
-       });
-   }
-
-   ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
-   ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
-
-   for (int i = 0; i < numpts_1d; i++) {
-       if (radial_vol[i] > 0.)
-       {
-           for (int j = 0; j < nc; j++) {
-               radial_state[nc*i+j] /= radial_vol[i];
-           }
-       }
-   }
-
-#endif
 }
 
 void
@@ -4391,7 +4378,7 @@ Castro::getCPUTime()
 {
 
   int numCores = ParallelDescriptor::NProcs();
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   numCores = numCores*omp_get_max_threads();
 #endif
 

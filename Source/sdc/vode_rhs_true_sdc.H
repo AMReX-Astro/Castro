@@ -17,8 +17,9 @@
 // This is a generic interface that calls the specific RHS routine in the
 // network you're actually using.
 
+template <typename DvodeT>
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUdt, const bool in_jacobian=false)
+void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt, const bool in_jacobian=false)
 {
 
     // note: dUdt is 1-based
@@ -74,9 +75,9 @@ void rhs(const Real time, burn_t& burn_state, dvode_t& vode_state, RArray1D& dUd
 }
 
 
-template<class MatrixType>
+template<class MatrixType, typename DvodeT>
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void jac (const Real time, burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
+void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& pd)
 {
     // Call the specific network routine to get the Jacobian.
 
@@ -108,7 +109,7 @@ void jac (const Real time, burn_t& burn_state, dvode_t& vode_state, MatrixType& 
     // returned by single_zone_react_source, since it is
     // more consistent T from e
 
-    eos_t eos_state;
+    eos_extra_t eos_state;
     eos_state.rho = U_full[URHO];
     eos_state.T = burn_state.T; // initial guess
     for (int n = 0; n < NumSpec; n++) {

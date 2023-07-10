@@ -1,3 +1,5 @@
+.. _sec:flowchart:
+
 *********
 Flowchart
 *********
@@ -30,7 +32,7 @@ the different code paths.  These fall into two categories:
      reaction source as inputs and do the final conservative update by
      integrating the reaction system using an ODE solver with the
      explicit advective source included in a
-     piecewise-constant-in-time fastion.
+     piecewise-constant-in-time fastion.  This is described in :cite:`castro_simple_sdc`.
 
    - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
@@ -56,8 +58,7 @@ The time-integration method used is controlled by
     order integration implemented.  At the moment, this does not support
     multilevel domains.  Note: because of differences in the interfaces with the 
     default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
-    method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
-    additional EOS derivatives).
+    method to work.
 
   * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE
@@ -186,13 +187,7 @@ of each step.
    ca_auxupdate can be provided here to further update these
    quantities.
 
-#. *Radial data and [POINTMASS] point mass*
-
-   If ``castro.spherical_star`` is set, then we average the state data
-   over angles here to create a radial profile. This is then used in the
-   boundary filling routines to properly set Dirichlet BCs when our domain
-   is smaller than the star, so the profile on the boundaries will not
-   be uniform.
+#. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
    change the mass of the point mass that optionally contributes to the

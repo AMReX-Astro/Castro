@@ -356,11 +356,6 @@ int Gravity::NoSync()
   return gravity::no_sync;
 }
 
-int Gravity::NoComposite()
-{
-  return gravity::no_composite;
-}
-
 int Gravity::DoCompositeCorrection()
 {
   return gravity::do_composite_phi_correction;
@@ -475,7 +470,7 @@ Gravity::solve_for_phi (int               level,
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        amrex::Print() << "Gravity::solve_for_phi() time = " << end << std::endl << std::endl;
+        amrex::Print() << "Gravity::solve_for_phi() time = " << end << " on level " << level << std::endl << std::endl;
 #ifdef BL_LAZY
         });
 #endif
@@ -710,6 +705,8 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
         amrex::Print() << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level_in << std::endl;
     }
 
+    const Real strt = ParallelDescriptor::second();
+
     for (int lev = level; lev <= finest_level_in; lev++) {
        BL_ASSERT(grad_phi_curr[lev].size()==AMREX_SPACEDIM);
        for (int n=0; n<AMREX_SPACEDIM; ++n)
@@ -721,6 +718,21 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
 
     int is_new = 1;
     actual_multilevel_solve(level, finest_level_in, amrex::GetVecOfVecOfPtrs(grad_phi_curr), is_new);
+
+    if (gravity::verbose)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real      end    = ParallelDescriptor::second() - strt;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(end,IOProc);
+        amrex::Print() << "Gravity::multilevel_solve_for_new_phi() time = " << end << std::endl << std::endl;
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
@@ -2408,10 +2420,9 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     int physbc_lo[3];
     int physbc_hi[3];
 
-    for (int dir = 0; dir < 3; dir++)
-    {
-      physbc_lo[dir] = phys_bc->lo(dir);
-      physbc_lo[dir] = phys_bc->hi(dir);
+    for (int dir = 0; dir < 3; dir++) {
+        physbc_lo[dir] = phys_bc->lo(dir);
+        physbc_hi[dir] = phys_bc->hi(dir);
     }
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {

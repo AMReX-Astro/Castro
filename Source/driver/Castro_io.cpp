@@ -26,14 +26,8 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
-#endif
-
-#ifdef REACTIONS
-#ifdef SCREENING
-#include <screen.H>
-#endif
 #endif
 
 #include <problem_initialize_state_data.H>
@@ -61,11 +55,12 @@ using namespace amrex;
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
 // 11: PhiRot_Type was removed from Castro
+// 12: State_Type's additional ghost zone, used when radiation is enabled, has been removed
 
 namespace
 {
     int input_version = -1;
-    int current_version = 11;
+    int current_version = 12;
 }
 
 // I/O routines for Castro
@@ -285,13 +280,14 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
+           const Box& bx = mfi.tilebox();
 
-           const Box& bx      = mfi.validbox();
-
-           if (! orig_domain.contains(bx)) {
-
+           if (!orig_domain.contains(bx)) {
                auto s = S_new[mfi].array();
                auto geomdata = geom.data();
 
@@ -302,7 +298,6 @@ Castro::restart (Amr&     papa,
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
-
            }
        }
     }
@@ -312,15 +307,8 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     if (do_grav && level == 0) {
-       BL_ASSERT(gravity == 0);
+       BL_ASSERT(gravity == nullptr);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
@@ -566,7 +554,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "inputs file: " << inputs_name << "\n\n";
 
   jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
   jobInfoFile << "\n";
@@ -653,9 +641,6 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
     jobInfoFile << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
   }
 
-#ifdef SCREENING
-  jobInfoFile << "screening: " << screen_name << "\n";
-#endif
   jobInfoFile << "\n";
 
   const char* githash1 = buildInfoGetGitHash(1);
