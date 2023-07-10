@@ -42,7 +42,7 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_rotation_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -96,7 +96,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_rotation_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

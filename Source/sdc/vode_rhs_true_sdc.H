@@ -109,7 +109,7 @@ void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& p
     // returned by single_zone_react_source, since it is
     // more consistent T from e
 
-    eos_t eos_state;
+    eos_extra_t eos_state;
     eos_state.rho = U_full[URHO];
     eos_state.T = burn_state.T; // initial guess
     for (int n = 0; n < NumSpec; n++) {

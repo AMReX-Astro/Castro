@@ -6,7 +6,7 @@ CASTRO_HOME := ../../..
 # Location of this directory. Useful if
 # you're trying to compile this from another location.
 
-TEST_DIR = $(CASTRO_HOME)/Exec/gravity_tests/uniform_cube_sphere
+TEST_DIR = $(CASTRO_HOME)/Exec/gravity_tests/uniform_sphere
 
 PRECISION   ?= DOUBLE
 PROFILE     ?= FALSE

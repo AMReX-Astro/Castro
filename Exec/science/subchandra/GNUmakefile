@@ -22,7 +22,7 @@ USE_SIMPLIFIED_SDC=TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch_approx
+NETWORK_DIR := subch_simple
 
 INTEGRATOR_DIR := VODE
 
