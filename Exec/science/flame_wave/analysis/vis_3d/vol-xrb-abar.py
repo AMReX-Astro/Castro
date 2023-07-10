@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('agg')
-
 import sys
+
+import matplotlib
+import numpy as np
 
 import yt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-#from yt.visualization.volume_rendering.render_source import VolumeSource
-from yt.visualization.volume_rendering.api import create_volume_source, Scene
 from yt.units import cm
+#from yt.visualization.volume_rendering.render_source import VolumeSource
+from yt.visualization.volume_rendering.api import Scene, create_volume_source
+
+matplotlib.use('agg')
+
+resolution = (1920, 1080)
 
 # this is for the wdconvect problem
 
@@ -56,7 +59,7 @@ def doit(plotfile):
     sc.get_source(0).transfer_function = tf
 
     cam = sc.add_camera(ds, lens_type="perspective")
-    cam.resolution = (1920, 1280)
+    cam.resolution = resolution
 
     # view 1
 
@@ -77,13 +80,23 @@ def doit(plotfile):
     cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_abar_annotated_side.png".format(plotfile),
-                      sigma_clip=3.0,
+    sc.save(f"{plotfile}_abar_noaxes_side.png", sigma_clip=3.0)
+
+    sc.annotate_axes(alpha=0.005, thickness=6)
+
+    sc.save(f"{plotfile}_abar_side.png", sigma_clip=3.0)
+
+    sc.save_annotated(f"{plotfile}_abar_annotated_side.png",
+                      sigma_clip=3.0, label_fmt="%.2f",
                       text_annotate=[[(0.05, 0.05),
                                       f"t = {ds.current_time.d:7.5f} s",
                                       dict(horizontalalignment="left")]])
 
     # view 2
+
+    # remove the annotation source for now
+    print(list(sc.sources.keys()))
+    sc.sources.pop("source_01")
 
     dx = ds.domain_right_edge[0] - ds.domain_left_edge[0]
     cam.position = [0.5*(ds.domain_left_edge[0] + ds.domain_right_edge[0]) + 0.0001 * dx,
@@ -103,8 +116,13 @@ def doit(plotfile):
     cam.zoom(0.6)
     sc.camera = cam
 
+    sc.save(f"{plotfile}_abar_noaxes_top.png", sigma_clip=3.0)
+
+    sc.annotate_axes(alpha=0.005, thickness=6)
+
+    sc.save(f"{plotfile}_abar_top.png", sigma_clip=3.0)
     sc.save_annotated("{}_abar_annotated_top.png".format(plotfile),
-                      sigma_clip=3.0,
+                      sigma_clip=3.0, label_fmt="%.2f",
                       text_annotate=[[(0.05, 0.05),
                                       f"t = {ds.current_time.d:7.5f} s",
                                       dict(horizontalalignment="left")]])

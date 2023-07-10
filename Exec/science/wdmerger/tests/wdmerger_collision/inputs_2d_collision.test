@@ -1,0 +1,14 @@
+FILE = inputs_2d_collision
+
+# Start the problem when the stars are already merging.
+# This is an artificially contrived setup but will ensure
+# that burning begins immediately.
+
+problem.collision_separation = 1.25
+
+amr.n_cell = 64 128
+stop_time = 1.25
+amr.max_level = 2
+amr.ref_ratio = 2
+
+castro.init_shrink = 1.0

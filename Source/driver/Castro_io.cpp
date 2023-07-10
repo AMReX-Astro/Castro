@@ -26,7 +26,7 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
 #endif
 
@@ -280,13 +280,14 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
+           const Box& bx = mfi.tilebox();
 
-           const Box& bx      = mfi.validbox();
-
-           if (! orig_domain.contains(bx)) {
-
+           if (!orig_domain.contains(bx)) {
                auto s = S_new[mfi].array();
                auto geomdata = geom.data();
 
@@ -297,7 +298,6 @@ Castro::restart (Amr&     papa,
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
-
            }
        }
     }
@@ -308,7 +308,7 @@ Castro::restart (Amr&     papa,
 
 #ifdef GRAVITY
     if (do_grav && level == 0) {
-       BL_ASSERT(gravity == 0);
+       BL_ASSERT(gravity == nullptr);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
@@ -554,7 +554,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "inputs file: " << inputs_name << "\n\n";
 
   jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
   jobInfoFile << "\n";

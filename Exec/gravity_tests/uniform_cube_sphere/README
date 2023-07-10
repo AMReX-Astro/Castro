@@ -1,9 +1,0 @@
-This is a simple test of Poisson gravity. It loads a sphere (problem = 1, 2) or
-cube (problem = 3) of uniform density onto the grid. The goal is to determine
-whether the calculated potential converges to the analytical potential
-as resolution increases. Problems 1 and 2 are the same setup except for one
-detail: in Problem 2, instead of using the density requested, we modify
-the density on the grid so that the total amount of mass in the domain
-is equal to the mass of a sphere of the requested diameter. Problem 1
-uses the density requested by the user, and so it will not get the right
-mass: the object will not be exactly spherical due to Cartesian grid effects.

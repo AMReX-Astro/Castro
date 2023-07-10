@@ -26,90 +26,110 @@ Castro::do_advance_ctu (Real time, Real dt)
 
 #ifndef TRUE_SDC
 
+    // Advance simultaneously on all levels that are not subcycling
+    // relative to this level.
+
+    int max_level_to_advance = level;
+
+    if (parent->subcyclingMode() == "None" && level == 0) {
+        max_level_to_advance = parent->finestLevel();
+    }
+
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
 
-    // Perform initialization steps.
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        // Perform initialization steps.
 
-    status = initialize_do_advance(time, dt);
+        status = getLevel(lev).initialize_do_advance(time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Perform all pre-advance operations and then initialize
-    // the new-time state with the output of those operators.
+        // Perform all pre-advance operations and then initialize
+        // the new-time state with the output of those operators.
 
-    status = pre_advance_operators(prev_time, dt);
+        status = getLevel(lev).pre_advance_operators(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Construct the old-time sources from Sborder. This will already
-    // be applied to S_new (with full dt weighting), to be corrected
-    // later. Note that this does not affect the prediction of the
-    // interface state; an explicit source will be traced there as
-    // needed.
+        // Construct the old-time sources from Sborder. This will already
+        // be applied to S_new (with full dt weighting), to be corrected
+        // later. Note that this does not affect the prediction of the
+        // interface state; an explicit source will be traced there as
+        // needed.
 
-    status = do_old_sources(prev_time, dt);
+        status = getLevel(lev).do_old_sources(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Perform any operations that occur after the sources but before the hydro.
+        // Perform any operations that occur after the sources but before the hydro.
 
-    status = pre_hydro_operators(prev_time, dt);
+        status = getLevel(lev).pre_hydro_operators(prev_time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Do the hydro update. We build directly off of Sborder, which
-    // is the state that has already seen the burn.
+        // Do the hydro update. We build directly off of Sborder, which
+        // is the state that has already seen the burn.
 
 #ifndef MHD
-    status = construct_ctu_hydro_source(prev_time, dt);
+        status = getLevel(lev).construct_ctu_hydro_source(prev_time, dt);
 #else
-    status = construct_ctu_mhd_source(prev_time, dt);
+        status = getLevel(lev).construct_ctu_mhd_source(prev_time, dt);
 #endif
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
     }
 
-    // Perform any operations that occur after the hydro but before
-    // the corrector sources.
+    // We can perform the reflux immediately if there's no subcycling
+    // above this level.
 
-    status = post_hydro_operators(cur_time, dt);
-
-    if (status.success == false) {
-        return status;
+    if (do_reflux && level < max_level_to_advance) {
+        reflux(level, max_level_to_advance, false);
     }
 
-    // Construct and apply new-time source terms.
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        // Perform any operations that occur after the hydro but before
+        // the corrector sources.
 
-    status = do_new_sources(cur_time, dt);
+        status = getLevel(lev).post_hydro_operators(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
+        // Construct and apply new-time source terms.
 
-    status = post_advance_operators(cur_time, dt);
+        status = getLevel(lev).do_new_sources(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
-    }
+        if (status.success == false) {
+            return status;
+        }
 
-    // Perform finalization steps.
+        // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
-    status = finalize_do_advance(cur_time, dt);
+        status = getLevel(lev).post_advance_operators(cur_time, dt);
 
-    if (status.success == false) {
-        return status;
+        if (status.success == false) {
+            return status;
+        }
+
+        // Perform finalization steps.
+
+        status = getLevel(lev).finalize_do_advance(cur_time, dt);
+
+        if (status.success == false) {
+            return status;
+        }
     }
 
 #endif
@@ -229,6 +249,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     Real dt_new = 1.e200;
 
     sub_iteration = 0;
+
+    int max_level_to_advance = level;
+
+    if (parent->subcyclingMode() == "None" && level == 0) {
+        max_level_to_advance = parent->finestLevel();
+    }
 
     // Subcycle until we've reached the target time.
     // Compare against a slightly smaller number to
@@ -351,7 +377,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         for (int n = 0; n < num_sub_iters; ++n) {
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-                sdc_iteration = n;
+                for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                    getLevel(lev).sdc_iteration = n;
+                }
+
                 amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 
@@ -385,12 +414,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // Set sdc_iters to its original value, in case we modified it above.
 
         sdc_iters = sdc_iters_old;
-
-        // If we have hit a CFL violation during this subcycle, we must abort.
-
-        if (cfl_violation && !use_retry) {
-          amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
-        }
 
         // If we're allowing for retries, check for that here.
 

@@ -202,6 +202,9 @@ Managing Runs
 Runtime Errors
 ==============
 
+.. index:: castro.limit_fluxes_on_small_dens, castro.state_interp_order,
+           castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff
+
 #. *When running with retries, Castro requests too many substeps
    and crashes.*
 
@@ -221,7 +224,8 @@ Runtime Errors
 
    If the error continues, try to increase the tolerance of determining
    specie abundance validity check by setting ``castro.abundance_failure_tolerance``
-   to a higher value. 
+   to a higher value, or increasing the density floor below which this is
+   ignored by changing ``castro.abundance_failure_rho_cutoff``.
    
 Visualization
 =============
