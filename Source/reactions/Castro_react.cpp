@@ -241,7 +241,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #endif
             // Don't burn on zones that are masked out.
 
-            if (mask_covered_zones) {
+            if (mask_covered_zones && mask.contains(i,j,k)) {
                 if (mask(i,j,k) == 0.0_rt) {
                     do_burn = false;
                 }
@@ -576,7 +576,7 @@ Castro::react_state(Real time, Real dt)
 
             // Don't burn on zones that are masked out.
 
-            if (mask_covered_zones) {
+            if (mask_covered_zones && mask.contains(i,j,k)) {
                 if (mask(i,j,k) == 0.0_rt) {
                     do_burn = false;
                 }
