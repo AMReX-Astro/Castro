@@ -100,6 +100,16 @@ castro.store_burn_weights = 1
 castro.small_dens   = 1.e-5
 castro.small_temp   = 1.e5
 
+
+amr.small_plot_file = subch_smallplt        # root name of plotfile
+amr.small_plot_per  = 2.e-3      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp
+
+amr.derive_small_plot_vars = abar magvel enuc
+
+fab.format = NATIVE_32
+
+
 # problem parameters
 
 problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.CO.N14.10.00km"
@@ -151,11 +161,9 @@ integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-5
 integrator.jacobian = 1
 
-integrator.abort_on_failure = 0
-
 integrator.X_reject_buffer = 4.0
 
-#integrator.use_jacobian_caching = 0
+# disable jacobian caching in VODE
+integrator.use_jacobian_caching = 0
 
 integrator.ode_max_steps = 500000
-
