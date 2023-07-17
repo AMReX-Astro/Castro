@@ -86,7 +86,7 @@ amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 25     # number of timesteps between checkpoints
 amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
-amr.plot_per        = 2.e-3
+amr.plot_per        = 0.05
 
 amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
