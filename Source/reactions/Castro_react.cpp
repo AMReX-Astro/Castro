@@ -217,7 +217,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 	    burn_state.mu_p = U(i,j,k,UMUP);
 	    burn_state.mu_n = U(i,j,k,UMUN);
 
-	    burn_state.y_e = 0.0_rt;
+	    burn_state.y_e = -1.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -557,7 +557,7 @@ Castro::react_state(Real time, Real dt)
 	    burn_state.mu_p = U_old(i,j,k,UMUP);
 	    burn_state.mu_n = U_old(i,j,k,UMUN);
 
-	    burn_state.y_e = 0.0_rt;
+	    burn_state.y_e = -1.0_rt;
 #endif
             // Initialize some data for later.
 
