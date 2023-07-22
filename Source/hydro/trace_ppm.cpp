@@ -60,8 +60,10 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();

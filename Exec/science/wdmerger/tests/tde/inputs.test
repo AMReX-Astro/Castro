@@ -209,7 +209,7 @@ amr.plot_per = 10.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
-_
+
 # State variables to add to plot files
 amr.plot_vars = ALL
 

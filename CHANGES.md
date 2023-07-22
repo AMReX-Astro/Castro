@@ -1,3 +1,18 @@
+# 23.08
+
+  * Time evolution without subcycling on the fine levels, which is enabled via
+    the runtime parameter amr.subcycling_mode = "None", has been significantly
+    rewritten to improve computational performance for certain cases. When the
+    fine levels do not subcycle, the evolution can be done by processing all
+    of the hydro updates on the fine level together and then immediately doing
+    the flux correction to sync the coarse and fine level fluxes at the
+    boundary between levels. This is how many AMR codes that do not subcycle
+    are written. Castro now does this when the user chooses not to subcycle.
+    The benefit of this approach is most evidence for problems with Poisson
+    gravity that use a multigrid solve, as we can significantly reduce the
+    number of Poisson solves per step, performing only a single composite
+    (multi-level) solve at the new-time simultaneously for all levels. (#2505)
+
 # 23.07
 
   * The parameter castro.state_nghost, which allowed State_Type to have ghost

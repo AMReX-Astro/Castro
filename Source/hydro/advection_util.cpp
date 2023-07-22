@@ -638,6 +638,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
   GeometryData geomdata = geom.data();
 #endif
 
+  amrex::ignore_unused(verbose);
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
