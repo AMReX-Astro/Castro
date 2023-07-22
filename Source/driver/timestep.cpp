@@ -14,6 +14,7 @@
 #endif
 
 #ifdef REACTIONS
+#include <actual_network.H>
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #else
