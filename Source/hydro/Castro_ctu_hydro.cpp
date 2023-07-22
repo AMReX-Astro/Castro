@@ -210,12 +210,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real const> const U_old_arr = Sborder.array(mfi);
 
-      rho_inv.resize(qbx3, 1);
+      rho_inv.resize(qbx, 1);
       Elixir elix_rho_inv = rho_inv.elixir();
       fab_size += rho_inv.nBytes();
       Array4<Real> const rho_inv_arr = rho_inv.array();
 
-      amrex::ParallelFor(qbx3,
+      amrex::ParallelFor(qbx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
@@ -486,6 +486,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                           shk_arr,
                           0, false);
 
+      enforce_reflect_states(xbx, 0, qxm_arr, qxp_arr);
+
 #endif // 1-d
 
 
@@ -609,6 +611,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #endif
 
+      enforce_reflect_states(xbx, 0, ql_arr, qr_arr);
+
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
                           flux0_arr,
@@ -652,6 +656,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                                ql_arr, qr_arr, sdc_src_arr);
 #endif
 #endif
+
+      enforce_reflect_states(ybx, 1, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
