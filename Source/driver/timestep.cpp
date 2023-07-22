@@ -19,6 +19,7 @@
 #else
 #include <actual_rhs.H>
 #endif
+#endif
 
 #ifdef RADIATION
 #include <Radiation.H>
