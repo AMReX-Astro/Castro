@@ -84,6 +84,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -91,7 +93,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -302,7 +303,7 @@ is overridden in the checkpoint code in AMReX).</p>
 </section>
 <section id="runtime-errors">
 <span id="ch-faq-vis"></span><h2>Runtime Errors<a class="headerlink" href="#runtime-errors" title="Permalink to this heading"></a></h2>
-<ol class="arabic">
+<ol class="arabic" id="index-0">
 <li><p><em>When running with retries, Castro requests too many substeps
 and crashes.</em></p>
 <p>This can occur due to CFL violations or negative densities.  If
@@ -319,7 +320,8 @@ input file. This allows piecewise constant refinement, but sacrifices
 some benefit of the refinement.</p>
 <p>If the error continues, try to increase the tolerance of determining
 specie abundance validity check by setting <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_tolerance</span></code>
-to a higher value.</p>
+to a higher value, or increasing the density floor below which this is
+ignored by changing <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_rho_cutoff</span></code>.</p>
 </li>
 </ol>
 </section>

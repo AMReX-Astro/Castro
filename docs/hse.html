@@ -25,7 +25,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="MHD" href="mhd.html" />
+    <link rel="next" title="Equation of State" href="EOS.html" />
     <link rel="prev" title="Hydrodynamics" href="Hydrodynamics.html" /> 
 </head>
 
@@ -93,6 +93,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#test-problems">Test problems</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -100,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -201,7 +202,7 @@ pressure.</p>
 <h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Permalink to this heading"></a></h3>
 <p>The 4th order accurate true SDC solver does not appear to need any
 well-balancing.  It maintains HSE to very high precision, as shown in
-<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>.</p>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">74</a>]</span>.</p>
 </section>
 </section>
 <section id="boundary-conditions">
@@ -218,7 +219,7 @@ error).  Only the normal velocity is treated specially.</p>
 <section id="hse">
 <h3>HSE<a class="headerlink" href="#hse" title="Permalink to this heading"></a></h3>
 <p id="index-1">For hydrostatic boundary conditions, we follow the method from
-<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">71</a>]</span>.  Essentially, this starts with the last
+<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">72</a>]</span>.  Essentially, this starts with the last
 zone inside of the boundary and integrates HSE into the ghost cells,
 keeping the density either constant or extrapolating it.  Together
 the discretized HSE equation and the EOS yield the density and pressure
@@ -277,7 +278,7 @@ look at how the peak velocity changes).</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Hydrodynamics.html" class="btn btn-neutral float-left" title="Hydrodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="EOS.html" class="btn btn-neutral float-right" title="Equation of State" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

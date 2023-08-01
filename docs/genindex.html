@@ -73,6 +73,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -80,7 +82,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -295,9 +296,9 @@
 </li>
       <li><a href="file/blackbody_8H.html#_CPPv4N9blackbody6xsmallE">blackbody::xsmall (C++ member)</a>
 </li>
-      <li><a href="creating_a_problem.html#index-2">boundary conditions</a>, <a href="software.html#index-0">[1]</a>
+      <li><a href="creating_a_problem.html#index-2">boundary conditions</a>, <a href="software.html#index-1">[1]</a>
 </li>
-      <li><a href="EOSNetwork.html#index-2">burn_t</a>
+      <li><a href="reactions.html#index-0">burn_t</a>
 </li>
   </ul></td>
 </tr></table>
@@ -465,9 +466,9 @@
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.abort_on_invalid_params</a>
 </li>
-      <li><a href="runtime_parameters.html#index-2">castro.abundance_failure_rho_cutoff</a>
+      <li><a href="faq.html#index-0">castro.abundance_failure_rho_cutoff</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-1">[2]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-2">castro.abundance_failure_tolerance</a>, <a href="timestepping.html#index-1">[1]</a>
+      <li><a href="faq.html#index-0">castro.abundance_failure_tolerance</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-1">[2]</a>
 </li>
       <li><a href="Hydrodynamics.html#index-0">castro.add_ext_src</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
@@ -603,7 +604,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.job_name</a>
 </li>
-      <li><a href="Hydrodynamics.html#index-5">castro.limit_fluxes_on_small_dens</a>, <a href="runtime_parameters.html#index-1">[1]</a>
+      <li><a href="Hydrodynamics.html#index-5">castro.limit_fluxes_on_small_dens</a>, <a href="faq.html#index-0">[1]</a>, <a href="runtime_parameters.html#index-1">[2]</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.limit_fourth_order</a>
 </li>
@@ -645,13 +646,13 @@
 </li>
       <li><a href="hse.html#index-0">castro.pslope_cutoff_density</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-3">castro.react_rho_max</a>
+      <li><a href="reactions.html#index-1">castro.react_rho_max</a>, <a href="runtime_parameters.html#index-3">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-3">castro.react_rho_min</a>
+      <li><a href="reactions.html#index-1">castro.react_rho_min</a>, <a href="runtime_parameters.html#index-3">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-3">castro.react_T_max</a>
+      <li><a href="reactions.html#index-1">castro.react_T_max</a>, <a href="runtime_parameters.html#index-3">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-3">castro.react_T_min</a>
+      <li><a href="reactions.html#index-1">castro.react_T_min</a>, <a href="runtime_parameters.html#index-3">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.reset_checkpoint_step</a>
 </li>
@@ -751,13 +752,15 @@
 </li>
       <li><a href="runtime_parameters.html#index-8">castro.star_at_center</a>
 </li>
-      <li><a href="runtime_parameters.html#index-0">castro.state_interp_order</a>
+      <li><a href="faq.html#index-0">castro.state_interp_order</a>, <a href="runtime_parameters.html#index-0">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.stopping_criterion_field</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.stopping_criterion_value</a>
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.store_burn_weights</a>
+</li>
+      <li><a href="reactions.html#index-3">castro.store_omega_dot</a>, <a href="reactions.html#index-5">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.store_omegadot</a>
 </li>
@@ -797,10 +800,10 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.xr_ext_bc_type</a>
 </li>
-      <li><a href="runtime_parameters.html#index-1">castro.yl_ext_bc_type</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="runtime_parameters.html#index-1">castro.yl_ext_bc_type</a>
+</li>
       <li><a href="runtime_parameters.html#index-1">castro.yr_ext_bc_type</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.zl_ext_bc_type</a>
@@ -848,8 +851,6 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro10Bz_old_tmpE">Castro::Bz_old_tmp (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro10Bz_old_tmpE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro6CastroERK6Castro">Castro::Castro (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">[1]</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroERR6Castro">[2]</a>, <a href="class/classCastro.html#_CPPv4N6Castro6CastroEv">[3]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERK6Castro">[4]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">[5]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroERR6Castro">[6]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6CastroEv">[7]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro13cfl_violationE">Castro::cfl_violation (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13cfl_violationE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">Castro::check_div_B (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">[1]</a>
 </li>
@@ -1115,7 +1116,7 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro20read_particle_paramsEv">Castro::read_particle_params (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro20read_particle_paramsEv">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro6refluxEii">Castro::reflux (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6refluxEii">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro6refluxEiib">Castro::reflux (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6refluxEiib">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13removeOldDataEv">Castro::removeOldData (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13removeOldDataEv">[1]</a>
 </li>
@@ -1395,9 +1396,9 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="EOSNetwork.html#index-0">eos_t</a>
+      <li><a href="EOS.html#index-0">eos_t</a>
 </li>
-      <li><a href="EOSNetwork.html#index-1">eos_xderivs_t</a>
+      <li><a href="EOS.html#index-1">eos_xderivs_t</a>
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv432evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealERKNSt6stringE">evaluate_and_print_source_change (C++ function)</a>
 </li>
@@ -2531,6 +2532,8 @@
 </li>
       <li><a href="file/Castro__react_8H.html#_CPPv411react_stateN5amrex4RealEN5amrex4RealE">react_state (C++ function)</a>, <a href="file/Castro__react_8H.html#_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEKi">[1]</a>
 </li>
+      <li><a href="reactions.html#index-2">Reactions_Type</a>, <a href="reactions.html#index-4">[1]</a>
+</li>
       <li><a href="file/Gravity_8H.html#_CPPv410RealVector">RealVector (C++ type)</a>
 </li>
       <li><a href="file/reconstruction_8H.html#_CPPv414reconstruction">reconstruction (C++ type)</a>
@@ -2641,10 +2644,10 @@
 </li>
       <li><a href="io.html#index-9">species_diag.out</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/RAD__F_8H.html#_CPPv44sphePN5amrex4RealEPN5amrex4RealERKiF7ARLIM_P9edgeboxloEF7ARLIM_P9edgeboxhiEPKN5amrex4RealE">sphe (C++ function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="sponge.html#index-0">sponge_implicit</a>
 </li>
       <li><a href="sponge.html#index-0">sponge_timescale</a>
@@ -2652,6 +2655,8 @@
       <li><a href="file/Castro__hydro_8H.html#_CPPv411src_to_primRKN5amrex3BoxEK4RealRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">src_to_prim (C++ function)</a>
 </li>
       <li><a href="build_system.html#index-17">state_indices.H</a>
+</li>
+      <li><a href="software.html#index-0">StateData</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv46statesRKN5amrex3BoxEKiKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">states (C++ function)</a>
 </li>
