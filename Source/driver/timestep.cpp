@@ -14,15 +14,16 @@
 #endif
 
 #ifdef REACTIONS
+#include <actual_network.H>
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#else
 #include <actual_rhs.H>
+#endif
 #endif
 
 #ifdef RADIATION
 #include <Radiation.H>
-#endif
-
-#ifdef NEW_NETWORK_IMPLEMENTATION
-#include <rhs.H>
 #endif
 
 
