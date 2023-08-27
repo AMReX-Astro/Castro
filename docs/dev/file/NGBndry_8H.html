@@ -13,13 +13,13 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -121,7 +121,27 @@
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File NGBndry.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File NGBndry.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv47BC_Mode"><code class="docutils literal notranslate"><span class="pre">BC_Mode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7BC_Mode14Homogeneous_BCE"><code class="docutils literal notranslate"><span class="pre">BC_Mode::Homogeneous_BC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7BC_Mode16Inhomogeneous_BCE"><code class="docutils literal notranslate"><span class="pre">BC_Mode::Inhomogeneous_BC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv47NGBndry"><code class="docutils literal notranslate"><span class="pre">NGBndry</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">NGBndry::NGBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"><code class="docutils literal notranslate"><span class="pre">NGBndry::setBndryFluxConds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE"><code class="docutils literal notranslate"><span class="pre">NGBndry::bndryTypes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE"><code class="docutils literal notranslate"><span class="pre">NGBndry::mixedBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndry7NGBndryERK7NGBndry"><code class="docutils literal notranslate"><span class="pre">NGBndry::NGBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndryaSERK7NGBndry"><code class="docutils literal notranslate"><span class="pre">NGBndry::operator=()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410NGBndryBld"><code class="docutils literal notranslate"><span class="pre">NGBndryBld</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">NGBndryBld::operator()()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
@@ -206,21 +226,21 @@
            <div itemprop="articleBody">
              
   <section id="file-ngbndry-h">
-<h1>File NGBndry.H<a class="headerlink" href="#file-ngbndry-h" title="Permalink to this heading"></a></h1>
+<h1>File NGBndry.H<a class="headerlink" href="#file-ngbndry-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
 <dl class="cpp enum">
 <dt class="sig sig-object cpp" id="_CPPv47BC_Mode">
-<span id="_CPPv37BC_Mode"></span><span id="_CPPv27BC_Mode"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BC_Mode</span></span></span><a class="headerlink" href="#_CPPv47BC_Mode" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv37BC_Mode"></span><span id="_CPPv27BC_Mode"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BC_Mode</span></span></span><a class="headerlink" href="#_CPPv47BC_Mode" title="Link to this definition"></a><br /></dt>
 <dd><p><em>Values:</em></p>
 <dl class="cpp enumerator">
 <dt class="sig sig-object cpp" id="_CPPv4N7BC_Mode14Homogeneous_BCE">
-<span id="_CPPv3N7BC_Mode14Homogeneous_BCE"></span><span id="_CPPv2N7BC_Mode14Homogeneous_BCE"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6a8d8b4584f68e113e2c01503c12a9d30e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Homogeneous_BC</span></span></span><a class="headerlink" href="#_CPPv4N7BC_Mode14Homogeneous_BCE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7BC_Mode14Homogeneous_BCE"></span><span id="_CPPv2N7BC_Mode14Homogeneous_BCE"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6a8d8b4584f68e113e2c01503c12a9d30e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Homogeneous_BC</span></span></span><a class="headerlink" href="#_CPPv4N7BC_Mode14Homogeneous_BCE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp enumerator">
 <dt class="sig sig-object cpp" id="_CPPv4N7BC_Mode16Inhomogeneous_BCE">
-<span id="_CPPv3N7BC_Mode16Inhomogeneous_BCE"></span><span id="_CPPv2N7BC_Mode16Inhomogeneous_BCE"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6aa5a5bb00cbf11758bc50f9320baa780b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Inhomogeneous_BC</span></span></span><a class="headerlink" href="#_CPPv4N7BC_Mode16Inhomogeneous_BCE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7BC_Mode16Inhomogeneous_BCE"></span><span id="_CPPv2N7BC_Mode16Inhomogeneous_BCE"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6aa5a5bb00cbf11758bc50f9320baa780b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Inhomogeneous_BC</span></span></span><a class="headerlink" href="#_CPPv4N7BC_Mode16Inhomogeneous_BCE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </dd></dl>

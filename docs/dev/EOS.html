@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -136,7 +136,7 @@
            <div itemprop="articleBody">
              
   <section id="equation-of-state">
-<h1>Equation of State<a class="headerlink" href="#equation-of-state" title="Permalink to this heading"></a></h1>
+<h1>Equation of State<a class="headerlink" href="#equation-of-state" title="Link to this heading"></a></h1>
 <p>Castro is written in a modular fashion so that the EOS
 can be supplied by the user.   No equations of state
 are distributed with Castro, instead they are part
@@ -150,14 +150,14 @@ use the <code class="docutils literal notranslate"><span class="pre">gamma_law</
 \[p = (\gamma - 1) \rho e.\]</div>
 <p>The gas is currently assumed to be monatomic and ideal.</p>
 <section id="runtime-parameters">
-<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
+<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
 <p>When inverting the EOS (e.g. by using <code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>), an initial guess for
 the temperature is required. This guess is provided by the runtime parameter
 <code class="docutils literal notranslate"><span class="pre">castro.T_guess</span></code>, and should be set to a sensible value for each problem
 (it will vary depending on which EOS is used).</p>
 </section>
 <section id="eos-interfaces-and-parameters">
-<h2>EOS Interfaces and Parameters<a class="headerlink" href="#eos-interfaces-and-parameters" title="Permalink to this heading"></a></h2>
+<h2>EOS Interfaces and Parameters<a class="headerlink" href="#eos-interfaces-and-parameters" title="Link to this heading"></a></h2>
 <p id="index-0">Each EOS should have two main routines by which it interfaces to the
 rest of Castro. At the beginning of the simulation, <code class="docutils literal notranslate"><span class="pre">eos_init</span></code>
 will perform any initialization steps and save EOS variables (mainly
@@ -209,7 +209,7 @@ density suffices if it’s available, but if not then use <code class="docutils 
 <code class="docutils literal notranslate"><span class="pre">small_dens</span></code>.</p>
 </section>
 <section id="required-thermodynamics-quantities">
-<h2>Required Thermodynamics Quantities<a class="headerlink" href="#required-thermodynamics-quantities" title="Permalink to this heading"></a></h2>
+<h2>Required Thermodynamics Quantities<a class="headerlink" href="#required-thermodynamics-quantities" title="Link to this heading"></a></h2>
 <p>Three input quantities are required of any EOS:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
@@ -243,7 +243,7 @@ is held constant here.</p></li>
 variables that are optional output into the plotfiles.</p>
 </section>
 <section id="composition-derivatives">
-<h2>Composition derivatives<a class="headerlink" href="#composition-derivatives" title="Permalink to this heading"></a></h2>
+<h2>Composition derivatives<a class="headerlink" href="#composition-derivatives" title="Link to this heading"></a></h2>
 <p id="index-1">A separate type, <code class="docutils literal notranslate"><span class="pre">eos_xderivs_t</span></code> provides access to derivatives with respect to mass fraction.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs.dhdX[NumSpec]</span></code>: the derivative of the

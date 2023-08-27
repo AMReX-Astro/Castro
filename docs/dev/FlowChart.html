@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -146,9 +146,9 @@
            <div itemprop="articleBody">
              
   <section id="flowchart">
-<span id="sec-flowchart"></span><h1>Flowchart<a class="headerlink" href="#flowchart" title="Permalink to this heading"></a></h1>
+<span id="sec-flowchart"></span><h1>Flowchart<a class="headerlink" href="#flowchart" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>There are several different time-evolution methods currently
 implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
@@ -238,7 +238,7 @@ consistent with the state.</p></li>
 </ul>
 </section>
 <section id="main-driverall-time-integration-methods">
-<span id="flow-sec-nosdc"></span><h2>Main Driver—All Time Integration Methods<a class="headerlink" href="#main-driverall-time-integration-methods" title="Permalink to this heading"></a></h2>
+<span id="flow-sec-nosdc"></span><h2>Main Driver—All Time Integration Methods<a class="headerlink" href="#main-driverall-time-integration-methods" title="Link to this heading"></a></h2>
 <p>This driver supports the Strang CTU integration.
 (<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code> = 0)</p>
 <p>The main evolution for a single step is contained in
@@ -332,7 +332,7 @@ the step.</p></li>
 </ol>
 </section>
 <section id="strang-ctu-evolution">
-<span id="sec-strangctu"></span><h2>Strang+CTU Evolution<a class="headerlink" href="#strang-ctu-evolution" title="Permalink to this heading"></a></h2>
+<span id="sec-strangctu"></span><h2>Strang+CTU Evolution<a class="headerlink" href="#strang-ctu-evolution" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">do_advance_ctu()</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_advance_ctu.cpp</span></code></p>
 <p>This described the flow using Strang splitting and the CTU
 hydrodynamics (or MHD) method, including gravity, rotation, and
@@ -353,7 +353,7 @@ step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:</p>
 <div class="math notranslate nohighlight" id="equation-eq-source-correct">
-<span class="eqno">(1)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation"></a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-source-correct" title="Link to this equation"></a></span>\[\begin{split}\begin{aligned}
 \Ub^\star &amp;= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &amp;= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
@@ -398,7 +398,7 @@ reconstruction will work from.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">new_source</span></code> is a MultiFab reference to the new-time-level <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code> data.</p></li>
 </ul>
 <section id="single-step-flowchart">
-<h3>Single Step Flowchart<a class="headerlink" href="#single-step-flowchart" title="Permalink to this heading"></a></h3>
+<h3>Single Step Flowchart<a class="headerlink" href="#single-step-flowchart" title="Link to this heading"></a></h3>
 <p>In the code, the objective is to evolve the state from the old time,
 <code class="docutils literal notranslate"><span class="pre">S_old</span></code>, to the new time, <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <ol class="arabic">
@@ -595,7 +595,7 @@ the hybrid and linear momenta</p></li>
 <p>A summary of which state is the input and which is updated for each of
 these processes is presented below:</p>
 <table class="docutils align-center" id="id10">
-<caption><span class="caption-number">Table 3 </span><span class="caption-text">update sequence of state arrays for Strang-CTU</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 3 </span><span class="caption-text">update sequence of state arrays for Strang-CTU</span><a class="headerlink" href="#id10" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><em>step</em></p></th>
 <th class="head"><p><code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></th>
@@ -673,7 +673,7 @@ these processes is presented below:</p>
 </section>
 </section>
 <section id="sdc-evolution">
-<span id="sec-flow-true-sdc"></span><h2>SDC Evolution<a class="headerlink" href="#sdc-evolution" title="Permalink to this heading"></a></h2>
+<span id="sec-flow-true-sdc"></span><h2>SDC Evolution<a class="headerlink" href="#sdc-evolution" title="Link to this heading"></a></h2>
 <p>The SDC evolution is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>.  It
 does away with Strang splitting and instead couples the reactions and hydro
 together directly.</p>
@@ -719,7 +719,7 @@ order methods and Simpson’s rule for 4th order methods.  Choosing
 <code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span> <span class="pre">=</span> <span class="pre">1</span></code> uses Radau IIA integration, which includes
 the ending time but not the starting time in the quadrature.</p>
 <table class="docutils align-center" id="id11">
-<caption><span class="caption-number">Table 4 </span><span class="caption-text">SDC quadrature summary</span><a class="headerlink" href="#id11" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">SDC quadrature summary</span><a class="headerlink" href="#id11" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></p></th>
 <th class="head"><p><code class="docutils literal notranslate"><span class="pre">quadrature</span></code></p></th>
@@ -791,7 +791,7 @@ all the time nodes for a single iteration.</p>
 </li>
 </ol>
 <section id="sdc-single-iteration-flowchart">
-<h3>SDC Single Iteration Flowchart<a class="headerlink" href="#sdc-single-iteration-flowchart" title="Permalink to this heading"></a></h3>
+<h3>SDC Single Iteration Flowchart<a class="headerlink" href="#sdc-single-iteration-flowchart" title="Link to this heading"></a></h3>
 <p id="index-6">The update through all time nodes for a single iteration is done by
 <code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code>.  The basic update appears as:</p>
 <p>Throughout this driver we use the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> as
@@ -867,7 +867,7 @@ time node.</p>
 </section>
 </section>
 <section id="simplified-sdc-evolution">
-<h2>Simplified-SDC Evolution<a class="headerlink" href="#simplified-sdc-evolution" title="Permalink to this heading"></a></h2>
+<h2>Simplified-SDC Evolution<a class="headerlink" href="#simplified-sdc-evolution" title="Link to this heading"></a></h2>
 <p>The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>.</p>
@@ -894,7 +894,7 @@ with the Strang CTU version are highlighted below.</p>
 <p>Note that the
 radiation implicit update is not done as part of the Simplified-SDC iterations.</p>
 <section id="simplified-sdc-hydro-advance">
-<h3>Simplified_SDC Hydro Advance<a class="headerlink" href="#simplified-sdc-hydro-advance" title="Permalink to this heading"></a></h3>
+<h3>Simplified_SDC Hydro Advance<a class="headerlink" href="#simplified-sdc-hydro-advance" title="Link to this heading"></a></h3>
 <p>The evolution in <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> is substantially different than the
 Strang case. In particular, reactions are not evolved. Here we
 summarize those differences.</p>

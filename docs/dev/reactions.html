@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -138,7 +138,7 @@
            <div itemprop="articleBody">
              
   <section id="reactions">
-<h1>Reactions<a class="headerlink" href="#reactions" title="Permalink to this heading"></a></h1>
+<h1>Reactions<a class="headerlink" href="#reactions" title="Link to this heading"></a></h1>
 <p id="index-0">The nuclear network serves two purposes: it defines the fluid
 components used in both the equation of state and the hydrodynamics,
 and it evolves those components through a nuclear burning step.  All
@@ -172,7 +172,7 @@ hydrodynamics, selected through the parameter
 <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code>.  See <a class="reference internal" href="FlowChart.html#sec-flowchart"><span class="std std-ref">Flowchart</span></a> for the
 details.</p>
 <section id="controlling-burning">
-<h2>Controlling burning<a class="headerlink" href="#controlling-burning" title="Permalink to this heading"></a></h2>
+<h2>Controlling burning<a class="headerlink" href="#controlling-burning" title="Link to this heading"></a></h2>
 <p id="index-1">There are a number of reactions-related parameters that can be set at runtime
 in the inputs file. Reactions are enabled by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_react</span> <span class="o">=</span> <span class="mi">1</span>
@@ -185,11 +185,11 @@ reactions to occur in a zone using the parameters <code class="docutils literal 
 <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>.</p>
 </section>
 <section id="reactions-flowchart">
-<h2>Reactions Flowchart<a class="headerlink" href="#reactions-flowchart" title="Permalink to this heading"></a></h2>
+<h2>Reactions Flowchart<a class="headerlink" href="#reactions-flowchart" title="Link to this heading"></a></h2>
 <p>Here we describe how the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> is setup before the burn and how we update the
 castro state afterwards for both Strang and simplified-SDC.</p>
 <section id="strang">
-<h3>Strang<a class="headerlink" href="#strang" title="Permalink to this heading"></a></h3>
+<h3>Strang<a class="headerlink" href="#strang" title="Link to this heading"></a></h3>
 <p>In <code class="docutils literal notranslate"><span class="pre">Castro_react.cpp</span></code>, the flow is:</p>
 <ul>
 <li><p>create <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state</span></code></p></li>
@@ -280,7 +280,7 @@ updated here.  They are already the “new” state.</p>
 </ul>
 </section>
 <section id="simplified-sdc">
-<h3>Simplified-SDC<a class="headerlink" href="#simplified-sdc" title="Permalink to this heading"></a></h3>
+<h3>Simplified-SDC<a class="headerlink" href="#simplified-sdc" title="Link to this heading"></a></h3>
 <p>In <code class="docutils literal notranslate"><span class="pre">Castro_react.cpp</span></code>, the flow is:</p>
 <ul>
 <li><p>create <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state</span></code></p></li>

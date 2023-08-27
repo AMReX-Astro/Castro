@@ -13,13 +13,13 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -116,7 +116,98 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Gravity.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Gravity.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410RealVector"><code class="docutils literal notranslate"><span class="pre">RealVector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv418GradPhiPhysBCFunct"><code class="docutils literal notranslate"><span class="pre">GradPhiPhysBCFunct</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv47Gravity"><code class="docutils literal notranslate"><span class="pre">Gravity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi"><code class="docutils literal notranslate"><span class="pre">Gravity::Gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7GravityD0Ev"><code class="docutils literal notranslate"><span class="pre">Gravity::~Gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7GravityERK7Gravity"><code class="docutils literal notranslate"><span class="pre">Gravity::Gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7GravityERR7Gravity"><code class="docutils literal notranslate"><span class="pre">Gravity::Gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7GravityaSERK7Gravity"><code class="docutils literal notranslate"><span class="pre">Gravity::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7GravityaSERR7Gravity"><code class="docutils literal notranslate"><span class="pre">Gravity::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11read_paramsEv"><code class="docutils literal notranslate"><span class="pre">Gravity::read_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity21set_numpts_in_gravityEi"><code class="docutils literal notranslate"><span class="pre">Gravity::set_numpts_in_gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::install_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity15set_mass_offsetEN5amrex4RealEb"><code class="docutils literal notranslate"><span class="pre">Gravity::set_mass_offset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity17get_grad_phi_prevEi"><code class="docutils literal notranslate"><span class="pre">Gravity::get_grad_phi_prev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity17get_grad_phi_currEi"><code class="docutils literal notranslate"><span class="pre">Gravity::get_grad_phi_curr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity22get_grad_phi_prev_compEii"><code class="docutils literal notranslate"><span class="pre">Gravity::get_grad_phi_prev_comp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity18plus_grad_phi_currEiRN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::plus_grad_phi_curr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity14swapTimeLevelsEi"><code class="docutils literal notranslate"><span class="pre">Gravity::swapTimeLevels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity14update_max_rhsEv"><code class="docutils literal notranslate"><span class="pre">Gravity::update_max_rhs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity13solve_for_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEEi"><code class="docutils literal notranslate"><span class="pre">Gravity::solve_for_phi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19solve_for_delta_phiEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::solve_for_delta_phi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::gravity_sync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity28multilevel_solve_for_new_phiEii"><code class="docutils literal notranslate"><span class="pre">Gravity::multilevel_solve_for_new_phi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi"><code class="docutils literal notranslate"><span class="pre">Gravity::actual_multilevel_solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::create_comp_minus_level_grad_phi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity10GetCrsePhiEiRN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Gravity::GetCrsePhi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19get_old_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Gravity::get_old_grav_vector()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19get_new_grav_vectorEiRN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Gravity::get_new_grav_vector()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity24test_level_grad_phi_prevEi"><code class="docutils literal notranslate"><span class="pre">Gravity::test_level_grad_phi_prev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity24test_level_grad_phi_currEi"><code class="docutils literal notranslate"><span class="pre">Gravity::test_level_grad_phi_curr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity18test_composite_phiEi"><code class="docutils literal notranslate"><span class="pre">Gravity::test_composite_phi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity28average_fine_ec_onto_crse_ecEii"><code class="docutils literal notranslate"><span class="pre">Gravity::average_fine_ec_onto_crse_ec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19make_radial_gravityEiN5amrex4RealER10RealVector"><code class="docutils literal notranslate"><span class="pre">Gravity::make_radial_gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity25interpolate_monopole_gravEiR10RealVectorRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::interpolate_monopole_grav()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorR10RealVectorii"><code class="docutils literal notranslate"><span class="pre">Gravity::compute_radial_mass()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::fill_multipole_BCs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19init_multipole_gravEv"><code class="docutils literal notranslate"><span class="pre">Gravity::init_multipole_grav()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::fill_direct_sum_BCs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">Gravity::make_mg_bc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::applyMetricTerms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::unweight_cc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">Gravity::unweight_edges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity24add_pointmass_to_gravityEiRN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Gravity::add_pointmass_to_gravity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7get_rhsEiii"><code class="docutils literal notranslate"><span class="pre">Gravity::get_rhs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity12sanity_checkEi"><code class="docutils literal notranslate"><span class="pre">Gravity::sanity_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Gravity::actual_solve_with_mlmg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Gravity::solve_phi_with_mlmg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity6parentE"><code class="docutils literal notranslate"><span class="pre">Gravity::parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity9LevelDataE"><code class="docutils literal notranslate"><span class="pre">Gravity::LevelData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity13grad_phi_currE"><code class="docutils literal notranslate"><span class="pre">Gravity::grad_phi_curr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity13grad_phi_prevE"><code class="docutils literal notranslate"><span class="pre">Gravity::grad_phi_prev</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity5gridsE"><code class="docutils literal notranslate"><span class="pre">Gravity::grids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity4dmapE"><code class="docutils literal notranslate"><span class="pre">Gravity::dmap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7abs_tolE"><code class="docutils literal notranslate"><span class="pre">Gravity::abs_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7rel_tolE"><code class="docutils literal notranslate"><span class="pre">Gravity::rel_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity20level_solver_resnormE"><code class="docutils literal notranslate"><span class="pre">Gravity::level_solver_resnorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7max_rhsE"><code class="docutils literal notranslate"><span class="pre">Gravity::max_rhs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity6volumeE"><code class="docutils literal notranslate"><span class="pre">Gravity::volume</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity4areaE"><code class="docutils literal notranslate"><span class="pre">Gravity::area</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7DensityE"><code class="docutils literal notranslate"><span class="pre">Gravity::Density</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity12finest_levelE"><code class="docutils literal notranslate"><span class="pre">Gravity::finest_level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity22finest_level_allocatedE"><code class="docutils literal notranslate"><span class="pre">Gravity::finest_level_allocated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7phys_bcE"><code class="docutils literal notranslate"><span class="pre">Gravity::phys_bc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity9mlmg_lobcE"><code class="docutils literal notranslate"><span class="pre">Gravity::mlmg_lobc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity9mlmg_hibcE"><code class="docutils literal notranslate"><span class="pre">Gravity::mlmg_hibc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity15numpts_at_levelE"><code class="docutils literal notranslate"><span class="pre">Gravity::numpts_at_level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity15radial_grav_oldE"><code class="docutils literal notranslate"><span class="pre">Gravity::radial_grav_old</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity15radial_grav_newE"><code class="docutils literal notranslate"><span class="pre">Gravity::radial_grav_new</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11radial_massE"><code class="docutils literal notranslate"><span class="pre">Gravity::radial_mass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity10radial_volE"><code class="docutils literal notranslate"><span class="pre">Gravity::radial_vol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11radial_presE"><code class="docutils literal notranslate"><span class="pre">Gravity::radial_pres</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity22output_job_info_paramsERNSt7ostreamE"><code class="docutils literal notranslate"><span class="pre">Gravity::output_job_info_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity16get_gravity_typeEv"><code class="docutils literal notranslate"><span class="pre">Gravity::get_gravity_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19get_max_solve_levelEv"><code class="docutils literal notranslate"><span class="pre">Gravity::get_max_solve_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity6NoSyncEv"><code class="docutils literal notranslate"><span class="pre">Gravity::NoSync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity21DoCompositeCorrectionEv"><code class="docutils literal notranslate"><span class="pre">Gravity::DoCompositeCorrection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity22test_results_of_solvesEv"><code class="docutils literal notranslate"><span class="pre">Gravity::test_results_of_solves()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"><code class="docutils literal notranslate"><span class="pre">Gravity::test_residual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity14get_const_gravEv"><code class="docutils literal notranslate"><span class="pre">Gravity::get_const_grav()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11test_solvesE"><code class="docutils literal notranslate"><span class="pre">Gravity::test_solves</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity11mass_offsetE"><code class="docutils literal notranslate"><span class="pre">Gravity::mass_offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity12stencil_typeE"><code class="docutils literal notranslate"><span class="pre">Gravity::stencil_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity24max_radius_all_in_domainE"><code class="docutils literal notranslate"><span class="pre">Gravity::max_radius_all_in_domain</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49multipole"><code class="docutils literal notranslate"><span class="pre">multipole</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9multipole8lnum_maxE"><code class="docutils literal notranslate"><span class="pre">multipole::lnum_max</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
@@ -208,12 +299,12 @@
            <div itemprop="articleBody">
              
   <section id="file-gravity-h">
-<h1>File Gravity.H<a class="headerlink" href="#file-gravity-h" title="Permalink to this heading"></a></h1>
+<h1>File Gravity.H<a class="headerlink" href="#file-gravity-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-typedefs">Typedefs</p>
 <dl class="cpp type">
 <dt class="sig sig-object cpp" id="_CPPv410RealVector">
-<span id="_CPPv310RealVector"></span><span id="_CPPv210RealVector"></span><span class="target" id="Gravity_8H_1aaf97af07ebc7e4ff37321a935bb572a9"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RealVector</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Gpu</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ManagedVector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv410RealVector" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv310RealVector"></span><span id="_CPPv210RealVector"></span><span class="target" id="Gravity_8H_1aaf97af07ebc7e4ff37321a935bb572a9"></span><span class="k"><span class="pre">using</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RealVector</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Gpu</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ManagedVector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv410RealVector" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp type">
@@ -1009,13 +1100,13 @@
 
 <dl class="cpp type">
 <dt class="sig sig-object cpp" id="_CPPv49multipole">
-<span id="_CPPv39multipole"></span><span id="_CPPv29multipole"></span><span id="multipole"></span><span class="target" id="namespacemultipole"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">multipole</span></span></span><a class="headerlink" href="#_CPPv49multipole" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv39multipole"></span><span id="_CPPv29multipole"></span><span id="multipole"></span><span class="target" id="namespacemultipole"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">multipole</span></span></span><a class="headerlink" href="#_CPPv49multipole" title="Link to this definition"></a><br /></dt>
 <dd><p>Multipole gravity data </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9multipole8lnum_maxE">
-<span id="_CPPv3N9multipole8lnum_maxE"></span><span id="_CPPv2N9multipole8lnum_maxE"></span><span id="multipole::lnum_max__iC"></span><span class="target" id="namespacemultipole_1ab3813a07e17ce4054dfb7aa9555662d8"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lnum_max</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">30</span></span><a class="headerlink" href="#_CPPv4N9multipole8lnum_maxE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N9multipole8lnum_maxE"></span><span id="_CPPv2N9multipole8lnum_maxE"></span><span id="multipole::lnum_max__iC"></span><span class="target" id="namespacemultipole_1ab3813a07e17ce4054dfb7aa9555662d8"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lnum_max</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">30</span></span><a class="headerlink" href="#_CPPv4N9multipole8lnum_maxE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">

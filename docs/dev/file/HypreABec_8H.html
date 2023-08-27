@@ -13,13 +13,13 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -117,7 +117,60 @@
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File HypreABec.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File HypreABec.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49HypreABec"><code class="docutils literal notranslate"><span class="pre">HypreABec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::HypreABec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABecD0Ev"><code class="docutils literal notranslate"><span class="pre">HypreABec::~HypreABec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec10setVerboseEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::setVerbose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec10setScalarsEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">HypreABec::setScalars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK9HypreABec8getAlphaEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::getAlpha()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK9HypreABec7getBetaEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::getBeta()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec13aCoefficientsERKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">HypreABec::aCoefficients()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::bCoefficients()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec7SPalphaERKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">HypreABec::SPalpha()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec13aCoefficientsEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::aCoefficients()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec13bCoefficientsEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::bCoefficients()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec8setBndryERK7NGBndryi"><code class="docutils literal notranslate"><span class="pre">HypreABec::setBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec8getBndryEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::getBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec12boundaryFluxEPN5amrex8MultiFabERN5amrex8MultiFabEi7BC_Mode"><code class="docutils literal notranslate"><span class="pre">HypreABec::boundaryFlux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6hacoefERKN5amrex3BoxERKN5amrex6Array4IN5amrex8GpuArrayIN5amrex4RealEXpl14AMREX_SPACEDIML1EEEEEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hacoef()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6hbcoefERKN5amrex3BoxERKN5amrex6Array4IN5amrex8GpuArrayIN5amrex4RealEXpl14AMREX_SPACEDIML1EEEEEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealEPKN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::hbcoef()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec5hbmatERKN5amrex3BoxERKN5amrex6Array4IN5amrex8GpuArrayIN5amrex4RealEXpl14AMREX_SPACEDIML1EEEEEEiiN5amrex4RealERKN5amrex6Array4IKiEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealEPKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hbmat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6hbmat3ERKN5amrex3BoxEiiRKN5amrex6Array4IN5amrex8GpuArrayIN5amrex4RealEXpl14AMREX_SPACEDIML1EEEEEEiiRKN5amrex6Array4IKiEEN5amrex4RealERKN5amrex6Array4IKiEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealERKN5amrex12GeometryDataEN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hbmat3()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec11setupSolverEN5amrex4RealEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">HypreABec::setupSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec5solveERN5amrex8MultiFabEiRN5amrex8MultiFabE7BC_Mode"><code class="docutils literal notranslate"><span class="pre">HypreABec::solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec19getAbsoluteResidualEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::getAbsoluteResidual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec11clearSolverEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::clearSolver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec10fluxFactorEv"><code class="docutils literal notranslate"><span class="pre">HypreABec::fluxFactor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">HypreABec::getFaceMetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec5hbvecERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEEiiiN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKiEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealEPKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hbvec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6hbvec3ERKN5amrex3BoxEiiRKN5amrex6Array4IN5amrex4RealEEEiiRKN5amrex6Array4IKiEEiN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKiEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealERKN5amrex12GeometryDataE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hbvec3()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec4geomE"><code class="docutils literal notranslate"><span class="pre">HypreABec::geom</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6acoefsE"><code class="docutils literal notranslate"><span class="pre">HypreABec::acoefs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec5alphaE"><code class="docutils literal notranslate"><span class="pre">HypreABec::alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec4betaE"><code class="docutils literal notranslate"><span class="pre">HypreABec::beta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6reltolE"><code class="docutils literal notranslate"><span class="pre">HypreABec::reltol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6abstolE"><code class="docutils literal notranslate"><span class="pre">HypreABec::abstol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec3SPaE"><code class="docutils literal notranslate"><span class="pre">HypreABec::SPa</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec3bdpE"><code class="docutils literal notranslate"><span class="pre">HypreABec::bdp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6bdcompE"><code class="docutils literal notranslate"><span class="pre">HypreABec::bdcomp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec11solver_flagE"><code class="docutils literal notranslate"><span class="pre">HypreABec::solver_flag</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec7verboseE"><code class="docutils literal notranslate"><span class="pre">HypreABec::verbose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec17verbose_thresholdE"><code class="docutils literal notranslate"><span class="pre">HypreABec::verbose_threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec15pfmg_relax_typeE"><code class="docutils literal notranslate"><span class="pre">HypreABec::pfmg_relax_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec3bhoE"><code class="docutils literal notranslate"><span class="pre">HypreABec::bho</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec5hgridE"><code class="docutils literal notranslate"><span class="pre">HypreABec::hgrid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec1AE"><code class="docutils literal notranslate"><span class="pre">HypreABec::A</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec2A0E"><code class="docutils literal notranslate"><span class="pre">HypreABec::A0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec1bE"><code class="docutils literal notranslate"><span class="pre">HypreABec::b</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec1xE"><code class="docutils literal notranslate"><span class="pre">HypreABec::x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec6solverE"><code class="docutils literal notranslate"><span class="pre">HypreABec::solver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec7precondE"><code class="docutils literal notranslate"><span class="pre">HypreABec::precond</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9HypreABec11flux_factorE"><code class="docutils literal notranslate"><span class="pre">HypreABec::flux_factor</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
@@ -206,7 +259,7 @@
            <div itemprop="articleBody">
              
   <section id="file-hypreabec-h">
-<h1>File HypreABec.H<a class="headerlink" href="#file-hypreabec-h" title="Permalink to this heading"></a></h1>
+<h1>File HypreABec.H<a class="headerlink" href="#file-hypreabec-h" title="Link to this heading"></a></h1>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv49HypreABec">
 <span id="_CPPv39HypreABec"></span><span id="_CPPv29HypreABec"></span><span id="HypreABec"></span><span class="target" id="classHypreABec"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HypreABec</span></span></span><br /></dt>
