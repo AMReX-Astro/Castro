@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -154,9 +154,9 @@
            <div itemprop="articleBody">
              
   <section id="hydrodynamics">
-<span id="ch-hydro"></span><h1>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Permalink to this heading"></a></h1>
+<span id="ch-hydro"></span><h1>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>The hydrodynamics scheme in Castro implements an unsplit
 second-order Godunov method. Characteristic tracing is used to
 time-center the input states to the Riemann solver. The same
@@ -184,7 +184,7 @@ this as the “gas”.</p>
 </ul>
 </section>
 <section id="hydrodynamics-data-structures">
-<h2>Hydrodynamics Data Structures<a class="headerlink" href="#hydrodynamics-data-structures" title="Permalink to this heading"></a></h2>
+<h2>Hydrodynamics Data Structures<a class="headerlink" href="#hydrodynamics-data-structures" title="Link to this heading"></a></h2>
 <p>Within the routines that implement the hydrodynamics, there are
 several main data structures that hold the state.</p>
 <ul>
@@ -193,7 +193,7 @@ e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></c
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 6</span></a>.</p>
 <span id="table-consints"></span><table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 6 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -286,7 +286,7 @@ present in <code class="docutils literal notranslate"><span class="pre">NQSRC</s
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-primlist"></span><table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 7 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 7 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -364,7 +364,7 @@ by the integer keys listed in <a class="reference internal" href="#table-qauxlis
 Note, unless otherwise specified the quantities without a subscript are “gas”
 only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-qauxlist"></span><table class="docutils align-default" id="id21">
-<caption><span class="caption-number">Table 8 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 8 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -419,7 +419,7 @@ the integer keys defined in <a class="reference internal" href="#table-gdlist"><
 Note, unless otherwise specified the quantities without a subscript are
 “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-gdlist"></span><table class="docutils align-default" id="id22">
-<caption><span class="caption-number">Table 9 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 9 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -477,7 +477,7 @@ defined)</p></td>
 </ul>
 </section>
 <section id="conservation-forms">
-<h2>Conservation Forms<a class="headerlink" href="#conservation-forms" title="Permalink to this heading"></a></h2>
+<h2>Conservation Forms<a class="headerlink" href="#conservation-forms" title="Link to this heading"></a></h2>
 <p>We begin with the fully compressible equations for the conserved state vector,
 <span class="math notranslate nohighlight">\(\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):\)</span></p>
 <div class="math notranslate nohighlight">
@@ -529,7 +529,7 @@ network.</p></li>
 </ul>
 </section>
 <section id="source-terms">
-<h2>Source Terms<a class="headerlink" href="#source-terms" title="Permalink to this heading"></a></h2>
+<h2>Source Terms<a class="headerlink" href="#source-terms" title="Link to this heading"></a></h2>
 <p>We now compute explicit source terms for each variable in <span class="math notranslate nohighlight">\(\Qb\)</span> and
 <span class="math notranslate nohighlight">\(\Ub\)</span>. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
@@ -575,7 +575,7 @@ S_{{\rm ext},\rho Y_k}
 \end{array}\right)^n.\end{split}\]</div>
 </section>
 <section id="primitive-forms">
-<h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Permalink to this heading"></a></h2>
+<h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Link to this heading"></a></h2>
 <p>Castro uses the primitive form of the fluid equations, defined in terms of
 the state <span class="math notranslate nohighlight">\(\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)\)</span>, to construct the
 interface states that are input to the Riemann problem.</p>
@@ -607,7 +607,7 @@ vector, as described in Section <a class="reference external" href="#Sec:Compute
 When accessing the primitive variable state vector, the integer variable
 keys for the different quantities are listed in <a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 7</span></a>.</p>
 <section id="internal-energy-and-temperature">
-<h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Permalink to this heading"></a></h3>
+<h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Link to this heading"></a></h3>
 <p>We augment the above system with an internal energy equation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
@@ -659,7 +659,7 @@ intrinsic to the shock-capturing part of the scheme.</p>
 <p>In the code we also carry around <span class="math notranslate nohighlight">\(T\)</span> in the primitive state vector.</p>
 </section>
 <section id="primitive-variable-system">
-<h3>Primitive Variable System<a class="headerlink" href="#primitive-variable-system" title="Permalink to this heading"></a></h3>
+<h3>Primitive Variable System<a class="headerlink" href="#primitive-variable-system" title="Link to this heading"></a></h3>
 <p>The full primitive variable form (without the advected or auxiliary
 quantities) is</p>
 <div class="math notranslate nohighlight">
@@ -758,7 +758,7 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 </section>
 </section>
 <section id="hydrodynamics-update">
-<span id="sec-advection-step"></span><h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this heading"></a></h2>
+<span id="sec-advection-step"></span><h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Link to this heading"></a></h2>
 <p>There are four major steps in the hydrodynamics update:</p>
 <ol class="arabic simple">
 <li><p>Converting to primitive variables</p></li>
@@ -789,7 +789,7 @@ behavior:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.small_pres</span></code>: (Real; default: -1.e20)</p></li>
 </ul>
 <section id="compute-primitive-variables">
-<span id="sec-compute-primitive-variables"></span><h3>Compute Primitive Variables<a class="headerlink" href="#compute-primitive-variables" title="Permalink to this heading"></a></h3>
+<span id="sec-compute-primitive-variables"></span><h3>Compute Primitive Variables<a class="headerlink" href="#compute-primitive-variables" title="Link to this heading"></a></h3>
 <p>We compute the primtive variables from the conserved variables.</p>
 <ul>
 <li><p><span class="math notranslate nohighlight">\(\rho, \rho e\)</span>: directly copy these from the conserved state
@@ -844,7 +844,7 @@ near shocks (0 or 1; default 1)</p></li>
 </ul>
 </section>
 <section id="edge-state-prediction">
-<h3>Edge State Prediction<a class="headerlink" href="#edge-state-prediction" title="Permalink to this heading"></a></h3>
+<h3>Edge State Prediction<a class="headerlink" href="#edge-state-prediction" title="Link to this heading"></a></h3>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
@@ -978,7 +978,7 @@ the following test. If <span class="math notranslate nohighlight">\(s\delta s - 
 <li><p><strong>Step 2</strong>: Construct a quadratic profile using <span class="math notranslate nohighlight">\(s_{i,-},s_i\)</span>,
 and <span class="math notranslate nohighlight">\(s_{i,+}\)</span>.</p>
 <div class="math notranslate nohighlight" id="equation-quadratic-interp">
-<span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Permalink to this equation"></a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
+<span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Link to this equation"></a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
 <div class="math notranslate nohighlight">
 \[s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),\]</div>
 <div class="math notranslate nohighlight">
@@ -1056,7 +1056,7 @@ its transverse update.</p></li>
 </ul>
 </section>
 <section id="riemann-problem">
-<h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this heading"></a></h3>
+<h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Link to this heading"></a></h3>
 <p>Castro has three main options for the Riemann solver—the
 Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">27</a>]</span> (the same solver used
 by Flash), a simpler solver described in an unpublished
@@ -1192,7 +1192,7 @@ problem). Note, this cannot be used with the HLLC solver.</p>
 </ul>
 </section>
 <section id="compute-fluxes-and-update">
-<h3>Compute Fluxes and Update<a class="headerlink" href="#compute-fluxes-and-update" title="Permalink to this heading"></a></h3>
+<h3>Compute Fluxes and Update<a class="headerlink" href="#compute-fluxes-and-update" title="Link to this heading"></a></h3>
 <p>Compute the fluxes as a function of the primitive variables, and then
 advance the solution:</p>
 <div class="math notranslate nohighlight">
@@ -1203,7 +1203,7 @@ solution, effectively time-centering the source term.</p>
 </section>
 </section>
 <section id="temperature-fixes">
-<span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Permalink to this heading"></a></h2>
+<span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Link to this heading"></a></h2>
 <p id="index-4">There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
 prediction. The options are controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code>,
@@ -1232,9 +1232,9 @@ from this.</p></li>
 </div></blockquote>
 </section>
 <section id="resets">
-<h2>Resets<a class="headerlink" href="#resets" title="Permalink to this heading"></a></h2>
+<h2>Resets<a class="headerlink" href="#resets" title="Link to this heading"></a></h2>
 <section id="flux-limiting">
-<span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Permalink to this heading"></a></h3>
+<span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Link to this heading"></a></h3>
 <p id="index-5">Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
@@ -1283,7 +1283,7 @@ found in <span id="id15">[<a class="reference internal" href="zreferences.html#i
 </section>
 </section>
 <section id="hybrid-momentum">
-<h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this heading"></a></h2>
+<h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Link to this heading"></a></h2>
 <p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">24</a>]</span>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
@@ -1300,7 +1300,7 @@ momentum, as shown below:</p>
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
-<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Permalink to this image"></a></p>
+<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
@@ -1310,7 +1310,7 @@ spreads out into a disk:</p>
 <figcaption>
 <p><span class="caption-number">Fig. 3 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
-has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Permalink to this image"></a></p>
+has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The hybrid momentum algorithm is enabled by setting:</p>
@@ -1324,7 +1324,7 @@ has become disrupted into a disk.</span><a class="headerlink" href="#id24" title
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
 zones.  With this angular-momentum preserving scheme we see that
-the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Permalink to this image"></a></p>
+the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>

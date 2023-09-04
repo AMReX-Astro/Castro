@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -136,7 +136,7 @@
            <div itemprop="articleBody">
              
   <section id="thermal-diffusion">
-<span id="ch-diffusion"></span><h1>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Permalink to this heading"></a></h1>
+<span id="ch-diffusion"></span><h1>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Link to this heading"></a></h1>
 <p>Castro incorporates explicit thermal diffusion into the energy equation.
 In terms of the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>, this appears as:</p>
 <div class="math notranslate nohighlight">
@@ -154,7 +154,7 @@ In terms of the specific internal energy, <span class="math notranslate nohighli
 source term. This is time-centered to achieve second-order accuracy
 in time.</p>
 <section id="timestep-limiter">
-<h2>Timestep Limiter<a class="headerlink" href="#timestep-limiter" title="Permalink to this heading"></a></h2>
+<h2>Timestep Limiter<a class="headerlink" href="#timestep-limiter" title="Link to this heading"></a></h2>
 <p>Castro integrates diffusion explicitly in time&amp;mdash;this means that
 there is a diffusion timestep limiter.</p>
 <p>To see the similarity to the thermal diffusion equation, consider the
@@ -171,7 +171,7 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 <p>This is implemented in <code class="docutils literal notranslate"><span class="pre">estdt_temp_diffusion</span></code>.</p>
 </section>
 <section id="runtime-parameters">
-<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
+<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
 <p>The following parameter affects diffusion:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</p>
@@ -201,7 +201,7 @@ code by linearly scaling the conductivity to zero between these limits, e.g.,</p
 \[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
 </section>
 <section id="conductivities">
-<h2>Conductivities<a class="headerlink" href="#conductivities" title="Permalink to this heading"></a></h2>
+<h2>Conductivities<a class="headerlink" href="#conductivities" title="Link to this heading"></a></h2>
 <p>To complete the setup, a thermal conductivity must be specified. These
 are supplied by Microphysics, and use an interface similar to the
 equation of state interface.</p>
@@ -244,7 +244,7 @@ appropriate for stellar interiors described in <span id="id1">[<a class="referen
 </ul>
 </section>
 <section id="unit-tests">
-<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
+<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading"></a></h2>
 <p>A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as <code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>.</p>
 </section>

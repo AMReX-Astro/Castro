@@ -13,13 +13,13 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -113,7 +113,34 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Diffusion.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Diffusion.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49Diffusion"><code class="docutils literal notranslate"><span class="pre">Diffusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9DiffusionEPN5amrex3AmrEPN5amrex5BCRecE"><code class="docutils literal notranslate"><span class="pre">Diffusion::Diffusion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9DiffusionD0Ev"><code class="docutils literal notranslate"><span class="pre">Diffusion::~Diffusion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9DiffusionERK9Diffusion"><code class="docutils literal notranslate"><span class="pre">Diffusion::Diffusion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9DiffusionERR9Diffusion"><code class="docutils literal notranslate"><span class="pre">Diffusion::Diffusion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9DiffusionaSERK9Diffusion"><code class="docutils literal notranslate"><span class="pre">Diffusion::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9DiffusionaSERR9Diffusion"><code class="docutils literal notranslate"><span class="pre">Diffusion::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion11read_paramsEv"><code class="docutils literal notranslate"><span class="pre">Diffusion::read_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion22output_job_info_paramsERNSt7ostreamE"><code class="docutils literal notranslate"><span class="pre">Diffusion::output_job_info_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Diffusion::install_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">Diffusion::applyop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">Diffusion::make_mg_bc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9weight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Diffusion::weight_cc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Diffusion::unweight_cc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">Diffusion::applyop_mlmg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion6parentE"><code class="docutils literal notranslate"><span class="pre">Diffusion::parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9LevelDataE"><code class="docutils literal notranslate"><span class="pre">Diffusion::LevelData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion5gridsE"><code class="docutils literal notranslate"><span class="pre">Diffusion::grids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion6volumeE"><code class="docutils literal notranslate"><span class="pre">Diffusion::volume</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion4areaE"><code class="docutils literal notranslate"><span class="pre">Diffusion::area</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion7phys_bcE"><code class="docutils literal notranslate"><span class="pre">Diffusion::phys_bc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9mlmg_lobcE"><code class="docutils literal notranslate"><span class="pre">Diffusion::mlmg_lobc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9mlmg_hibcE"><code class="docutils literal notranslate"><span class="pre">Diffusion::mlmg_hibc</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
@@ -206,7 +233,7 @@
            <div itemprop="articleBody">
              
   <section id="file-diffusion-h">
-<h1>File Diffusion.H<a class="headerlink" href="#file-diffusion-h" title="Permalink to this heading"></a></h1>
+<h1>File Diffusion.H<a class="headerlink" href="#file-diffusion-h" title="Link to this heading"></a></h1>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv49Diffusion">
 <span id="_CPPv39Diffusion"></span><span id="_CPPv29Diffusion"></span><span id="Diffusion"></span><span class="target" id="classDiffusion"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Diffusion</span></span></span><br /></dt>

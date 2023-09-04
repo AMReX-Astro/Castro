@@ -13,13 +13,13 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -135,7 +135,7 @@
            <div itemprop="articleBody">
              
   <section id="setting-up-your-own-problem">
-<h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this heading"></a></h1>
+<h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Link to this heading"></a></h1>
 <p>Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, …).  These groups are
 sub-directories under the <code class="docutils literal notranslate"><span class="pre">Castro/Exec/</span></code> directory.  Each problem is
@@ -165,7 +165,7 @@ AMReX’s behavior.</p></li>
 <p>The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.</p>
 <section id="runtime-parameters">
-<span id="index-0"></span><h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
+<span id="index-0"></span><h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
 <p>The problem-specific runtime parameters are defined in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.
 This has the form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>name       datatype    default      namelist?     size
@@ -194,7 +194,7 @@ added.</p></li>
 <p>The variables will all be initialized for the GPU as well.</p>
 </section>
 <section id="problem-initialization">
-<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this heading"></a></h2>
+<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Link to this heading"></a></h2>
 <p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
 <li><p><code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code></p>
@@ -232,7 +232,7 @@ The arguments passed are:</p>
 </ul>
 </section>
 <section id="boundary-conditions">
-<span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading"></a></h2>
+<span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading"></a></h2>
 <p id="index-2">Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
 hydrostatic boundary condition that can be used for the lower boundary.  It
@@ -283,7 +283,7 @@ problem setup needs to fill the <code class="docutils literal notranslate"><span
 <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/Castro_bc_fill_nd.cpp</span></code>.</p>
 </section>
 <section id="optional-files">
-<h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this heading"></a></h2>
+<h2>Optional Files<a class="headerlink" href="#optional-files" title="Link to this heading"></a></h2>
 <p>The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.</p>
 <ul>
@@ -330,7 +330,7 @@ the grid.</p>
 </ul>
 </section>
 <section id="model-parser">
-<h2>Model Parser<a class="headerlink" href="#model-parser" title="Permalink to this heading"></a></h2>
+<h2>Model Parser<a class="headerlink" href="#model-parser" title="Link to this heading"></a></h2>
 <p>Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The <code class="docutils literal notranslate"><span class="pre">model_parser.H</span></code> provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add:</p>
