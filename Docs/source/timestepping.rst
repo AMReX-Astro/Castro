@@ -205,7 +205,7 @@ which will subcycle twice at every level (except level 0).
 Retry Mechanism
 ---------------
 
-.. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.retry_small_density_cutoff, castro.small_dens
+.. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.retry_small_density_cutoff, castro.small_dens
 
 Castro's Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
@@ -241,5 +241,5 @@ A retry can be triggered by a number of conditions:
 
     By construction, the integration routines in Microphysics will not
     abort if the integration fails, but instead return control to the
-    calling function and set ``burn_t burn_state.success=false`.  This
+    calling function and set ``burn_t burn_state.success=false``.  This
     allows Castro to handle the failure.
