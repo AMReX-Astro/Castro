@@ -67,7 +67,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
         state(i,j,k,UTEMP) *= amrex::RandomNormal(1.0, 0.001);
         eos_state.T = state(i,j,k,UTEMP);
-        std::cout << eos_state.T << std::endl;
 
         // recompute the density with this new temperature
 
