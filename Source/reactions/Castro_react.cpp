@@ -2,7 +2,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <advection_util.H>
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
 #include <model_parser.H>
 #endif
 
@@ -204,7 +204,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
         const auto problo = geom.ProbLoArray();
 #endif
 
@@ -262,7 +262,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.T_fixed = -1.e30_rt;
 
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
 
@@ -604,7 +604,7 @@ Castro::react_state(Real time, Real dt)
 
             burn_state.T_fixed = -1.e30_rt;
 
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
 
