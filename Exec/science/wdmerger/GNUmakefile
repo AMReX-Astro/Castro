@@ -14,7 +14,7 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
 # define the location of the CASTRO top directory
