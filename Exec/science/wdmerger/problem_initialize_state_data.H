@@ -110,7 +110,7 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
-#ifdef NAUX_NET > 0
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; ++n) {
         state(i,j,k,UFX+n) = zone_state.rho * zone_state.aux[n];
     }
