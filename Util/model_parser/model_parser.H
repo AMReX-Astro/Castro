@@ -293,6 +293,9 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = model.state(0, model::ispec + n);
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(eos_state);
+#endif
 
         eos(eos_input_rt, eos_state);
 
@@ -346,6 +349,9 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
                     eos_state.xn[n] = model.state(i, model::ispec + n);
                 }
             }
+#ifdef AUX_THERMO
+            set_aux_comp_from_X(eos_state);
+#endif
 
             Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
 

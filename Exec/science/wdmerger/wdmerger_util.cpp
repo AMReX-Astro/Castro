@@ -378,6 +378,9 @@ void set_small ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
+#endif
 
     eos(eos_input_rt, eos_state);
 
@@ -536,10 +539,8 @@ void binary_setup ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; ++n) {
-        eos_state.aux[n] = ambient::ambient_state[UFX+n] / ambient::ambient_state[URHO];
-    }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
 #endif
 
     eos(eos_input_rt, eos_state);
