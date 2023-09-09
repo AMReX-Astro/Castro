@@ -70,7 +70,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-    // add a perturbation
+    // add a perturbation at the north pole
 
     Real t0 = state(i,j,k,UTEMP);
 
@@ -95,6 +95,36 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::pert_temp_factor *
                                (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
 
+
+#if AMREX_SPACEDIM == 3
+    // optional second perturbation
+
+    if (problem::second_pert_angle > 0) {
+
+        Real angle_rad = problem::second_pert_angle * M_PI / 180.0_rt;
+
+        Real second_pert_center = problem::second_R_pert + problem::R_He_base;
+
+        // these are measured with respect to the center
+
+        Real x_pert = second_pert_center * std::sin(angle_rad);
+        Real y_pert = 0.0_rt;
+        Real z_pert = second_pert_center * std::cos(angle_rad);
+
+        Real dx_pert = x - x_pert;
+        Real dy_pert = y - y_pert;
+        Real dz_pert = z - z_pert;
+
+        Real r2 = std::sqrt(dx_pert * dx_pert + dy_pert * dy_pert + dz_pert * dz_pert) /
+            (2.5e6_rt * problem::second_pert_rad_factor);
+
+        // we are assuming here that the 2 perturbations don't overlap
+
+        state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::second_pert_temp_factor *
+                                   (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r2))));
+
+    }
+#endif
 
     burn_state.rho = state(i,j,k,URHO);
     burn_state.T = state(i,j,k,UTEMP);
