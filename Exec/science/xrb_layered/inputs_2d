@@ -70,7 +70,7 @@ amr.plot_int        = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
-problem.model_name =  "toy_atm_3cm.hse"
+problem.model_name =  "toy_atm_hot_castro_3cm.hse"
 
 problem.apply_perturbation = 1
 

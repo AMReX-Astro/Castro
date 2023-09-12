@@ -34,8 +34,16 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
-    for (int n = 0; n < NumSpec; n++) {
+
+    Real sumX{0.0};
+    for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
+        sumX += state(i,j,k,UFS+n);
+    }
+
+    // make sure the species sum to 1
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) /= sumX;
     }
 
     eos_t eos_state;
@@ -54,35 +62,39 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
+
     // Initial velocities = 0
     state(i,j,k,UMX) = 0.0_rt;
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-    //  Now add the temperature
+    //  Now add the temperature perturbation
 
     if (problem::apply_perturbation) {
 
-        // mean of 1, std dev of 1.e-3
+        if (state(i,j,k,URHO) > problem::pert_density) {
 
-        state(i,j,k,UTEMP) *= amrex::RandomNormal(1.0, 0.001);
-        eos_state.T = state(i,j,k,UTEMP);
+            // mean of 1, std dev of 1.e-3
 
-        // recompute the density with this new temperature
+            state(i,j,k,UTEMP) *= amrex::RandomNormal(1.0, 0.001);
+            eos_state.T = state(i,j,k,UTEMP);
 
-        eos(eos_input_tp, eos_state);
+            // recompute the density with this new temperature
 
-        state(i,j,k,URHO) = eos_state.rho;
+            eos(eos_input_tp, eos_state);
 
-        state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
-        state(i,j,k,UEDEN) = eos_state.rho * eos_state.e;
+            state(i,j,k,URHO) = eos_state.rho;
 
-        // need to recompute partial densities since we've updated rho
+            state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+            state(i,j,k,UEDEN) = eos_state.rho * eos_state.e;
 
-        for (int n = 0; n < NumSpec; n++) {
-            state(i,j,k,UFS+n) = state(i,j,k,URHO) * eos_state.xn[n];
+            // need to recompute partial densities since we've updated rho
+
+            for (int n = 0; n < NumSpec; n++) {
+                state(i,j,k,UFS+n) = state(i,j,k,URHO) * eos_state.xn[n];
+            }
+
         }
-
     }
 
 }

@@ -6,3 +6,4 @@ model_name            character      ""            y
 
 apply_perturbation    integer        1             y
 
+pert_density          real           1.0           y
