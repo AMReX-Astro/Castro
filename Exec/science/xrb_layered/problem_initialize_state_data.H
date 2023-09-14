@@ -32,6 +32,8 @@ void problem_initialize_state_data (int i, int j, int k,
     Real height = z;
 #endif
 
+    height += problem::model_shift;
+
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
 
