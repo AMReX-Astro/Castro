@@ -1105,12 +1105,21 @@ Castro::initData ()
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+          amrex::ParallelForRNG(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
+          {
+              // problem initialization
+              problem_initialize_state_data(i, j, k, s, geomdata, engine);
+          });
+#else
           amrex::ParallelFor(box,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               // problem initialization
               problem_initialize_state_data(i, j, k, s, geomdata);
           });
+#endif
        }
 
 

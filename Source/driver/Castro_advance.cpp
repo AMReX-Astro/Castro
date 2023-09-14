@@ -428,6 +428,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+                amrex::Error("drive initial convection not yet supported for random initialization");
+#else
                 amrex::ParallelFor(box,
                 [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
@@ -449,6 +452,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                         (vx_orig * vx_orig + vy_orig * vy_orig + vz_orig * vz_orig);
 
                 });
+#endif
+
             }
 
         }
