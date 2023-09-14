@@ -8,7 +8,8 @@
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
-                                    const GeometryData& geomdata)
+                                    const GeometryData& geomdata,
+                                    amrex::RandomEngine const& engine)
 {
 
     const Real* dx = geomdata.CellSize();
@@ -76,7 +77,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
             // mean of 1, std dev of 1.e-3
 
-            state(i,j,k,UTEMP) *= amrex::RandomNormal(1.0, 0.001);
+            state(i,j,k,UTEMP) *= amrex::RandomNormal(1.0, 0.001, engine);
             eos_state.T = state(i,j,k,UTEMP);
 
             // recompute the density with this new temperature
