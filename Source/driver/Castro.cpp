@@ -1105,7 +1105,7 @@ Castro::initData ()
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
 
-#ifdef USE_RNG_STATE_INIT
+#ifdef RNG_STATE_INIT
           amrex::ParallelForRNG(box,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
           {

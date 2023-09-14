@@ -166,6 +166,10 @@ ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
   DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
 endif
 
+ifeq ($(USE_RNG_STATE_INIT), TRUE)
+  DEFINES += -DRNG_STATE_INIT
+endif
+
 # add / define any special physics we need
 
 ifeq ($(USE_MHD), TRUE)
