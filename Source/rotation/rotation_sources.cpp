@@ -80,43 +80,17 @@ Castro::rsrc(const Box& bx,
     src[UMP] = hybrid_source[2];
 #endif
 
-    // Kinetic energy source: this is v . the momentum source.
-    // We don't apply in the case of the conservative energy
-    // formulation.
+    // Our conservative energy formulation does not strictly require
+    // any energy source-term here, because it depends only on the
+    // fluid motions from the hydrodynamical fluxes which we will only
+    // have when we get to the 'corrector' step. Nevertheless we add a
+    // predictor energy source term in the way that the other methods
+    // do, for consistency. We will fully subtract this predictor value
+    // during the corrector step, so that the final result is correct.
 
-    Real SrE;
-
-    if (rot_source_type == 1 || rot_source_type == 2) {
-
-      SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
-            uold(i,j,k,UMY) * rhoInv * Sr[1] +
-            uold(i,j,k,UMZ) * rhoInv * Sr[2];
-
-    } else if (rot_source_type == 3) {
-
-      Real new_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoInv;
-      SrE = new_ke - old_ke;
-
-    } else if (rot_source_type == 4) {
-
-      // The conservative energy formulation does not strictly require
-      // any energy source-term here, because it depends only on the
-      // fluid motions from the hydrodynamical fluxes which we will only
-      // have when we get to the 'corrector' step. Nevertheless we add a
-      // predictor energy source term in the way that the other methods
-      // do, for consistency. We will fully subtract this predictor value
-      // during the corrector step, so that the final result is correct.
-      // Here we use the same approach as rot_source_type == 2.
-
-      SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
-            uold(i,j,k,UMY) * rhoInv * Sr[1] +
-            uold(i,j,k,UMZ) * rhoInv * Sr[2];
-
-    } else {
-#ifndef AMREX_USE_GPU
-      amrex::Error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type");
-#endif
-    }
+    Real SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
+               uold(i,j,k,UMY) * rhoInv * Sr[1] +
+               uold(i,j,k,UMZ) * rhoInv * Sr[2];
 
     src[UEDEN] += SrE;
 
@@ -156,13 +130,6 @@ Castro::corrrsrc(const Box& bx,
 
   // flux0, flux1, and flux2 are the hydrodynamical mass fluxes
 
-
-  // Rotation source options for how to add the work to (rho E):
-  // rot_source_type =
-  // 1: Standard version ("does work")
-  // 2: Modification of type 1 that updates the momentum before constructing the energy corrector
-  // 3: Puts all rotational work into KE, not (rho e)
-  // 4: Conservative energy formulation
 
   // Note that the time passed to this function
   // is the new time at time-level n+1.
@@ -380,102 +347,55 @@ Castro::corrrsrc(const Box& bx,
 
     // Correct energy
 
-    Real SrEcorr;
+    // First, subtract the predictor step we applied earlier.
 
-    if (rot_source_type == 1) {
+    Real SrEcorr = - SrE_old;
 
-      // If rot_source_type == 1, then we calculated SrEcorr before updating the velocities.
+    // See corrgsrc for an explanation of this algorithm. We can implement this identically
+    // to the conservative gravity, swapping out the gravitational acceleration for the
+    // rotational acceleration. We only need to calculate the rotational acceleration on
+    // edges, which is straightforward to do. The Coriolis term does not play a role in
+    // the energy update (it does no work), so we turn it off and pass in a temporary
+    // velocity array which will be ignored.
 
-      SrEcorr = 0.5_rt * (SrE_new - SrE_old);
+    Real edge_Sr[3][2];
 
-    } else if (rot_source_type == 2) {
+    // Loop over directions and edges
 
-      // For this source type, we first update the momenta
-      // before we calculate the energy source term.
+    for (int dir = 0; dir < 3; ++dir) {
+        for (int edge = 0; edge <= 1; ++edge) {
 
-      vnew[0] = snew[UMX] * rhoninv;
-      vnew[1] = snew[UMY] * rhoninv;
-      vnew[2] = snew[UMZ] * rhoninv;
+            bool ccx = dir == 0 ? true : false;
+            bool ccy = dir == 1 ? true : false;
+            bool ccz = dir == 2 ? true : false;
 
-      Real acc[3];
-      coriolis = true;
-      rotational_acceleration(loc, vnew, coriolis, acc);
+            int ie = dir == 0 ? i + edge : i;
+            int je = dir == 1 ? j + edge : j;
+            int ke = dir == 2 ? k + edge : k;
 
-      Sr_new[0] = rhon * acc[0];
-      Sr_new[1] = rhon * acc[1];
-      Sr_new[2] = rhon * acc[2];
+            position(ie, je, ke, geomdata, loc, ccx, ccy, ccz);
 
-      SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                loc[n] -= problem::center[n];
+            }
 
-      SrEcorr = 0.5_rt * (SrE_new - SrE_old);
+            GpuArray<Real, 3> temp_vel{};
+            Real temp_Sr[3];
 
-    } else if (rot_source_type == 3) {
+            coriolis = false;
+            rotational_acceleration(loc, temp_vel, coriolis, temp_Sr);
 
-      // Instead of calculating the energy source term explicitly,
-      // we simply update the kinetic energy.
+            edge_Sr[dir][edge] = temp_Sr[dir];
 
-      Real new_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoninv;
-      SrEcorr = new_ke - old_ke;
-
-    } else if (rot_source_type == 4) {
-
-      // Conservative energy update
-
-      // First, subtract the predictor step we applied earlier.
-
-      SrEcorr = - SrE_old;
-
-      // See corrgsrc for an explanation of this algorithm. We can implement this identically
-      // to the conservative gravity, swapping out the gravitational acceleration for the
-      // rotational acceleration. We only need to calculate the rotational acceleration on
-      // edges, which is straightforward to do. The Coriolis term does not play a role in
-      // the energy update (it does no work), so we turn it off and pass in a temporary
-      // velocity array which will be ignored.
-
-      Real edge_Sr[3][2];
-
-      // Loop over directions and edges
-
-      for (int dir = 0; dir < 3; ++dir) {
-          for (int edge = 0; edge <= 1; ++edge) {
-
-              bool ccx = dir == 0 ? true : false;
-              bool ccy = dir == 1 ? true : false;
-              bool ccz = dir == 2 ? true : false;
-
-              int ie = dir == 0 ? i + edge : i;
-              int je = dir == 1 ? j + edge : j;
-              int ke = dir == 2 ? k + edge : k;
-
-              position(ie, je, ke, geomdata, loc, ccx, ccy, ccz);
-
-              for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                  loc[n] -= problem::center[n];
-              }
-
-              GpuArray<Real, 3> temp_vel{};
-              Real temp_Sr[3];
-
-              coriolis = false;
-              rotational_acceleration(loc, temp_vel, coriolis, temp_Sr);
-
-              edge_Sr[dir][edge] = temp_Sr[dir];
-
-          }
-      }
-
-      SrEcorr += hdtInv * (flux0(i      ,j,k) * edge_Sr[0][0] * dx[0] +
-                           flux0(i+1*dg0,j,k) * edge_Sr[0][1] * dx[0] +
-                           flux1(i,j      ,k) * edge_Sr[1][0] * dx[1] +
-                           flux1(i,j+1*dg1,k) * edge_Sr[1][1] * dx[1] +
-                           flux2(i,j,k      ) * edge_Sr[2][0] * dx[2] +
-                           flux2(i,j,k+1*dg2) * edge_Sr[2][1] * dx[2]) / vol(i,j,k);
-
-    } else {
-#ifndef AMREX_USE_GPU
-      amrex::Error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type");
-#endif
+        }
     }
+
+    SrEcorr += hdtInv * (flux0(i      ,j,k) * edge_Sr[0][0] * dx[0] +
+                         flux0(i+1*dg0,j,k) * edge_Sr[0][1] * dx[0] +
+                         flux1(i,j      ,k) * edge_Sr[1][0] * dx[1] +
+                         flux1(i,j+1*dg1,k) * edge_Sr[1][1] * dx[1] +
+                         flux2(i,j,k      ) * edge_Sr[2][0] * dx[2] +
+                         flux2(i,j,k+1*dg2) * edge_Sr[2][1] * dx[2]) / vol(i,j,k);
 
     src[UEDEN] = SrEcorr;
 
