@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
 geometry.prob_lo     = 0          0          0
-geometry.prob_hi     = 2.048e5    2.56e4     2.56e4
-amr.n_cell           = 1024       128        128
+geometry.prob_hi     = 2.048e5    1.28e4     1.28e4
+amr.n_cell           = 1024       64         64
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -76,10 +76,13 @@ castro.retry_small_density_cutoff = 10.0
 castro.abundance_failure_tolerance = 0.1
 castro.abundance_failure_rho_cutoff = 1.0
 
+castro.state_interp_order = 0
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 10       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
+amr.run_log_terse     = run_log_terse
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 2       # maximum level number allowed
@@ -91,12 +94,12 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = flame_tube_25cm_chk        # root name of checkpoint file
-amr.check_int       = 100        # number of timesteps between checkpoints
+amr.check_int       = 1000        # number of timesteps between checkpoints
 amr.checkpoint_files_output = 1
 
 # PLOTFILES
 amr.plot_file        = flame_tube_25cm_plt        # root name of plotfile
-amr.plot_per         = 5.e-3      # number of seconds between plotfiles
+amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 amr.plot_files_output = 1
 
@@ -105,6 +108,11 @@ amr.small_plot_per         = 5.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 
 amr.derive_small_plot_vars = abar magvel enuc
+amr.file_name_digits = 7          # pad step number with zeros if needed
+
+# don't write plotfiles when a stop is requested with dump_and_stop
+amr.write_plotfile_with_checkpoint = 0
+castro.output_at_completion = 0
 
 fab.format = NATIVE_32
 
