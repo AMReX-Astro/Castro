@@ -52,7 +52,7 @@ jobs:
           python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
           -ignore-files="amrex|Microphysics" \
           -config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
-          -header-filter='/Source/|/Util/model_parser_cxx|^\./' \
+          -header-filter='/Source/|/Util/model_parser|^\./' \
           -run-linter
 
       - name: Archive clang tidy report

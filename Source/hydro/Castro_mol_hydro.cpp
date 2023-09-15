@@ -36,8 +36,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   }
 
 
-  const Real *dx = geom.CellSize();
-
   MultiFab& S_new = get_new_data(State_Type);
 
   int coord = geom.Coord();
@@ -560,12 +558,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                        });
             } // end do_hydro
 
+#ifdef DIFFUSION
             // add a diffusive flux
             cond.resize(obx, 1);
             Elixir elix_cond = cond.elixir();
             auto cond_arr = cond.array();
 
-#ifdef DIFFUSION
             fill_temp_cond(obx, Sborder.array(mfi), cond_arr);
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -573,8 +571,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             mol_diffusive_flux(nbx, idir,
                                uin_arr, cond_arr,
                                flux[idir].array());
-
 #endif
+
           } // end idir loop
 
 #ifndef AMREX_USE_GPU

@@ -38,4 +38,4 @@ Checks: >
      mpi-*,
      openmp-*
 
-HeaderFilterRegex: '(/Source/*/|/Util/model_parser_cxx|^\./|^tmp_build_dir/castro_sources/*/).*\.H$'
+HeaderFilterRegex: '(/Source/*/|/Util/model_parser|^\./|^tmp_build_dir/castro_sources/*/).*\.H$'
