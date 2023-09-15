@@ -196,25 +196,25 @@ def render_field(ds, field, output_prefix, ref_points, *,
 
     # view 3 (top)
 
-    # setup_top_camera(cam, ds, center)
-    # sc.camera = cam
-    # print(f"top view: {cam!r}", flush=True)
+    setup_top_camera(cam, ds, center)
+    sc.camera = cam
+    print(f"top view: {cam!r}", flush=True)
 
-    # sc.save(f"{output_prefix}_noaxes_top.png", **kwargs)
+    sc.save(f"{output_prefix}_noaxes_top.png", **kwargs)
 
-    # # set the alpha value for the annotations
-    # # ref_points.colors[:, 3] = top_alpha
-    # # sc.add_source(ref_points)
-    # # sc.annotate_axes(alpha=top_alpha, thickness=6)
-    # sc.annotate_domain(ds, color=[1, 1, 1, top_alpha])
+    # set the alpha value for the annotations
+    # ref_points.colors[:, 3] = top_alpha
+    # sc.add_source(ref_points)
+    # sc.annotate_axes(alpha=top_alpha, thickness=6)
+    sc.annotate_domain(ds, color=[1, 1, 1, top_alpha])
 
-    # sc.save(f"{output_prefix}_top.png", **kwargs)
+    sc.save(f"{output_prefix}_top.png", **kwargs)
 
-    # sc.save_annotated(f"{output_prefix}_annotated_top.png",
-    #                   **kwargs, **annotated_kwargs,
-    #                   text_annotate=[[(0.05, 0.05),
-    #                                   f"t = {ds.current_time.d:7.5f} s",
-    #                                   dict(horizontalalignment="left")]])
+    sc.save_annotated(f"{output_prefix}_annotated_top.png",
+                      **kwargs, **annotated_kwargs,
+                      text_annotate=[[(0.05, 0.05),
+                                      f"t = {ds.current_time.d:7.5f} s",
+                                      dict(horizontalalignment="left")]])
 
     del sc, vol
 
