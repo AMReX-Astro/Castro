@@ -746,5 +746,14 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
     check_for_nan(S_new);
 
+    // Perform reflux (for non-subcycling advances).
+
+    if (parent->subcyclingMode() == "None") {
+        if (do_reflux == 1) {
+            FluxRegCrseInit();
+            FluxRegFineAdd();
+        }
+    }
+
     return status;
 }
