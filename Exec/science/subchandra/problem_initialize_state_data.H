@@ -72,7 +72,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     // add a perturbation at the north pole
 
-    Real t0 = state(i,j,k,UTEMP);
+    Real T0 = state(i,j,k,UTEMP);
 
     // perturbation is on the vertical-axis
 
@@ -92,8 +92,10 @@ void problem_initialize_state_data (int i, int j, int k,
     // convolve the temperature perturbation with the amount of He
     Real X_he = burn_state.xn[problem::ihe4];
 
-    state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::pert_temp_factor *
-                               (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
+    Real Tpert = T0 * (1.0_rt + X_he * problem::pert_temp_factor *
+                       (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
+
+    Real dT = Tpert - T0;
 
 
 #if AMREX_SPACEDIM == 3
@@ -120,14 +122,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
         // we are assuming here that the 2 perturbations don't overlap
 
-        state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::second_pert_temp_factor *
-                                   (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r2))));
+        Tpert = T0 * (1.0_rt + X_he * problem::second_pert_temp_factor *
+                      (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r2))));
+
+        dT += (Tpert - T0);
 
     }
 #endif
 
     burn_state.rho = state(i,j,k,URHO);
-    burn_state.T = state(i,j,k,UTEMP);
+    burn_state.T = T0 + dT;
+
     // we don't need to refill xn, since it still holds unchanged from above
 
     eos(eos_input_rt, burn_state);
