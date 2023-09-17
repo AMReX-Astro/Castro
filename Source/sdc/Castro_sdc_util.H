@@ -80,13 +80,8 @@ f_sdc_jac(const Real dt_m,
         U_full[UFS+n] = U[1+n];
     }
 
-    if (sdc_solve_for_rhoe == 1) {
-        U_full[UEINT] = U[NumSpec+1];
-        U_full[UEDEN] = E_var;
-    } else {
-        U_full[UEDEN] = U[NumSpec+1];
-        U_full[UEINT] = E_var;
-    }
+    U_full[UEINT] = U[NumSpec+1];
+    U_full[UEDEN] = E_var;
 
     for (int n = 0; n < 3; ++n) {
         U_full[UMX+n] = mom_source[n];
@@ -135,11 +130,7 @@ f_sdc_jac(const Real dt_m,
     for (int n = 0; n < NumSpec; ++n) {
         R_react[n+1] = R_full[UFS+n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        R_react[NumSpec+1] = R_full[UEINT];
-    } else {
-        R_react[NumSpec+1] = R_full[UEDEN];
-    }
+    R_react[NumSpec+1] = R_full[UEINT];
 
     for (int n = 0; n < NumSpec+2; ++n) {
         f[n] = U[n] - dt_m * R_react[n] - f_source[n];
@@ -167,16 +158,7 @@ f_sdc_jac(const Real dt_m,
         xn_sum += eos_state.xn[n] * eos_xderivs.dedX[n];
     }
 
-    if (sdc_solve_for_rhoe == 1) {
-        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
-    } else {
-        auto u2_sum = 0.0_rt;
-        for (auto n = 0; n < 3; ++n) {
-            u2_sum += U_full[UMX+n] * U_full[UMX+n];
-        }
-        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e -
-                               0.5_rt * u2_sum / (eos_state.rho * eos_state.rho));
-    }
+    dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
 
     for (int m = 0; m < NumSpec; ++m) {
         dwdU(iwe,m+1) = -denom * eos_xderivs.dedX[m];
@@ -285,11 +267,7 @@ sdc_newton_solve(const Real dt_m,
     for (int n = 0; n < NumSpec; ++n) {
         f_source[1 + n] = U_old[UFS + n] + dt_m * C[UFS + n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
-    } else {
-        f_source[NumSpec+1] = U_old[UEDEN] + dt_m * C[UEDEN];
-    }
+    f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
 
     // set the momenta to be U_new
     for (int n = 0; n < 3; ++n) {
@@ -304,11 +282,7 @@ sdc_newton_solve(const Real dt_m,
 
     Real E_var;
 
-    if (sdc_solve_for_rhoe == 1) {
-        E_var = U_new[UEDEN];
-    } else {
-        E_var = U_new[UEINT];
-    }
+    E_var = U_new[UEDEN];
 
     // store the subset for the nonlinear solve
     // We use an initial guess if possible
@@ -316,11 +290,7 @@ sdc_newton_solve(const Real dt_m,
     for (int n = 0; n < NumSpec; ++n) {
         U_react[1+n] = U_new[UFS+n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        U_react[NumSpec+1] = U_new[UEINT];
-    } else {
-        U_react[NumSpec+1] = U_new[UEDEN];
-    }
+    U_react[NumSpec+1] = U_new[UEINT];
 
 #if (INTEGRATOR == 0)
 
@@ -418,13 +388,8 @@ sdc_newton_solve(const Real dt_m,
         v2 += U_new[UMX+m] * U_new[UMX+m];
     }
 
-    if (sdc_solve_for_rhoe == 1) {
-        U_new[UEINT] = U_react[NumSpec+1];
-        U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
-    } else {
-        U_new[UEDEN] = U_react[NumSpec+1];
-        U_new[UEINT] = U_new[UEDEN] - 0.5_rt * v2 / U_new[URHO];
-    }
+    U_new[UEINT] = U_react[NumSpec+1];
+    U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
