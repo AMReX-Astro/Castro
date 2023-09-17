@@ -1107,7 +1107,7 @@ Castro::initData ()
 
 #ifdef RNG_STATE_INIT
           amrex::ParallelForRNG(box,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
           {
               // problem initialization
               problem_initialize_state_data(i, j, k, s, geomdata, engine);
