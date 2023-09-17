@@ -71,7 +71,7 @@ Castro::hlld(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // this is a loop over interfaces, so, e.g., for idir = 0 (x), we are seeing

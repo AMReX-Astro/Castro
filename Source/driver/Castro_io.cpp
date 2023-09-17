@@ -295,7 +295,7 @@ Castro::restart (Amr&     papa,
                amrex::Error("Error: random initialization not yet supported with grown factor");
 #else
                amrex::ParallelFor(bx,
-               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                {
                    // C++ problem initialization; has no effect if not implemented
                    // by a problem setup (defaults to an empty routine).

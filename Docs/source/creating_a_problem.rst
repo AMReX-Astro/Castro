@@ -234,7 +234,7 @@ Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The ``model_parser.H`` provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add::
 
-  USE_CXX_MODEL_PARSER = TRUE
+  USE_MODEL_PARSER = TRUE
 
 to the problem ``GNUmakefile``.  There are 2 other parameters that can
 be set in the makefile to control the initial model storage:

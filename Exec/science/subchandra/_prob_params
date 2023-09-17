@@ -18,3 +18,13 @@ mu_p                  real           -5.0_rt         y
 mu_n                  real           -11.0_rt        y
 
 ihe4                  integer         -1
+
+# second perturbation angle -- if it is negative, then it is disabled
+# this is only relevant in 3D
+second_pert_angle         real           -1              y
+
+second_R_pert             real           1.e7_rt         y
+
+second_pert_temp_factor   real           10.0_rt         y
+
+second_pert_rad_factor    real           2.0_rt          y
