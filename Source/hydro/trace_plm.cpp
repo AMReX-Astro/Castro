@@ -98,7 +98,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   // Compute left and right traced states
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||

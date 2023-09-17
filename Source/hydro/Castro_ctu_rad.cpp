@@ -63,7 +63,7 @@ Castro::ctu_rad_consup(const Box& bx,
   // radiation energy update. 
 
   amrex::ParallelFor(bx, NGROUPS,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g) noexcept
   {
 
     Erout(i,j,k,g) = Erin(i,j,k,g) + dt *
@@ -81,7 +81,7 @@ Castro::ctu_rad_consup(const Box& bx,
   // directions
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // radiation contribution -- this is sum{lambda E_r}

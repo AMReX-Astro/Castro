@@ -134,7 +134,7 @@ Castro::fill_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
     Array4<Real> const src = geom_src.array(mfi);
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian

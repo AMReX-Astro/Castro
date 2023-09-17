@@ -27,7 +27,7 @@ Castro::fill_rotational_psi(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     GpuArray<Real, 3> r;

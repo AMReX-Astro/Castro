@@ -145,7 +145,7 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
 
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian

@@ -15,7 +15,7 @@ Castro::rsrc(const Box& bx,
   GeometryData geomdata = geom.data();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real Sr[3] = {};
@@ -227,7 +227,7 @@ Castro::corrrsrc(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real Sr_old[3] = {};
