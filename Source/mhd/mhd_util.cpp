@@ -28,7 +28,7 @@ Castro::consup_mhd(const Box& bx, const Real dt,
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     if (n == UTEMP) {
@@ -60,7 +60,7 @@ Castro::PrimToCons(const Box& bx,
   // calculate the conserved variables from the primitive
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     u_arr(i,j,k,URHO) = q_arr(i,j,k,QRHO);
@@ -121,7 +121,7 @@ Castro::prim_half(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real divF[NUM_STATE+3];
