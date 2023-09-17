@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('agg')
-
-import numpy as np
+# render enuc for the subchandra problem setup
 
 import sys
 
+import matplotlib
+import numpy as np
+
 import yt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-#from yt.visualization.volume_rendering.render_source import VolumeSource
-from yt.visualization.volume_rendering.api import create_volume_source, Scene
 from yt.units import cm
+from yt.visualization.volume_rendering.api import Scene, create_volume_source
+
+matplotlib.use('agg')
+
 
 # this is for the wdconvect problem
 
@@ -39,12 +40,6 @@ def doit(plotfile):
 
     sc = Scene()
 
-
-    # add a volume: select a sphere
-    #center = (0, 0, 0)
-    #R = (5.e8, 'cm')
-
-    #dd = ds.sphere(center, R)
 
     vol = create_volume_source(ds.all_data(), field=field)
     sc.add_source(vol)
@@ -84,7 +79,7 @@ def doit(plotfile):
 
     cam.switch_orientation(normal_vector=normal, north_vector=[0., 0., 1.])
     cam.set_width(ds.domain_width)
-    #cam.zoom(3.0)
+    cam.zoom(3.0)
     sc.camera = cam
 
     sc.save_annotated("{}_enuc_annotated.png".format(plotfile),
