@@ -37,7 +37,7 @@ Castro::pointmass_update(Real time, Real dt)
             Array4<Real const> const vol  = volume.array(mfi);
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 // This is just a small number to keep precision issues from making
                 // icen, jcen, kcen one cell too low.
@@ -117,7 +117,7 @@ Castro::pointmass_update(Real time, Real dt)
                 Array4<Real> const uout = S_new.array(mfi);
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     // This is just a small number to keep precision issues from making
                     // icen, jcen, kcen one cell too low.
