@@ -38,7 +38,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
   // piecewise linear slopes
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
@@ -63,7 +63,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   if (use_pslope == 1) {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
       Real s[nslp];
@@ -92,7 +92,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   }
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 
@@ -153,7 +153,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const& qp) {
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real s[nslp];
@@ -241,7 +241,7 @@ Castro::mol_consup(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -290,7 +290,7 @@ Castro::mol_consup(const Box& bx,
   // we'll be multiplying that for the update calculation.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     update(i,j,k,USHK) = shk(i,j,k) / dt;
   });
@@ -309,7 +309,7 @@ Castro::mol_diffusive_flux(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cond_int;
