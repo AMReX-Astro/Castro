@@ -92,7 +92,7 @@ f_sdc_jac(const Real dt_m,
     R_react(NumSpec+1) = R_full[UEINT];
 
     // we are solving J dU = -f
-    // where f is Eq. 36 evaluated with the currect guess for U
+    // where f is Eq. 36 evaluated with the current guess for U
 
     for (int n = 1; n < NumSpec+1; ++n) {
         f(n) = U(n) - dt_m * R_react(n) - f_source(n);
