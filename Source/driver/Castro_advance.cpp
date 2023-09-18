@@ -429,7 +429,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                 auto geomdata = geom.data();
 
                 amrex::ParallelFor(box,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     // redo the problem initialization.  We want to preserve
                     // the current velocity though, so save that and then
