@@ -111,8 +111,8 @@ f_sdc_jac(const Real dt_m,
     // Our Jacobian has the form:  J = I - dt dR/dw dwdU
     // (Eq. 38), so now we fix that
 
-    for (int n = 1; n <= NumSpec+2; ++n) {
-        for (int m = 1; m <= NumSpec+2; ++m) {
+    for (int n = 1; n <= NumSpec+1; ++n) {
+        for (int m = 1; m <= NumSpec+1; ++m) {
             Real coeff = (m == n) ? 1.0_rt : 0.0_rt;
             Jac(n, m) = coeff - dt_m * Jac(n, m);
         }
