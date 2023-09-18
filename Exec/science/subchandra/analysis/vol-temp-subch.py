@@ -27,6 +27,8 @@ def doit(plotfile):
     sc = Scene()
 
     vol = create_volume_source(ds.all_data(), field=field)
+    #vol.use_ghost_zones = True
+
     sc.add_source(vol)
 
 

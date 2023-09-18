@@ -15,8 +15,6 @@ from yt.visualization.volume_rendering.api import Scene, create_volume_source
 matplotlib.use('agg')
 
 
-# this is for the wdconvect problem
-
 def _enuc_symlog(field, data):
     f = np.log10(np.abs(data["boxlib", "enuc"]))
     f[f < 10] = 0.0
@@ -83,10 +81,12 @@ def doit(plotfile):
     sc.camera = cam
 
     sc.save_annotated("{}_enuc_annotated.png".format(plotfile),
+                      label_fontsize="18",
+                      sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
-                                      dict(horizontalalignment="left")],
-                                     [(0.5,0.95),
+                                      f"t = {ds.current_time.d:6.3f}",
+                                      dict(horizontalalignment="left", fontsize="18")],
+                                     [(0.5, 0.95),
                                       "Castro simulation of double detonation SN Ia",
                                       dict(color="y", fontsize="24",
                                            horizontalalignment="center")]])

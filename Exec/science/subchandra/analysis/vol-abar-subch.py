@@ -68,10 +68,12 @@ def doit(plotfile):
     sc.camera = cam
 
     sc.save_annotated("{}_abar_annotated.png".format(plotfile),
+                      label_fontsize="18", label_fmt="%.1f",
+                      sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
-                                      dict(horizontalalignment="left")],
-                                     [(0.5,0.95),
+                                      f"t = {ds.current_time.d:6.3f}",
+                                      dict(horizontalalignment="left", fontsize="18")],
+                                     [(0.5, 0.95),
                                       "Castro simulation of double detonation SN Ia",
                                       dict(color="y", fontsize="24",
                                            horizontalalignment="center")]])
