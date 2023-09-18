@@ -824,7 +824,7 @@ Castro::fourth_avisc(const Box& bx,
       avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU) +
                                            q_arr(i+1,j,k-1,QU) - q_arr(i-1,j,k-1,QU)) * dxinv;
 
-      cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j,k-1,QC));
+      cmin = amrex::min(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC));
 
     }
 
