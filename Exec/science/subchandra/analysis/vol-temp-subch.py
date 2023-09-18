@@ -31,12 +31,12 @@ def doit(plotfile):
 
 
     # transfer function
-    _vals = [5.e7, 1.e8, 2.e8, 5.e8, 1.e9, 2.e9, 5.e9]
+    _vals = [1.e8, 2.e8, 5.e8, 1.e9, 2.e9, 5.e9]
     vals = []
     for v in _vals:
         vals.append(np.log10(v))
 
-    alpha = [0.1, 0.1, 0.2, 0.3, 0.3, 0.4, 0.5]
+    alpha = [0.05, 0.2, 0.3, 0.3, 0.4, 0.5]
 
     sigma = 0.05
 
@@ -73,10 +73,12 @@ def doit(plotfile):
     sc.camera = cam
 
     sc.save_annotated("{}_Temp_annotated.png".format(plotfile),
+                      label_fontsize="18",
+                      sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
-                                      dict(horizontalalignment="left")],
-                                     [(0.5,0.95),
+                                      f"t = {ds.current_time.d:6.3f}",
+                                      dict(horizontalalignment="left", fontsize="18")],
+                                     [(0.5, 0.95),
                                       "Castro simulation of double detonation SN Ia",
                                       dict(color="y", fontsize="24",
                                            horizontalalignment="center")]])
