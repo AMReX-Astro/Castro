@@ -806,6 +806,7 @@ instantaneous_react(const int i, const int j, const int k,
         }
     }
 }
+
 #endif
 
 #endif
