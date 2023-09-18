@@ -14,10 +14,11 @@ constexpr int CONVERGENCE_FAILURE = -2;
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 f_sdc_jac(const Real dt_m,
-          GpuArray<Real, NumSpec+2> const& U,
-          GpuArray<Real, NumSpec+2>& f,
+          Array1D<Real, 1, NumSpec+1> const& U,
+          Array1D<Real, 1, NumSpec+1>& f,
           RArray2D& Jac,
-          GpuArray<Real, NumSpec+2>& f_source,
+          Array1D<Real, 1, NumSpec+1>& f_source,
+          const Real rho,
           GpuArray<Real, 3>& mom_source,
           const Real T_old,
           const Real E_var) {
@@ -26,28 +27,20 @@ f_sdc_jac(const Real dt_m,
 
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
-    GpuArray<Real, NumSpec+2> R_react;
 
-    Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dRdw = {0.0_rt};
-    Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dwdU = {0.0_rt};
-
-    Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dRdU;
+    Array1D<Real, 1, NumSpec+1> R_react;
 
     // we are not solving the momentum equations
     // create a full state -- we need this for some interfaces
-    U_full[URHO] = U[0];
+
+    U_full[URHO] = rho;
 
     for (int n = 0; n < NumSpec; ++n) {
-        U_full[UFS+n] = U[1+n];
+        U_full[UFS+n] = U(n+1);
     }
 
-    if (sdc_solve_for_rhoe == 1) {
-        U_full[UEINT] = U[NumSpec+1];
-        U_full[UEDEN] = E_var;
-    } else {
-        U_full[UEDEN] = U[NumSpec+1];
-        U_full[UEINT] = E_var;
-    }
+    U_full[UEINT] = U[NumSpec+1];
+    U_full[UEDEN] = E_var;
 
     for (int n = 0; n < 3; ++n) {
         U_full[UMX+n] = mom_source[n];
@@ -76,107 +69,52 @@ f_sdc_jac(const Real dt_m,
         eos_state.xn[n] = U_full[UFS+n] / U_full[URHO];
     }
 #if NAUX_NET > 0
-    for (int n = 0; n < NumAux; ++n) {
-        eos_state.aux[n] = U_full[UFX+n] / U_full[URHO];
-    }
+    amrex::Error("error: aux data not currently supported in true SDC");
 #endif
-    eos_state.e = U_full[UEINT] / U_full[URHO];  // (U_full[UEDEN] - 0.5_rt*sum(U_full(UMX:UMZ))/U_full[URHO])/U_full[URHO]
+
+    eos_state.e = U_full[UEINT] / U_full[URHO];
 
     eos(eos_input_re, eos_state);
 
     U_full[UTEMP] = eos_state.T;
 
     // we'll create a burn_state to pass stuff from the RHS to the Jac function
+
     burn_t burn_state;
 
     single_zone_react_source(U_full, R_full, burn_state);
 
     // store the subset of R used in the Jacobian
-    R_react[0] = R_full[URHO];
+
     for (int n = 0; n < NumSpec; ++n) {
         R_react[n+1] = R_full[UFS+n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        R_react[NumSpec+1] = R_full[UEINT];
-    } else {
-        R_react[NumSpec+1] = R_full[UEDEN];
-    }
+    R_react[NumSpec+1] = R_full[UEINT];
 
-    for (int n = 0; n < NumSpec+2; ++n) {
+    // we are solving J dU = -f
+    // where f is Eq. 36 evaluated with the currect guess for U
+
+    for (int n = 1; n < NumSpec+1; ++n) {
         f[n] = U[n] - dt_m * R_react[n] - f_source[n];
     }
 
-    // get dRdw -- this may do a numerical approximation or use the
-    // network's analytic Jac
-    single_zone_jac(U_full, burn_state, dt_m, dRdw);
+    // get the Jacobian.
 
-    // the density row
-    dwdU(iwrho, 0) = 1.0_rt;
+    /// First we get the dR/dU expression.
+    // Instead of the decomposition into dw/dU and dR/dw
+    // written out in the original paper Appendix A, we instead use the
+    // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
+    // we are not including density anymore.
 
-    // the X_k rows
-    for (int m = 1; m < NumSpec+1; ++m) {
-        dwdU(iwfs-1+m, 0) = -U[m] / (U[0]*U[0]);
-        dwdU(iwfs-1+m, m) = 1.0_rt / U[0];
-    }
+    single_zone_jac(U_full, burn_state, dt_m, Jac);
 
-    auto eos_xderivs = composition_derivatives(eos_state);
-
-    // now the e row -- this depends on whether we are evolving (rho E) or (rho e)
-    auto denom = 1.0_rt / eos_state.rho;
-    auto xn_sum = 0.0_rt;
-    for (int n = 0; n < NumSpec; ++n) {
-        xn_sum += eos_state.xn[n] * eos_xderivs.dedX[n];
-    }
-
-    if (sdc_solve_for_rhoe == 1) {
-        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
-    } else {
-        auto u2_sum = 0.0_rt;
-        for (auto n = 0; n < 3; ++n) {
-            u2_sum += U_full[UMX+n] * U_full[UMX+n];
-        }
-        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e -
-                               0.5_rt * u2_sum / (eos_state.rho * eos_state.rho));
-    }
-
-    for (int m = 0; m < NumSpec; ++m) {
-        dwdU(iwe,m+1) = -denom * eos_xderivs.dedX[m];
-    }
-
-    dwdU(iwe, NumSpec+1) = denom;
-
-    // construct the Jacobian -- we can get most of the
-    // terms from the network itself, but we do not rely on
-    // it having derivative wrt density
-
-    // Note: Jac is 1-based, because that is what the linear algebra
-    // routines expect but the components, dRdw and dwdU are 0-based!
+    // Our Jacobian has the form:  J = I - dt dR/dw dwdU
+    // (Eq. 38), so now we fix that
 
     for (int n = 1; n <= NumSpec+2; ++n) {
         for (int m = 1; m <= NumSpec+2; ++m) {
-            Jac(n, m) = 0.0_rt;
-        }
-    }
-
-    for (int m = 1; m <= NumSpec+2; ++m) {
-        Jac(m, m) = 1.0_rt;
-    }
-
-    // auto dRdU = matmul(dRdw, dwdU);
-    // dRdU is 0-based
-
-    for (int n = 0; n <= NumSpec+1; ++n) {
-        for (int m = 0; m <= NumSpec+1; ++m) {
-            dRdU(n,m) = 0.0_rt;
-            for (int l = 0; l <= NumSpec+1; ++l) {
-                dRdU(n,m) += dRdw(n,l) * dwdU(l,m);
-            }
-        }
-    }
-
-    for (int n = 0; n < NumSpec+2; ++n) {
-        for (int m = 0; m < NumSpec+2; ++m) {
-            Jac(n+1, m+1) -= dt_m * dRdU(n,m);
+            Real coeff = (m == n) ? 1.0_rt : 0.0_rt;
+            Jac(n, m) = coeff - dt_m * Jac(n, m);
         }
     }
 
@@ -194,6 +132,7 @@ sdc_newton_solve(const Real dt_m,
                  int& ierr) {
     // the purpose of this function is to solve the system
     // U - dt R(U) = U_old + dt C using a Newton solve.
+    // This is Eq. 36 in the paper.
     //
     // here, U_new should come in as a guess for the new U
     // and will be returned with the value that satisfied the
@@ -204,15 +143,14 @@ sdc_newton_solve(const Real dt_m,
     // we will do the implicit update of only the terms that
     // have reactive sources
     //
-    // 0 : rho
     // 1:NumSpec : species
-    // NumSpec+1 : (rho E) or (rho e)
+    // NumSpec+1 : (rho e)
 
-    GpuArray<Real, NumSpec+2> U_react;
-    GpuArray<Real, NumSpec+2> f_source;
+    Array1D<Real, 1, NumSpec+1> U_react;
+    Array1D<Real, 1, NumSpec+1> f_source;
     GpuArray<Real, 3> mom_source;
-    GpuArray<Real, NumSpec+2> dU_react;
-    GpuArray<Real, NumSpec+2> f;
+    Array1D<Real, 1, NumSpec+1> dU_react;
+    Array1D<Real, 1, NumSpec+1> f;
     RArray1D f_rhs;
 
     const int MAX_ITER = 100;
@@ -222,11 +160,13 @@ sdc_newton_solve(const Real dt_m,
     // the tolerance we are solving to may depend on the
     // iteration
     Real relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
-    Real tol_dens = sdc_solver_tol_dens * relax_fac;
     Real tol_spec = sdc_solver_tol_spec * relax_fac;
     Real tol_ener = sdc_solver_tol_ener * relax_fac;
 
-    // update the momenta for this zone -- they don't react
+    // update the density and momenta for this zone -- they don't react
+
+    U_new[URHO] = U_old[URHO] + dt_m * C[URHO];
+
     for (int n = 0; n < 3; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
@@ -235,22 +175,15 @@ sdc_newton_solve(const Real dt_m,
     // nonlinear solve -- note: we include the old state in
     // f_source
 
-    // load rpar
-
     // for the Jacobian solve, we are solving
     //   f(U) = U - dt R(U) - U_old - dt C = 0
     // we define f_source = U_old + dt C so we are solving
     //   f(U) = U - dt R(U) - f_source = 0
 
-    f_source[0] = U_old[URHO] + dt_m * C[URHO];
     for (int n = 0; n < NumSpec; ++n) {
         f_source[1 + n] = U_old[UFS + n] + dt_m * C[UFS + n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
-    } else {
-        f_source[NumSpec+1] = U_old[UEDEN] + dt_m * C[UEDEN];
-    }
+    f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
 
     // set the momenta to be U_new
     for (int n = 0; n < 3; ++n) {
@@ -263,25 +196,19 @@ sdc_newton_solve(const Real dt_m,
 
     // we should be able to do an update for this somehow?
 
-    Real E_var;
+    Real E_var = U_new[UEDEN];
 
-    if (sdc_solve_for_rhoe == 1) {
-        E_var = U_new[UEDEN];
-    } else {
-        E_var = U_new[UEINT];
-    }
+    // we need the density too
+
+    Real rho_new = U_new[URHO];
 
     // store the subset for the nonlinear solve
     // We use an initial guess if possible
-    U_react[0] = U_new[URHO];
+
     for (int n = 0; n < NumSpec; ++n) {
         U_react[1+n] = U_new[UFS+n];
     }
-    if (sdc_solve_for_rhoe == 1) {
-        U_react[NumSpec+1] = U_new[UEINT];
-    } else {
-        U_react[NumSpec+1] = U_new[UEDEN];
-    }
+    U_react[NumSpec+1] = U_new[UEINT];
 
 #if (INTEGRATOR == 0)
 
@@ -289,14 +216,13 @@ sdc_newton_solve(const Real dt_m,
 
     // iterative loop
     int iter = 0;
-    int max_newton_iter = MAX_ITER;
 
     Real err = 1.e30_rt;
     bool converged = false;
 
-    while (!converged && iter < max_newton_iter) {
+    while (!converged && iter < MAX_ITER) {
         int info = 0;
-        f_sdc_jac(dt_m, U_react, f, Jac, f_source, mom_source, T_old, E_var);
+        f_sdc_jac(dt_m, U_react, f, Jac, f_source, rho_new, mom_source, T_old, E_var);
 
         IArray1D ipvt;
 
@@ -305,15 +231,15 @@ sdc_newton_solve(const Real dt_m,
         RHS::dgefa(Jac);
         info = 0;
 #else
-        dgefa<NumSpec+2>(Jac, ipvt, info);
+        dgefa<NumSpec+1>(Jac, ipvt, info);
 #endif
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
         }
 
-        for (int n = 1; n <= NumSpec+2; ++n) {
-            f_rhs(n) = -f[n-1];
+        for (int n = 1; n <= NumSpec+1; ++n) {
+            f_rhs(n) = -f[n];
         }
 
 #ifdef NEW_NETWORK_IMPLEMENTATION
@@ -322,35 +248,36 @@ sdc_newton_solve(const Real dt_m,
         dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
 #endif
 
-        for (int n = 0; n < NumSpec+2; ++n) {
-            dU_react[n] = f_rhs(n+1);
+        for (int n = 1; n < NumSpec+1; ++n) {
+            dU_react[n] = f_rhs(n);
         }
 
         // how much of dU_react should we apply?
         Real eta = 1.0_rt;
-        for (int n = 0; n < NumSpec+2; ++n) {
+        for (int n = 1; n < NumSpec+1; ++n) {
             dU_react[n] *= eta;
             U_react[n] += dU_react[n];
         }
 
-        GpuArray<Real, NumSpec+2> eps_tot;
-
-        eps_tot[0] = tol_dens * std::abs(U_react[0]) + sdc_solver_atol;
+        Array1D<Real, 1, NumSpec+1> eps_tot;
 
         // for species, atol is the mass fraction limit, so we
         // multiply by density to get a partial density limit
+
         for (int n = 0; n < NumSpec; ++n) {
-            eps_tot[1 + n] = tol_spec * std::abs(U_react[1 + n]) + sdc_solver_atol * std::abs(U_react[0]);
+            eps_tot[1 + n] = tol_spec * std::abs(U_react[1 + n]) +
+                sdc_solver_atol * std::abs(U_new[URHO]);
         }
         eps_tot[NumSpec+1] = tol_ener * std::abs(U_react[NumSpec+1]) + sdc_solver_atol;
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
+
         auto err_sum = 0.0_rt;
-        for (int n = 0; n < NumSpec+2; ++n) {
-            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n]* eps_tot[n]);
+        for (int n = 1; n < NumSpec+1; ++n) {
+            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n] * eps_tot[n]);
         }
-        err = std::sqrt(err_sum / (NumSpec+2));
+        err = std::sqrt(err_sum / (NumSpec+1));
 
         if (err < 1.0_rt) {
             converged = true;
@@ -368,9 +295,7 @@ sdc_newton_solve(const Real dt_m,
 #endif
 
     // update the full U_new
-    // if we updated total energy, then correct internal,
-    // or vice versa
-    U_new[URHO] = U_react[0];
+
     for (int n = 0; n < NumSpec; ++n) {
         U_new[UFS+n] = U_react[1+n];
     }
@@ -379,13 +304,9 @@ sdc_newton_solve(const Real dt_m,
         v2 += U_new[UMX+m] * U_new[UMX+m];
     }
 
-    if (sdc_solve_for_rhoe == 1) {
-        U_new[UEINT] = U_react[NumSpec+1];
-        U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
-    } else {
-        U_new[UEDEN] = U_react[NumSpec+1];
-        U_new[UEINT] = U_new[UEDEN] - 0.5_rt * v2 / U_new[URHO];
-    }
+    U_new[UEINT] = U_react[NumSpec+1];
+    U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
