@@ -82,7 +82,7 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
                 burn_t& burn_state, const Real dt,
-                RArray2D& Jac) {
+                JacNetArray2D& Jac) {
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
@@ -130,7 +130,25 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
             }
         }
 
+        // now correct the species derivatives
+        // this constructs dy/dX_k |_e = dy/dX_k |_T - e_{X_k} |_T dy/dT / c_v
 
+        eos_re_extra_t eos_state;
+        eos_state.rho = burn_state.rho;
+        eos_state.T = burn_state.T;
+        eos_state.e = burn_state.e;
+        for (int n = 0; n < NumSpec; n++) {
+            eos_state.xn[n] = burn_state.xn[n];
+        }
+
+        eos(eos_input_re, eos_state);
+        eos_xderivs_t eos_xderivs = composition_derivatives(eos_state);
+
+        for (int m = 1; m <= neqs; m++) {
+            for (int n = 1; n <= NumSpec; n++) {
+                Jac(m, n) -= eos_xderivs.dedX[n-1] * Jac(m, net_ienuc);
+            }
+        }
     }
 #endif
 

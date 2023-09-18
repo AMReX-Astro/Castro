@@ -16,7 +16,7 @@ void
 f_sdc_jac(const Real dt_m,
           Array1D<Real, 1, NumSpec+1> const& U,
           Array1D<Real, 1, NumSpec+1>& f,
-          RArray2D& Jac,
+          JacNetArray2D& Jac,
           Array1D<Real, 1, NumSpec+1>& f_source,
           const Real rho,
           GpuArray<Real, 3>& mom_source,
@@ -39,7 +39,7 @@ f_sdc_jac(const Real dt_m,
         U_full[UFS+n] = U(n+1);
     }
 
-    U_full[UEINT] = U[NumSpec+1];
+    U_full[UEINT] = U(NumSpec+1);
     U_full[UEDEN] = E_var;
 
     for (int n = 0; n < 3; ++n) {
@@ -87,15 +87,15 @@ f_sdc_jac(const Real dt_m,
     // store the subset of R used in the Jacobian
 
     for (int n = 0; n < NumSpec; ++n) {
-        R_react[n+1] = R_full[UFS+n];
+        R_react(n+1) = R_full[UFS+n];
     }
-    R_react[NumSpec+1] = R_full[UEINT];
+    R_react(NumSpec+1) = R_full[UEINT];
 
     // we are solving J dU = -f
     // where f is Eq. 36 evaluated with the currect guess for U
 
     for (int n = 1; n < NumSpec+1; ++n) {
-        f[n] = U[n] - dt_m * R_react[n] - f_source[n];
+        f(n) = U(n) - dt_m * R_react(n) - f_source(n);
     }
 
     // get the Jacobian.
@@ -138,7 +138,7 @@ sdc_newton_solve(const Real dt_m,
     // and will be returned with the value that satisfied the
     // nonlinear function
 
-    RArray2D Jac;
+    JacNetArray2D Jac;
 
     // we will do the implicit update of only the terms that
     // have reactive sources
@@ -181,9 +181,9 @@ sdc_newton_solve(const Real dt_m,
     //   f(U) = U - dt R(U) - f_source = 0
 
     for (int n = 0; n < NumSpec; ++n) {
-        f_source[1 + n] = U_old[UFS + n] + dt_m * C[UFS + n];
+        f_source(1 + n) = U_old[UFS + n] + dt_m * C[UFS + n];
     }
-    f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
+    f_source(NumSpec+1) = U_old[UEINT] + dt_m * C[UEINT];
 
     // set the momenta to be U_new
     for (int n = 0; n < 3; ++n) {
@@ -206,9 +206,9 @@ sdc_newton_solve(const Real dt_m,
     // We use an initial guess if possible
 
     for (int n = 0; n < NumSpec; ++n) {
-        U_react[1+n] = U_new[UFS+n];
+        U_react(1+n) = U_new[UFS+n];
     }
-    U_react[NumSpec+1] = U_new[UEINT];
+    U_react(NumSpec+1) = U_new[UEINT];
 
 #if (INTEGRATOR == 0)
 
@@ -239,7 +239,7 @@ sdc_newton_solve(const Real dt_m,
         }
 
         for (int n = 1; n <= NumSpec+1; ++n) {
-            f_rhs(n) = -f[n];
+            f_rhs(n) = -f(n);
         }
 
 #ifdef NEW_NETWORK_IMPLEMENTATION
@@ -249,14 +249,13 @@ sdc_newton_solve(const Real dt_m,
 #endif
 
         for (int n = 1; n < NumSpec+1; ++n) {
-            dU_react[n] = f_rhs(n);
+            dU_react(n) = f_rhs(n);
         }
 
         // how much of dU_react should we apply?
         Real eta = 1.0_rt;
         for (int n = 1; n < NumSpec+1; ++n) {
-            dU_react[n] *= eta;
-            U_react[n] += dU_react[n];
+            U_react(n) += eta * dU_react(n);
         }
 
         Array1D<Real, 1, NumSpec+1> eps_tot;
@@ -265,19 +264,19 @@ sdc_newton_solve(const Real dt_m,
         // multiply by density to get a partial density limit
 
         for (int n = 0; n < NumSpec; ++n) {
-            eps_tot[1 + n] = tol_spec * std::abs(U_react[1 + n]) +
+            eps_tot(1 + n) = tol_spec * std::abs(U_react(1 + n)) +
                 sdc_solver_atol * std::abs(U_new[URHO]);
         }
-        eps_tot[NumSpec+1] = tol_ener * std::abs(U_react[NumSpec+1]) + sdc_solver_atol;
+        eps_tot(NumSpec+1) = tol_ener * std::abs(U_react(NumSpec+1)) + sdc_solver_atol;
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
 
         auto err_sum = 0.0_rt;
         for (int n = 1; n < NumSpec+1; ++n) {
-            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n] * eps_tot[n]);
+            err_sum += dU_react(n) * dU_react(n) / (eps_tot(n) * eps_tot(n));
         }
-        err = std::sqrt(err_sum / (NumSpec+1));
+        err = std::sqrt(err_sum / static_cast<Real>(NumSpec+1));
 
         if (err < 1.0_rt) {
             converged = true;
@@ -297,14 +296,14 @@ sdc_newton_solve(const Real dt_m,
     // update the full U_new
 
     for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS+n] = U_react[1+n];
+        U_new[UFS+n] = U_react(1+n);
     }
     auto v2 = 0.0_rt;
     for (int m = 0; m < 3; ++m) {
         v2 += U_new[UMX+m] * U_new[UMX+m];
     }
 
-    U_new[UEINT] = U_react[NumSpec+1];
+    U_new[UEINT] = U_react(NumSpec+1);
     U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 
 }
