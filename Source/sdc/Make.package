@@ -8,5 +8,6 @@ ifneq ($(USE_GPU), TRUE)
 ifeq ($(USE_REACT), TRUE)
   CEXE_headers += vode_rhs_true_sdc.H
   CEXE_headers += sdc_react_util.H
+  CEXE_headers += sdc_newton_solve.H
 endif
 endif
