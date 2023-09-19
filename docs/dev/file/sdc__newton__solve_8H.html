@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File Castro_util.H &mdash; Castro  documentation</title>
+  <title>File sdc_newton_solve.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Derive.H" href="Derive_8H.html" />
-    <link rel="prev" title="File Castro_sources.H" href="Castro__sources_8H.html" /> 
+    <link rel="next" title="File sdc_react_util.H" href="sdc__react__util_8H.html" />
+    <link rel="prev" title="File runtime_parameters.H" href="runtime__parameters_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/Castro__util_8H.html">main</a> | <a href="../file/Castro__util_8H.html">development</a>
+        Branch: <a href="../../file/sdc__newton__solve_8H.html">main</a> | <a href="../file/sdc__newton__solve_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -111,14 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc_8H.html">File Castro_sdc.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc__util_8H.html">File Castro_sdc_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_util.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv43dg0"><code class="docutils literal notranslate"><span class="pre">dg0</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv43dg1"><code class="docutils literal notranslate"><span class="pre">dg1</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv43dg2"><code class="docutils literal notranslate"><span class="pre">dg2</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv413geometry_util"><code class="docutils literal notranslate"><span class="pre">geometry_util</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv45amrex"><code class="docutils literal notranslate"><span class="pre">amrex</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
@@ -176,7 +169,12 @@
 <li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_newton_solve.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv414NEWTON_SUCCESS"><code class="docutils literal notranslate"><span class="pre">NEWTON_SUCCESS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv415SINGULAR_MATRIX"><code class="docutils literal notranslate"><span class="pre">SINGULAR_MATRIX</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv419CONVERGENCE_FAILURE"><code class="docutils literal notranslate"><span class="pre">CONVERGENCE_FAILURE</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
@@ -204,9 +202,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File Castro_util.H</li>
+      <li class="breadcrumb-item active">File sdc_newton_solve.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/Castro__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/sdc__newton__solve_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -214,80 +212,52 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-castro-util-h">
-<h1>File Castro_util.H<a class="headerlink" href="#file-castro-util-h" title="Link to this heading"></a></h1>
+  <section id="file-sdc-newton-solve-h">
+<h1>File sdc_newton_solve.H<a class="headerlink" href="#file-sdc-newton-solve-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">upassmap</span> <span class="pre">(int</span> <span class="pre">ipassive)</span></span></dt>
+<span class="target" id="sdc__newton__solve_8H_1af5b22754cb5ad1720d440deb9cd4863a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">f_sdc_jac</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NumSpec+2</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NumSpec+2</span> <span class="pre">&gt;</span> <span class="pre">&amp;f,</span> <span class="pre">RArray2D</span> <span class="pre">&amp;Jac,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NumSpec+2</span> <span class="pre">&gt;</span> <span class="pre">&amp;f_source,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;mom_source,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">T_old,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">E_var)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">qpassmap</span> <span class="pre">(int</span> <span class="pre">ipassive)</span></span></dt>
+<span class="target" id="sdc__newton__solve_8H_1a5ff7c48d18f3cfaafd77996380114a1b"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">bool</span> <span class="pre">mom_flux_has_p</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">mom_dir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">flux_dir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">position</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">GeometryData</span> <span class="pre">const</span> <span class="pre">&amp;geomdata,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">bool</span> <span class="pre">ccx=true,</span> <span class="pre">bool</span> <span class="pre">ccy=true,</span> <span class="pre">bool</span> <span class="pre">ccz=true)</span></span></dt>
+<span class="target" id="sdc__newton__solve_8H_1a26c3316beb53daf6366b84724d6141d5"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_subdivide</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
 <dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43dg0">
-<span id="_CPPv33dg0"></span><span id="_CPPv23dg0"></span><span id="dg0__i"></span><span class="target" id="Castro__util_8H_1a6acced5a14d9552ef44275ac8ae78bb0"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dg0</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv43dg0" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv414NEWTON_SUCCESS">
+<span id="_CPPv314NEWTON_SUCCESS"></span><span id="_CPPv214NEWTON_SUCCESS"></span><span id="NEWTON_SUCCESS__i"></span><span class="target" id="sdc__newton__solve_8H_1af85c20b906ca198099e08a5f87f60a9e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEWTON_SUCCESS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv414NEWTON_SUCCESS" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43dg1">
-<span id="_CPPv33dg1"></span><span id="_CPPv23dg1"></span><span id="dg1__i"></span><span class="target" id="Castro__util_8H_1af9f5cbb234f3c18868eac300fa8ee5b5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dg1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv43dg1" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv415SINGULAR_MATRIX">
+<span id="_CPPv315SINGULAR_MATRIX"></span><span id="_CPPv215SINGULAR_MATRIX"></span><span id="SINGULAR_MATRIX__i"></span><span class="target" id="sdc__newton__solve_8H_1a3279be649ad5640259a7b6050b8a3af1"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SINGULAR_MATRIX</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv415SINGULAR_MATRIX" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv43dg2">
-<span id="_CPPv33dg2"></span><span id="_CPPv23dg2"></span><span id="dg2__i"></span><span class="target" id="Castro__util_8H_1a9510faa7c3a81a998f8e13b08ceca4ed"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dg2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv43dg2" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv419CONVERGENCE_FAILURE">
+<span id="_CPPv319CONVERGENCE_FAILURE"></span><span id="_CPPv219CONVERGENCE_FAILURE"></span><span id="CONVERGENCE_FAILURE__i"></span><span class="target" id="sdc__newton__solve_8H_1a0d8a29692068027115cd1a61771067bc"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CONVERGENCE_FAILURE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv419CONVERGENCE_FAILURE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
-<dl class="cpp type">
-<dt class="sig sig-object cpp" id="_CPPv413geometry_util">
-<span id="_CPPv313geometry_util"></span><span id="_CPPv213geometry_util"></span><span id="geometry_util"></span><span class="target" id="namespacegeometry__util"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">geometry_util</span></span></span><a class="headerlink" href="#_CPPv413geometry_util" title="Link to this definition"></a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="namespacegeometry__util_1ae685dd1e87aea2ac5c37fe4d43384a86"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">volume</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">&amp;i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="namespacegeometry__util_1a84a49da0e5f8bb16f2b15988ee0e6d7e"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">area</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">&amp;i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">&amp;idir,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata)</span></span></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
-<dl class="cpp type">
-<dt class="sig sig-object cpp" id="_CPPv45amrex">
-<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">amrex</span></span></span><a class="headerlink" href="#_CPPv45amrex" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Castro__sources_8H.html" class="btn btn-neutral float-left" title="File Castro_sources.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Derive_8H.html" class="btn btn-neutral float-right" title="File Derive.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="runtime__parameters_8H.html" class="btn btn-neutral float-left" title="File runtime_parameters.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sdc__react__util_8H.html" class="btn btn-neutral float-right" title="File sdc_react_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
