@@ -28,24 +28,20 @@ void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
 
-    GpuArray<Real, NumSpec+2> R_react;
-
     // evaluate R
 
+    // update the density -- we'll need this for the EOS call in the
+    // react update
+
+    U_full[URHO] = burn_state.rho_orig + time * state.ydot_a[URHO];
+
     // we are not solving the momentum equations
-    // create a full state -- we need this for some interfaces
-    // note: vode_state % y(:) is 1-based
+    // and never need total energy, so we don't worry about filling those
 
-    U_full[URHO] = vode_state.y(1);
     for (int n = 0; n < NumSpec; n++) {
-        U_full[UFS+n] = vode_state.y(2+n);
+        U_full[UFS+n] = vode_state.y(1+n);
     }
-    U_full[UEINT] = vode_state.y(NumSpec+2);
-    U_full[UEDEN] = burn_state.E_var;
-
-    U_full[UMX] = burn_state.mom[0];
-    U_full[UMY] = burn_state.mom[1];
-    U_full[UMZ] = burn_state.mom[2];
+    U_full[UEINT] = vode_state.y(NumSpec+1);
 
     // initialize the temperature -- a better value will be found when we do the EOS
     // call in single_zone_react_source
@@ -62,17 +58,13 @@ void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt
 
     burn_state.T = burn_state_pass.T;
 
-    R_react[0] = R_full[URHO];
-    for (int n = 0; n < NumSpec; n++) {
-        R_react[1+n] = R_full[UFS+n];
-    }
-    R_react[NumSpec+1] = R_full[UEINT];
+    // now construct the RHS -- note this is 1-based
 
-    // create the RHS -- this is 1-based
-
-    for (int n = 1; n <= NumSpec+2; n++) {
-        dUdt(n) = R_react[n-1] + burn_state.f_source[n-1];
+    for (int n = 0; n < NumSpec; ++n) {
+        dUdt(n-1) = R_react[UFS+n] + burn_state.ydot_a[UFS+n];
     }
+    dUdt(NumSpec+1) = R_react[UEINT] + burn_state.ydot_a[UEINT];
+
 }
 
 
@@ -99,11 +91,7 @@ void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& p
         U_full[UFS+n] = vode_state.y(2+n);
     }
     U_full[UEINT] = vode_state.y(NumSpec+2);
-    U_full[UEDEN] = burn_state.E_var;
 
-    U_full[UMX] = burn_state.mom[0];
-    U_full[UMY] = burn_state.mom[1];
-    U_full[UMZ] = burn_state.mom[2];
 
     // compute the temperature and species derivatives --
     // maybe this should be done using the burn_state
@@ -209,6 +197,7 @@ sdc_vode_solve(const Real dt_m,
     auto tol_ener = sdc_solver_tol_ener * relax_fac;
 
     // Update the momenta for this zone -- they don't react
+
     for (int n = 0; n < 3; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
@@ -219,36 +208,23 @@ sdc_vode_solve(const Real dt_m,
 
     // load rpar
 
+
+    dvode_t<NumSpec+1> dvode_state;
+
+    burn_t burn_state;
+
+    burn_state.rho_orig = U_old[URHO];
+
     // If we are solving the system as an ODE, then we are
     // solving
     //   dU/dt = R(U) + C
     // so we simply pass in C
-    GpuArray<Real, NumSpec+2> C_react;
 
-    C_react[0] = C[URHO];
-    for (int n = 0; n < NumSpec; ++n) {
-        C_react[1+n] = C[UFS+n];
+    for (int n = 0; n < NUM_STATE; ++n) {
+        burn_state.ydot_a[n] = C[n];
     }
-    C_react[NumSpec+1] = C[UEINT];
-
-    dvode_t<NumSpec+2> dvode_state;
-
-    burn_t burn_state;
 
     burn_state.success = true;
-
-    for (int n = 0; n < NumSpec+2; n++) {
-        burn_state.f_source[n] = C_react[n];
-    }
-
-    for (int n = 0; n < 3; n++) {
-        burn_state.mom[n] = U_new[UMX+n];
-    }
-
-    // we are always solving for rhoe with the VODE predict
-    burn_state.e = U_new[UEDEN];
-
-    burn_state.E_var = U_old[UEDEN];
 
     // temperature will be used as an initial guess in the EOS
     burn_state.T = U_old[UTEMP];
@@ -263,11 +239,10 @@ sdc_vode_solve(const Real dt_m,
     // access it as 0-based in our implementation of the
     // RHS routine
 
-    dvode_state.y(1) = U_old[URHO];
     for (int n = 0; n < NumSpec; ++n) {
-        dvode_state.y(2+n) = U_old[UFS+n];
+        dvode_state.y(1+n) = U_old[UFS+n];
     }
-    dvode_state.y(NumSpec+2) = U_old[UEINT];
+    dvode_state.y(NumSpec+1) = U_old[UEINT];
 
     // // set the maximum number of steps allowed
     // dvode_state.MXSTEP = 25000;
@@ -277,12 +252,10 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
     // relative tolerances
-    dvode_state.rtol_dens = tol_dens;
     dvode_state.rtol_spec = tol_spec;
     dvode_state.rtol_enuc = tol_ener;
 
     // absolute tolerances
-    dvode_state.atol_dens = sdc_solver_atol * U_old[URHO];
     dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
     dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
 
@@ -293,11 +266,11 @@ sdc_vode_solve(const Real dt_m,
     }
 
     // update the full U_new
-    U_new[URHO] = dvode_state.y(1);
     for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS+n] = dvode_state.y(2+n);
+        U_new[UFS+n] = dvode_state.y(1+n);
     }
-    U_new[UEINT] = dvode_state.y(NumSpec+2);
+    U_new[UEINT] = dvode_state.y(NumSpec+1);
+
     auto v2 = 0.0_rt;
     for (int n = 0; n < 3; ++n) {
         v2 += U_new[UMX+n] * U_new[UMX+n];
