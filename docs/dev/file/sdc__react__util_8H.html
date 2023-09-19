@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File problem_diagnostics.H &mdash; Castro  documentation</title>
+  <title>File sdc_react_util.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File problem_emissivity.H" href="problem__emissivity_8H.html" />
-    <link rel="prev" title="File problem_checkpoint.H" href="problem__checkpoint_8H.html" /> 
+    <link rel="next" title="File slope.H" href="slope_8H.html" />
+    <link rel="prev" title="File runtime_parameters.H" href="runtime__parameters_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/problem__diagnostics_8H.html">main</a> | <a href="../file/problem__diagnostics_8H.html">development</a>
+        Branch: <a href="../../file/sdc__react__util_8H.html">main</a> | <a href="../file/sdc__react__util_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -154,7 +154,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File problem_diagnostics.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__diagnostics_8H.html">File problem_diagnostics.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__emissivity_8H.html">File problem_emissivity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__initialize_8H.html">File problem_initialize.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__initialize__mhd__data_8H.html">File problem_initialize_mhd_data.H</a></li>
@@ -169,7 +169,7 @@
 <li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
@@ -196,9 +196,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File problem_diagnostics.H</li>
+      <li class="breadcrumb-item active">File sdc_react_util.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/problem__diagnostics_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/sdc__react__util_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -206,16 +206,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-problem-diagnostics-h">
-<h1>File problem_diagnostics.H<a class="headerlink" href="#file-problem-diagnostics-h" title="Link to this heading"></a></h1>
+  <section id="file-sdc-react-util-h">
+<h1>File sdc_react_util.H<a class="headerlink" href="#file-sdc-react-util-h" title="Link to this heading"></a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__react__util_8H_1a5e87a191264be4951dce809d8a3ef378"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_react_source</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;R,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__react__util_8H_1aca6ce1788ffe0bdb554e4e103ffd62bc"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_react_source</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;R,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__react__util_8H_1a5e74d8e4583dcd6b529abd4bab223be3"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_jac</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt,</span> <span class="pre">Array2D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NumSpec+1,</span> <span class="pre">0,</span> <span class="pre">NumSpec+1</span> <span class="pre">&gt;</span> <span class="pre">&amp;dRdw)</span></span></dt>
+<dd></dd></dl>
+
+</div>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="problem__checkpoint_8H.html" class="btn btn-neutral float-left" title="File problem_checkpoint.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="problem__emissivity_8H.html" class="btn btn-neutral float-right" title="File problem_emissivity.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="runtime__parameters_8H.html" class="btn btn-neutral float-left" title="File runtime_parameters.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slope_8H.html" class="btn btn-neutral float-right" title="File slope.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
