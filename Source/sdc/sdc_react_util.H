@@ -128,6 +128,8 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
         // now correct the species derivatives
         // this constructs dy/dX_k |_e = dy/dX_k |_T - e_{X_k} |_T dy/dT / c_v
 
+        // TODO: I think that this can be accomplished via burn_state directly!
+
         eos_re_extra_t eos_state;
         eos_state.rho = burn_state.rho;
         eos_state.T = burn_state.T;

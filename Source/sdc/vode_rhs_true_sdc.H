@@ -78,87 +78,27 @@ void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& p
 
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
-    GpuArray<Real, NumSpec+2> R_react;
 
     // we are not solving the momentum equations
     // create a full state -- we need this for some interfaces
 
-    U_full[URHO] = vode_state.y(1);
+    U_full[URHO] = burn_state.rho_orig + time * state.ydot_a[URHO];
+
     for (int n = 0; n < NumSpec; n++) {
-        U_full[UFS+n] = vode_state.y(2+n);
+        U_full[UFS+n] = vode_state.y(1+n);
     }
-    U_full[UEINT] = vode_state.y(NumSpec+2);
+    U_full[UEINT] = vode_state.y(NumSpec+1);
 
-
-    // compute the temperature and species derivatives --
-    // maybe this should be done using the burn_state
-    // returned by single_zone_react_source, since it is
-    // more consistent T from e
-
-    eos_extra_t eos_state;
-    eos_state.rho = U_full[URHO];
-    eos_state.T = burn_state.T; // initial guess
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = U_full[UFS+n] / U_full[URHO];
-    }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = U_full[UFX+n] / U_full[URHO];
-    }
-#endif
-    eos_state.e = U_full[UEINT] / U_full[URHO];  //(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
-
-
-    eos(eos_input_re, eos_state);
-
-    U_full[UTEMP] = eos_state.T;
+    U_full[UTEMP] = burn_state.T;
 
     burn_t burn_state_pass;
+
+    // this will initialize burn_state_pass and fill the temperature
+    // via the EOS
+
     single_zone_react_source(U_full, R_full, burn_state_pass);
 
-    single_zone_jac(U_full, burn_state_pass, vode_state.H, dRdw);
-
-    // construct dwdU
-
-    // the density row
-
-    dwdU(iwrho, 0) = 1.0_rt;
-
-    // the X_k rows
-
-    for (int m = 1; m < NumSpec+1; m++) {
-       dwdU(iwfs-1+m, 0) = -vode_state.y(m+1) / (vode_state.y(1) * vode_state.y(1));
-       dwdU(iwfs-1+m, m) = 1.0_rt / vode_state.y(1);
-    }
-
-    auto eos_xderivs = composition_derivatives(eos_state);
-
-    // now the e row -- this depends on whether we are evolving (rho E) or (rho e)
-
-    Real denom = 1.0_rt / eos_state.rho;
-    Real xn_sum = 0.0_rt;
-    for (int n = 0; n < NumSpec; ++n) {
-        xn_sum += eos_state.xn[n] * eos_xderivs.dedX[n];
-    }
-
-    dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
-
-    for (int m = 0; m < NumSpec; m++) {
-        dwdU(iwe, m+1) = -denom * eos_xderivs.dedX[m];
-    }
-
-    dwdU(iwe, iwe) = denom;
-
-    // construct the Jacobian -- note: the Jacobian is 1-based
-
-    for (int n = 0; n <= NumSpec+1; ++n) {
-        for (int m = 0; m <= NumSpec+1; ++m) {
-            pd(n+1, m+1) = 0.0_rt;
-            for (int l = 0; l <= NumSpec+1; ++l) {
-                pd(n+1, m+1) = dRdw(n,l) * dwdU(l,m);
-            }
-        }
-    }
+    single_zone_jac(U_full, burn_state_pass, vode_state.H, pd);
 
 }
 
