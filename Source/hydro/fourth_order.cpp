@@ -748,8 +748,8 @@ Castro::states(const Box& bx,
 
 void
 Castro::fourth_avisc(const Box& bx,
-                     Array4<Real const> const& q,
-                     Array4<Real const> const& qaux,
+                     Array4<Real const> const& q_arr,
+                     Array4<Real const> const& qaux_arr,
                      Array4<Real> const& avis,
                      const int idir) {
 
@@ -784,47 +784,47 @@ Castro::fourth_avisc(const Box& bx,
 
       // normal direction
 
-      avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv;
+      avis(i,j,k) = (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
 #if AMREX_SPACEDIM >= 2
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
-                                           q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV) +
+                                           q_arr(i-1,j+1,k,QV) - q_arr(i-1,j-1,k,QV)) * dyinv;
 #endif
 #if AMREX_SPACEDIM >= 3
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
-                                           q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW) +
+                                           q_arr(i-1,j,k+1,QW) - q_arr(i-1,j,k-1,QW)) * dzinv;
 #endif
 
-      cmin = amrex::min(qaux(i,j,k,QC), qaux(i-1,j,k,QC));
+      cmin = amrex::min(qaux_arr(i,j,k,QC), qaux_arr(i-1,j,k,QC));
 
     } else if (idir == 1) {
 
       // normal direction
 
-      avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV)) * dyinv;
+      avis(i,j,k) = (q_arr(i,j,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
 
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
-                                           q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU) +
+                                           q_arr(i+1,j-1,k,QU) - q_arr(i-1,j-1,k,QU)) * dxinv;
 
 #if AMREX_SPACEDIM >= 3
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
-                                           q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW) +
+                                           q_arr(i,j-1,k+1,QW) - q_arr(i,j-1,k-1,QW)) * dzinv;
 #endif
 
-      cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j-1,k,QC));
+      cmin = amrex::min(qaux_arr(i,j,k,QC), qaux_arr(i,j-1,k,QC));
 
     } else {
 
       // normal direction
 
-      avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW)) * dzinv;
+      avis(i,j,k) = (q_arr(i,j,k,QW) - q_arr(i,j,k-1,QW)) * dzinv;
 
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
-                                           q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV) +
+                                           q_arr(i,j+1,k-1,QV) - q_arr(i,j-1,k-1,QV)) * dyinv;
 
-      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
-                                           q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU) +
+                                           q_arr(i+1,j,k-1,QU) - q_arr(i-1,j,k-1,QU)) * dxinv;
 
-      cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j,k-1,QC));
+      cmin = amrex::min(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC));
 
     }
 
@@ -847,7 +847,7 @@ Castro::fourth_avisc(const Box& bx,
 #ifdef DIFFUSION
 void
 Castro::fourth_add_diffusive_flux(const Box& bx,
-                                  Array4<Real const> const& q,
+                                  Array4<Real const> const& q_arr,
                                   const int temp_comp,
                                   Array4<Real const> const& qint,
                                   Array4<Real> const& F,
@@ -864,7 +864,7 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
     eos_t eos_state;
 
     eos_state.rho = qint(i,j,k,QRHO);
-    eos_state.T = q(i,j,k,temp_comp);  // initial guess
+    eos_state.T = q_arr(i,j,k,temp_comp);  // initial guess
     eos_state.e = qint(i,j,k,QREINT) / qint(i,j,k,QRHO);
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qint(i,j,k,QFS+n);
@@ -884,39 +884,39 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
 
       if (is_avg) {
         // we are working with the cell-center state
-        dTdx = (-q(i+1,j,k,temp_comp) + 27*q(i,j,k,temp_comp) -
-                27*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp)) / (24.0_rt * dx[0]);
+        dTdx = (-q_arr(i+1,j,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i-1,j,k,temp_comp) + q_arr(i-2,j,k,temp_comp)) / (24.0_rt * dx[0]);
 
       } else {
         // we are working with the cell-average state
-        dTdx = (-q(i+1,j,k,temp_comp) + 15*q(i,j,k,temp_comp) -
-                15*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp)) / (12.0_rt * dx[0]);
+        dTdx = (-q_arr(i+1,j,k,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
+                15*q_arr(i-1,j,k,temp_comp) + q_arr(i-2,j,k,temp_comp)) / (12.0_rt * dx[0]);
       }
 
     } else if (idir == 1) {
 
       if (is_avg) {
         // we are working with the cell-center state
-        dTdx = (-q(i,j+1,k,temp_comp) + 27*q(i,j,k,temp_comp) -
-                27*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp)) / (24.0_rt * dx[1]);
+        dTdx = (-q_arr(i,j+1,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i,j-1,k,temp_comp) + q_arr(i,j-2,k,temp_comp)) / (24.0_rt * dx[1]);
 
       } else {
         // we are working with the cell-average state
-        dTdx = (-q(i,j+1,k,temp_comp) + 15*q(i,j,k,temp_comp) -
-                15*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp)) / (12.0_rt * dx[1]);
+        dTdx = (-q_arr(i,j+1,k,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
+                15*q_arr(i,j-1,k,temp_comp) + q_arr(i,j-2,k,temp_comp)) / (12.0_rt * dx[1]);
       }
 
     } else {
 
       if (is_avg) {
         // we are working with the cell-center state
-        dTdx = (-q(i,j,k+1,temp_comp) + 27*q(i,j,k,temp_comp) -
-                27*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp)) / (24.0_rt * dx[2]);
+        dTdx = (-q_arr(i,j,k+1,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i,j,k-1,temp_comp) + q_arr(i,j,k-2,temp_comp)) / (24.0_rt * dx[2]);
 
       } else {
         // we are working with the cell-average state
-        dTdx = (-q(i,j,k+1,temp_comp) + 15*q(i,j,k,temp_comp) -
-                15*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp)) / (12.0_rt * dx[2]);
+        dTdx = (-q_arr(i,j,k+1,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
+                15*q_arr(i,j,k-1,temp_comp) + q_arr(i,j,k-2,temp_comp)) / (12.0_rt * dx[2]);
       }
 
     }
