@@ -13,11 +13,21 @@ amr.n_cell   = 64  128
 amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.refinement_indicators = denerr temperr
+
+amr.refine.denerr.value_greater = 5.01e-6
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 2
+
+amr.refine.temperr.value_greater = 9.e6
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 2
 
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
@@ -28,8 +38,24 @@ amr.plot_file       = plt_
 amr.plot_int        = 100     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin.2d
+# PROBLEM PARAMETERS
+problem.rho0 = 5.0e-6
+problem.rho1 = 5.0e-6
+problem.T0 = 1.0e3
+problem.T1 = 1.0e7
+problem.r1 = 0.02e0
+
+# EOS
+eos.eos_gamma = 1.6666666667e0
+
+# OPACITY
+opacity.const_kappa_p = 2.e-16
+opacity.kappa_p_exp_m = 0.0
+opacity.kappa_p_exp_n = 0.0
+
+opacity.const_kappa_r = 2.e-10
+opacity.kappa_r_exp_m = 0.0
+opacity.kappa_r_exp_n = 0.0
 
 # VERBOSITY
 amr.v = 1
@@ -117,7 +143,7 @@ radiation.hi_bcval = 0.0  0.0 0.0
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLDSolver with accelerate = 2, must use >=100.
 #

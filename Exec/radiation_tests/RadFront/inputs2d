@@ -16,7 +16,7 @@ amr.n_cell   = 256  512
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
@@ -32,8 +32,25 @@ amr.plot_file       = plt_
 amr.plot_int        = 1000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin2d
+# PROBLEM PARAMETERS
+problem.rho_0  = 1.0e-5
+problem.T_0 = 3.0e2
+
+# EOS
+eos.eos_gamma = 1.6666666667
+
+# OPACITY
+opacity.const_kappa_p = 1.0e-15
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+opacity.kappa_p_exp_p = 0.0e0
+
+opacity.const_kappa_r = 1.0e-15
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
+opacity.kappa_r_exp_p = 0.0e0
+
+opacity.kappa_floor = 1.0e-16
 
 # VERBOSITY
 amr.v = 1
@@ -135,7 +152,7 @@ radiation.hi_bcval = 0.0   2.99      0.0
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

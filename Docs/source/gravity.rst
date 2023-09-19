@@ -24,18 +24,17 @@ via ``castro.do_grav`` = 1. If you want to incorporate a point mass
 
 in the ``GNUmakefile``.
 
-There are currently four options for how gravity is calculated,
+There are currently three options for how gravity is calculated,
 controlled by setting ``gravity.gravity_type``. The options are
-``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav`` or
-``PrescribedGrav``. Again, these are only relevant if ``USE_GRAV =
+``ConstantGrav``, ``PoissonGrav``, or ``MonopoleGrav``.
+Again, these are only relevant if ``USE_GRAV =
 TRUE`` in the ``GNUmakefile`` and ``castro.do_grav`` = 1 in the inputs
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.
 
-.. note:: make sure you have set the ``center()`` variable
-   appropriately for you problem.  This can be done either by directly
-   setting it in the ``prob_params_module`` or via the
-   ``castro.center`` runtime parameter.
+.. note:: make sure you have set the ``problem::center[]`` variable
+   appropriately for you problem.  This can be done by directly
+   setting it in the ``problem_initialize()`` function.
 
 
 Integration Strategy
@@ -64,7 +63,7 @@ The overall integration strategy is as follows, and is similar to
 the discussion in :cite:`castro_I`. Briefly:
 
 -  At the beginning of a simulation, we do a multilevel composite
-   solve (if ``gravity.no_composite`` = 0).
+   solve.
 
    We also do a multilevel composite solve after each regrid.
 
@@ -96,19 +95,13 @@ the discussion in :cite:`castro_I`. Briefly:
    result as if you had done a full composite solve at the end of the
    timestep (assuming ``gravity.no_sync`` = 0).
 
-If you do ``gravity.no_composite`` = 1, then you never do a full
-multilevel solve, and the gravity on any level is defined only by the
-solve on that level. The only time this would be appropriate is if
-the fine level(s) cover essentially all of the mass on the grid for
-all time.
-
 Controls
 --------
 
 -  For the full Poisson solver
    (``gravity.gravity_type`` = ``PoissonGrav``), the behavior
    of the full Poisson solve / multigrid solver is controlled by
-   ``gravity.no_sync`` and ``gravity.no_composite``.
+   ``gravity.no_sync``.
 
 -  For isolated boundary conditions, and when
    ``gravity.gravity_type`` = ``PoissonGrav``, the parameters
@@ -124,18 +117,13 @@ The following parameters apply to gravity
 solves:
 
 -  ``gravity.gravity_type`` : how should we calculate gravity?
-   Can be ``ConstantGrav``, ``PoissonGrav``, ``MonopoleGrav``, or
-   ``PrescribedGrav``
+   Can be ``ConstantGrav``, ``PoissonGrav``, or ``MonopoleGrav``
 
 -  ``gravity.const_grav`` : if ``gravity.gravity_type`` =
    ``ConstantGrav``, set the value of constant gravity (default: 0.0)
 
 -  ``gravity.no_sync`` : ``gravity.gravity_type`` =
    ``PoissonGrav``, do we perform the “sync solve"? (0 or 1; default: 0)
-
--  ``gravity.no_composite`` : if gravity.gravity_type
-   = ``PoissonGrav``, whether to perform a composite solve (0 or 1;
-   default: 0)
 
 -  ``gravity.max_solve_level`` : maximum level to solve
    for :math:`\phi` and :math:`\mathbf{g}`; above this level, interpolate from
@@ -200,7 +188,7 @@ for example, to set the gravity to have magnitude :math:`9.8` in the
 negative :math:`y`-direction if in 2D, negative :math:`z`-direction if in 3-D.
 The actual setting is done in Gravity.cpp as::
 
-     grav.setVal(const_grav, BL_SPACEDIM-1, 1, ng);
+     grav.setVal(const_grav, AMREX_SPACEDIM-1, 1, ng);
 
 Note that at present we do not fill the gravitational potential
 :math:`\phi` in this mode; it will be set to zero.
@@ -423,20 +411,6 @@ is :cite:`katz:2016`.
    other methods are producing accurate results. It can be enabled by
    setting ``gravity.direct_sum_bcs`` = 1 in your inputs file.
 
-``PrescribedGrav``
-------------------
-
-With PrescribedGrav [1]_, gravity can be defined as a function that is
-specified by the user. The option is allowed in 2D and 3D. To define
-the gravity vector, copy ``prescribe_grav_nd.f90`` from
-``Source/gravity/`` to your run directory. The makefile system will
-always choose this local copy of the file over the one in another
-directory.  Then define the components of gravity inside a loop over
-the grid inside the file. If your problem uses a radial gravity in the
-form :math:`g(r)`, you can simply adapt
-``ca_prescribe_grav_gravityprofile``, otherwise you will have to adapt
-``ca_prescribe_grav``, both are located in ``prescribed_grav_nd.90``.
-
 Point Mass
 ----------
 
@@ -447,7 +421,7 @@ option works by adding the gravitational acceleration of the point
 mass onto the acceleration from whatever other gravity type is under
 in the simulation.
 
-.. note:: the point mass have a mass < 0
+.. note:: The point mass may have a mass < 0
 
 A useful option is ``point_mass_fix_solution``. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -456,7 +430,7 @@ occur after a hydro update in those zones are reset, and the mass
 deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
-``pm_compute_delta_mass()`` in ``Source/gravity/pointmass_nd.f90``.
+``pointmass_update()`` in ``Castro_pointmass.cpp``.
 
 GR correction
 =============
@@ -465,7 +439,7 @@ In the cases of compact objects or very massive stars, the general
 relativity (GR) effect starts to play a role [2]_. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
-applied to the monopole approximation only when ``USE_GR`` = TRUE is
+applied to the monopole approximation only when ``USE_GR = TRUE`` is
 set in the ``GNUmakefile``.
 
 The formulae of GR-correction here are based on
@@ -625,11 +599,6 @@ the hydrodynamics system. The main parameter here is
   fluxes, permitting total energy to be conserved (excluding possible
   losses at open domain boundaries). See
   :cite:`katzthesis` for some more details.
-
-.. [1]
-   Note: The ``PrescribedGrav``
-   option and text here were contributed by Jan Frederik Engels of
-   University of Gottingen.
 
 .. [2]
    Note: The GR

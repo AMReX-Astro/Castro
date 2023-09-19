@@ -12,6 +12,7 @@ RUNPARAMS="
 castro.time_integration_method=2
 castro.sdc_order=2
 castro.ppm_type=0
+castro.use_pslope=1
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
 castro.lo_bc=3
@@ -103,6 +104,7 @@ RUNPARAMS="
 castro.time_integration_method=2
 castro.sdc_order=2
 castro.ppm_type=0
+castro.use_pslope=1
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
 """

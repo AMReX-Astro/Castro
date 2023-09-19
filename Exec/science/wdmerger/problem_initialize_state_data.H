@@ -12,8 +12,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    const Real time = 0.0_rt;
-
     // Set the zone state depending on whether we are inside the primary
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
@@ -66,6 +64,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
         eos(eos_input_rt, zone_state);
 
@@ -81,6 +82,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
         eos(eos_input_rt, zone_state);
 
@@ -93,6 +97,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
     }
 
@@ -103,14 +110,17 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; ++n) {
+        state(i,j,k,UFX+n) = zone_state.rho * zone_state.aux[n];
+    }
+#endif
 
-    // Set the velocities in each direction equal to the bulk
-    // velocity of the system. By default this is zero so that
-    // the system is at rest in our reference frame.
+    // Set the velocities in each direction to zero by default.
 
-    state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::bulk_velx + problem::smallu);
-    state(i,j,k,UMY) = state(i,j,k,URHO) * (problem::bulk_vely + problem::smallu);
-    state(i,j,k,UMZ) = state(i,j,k,URHO) * (problem::bulk_velz + problem::smallu);
+    state(i,j,k,UMX) = 0.0_rt;
+    state(i,j,k,UMY) = 0.0_rt;
+    state(i,j,k,UMZ) = 0.0_rt;
 
     for (int n = 0; n < 3; ++n) {
         loc[n] -= problem::center[n];
@@ -136,7 +146,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     // If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
 
-    if (((castro::do_rotation != 1) || ((castro::do_rotation == 1) && (castro::state_in_rotating_frame != 1))) && (problem::problem == 1)) {
+    if (castro::do_rotation != 1 && problem::problem == 1) {
 
         GpuArray<Real, 3> rot_loc = {loc[0], loc[1], loc[2]};
 
@@ -174,34 +184,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (AMREX_SPACEDIM == 2) {
             state(i,j,k,UMZ) = std::abs(state(i,j,k,UMZ));
-        }
-
-    }
-
-    // If we're doing the merger problem and want to add an initial radial velocity, do that here.
-    // We're only going to impart this velocity to the stars themselves, so that we prevent
-    // artificial infall in the ambient regions.
-
-    if (problem::problem == 1 && problem::initial_radial_velocity_factor > 0.0_rt) {
-
-        if (dist_P < problem::radius_P || dist_P < problem::radius_S) {
-
-            Real R_prp    = std::sqrt(std::pow(loc[problem::axis_1-1], 2) + std::pow(loc[problem::axis_2-1], 2));
-            Real cosTheta = loc[problem::axis_1-1] / R_prp;
-            Real sinTheta = loc[problem::axis_2-1] / R_prp;
-
-            GpuArray<Real, 3> vel = {state(i,j,k,UMX), state(i,j,k,UMY), state(i,j,k,UMZ)};
-            GpuArray<Real, 3> inertial_vel{vel};
-#ifdef ROTATION
-            rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
-#endif
-            Real mag_vel = std::sqrt(inertial_vel[0] * inertial_vel[0] +
-                                     inertial_vel[1] * inertial_vel[1] +
-                                     inertial_vel[2] * inertial_vel[2]);
-
-            state(i,j,k,UMX+problem::axis_1-1) -= problem::initial_radial_velocity_factor * cosTheta * mag_vel;
-            state(i,j,k,UMX+problem::axis_2-1) -= problem::initial_radial_velocity_factor * sinTheta * mag_vel;
-
         }
 
     }

@@ -17,7 +17,7 @@ The basic usage is:
    ./show_status.py
    ```
 
-#. once the runs are finised, you can make the suite of plots by
+#. once the runs are finished, you can make the suite of plots by
    ```
    ./make_plots.py
    ```

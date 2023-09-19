@@ -6,7 +6,7 @@ geometry.coord_sys   =  0
 geometry.is_periodic =  0      0      0
 geometry.prob_lo     =  0.0    0.0    0.0
 geometry.prob_hi     =  1.0    1.0    1.0
-castro.center        =  0.0    0.0    0.0
+problem.center        =  0.0    0.0    0.0
 amr.n_cell           =  200    200    200
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -35,7 +35,6 @@ castro.sum_interval   = 1       # timesteps between computing integrals
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 gravity.v             = 1       # verbosity in Gravity.cpp
-castro.print_energy_diagnostics = 1
 
 # REFINEMENT / REGRIDDING
 amr.max_level         = 0       # maximum level number allowed
@@ -51,5 +50,6 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 0.1      # amount of simulation time between plotfiles
 amr.derive_plot_vars  = NONE
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# EOS
+eos.eos_assume_neutral = 0
+eos.eos_gamma = 1.6666666666666666666666666

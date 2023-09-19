@@ -20,7 +20,16 @@ public:
 /// @param _phys_bc
 ///
   Diffusion(amrex::Amr* Parent, amrex::BCRec* _phys_bc);
-  ~Diffusion ();
+  ~Diffusion () = default;
+
+///
+/// Remove copy/move constructors/assignment operators.
+///
+  Diffusion (const Diffusion&) = delete;
+  Diffusion (Diffusion&&) = delete;
+  Diffusion& operator= (const Diffusion&) = delete;
+  Diffusion& operator= (Diffusion&&) = delete;
+
   void read_params ();
 
 
@@ -79,7 +88,7 @@ protected:
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 ///
 /// @param level
 /// @param cc

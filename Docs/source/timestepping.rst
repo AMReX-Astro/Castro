@@ -5,7 +5,7 @@ Timestepping and Retries
 Simulation Time
 ---------------
 
-There are two paramters that can define when a simulation ends:
+There are two parameters that can define when a simulation ends:
 
   * ``max_step``: maximum number of level 0 time steps (integer
     :math:`\geq 0`; default: -1)
@@ -205,6 +205,8 @@ which will subcycle twice at every level (except level 0).
 Retry Mechanism
 ---------------
 
+.. index:: castro.use_retry, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.retry_small_density_cutoff, castro.small_dens
+
 Castro's Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
@@ -225,27 +227,19 @@ A retry can be triggered by a number of conditions:
 
   * Exceeding the CFL condition for a level
 
-  * A negative density is encountered
+  * A negative density is encountered.  This check can be disabled
+    in low density regions by setting ``castro.retry_small_density_cutoff`` to the density below which we silently reset the density to
+    ``castro.small_dens``.
+
+  * The mass fractions fall outside of :math:`[0, 1]` -- we use
+    ``castro.abundance_failure_tolerance`` with a default value of
+    ``0.01`` to trigger the retry.  This check can be disabled at low
+    densities by setting ``castro.abundance_failure_rho_cutoff`` to
+    the density below which we want to silently renormalize the species.
 
   * Integration failure in the burner
 
-    Note: this requires that the following be set in your ``&extern``
-    namelist::
-
-      retry_burn = F
-      abort_on_failure = F
-
-    This instructs the integration routine in Microphysics to not
-    abort when the integration fails, but instead to tell the calling
-    Castro routine that the integration failed so Castro can handle
-    the retry itself.
-
-    .. note::
-
-       The combination of ``use_retry = 0`` and ``abort_on_failure = F``
-       is unsafe and not supported.
-
-       For true SDC, we disable retry and reset ``abort_on_failure`` to
-       always be true, since retry is not supported for that integration.
-
-
+    By construction, the integration routines in Microphysics will not
+    abort if the integration fails, but instead return control to the
+    calling function and set ``burn_t burn_state.success=false``.  This
+    allows Castro to handle the failure.

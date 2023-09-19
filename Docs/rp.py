@@ -7,20 +7,20 @@ import textwrap
 from more_itertools import unique_everseen
 
 MAIN_HEADER = """
-+----------------------------------------+---------------------------------------------------------+---------------+
-| parameter                              | description                                             | default value |
-+========================================+=========================================================+===============+
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| parameter                                  | description                                                 | default value |
++============================================+=============================================================+===============+
 """
 
 SEPARATOR = """
-+----------------------------------------+---------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+---------------+
 """
 
 ENTRY = """
-| {:38} | {:55} | {:13} |
+| {:42} | {:59} | {:13} |
 """
 
-WRAP_LEN = 55
+WRAP_LEN = 59
 
 class Parameter:
     # container class for the parameters
@@ -51,9 +51,9 @@ def make_rest_table(param_files):
 
         # open the file
         try:
-            f = open(pf, "r")
-        except IOError:
-            sys.exit("ERROR: {} does not exist".format(pf))
+            f = open(pf)
+        except OSError:
+            sys.exit(f"ERROR: {pf} does not exist")
 
         descr = r""
         category = ""
@@ -133,7 +133,7 @@ def make_rest_table(param_files):
     for nm in sorted(namespaces):
 
         # print the heading
-        heading_name = r"namespace: ``{}``".format(nm)
+        heading_name = fr"namespace: ``{nm}``"
         nmlen = len(heading_name)
         print(heading_name)
         print(nmlen*"-" + "\n")
@@ -145,12 +145,12 @@ def make_rest_table(param_files):
 
             # print the subheading
             if c != "":
-                print("**{}**\n".format(c))
+                print(f"**{c}**\n")
 
             params = [q for q in params_list if q.namespace == nm and q.category == c]
 
             # print the index stuff
-            fmt = ["{}.{}".format(nm, q.var) for q in params]
+            fmt = [f"{nm}.{q.var}" for q in params]
             print(".. index:: {}\n\n".format(", ".join(fmt)))
 
             print(MAIN_HEADER.strip())

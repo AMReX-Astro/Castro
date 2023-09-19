@@ -35,8 +35,18 @@ amr.plot_file       = plt_
 amr.plot_int        = 1000     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin.1d.87a.23
+# PROBLEM PARAMETERS
+problem.rbasefac = 0.8e0
+problem.rwind0 = 2.0e13
+problem.rwind1 = 1.0e14
+problem.rhowind1 = 1.e-16
+problem.Twind1 = 800.0e0
+
+# filter is used only when rho or time is below.
+problem.filter_rhomax = 1.e-12
+problem.filter_timemax = 4.e0
+
+problem.model_file = "model.input.87a.23"
 
 radiation.plot_com_flux = 1   # comoving frame flux
 radiation.plot_lab_flux = 1   # lab frame flux
@@ -91,8 +101,6 @@ castro.v = 1
 radiation.SolverType = 5
 
 radiation.comoving = 1
-
-#radiation.surface_average = 2  # default is 2
 
 radiation.filter_lambda_T = 4
 radiation.filter_lambda_S = 0
@@ -159,7 +167,7 @@ radiation.use_opacity_table_module = 1
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

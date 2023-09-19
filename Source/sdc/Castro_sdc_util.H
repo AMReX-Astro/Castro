@@ -3,9 +3,14 @@
 
 #include <Castro.H>
 #ifdef REACTIONS
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#endif
 #include <Castro_react_util.H>
 #include <vode_dvode.H>
+#ifndef NEW_NETWORK_IMPLEMENTATION
 #include <linpack.H>
+#endif
 #endif
 
 // error codes
@@ -34,7 +39,7 @@ normalize_species_sdc(const int i, const int j, const int k,
     sum_rhoX = 0.0_rt;
 
     for (int n = 0; n < NumSpec; ++n) {
-        u(i,j,k,UFS+n) = amrex::max(small_x * u(i,j,k,URHO),
+        u(i,j,k,UFS+n) = amrex::max(network_pr::small_x * u(i,j,k,URHO),
                                     amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
         sum_rhoX += u(i,j,k,UFS+n);
     }
@@ -92,7 +97,7 @@ f_sdc_jac(const Real dt_m,
     // normalize the species
     auto sum_rhoX = 0.0_rt;
     for (int n = 0; n < NumSpec; ++n) {
-        U_full[UFS+n] = amrex::max(small_x, U_full[UFS+n]);
+        U_full[UFS+n] = amrex::max(network_rp::small_x, U_full[UFS+n]);
         sum_rhoX += U_full[UFS+n];
     }
 
@@ -105,7 +110,7 @@ f_sdc_jac(const Real dt_m,
     // returned by single_zone_react_source, since it is
     // more consistent T from e
 
-    eos_t eos_state;
+    eos_extra_t eos_state;
     eos_state.rho = U_full[URHO];
     eos_state.T = T_old;   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
@@ -142,9 +147,9 @@ f_sdc_jac(const Real dt_m,
         f[n] = U[n] - dt_m * R_react[n] - f_source[n];
     }
 
-    // get dRdw -- this may do a numerical approxiation or use the
+    // get dRdw -- this may do a numerical approximation or use the
     // network's analytic Jac
-    single_zone_jac(U_full, burn_state, dRdw);
+    single_zone_jac(U_full, burn_state, dt_m, dRdw);
 
     // the density row
     dwdU(iwrho, 0) = 1.0_rt;
@@ -337,7 +342,12 @@ sdc_newton_solve(const Real dt_m,
         IArray1D ipvt;
 
         // solve the linear system: Jac dU_react = -f
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgefa(Jac);
+        info = 0;
+#else
         dgefa<NumSpec+2>(Jac, ipvt, info);
+#endif
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
@@ -347,7 +357,11 @@ sdc_newton_solve(const Real dt_m,
             f_rhs(n) = -f[n-1];
         }
 
+#ifdef NEW_NETWORK_IMPLEMENTATION
+        RHS::dgesl(Jac, f_rhs);
+#else
         dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
+#endif
 
         for (int n = 0; n < NumSpec+2; ++n) {
             dU_react[n] = f_rhs(n+1);
@@ -459,7 +473,7 @@ sdc_newton_subdivide(const Real dt_m,
             // normalize species
             Real sum_rhoX = 0.0_rt;
             for (int n = 0; n < NumSpec; ++n) {
-                U_begin[UFS + n] = amrex::max(small_x, U_begin[UFS + n]);
+                U_begin[UFS + n] = amrex::max(network_rp::small_x, U_begin[UFS + n]);
                 sum_rhoX += U_begin[UFS + n];
             }
             for (int n = 0; n < NumSpec; ++n) {
@@ -529,7 +543,7 @@ sdc_vode_solve(const Real dt_m,
     }
     C_react[NumSpec+1] = C[UEINT];
 
-    dvode_t dvode_state;
+    dvode_t<NumSpec+2> dvode_state;
 
     burn_t burn_state;
 
@@ -574,28 +588,15 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
-    GpuArray<Real, NumSpec+2> rtol;
-    GpuArray<Real, NumSpec+2> atol;
-
     // relative tolerances
-    rtol[0] = tol_dens;
-    for (int n = 0; n < NumSpec; ++n) {
-        rtol[1+n] = tol_spec;
-    }
-    rtol[NumSpec+1] = tol_ener;
+    dvode_state.rtol_dens = tol_dens;
+    dvode_state.rtol_spec = tol_spec;
+    dvode_state.rtol_enuc = tol_ener;
 
     // absolute tolerances
-    atol[0] = sdc_solver_atol * U_old[URHO];
-    for (int n = 0; n < NumSpec; ++n) {
-        atol[1+n] = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
-    }
-
-    atol[NumSpec+1] = sdc_solver_atol * U_old[UEINT];
-
-    for (int n = 1; n <= NumSpec+2; ++n) {
-        dvode_state.atol(n) = atol[n-1];
-        dvode_state.rtol(n) = rtol[n-1];
-    }
+    dvode_state.atol_dens = sdc_solver_atol * U_old[URHO];
+    dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
+    dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
 
     int istate = dvode(burn_state, dvode_state);
 

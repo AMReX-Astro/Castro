@@ -4,11 +4,17 @@
 using namespace amrex;
 
 void
-Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
 
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
 #ifndef MHD
-  if (!(time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) {
+      return;
+  }
 #endif
 
   const Real strt_time = ParallelDescriptor::second();
@@ -21,7 +27,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
   Real mult_factor = 1.0;
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -33,8 +39,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -44,12 +49,21 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
 
 
-void
-Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
 
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(state_new);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
 #ifndef MHD
-  if (!(time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) {
+      return;
+  }
 
   amrex::Abort("you should not get here!");
 #else
@@ -60,14 +74,11 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
   thermo_src.setVal(0.0);
 
-  //Substract off the old-time value first
-  Real old_time = time - dt;
-
   fill_thermo_source(state_old, thermo_src);
 
   Real mult_factor = -0.5;
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   //Time center with the new data
 
@@ -81,7 +92,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
   fill_thermo_source(grown_state, thermo_src);
 
-  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -134,7 +145,7 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
 
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian
@@ -158,18 +169,18 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
                                     rm*rm*U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/(r*r*dx[0]);
       }
 
-#if BL_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
                                    U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
 #endif
-#if BL_SPACEDIM == 3
+#if AMREX_SPACEDIM == 3
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j,k+1,UMZ)/U(i,j,k+1,URHO) -
                                    U(i,j,k-1,UMZ)/U(i,j,k-1,URHO))/dx[2];
 #endif
 
       // we now need the pressure -- we will assume that the
       // temperature is consistent with the input state
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = U(i,j,k,URHO);
       eos_state.T = U(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {

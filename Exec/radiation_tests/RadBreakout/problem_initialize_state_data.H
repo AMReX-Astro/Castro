@@ -18,9 +18,6 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
-    int iye = network_aux_index("Ye");
-    int iinvmu = network_aux_index("invmu");
-
     Real dx_sub = dx[0] / static_cast<Real>(nsub);
 
     Real rhowind0 = problem::rhowind1 *
@@ -67,8 +64,8 @@ void problem_initialize_state_data (int i, int j, int k,
             }
             T += vsub * T_tmp;
 
-            Ye += model::profile(0).state(model::npts-1, model::iaux+iye) * vsub;
-            Abar += model::profile(0).state(model::npts-1, model::iaux+iinvmu) * vsub;
+            Ye += model::profile(0).state(model::npts-1, model::iaux+problem::iye) * vsub;
+            Abar += model::profile(0).state(model::npts-1, model::iaux+problem::iinvmu) * vsub;
 
             // u += 0.e0_rt;
 
@@ -76,15 +73,15 @@ void problem_initialize_state_data (int i, int j, int k,
             rho += model::profile(0).state(0, model::idens) * vsub;
             T += model::profile(0).state(0, model::itemp) * vsub;
             // u += 0.e0_rt;
-            Ye += model::profile(0).state(0, model::iaux+iye) * vsub;
-            Abar += model::profile(0).state(0, model::iaux+iinvmu) * vsub;
+            Ye += model::profile(0).state(0, model::iaux+problem::iye) * vsub;
+            Abar += model::profile(0).state(0, model::iaux+problem::iinvmu) * vsub;
 
         } else {
             rho += interpolate(xx, model::idens) * vsub;
             T += interpolate(xx, model::itemp) * vsub;
             u += interpolate(xx, model::ivelr) * vsub;
-            Ye += interpolate(xx, model::iaux+iye) * vsub;
-            Abar += interpolate(xx, model::iaux+iinvmu) * vsub;
+            Ye += interpolate(xx, model::iaux+problem::iye) * vsub;
+            Abar += interpolate(xx, model::iaux+problem::iinvmu) * vsub;
         }
     }
 
@@ -112,8 +109,8 @@ void problem_initialize_state_data (int i, int j, int k,
     }
     state(i,j,k,UFS) = state(i,j,k,URHO);
 
-    state(i,j,k,UFX+iye) = Ye * rho;
-    state(i,j,k,UFX+iinvmu) = invmu * rho;
+    state(i,j,k,UFX+problem::iye) = Ye * rho;
+    state(i,j,k,UFX+problem::iinvmu) = invmu * rho;
 
     // set the internal energy via the EOS
 

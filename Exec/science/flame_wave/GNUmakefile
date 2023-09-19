@@ -18,9 +18,8 @@ USE_DIFFUSION = TRUE
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 
-GPU_COMPATIBLE_PROBLEM = TRUE
 USE_JACOBIAN_CACHING = TRUE
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS := 2
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos

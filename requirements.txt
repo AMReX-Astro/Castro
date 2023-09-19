@@ -9,3 +9,7 @@ IPython>=3
 nbconvert
 pandoc
 jupyter
+sphinx-prompt
+codespell
+sphinx-math-dollar
+sphinx-copybutton

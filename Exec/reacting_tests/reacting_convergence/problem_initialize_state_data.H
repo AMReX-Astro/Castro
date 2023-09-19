@@ -4,10 +4,7 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#include <actual_network.H>
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
+#include <network_properties.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -57,15 +54,15 @@ void problem_initialize_state_data (int i, int j, int k,
     eos_state.rho = problem::rho0;  // initial guess
     eos_state.s = problem::s0;
 
-    Real xn[NumSpec] = {small_x};
-    xn[0] = 1.0_rt - (NumSpec-1)*small_x;
+    Real xn[NumSpec] = {network_rp::small_x};
+    xn[0] = 1.0_rt - (NumSpec-1) * network_rp::small_x;
 
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = xn[n];
     }
 
-#ifdef NSE_THERMO
-    set_nse_aux_from_X(eos_state);
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
 #endif
 
     eos(eos_input_ps, eos_state);
@@ -79,7 +76,7 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
     }
 
-#ifdef NSE_THERMO
+#ifdef AUX_THERMO
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];
     }

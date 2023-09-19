@@ -6,7 +6,7 @@ geometry.is_periodic = 1   1
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0 0.0
 geometry.prob_hi     = 1.0 2.0
-castro.center        = 0.5 1.0
+problem.center        = 0.5 1.0 0.0
 
 amr.n_cell           = 256 512
 amr.max_level        = 0        # maximum level number allowed; base level is 0
@@ -46,6 +46,20 @@ amr.regrid_int      = 2 2 2 2   # how often to regrid
 amr.blocking_factor = 8         # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2   # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad velgrad_x velgrad_y velgrad_z
+
+amr.refine.dengrad.gradient = 0.1
+amr.refine.dengrad.field_name = density
+
+amr.refine.velgrad_x.gradient = 1.0
+amr.refine.velgrad_x.field_name = x_velocity
+
+amr.refine.velgrad_y.gradient = 1.0
+amr.refine.velgrad_y.field_name = y_velocity
+
+amr.refine.velgrad_z.gradient = 1.0
+amr.refine.velgrad_z.field_name = z_velocity
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
 amr.check_file      = chk       # root name of checkpoint file
@@ -59,5 +73,15 @@ amr.plot_per        = 0.1       # time between plotfiles
 amr.plot_vars = ALL
 amr.derive_plot_vars = NONE
 
-# PROBIN FILENAME
-amr.probin_file = probin.p3
+# PROBLEM PARAMETERS
+problem.problem = 3
+
+problem.rho1 = 1.0
+problem.rho2 = 2.0
+problem.pressure = 10.0
+
+problem.bulk_velocity = 0.0
+
+# EOS
+eos.eos_gamma = 1.66666666666666666
+eos.eos_assume_neutral = 1

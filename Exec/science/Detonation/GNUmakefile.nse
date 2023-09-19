@@ -14,14 +14,12 @@ USE_REACT  = TRUE
 
 CASTRO_HOME = ../../..
 
-GPU_COMPATIBLE_PROBLEM = TRUE
-
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
-USE_NSE = TRUE
+USE_NSE_TABLE = TRUE
 
 Bpack   := ./Make.package
 Blocs   := .

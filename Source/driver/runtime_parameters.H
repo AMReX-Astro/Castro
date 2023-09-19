@@ -59,4 +59,63 @@ initialize_cpp_runparams()
 
 }
 
+
+///
+/// Check to ensure that any runtime parameters set in inputs or on
+/// the command line are valid -- everything should have been accessed
+/// by now.
+///
+AMREX_INLINE
+void
+validate_runparams()
+{
+
+    amrex::Vector<std::string> check_namespaces = {"castro", "problem"};
+#ifdef AMREX_PARTICLES
+    check_namespaces.push_back("particles");
+#endif
+#ifdef DIFFUSION
+    check_namespaces.push_back("diffusion");
+#endif
+#ifdef GRAVITY
+    check_namespaces.push_back("gravity");
+#endif
+#ifdef RADIATION
+    //check_namespaces.push_back("radiation");  // this doesn't yet work because RadBndry isn't setup yet
+    check_namespaces.push_back("radsolve");
+#endif
+
+    // now Microphysics
+
+    check_namespaces.push_back("eos");
+#ifdef REACTIONS
+    check_namespaces.push_back("network");
+    check_namespaces.push_back("integrator");
+#endif
+#ifdef RADIATION
+    check_namespaces.push_back("opacity");
+#endif
+#ifdef DIFFUSION
+    check_namespaces.push_back("conductivity");
+#endif
+
+    for (const auto& nm: check_namespaces)
+    {
+        // "castro"
+        if (ParmParse::hasUnusedInputs(nm)) {
+            amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
+            auto unused = ParmParse::getUnusedInputs(nm); 
+            for (const auto& p: unused) {
+                amrex::Print() << p << "\n";
+            }
+            amrex::Print() << std::endl;
+            if (abort_on_invalid_params) {
+                amrex::Error("Error: invalid parameters");
+            }
+        }
+
+    }
+
+}
+
 #endif

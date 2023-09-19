@@ -1,9 +1,6 @@
 
 ############################## CASTRO INPUTS ###############################################
 
-# Name of the probin file
-amr.probin_file = probin_2d_collision
-
 ############################################################################################
 # Geometry
 ############################################################################################
@@ -21,7 +18,7 @@ geometry.prob_lo =   0.0e0 -5.12e9
 geometry.prob_hi =  5.12e9  5.12e9
 
 # System center of mass
-castro.center    =   0.0e0   0.0e0
+problem.center    =   0.0e0   0.0e0    0.0e0
 
 ############################################################################################
 # Boundary conditions
@@ -45,9 +42,6 @@ max_step = 10000000
 
 # Simulation time to stop at
 stop_time = 5.0
-
-# Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5
@@ -80,6 +74,9 @@ amr.max_level = 0
 # Refinement ratio
 amr.ref_ratio = 4 4 4 4 4 4 4 4 4
 
+# Don't do AMR subcycling for this setup
+amr.subcycling_mode = None
+
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
 
@@ -103,6 +100,17 @@ castro.state_interp_order = 0
 
 # Limiting on state data interpolation (preserve linear combinations)
 castro.lin_limit_state_interp = 1
+
+# Add refinement indicators
+amr.refinement_indicators = density
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e2
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -184,6 +192,12 @@ eos.use_eos_coulomb = 1
 # Keep EOS inputs constant after EOS evaluation
 eos.eos_input_is_constant = 1
 
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################
@@ -209,9 +223,6 @@ castro.react_rho_max = 1.0e12
 # Smallest allowable mass fraction
 network.small_x = 1.0e-12
 
-# Burn at constant volume
-integrator.do_constant_volume_burn = 1
-
 # Evaluate the RHS during the burn
 integrator.call_eos_in_rhs = 1
 
@@ -219,15 +230,8 @@ integrator.call_eos_in_rhs = 1
 integrator.rtol_spec = 1.0e-6
 integrator.atol_spec = 1.0e-6
 
-integrator.rtol_temp = 1.0e-6
-integrator.atol_temp = 1.0e-6
-
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
-
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.abort_on_failure = 0
-integrator.retry_burn = 0
 
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
@@ -235,7 +239,7 @@ integrator.renormalize_abundances = 1
 # Maximum temperature allowed in the burn
 integrator.MAX_TEMP = 1.0e10
 
-# Use tabular rate evaluation when availble
+# Use tabular rate evaluation when available
 network.use_tables = 1
 
 ############################################################################################
@@ -258,6 +262,14 @@ gravity.no_sync = 0
 gravity.do_composite_phi_correction = 0
 
 ############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e1
+castro.sponge_upper_density = 1.0e1
+castro.sponge_timescale     = 0.01e0
+
+############################################################################################
 # Load balancing
 ############################################################################################
 
@@ -270,9 +282,6 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 # Diagnostics and I/O
 ############################################################################################
-
-# Calculate and print the center of mass at each time step
-castro.show_center_of_mass = 0
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -326,9 +335,6 @@ castro.output_at_completion = 0
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 
-# How often to check whether the run script asked for a checkpoint dump
-amr.message_int = 1
-
 # Control verbosity in Amr.cpp
 amr.v = 1
 
@@ -348,4 +354,32 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.64
+problem.mass_S = 0.64
+
+problem.problem = 0
+
+problem.collision_separation = 2.0e0
+problem.collision_impact_parameter = 0.0e0
+
+problem.interp_temp = 1
+
+problem.stellar_temp = 1.0e7
+
+problem.orbital_eccentricity = 0.0e0
+problem.orbital_angle = 0.0e0
+
+problem.axis_1 = 1
+problem.axis_2 = 2
+
+problem.stellar_density_threshold = 1.0e2
+
+problem.center_fracx = 0.5e0
+problem.center_fracy = 0.5e0
+problem.center_fracz = 0.5e0

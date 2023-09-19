@@ -35,9 +35,21 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
+        state(i,j,k,UFS+n) = amrex::max(interpolate(height, model::ispec+n), small_x);
     }
 
+    // normalize
+
+    Real sum = 0.0_rt;
+    for (int n = 0; n < NumSpec; n++) {
+        sum += state(i,j,k,UFS+n);
+    }
+
+    for (int n = 0; n < NumSpec; n++) {
+        state(i,j,k,UFS+n) /= sum;
+    }
+
+    // Here we enforce the EOS by calling rho and T (giving us p)
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
@@ -54,16 +66,18 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
-    // Initial velocities = 0
+
+    // Setting up the initial velocities = 0
     state(i,j,k,UMX) = 0.0_rt;
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
+
 
     //  Now add the velocity perturbation
     if (problem::apply_vel_field) {
 
         Real zdist = 0.0_rt;
-        Real ydist = y - problem::velpert_height_loc;
+        Real ydist = y - problem::y_h1 - problem::velpert_scale_ratio * problem::velpert_scale;
 
         Real upert[3] = {0.0_rt};
 
@@ -84,17 +98,52 @@ void problem_initialize_state_data (int i, int j, int k,
                 std::pow(-1.0_rt, vortex+1);
 
             upert[2] = 0.0_rt;
+
         }
 
-        state(i,j,k,UMX) = state(i,j,k,URHO) * upert[0];
-        state(i,j,k,UMY) = state(i,j,k,URHO) * upert[1];
-        state(i,j,k,UMZ) = state(i,j,k,URHO) * upert[2];
+            state(i,j,k,UMX) = state(i,j,k,URHO) * upert[0];
+            state(i,j,k,UMY) = state(i,j,k,URHO) * upert[1];
+            state(i,j,k,UMZ) = state(i,j,k,URHO) * upert[2];
 
-        state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5_rt *
-            (state(i,j,k,UMX) * state(i,j,k,UMX) +
-             state(i,j,k,UMY) * state(i,j,k,UMY) +
-             state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
+            state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5_rt *
+                                    (state(i,j,k,UMX) * state(i,j,k,UMX) +
+                                    state(i,j,k,UMY) * state(i,j,k,UMY) +
+                                    state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
 
     }
+
+    // Now we add the temperature perturbation
+    if (problem::apply_temp_field){
+
+        Real ydist = y - problem::y_h1 - problem::width_ratio*problem::width;
+        Real delta = problem::amplitude;
+        Real temp_pert = 0.0_rt;
+
+        if (problem::num_vortices % 2 == 0){
+            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
+                                    delta*exp(-pow(ydist / problem::width, 2));
+        } else {
+            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
+                                     delta*exp(-pow(ydist / problem::width, 2));
+        }
+
+        state(i,j,k,UTEMP)  = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
+
+        // Now we enforce the EOS by calling T and p (giving us rho)
+        eos_state.T = state(i,j,k,UTEMP);
+
+        eos(eos_input_tp, eos_state);
+
+        state(i,j,k,URHO) = eos_state.rho;
+
+        for (int n = 0; n < NumSpec; n++) {
+            state(i,j,k,UFS+n) = eos_state.rho * eos_state.xn[n];
+        }
+
+        state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
+        state(i,j,k,UEDEN) = state(i,j,k,UEINT);
+
+    }
+
 }
 #endif

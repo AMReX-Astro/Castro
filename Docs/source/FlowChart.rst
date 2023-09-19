@@ -1,3 +1,5 @@
+.. _sec:flowchart:
+
 *********
 Flowchart
 *********
@@ -30,7 +32,7 @@ the different code paths.  These fall into two categories:
      reaction source as inputs and do the final conservative update by
      integrating the reaction system using an ODE solver with the
      explicit advective source included in a
-     piecewise-constant-in-time fastion.
+     piecewise-constant-in-time fastion.  This is described in :cite:`castro_simple_sdc`.
 
    - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
@@ -56,14 +58,13 @@ The time-integration method used is controlled by
     order integration implemented.  At the moment, this does not support
     multilevel domains.  Note: because of differences in the interfaces with the 
     default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
-    method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
-    additional EOS derivatives).
+    method to work.
 
-  * ``time_integration_method = 3``: this is the simplifed SDC method
+  * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
-    method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
+    method to work.
 
 .. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
@@ -124,8 +125,6 @@ of each step.
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
 
-   -  Sync up the level information to the Fortran-side of Castro.
-
    -  Do any radiation initialization.
 
    -  Set the maximum density used for Poisson gravity tolerances.
@@ -177,7 +176,7 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantitiy evolution*
+#. [AUX_UPDATE] *Auxiliary quantity evolution*
 
    Auxiliary variables in Castro are those that obey a continuity
    equation (with optional sources) that are passed into the EOS, but
@@ -188,13 +187,7 @@ of each step.
    ca_auxupdate can be provided here to further update these
    quantities.
 
-#. *Radial data and [POINTMASS] point mass*
-
-   If ``castro.spherical_star`` is set, then we average the state data
-   over angles here to create a radial profile. This is then used in the
-   boundary filling routines to properly set Dirichlet BCs when our domain
-   is smaller than the star, so the profile on the boundaries will not
-   be uniform.
+#. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
    change the mass of the point mass that optionally contributes to the
@@ -314,8 +307,8 @@ here, consistent with the names used in the code:
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
 
-Single Step Flowchat
---------------------
+Single Step Flowchart
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
@@ -324,15 +317,8 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. If ``source_term_predictor == 1``, then aply
-      ``source_corrector`` to ``sources_for_hydro``.  For Strang+CTU,
-      this was the effect of initializing the source terms as:
-
-      .. math::
-
-         \Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}
-
-   C. Check for NaNs in the initial state, ``S_old``.
+   B. Call ``clean_state()`` to make sure the thermodynamics are in sync, in particular,
+      compute the temperature.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -351,8 +337,8 @@ In the code, the objective is to evolve the state from the old time,
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho e)^\star &= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
           (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
@@ -387,9 +373,9 @@ In the code, the objective is to evolve the state from the old time,
       follows that of Maestro :cite:`maestro:III`
 
    B. external sources : users can define problem-specific sources
-      in the ``ext_src_?d.f90`` file. Sources for the different
+      in the ``problem_source.H`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
-      using the integer keys defined in ``meth_params_module``
+      using the integer keys defined in ``state_indices.H``
       (e.g., URHO).
 
       This is most commonly used for external heat sources (see the
@@ -401,7 +387,12 @@ In the code, the objective is to evolve the state from the old time,
       rather than computing it from the Riemann problem.  This source is
       computed here for the internal energy equation.
 
-   D. [``DIFFUSION``] diffusion : thermal diffusion can be
+   D. geometry source: this is applied only for 2-d axisymmetric data
+      and captures the geometric term arising from applying the
+      cylindrical divergence in :math:`\nabla \cdot (\rho \Ub \Ub)` in
+      the momentum equation.  See :cite:`bernard-champmartin_eulerian_2012`.
+
+   E. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -412,10 +403,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   E. [``HYBRID_MOMENTUM``] angular momentum
+   F. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   F. [``GRAVITY``] gravity:
+   G. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -430,7 +421,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   G. [``ROTATION``] rotation
+   H. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -543,7 +534,7 @@ In the code, the objective is to evolve the state from the old time,
 
 #. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   We do the final :math:`\dt/2` reacting on the state, beginning with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
    This is largely the same as ``strang_react_first_half()``, but
@@ -606,7 +597,7 @@ together directly.
    The code must be compiled with ``USE_TRUE_SDC = TRUE`` to use this
    evolution type.
 
-The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
+The SDC solver follows the algorithm detailed in :cite:`castro-sdc`.
 We write our evolution equation as:
 
 .. math::
@@ -748,8 +739,6 @@ do ``FillPatch`` operations.
        ``StateData``, ``old_source``.
 
      * Convert the sources to 4th order averages if needed.
-
-     * ``sources_for_hydro`` :math:`\leftarrow` ``old_source``
 
      * Convert the conserved variables to primitive variables
 

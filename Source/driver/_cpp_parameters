@@ -16,12 +16,8 @@ state_interp_order           int           1
 # how to do limiting of the state data when interpolating
 # 0: only prevent new extrema
 # 1: preserve linear combinations of state variables
+# 2: preserve linear combinations and prevent new extrema
 lin_limit_state_interp       int           0
-
-# Number of ghost zones for state data to have. Note that
-# if you are using radiation, choosing this to be zero will
-# be overridden since radiation needs at least one ghost zone.
-state_nghost                 int           0
 
 # do we do the hyperbolic reflux at coarse-fine interfaces?
 do_reflux                    int           1
@@ -31,8 +27,10 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
-# should we apply the sources one by one or all at once?
-apply_sources_consecutively  int           0
+# Castro was originally written assuming dx = dy = dz.  This assumption is
+# enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
+allow_non_unit_aspect_zones  int           0
+
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -129,10 +127,6 @@ cg_tol                       Real          1.0e-5
 # 2 = do a bisection search for another 2 * cg_maxiter iterations.
 cg_blend                     int           2
 
-# should we use the EOS in the Riemann solver to ensure
-# thermodynamic consistency?
-use_eos_in_riemann           int           0
-
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1
@@ -164,7 +158,7 @@ dual_energy_eta2             Real          1.0e-4
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?  This is a well-balanced method that
 # does well with HSE
-use_pslope                   int           1
+use_pslope                   int           0
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
@@ -172,9 +166,6 @@ pslope_cutoff_density        Real          -1.e20
 
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0
-
-# Should we limit the momentum fluxes so that we do not create large velocities?
-limit_fluxes_on_large_vel    int           0
 
 # Enforce the magnitude of the velocity to be no larger than this number (and
 # optionally limit the fluxes as well). Only applies if it is greater than 0.
@@ -225,8 +216,12 @@ zr_ext_bc_type               int          -1
 hse_zero_vels                int           0
 
 # if we are doing HSE boundary conditions, should we get the temperature
-# via interpolation (using model_parser) or hold it constant?
+# via interpolation (constant gradient) or hold it constant?
 hse_interp_temp              int           0
+
+# if we are doing HSE boundary conditions and holding the temperature constant,
+# then set it to a fixed value at the boundaries (only if positive)
+hse_fixed_temp               Real          -1.e200
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
@@ -249,48 +244,77 @@ clamp_ambient_temp           int           0
 # operations that are applied to ambient material, such as clamping T.
 ambient_safety_factor        Real          1.1e0
 
+# density of the ambient material (should default to the same as small_dens)
+ambient_density              Real          -1.e200
+
+# temperature of the ambient material (should default to the same as small_temp)
+ambient_temp                 Real          -1.e200
+
+# energy of the ambient material (should default to the same as small_ener)
+ambient_energy               Real          -1.e200
+
 # integration order for SDC integration
 # valid options are 2 and 4
-sdc_order                    int           2                  y
+sdc_order                    int           2
 
 # which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
-sdc_quadrature               int           0                  y
+sdc_quadrature               int           0
 
 # number of extra SDC iterations to take beyond the order.  This only applies
 # for true SDC.
-sdc_extra                    int           0                  y
+sdc_extra                    int           0
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
-sdc_solver                   int           1                  y
+sdc_solver                   int           1
 
 # relative tolerance for the nonlinear solve on rho with SDC
-sdc_solver_tol_dens           Real          1.e-6              y
+sdc_solver_tol_dens           Real          1.e-6
 
 # relative tolerance for the nonlinear solve on rho X_k with SDC
-sdc_solver_tol_spec           Real          1.e-6              y
+sdc_solver_tol_spec           Real          1.e-6
 
 # relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
-sdc_solver_tol_ener           Real          1.e-6              y
+sdc_solver_tol_ener           Real          1.e-6
 
 # absolute tolerance for species with SDC (this will be multiplied by
 # the current rho in the zone to define the absolute tolerance on (rho
 # X)).
-sdc_solver_atol               Real          1.e-10              y
+sdc_solver_atol               Real          1.e-10
 
 # factor by which to reduce the SDC solver tol for each iteration before the last
 # (e.g., for iteration k out of kmax iterations, the tol is
 # :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
-sdc_solver_relax_factor      Real          1.0                y
+sdc_solver_relax_factor      Real          1.0
 
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
-sdc_solve_for_rhoe           int           1                  y
+sdc_solve_for_rhoe           int           1
 
 # do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
 # for the VODE solver, we use integrator.jacobian instead
-sdc_use_analytic_jac         int           1                  y
+sdc_newton_use_analytic_jac         int           1
 
 # for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
 use_axisymmetric_geom_source int           1
+
+# for simplified-SDC, do we add the reactive source prediction to the interface states
+# used in the advective source construction?
+add_sdc_react_source_to_advection  int     1
+
+# In GPU builds, the hydro advance typically results in a large amount of extra
+# temporary memory allocated due to the large tile sizes that are used for computational
+# efficiency. If you want to constrain the code's GPU memory footprint at the expense
+# of throughput, set the following parameter to some number greater than 0. This controls
+# the ratio of additional extra memory that can be allocated by the hydro relative to the
+# size of the base state (indirectly, by controlling the hydro tile size and then
+# synchronizing each time the amount of currently allocated fab memory reaches the
+# target limit). Choosing a value only slightly larger than 0 means that you want very
+# little additional memory allocated, and you will take a relatively large performance
+# hit, while choosing a value much greater than 1.0 would result in maximum throughput
+# but also maximum memory footprint. You will likely have to experimentally find a good
+# ratio for your use case, but a ratio around 2.0 - 4.0 is likely to yield a reasonable
+# balance between memory footprint and throughput. Note: the first timestep will be very
+# slow when using this option.
+hydro_memory_footprint_ratio       real    -1.0
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -319,8 +343,15 @@ cfl                          Real          0.8
 init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase or decrease from
-# one step to the next
+# one step to the next. Must be greater than 1.0---use max_dt to set a cap
+# on the timestep.
 change_max                   Real          1.1
+
+# whether to check that we will take a valid timestep before the advance
+check_dt_before_advance      int           1
+
+# whether to check that we took a valid timestep after the advance
+check_dt_after_advance       int           1
 
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
@@ -343,6 +374,13 @@ retry_subcycle_factor        Real          0.5
 # to the update was below this threshold.
 retry_small_density_cutoff   Real         -1.e200
 
+# Set the threshold for failing the species abundance validity check.
+abundance_failure_tolerance  Real          1.e-2
+
+# Do not abort for invalid species abundances if the zone's density is below
+# this threshold.
+abundance_failure_rho_cutoff Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
@@ -352,6 +390,12 @@ max_subcycles                int           10
 
 # Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
+
+# Field to use for determining whether to stop the simulation.
+stopping_criterion_field     string        ""
+
+# Threshold value for determining whether to stop.
+stopping_criterion_value     Real          1.e200
 
 #-----------------------------------------------------------------------------
 # category: reactions
@@ -376,16 +420,16 @@ dtnuc_X_threshold            Real          1.e-3
 do_react                     int          -1
 
 # minimum temperature for allowing reactions to occur in a zone
-react_T_min                  Real          0.0                y
+react_T_min                  Real          0.0
 
 # maximum temperature for allowing reactions to occur in a zone
-react_T_max                  Real          1.e200             y
+react_T_max                  Real          1.e200
 
 # minimum density for allowing reactions to occur in a zone
-react_rho_min                Real          0.0                y
+react_rho_min                Real          0.0
 
 # maximum density for allowing reactions to occur in a zone
-react_rho_max                Real          1.e200             y
+react_rho_max                Real          1.e200
 
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0
@@ -394,8 +438,17 @@ disable_shock_burning        int           0
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
 
-# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
-reactions_max_solve_level    int           100
+# if set to 1, we interpolate from the initial model to get the temperature
+# used to call the burner.  This prevents reactions from going nonlinear
+# and running away in place before a convective field is established.
+drive_initial_convection     int           0                  y
+
+# maximum time over which to do the drive_initial_convection procedure
+drive_initial_convection_tmax   Real       1.e200             y
+
+# frequency with which to re-initialize the thermodynamic data while preserving
+# the velocity field during drive_initial_convection
+drive_initial_convection_reinit_period   Real    1.e200      y
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -442,14 +495,6 @@ rotation_include_centrifugal int           1                  n        ROTATION
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  n        ROTATION
 
-# Which reference frame to measure the state variables with respect to.
-# The standard in the literature when using a rotating reference frame
-# is to measure the state variables with respect to an observer fixed
-# in that rotating frame. If this option is disabled by setting it to 0,
-# the state variables will be measured with respect to an observer fixed
-# in the inertial frame (but the frame will still rotate).
-state_in_rotating_frame     int           1                  n        ROTATION
-
 # determines how the rotation source terms are added to the momentum and
 # energy equations
 rot_source_type              int           4                  n        ROTATION
@@ -459,13 +504,13 @@ rot_source_type              int           4                  n        ROTATION
 implicit_rotation_update     int           1                  n        ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  y        ROTATION
+rot_axis                     int           3                  n        ROTATION
 
 # include a central point mass
 use_point_mass               int           0                  n        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        GRAVITY
+point_mass                   Real          0.0                n        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
@@ -473,10 +518,59 @@ point_mass                   Real          0.0                y        GRAVITY
 point_mass_fix_solution      int           0                  n        GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes). Only relevant if
+# (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
+
+# This integer is used to activate parallel plane 1/r**2 gravity.
+point_mass_offset_is_true    int           0                  n        GRAVITY
+
+# Distance, shifted from the origin, and used to compute the gravity on
+# plane parallel due to the action of an star with a radius given by this offset. 
+
+point_mass_location_offset   Real          0.0                n        GRAVITY
+
+#-----------------------------------------------------------------------------
+# category: sponge
+#-----------------------------------------------------------------------------
+
+# Minimum simulation distance from center to start applying the sponge
+sponge_lower_radius          Real         -1.0                n        SPONGE
+
+# Simulation distance from the center at which the sponge is fully applied
+sponge_upper_radius          Real         -1.0                n        SPONGE
+
+# Minimum density at which to start applying the sponge
+sponge_lower_density         Real         -1.0                n        SPONGE
+
+# Density at which the sponge is fully applied
+sponge_upper_density         Real         -1.0                n        SPONGE
+
+# Minimum pressure at which to start applying the sponge
+sponge_lower_pressure        Real         -1.0                n        SPONGE
+
+# Pressure at which the sponge is fully applied
+sponge_upper_pressure        Real         -1.0                n        SPONGE
+
+# Scaling factor for the sponge below the low end
+sponge_lower_factor          Real          0.0                n        SPONGE
+
+# Scaling factor for the sponge above the high end
+sponge_upper_factor          Real          1.0                n        SPONGE
+
+# Target x-velocity for the sponge to drive to
+sponge_target_x_velocity     Real          0.0                n        SPONGE
+
+# Target y-velocity for the sponge to drive to
+sponge_target_y_velocity     Real          0.0                n        SPONGE
+
+# Target z-velocity for the sponge to drive to
+sponge_target_z_velocity     Real          0.0                n        SPONGE
+
+# Timescale on which the sponge operates
+sponge_timescale             Real         -1.0                n        SPONGE
+
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -528,7 +622,10 @@ scf_max_iterations           int           30
 
 do_special_tagging           int           0
 
-spherical_star               int           0
+# Maximum radius from the center (in units of the domain width)
+# where tagging is allowed. The default choice implies no restriction.
+max_tagging_radius           real          10.0e0
+
 
 
 #-----------------------------------------------------------------------------
@@ -555,9 +652,6 @@ sum_interval                 int           -1
 # how often (simulation time) to compute integral sums (for runtime diagnostics)
 sum_per                      Real          -1.0e0
 
-# display center of mass diagnostics
-show_center_of_mass          int           0
-
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
 job_name                     string        "Castro"
@@ -577,7 +671,25 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
+# Do we store the species creation rates in the plotfile?  Note, if this option is
+# enabled then more memory will be allocated to hold the results of the burn
+store_omegadot               int            0
 
+# Do we store the burn weights as a diagnostic in the plotfile?    Note, if this option is
+# enabled then more memory will be allocated to hold the results of the burn
+store_burn_weights           int            0
+
+# Do we abort the run if the inputs file specifies a runtime parameter that we don't
+# know about?  Note: this will only take effect for those namespaces where 100%
+# of the runtime parameters are managed by the python scripts.
+abort_on_invalid_params      int            0
+
+#-----------------------------------------------------------------------------
+# category: radiation-hydro
+#-----------------------------------------------------------------------------
+
+# do we enable radiation for a radiation-hydrodynamics run?
+do_radiation                 int           -1
 
 
 
@@ -644,9 +756,6 @@ drdxfac                     int            1
 # do we perform the synchronization at coarse-fine interfaces?
 no_sync                     int            0
 
-# do we do a composite solve?
-no_composite                int            0
-
 # should we apply a lagged correction to the potential that
 # gets us closer to the composite solution? This makes the
 # resulting fine grid calculation slightly more accurate,
@@ -701,8 +810,51 @@ beta                         Real          1.0
 
 (v, verbose)                 int           0
 
+
 @namespace: radiation
 
 prop_temp_floor              Real          0.0                y
 
 flatten_pp_threshold         Real          -1.0
+
+# are we in a comoving reference frame?
+comoving                     int           1
+
+# which closure relation to use
+# 0: f = lambda
+# 1: f = 1/3
+# 2: f = 1 - 2 * lambda
+# 3: f = lambda + (lambda * R)^2
+# 4: f = 1/3 + 2/3 (lambda * R)^2
+closure                      int           3
+
+# which limiter to use
+# 0: no limiter
+# 2: Lev-Pom limiter
+# 12: Bruenn
+# 22: square root
+# 32: Minerbo
+limiter                      int           2
+
+# frequency space advection type
+fspace_advection_type        int           2
+
+
+# do we plot the flux limiter lambda?
+plot_lambda                  int           0
+
+# do we plot the Planck mean opacity?
+plot_kappa_p                 int           0
+
+# do we plot the Rosseland mean opacity?
+plot_kappa_r                 int           0
+
+# do we plot the lab radiation energy?
+plot_lab_Er                  int           0
+
+# do we plot the lab radiation flux?
+plot_lab_flux                int           0
+
+# do we plot the comoving frame radiation flux?
+plot_com_flux                int           0
+

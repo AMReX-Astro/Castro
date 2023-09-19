@@ -11,7 +11,7 @@ nuclear reactions and radiation. Castro uses an Eulerian grid and
 incorporates adaptive mesh refinement (AMR). Our approach to AMR uses
 a nested hierarchy of logically-rectangular grids with simultaneous
 refinement in both space and time, utilizing the
-AMReX library.
+AMReX library :cite:`amrex-joss`.
 
 The core algorithms in Castro are described in a series of papers:
 
@@ -79,10 +79,11 @@ project. Further guidelines are given in the `README.md
 Getting Help
 ============
 
-To get help, subscribe to the *castro-help* google group mailing list:
-https://groups.google.com/forum/#!forum/castro-help
+We use github discussions to ask questions about the code and get help:
 
-You can also post issues on the project github page.
+https://github.com/AMReX-Astro/Castro/discussions
+
+You can also post issues on the github page to report bugs.
 
 
 Acknowledging and Citing Castro
@@ -91,7 +92,7 @@ Acknowledging and Citing Castro
 If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
 testing. A list of these can be found in the `CITATION
-<https://github.com/AMReX-Astro/Castro/blob/main/CITATION>`_ file in
+<https://github.com/AMReX-Astro/Castro/blob/main/CITATION.md>`_ file in
 the root ``Castro/`` directory.
 
 The development Castro is supported by the science application

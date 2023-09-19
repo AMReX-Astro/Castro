@@ -18,7 +18,8 @@ castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = 1
-castro.hse_interp_temp = 1
+castro.hse_interp_temp = 0
+castro.hse_fixed_temp = 1.e8   # this should match problem.T_star
 castro.hse_reflect_vels = 1
 
 castro.fill_ambient_bc = 1
@@ -55,6 +56,12 @@ castro.react_rho_max = 1.5e7
 
 castro.react_T_min = 6.e7
 
+castro.sponge_upper_density = 1.e2
+castro.sponge_lower_density = 1.e0
+castro.sponge_timescale     = 1.e-7
+
+castro.abundance_failure_tolerance = 0.1
+castro.abundance_failure_rho_cutoff = 1.0
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -63,6 +70,8 @@ castro.change_max     = 1.1     # max time step growth
 
 castro.use_retry      = 1
 castro.max_subcycles = 16
+
+castro.retry_small_density_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 0       # timesteps between computing mass
@@ -91,5 +100,43 @@ amr.small_plot_per         = 1.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
 
-#PROBIN FILENAME
-amr.probin_file = probin.He
+# problem initialization
+
+problem.dtemp = 1.2e9
+problem.x_half_max = 4.096e4
+problem.x_half_width = 2048.e0
+
+problem.dx_model = 20.e0
+
+problem.dens_base = 3.43e6
+
+problem.T_star = 1.e8
+problem.T_hi = 2.e8
+problem.T_lo   = 8.e6
+
+problem.H_star = 2000.e0
+problem.atm_delta  = 50.0
+
+problem.fuel1_name = "helium-4"
+problem.fuel1_frac = 1.0e0
+
+problem.ash1_name  = "nickel-56"
+problem.ash1_frac = 1.0e0
+
+problem.low_density_cutoff = 1.e-4
+
+problem.cutoff_density = 2.5e4
+problem.max_hse_tagging_level = 3
+problem.max_base_tagging_level = 2
+
+problem.X_min = 1.e-2
+
+problem.x_refine_distance = 9.216e4
+
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+
+network.use_tables = 1

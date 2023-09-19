@@ -23,6 +23,12 @@ amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
+amr.refinement_indicators = tempgrad_rel
+
+amr.refine.tempgrad_rel.max_level = 20
+amr.refine.tempgrad_rel.relative_gradient = 0.1
+amr.refine.tempgrad_rel.field_name = Temp
+
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
@@ -32,8 +38,26 @@ amr.plot_file       = plt_
 amr.plot_int        = 500     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin.M2
+# PROBLEM PARAMETERS
+problem.rho0 = 5.45969027775e-13
+problem.T0 = 100.0e0
+problem.v0 = 235435.230236e0
+problem.rho1 = 1.24812608999e-12
+problem.T1 = 207.756999533e0
+problem.v1 = 102986.665199e0
+problem.idir = 1
+
+# EOS
+eos.eos_gamma = 1.6666666667
+
+# OPACITY
+opacity.const_kappa_p = 3.92663697758e-5
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+
+opacity.const_kappa_r = 0.848902853095e0
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
 
 # VERBOSITY
 amr.v = 1
@@ -127,22 +151,22 @@ radiation.hi_bcflag = 0 0 0
 # radiation.lo_bcval = 0 0 0
 # radiation.hi_bcval = 0 0 0
 
-radiation.lo_bcval0 = 3.27517624962438426E-014 2.82440556862939748E-013
-2.42497757527818012E-012 2.06318928406580997E-011
-1.72250911764424658E-010 1.38202167847469962E-009
-1.01793273622194353E-008 6.19571982820059287E-008
-2.42768244637479146E-007 3.56904140550843428E-007
-8.25303873091818086E-008 6.56183715461762625E-010
-4.87717642913733243E-015 0.0000000000000000 0.0000000000000000
+radiation.lo_bcval0 = 3.27517624962438426E-014 2.82440556862939748E-013 \
+2.42497757527818012E-012 2.06318928406580997E-011 \
+1.72250911764424658E-010 1.38202167847469962E-009 \
+1.01793273622194353E-008 6.19571982820059287E-008 \
+2.42768244637479146E-007 3.56904140550843428E-007 \
+8.25303873091818086E-008 6.56183715461762625E-010 \
+4.87717642913733243E-015 0.0000000000000000 0.0000000000000000 \
 0.0000000000000000
 
-radiation.hi_bcval0 = 6.81835171549573965E-014 5.89264374490598366E-013
-5.08186972919117823E-012 4.36362483925191109E-011
-3.71336974330742538E-010 3.10153934709458830E-009
-2.49072764340988082E-008 1.83820016696180237E-007
-1.12388723649004627E-006 4.45002562914824121E-006
-6.68776736496742209E-006 1.60756203455526885E-006
-1.37837403056099864E-008 1.20077008435698872E-013 0.0000000000000000
+radiation.hi_bcval0 = 6.81835171549573965E-014 5.89264374490598366E-013 \
+5.08186972919117823E-012 4.36362483925191109E-011 \
+3.71336974330742538E-010 3.10153934709458830E-009 \
+2.49072764340988082E-008 1.83820016696180237E-007 \
+1.12388723649004627E-006 4.45002562914824121E-006 \
+6.68776736496742209E-006 1.60756203455526885E-006 \
+1.37837403056099864E-008 1.20077008435698872E-013 0.0000000000000000 \
 0.0000000000000000
 
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
@@ -150,7 +174,7 @@ radiation.hi_bcval0 = 6.81835171549573965E-014 5.89264374490598366E-013
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

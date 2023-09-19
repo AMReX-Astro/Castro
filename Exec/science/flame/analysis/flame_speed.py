@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
 import matplotlib
@@ -17,7 +16,7 @@ class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
 
     def __init__(self, plotfile):
-        ds = yt.load(plotfile)
+        ds = yt.load(plotfile, hint="castro")
 
         time = float(ds.current_time)
         ad = ds.all_data()
@@ -108,7 +107,7 @@ if __name__ == "__main__":
 
     for n in range(0, len(plot_nums), args.skip):
 
-        pfile = "{}{}".format(prefix, plot_nums[n])
+        pfile = f"{prefix}{plot_nums[n]}"
         p = Profile(pfile)
 
         x1 = p.find_x_for_T(T_0=1.5e9)
@@ -158,4 +157,4 @@ if __name__ == "__main__":
     plt.savefig("speed.png")
 
     for to, vo, vso, wo in zip(t, v, vs, w):
-        print("{:10.3g} : {:15.8g} +/- {:15.8g}  |  {:15.8g}".format(to, vo, vso, wo))
+        print(f"{to:10.3g} : {vo:15.8g} +/- {vso:15.8g}  |  {wo:15.8g}")

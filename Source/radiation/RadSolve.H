@@ -61,13 +61,6 @@ class RadSolve {
 ///
   void cellCenteredApplyMetrics(int level, amrex::MultiFab& acoefs);
 
-///
-/// @param geom
-/// @param reg
-/// @param r
-/// @param s
-///
-  static void getCellCenterMetric(const amrex::Geometry& geom, const amrex::Box& reg, amrex::Vector<amrex::Real>& r, amrex::Vector<amrex::Real>& s);
 
 ///
 /// @param idim
@@ -125,7 +118,7 @@ class RadSolve {
 /// @param lamcomp
 ///
   void levelBCoeffs(int level,
-                    amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                    amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda,
                     amrex::MultiFab& kappa_r, int kcomp, amrex::Real c, int lamcomp=0);
 
 
@@ -180,7 +173,7 @@ class RadSolve {
 /// @param igroup
 ///
   void levelFlux(int level,
-                 amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
+                 amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& Flux,
                  amrex::MultiFab& Er, int igroup);
 
 ///
@@ -193,7 +186,7 @@ class RadSolve {
 ///
   void levelFluxReg(int level,
                     amrex::FluxRegister* flux_in, amrex::FluxRegister* flux_out,
-                    const amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
+                    const amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& Flux,
                     int igroup);
 
 ///
@@ -203,7 +196,7 @@ class RadSolve {
 /// @param flx
 /// @param iflx
 ///
-  void levelFluxFaceToCenter(int level, const amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
+  void levelFluxFaceToCenter(int level, const amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& Flux,
                              amrex::MultiFab& flx, int iflx);
 
 ///
@@ -269,7 +262,7 @@ class RadSolve {
                 const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star,
                 amrex::Real delta_t, int igroup, int it, amrex::Real ptc_tau);
 
-  void levelSPas(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda, int igroup,
+  void levelSPas(int level, amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda, int igroup,
                  int lo_bc[], int hi_bc[]);
 
 ///
@@ -281,7 +274,7 @@ class RadSolve {
 /// @param vel
 /// @param dcf
 ///
-  void levelDCoeffs(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
+  void levelDCoeffs(int level, amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda,
                     amrex::MultiFab& vel, amrex::MultiFab& dcf);
 
 ///

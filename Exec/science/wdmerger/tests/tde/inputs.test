@@ -1,9 +1,6 @@
 
 ############################## CASTRO INPUTS ###############################################
 
-# Name of the probin file
-amr.probin_file = probin.test
-
 ############################################################################################
 # Geometry
 ############################################################################################
@@ -21,7 +18,7 @@ geometry.prob_lo = -1.28e11 -1.28e11 -1.28e11
 geometry.prob_hi =  1.28e11  1.28e11  1.28e11
 
 # System center of mass
-castro.center    =   0.0e0   0.0e0   0.0e0
+problem.center    =   0.0e0   0.0e0   0.0e0
 
 # Boundary conditions on lo x, y, and z edges
 castro.lo_bc = 2 2 2
@@ -38,12 +35,6 @@ max_step = 10000000
 
 # Simulation time to stop at
 stop_time = 30.0
-
-# Whether to use our custom stopping criteria
-castro.use_stopping_criterion = 1
-
-# Level 0 timestep below which we halt
-
 
 # CFL number for hyperbolic system
 castro.cfl = 0.15
@@ -78,6 +69,14 @@ amr.max_grid_size = 32
 
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 16
+
+# Add refinement indicators
+amr.refinement_indicators = density
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e4
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 20
 
 ############################################################################################
 # Physics to include
@@ -130,6 +129,12 @@ eos.use_eos_coulomb = 1
 # Keep EOS inputs constant after EOS evaluation
 eos.eos_input_is_constant = 1
 
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -152,6 +157,14 @@ gravity.do_composite_phi_correction = 0
 # Add a black hole point mass (1000 M_sun)
 castro.point_mass = 1.9884e36
 castro.point_mass_fix_solution = 1
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e0
+castro.sponge_upper_density = 1.0e0
+castro.sponge_timescale     = 0.01e0
 
 ############################################################################################
 # Diagnostics and I/O
@@ -196,7 +209,7 @@ amr.plot_per = 10.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
-_
+
 # State variables to add to plot files
 amr.plot_vars = ALL
 
@@ -204,4 +217,20 @@ amr.plot_vars = ALL
 amr.derive_plot_vars = enuc rho_phiGrav angular_momentum_x angular_momentum_y angular_momentum_z
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.60
+problem.mass_S = -1.0
+
+problem.problem = 2
+
+problem.tde_separation = 8.0e0
+problem.tde_beta = 6.0e0
+
+problem.nsub = 16
+
+problem.stellar_density_threshold = 1.0e0

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_hydro.H>
 
 using namespace amrex;
 
@@ -15,14 +14,14 @@ Castro::reset_edge_state_thermo(const Box& bx,
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
 #ifdef RADIATION
         Real old_p_state = qedge(i,j,k,QPRES);
 #endif
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
 
         if (reset_rhoe == 1) {
             // if we are still negative, then we need to reset
@@ -86,13 +85,13 @@ Castro::edge_state_temp_to_pres(const Box& bx,
     // use T to define p
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // We just got the extremes corresponding to a particular cell-center, but now
         // we need to assign them to interfaces.
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
 
         eos_state.rho    = qp(i,j,k,QRHO);
         eos_state.T      = qp(i,j,k,QTEMP);

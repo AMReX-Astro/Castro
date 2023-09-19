@@ -11,7 +11,8 @@
 `Castro` is an adaptive-mesh compressible radiation / MHD / hydrodynamics
 code for astrophysical flows.  `Castro` supports a general equation of
 state, full Poisson gravity, and reactive flows, and is parallelized
-with MPI + OpenMP for CPUs and MPI + CUDA for GPUs.
+with MPI + OpenMP for CPUs and MPI + CUDA for NVIDIA GPUs and MPI + HIP for
+AMD GPUs.
 
 More information on Castro can be found here:
 
@@ -37,13 +38,6 @@ from the `development` branch.
 Documentation for running the AMReX Astrophysics codes at popular
 supercomputing centers can be found at:
 https://amrex-astro.github.io/workflow/
-
-## Call Graph
-
-A doxygen-generated call graph for `Castro` is available here:
-
-http://bender.astro.sunysb.edu/Castro/staging/Castro/html/
-
 
 ## Development Model:
 
@@ -119,8 +113,8 @@ status as a core developer.
 
 
 
-## Mailing list
+## Getting help
 
-You can subscribe to the castro-help mailing list at google groups:
+We use Github discussions for asking general questions about the code:
 
-https://groups.google.com/forum/#!forum/castro-help
+https://github.com/AMReX-Astro/Castro/discussions

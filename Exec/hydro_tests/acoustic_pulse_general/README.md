@@ -21,7 +21,6 @@ paper.
     cd acoustic_pulse_general
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/Castro2d.intel.haswell.MPI.ex .
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/inputs.2d.* .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/probin .
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/helm_table.dat .
     cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/job_scripts/cori.acoustic_pulse_convergence.slurm .
     sbatch cori.acoustic_pulse_convergence.slurm

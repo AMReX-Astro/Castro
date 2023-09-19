@@ -11,7 +11,7 @@
 using namespace amrex;
 
 Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
-  : 
+  :
     parent(Parent),
     LevelData(MAX_LEV),
     grids(MAX_LEV),
@@ -19,13 +19,13 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
+    AMREX_ALWAYS_ASSERT(parent->maxLevel() < MAX_LEV);
+
     make_mg_bc();
 }
 
-Diffusion::~Diffusion() {}
 
-
-void 
+void
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
 #include <diffusion_job_info_tests.H>
@@ -38,8 +38,9 @@ Diffusion::install_level (int                   level,
                           MultiFab&             _volume,
                           MultiFab*             _area)
 {
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "Installing Diffusion level " << level << '\n';
+    if (verbose) {
+        amrex::Print() << "Installing Diffusion level " << level << '\n';
+    }
 
     LevelData[level] = level_data;
 
@@ -52,14 +53,14 @@ Diffusion::install_level (int                   level,
 }
 
 void
-Diffusion::applyop (int level, MultiFab& Temperature, 
-                    MultiFab& CrseTemp, MultiFab& DiffTerm, 
+Diffusion::applyop (int level, MultiFab& Temperature,
+                    MultiFab& CrseTemp, MultiFab& DiffTerm,
                     Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
@@ -67,7 +68,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     const int coord_type = parent->Geom(level).Coord();
 
 #ifdef _OPENMP
-#pragma omp parallel      
+#pragma omp parallel
 #endif
     for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -84,7 +85,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     const int coord_type = parent->Geom(level).Coord();
 
 #ifdef _OPENMP
-#pragma omp parallel      
+#pragma omp parallel
 #endif
     for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -126,8 +127,8 @@ Diffusion::make_mg_bc ()
 }
 
 void
-Diffusion::applyop_mlmg (int level, MultiFab& Temperature, 
-                         MultiFab& CrseTemp, MultiFab& DiffTerm, 
+Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
+                         MultiFab& CrseTemp, MultiFab& DiffTerm,
                          Vector<std::unique_ptr<MultiFab> >& temp_cond_coef)
 {
     BL_PROFILE("Diffusion::applyop_mlmg()");
@@ -144,8 +145,8 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     LPInfo info;
     info.setMetricTerm(true);
     info.setMaxCoarseningLevel(0);
-    info.setAgglomeration(0);
-    info.setConsolidation(0);
+    info.setAgglomeration(false);
+    info.setConsolidation(false);
 
     MLABecLaplacian mlabec({geom}, {ba}, {dm}, info);
     mlabec.setMaxOrder(diffusion::mlmg_maxorder);

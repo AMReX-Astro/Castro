@@ -7,7 +7,7 @@ geometry.is_periodic =  0    0    0
 geometry.coord_sys   =  0
 geometry.prob_lo     = -2.0 -2.0 -2.0
 geometry.prob_hi     =  2.0  2.0  2.0
-castro.center        =  0.0  0.0  0.0
+problem.center        =  0.0  0.0  0.0
 
 amr.n_cell           =  64   64   64
 
@@ -64,7 +64,6 @@ castro.change_max     = 1.05    # scale back initial timestep
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
-castro.print_energy_diagnostics = 1
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
@@ -83,5 +82,23 @@ amr.plot_file       = plt_    # root name of plotfile
 amr.plot_int        = 100000  # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# problem initialization
+
+problem.inner_radius = 0.75
+problem.outer_radius = 1.50
+
+problem.ambient_density = 1.0e-8
+
+# Microphysics
+
+# The polytrope constant is selected so that the maximum density is one,
+# given our choices for the torus, the point mass, and gamma. If you change
+# them in the setup or the inputs file, you must redo this calculation. We
+# compute it statically here so that the C++ and Fortran EOS agree.
+#
+#  K_const = Gconst * point_mass / (TWO * (ONE + polytrope_index) * density_maximum_radius) * &
+#            (ONE - density_maximum_radius**2 / (inner_radius * outer_radius))
+
+eos.polytrope_gamma = 1.333333333
+eos.polytrope_K     = 0.5112312382075920
+

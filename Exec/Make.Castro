@@ -1,10 +1,12 @@
 CASTRO_HOME ?= /path/to/Castro
 
+# clang-tidy support via AMReX
+CLANG_TIDY_CONFIG_FILE := $(CASTRO_HOME)/.clang-tidy
+# space-separated list of paths to skip when running clang-tidy
+CLANG_TIDY_IGNORE_SOURCES = $(AMREX_HOME)/Src $(MICROPHYSICS_HOME)
+
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-
-# system blas
-BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
@@ -33,6 +35,14 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
+# only radiation builds need Fortran
+ifeq ($(USE_RAD), TRUE)
+  BL_NO_FORT := FALSE
+else
+  BL_NO_FORT := TRUE
+endif
+
+
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation
@@ -54,7 +64,7 @@ CXXSTD := c++17
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
-# number of passively advected quantities that are not species or auxillary
+# number of passively advected quantities that are not species or auxiliary
 NUMADV ?= 0
 
 # number of radiation groups
@@ -95,32 +105,28 @@ ifeq ($(USE_RAD), TRUE)
   USE_MLMG = TRUE
 endif
 
-ifeq ($(USE_SYSTEM_BLAS), TRUE)
-  LIBRARIES += $(BLAS_LIBRARY)
+ifeq ($(USE_MPI), TRUE)
+  # Use thread support in MPI to support asynchronous I/O
+  MPI_THREAD_MULTIPLE := TRUE
+  # But keep the suffix MPI, not MTMPI, for simplicity
+  MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
-
-  # We don't currently support host-side OpenMP being enabled
-  # when using CUDA. Throw an error to prevent this case.
-  ifeq ($(USE_OMP),TRUE)
-    $(error OpenMP is not supported by Castro when building with CUDA)
-  endif
 endif
 
-# Allow a problem to specify that we want to initialize
-# on the GPU if we're using CUDA. This is a subset of
-# dimension agnostic problems, and it requires a different
-# interface to initdata, so we want to define this even
-# if we're not using CUDA.
-
-ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-    DEFINES += -DGPU_COMPATIBLE_PROBLEM
-endif
+AMREX_NO_PROBINIT := TRUE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
+
+ifeq ($(USE_GPU),TRUE)
+  # We don't currently support host-side OpenMP being enabled
+  # when using GPUs. Throw an error to prevent this case.
+  ifeq ($(USE_OMP),TRUE)
+    $(error OpenMP is not supported by Castro when building with GPU support)
+  endif
+endif
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
@@ -132,9 +138,6 @@ build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
-
-# Castro uses a coarse grained OMP approach
-DEFINES += -DCRSEGRNDOMP
 
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
@@ -158,9 +161,9 @@ endif
 MAX_NPTS_MODEL ?= 10000
 NUM_MODELS ?= 1
 
-ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
-  Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+ifeq ($(USE_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser
+  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
 endif
 
 # add / define any special physics we need
@@ -168,8 +171,6 @@ endif
 ifeq ($(USE_MHD), TRUE)
   Bdirs += Source/mhd
   DEFINES += -DMHD
-else
-  Bdirs += Source/hydro
 endif
 
 ifeq ($(USE_GRAV), TRUE)
@@ -185,20 +186,6 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-
-  ifeq ($(USE_TRUE_SDC), TRUE)
-    # we need the compositional derivatives for SDC
-    DEFINES += -DEXTRA_THERMO
-  endif
-
-  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-    # we need the compositional derivatives for SDC
-    DEFINES += -DEXTRA_THERMO
-    # we only implement this for C++ reactions
-  endif
-
-  USE_CXX_REACTIONS = TRUE
-  DEFINES += -DCXX_REACTIONS
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -213,7 +200,7 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
+  DEFINES += -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -253,8 +240,6 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRAD_INTERP
 
   DEFINES += -DNGROUPS=$(NGROUPS)
-
-  EXTERN_CORE += $(TOP)/Util/LAPACK
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -298,7 +283,6 @@ ifeq ($(USE_PARTICLES), TRUE)
 endif
 
 ifeq ($(USE_MLMG), TRUE)
-   DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
 endif
 
@@ -313,8 +297,6 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # file (including the general_null network) to our temporary build
 # directory
 NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
-
-USE_CXX_EOS := TRUE
 
 include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
 
@@ -364,10 +346,9 @@ clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
-	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
-# can get rid of explicitly removing them (this is for backwards compatability)
+# can get rid of explicitly removing them (this is for backwards compatibility)
 clean::
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 

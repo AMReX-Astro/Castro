@@ -12,7 +12,7 @@ USE_OMP    = FALSE
 
 USE_MHD    = FALSE
 
-GPU_COMPATIBLE_PROBLEM = TRUE
+BL_NO_FORT := TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
