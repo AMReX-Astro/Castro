@@ -12,6 +12,7 @@
 #include <actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
+#include <sdc_react_util.H>
 
 // The f_rhs routine provides the right-hand-side for the DVODE solver.
 // This is a generic interface that calls the specific RHS routine in the
