@@ -90,12 +90,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 #endif
 #else
 
-    Array1D<Real, 1, neqs> ydot;
-    Array1D<Real, 1, neqs> ydot_pert;
-
     const auto eps = 1.e-8_rt;
-
-    actual_rhs(burn_state, ydot);
 
     // Jac has the derivatives with respect to the native
     // network variables, X, e.  Note: the e derivative
@@ -153,11 +148,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 #endif
 
     // at this point, our Jacobian should be entirely in terms of X,
-    // not Y.  Let's now fix the rhs terms themselves to be in terms of
-    // dX/dt and not dY/dt.
-    for (int n = 0; n < NumSpec; ++n) {
-        ydot(n+1) *= aion[n];
-    }
+    // not Y.
 
 }
 

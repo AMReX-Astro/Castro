@@ -76,9 +76,6 @@ void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& p
 
     // note the Jacobian is 1-based at the moment
 
-    Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dRdw = {0.0_rt};
-    Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dwdU = {0.0_rt};
-
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
     GpuArray<Real, NumSpec+2> R_react;
