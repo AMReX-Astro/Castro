@@ -3961,7 +3961,6 @@ Castro::computeTemp(
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
-      const int idx = mfi.tileIndex();
 
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
@@ -4082,7 +4081,6 @@ Castro::computeTemp(
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
-      const int idx = mfi.tileIndex();
 
       tmp.resize(bx, 1);
       Elixir elix_tmp = tmp.elixir();
