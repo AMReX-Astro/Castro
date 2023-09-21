@@ -69,7 +69,6 @@ sdc_solve(const Real dt_m,
         if (ierr != NEWTON_SUCCESS) {
             Abort("Newton subcycling failed in sdc_solve");
         }
-#if 0
     } else if (sdc_solver == VODE_SOLVE) {
         // Use VODE to do the solution
         sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
@@ -89,7 +88,6 @@ sdc_solve(const Real dt_m,
         if (ierr != NEWTON_SUCCESS) {
             Abort("Newton failure in sdc_solve");
         }
-#endif
     }
 }
 
