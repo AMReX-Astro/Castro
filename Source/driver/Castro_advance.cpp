@@ -502,7 +502,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 
     if (time_integration_method == SpectralDeferredCorrections) {
 
-      MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
 
       k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));

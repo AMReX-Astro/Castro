@@ -89,6 +89,12 @@ ifeq ($(USE_SDC), TRUE)
   $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
 endif
 
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    $(error USE_SIMPLIFIED_SDC cannot be combined with USE_TRUE_SDC)
+  endif
+endif
+
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
   USERSuffix = .SMPLSDC
