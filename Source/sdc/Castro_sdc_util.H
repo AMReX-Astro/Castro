@@ -8,19 +8,13 @@
 #endif
 #include <Castro_react_util.H>
 #include <sdc_newton_solve.H>
-//#include <vode_dvode.H>
-#ifndef NEW_NETWORK_IMPLEMENTATION
-#include <linpack.H>
-#endif
+#include <vode_rhs_true_sdc.H>
 #endif
 
 // solvers
 constexpr int NEWTON_SOLVE = 1;
 constexpr int VODE_SOLVE = 2;
 constexpr int HYBRID_SOLVE = 3;
-
-constexpr int ldjac = NumSpec + 2;
-
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
