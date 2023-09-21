@@ -113,7 +113,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv412NEWTON_SOLVE"><code class="docutils literal notranslate"><span class="pre">NEWTON_SOLVE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv410VODE_SOLVE"><code class="docutils literal notranslate"><span class="pre">VODE_SOLVE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv412HYBRID_SOLVE"><code class="docutils literal notranslate"><span class="pre">HYBRID_SOLVE</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv45ldjac"><code class="docutils literal notranslate"><span class="pre">ldjac</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
@@ -224,11 +223,6 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1a3a46fbef272c137435f402f5ad778661"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_vode_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
 <span class="target" id="Castro__sdc__util_8H_1af8bc73ff7cf67ec65bf3b450f7021751"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
 <dd></dd></dl>
 
@@ -268,11 +262,6 @@
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv412HYBRID_SOLVE">
 <span id="_CPPv312HYBRID_SOLVE"></span><span id="_CPPv212HYBRID_SOLVE"></span><span id="HYBRID_SOLVE__i"></span><span class="target" id="Castro__sdc__util_8H_1ab245439cd160db01984ffe53d9d151d5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HYBRID_SOLVE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv412HYBRID_SOLVE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv45ldjac">
-<span id="_CPPv35ldjac"></span><span id="_CPPv25ldjac"></span><span id="ldjac__i"></span><span class="target" id="Castro__sdc__util_8H_1a60e2197ae0c123a057df13173931741e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ldjac</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">NumSpec</span></span><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv45ldjac" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
