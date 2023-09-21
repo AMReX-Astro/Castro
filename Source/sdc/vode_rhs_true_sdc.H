@@ -14,6 +14,8 @@
 #include <Castro_react_util.H>
 #include <sdc_react_util.H>
 
+#include <vode_dvode.H>
+
 // The f_rhs routine provides the right-hand-side for the DVODE solver.
 // This is a generic interface that calls the specific RHS routine in the
 // network you're actually using.
@@ -33,7 +35,7 @@ void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt
     // update the density -- we'll need this for the EOS call in the
     // react update
 
-    U_full[URHO] = burn_state.rho_orig + time * state.ydot_a[URHO];
+    U_full[URHO] = burn_state.rho_orig + time * burn_state.ydot_a[SRHO];
 
     // we are not solving the momentum equations
     // and never need total energy, so we don't worry about filling those
@@ -61,9 +63,9 @@ void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt
     // now construct the RHS -- note this is 1-based
 
     for (int n = 0; n < NumSpec; ++n) {
-        dUdt(n-1) = R_react[UFS+n] + burn_state.ydot_a[UFS+n];
+        dUdt(n+1) = R_full[UFS+n] + burn_state.ydot_a[SFS+n];
     }
-    dUdt(NumSpec+1) = R_react[UEINT] + burn_state.ydot_a[UEINT];
+    dUdt(NumSpec+1) = R_full[UEINT] + burn_state.ydot_a[SEINT];
 
 }
 
@@ -82,7 +84,7 @@ void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& p
     // we are not solving the momentum equations
     // create a full state -- we need this for some interfaces
 
-    U_full[URHO] = burn_state.rho_orig + time * state.ydot_a[URHO];
+    U_full[URHO] = burn_state.rho_orig + time * burn_state.ydot_a[URHO];
 
     for (int n = 0; n < NumSpec; n++) {
         U_full[UFS+n] = vode_state.y(1+n);
@@ -129,7 +131,6 @@ sdc_vode_solve(const Real dt_m,
     // The tolerance we are solving to may depend on the
     // iteration
     auto relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
-    auto tol_dens = sdc_solver_tol_dens * relax_fac;
     auto tol_spec = sdc_solver_tol_spec * relax_fac;
     auto tol_ener = sdc_solver_tol_ener * relax_fac;
 
@@ -151,15 +152,30 @@ sdc_vode_solve(const Real dt_m,
     burn_t burn_state;
 
     burn_state.rho_orig = U_old[URHO];
+    burn_state.rhoe_orig = U_old[UEINT];
 
     // If we are solving the system as an ODE, then we are
     // solving
     //   dU/dt = R(U) + C
     // so we simply pass in C
 
-    for (int n = 0; n < NUM_STATE; ++n) {
-        burn_state.ydot_a[n] = C[n];
+    // Note: we need to use the indexing order that is defined in the burn_t
+    // so we are compatible with the integrator logic
+
+    burn_state.ydot_a[SRHO] = C[URHO];
+    burn_state.ydot_a[SMX] = C[UMX];
+    burn_state.ydot_a[SMY] = C[UMY];
+    burn_state.ydot_a[SMZ] = C[UMZ];
+    burn_state.ydot_a[SEDEN] = C[UEDEN];
+    burn_state.ydot_a[SEINT] = C[UEINT];
+    for (int n = 0; n < NumSpec; n++) {
+        burn_state.ydot_a[SFS+n] = C[UFS+n];
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; n++) {
+        burn_state.ydot_a[SFX+n] = C[UFX+n];
+    }
+#endif
 
     burn_state.success = true;
 
@@ -187,6 +203,8 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.t = 0.0_rt;
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
+
+    dvode_state.jacobian_type = integrator_rp::jacobian;
 
     // relative tolerances
     dvode_state.rtol_spec = tol_spec;
