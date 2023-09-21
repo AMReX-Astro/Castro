@@ -20,7 +20,7 @@ Castro::do_old_reactions (Real time, Real dt)
     advance_status status {};
 
 #ifndef SIMPLIFIED_SDC
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
@@ -57,7 +57,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
     advance_status status {};
 
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_new = get_new_data(Reactions_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -129,7 +129,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
 // Strang version
 
-bool
+int
 Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
 
