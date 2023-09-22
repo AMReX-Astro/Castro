@@ -76,6 +76,7 @@ amr.plot_file       = plt        # root name of plotfile
 amr.plot_per        = 5.e-7
 castro.plot_per_is_exact = 1
 amr.derive_plot_vars = ALL
+castro.store_omegadot = 1
 
 # problem initialization
 
