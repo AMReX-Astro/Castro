@@ -55,8 +55,6 @@ The options that affect the nonlinear solve are:
   tolerances (i.e. increase them) for earlier iterations.  We reach
   the desired tolerances on the final iteration.
 
-* ``sdc_solve_for_rhoe`` : whether we solve the system in terms of :math:`(\rho e)` or :math:`(\rho E)`.
-
 * ``sdc_newton_use_analytic_jac`` : whether we use the analytic Jacobian when doing Newton iterations for
   the reaction part of the system or compute it numerically.
 
