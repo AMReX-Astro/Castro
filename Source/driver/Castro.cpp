@@ -630,7 +630,7 @@ Castro::read_params ()
             error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
-            amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
+            amrex::Abort("Unrecognized refinement indicator for " + ref_indicator);
         }
     }
 
