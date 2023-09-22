@@ -273,7 +273,7 @@ sdc_newton_solve(const Real dt_m,
         // weights are 1/eps_tot
 
         auto err_sum = 0.0_rt;
-        for (int n = 1; n < NumSpec+1; ++n) {
+        for (int n = 1; n <= NumSpec+1; ++n) {
             err_sum += dU_react(n) * dU_react(n) / (eps_tot(n) * eps_tot(n));
         }
         err = std::sqrt(err_sum / static_cast<Real>(NumSpec+1));
