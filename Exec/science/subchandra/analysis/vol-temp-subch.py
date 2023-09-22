@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('agg')
-
-import numpy as np
+# render Temperature for the subchandra problem setup
 
 import sys
 
+import matplotlib
+import numpy as np
+
 import yt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-#from yt.visualization.volume_rendering.render_source import VolumeSource
-from yt.visualization.volume_rendering.api import create_volume_source, Scene
 from yt.units import cm
+#from yt.visualization.volume_rendering.render_source import VolumeSource
+from yt.visualization.volume_rendering.api import Scene, create_volume_source
 
-# this is for the wdconvect problem
+matplotlib.use('agg')
+
 
 def doit(plotfile):
 
@@ -26,22 +26,19 @@ def doit(plotfile):
 
     sc = Scene()
 
-
-    # add a volume: select a sphere
-    #center = (0, 0, 0)
-    #R = (5.e8, 'cm')
-
-    #dd = ds.sphere(center, R)
-
     vol = create_volume_source(ds.all_data(), field=field)
+    #vol.use_ghost_zones = True
+
     sc.add_source(vol)
 
 
     # transfer function
-    vals_tmp = [5.e7, 1.e8, 5.e8, 1.e9, 2.e9, 2.5e9, 3.e9]
+    _vals = [1.e8, 2.e8, 5.e8, 1.e9, 2.e9, 5.e9]
     vals = []
-    for v in vals_tmp:
+    for v in _vals:
         vals.append(np.log10(v))
+
+    alpha = [0.05, 0.2, 0.3, 0.3, 0.4, 0.5]
 
     sigma = 0.05
 
@@ -49,15 +46,10 @@ def doit(plotfile):
 
     tf.clear()
 
-    cmap = "viridis"
+    cmap = "Oranges"
 
-    for v in vals:
-        if v < 9.01:
-            alpha = 0.25
-        else:
-            alpha = 0.75
-
-        tf.sample_colormap(v, sigma**2, alpha=alpha, colormap=cmap)
+    for v, a in zip(vals, alpha):
+        tf.sample_colormap(v, sigma**2, alpha=a, colormap=cmap)
 
     sc.get_source(0).transfer_function = tf
 
@@ -79,14 +71,16 @@ def doit(plotfile):
 
     cam.switch_orientation(normal_vector=normal, north_vector=[0., 0., 1.])
     cam.set_width(ds.domain_width)
-    #cam.zoom(3.0)
+    cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_Hnuc_annotated.png".format(plotfile),
+    sc.save_annotated("{}_Temp_annotated.png".format(plotfile),
+                      label_fontsize="18",
+                      sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
-                                      dict(horizontalalignment="left")],
-                                     [(0.5,0.95),
+                                      f"t = {ds.current_time.d:6.3f}",
+                                      dict(horizontalalignment="left", fontsize="18")],
+                                     [(0.5, 0.95),
                                       "Castro simulation of double detonation SN Ia",
                                       dict(color="y", fontsize="24",
                                            horizontalalignment="center")]])
