@@ -28,7 +28,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    bool react_state(amrex::Real time, amrex::Real dt);
+    int react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// Are there any zones in ``State`` that can burn?
