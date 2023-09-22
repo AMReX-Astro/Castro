@@ -47,8 +47,8 @@ The options that affect the nonlinear solve are:
   ``integrator.atol_spec``, ``integrator.rtol_enuc``,
   ``integrator.atol_enuc``.
 
-* ``sdc_newton_use_analytic_jac`` : whether we use the analytic Jacobian when doing Newton iterations for
-  the reaction part of the system or compute it numerically.
+In all cases, the type of Jacobian (analytic or numerical) is determined by
+  ``integrator.jacobian``.
 
 
 

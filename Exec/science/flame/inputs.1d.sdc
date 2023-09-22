@@ -27,7 +27,6 @@ castro.sdc_order = 4
 
 castro.sdc_solve_for_rhoe = 1
 castro.sdc_solver = 1
-castro.sdc_newton_use_analytic_jac = 1
 castro.sdc_solver_relax_factor = 1
 
 castro.use_reconstructed_gamma1 = 1
@@ -111,4 +110,4 @@ integrator.atol_enuc = 1.e-10
 
 network.small_x = 1.e-10
 
-integrator.jacobian = 2
+integrator.jacobian = 1

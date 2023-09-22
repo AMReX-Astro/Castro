@@ -40,8 +40,6 @@ castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
 castro.sdc_solve_for_rhoe=1
 castro.sdc_solver=2
-castro.sdc_newton_use_analytic_jac = 1
-
 
 
 # TIME STEP CONTROL

@@ -95,7 +95,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // Jac has the derivatives with respect to the native
     // network variables, X, e.  Note: the e derivative
 
-    if (sdc_newton_use_analytic_jac == 0) {
+    if (integrator_rp::jacobian == 2) {
         // note the numerical Jacobian will be returned in terms of X
         // and will already have the corrections to convert into d/de
         // instead of d/dT
