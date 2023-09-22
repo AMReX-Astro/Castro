@@ -42,6 +42,9 @@ The options that affect the nonlinear solve are:
   * 3 : use VODE for the first iteration and then Newton for the
     subsequent iterations.
 
+  In all cases, the type of Jacobian (analytic or numerical) is determined by
+  ``integrator.jacobian``.
+
 * ``sdc_solver_tol_dens`` : the relative error on the density in solving the nonlinear system.
 
 * ``sdc_solver_tol_spec`` : the relative error on the partial densities, :math:`(\rho X_k)`
@@ -56,9 +59,6 @@ The options that affect the nonlinear solve are:
   the desired tolerances on the final iteration.
 
 * ``sdc_solve_for_rhoe`` : whether we solve the system in terms of :math:`(\rho e)` or :math:`(\rho E)`.
-
-* ``sdc_newton_use_analytic_jac`` : whether we use the analytic Jacobian when doing Newton iterations for
-  the reaction part of the system or compute it numerically.
 
 
 
