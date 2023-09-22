@@ -44,7 +44,7 @@ def doit(plotfile):
     ds._get_field_info(field).take_log = True
 
     vol = create_volume_source(ds.all_data(), field=field)
-    vol.use_ghost_zones = True
+    #vol.use_ghost_zones = True
 
     vals = [18.0, 18.5, 19.0, 19.5, 20.0, 20.5, 21.0, 21.5, 22.0]
     sigma = 0.1
