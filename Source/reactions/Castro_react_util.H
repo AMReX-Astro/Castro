@@ -10,10 +10,6 @@
 #include <numerical_jacobian.H>
 
 
-constexpr int iwrho = 0;
-constexpr int iwfs = 1;
-constexpr int iwe = NumSpec+1;
-
 // #include <actual_rhs.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
