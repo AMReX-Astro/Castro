@@ -30,7 +30,6 @@ castro.sdc_solver_tol_spec = 1.e-10
 castro.sdc_solver_tol_ener = 1.e-6
 castro.sdc_solver_atol = 1.e-10
 castro.sdc_solver = 1
-castro.sdc_newton_use_analytic_jac = 1
 castro.sdc_solver_relax_factor = 1
 
 castro.use_reconstructed_gamma1 = 1
@@ -112,4 +111,4 @@ integrator.atol_spec = 1.e-8
 
 network.small_x = 1.e-10
 
-integrator.jacobian = 2
+integrator.jacobian = 1

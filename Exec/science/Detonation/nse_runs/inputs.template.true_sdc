@@ -43,8 +43,6 @@ castro.sdc_solver_tol_spec=1.e-8
 castro.sdc_solver_tol_ener=1.e-8
 castro.sdc_solver_atol = 1.e-8
 castro.sdc_solver=2
-castro.sdc_newton_use_analytic_jac = 1
-
 
 
 # TIME STEP CONTROL
