@@ -204,7 +204,7 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
-    dvode_state.jacobian_type = integrator_rp::jacobian;
+    dvode_state.jacobian_type = static_cast<short>(integrator_rp::jacobian);
 
     // relative tolerances
     dvode_state.rtol_spec = tol_spec;

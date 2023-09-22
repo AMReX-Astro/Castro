@@ -568,9 +568,8 @@ Castro::read_params ()
     Vector<std::string> refinement_indicators;
     ppa.queryarr("refinement_indicators", refinement_indicators, 0, ppa.countval("refinement_indicators"));
 
-    for (int i = 0; i < refinement_indicators.size(); ++i)
-    {
-        std::string ref_prefix = "amr.refine." + refinement_indicators[i];
+    for (const auto & ref_indicator : refinement_indicators) {
+        std::string ref_prefix = "amr.refine." + ref_indicator;
 
         ParmParse ppr(ref_prefix);
 

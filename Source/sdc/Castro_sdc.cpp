@@ -172,20 +172,10 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             }
 
-            // ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
-            //                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D(C2),
-            //                  &sdc_iteration,
-            //                  &m_start);
-
             auto k_m = (*k_new[m_start]).array(mfi);
             auto k_n = (*k_new[m_end]).array(mfi);
             auto A_m = (*A_new[m_start]).array(mfi);
             auto A_n = (*A_new[m_end]).array(mfi);
-            auto R_m = (*R_old[m_start]).array(mfi);
             auto C_arr = C2.array();
 
             amrex::ParallelFor(bx,
