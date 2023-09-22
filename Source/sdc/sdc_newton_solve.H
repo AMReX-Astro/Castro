@@ -100,7 +100,6 @@ f_sdc_jac(const Real dt_m,
 
     // get the Jacobian.
 
-    /// First we get the dR/dU expression.
     // Instead of the decomposition into dw/dU and dR/dw
     // written out in the original paper Appendix A, we instead use the
     // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
