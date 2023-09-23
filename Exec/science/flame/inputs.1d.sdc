@@ -26,7 +26,6 @@ castro.time_integration_method = 2
 castro.sdc_order = 4
 
 castro.sdc_solver = 1
-castro.sdc_solver_relax_factor = 1
 
 castro.use_reconstructed_gamma1 = 1
 

@@ -43,9 +43,6 @@ castro.do_reflux      = 1
 #particles.timestamp_density     = 1
 #particles.timestamp_temperature = 1
 #particles.v                     = 1               # verbosity
-#particles.write_in_plotfile     = 1
-
-
 
 
 #castro.ppm_type = 1
