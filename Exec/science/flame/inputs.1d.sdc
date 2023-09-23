@@ -25,10 +25,6 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 4
 
-castro.sdc_solver_tol_dens = 1.e-10
-castro.sdc_solver_tol_spec = 1.e-10
-castro.sdc_solver_tol_ener = 1.e-6
-castro.sdc_solver_atol = 1.e-10
 castro.sdc_solver = 1
 castro.sdc_solver_relax_factor = 1
 
@@ -106,8 +102,10 @@ amr.refine.dengrad.field_name = density
 
 # Microphysics
 
-integrator.rtol_spec = 1.e-8
-integrator.atol_spec = 1.e-8
+integrator.rtol_spec = 1.e-10
+integrator.atol_spec = 1.e-10
+integrator.rtol_enuc = 1.e-6
+integrator.atol_enuc = 1.e-10
 
 network.small_x = 1.e-10
 
