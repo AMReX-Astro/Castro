@@ -23,8 +23,6 @@ castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 castro.hse_zero_vels=0
 
-castro.xr_ext_base_type = "interp"
-
 fab.format=NATIVE_32
 
 # WHICH PHYSICS
