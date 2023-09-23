@@ -25,7 +25,6 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 4
 
-castro.sdc_solve_for_rhoe = 1
 castro.sdc_solver = 1
 castro.sdc_solver_relax_factor = 1
 
