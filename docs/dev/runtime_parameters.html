@@ -505,29 +505,6 @@ This only applies for true SDC.</p></td>
 = VODE for first iter</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code></p></td>
-<td><p>relative tolerance for the nonlinear solve on rho X_k with
-SDC</p></td>
-<td><p>1.e-6</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code></p></td>
-<td><p>relative tolerance for the nonlinear solve on (rho e) or
-(rho E) with SDC</p></td>
-<td><p>1.e-6</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code></p></td>
-<td><p>absolute tolerance for species with SDC (this will be
-multiplied by the current rho in the zone to define the
-absolute tolerance on (rho X)).</p></td>
-<td><p>1.e-10</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></p></td>
-<td><p>factor by which to reduce the SDC solver tol for each
-iteration before the last (e.g., for iteration k out of
-kmax iterations, the tol is
-<span class="math notranslate nohighlight">\(\epsilon/f^{(k_\mathrm{max} - k)}\)</span></p></td>
-<td><p>1.0</p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></p></td>
 <td><p>do we solve for (rho e) or (rho E) in the SDC nonlinear
 solve?</p></td>
