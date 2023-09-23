@@ -47,7 +47,7 @@ The options that affect the nonlinear solve are:
   ``integrator.atol_spec``, ``integrator.rtol_enuc``,
   ``integrator.atol_enuc``.
 
-In all cases, the type of Jacobian (analytic or numerical) is determined by
+  In all cases, the type of Jacobian (analytic or numerical) is determined by
   ``integrator.jacobian``.
 
 

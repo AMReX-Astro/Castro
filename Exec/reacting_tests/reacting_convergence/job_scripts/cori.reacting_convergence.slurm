@@ -26,7 +26,6 @@ castro.sdc_order=4
 castro.time_integration_method=2
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
-castro.sdc_solve_for_rhoe=1
 castro.sdc_solver=1"
 
 srun ${CASTRO_EXEC} inputs.64 amr.plot_file=react_converge_64_sdc4_plt ${RUNPARAMS}
