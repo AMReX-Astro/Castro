@@ -152,16 +152,18 @@ default the number of iterations used is equal to the value of
 <code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</p></li>
 </ul>
 <p>The options that affect the nonlinear solve are:</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
 the reaction system.  Values are:</p>
-<ul>
+<ul class="simple">
 <li><p>1 : pure Newton iteration (we subdivide the time interval if
 needed to get the Newton method to converge).</p></li>
 <li><p>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</p></li>
 <li><p>3 : use VODE for the first iteration and then Newton for the
 subsequent iterations.</p></li>
 </ul>
+<p>In all cases, the type of Jacobian (analytic or numerical) is determined by
+<code class="docutils literal notranslate"><span class="pre">integrator.jacobian</span></code>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code> : the relative error on the density in solving the nonlinear system.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code> : the relative error on the partial densities, <span class="math notranslate nohighlight">\((\rho X_k)\)</span>
@@ -172,8 +174,6 @@ in the nonlinear solve.</p></li>
 tolerances (i.e. increase them) for earlier iterations.  We reach
 the desired tolerances on the final iteration.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code> : whether we solve the system in terms of <span class="math notranslate nohighlight">\((\rho e)\)</span> or <span class="math notranslate nohighlight">\((\rho E)\)</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_newton_use_analytic_jac</span></code> : whether we use the analytic Jacobian when doing Newton iterations for
-the reaction part of the system or compute it numerically.</p></li>
 </ul>
 </section>
 

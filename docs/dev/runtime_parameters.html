@@ -533,24 +533,18 @@ kmax iterations, the tol is
 solve?</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_newton_use_analytic_jac</span></code></p></td>
-<td><p>do we use the analytic or numerical Jacobian for the
-Newton-Raphson solver? for the VODE solver, we use
-integrator.jacobian instead</p></td>
-<td><p>1</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_axisymmetric_geom_source</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_axisymmetric_geom_source</span></code></p></td>
 <td><p>for 2-d axisymmetry, do we include the geometry source
 terms from Bernand-Champmartin?</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_sdc_react_source_to_advection</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_sdc_react_source_to_advection</span></code></p></td>
 <td><p>for simplified-SDC, do we add the reactive source
 prediction to the interface states used in the advective
 source construction?</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hydro_memory_footprint_ratio</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hydro_memory_footprint_ratio</span></code></p></td>
 <td><p>In GPU builds, the hydro advance typically results in a
 large amount of extra temporary memory allocated due to the
 large tile sizes that are used for computational
