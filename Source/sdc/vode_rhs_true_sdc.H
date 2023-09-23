@@ -128,12 +128,6 @@ sdc_vode_solve(const Real dt_m,
 
 #if (INTEGRATOR == 0)
 
-    // The tolerance we are solving to may depend on the
-    // iteration
-    auto relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
-    auto tol_spec = sdc_solver_tol_spec * relax_fac;
-    auto tol_ener = sdc_solver_tol_ener * relax_fac;
-
     // Update the momenta for this zone -- they don't react
 
     for (int n = 0; n < 3; ++n) {
@@ -207,12 +201,12 @@ sdc_vode_solve(const Real dt_m,
     dvode_state.jacobian_type = static_cast<short>(integrator_rp::jacobian);
 
     // relative tolerances
-    dvode_state.rtol_spec = tol_spec;
-    dvode_state.rtol_enuc = tol_ener;
+    dvode_state.rtol_spec = integrator_rp::rtol_spec;
+    dvode_state.rtol_enuc = integrator_rp::rtol_enuc;
 
     // absolute tolerances
-    dvode_state.atol_spec = sdc_solver_atol * U_old[URHO]; // this way, atol is the minimum x
-    dvode_state.atol_enuc = sdc_solver_atol * U_old[UEINT];
+    dvode_state.atol_spec = integrator_rp::atol_spec * U_old[URHO]; // this way, atol is the minimum x
+    dvode_state.atol_enuc = integrator_rp::atol_enuc * U_old[UEINT];
 
     int istate = dvode(burn_state, dvode_state);
 

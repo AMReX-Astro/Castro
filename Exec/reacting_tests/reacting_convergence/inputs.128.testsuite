@@ -77,5 +77,8 @@ amr.refine.denerr.field_name = density
 
 network.small_x = 1.e-10
 
-integrator.atol_spec = 1.e-12
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-10
+integrator.rtol_enuc = 1.e-6
+integrator.atol_enuc = 1.e-10
 
