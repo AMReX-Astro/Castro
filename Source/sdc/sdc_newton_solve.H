@@ -2,6 +2,7 @@
 #define SDC_NEWTON_SOLVE_H
 
 #include <sdc_react_util.H>
+#include <linpack.H>
 
 // error codes
 constexpr int NEWTON_SUCCESS = 0;
@@ -238,7 +239,7 @@ sdc_newton_solve(const Real dt_m,
 #ifdef NEW_NETWORK_IMPLEMENTATION
         RHS::dgesl(Jac, f_rhs);
 #else
-        dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
+        dgesl<NumSpec+1>(Jac, ipvt, f_rhs);
 #endif
 
         for (int n = 1; n < NumSpec+1; ++n) {
