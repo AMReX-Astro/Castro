@@ -845,7 +845,7 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    return burn_success == 1;
+    return burn_success;
 
 }
 #endif
