@@ -291,6 +291,9 @@ Castro::restart (Amr&     papa,
                auto s = S_new[mfi].array();
                auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+               amrex::Error("Error: random initialization not yet supported with grown factor");
+#else
                amrex::ParallelFor(bx,
                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                {
@@ -298,6 +301,7 @@ Castro::restart (Amr&     papa,
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
+#endif
            }
        }
     }

@@ -568,9 +568,8 @@ Castro::read_params ()
     Vector<std::string> refinement_indicators;
     ppa.queryarr("refinement_indicators", refinement_indicators, 0, ppa.countval("refinement_indicators"));
 
-    for (int i = 0; i < refinement_indicators.size(); ++i)
-    {
-        std::string ref_prefix = "amr.refine." + refinement_indicators[i];
+    for (const auto & ref_indicator : refinement_indicators) {
+        std::string ref_prefix = "amr.refine." + ref_indicator;
 
         ParmParse ppr(ref_prefix);
 
@@ -631,7 +630,7 @@ Castro::read_params ()
             error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
-            amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
+            amrex::Abort("Unrecognized refinement indicator for " + ref_indicator);
         }
     }
 
@@ -1105,12 +1104,21 @@ Castro::initData ()
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+          amrex::ParallelForRNG(box,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
+          {
+              // problem initialization
+              problem_initialize_state_data(i, j, k, s, geomdata, engine);
+          });
+#else
           amrex::ParallelFor(box,
           [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // problem initialization
               problem_initialize_state_data(i, j, k, s, geomdata);
           });
+#endif
        }
 
 

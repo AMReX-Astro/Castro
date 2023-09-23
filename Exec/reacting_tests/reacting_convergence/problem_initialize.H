@@ -97,11 +97,11 @@ void problem_initialize ()
 
     // Normalize species 
     auto sumX = 0.0_rt;
-    for (int n = 0; n < NumSpec; n++) {
-        sumX += xn[n];
+    for (auto X : xn) {
+        sumX += X;
     }
-    for (int n = 0; n < NumSpec; n++) {
-        xn[n] /= sumX;
+    for (auto & X : xn) {
+        X /= sumX;
     }
 
     eos_t eos_state;
