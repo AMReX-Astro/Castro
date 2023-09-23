@@ -100,7 +100,6 @@ f_sdc_jac(const Real dt_m,
 
     // get the Jacobian.
 
-    /// First we get the dR/dU expression.
     // Instead of the decomposition into dw/dU and dR/dw
     // written out in the original paper Appendix A, we instead use the
     // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
@@ -156,12 +155,6 @@ sdc_newton_solve(const Real dt_m,
     const int MAX_ITER = 100;
 
     ierr = NEWTON_SUCCESS;
-
-    // the tolerance we are solving to may depend on the
-    // iteration
-    Real relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
-    Real tol_spec = sdc_solver_tol_spec * relax_fac;
-    Real tol_ener = sdc_solver_tol_ener * relax_fac;
 
     // update the density and momenta for this zone -- they don't react
 
@@ -264,10 +257,11 @@ sdc_newton_solve(const Real dt_m,
         // multiply by density to get a partial density limit
 
         for (int n = 0; n < NumSpec; ++n) {
-            eps_tot(1 + n) = tol_spec * std::abs(U_react(1 + n)) +
-                sdc_solver_atol * std::abs(U_new[URHO]);
+            eps_tot(1 + n) = integrator_rp::rtol_spec * std::abs(U_react(1 + n)) +
+                integrator_rp::atol_spec * std::abs(U_new[URHO]);
         }
-        eps_tot(NumSpec+1) = tol_ener * std::abs(U_react(NumSpec+1)) + sdc_solver_atol;
+        eps_tot(NumSpec+1) = integrator_rp::rtol_enuc * std::abs(U_react(NumSpec+1)) +
+            integrator_rp::atol_enuc;
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
