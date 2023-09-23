@@ -2,7 +2,7 @@
 #define CASTRO_SDC_H
 
 #ifndef AMREX_USE_GPU
-void do_sdc_update(int m1, int m2, amrex::Real dt);
+void do_sdc_update(int m_start, int m_end, amrex::Real dt);
 #endif
 
 #ifdef REACTIONS
