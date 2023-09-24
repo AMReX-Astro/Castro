@@ -888,7 +888,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
                   s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
               }
 #endif
-              
+
               ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
                                       BL_TO_FORTRAN(Dterm_face[1][fi]),
                                       BL_TO_FORTRAN(Dterm_face[2][fi])),
@@ -1170,16 +1170,30 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
       }
       const Real *dx = geom.CellSize();
 
-      Real h1 = 0.5e0_rt * dx[0];
-      Real d1 = 1.e0_rt / (3.e0_rt * dx[0]);
-      for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
-          r[i] = d1 * (std::pow(r[i] + h1, 3) - std::pow(r[i] - h1, 3));
-      }
+      if (idim == 0) {
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] *= r[i];
+          }
 #if AMREX_SPACEDIM >= 2
-      for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
-          s[j] = std::sin(s[j]);
-      }
+          Real h2 = 0.5e0_rt * dx[1];
+          Real d2 = 1.e0_rt / dx[1];
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
+          }
 #endif
+      }
+      else {
+          Real h1 = 0.5e0_rt * dx[0];
+          Real d1 = 1.e0_rt / (3.e0_rt * dx[0]);
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] = d1 * (std::pow(r[i] + h1, 3) - std::pow(r[i] - h1, 3));
+          }
+#if AMREX_SPACEDIM >= 2
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = std::sin(s[j]);
+          }
+#endif
+      }
     }
 }
 
