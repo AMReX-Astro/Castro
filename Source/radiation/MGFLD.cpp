@@ -2,6 +2,7 @@
 #include <Castro_F.H>
 #include <RAD_F.H>
 #include <rad_util.H>
+#include <filter.H>
 #include <blackbody.H>
 #include <opacity.H>
 #include <problem_emissivity.H>
@@ -1001,31 +1002,28 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     
     const Real* dx = parent->Geom(level).CellSize();
 
+    using namespace filter;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
-        (BL_TO_FORTRAN(Er_wide[mfi]), 
-         BL_TO_FORTRAN(kpr[mfi]),
-         BL_TO_FORTRAN(lamborder[mfi]), 
-         dx, &ngrow, &radiation::limiter, &filter_lambda_T, &filter_lambda_S);
-
-        real(rt)        , allocatable :: lamfil(:,:,:)
-
-        FArrayBox lamfill;
-        Box lambx = lamborder.box();
-        Box bx = lambox.grow(-ngrow);
+        FArrayBox lamfilfab;
+        Box lambx = lamborder[mfi].box();
+        Box bx = lambx.grow(-ngrow);
 
         if (filter_lambda_T > 0) {
-            lamfill.resize(bx);
+            lamfilfab.resize(bx);
         }
 
-        Array4<Real> lam = lamborder[mfi].array();
+        Array4<Real> const lam = lamborder[mfi].array();
+        Array4<Real> const Er = Er_wide[mfi].array();
+        Array4<Real> const kap = kpr[mfi].array();
+        Array4<Real> const lamfil = lamfilfab.array();
 
         for (int g = 0; g < Radiation::nGroups; ++g) {
 
-            amrex::Loop(lambx.loVect3d(), lambx.hiVect3d(),
+            amrex::Loop(lambx, [=] (int i, int j, int k) noexcept
             {
                 lam(i,j,k,g) = -1.e50_rt;
 
@@ -1033,7 +1031,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     return;
                 }
 
-                Real r1, r2, r3;
+                Real r1 = 0.0;
+                Real r2 = 0.0;
+                Real r3 = 0.0;
 
                 if (Er(i-1,j,k,g) == -1.e0_rt) {
                     r1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx[0]);
@@ -1045,6 +1045,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     r1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.e0_rt*dx[0]);
                 }
 
+#if AMREX_SPACEDIM >= 2
                 if (Er(i,j-1,k,g) == -1.e0_rt) {
                     r2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx[1]);
                 }
@@ -1054,7 +1055,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 else {
                     r2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.e0_rt*dx[1]);
                 }
+#endif
 
+#if AMREX_SPACEDIM == 3
                 if (Er(i,j,k-1,g) == -1.e0_rt) {
                     r3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / dx[2];
                 }
@@ -1064,11 +1067,12 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 else {
                     r3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.e0_rt*dx[2]);
                 }
+#endif
 
                 Real r = std::sqrt(r1 * r1 + r2 * r2 + r3 * r3);
                 r = r / (kap(i,j,k,g) * std::max(Er(i,j,k,g), 1.e-50_rt));
 
-                lam(i,j,k,g) = FLDlambda(r, limiter);
+                lam(i,j,k,g) = FLDlambda(r);
             });
 
             // filter
@@ -1114,6 +1118,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
 
+#if AMREX_SPACEDIM >= 2
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
                         continue;
@@ -1139,7 +1144,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
+#if AMREX_SPACEDIM == 3
                 for (int k = reg_klo; k <= reg_khi; ++k) {
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
@@ -1168,14 +1175,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
-                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
                 {
                     lam(i,j,k,g) = lamfil(i,j,k);
                 });
 
             }
-
             else if (filter_lambda_T == 2) {
 
                 for (int k = lam_klo; k <= lam_khi; ++k) {
@@ -1203,7 +1210,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             lamfil(i,j,k) = ff2b1(-1) * lam(i-1,j,k,g) +
                                             ff2b1(0)  * lam(i  ,j,k,g) +
                                             ff2b1(1)  * lam(i+1,j,k,g) +
-                                            ff2b2(2)  * lam(i+2,j,k,g);
+                                            ff2b1(2)  * lam(i+2,j,k,g);
                         }
 
                         if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
@@ -1221,6 +1228,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
 
+#if AMREX_SPACEDIM >= 2
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
                         continue;
@@ -1268,7 +1276,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
+#if AMREX_SPACEDIM == 3
                 for (int k = reg_klo; k <= reg_khi; ++k) {
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
@@ -1325,8 +1335,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
-                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
                 {
                     lam(i,j,k,g) = lamfil(i,j,k);
                 });
@@ -1337,7 +1348,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     for (int j = lam_jlo; j <= lam_jhi; ++j) {
                         if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
-                            lamfil(:,j,k) = -1.e-50_rt;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lamfil(i,j,k) = -1.e-50_rt;
+                            }
                             continue;
                         }
 
@@ -1396,6 +1409,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
 
+#if AMREX_SPACEDIM >= 2
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
                         continue;
@@ -1468,7 +1482,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
+#if AMREX_SPACEDIM == 3
                 for (int k = reg_klo; k <= reg_khi; ++k) {
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
@@ -1556,8 +1572,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
-                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
                 {
                     lam(i,j,k,g) = lamfil(i,j,k);
                 });
@@ -1655,6 +1672,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
 
+#if AMREX_SPACEDIM >= 2
                     for (int k = lam_klo; k <= lam_khi; ++k) {
                         if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
                             continue;
@@ -1758,7 +1776,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             }
                     }
                 }
+#endif
 
+#if AMREX_SPACEDIM == 3
                 for (int k = reg_klo; k <= reg_khi; ++k) {
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
@@ -1829,7 +1849,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 }
 
                 if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
-                    k = reg_khi - 3;
+                    int k = reg_khi - 3;
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff4b3(4)  * lam(i,j,k-4,g) +
@@ -1883,14 +1903,16 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                         }
                     }
                 }
+#endif
 
-                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
                 {
                     lam(i,j,k,g) = lamfil(i,j,k);
                 });
 
             }
 
+#if AMREX_SPACEDIM == 3
             // lo-x lo-y lo-z
             for (int k = lam_klo; k < reg_klo; ++k) {
                 for (int j = lam_jlo; j < reg_jlo; ++j) {
@@ -1985,7 +2007,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
             }
+#endif
 
+#if AMREX_SPACEDIM >= 2
             // lo-x lo-y reg-z
             for (int k = reg_klo; k <= reg_khi; ++k) {
                 for (int j = lam_jlo; j < reg_jlo; ++j) {
@@ -2018,6 +2042,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
             }
+#endif
 
             // lo-x reg-y reg-z
             for (int k = reg_klo; k <= reg_khi; ++k) {
@@ -2025,17 +2050,6 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
                         if (Er(i,j,k,g) == -1.e0_rt) {
                             lam(i,j,k,g) = lam(reg_ilo,j,k,g);
-                        }
-                    }
-                }
-            }
-
-            // reg-x reg-y reg-z
-            for (int k = reg_klo; k <= reg_khi; ++k) {
-                for (int j = reg_jlo; j <= reg_jhi; ++j) {
-                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
-                        if (Er(i,j,k,g) == -1.e0_rt) {
-                            lam(i,j,k,g) = lam(i,j,k,g);
                         }
                     }
                 }
@@ -2052,6 +2066,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 }
             }
 
+#if AMREX_SPACEDIM >= 2
             // lo-x hi-y reg-z
             for (int k = reg_klo; k <= reg_khi; ++k) {
                 for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
@@ -2084,7 +2099,9 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
             }
+#endif
 
+#if AMREX_SPACEDIM == 3
             // lo-x lo-y hi-z
             for (int k = reg_khi+1; k <= lam_khi; ++k) {
                 for (int j = lam_jlo; j < reg_jlo; ++j) {
@@ -2179,7 +2196,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
                 }
             }
-
+#endif
         } // nGroups
     } // mfiter
 
