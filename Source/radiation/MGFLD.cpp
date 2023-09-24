@@ -1910,7 +1910,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     lam(i,j,k,g) = lamfil(i,j,k);
                 });
 
-            }
+            } // filter_lambda_T
 
 #if AMREX_SPACEDIM == 3
             // lo-x lo-y lo-z
