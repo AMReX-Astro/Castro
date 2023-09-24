@@ -1073,171 +1073,179 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
             // filter
 
+            int lam_ilo = lambx.loVect3d()[0];
+            int lam_ihi = lambx.hiVect3d()[0];
+            int lam_jlo = lambx.loVect3d()[1];
+            int lam_jhi = lambx.hiVect3d()[1];
+            int lam_klo = lambx.loVect3d()[2];
+            int lam_khi = lambx.hiVect3d()[2];
+
+            int reg_ilo = bx.loVect3d()[0];
+            int reg_ihi = bx.hiVect3d()[0];
+            int reg_jlo = bx.loVect3d()[1];
+            int reg_jhi = bx.hiVect3d()[1];
+            int reg_klo = bx.loVect3d()[2];
+            int reg_khi = bx.hiVect3d()[2];
+
             if (filter_lambda_T == 1) {
 
-                int ilo = lambx.loVect3d()[0];
-
-                for (int k = bx.loVect3d()[2]; k <= bx.hiVect3d()[2]; ++k) {
-                    for (int j = bx.loVect3d()[1]; j <= bx.hiVect3d()[1]; ++j) {
-                        if (Er(ilo,j,k,g) == -1.e0_rt) {
-                            for (int i = bx.loVect3d()[0]; i <= bx.hiVect3d()[0]; ++i) {
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    for (int j = lam_jlo; j <= lam_jhi; ++j) {
+                        if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
                                 lamfil(i,j,k) = -1.e-50_rt;
                             }
+                            continue;
+                        }
+
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) + ff1(1) * (lam(i-1,j,k,g) + lam(i+1,j,k,g));
+                        }
+
+                        if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ilo;
+                            lamfil(i,j,k) = ff1b(0) * lam(i,j,k,g) + ff1b(1) * lam(i+1,j,k,g);
+                        }
+
+                        if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ihi;
+                            lamfil(i,j,k) = ff1b(1) * lam(i-1,j,k,g) + ff1b(0) * lam(i,j,k,g);
                         }
                     }
                 }
 
-           do i=reg_l1, reg_h1
-              lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) &
-                   &        + ff1(1) * (lam(i-1,j,k,g)+lam(i+1,j,k,g))
-           end do
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
+                        continue;
+                    }
 
-           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
-              i = reg_l1
-              lamfil(i,j,k) = dot_product(ff1b, lam(i:i+1,j,k,g))
-           end if
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++j) {
+                            lam(i,j,k,g) = ff1(0) * lamfil(i,j,k) + ff1(1) * (lamfil(i,j-1,k) + lamfil(i,j+1,k));
+                        }
+                    }
 
-           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
-              i = reg_h1
-              lamfil(i,j,k) = dot_product(ff1b(1:0:-1), lam(i-1:i,j,k,g))
-           end if
-        end do
-     end do
+                    if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+                        int j = reg_jlo;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff1b(0) * lamfil(i,j,k) + ff1b(1) * lamfil(i,j+1,k);
+                        }
+                    }
 
-     do k=lam_l3, lam_h3
-        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
-           cycle
-        end if
+                    if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+                        int j = reg_jhi;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff1b(1) * lamfil(i,j-1,k) + ff1b(0) * lamfil(i,j,k);
+                        }
+                    }
+                }
 
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
-              lam(i,j,k,g) = ff1(0) * lamfil(i,j,k) &
-                   &       + ff1(1) * (lamfil(i,j-1,k)+lamfil(i,j+1,k))
-           end do
-        end do
+                for (int k = reg_klo; k <= reg_khi; ++k) {
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) + ff1(1) * (lam(i,j,k-1,g) + lam(i,j,k+1,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
 
-        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
-           j = reg_l2
-           do i=reg_l1,reg_h1
-              lam(i,j,k,g) = dot_product(ff1b, lamfil(i,j:j+1,k))
-           end do
-        end if
+                if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+                    int k = reg_klo;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff1b(0) * lam(i,j,k,g) + ff1b(1) * lam(i,j,k+1,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
 
-        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
-           j = reg_h2
-           do i=reg_l1,reg_h1
-              lam(i,j,k,g) = dot_product(ff1b(1:0:-1), lamfil(i,j-1:j,k))
-           end do
-        end if
-     end do
-
-     do k=reg_l3, reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
-              lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) &
-                   &        + ff1(1) * (lam(i,j,k-1,g)+lam(i,j,k+1,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end do
-
-     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
-        k = reg_l3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
-              lamfil(i,j,k) = dot_product(ff1b, lam(i,j,k:k+1,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
-        k = reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+                if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+                    int k = reg_khi;
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff1b(1:0:-1), lam(i,j,k-1:k,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
-          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
+          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
 
   else if (filter_T == 2) {
 
-     do k=lam_l3, lam_h3
-        do j=lam_l2, lam_h2
-           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        for (j=lam_jlo, lam_jhi
+           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
               lamfil(:,j,k) = -1.e-50_rt
               cycle
            end if
 
-           do i=reg_l1, reg_h1
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
                    &        + ff2(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
                    &        + ff2(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g))
            end do
 
-           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
-              i = reg_l1
+           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+              i = reg_ilo
               lamfil(i,j,k) = dot_product(ff2b0, lam(i:i+2,j,k,g))
 
-              i = reg_l1 + 1
+              i = reg_ilo + 1
               lamfil(i,j,k) = dot_product(ff2b1, lam(i-1:i+2,j,k,g))
            end if
 
-           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
-              i = reg_h1 - 1
+           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+              i = reg_ihi - 1
               lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i-2:i+1,j,k,g))
 
-              i = reg_h1
+              i = reg_ihi
               lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i-2:i,j,k,g))
            end if
         end do
      end do
 
-     do k=lam_l3, lam_h3
-        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
            cycle
         end if
 
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lam(i,j,k,g) = ff2(0,S) * lamfil(i,j,k) &
                    &       + ff2(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
                    &       + ff2(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k))
            end do
         end do
 
-        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
-           j = reg_l2
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+           j = reg_jlo
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff2b0, lamfil(i,j:j+2,k))
            end do
 
-           j = reg_l2 + 1
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff2b1, lamfil(i,j-1:j+2,k))
            end do
         end if
 
-        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
-           j = reg_h2 - 1
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+           j = reg_jhi - 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff2b1(2:-1:-1), lamfil(i,j-2:j+1,k))
            end do
 
-           j = reg_h2
-           do i=reg_l1,reg_h1
+           j = reg_jhi
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff2b0(2:0:-1), lamfil(i,j-2:j,k))
            end do
         end if
      end do
 
-     do k=reg_l3, reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     for (k=reg_klo, reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
                    &        + ff2(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
                    &        + ff2(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g))
@@ -1246,92 +1254,92 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
         end do
      end do
 
-     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
-        k = reg_l3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+        k = reg_klo
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff2b0, lam(i,j,k:k+2,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff2b1, lam(i,j,k-1:k+2,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
-        k = reg_h3 - 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+        k = reg_khi - 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i,j,k-2:k+1,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i,j,k-2:k,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
-          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
+          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
 
   else if (filter_T == 3) {
 
-     do k=lam_l3, lam_h3
-        do j=lam_l2, lam_h2
-           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        for (j=lam_jlo, lam_jhi
+           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
               lamfil(:,j,k) = -1.e-50_rt
               cycle
            end if
 
-           do i=reg_l1, reg_h1
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
                    &        + ff3(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
                    &        + ff3(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
                    &        + ff3(3,S) * (lam(i-3,j,k,g)+lam(i+3,j,k,g))
            end do
 
-           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
-              i = reg_l1
+           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+              i = reg_ilo
               lamfil(i,j,k) = dot_product(ff3b0, lam(i:i+3,j,k,g))
 
-              i = reg_l1 + 1
+              i = reg_ilo + 1
               lamfil(i,j,k) = dot_product(ff3b1, lam(i-1:i+3,j,k,g))
 
-              i = reg_l1 + 2
+              i = reg_ilo + 2
               lamfil(i,j,k) = dot_product(ff3b2, lam(i-2:i+3,j,k,g))
            end if
 
-           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
-              i = reg_h1 - 2
+           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+              i = reg_ihi - 2
               lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i-3:i+2,j,k,g))
 
-              i = reg_h1 - 1
+              i = reg_ihi - 1
               lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i-3:i+1,j,k,g))
 
-              i = reg_h1
+              i = reg_ihi
               lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i-3:i,j,k,g))
            end if
         end do
      end do
 
-     do k=lam_l3, lam_h3
-        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
            cycle
         end if
 
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lam(i,j,k,g) = ff3(0,S) * lamfil(i,j,k) &
                    &       + ff3(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
                    &       + ff3(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
@@ -1339,44 +1347,44 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
            end do
         end do
 
-        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
-           j = reg_l2
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+           j = reg_jlo
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b0, lamfil(i,j:j+3,k))
            end do
 
-           j = reg_l2 + 1
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b1, lamfil(i,j-1:j+3,k))
            end do
 
-           j = reg_l2 + 2
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 2
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b2, lamfil(i,j-2:j+3,k))
            end do
         end if
 
-        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
-           j = reg_h2 - 2
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+           j = reg_jhi - 2
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b2(3:-2:-1), lamfil(i,j-3:j+2,k))
            end do
 
-           j = reg_h2 - 1
-           do i=reg_l1,reg_h1
+           j = reg_jhi - 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b1(3:-1:-1), lamfil(i,j-3:j+1,k))
            end do
 
-           j = reg_h2
-           do i=reg_l1,reg_h1
+           j = reg_jhi
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff3b0(3:0:-1), lamfil(i,j-3:j,k))
            end do
         end if
      end do
 
-     do k=reg_l3, reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     for (k=reg_klo, reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
                    &        + ff3(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
                    &        + ff3(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
@@ -1386,71 +1394,71 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
         end do
      end do
 
-     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
-        k = reg_l3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+        k = reg_klo
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b0, lam(i,j,k:k+3,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b1, lam(i,j,k-1:k+3,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 2
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 2
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b2, lam(i,j,k-2:k+3,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
-        k = reg_h3 - 2
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+        k = reg_khi - 2
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i,j,k-3:k+2,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3 - 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi - 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i,j,k-3:k+1,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i,j,k-3:k,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
-          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
+          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
 
   else if (filter_T == 4) {
 
-     do k=lam_l3, lam_h3
-        do j=lam_l2, lam_h2
-           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        for (j=lam_jlo, lam_jhi
+           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
               lamfil(:,j,k) = -1.e-50_rt
               cycle
            end if
 
-           do i=reg_l1, reg_h1
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
                    &        + ff4(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
                    &        + ff4(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
@@ -1458,43 +1466,43 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                    &        + ff4(4,S) * (lam(i-4,j,k,g)+lam(i+4,j,k,g))
            end do
 
-           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
-              i = reg_l1
+           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+              i = reg_ilo
               lamfil(i,j,k) = dot_product(ff4b0, lam(i:i+4,j,k,g))
 
-              i = reg_l1 + 1
+              i = reg_ilo + 1
               lamfil(i,j,k) = dot_product(ff4b1, lam(i-1:i+4,j,k,g))
 
-              i = reg_l1 + 2
+              i = reg_ilo + 2
               lamfil(i,j,k) = dot_product(ff4b2, lam(i-2:i+4,j,k,g))
 
-              i = reg_l1 + 3
+              i = reg_ilo + 3
               lamfil(i,j,k) = dot_product(ff4b3, lam(i-3:i+4,j,k,g))
            end if
 
-           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
-              i = reg_h1 - 3
+           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+              i = reg_ihi - 3
               lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i-4:i+3,j,k,g))
 
-              i = reg_h1 - 2
+              i = reg_ihi - 2
               lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i-4:i+2,j,k,g))
 
-              i = reg_h1 - 1
+              i = reg_ihi - 1
               lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i-4:i+1,j,k,g))
 
-              i = reg_h1
+              i = reg_ihi
               lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i-4:i,j,k,g))
            end if
         end do
      end do
 
-     do k=lam_l3, lam_h3
-        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+     for (k=lam_klo, lam_khi
+        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
            cycle
         end if
 
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lam(i,j,k,g) = ff4(0,S) * lamfil(i,j,k) &
                    &       + ff4(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
                    &       + ff4(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
@@ -1503,54 +1511,54 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
            end do
         end do
 
-        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
-           j = reg_l2
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+           j = reg_jlo
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b0, lamfil(i,j:j+4,k))
            end do
 
-           j = reg_l2 + 1
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b1, lamfil(i,j-1:j+4,k))
            end do
 
-           j = reg_l2 + 2
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 2
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b2, lamfil(i,j-2:j+4,k))
            end do
 
-           j = reg_l2 + 3
-           do i=reg_l1,reg_h1
+           j = reg_jlo + 3
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b3, lamfil(i,j-3:j+4,k))
            end do
         end if
 
-        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
-           j = reg_h2 - 3
-           do i=reg_l1,reg_h1
+        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+           j = reg_jhi - 3
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b3(4:-3:-1), lamfil(i,j-4:j+3,k))
            end do
 
-           j = reg_h2 - 2
-           do i=reg_l1,reg_h1
+           j = reg_jhi - 2
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b2(4:-2:-1), lamfil(i,j-4:j+2,k))
            end do
 
-           j = reg_h2 - 1
-           do i=reg_l1,reg_h1
+           j = reg_jhi - 1
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b1(4:-1:-1), lamfil(i,j-4:j+1,k))
            end do
 
-           j = reg_h2
-           do i=reg_l1,reg_h1
+           j = reg_jhi
+           for (int i = reg_ilo,reg_ihi
               lam(i,j,k,g) = dot_product(ff4b0(4:0:-1), lamfil(i,j-4:j,k))
            end do
         end if
      end do
 
-     do k=reg_l3, reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     for (k=reg_klo, reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
                    &        + ff4(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
                    &        + ff4(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
@@ -1561,352 +1569,352 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
         end do
      end do
 
-     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
-        k = reg_l3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+        k = reg_klo
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b0, lam(i,j,k:k+4,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b1, lam(i,j,k-1:k+4,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 2
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 2
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b2, lam(i,j,k-2:k+4,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_l3 + 3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_klo + 3
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b3, lam(i,j,k-3:k+4,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
-        k = reg_h3 - 3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+        k = reg_khi - 3
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i,j,k-4:k+3,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3 - 2
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi - 2
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i,j,k-4:k+2,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3 - 1
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi - 1
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i,j,k-4:k+1,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
 
-        k = reg_h3
-        do j=reg_l2, reg_h2
-           do i=reg_l1, reg_h1
+        k = reg_khi
+        for (int j = reg_jlo, reg_jhi
+           for (int i = reg_ilo, reg_ihi
               lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i,j,k-4:k,g))
               lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
            end do
         end do
      end if
 
-     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
-          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
+          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
 
   end if
 
   ! lo-x lo-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=lam_l2,reg_l2-1
-        do i=lam_l1,reg_l1-1
+  for (k=lam_klo,reg_klo-1
+     for (j=lam_jlo,reg_jlo-1
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_l2,reg_l3,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! reg-x lo-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=lam_l2,reg_l2-1
-        do i=reg_l1,reg_h1
+  for (k=lam_klo,reg_klo-1
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_l2,reg_l3,g)
+              lam(i,j,k,g) = lam(i,reg_jlo,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! hi-x lo-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=lam_l2,reg_l2-1
-        do i=reg_h1+1,lam_h1
+  for (k=lam_klo,reg_klo-1
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_l3,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! lo-x reg-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=reg_l2,reg_h2
-        do i=lam_l1,reg_l1-1
-           lam(i,j,k,g) = lam(reg_l1,j,reg_l3,g)
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jlo,reg_jhi
+        for (i=lam_ilo,reg_ilo-1
+           lam(i,j,k,g) = lam(reg_ilo,j,reg_klo,g)
         end do
      end do
   end do
 
   ! reg-x reg-y lo-z side
-  do k=lam_l3,reg_l3-1
-     do j=reg_l2,reg_h2
-        do i=reg_l1,reg_h1
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jlo,reg_jhi
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,j,reg_l3,g)
+              lam(i,j,k,g) = lam(i,j,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! hi-x reg-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=reg_l2,reg_h2
-        do i=reg_h1+1,lam_h1
-           lam(i,j,k,g) = lam(reg_h1,j,reg_l3,g)
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jlo,reg_jhi
+        for (int i = reg_ihi+1,lam_ihi
+           lam(i,j,k,g) = lam(reg_ihi,j,reg_klo,g)
         end do
      end do
   end do
 
   ! lo-x hi-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=reg_h2+1,lam_h2
-        do i=lam_l1,reg_l1-1
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jhi+1,lam_jhi
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_h2,reg_l3,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! reg-x hi-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=reg_h2+1,lam_h2
-        do i=reg_l1,reg_h1
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_h2,reg_l3,g)
+              lam(i,j,k,g) = lam(i,reg_jhi,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! hi-x hi-y lo-z
-  do k=lam_l3,reg_l3-1
-     do j=reg_h2+1,lam_h2
-        do i=reg_h1+1,lam_h1
+  for (k=lam_klo,reg_klo-1
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_l3,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_klo,g)
            end if
         end do
      end do
   end do
 
   ! lo-x lo-y reg-z
-  do k=reg_l3,reg_h3
-     do j=lam_l2,reg_l2-1
-        do i=lam_l1,reg_l1-1
+  for (k=reg_klo,reg_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_l2,k,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,k,g)
            end if
         end do
      end do
   end do
 
   ! reg-x lo-y reg-z
-  do k=reg_l3,reg_h3
-     do j=lam_l2,reg_l2-1
-        do i=reg_l1,reg_h1
+  for (k=reg_klo,reg_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_l2,k,g)
+              lam(i,j,k,g) = lam(i,reg_jlo,k,g)
            end if
         end do
      end do
   end do
 
   ! hi-x lo-y reg-z
-  do k=reg_l3,reg_h3
-     do j=lam_l2,reg_l2-1
-        do i=reg_h1+1,lam_h1
+  for (k=reg_klo,reg_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_l2,k,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,k,g)
            end if
         end do
      end do
   end do
 
   ! lo-x reg-y reg-z
-  do k=reg_l3,reg_h3
-     do j=reg_l2,reg_h2
-        do i=lam_l1,reg_l1-1
+  for (k=reg_klo,reg_khi
+     for (int j = reg_jlo,reg_jhi
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,j,k,g)
+              lam(i,j,k,g) = lam(reg_ilo,j,k,g)
            end if
         end do
      end do
   end do
 
   ! hi-x reg-y reg-z
-  do k=reg_l3,reg_h3
-     do j=reg_l2,reg_h2
-        do i=reg_h1+1,lam_h1
+  for (k=reg_klo,reg_khi
+     for (int j = reg_jlo,reg_jhi
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,j,k,g)
+              lam(i,j,k,g) = lam(reg_ihi,j,k,g)
            end if
         end do
      end do
   end do
 
   ! lo-x hi-y reg-z
-  do k=reg_l3,reg_h3
-     do j=reg_h2+1,lam_h2
-        do i=lam_l1,reg_l1-1
+  for (k=reg_klo,reg_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_h2,k,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,k,g)
            end if
         end do
      end do
   end do
 
   ! reg-x hi-y reg-z
-  do k=reg_l3,reg_h3
-     do j=reg_h2+1,lam_h2
-        do i=reg_l1,reg_h1
+  for (k=reg_klo,reg_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_h2,k,g)
+              lam(i,j,k,g) = lam(i,reg_jhi,k,g)
            end if
         end do
      end do
   end do
 
   ! hi-x hi-y reg-z
-  do k=reg_l3,reg_h3
-     do j=reg_h2+1,lam_h2
-        do i=reg_h1+1,lam_h1
+  for (k=reg_klo,reg_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_h2,k,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,k,g)
            end if
         end do
      end do
   end do
 
   ! lo-x lo-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=lam_l2,reg_l2-1
-        do i=lam_l1,reg_l1-1
+  for (k=reg_khi+1,lam_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_l2,reg_h3,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! reg-x lo-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=lam_l2,reg_l2-1
-        do i=reg_l1,reg_h1
+  for (k=reg_khi+1,lam_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_l2,reg_h3,g)
+              lam(i,j,k,g) = lam(i,reg_jlo,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! hi-x lo-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=lam_l2,reg_l2-1
-        do i=reg_h1+1,lam_h1
+  for (k=reg_khi+1,lam_khi
+     for (j=lam_jlo,reg_jlo-1
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_h3,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! lo-x reg-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_l2,reg_h2
-        do i=lam_l1,reg_l1-1
-           lam(i,j,k,g) = lam(reg_l1,j,reg_h3,g)
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jlo,reg_jhi
+        for (i=lam_ilo,reg_ilo-1
+           lam(i,j,k,g) = lam(reg_ilo,j,reg_khi,g)
         end do
      end do
   end do
 
   ! reg-x reg-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_l2,reg_h2
-        do i=reg_l1,reg_h1
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jlo,reg_jhi
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,j,reg_h3,g)
+              lam(i,j,k,g) = lam(i,j,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! hi-x reg-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_l2,reg_h2
-        do i=reg_h1+1,lam_h1
-           lam(i,j,k,g) = lam(reg_h1,j,reg_h3,g)
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jlo,reg_jhi
+        for (int i = reg_ihi+1,lam_ihi
+           lam(i,j,k,g) = lam(reg_ihi,j,reg_khi,g)
         end do
      end do
   end do
 
   ! lo-x hi-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_h2+1,lam_h2
-        do i=lam_l1,reg_l1-1
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (i=lam_ilo,reg_ilo-1
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_l1,reg_h2,reg_h3,g)
+              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! reg-x hi-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_h2+1,lam_h2
-        do i=reg_l1,reg_h1
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ilo,reg_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_h2,reg_h3,g)
+              lam(i,j,k,g) = lam(i,reg_jhi,reg_khi,g)
            end if
         end do
      end do
   end do
 
   ! hi-x hi-y hi-z
-  do k=reg_h3+1,lam_h3
-     do j=reg_h2+1,lam_h2
-        do i=reg_h1+1,lam_h1
+  for (k=reg_khi+1,lam_khi
+     for (int j = reg_jhi+1,lam_jhi
+        for (int i = reg_ihi+1,lam_ihi
            if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_h3,g)
+              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_khi,g)
            end if
         end do
      end do
