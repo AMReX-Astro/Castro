@@ -1010,6 +1010,914 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
          BL_TO_FORTRAN(kpr[mfi]),
          BL_TO_FORTRAN(lamborder[mfi]), 
          dx, &ngrow, &radiation::limiter, &filter_lambda_T, &filter_lambda_S);
+
+        real(rt)        , allocatable :: lamfil(:,:,:)
+
+        FArrayBox lamfill;
+        Box lambx = lamborder.box();
+        Box bx = lambox.grow(-ngrow);
+
+        if (filter_lambda_T > 0) {
+            lamfill.resize(bx);
+        }
+
+        Array4<Real> lam = lamborder[mfi].array();
+
+        for (int g = 0; g < Radiation::nGroups; ++g) {
+
+            amrex::Loop(lambx.loVect3d(), lambx.hiVect3d(),
+            {
+                lam(i,j,k,g) = -1.e50_rt;
+
+                if (Er(i,j,k,g) == -1.e0_rt) {
+                    return;
+                }
+
+                Real r1, r2, r3;
+
+                if (Er(i-1,j,k,g) == -1.e0_rt) {
+                    r1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx[0]);
+                }
+                else if (Er(i+1,j,k,g) == -1.e0_rt) {
+                    r1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx[0]);
+                }
+                else {
+                    r1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.e0_rt*dx[0]);
+                }
+
+                if (Er(i,j-1,k,g) == -1.e0_rt) {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx[1]);
+                }
+                else if (Er(i,j+1,k,g) == -1.e0_rt) {
+                    r2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx[1]);
+                }
+                else {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.e0_rt*dx[1]);
+                }
+
+                if (Er(i,j,k-1,g) == -1.e0_rt) {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / dx[2];
+                }
+                else if (Er(i,j,k+1,g) == -1.e0_rt) {
+                    r3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / dx[2];
+                }
+                else {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.e0_rt*dx[2]);
+                }
+
+                Real r = std::sqrt(r1 * r1 + r2 * r2 + r3 * r3);
+                r = r / (kap(i,j,k,g) * std::max(Er(i,j,k,g), 1.e-50_rt));
+
+                lam(i,j,k,g) = FLDlambda(r, limiter);
+            });
+
+            // filter
+
+            if (filter_lambda_T == 1) {
+
+                int ilo = lambx.loVect3d()[0];
+
+                for (int k = bx.loVect3d()[2]; k <= bx.hiVect3d()[2]; ++k) {
+                    for (int j = bx.loVect3d()[1]; j <= bx.hiVect3d()[1]; ++j) {
+                        if (Er(ilo,j,k,g) == -1.e0_rt) {
+                            for (int i = bx.loVect3d()[0]; i <= bx.hiVect3d()[0]; ++i) {
+                                lamfil(i,j,k) = -1.e-50_rt;
+                            }
+                        }
+                    }
+                }
+
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) &
+                   &        + ff1(1) * (lam(i-1,j,k,g)+lam(i+1,j,k,g))
+           end do
+
+           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
+              i = reg_l1
+              lamfil(i,j,k) = dot_product(ff1b, lam(i:i+1,j,k,g))
+           end if
+
+           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
+              i = reg_h1
+              lamfil(i,j,k) = dot_product(ff1b(1:0:-1), lam(i-1:i,j,k,g))
+           end if
+        end do
+     end do
+
+     do k=lam_l3, lam_h3
+        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+           cycle
+        end if
+
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lam(i,j,k,g) = ff1(0) * lamfil(i,j,k) &
+                   &       + ff1(1) * (lamfil(i,j-1,k)+lamfil(i,j+1,k))
+           end do
+        end do
+
+        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
+           j = reg_l2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff1b, lamfil(i,j:j+1,k))
+           end do
+        end if
+
+        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
+           j = reg_h2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff1b(1:0:-1), lamfil(i,j-1:j,k))
+           end do
+        end if
+     end do
+
+     do k=reg_l3, reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) &
+                   &        + ff1(1) * (lam(i,j,k-1,g)+lam(i,j,k+1,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end do
+
+     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
+        k = reg_l3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff1b, lam(i,j,k:k+1,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
+        k = reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff1b(1:0:-1), lam(i,j,k-1:k,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
+          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+
+  else if (filter_T == 2) {
+
+     do k=lam_l3, lam_h3
+        do j=lam_l2, lam_h2
+           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+              lamfil(:,j,k) = -1.e-50_rt
+              cycle
+           end if
+
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
+                   &        + ff2(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
+                   &        + ff2(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g))
+           end do
+
+           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
+              i = reg_l1
+              lamfil(i,j,k) = dot_product(ff2b0, lam(i:i+2,j,k,g))
+
+              i = reg_l1 + 1
+              lamfil(i,j,k) = dot_product(ff2b1, lam(i-1:i+2,j,k,g))
+           end if
+
+           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
+              i = reg_h1 - 1
+              lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i-2:i+1,j,k,g))
+
+              i = reg_h1
+              lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i-2:i,j,k,g))
+           end if
+        end do
+     end do
+
+     do k=lam_l3, lam_h3
+        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+           cycle
+        end if
+
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lam(i,j,k,g) = ff2(0,S) * lamfil(i,j,k) &
+                   &       + ff2(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
+                   &       + ff2(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k))
+           end do
+        end do
+
+        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
+           j = reg_l2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff2b0, lamfil(i,j:j+2,k))
+           end do
+
+           j = reg_l2 + 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff2b1, lamfil(i,j-1:j+2,k))
+           end do
+        end if
+
+        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
+           j = reg_h2 - 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff2b1(2:-1:-1), lamfil(i,j-2:j+1,k))
+           end do
+
+           j = reg_h2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff2b0(2:0:-1), lamfil(i,j-2:j,k))
+           end do
+        end if
+     end do
+
+     do k=reg_l3, reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
+                   &        + ff2(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
+                   &        + ff2(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end do
+
+     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
+        k = reg_l3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff2b0, lam(i,j,k:k+2,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff2b1, lam(i,j,k-1:k+2,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
+        k = reg_h3 - 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i,j,k-2:k+1,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i,j,k-2:k,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
+          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+
+  else if (filter_T == 3) {
+
+     do k=lam_l3, lam_h3
+        do j=lam_l2, lam_h2
+           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+              lamfil(:,j,k) = -1.e-50_rt
+              cycle
+           end if
+
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
+                   &        + ff3(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
+                   &        + ff3(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
+                   &        + ff3(3,S) * (lam(i-3,j,k,g)+lam(i+3,j,k,g))
+           end do
+
+           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
+              i = reg_l1
+              lamfil(i,j,k) = dot_product(ff3b0, lam(i:i+3,j,k,g))
+
+              i = reg_l1 + 1
+              lamfil(i,j,k) = dot_product(ff3b1, lam(i-1:i+3,j,k,g))
+
+              i = reg_l1 + 2
+              lamfil(i,j,k) = dot_product(ff3b2, lam(i-2:i+3,j,k,g))
+           end if
+
+           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
+              i = reg_h1 - 2
+              lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i-3:i+2,j,k,g))
+
+              i = reg_h1 - 1
+              lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i-3:i+1,j,k,g))
+
+              i = reg_h1
+              lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i-3:i,j,k,g))
+           end if
+        end do
+     end do
+
+     do k=lam_l3, lam_h3
+        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+           cycle
+        end if
+
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lam(i,j,k,g) = ff3(0,S) * lamfil(i,j,k) &
+                   &       + ff3(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
+                   &       + ff3(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
+                   &       + ff3(3,S) * (lamfil(i,j-3,k)+lamfil(i,j+3,k))
+           end do
+        end do
+
+        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
+           j = reg_l2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b0, lamfil(i,j:j+3,k))
+           end do
+
+           j = reg_l2 + 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b1, lamfil(i,j-1:j+3,k))
+           end do
+
+           j = reg_l2 + 2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b2, lamfil(i,j-2:j+3,k))
+           end do
+        end if
+
+        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
+           j = reg_h2 - 2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b2(3:-2:-1), lamfil(i,j-3:j+2,k))
+           end do
+
+           j = reg_h2 - 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b1(3:-1:-1), lamfil(i,j-3:j+1,k))
+           end do
+
+           j = reg_h2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff3b0(3:0:-1), lamfil(i,j-3:j,k))
+           end do
+        end if
+     end do
+
+     do k=reg_l3, reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
+                   &        + ff3(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
+                   &        + ff3(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
+                   &        + ff3(3,S) * (lam(i,j,k-3,g)+lam(i,j,k+3,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end do
+
+     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
+        k = reg_l3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b0, lam(i,j,k:k+3,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b1, lam(i,j,k-1:k+3,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 2
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b2, lam(i,j,k-2:k+3,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
+        k = reg_h3 - 2
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i,j,k-3:k+2,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3 - 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i,j,k-3:k+1,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i,j,k-3:k,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
+          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+
+  else if (filter_T == 4) {
+
+     do k=lam_l3, lam_h3
+        do j=lam_l2, lam_h2
+           if (Er(reg_l1,j,k,g) == -1.e0_rt) {
+              lamfil(:,j,k) = -1.e-50_rt
+              cycle
+           end if
+
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
+                   &        + ff4(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
+                   &        + ff4(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
+                   &        + ff4(3,S) * (lam(i-3,j,k,g)+lam(i+3,j,k,g)) &
+                   &        + ff4(4,S) * (lam(i-4,j,k,g)+lam(i+4,j,k,g))
+           end do
+
+           if (Er(reg_l1-1,j,k,g) == -1.e0_rt) {
+              i = reg_l1
+              lamfil(i,j,k) = dot_product(ff4b0, lam(i:i+4,j,k,g))
+
+              i = reg_l1 + 1
+              lamfil(i,j,k) = dot_product(ff4b1, lam(i-1:i+4,j,k,g))
+
+              i = reg_l1 + 2
+              lamfil(i,j,k) = dot_product(ff4b2, lam(i-2:i+4,j,k,g))
+
+              i = reg_l1 + 3
+              lamfil(i,j,k) = dot_product(ff4b3, lam(i-3:i+4,j,k,g))
+           end if
+
+           if (Er(reg_h1+1,j,k,g) == -1.e0_rt) {
+              i = reg_h1 - 3
+              lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i-4:i+3,j,k,g))
+
+              i = reg_h1 - 2
+              lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i-4:i+2,j,k,g))
+
+              i = reg_h1 - 1
+              lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i-4:i+1,j,k,g))
+
+              i = reg_h1
+              lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i-4:i,j,k,g))
+           end if
+        end do
+     end do
+
+     do k=lam_l3, lam_h3
+        if (Er(reg_l1,reg_l2,k,g) == -1.e0_rt) {
+           cycle
+        end if
+
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lam(i,j,k,g) = ff4(0,S) * lamfil(i,j,k) &
+                   &       + ff4(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
+                   &       + ff4(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
+                   &       + ff4(3,S) * (lamfil(i,j-3,k)+lamfil(i,j+3,k)) &
+                   &       + ff4(4,S) * (lamfil(i,j-4,k)+lamfil(i,j+4,k))
+           end do
+        end do
+
+        if (Er(reg_l1,reg_l2-1,k,g) == -1.e0_rt) {
+           j = reg_l2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b0, lamfil(i,j:j+4,k))
+           end do
+
+           j = reg_l2 + 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b1, lamfil(i,j-1:j+4,k))
+           end do
+
+           j = reg_l2 + 2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b2, lamfil(i,j-2:j+4,k))
+           end do
+
+           j = reg_l2 + 3
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b3, lamfil(i,j-3:j+4,k))
+           end do
+        end if
+
+        if (Er(reg_l1,reg_h2+1,k,g) == -1.e0_rt) {
+           j = reg_h2 - 3
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b3(4:-3:-1), lamfil(i,j-4:j+3,k))
+           end do
+
+           j = reg_h2 - 2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b2(4:-2:-1), lamfil(i,j-4:j+2,k))
+           end do
+
+           j = reg_h2 - 1
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b1(4:-1:-1), lamfil(i,j-4:j+1,k))
+           end do
+
+           j = reg_h2
+           do i=reg_l1,reg_h1
+              lam(i,j,k,g) = dot_product(ff4b0(4:0:-1), lamfil(i,j-4:j,k))
+           end do
+        end if
+     end do
+
+     do k=reg_l3, reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
+                   &        + ff4(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
+                   &        + ff4(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
+                   &        + ff4(3,S) * (lam(i,j,k-3,g)+lam(i,j,k+3,g)) &
+                   &        + ff4(4,S) * (lam(i,j,k-4,g)+lam(i,j,k+4,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end do
+
+     if (Er(reg_l1,reg_l2,reg_l3-1,g) == -1.e0_rt) {
+        k = reg_l3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b0, lam(i,j,k:k+4,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b1, lam(i,j,k-1:k+4,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 2
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b2, lam(i,j,k-2:k+4,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_l3 + 3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b3, lam(i,j,k-3:k+4,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     if (Er(reg_l1,reg_l2,reg_h3+1,g) == -1.e0_rt) {
+        k = reg_h3 - 3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i,j,k-4:k+3,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3 - 2
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i,j,k-4:k+2,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3 - 1
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i,j,k-4:k+1,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+
+        k = reg_h3
+        do j=reg_l2, reg_h2
+           do i=reg_l1, reg_h1
+              lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i,j,k-4:k,g))
+              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
+           end do
+        end do
+     end if
+
+     lam(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3,g) = &
+          lamfil(reg_l1:reg_h1,reg_l2:reg_h2,reg_l3:reg_h3)
+
+  end if
+
+  ! lo-x lo-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=lam_l2,reg_l2-1
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_l2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x lo-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=lam_l2,reg_l2-1
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_l2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x lo-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=lam_l2,reg_l2-1
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x reg-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=reg_l2,reg_h2
+        do i=lam_l1,reg_l1-1
+           lam(i,j,k,g) = lam(reg_l1,j,reg_l3,g)
+        end do
+     end do
+  end do
+
+  ! reg-x reg-y lo-z side
+  do k=lam_l3,reg_l3-1
+     do j=reg_l2,reg_h2
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,j,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x reg-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=reg_l2,reg_h2
+        do i=reg_h1+1,lam_h1
+           lam(i,j,k,g) = lam(reg_h1,j,reg_l3,g)
+        end do
+     end do
+  end do
+
+  ! lo-x hi-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=reg_h2+1,lam_h2
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_h2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x hi-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=reg_h2+1,lam_h2
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_h2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x hi-y lo-z
+  do k=lam_l3,reg_l3-1
+     do j=reg_h2+1,lam_h2
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_l3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x lo-y reg-z
+  do k=reg_l3,reg_h3
+     do j=lam_l2,reg_l2-1
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_l2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x lo-y reg-z
+  do k=reg_l3,reg_h3
+     do j=lam_l2,reg_l2-1
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_l2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x lo-y reg-z
+  do k=reg_l3,reg_h3
+     do j=lam_l2,reg_l2-1
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_l2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x reg-y reg-z
+  do k=reg_l3,reg_h3
+     do j=reg_l2,reg_h2
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,j,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x reg-y reg-z
+  do k=reg_l3,reg_h3
+     do j=reg_l2,reg_h2
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,j,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x hi-y reg-z
+  do k=reg_l3,reg_h3
+     do j=reg_h2+1,lam_h2
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_h2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x hi-y reg-z
+  do k=reg_l3,reg_h3
+     do j=reg_h2+1,lam_h2
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_h2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x hi-y reg-z
+  do k=reg_l3,reg_h3
+     do j=reg_h2+1,lam_h2
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_h2,k,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x lo-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=lam_l2,reg_l2-1
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_l2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x lo-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=lam_l2,reg_l2-1
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_l2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x lo-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=lam_l2,reg_l2-1
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_l2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! lo-x reg-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_l2,reg_h2
+        do i=lam_l1,reg_l1-1
+           lam(i,j,k,g) = lam(reg_l1,j,reg_h3,g)
+        end do
+     end do
+  end do
+
+  ! reg-x reg-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_l2,reg_h2
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,j,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x reg-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_l2,reg_h2
+        do i=reg_h1+1,lam_h1
+           lam(i,j,k,g) = lam(reg_h1,j,reg_h3,g)
+        end do
+     end do
+  end do
+
+  ! lo-x hi-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_h2+1,lam_h2
+        do i=lam_l1,reg_l1-1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_l1,reg_h2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! reg-x hi-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_h2+1,lam_h2
+        do i=reg_l1,reg_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(i,reg_h2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  ! hi-x hi-y hi-z
+  do k=reg_h3+1,lam_h3
+     do j=reg_h2+1,lam_h2
+        do i=reg_h1+1,lam_h1
+           if (Er(i,j,k,g)==-1.e0_rt) {
+              lam(i,j,k,g) = lam(reg_h1,reg_h2,reg_h3,g)
+           end if
+        end do
+     end do
+  end do
+
+  end do ! do g=
+
+  if (filter_T .gt. 0) {
+     deallocate(lamfil)
+  end if
+
     }
 
     if (filter_lambda_T) {
