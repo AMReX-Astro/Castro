@@ -1104,16 +1104,19 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) + ff1(1) * (lam(i-1,j,k,g) + lam(i+1,j,k,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
                             int i = reg_ilo;
                             lamfil(i,j,k) = ff1b(0) * lam(i,j,k,g) + ff1b(1) * lam(i+1,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
                             int i = reg_ihi;
                             lamfil(i,j,k) = ff1b(1) * lam(i-1,j,k,g) + ff1b(0) * lam(i,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
                 }
@@ -1206,12 +1209,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             lamfil(i,j,k) = ff2b0(0) * lam(i  ,j,k,g) +
                                             ff2b0(1) * lam(i+1,j,k,g) +
                                             ff2b0(2) * lam(i+2,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ilo + 1;
                             lamfil(i,j,k) = ff2b1(-1) * lam(i-1,j,k,g) +
                                             ff2b1(0)  * lam(i  ,j,k,g) +
                                             ff2b1(1)  * lam(i+1,j,k,g) +
                                             ff2b1(2)  * lam(i+2,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
@@ -1220,11 +1225,13 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff2b1(1)  * lam(i-1,j,k,g) +
                                             ff2b1(0)  * lam(i  ,j,k,g) +
                                             ff2b1(-1) * lam(i+1,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi;
                             lamfil(i,j,k) = ff2b0(2) * lam(i-2,j,k,g) +
                                             ff2b0(1) * lam(i-1,j,k,g) +
                                             ff2b0(0) * lam(i  ,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
                 }
@@ -1240,7 +1247,6 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             lam(i,j,k,g) = ff2(0,filter_lambda_S) * lamfil(i,j,k) +
                                            ff2(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
                                            ff2(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k));
-                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
@@ -1370,6 +1376,8 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3b0(1) * lam(i+1,j,k,g) +
                                             ff3b0(2) * lam(i+2,j,k,g) +
                                             ff3b0(3) * lam(i+3,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+
 
                             i = reg_ilo + 1;
                             lamfil(i,j,k) = ff3b1(-1) * lam(i-1,j,k,g) +
@@ -1377,6 +1385,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3b1(1)  * lam(i+1,j,k,g) +
                                             ff3b1(2)  * lam(i+2,j,k,g) +
                                             ff3b1(3)  * lam(i+3,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ilo + 2;
                             lamfil(i,j,k) = ff3b2(-2) * lam(i-2,j,k,g) +
@@ -1385,6 +1394,8 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3b2(1)  * lam(i+1,j,k,g) +
                                             ff3b2(2)  * lam(i+2,j,k,g) +
                                             ff3b2(3)  * lam(i+3,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+
                         }
 
                         if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
@@ -1395,6 +1406,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3b2(0)  * lam(i  ,j,k,g) +
                                             ff3b2(-1) * lam(i+1,j,k,g) +
                                             ff3b2(-2) * lam(i+2,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi - 1;
                             lamfil(i,j,k) = ff3b1(3)  * lam(i-3,j,k,g) +
@@ -1402,12 +1414,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3b1(1)  * lam(i-1,j,k,g) +
                                             ff3b1(0)  * lam(i  ,j,k,g) +
                                             ff3b1(-1) * lam(i+1,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi;
                             lamfil(i,j,k) = ff3b0(3) * lam(i-3,j,k,g) +
                                             ff3b0(2) * lam(i-2,j,k,g) +
                                             ff3b0(1) * lam(i-1,j,k,g) +
                                             ff3b0(0) * lam(i  ,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
                 }
@@ -1424,7 +1438,6 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff3(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
                                            ff3(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
                                            ff3(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k));
-                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
@@ -1611,6 +1624,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b0(2) * lam(i+2,j,k,g) +
                                             ff4b0(3) * lam(i+3,j,k,g) +
                                             ff4b0(4) * lam(i+4,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ilo + 1;
                             lamfil(i,j,k) = ff4b1(-1) * lam(i-1,j,k,g) +
@@ -1619,6 +1633,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b1(2)  * lam(i+2,j,k,g) +
                                             ff4b1(3)  * lam(i+3,j,k,g) +
                                             ff4b1(4)  * lam(i+4,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ilo + 2;
                             lamfil(i,j,k) = ff4b2(-2) * lam(i-2,j,k,g) +
@@ -1628,6 +1643,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b2(2)  * lam(i+2,j,k,g) +
                                             ff4b2(3)  * lam(i+3,j,k,g) +
                                             ff4b2(4)  * lam(i+4,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ilo + 3;
                             lamfil(i,j,k) = ff4b3(-3) * lam(i-3,j,k,g) +
@@ -1638,6 +1654,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b3(2)  * lam(i+2,j,k,g) +
                                             ff4b3(3)  * lam(i+3,j,k,g) +
                                             ff4b3(4)  * lam(i+4,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
@@ -1650,6 +1667,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b3(-1) * lam(i+1,j,k,g) +
                                             ff4b3(-2) * lam(i+2,j,k,g) +
                                             ff4b3(-3) * lam(i+3,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi - 2;
                             lamfil(i,j,k) = ff4b2(4)  * lam(i-4,j,k,g) +
@@ -1659,6 +1677,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b2(0)  * lam(i  ,j,k,g) +
                                             ff4b2(-1) * lam(i+1,j,k,g) +
                                             ff4b2(-2) * lam(i+2,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi - 1;
                             lamfil(i,j,k) = ff4b1(4)  * lam(i-4,j,k,g) +
@@ -1667,6 +1686,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b1(1)  * lam(i-1,j,k,g) +
                                             ff4b1(0)  * lam(i  ,j,k,g) +
                                             ff4b1(-1) * lam(i+1,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
 
                             i = reg_ihi;
                             lamfil(i,j,k) = ff4b0(4) * lam(i-4,j,k,g) +
@@ -1674,6 +1694,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b0(2) * lam(i-2,j,k,g) +
                                             ff4b0(1) * lam(i-1,j,k,g) +
                                             ff4b0(0) * lam(i  ,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
                 }
@@ -1691,7 +1712,6 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff4(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
                                            ff4(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k)) +
                                            ff4(4,filter_lambda_S) * (lamfil(i,j-4,k) + lamfil(i,j+4,k));
-                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
@@ -1750,7 +1770,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff4b3(-1) * lamfil(i,j+1,k) +
                                            ff4b3(-2) * lamfil(i,j+2,k) +
                                            ff4b3(-3) * lamfil(i,j+3,k);
-                        }                                                               }
+                        }
 
                         j = reg_jhi - 2;
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
@@ -1820,7 +1840,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4b1(2)  * lam(i,j,k+2,g) +
                                             ff4b1(3)  * lam(i,j,k+3,g) +
                                             ff4b1(4)  * lam(i,j,k+4,g);
-                                lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
