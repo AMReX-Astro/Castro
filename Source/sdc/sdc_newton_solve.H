@@ -29,8 +29,6 @@ f_sdc_jac(const Real dt_m,
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
 
-    Array1D<Real, 1, NumSpec+1> R_react;
-
     // we are not solving the momentum equations
     // create a full state -- we need this for some interfaces
 
@@ -85,19 +83,13 @@ f_sdc_jac(const Real dt_m,
 
     single_zone_react_source(U_full, R_full, burn_state);
 
-    // store the subset of R used in the Jacobian
-
-    for (int n = 0; n < NumSpec; ++n) {
-        R_react(n+1) = R_full[UFS+n];
-    }
-    R_react(NumSpec+1) = R_full[UEINT];
-
     // we are solving J dU = -f
     // where f is Eq. 36 evaluated with the current guess for U
 
-    for (int n = 1; n < NumSpec+1; ++n) {
-        f(n) = U(n) - dt_m * R_react(n) - f_source(n);
+    for (int n = 1; n <= NumSpec; ++n) {
+        f(n) = U(n) - dt_m * R_full[UFS+n] - f_source(n);
     }
+    f(NumSpec+1) = U(NumSpec+1) - dt_m * R_full[UEINT] - f_source(NumSpec+1);
 
     // get the Jacobian.
 
@@ -242,13 +234,13 @@ sdc_newton_solve(const Real dt_m,
         dgesl<NumSpec+1>(Jac, ipvt, f_rhs);
 #endif
 
-        for (int n = 1; n < NumSpec+1; ++n) {
+        for (int n = 1; n <= NumSpec+1; ++n) {
             dU_react(n) = f_rhs(n);
         }
 
         // how much of dU_react should we apply?
         Real eta = 1.0_rt;
-        for (int n = 1; n < NumSpec+1; ++n) {
+        for (int n = 1; n <= NumSpec+1; ++n) {
             U_react(n) += eta * dU_react(n);
         }
 
