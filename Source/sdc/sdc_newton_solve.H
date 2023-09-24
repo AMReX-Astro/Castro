@@ -87,7 +87,7 @@ f_sdc_jac(const Real dt_m,
     // where f is Eq. 36 evaluated with the current guess for U
 
     for (int n = 1; n <= NumSpec; ++n) {
-        f(n) = U(n) - dt_m * R_full[UFS+n] - f_source(n);
+        f(n) = U(n) - dt_m * R_full[UFS-1+n] - f_source(n);
     }
     f(NumSpec+1) = U(NumSpec+1) - dt_m * R_full[UEINT] - f_source(NumSpec+1);
 
@@ -210,13 +210,12 @@ sdc_newton_solve(const Real dt_m,
         int info = 0;
         f_sdc_jac(dt_m, U_react, f, Jac, f_source, rho_new, mom_source, T_old, E_var);
 
-        IArray1D ipvt;
-
         // solve the linear system: Jac dU_react = -f
 #ifdef NEW_NETWORK_IMPLEMENTATION
         RHS::dgefa(Jac);
         info = 0;
 #else
+        IArray1D ipvt;
         dgefa<NumSpec+1>(Jac, ipvt, info);
 #endif
         if (info != 0) {

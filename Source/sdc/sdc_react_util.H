@@ -85,8 +85,6 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 #endif
 #else
 
-    const auto eps = 1.e-8_rt;
-
     // Jac has the derivatives with respect to the native
     // network variables, X, e.  Note: the e derivative
 
