@@ -20,7 +20,7 @@ Castro::do_old_reactions (Real time, Real dt)
     advance_status status {};
 
 #ifndef SIMPLIFIED_SDC
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
@@ -29,7 +29,7 @@ Castro::do_old_reactions (Real time, Real dt)
         // The result of the reactions is added directly to Sborder.
         burn_success = react_state(Sborder, R_old, time, 0.5 * dt, 0);
 
-        if (!burn_success) {
+        if (burn_success != 1) {
             status.success = false;
             status.reason = "burn unsuccessful";
 
@@ -57,7 +57,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
     advance_status status {};
 
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_new = get_new_data(Reactions_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -73,7 +73,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
             burn_success = react_state(time, dt);
 
-            if (!burn_success) {
+            if (burn_success != 1) {
                 status.success = false;
                 status.reason = "burn unsuccessful";
 
@@ -107,7 +107,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
         burn_success = react_state(S_new, R_new, time - 0.5 * dt, 0.5 * dt, 1);
 
-        if (!burn_success) {
+        if (burn_success != 1) {
             status.success = false;
             status.reason = "burn unsuccessful";
 
@@ -129,7 +129,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
 // Strang version
 
-bool
+int
 Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
 
@@ -452,7 +452,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #ifdef SIMPLIFIED_SDC
 // Simplified SDC version
 
-bool
+int
 Castro::react_state(Real time, Real dt)
 {
 
@@ -804,7 +804,9 @@ Castro::react_state(Real time, Real dt)
     ReduceTuple hv = reduce_data.value();
     Real burn_failed = amrex::get<0>(hv);
 
-    if (burn_failed != 0.0) burn_success = 0;
+    if (burn_failed != 0.0) {
+        burn_success = 0;
+    }
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
@@ -843,11 +845,7 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    if (burn_success) {
-        return true;
-    } else {
-        return false;
-    }
+    return burn_success;
 
 }
 #endif
