@@ -1809,6 +1809,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff4b0(1) * lamfil(i,j-1,k) +
                                            ff4b0(0) * lamfil(i,j  ,k);
                         }
+                    }
                 }
 #endif
 
