@@ -1161,772 +1161,1027 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                 if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
                     int k = reg_khi;
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff1b(1:0:-1), lam(i,j,k-1:k,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
-          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
-
-  else if (filter_T == 2) {
-
-     for (k=lam_klo, lam_khi
-        for (j=lam_jlo, lam_jhi
-           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
-              lamfil(:,j,k) = -1.e-50_rt
-              cycle
-           end if
-
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
-                   &        + ff2(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
-                   &        + ff2(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g))
-           end do
-
-           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
-              i = reg_ilo
-              lamfil(i,j,k) = dot_product(ff2b0, lam(i:i+2,j,k,g))
-
-              i = reg_ilo + 1
-              lamfil(i,j,k) = dot_product(ff2b1, lam(i-1:i+2,j,k,g))
-           end if
-
-           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
-              i = reg_ihi - 1
-              lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i-2:i+1,j,k,g))
-
-              i = reg_ihi
-              lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i-2:i,j,k,g))
-           end if
-        end do
-     end do
-
-     for (k=lam_klo, lam_khi
-        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
-           cycle
-        end if
-
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lam(i,j,k,g) = ff2(0,S) * lamfil(i,j,k) &
-                   &       + ff2(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
-                   &       + ff2(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k))
-           end do
-        end do
-
-        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
-           j = reg_jlo
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff2b0, lamfil(i,j:j+2,k))
-           end do
-
-           j = reg_jlo + 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff2b1, lamfil(i,j-1:j+2,k))
-           end do
-        end if
-
-        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
-           j = reg_jhi - 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff2b1(2:-1:-1), lamfil(i,j-2:j+1,k))
-           end do
-
-           j = reg_jhi
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff2b0(2:0:-1), lamfil(i,j-2:j,k))
-           end do
-        end if
-     end do
-
-     for (k=reg_klo, reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff2(0,S) * lam(i,j,k,g) &
-                   &        + ff2(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
-                   &        + ff2(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end do
-
-     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
-        k = reg_klo
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff2b0, lam(i,j,k:k+2,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff2b1, lam(i,j,k-1:k+2,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
-        k = reg_khi - 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff2b1(2:-1:-1), lam(i,j,k-2:k+1,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff2b0(2:0:-1), lam(i,j,k-2:k,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
-          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
-
-  else if (filter_T == 3) {
-
-     for (k=lam_klo, lam_khi
-        for (j=lam_jlo, lam_jhi
-           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
-              lamfil(:,j,k) = -1.e-50_rt
-              cycle
-           end if
-
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
-                   &        + ff3(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
-                   &        + ff3(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
-                   &        + ff3(3,S) * (lam(i-3,j,k,g)+lam(i+3,j,k,g))
-           end do
-
-           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
-              i = reg_ilo
-              lamfil(i,j,k) = dot_product(ff3b0, lam(i:i+3,j,k,g))
-
-              i = reg_ilo + 1
-              lamfil(i,j,k) = dot_product(ff3b1, lam(i-1:i+3,j,k,g))
-
-              i = reg_ilo + 2
-              lamfil(i,j,k) = dot_product(ff3b2, lam(i-2:i+3,j,k,g))
-           end if
-
-           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
-              i = reg_ihi - 2
-              lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i-3:i+2,j,k,g))
-
-              i = reg_ihi - 1
-              lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i-3:i+1,j,k,g))
-
-              i = reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i-3:i,j,k,g))
-           end if
-        end do
-     end do
-
-     for (k=lam_klo, lam_khi
-        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
-           cycle
-        end if
-
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lam(i,j,k,g) = ff3(0,S) * lamfil(i,j,k) &
-                   &       + ff3(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
-                   &       + ff3(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
-                   &       + ff3(3,S) * (lamfil(i,j-3,k)+lamfil(i,j+3,k))
-           end do
-        end do
-
-        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
-           j = reg_jlo
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b0, lamfil(i,j:j+3,k))
-           end do
-
-           j = reg_jlo + 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b1, lamfil(i,j-1:j+3,k))
-           end do
-
-           j = reg_jlo + 2
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b2, lamfil(i,j-2:j+3,k))
-           end do
-        end if
-
-        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
-           j = reg_jhi - 2
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b2(3:-2:-1), lamfil(i,j-3:j+2,k))
-           end do
-
-           j = reg_jhi - 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b1(3:-1:-1), lamfil(i,j-3:j+1,k))
-           end do
-
-           j = reg_jhi
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff3b0(3:0:-1), lamfil(i,j-3:j,k))
-           end do
-        end if
-     end do
-
-     for (k=reg_klo, reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff3(0,S) * lam(i,j,k,g) &
-                   &        + ff3(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
-                   &        + ff3(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
-                   &        + ff3(3,S) * (lam(i,j,k-3,g)+lam(i,j,k+3,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end do
-
-     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
-        k = reg_klo
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b0, lam(i,j,k:k+3,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b1, lam(i,j,k-1:k+3,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 2
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b2, lam(i,j,k-2:k+3,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
-        k = reg_khi - 2
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b2(3:-2:-1), lam(i,j,k-3:k+2,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi - 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b1(3:-1:-1), lam(i,j,k-3:k+1,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff3b0(3:0:-1), lam(i,j,k-3:k,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
-          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
-
-  else if (filter_T == 4) {
-
-     for (k=lam_klo, lam_khi
-        for (j=lam_jlo, lam_jhi
-           if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
-              lamfil(:,j,k) = -1.e-50_rt
-              cycle
-           end if
-
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
-                   &        + ff4(1,S) * (lam(i-1,j,k,g)+lam(i+1,j,k,g)) &
-                   &        + ff4(2,S) * (lam(i-2,j,k,g)+lam(i+2,j,k,g)) &
-                   &        + ff4(3,S) * (lam(i-3,j,k,g)+lam(i+3,j,k,g)) &
-                   &        + ff4(4,S) * (lam(i-4,j,k,g)+lam(i+4,j,k,g))
-           end do
-
-           if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
-              i = reg_ilo
-              lamfil(i,j,k) = dot_product(ff4b0, lam(i:i+4,j,k,g))
-
-              i = reg_ilo + 1
-              lamfil(i,j,k) = dot_product(ff4b1, lam(i-1:i+4,j,k,g))
-
-              i = reg_ilo + 2
-              lamfil(i,j,k) = dot_product(ff4b2, lam(i-2:i+4,j,k,g))
-
-              i = reg_ilo + 3
-              lamfil(i,j,k) = dot_product(ff4b3, lam(i-3:i+4,j,k,g))
-           end if
-
-           if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
-              i = reg_ihi - 3
-              lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i-4:i+3,j,k,g))
-
-              i = reg_ihi - 2
-              lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i-4:i+2,j,k,g))
-
-              i = reg_ihi - 1
-              lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i-4:i+1,j,k,g))
-
-              i = reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i-4:i,j,k,g))
-           end if
-        end do
-     end do
-
-     for (k=lam_klo, lam_khi
-        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
-           cycle
-        end if
-
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lam(i,j,k,g) = ff4(0,S) * lamfil(i,j,k) &
-                   &       + ff4(1,S) * (lamfil(i,j-1,k)+lamfil(i,j+1,k)) &
-                   &       + ff4(2,S) * (lamfil(i,j-2,k)+lamfil(i,j+2,k)) &
-                   &       + ff4(3,S) * (lamfil(i,j-3,k)+lamfil(i,j+3,k)) &
-                   &       + ff4(4,S) * (lamfil(i,j-4,k)+lamfil(i,j+4,k))
-           end do
-        end do
-
-        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
-           j = reg_jlo
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b0, lamfil(i,j:j+4,k))
-           end do
-
-           j = reg_jlo + 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b1, lamfil(i,j-1:j+4,k))
-           end do
-
-           j = reg_jlo + 2
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b2, lamfil(i,j-2:j+4,k))
-           end do
-
-           j = reg_jlo + 3
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b3, lamfil(i,j-3:j+4,k))
-           end do
-        end if
-
-        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
-           j = reg_jhi - 3
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b3(4:-3:-1), lamfil(i,j-4:j+3,k))
-           end do
-
-           j = reg_jhi - 2
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b2(4:-2:-1), lamfil(i,j-4:j+2,k))
-           end do
-
-           j = reg_jhi - 1
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b1(4:-1:-1), lamfil(i,j-4:j+1,k))
-           end do
-
-           j = reg_jhi
-           for (int i = reg_ilo,reg_ihi
-              lam(i,j,k,g) = dot_product(ff4b0(4:0:-1), lamfil(i,j-4:j,k))
-           end do
-        end if
-     end do
-
-     for (k=reg_klo, reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = ff4(0,S) * lam(i,j,k,g) &
-                   &        + ff4(1,S) * (lam(i,j,k-1,g)+lam(i,j,k+1,g)) &
-                   &        + ff4(2,S) * (lam(i,j,k-2,g)+lam(i,j,k+2,g)) &
-                   &        + ff4(3,S) * (lam(i,j,k-3,g)+lam(i,j,k+3,g)) &
-                   &        + ff4(4,S) * (lam(i,j,k-4,g)+lam(i,j,k+4,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end do
-
-     if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
-        k = reg_klo
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b0, lam(i,j,k:k+4,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b1, lam(i,j,k-1:k+4,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 2
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b2, lam(i,j,k-2:k+4,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_klo + 3
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b3, lam(i,j,k-3:k+4,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
-        k = reg_khi - 3
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b3(4:-3:-1), lam(i,j,k-4:k+3,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi - 2
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b2(4:-2:-1), lam(i,j,k-4:k+2,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi - 1
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b1(4:-1:-1), lam(i,j,k-4:k+1,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-
-        k = reg_khi
-        for (int j = reg_jlo, reg_jhi
-           for (int i = reg_ilo, reg_ihi
-              lamfil(i,j,k) = dot_product(ff4b0(4:0:-1), lam(i,j,k-4:k,g))
-              lamfil(i,j,k) = min(1.e0_rt/3.e0_rt, max(1.e-25_rt, lamfil(i,j,k)))
-           end do
-        end do
-     end if
-
-     lam(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi,g) = &
-          lamfil(reg_ilo:reg_ihi,reg_jlo:reg_jhi,reg_klo:reg_khi)
-
-  end if
-
-  ! lo-x lo-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (j=lam_jlo,reg_jlo-1
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x lo-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jlo,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x lo-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x reg-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jlo,reg_jhi
-        for (i=lam_ilo,reg_ilo-1
-           lam(i,j,k,g) = lam(reg_ilo,j,reg_klo,g)
-        end do
-     end do
-  end do
-
-  ! reg-x reg-y lo-z side
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jlo,reg_jhi
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,j,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x reg-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jlo,reg_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           lam(i,j,k,g) = lam(reg_ihi,j,reg_klo,g)
-        end do
-     end do
-  end do
-
-  ! lo-x hi-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jhi+1,lam_jhi
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x hi-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jhi,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x hi-y lo-z
-  for (k=lam_klo,reg_klo-1
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_klo,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x lo-y reg-z
-  for (k=reg_klo,reg_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x lo-y reg-z
-  for (k=reg_klo,reg_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jlo,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x lo-y reg-z
-  for (k=reg_klo,reg_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x reg-y reg-z
-  for (k=reg_klo,reg_khi
-     for (int j = reg_jlo,reg_jhi
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,j,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x reg-y reg-z
-  for (k=reg_klo,reg_khi
-     for (int j = reg_jlo,reg_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,j,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x hi-y reg-z
-  for (k=reg_klo,reg_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x hi-y reg-z
-  for (k=reg_klo,reg_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jhi,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x hi-y reg-z
-  for (k=reg_klo,reg_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,k,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x lo-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x lo-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jlo,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x lo-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (j=lam_jlo,reg_jlo-1
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! lo-x reg-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jlo,reg_jhi
-        for (i=lam_ilo,reg_ilo-1
-           lam(i,j,k,g) = lam(reg_ilo,j,reg_khi,g)
-        end do
-     end do
-  end do
-
-  ! reg-x reg-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jlo,reg_jhi
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,j,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x reg-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jlo,reg_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           lam(i,j,k,g) = lam(reg_ihi,j,reg_khi,g)
-        end do
-     end do
-  end do
-
-  ! lo-x hi-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (i=lam_ilo,reg_ilo-1
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! reg-x hi-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ilo,reg_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(i,reg_jhi,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  ! hi-x hi-y hi-z
-  for (k=reg_khi+1,lam_khi
-     for (int j = reg_jhi+1,lam_jhi
-        for (int i = reg_ihi+1,lam_ihi
-           if (Er(i,j,k,g)==-1.e0_rt) {
-              lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_khi,g)
-           end if
-        end do
-     end do
-  end do
-
-  end do ! do g=
-
-  if (filter_T .gt. 0) {
-     deallocate(lamfil)
-  end if
-
-    }
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff1b(1) * lam(i,j,k-1,k,g) + ff1b(0) * lam(i,j,k,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                {
+                    lam(i,j,k,g) = lamfil(i,j,k);
+                });
+
+            }
+
+            else if (filter_lambda_T == 2) {
+
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    for (int j = lam_jlo; j <= lam_jhi; ++j) {
+                        if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lamfil(i,j,k) = -1.e-50_rt;
+                            }
+                            continue;
+                        }
+
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2(0,filter_lambda_S) * lam(i,j,k,g) +
+                                            ff2(1,filter_lambda_S) * (lam(i-1,j,k,g) + lam(i+1,j,k,g)) +
+                                            ff2(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g));
+                        }
+
+                        if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ilo;
+                            lamfil(i,j,k) = ff2b0(0) * lam(i  ,j,k,g) +
+                                            ff2b0(1) * lam(i+1,j,k,g) +
+                                            ff2b0(2) * lam(i+2,j,k,g);
+
+                            i = reg_ilo + 1;
+                            lamfil(i,j,k) = ff2b1(-1) * lam(i-1,j,k,g) +
+                                            ff2b1(0)  * lam(i  ,j,k,g) +
+                                            ff2b1(1)  * lam(i+1,j,k,g) +
+                                            ff2b2(2)  * lam(i+2,j,k,g);
+                        }
+
+                        if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ihi - 1;
+                            lamfil(i,j,k) = ff2b1(2)  * lam(i-2,j,k,g) +
+                                            ff2b1(1)  * lam(i-1,j,k,g) +
+                                            ff2b1(0)  * lam(i  ,j,k,g) +
+                                            ff2b1(-1) * lam(i+1,j,k,g);
+
+                            i = reg_ihi;
+                            lamfil(i,j,k) = ff2b0(2) * lam(i-2,j,k,g) +
+                                            ff2b0(1) * lam(i-1,j,k,g) +
+                                            ff2b0(0) * lam(i  ,j,k,g);
+                        }
+                    }
+                }
+
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
+                        continue;
+                    }
+
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff2(0,filter_lambda_S) * lamfil(i,j,k) +
+                                           ff2(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
+                                           ff2(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k));
+                        }
+                    }
+
+                    if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+                        int j = reg_jlo;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff2b0(0) * lamfil(i,j  ,k) +
+                                           ff2b0(1) * lamfil(i,j+1,k) +
+                                           ff2b0(2) * lamfil(i,j+2,k);
+                        }
+
+                        j = reg_jlo + 1;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff2b1(-1) * lamfil(i,j-1,k) +
+                                           ff2b1(0)  * lamfil(i,j  ,k) +
+                                           ff2b1(1)  * lamfil(i,j+1,k) +
+                                           ff2b1(2)  * lamfil(i,j+2,k);
+                        }
+                    }
+
+                    if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+                        int j = reg_jhi - 1;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff2b1(2)  * lamfil(i,j-2,k) +
+                                           ff2b1(1)  * lamfil(i,j-1,k) +
+                                           ff2b1(0)  * lamfil(i,j  ,k) +
+                                           ff2b1(-1) * lamfil(i,j+1,k);
+                        }
+
+                        j = reg_jhi;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff2b0(2) * lamfil(i,j-2,k) +
+                                           ff2b0(1) * lamfil(i,j-1,k) +
+                                           ff2b0(0) * lamfil(i,j  ,k);
+                        }
+                    }
+                }
+
+                for (int k = reg_klo; k <= reg_khi; ++k) {
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2(0,filter_lambda_S) * lam(i,j,k,g) +
+                                            ff2(1,filter_lambda_S) * (lam(i,j,k-1,g) + lam(i,j,k+1,g)) +
+                                            ff2(2,filter_lambda_S) * (lam(i,j,k-2,g) + lam(i,j,k+2,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+                    int k = reg_klo;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2b0(0) * lam(i,j,k  ,g) +
+                                            ff2b0(1) * lam(i,j,k+1,g) +
+                                            ff2b0(2) * lam(i,j,k+2,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2b1(-1) * lam(i,j,k-1,g) +
+                                            ff2b1(0)  * lam(i,j,k  ,g) +
+                                            ff2b1(1)  * lam(i,j,k+1,g) +
+                                            ff2b1(2)  * lam(i,j,k+2,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+                    int k = reg_khi - 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2b1(2)  * lam(i,j,k-2,g) +
+                                            ff2b1(1)  * lam(i,j,k-1,g) +
+                                            ff2b1(0)  * lam(i,j,k  ,g) +
+                                            ff2b1(-1) * lam(i,j,k+1,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff2b0(2) * lam(i,j,k-2,g) +
+                                            ff2b0(1) * lam(i,j,k-1,g) +
+                                            ff2b0(0) * lam(i,j,k  ,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                {
+                    lam(i,j,k,g) = lamfil(i,j,k);
+                });
+
+            }
+            else if (filter_lambda_T == 3) {
+
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    for (int j = lam_jlo; j <= lam_jhi; ++j) {
+                        if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
+                            lamfil(:,j,k) = -1.e-50_rt;
+                            continue;
+                        }
+
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3(0,filter_lambda_S) * lam(i,j,k,g) +
+                                            ff3(1,filter_lambda_S) * (lam(i-1,j,k,g) + lam(i+1,j,k,g)) +
+                                            ff3(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g)) +
+                                            ff3(3,filter_lambda_S) * (lam(i-3,j,k,g) + lam(i+3,j,k,g));
+                        }
+
+                        if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ilo;
+                            lamfil(i,j,k) = ff3b0(0) * lam(i  ,j,k,g) +
+                                            ff3b0(1) * lam(i+1,j,k,g) +
+                                            ff3b0(2) * lam(i+2,j,k,g) +
+                                            ff3b0(3) * lam(i+3,j,k,g);
+
+                            i = reg_ilo + 1;
+                            lamfil(i,j,k) = ff3b1(-1) * lam(i-1,j,k,g) +
+                                            ff3b1(0)  * lam(i  ,j,k,g) +
+                                            ff3b1(1)  * lam(i+1,j,k,g) +
+                                            ff3b1(2)  * lam(i+2,j,k,g) +
+                                            ff3b1(3)  * lam(i+3,j,k,g);
+
+                            i = reg_ilo + 2;
+                            lamfil(i,j,k) = ff3b2(-2) * lam(i-2,j,k,g) +
+                                            ff3b2(-1) * lam(i-1,j,k,g) +
+                                            ff3b2(0)  * lam(i  ,j,k,g) +
+                                            ff3b2(1)  * lam(i+1,j,k,g) +
+                                            ff3b2(2)  * lam(i+2,j,k,g) +
+                                            ff3b2(3)  * lam(i+3,j,k,g);
+                        }
+
+                        if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+                            int i = reg_ihi - 2;
+                            lamfil(i,j,k) = ff3b2(3)  * lam(i-3,j,k,g) +
+                                            ff3b2(2)  * lam(i-2,j,k,g) +
+                                            ff3b2(1)  * lam(i-1,j,k,g) +
+                                            ff3b2(0)  * lam(i  ,j,k,g) +
+                                            ff3b2(-1) * lam(i+1,j,k,g) +
+                                            ff3b2(-2) * lam(i+2,j,k,g);
+
+                            i = reg_ihi - 1;
+                            lamfil(i,j,k) = ff3b1(3)  * lam(i-3,j,k,g) +
+                                            ff3b1(2)  * lam(i-2,j,k,g) +
+                                            ff3b1(1)  * lam(i-1,j,k,g) +
+                                            ff3b1(0)  * lam(i  ,j,k,g) +
+                                            ff3b1(-1) * lam(i+1,j,k,g);
+
+                            i = reg_ihi;
+                            lamfil(i,j,k) = ff3b0(3) * lam(i-3,j,k,g) +
+                                            ff3b0(2) * lam(i-2,j,k,g) +
+                                            ff3b0(1) * lam(i-1,j,k,g) +
+                                            ff3b0(0) * lam(i  ,j,k,g);
+                        }
+                    }
+                }
+
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
+                        continue;
+                    }
+
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3(0,filter_lambda_S) * lamfil(i,j,k) +
+                                           ff3(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
+                                           ff3(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
+                                           ff3(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k));
+                        }
+                    }
+
+                    if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+                        int j = reg_jlo;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b0(0) * lamfil(i,j  ,k) +
+                                           ff3b0(1) * lamfil(i,j+1,k) +
+                                           ff3b0(2) * lamfil(i,j+2,k) +
+                                           ff3b0(3) * lamfil(i,j+3,k);
+                        }
+
+                        j = reg_jlo + 1;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b1(-1) * lamfil(i,j-1,k) +
+                                           ff3b1(0)  * lamfil(i,j  ,k) +
+                                           ff3b1(1)  * lamfil(i,j+1,k) +
+                                           ff3b1(2)  * lamfil(i,j+2,k) +
+                                           ff3b1(3)  * lamfil(i,j+3,k);
+                        }
+
+                        j = reg_jlo + 2;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b2(-2) * lamfil(i,j-2,k) +
+                                           ff3b2(-1) * lamfil(i,j-1,k) +
+                                           ff3b2(0)  * lamfil(i,j  ,k) +
+                                           ff3b2(1)  * lamfil(i,j+1,k) +
+                                           ff3b2(2)  * lamfil(i,j+2,k) +
+                                           ff3b2(3)  * lamfil(i,j+3,k);
+                        }
+                    }
+
+                    if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+                        int j = reg_jhi - 2;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b2(3)  * lamfil(i,j-3,k) +
+                                           ff3b2(2)  * lamfil(i,j-2,k) +
+                                           ff3b2(1)  * lamfil(i,j-1,k) +
+                                           ff3b2(0)  * lamfil(i,j  ,k) +
+                                           ff3b2(-1) * lamfil(i,j+1,k) +
+                                           ff3b2(-2) * lamfil(i,j+2,k);
+                        }
+
+                        j = reg_jhi - 1;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b1(3)  * lamfil(i,j-3,k) +
+                                           ff3b1(2)  * lamfil(i,j-2,k) +
+                                           ff3b1(1)  * lamfil(i,j-1,k) +
+                                           ff3b1(0)  * lamfil(i,j  ,k) +
+                                           ff3b1(-1) * lamfil(i,j+1,k);
+                        }
+
+                        j = reg_jhi;
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lam(i,j,k,g) = ff3b0(3) * lamfil(i,j-3,k) +
+                                           ff3b0(2) * lamfil(i,j-2,k) +
+                                           ff3b0(1) * lamfil(i,j-1,k) +
+                                           ff3b0(0) * lamfil(i,j  ,k);
+                        }
+                    }
+                }
+
+                for (int k = reg_klo; k <= reg_khi; ++k) {
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3(0,filter_lambda_S) * lam(i,j,k,g) +
+                                            ff3(1,filter_lambda_S) * (lam(i,j,k-1,g) + lam(i,j,k+1,g)) +
+                                            ff3(2,filter_lambda_S) * (lam(i,j,k-2,g) + lam(i,j,k+2,g)) +
+                                            ff3(3,filter_lambda_S) * (lam(i,j,k-3,g) + lam(i,j,k+3,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+                    int k = reg_klo;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b0(0) * lam(i,j,k  ,g) +
+                                            ff3b0(1) * lam(i,j,k+1,g) +
+                                            ff3b0(2) * lam(i,j,k+2,g) +
+                                            ff3b0(3) * lam(i,j,k+3,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b1(-1) * lam(i,j,k-1,g) +
+                                            ff3b1(0)  * lam(i,j,k  ,g) +
+                                            ff3b1(1)  * lam(i,j,k+1,g) +
+                                            ff3b1(2)  * lam(i,j,k+2,g) +
+                                            ff3b1(3)  * lam(i,j,k+3,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 2;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b2(-2) * lam(i,j,k-2,g) +
+                                            ff3b2(-1) * lam(i,j,k-1,g) +
+                                            ff3b2(0)  * lam(i,j,k  ,g) +
+                                            ff3b2(1)  * lam(i,j,k+1,g) +
+                                            ff3b2(2)  * lam(i,j,k+2,g) +
+                                            ff3b2(3)  * lam(i,j,k+3,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+                    int k = reg_khi - 2;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b2(3)  * lam(i,j,k-3,g) +
+                                            ff3b2(2)  * lam(i,j,k-2,g) +
+                                            ff3b2(1)  * lam(i,j,k-1,g) +
+                                            ff3b2(0)  * lam(i,j,k  ,g) +
+                                            ff3b2(-1) * lam(i,j,k+1,g) +
+                                            ff3b2(-2) * lam(i,j,k+2,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi - 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b1(3)  * lam(i,j,k-3,g) +
+                                            ff3b1(2)  * lam(i,j,k-2,g) +
+                                            ff3b1(1)  * lam(i,j,k-1,g) +
+                                            ff3b1(0)  * lam(i,j,k  ,g) +
+                                            ff3b1(-1) * lam(i,j,k+1,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff3b0(3) * lam(i,j,k-3,g) +
+                                            ff3b0(2) * lam(i,j,k-2,g) +
+                                            ff3b0(1) * lam(i,j,k-1,g) +
+                                            ff3b0(0) * lam(i,j,k  ,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                {
+                    lam(i,j,k,g) = lamfil(i,j,k);
+                });
+
+            }
+            else if (filter_lambda_T == 4) {
+
+                for (int k = lam_klo; k <= lam_khi; ++k) {
+                    for (int j = lam_jlo; j <= lam_jhi; ++j) {
+                        if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lamfil(i,j,k) = -1.e-50_rt;
+                                continue;
+                            }
+
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lamfil(i,j,k) = ff4(0,filter_lambda_S) * lam(i,j,k,g) +
+                                                ff4(1,filter_lambda_S) * (lam(i-1,j,k,g) + lam(i+1,j,k,g)) +
+                                                ff4(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g)) +
+                                                ff4(3,filter_lambda_S) * (lam(i-3,j,k,g) + lam(i+3,j,k,g)) +
+                                                ff4(4,filter_lambda_S) * (lam(i-4,j,k,g) + lam(i+4,j,k,g));
+                            }
+
+                            if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
+                                int i = reg_ilo;
+                                lamfil(i,j,k) = ff4b0(0) * lam(i  ,j,k,g) +
+                                                ff4b0(1) * lam(i+1,j,k,g) +
+                                                ff4b0(2) * lam(i+2,j,k,g) +
+                                                ff4b0(3) * lam(i+3,j,k,g) +
+                                                ff4b0(4) * lam(i+4,j,k,g);
+
+                                i = reg_ilo + 1;
+                                lamfil(i,j,k) = ff4b1(-1) * lam(i-1,j,k,g) +
+                                                ff4b1(0)  * lam(i  ,j,k,g) +
+                                                ff4b1(1)  * lam(i+1,j,k,g) +
+                                                ff4b1(2)  * lam(i+2,j,k,g) +
+                                                ff4b1(3)  * lam(i+3,j,k,g) +
+                                                ff4b1(4)  * lam(i+4,j,k,g);
+
+                                i = reg_ilo + 2;
+                                lamfil(i,j,k) = ff4b2(-2) * lam(i-2,j,k,g) +
+                                                ff4b2(-1) * lam(i-1,j,k,g) +
+                                                ff4b2(0)  * lam(i  ,j,k,g) +
+                                                ff4b2(1)  * lam(i+1,j,k,g) +
+                                                ff4b2(2)  * lam(i+2,j,k,g) +
+                                                ff4b2(3)  * lam(i+3,j,k,g) +
+                                                ff4b2(4)  * lam(i+4,j,k,g);
+
+                                i = reg_ilo + 3;
+                                lamfil(i,j,k) = ff4b3(-3) * lam(i-3,j,k,g) +
+                                                ff4b3(-2) * lam(i-2,j,k,g) +
+                                                ff4b3(-1) * lam(i-1,j,k,g) +
+                                                ff4b3(0)  * lam(i  ,j,k,g) +
+                                                ff4b3(1)  * lam(i+1,j,k,g) +
+                                                ff4b3(2)  * lam(i+2,j,k,g) +
+                                                ff4b3(3)  * lam(i+3,j,k,g) +
+                                                ff4b3(4)  * lam(i+4,j,k,g);
+                            }
+
+                            if (Er(reg_ihi+1,j,k,g) == -1.e0_rt) {
+                                int i = reg_ihi - 3;
+                                lamfil(i,j,k) = ff4b3(4)  * lam(i-4,j,k,g) +
+                                                ff4b3(3)  * lam(i-3,j,k,g) +
+                                                ff4b3(2)  * lam(i-2,j,k,g) +
+                                                ff4b3(1)  * lam(i-1,j,k,g) +
+                                                ff4b3(0)  * lam(i  ,j,k,g) +
+                                                ff4b3(-1) * lam(i+1,j,k,g) +
+                                                ff4b3(-2) * lam(i+2,j,k,g) +
+                                                ff4b3(-3) * lam(i+3,j,k,g);
+
+                                i = reg_ihi - 2;
+                                lamfil(i,j,k) = ff4b2(4)  * lam(i-4,j,k,g) +
+                                                ff4b2(3)  * lam(i-3,j,k,g) +
+                                                ff4b2(2)  * lam(i-2,j,k,g) +
+                                                ff4b2(1)  * lam(i-1,j,k,g) +
+                                                ff4b2(0)  * lam(i  ,j,k,g) +
+                                                ff4b2(-1) * lam(i+1,j,k,g) +
+                                                ff4b2(-2) * lam(i+2,j,k,g);
+
+                                i = reg_ihi - 1;
+                                lamfil(i,j,k) = ff4b1(4)  * lam(i-4,j,k,g) +
+                                                ff4b1(3)  * lam(i-3,j,k,g) +
+                                                ff4b1(2)  * lam(i-2,j,k,g) +
+                                                ff4b1(1)  * lam(i-1,j,k,g) +
+                                                ff4b1(0)  * lam(i  ,j,k,g) +
+                                                ff4b1(-1) * lam(i+1,j,k,g);
+
+                                i = reg_ihi;
+                                lamfil(i,j,k) = ff4b0(4) * lam(i-4,j,k,g) +
+                                                ff4b0(3) * lam(i-3,j,k,g) +
+                                                ff4b0(2) * lam(i-2,j,k,g) +
+                                                ff4b0(1) * lam(i-1,j,k,g) +
+                                                ff4b0(0) * lam(i  ,j,k,g);
+                            }
+                        }
+                    }
+
+                    for (int k = lam_klo; k <= lam_khi; ++k) {
+                        if (Er(reg_ilo,reg_jlo,k,g) == -1.e0_rt) {
+                            continue;
+                        }
+
+                        for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4(0,filter_lambda_S) * lamfil(i,j,k) +
+                                               ff4(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
+                                               ff4(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
+                                               ff4(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k)) +
+                                               ff4(4,filter_lambda_S) * (lamfil(i,j-4,k) + lamfil(i,j+4,k))
+                                    }
+                        }
+
+                        if (Er(reg_ilo,reg_jlo-1,k,g) == -1.e0_rt) {
+                            int j = reg_jlo;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k) = ff4b0(0) * lamfil(i,j  ,k) +
+                                             ff4b0(1) * lamfil(i,j+1,k) +
+                                             ff4b0(2) * lamfil(i,j+2,k) +
+                                             ff4b0(3) * lamfil(i,j+3,k) +
+                                             ff4b0(4) * lamfil(i,j+4,k);
+                            }
+
+                            j = reg_jlo + 1;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k) = ff4b1(-1) * lamfil(i,j-1,k) +
+                                             ff4b1(0)  * lamfil(i,j  ,k) +
+                                             ff4b1(1)  * lamfil(i,j+1,k) +
+                                             ff4b1(2)  * lamfil(i,j+2,k) +
+                                             ff4b1(3)  * lamfil(i,j+3,k) +
+                                             ff4b1(4)  * lamfil(i,j+4,k);
+                            }
+
+                            j = reg_jlo + 2;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b2(-2) * lamfil(i,j-2,k) +
+                                               ff4b2(-1) * lamfil(i,j-1,k) +
+                                               ff4b2(0)  * lamfil(i,j  ,k) +
+                                               ff4b2(1)  * lamfil(i,j+1,k) +
+                                               ff4b2(2)  * lamfil(i,j+2,k) +
+                                               ff4b2(3)  * lamfil(i,j+3,k) +
+                                               ff4b2(4)  * lamfil(i,j+4,k);
+                            }
+
+                            j = reg_jlo + 3;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b3(-3) * lamfil(i,j-3,k) +
+                                               ff4b3(-2) * lamfil(i,j-2,k) +
+                                               ff4b3(-1) * lamfil(i,j-1,k) +
+                                               ff4b3(0)  * lamfil(i,j  ,k) +
+                                               ff4b3(1)  * lamfil(i,j+1,k) +
+                                               ff4b3(2)  * lamfil(i,j+2,k) +
+                                               ff4b3(3)  * lamfil(i,j+3,k) +
+                                               ff4b3(4)  * lamfil(i,j+4,k);
+                            }
+                        }
+
+                        if (Er(reg_ilo,reg_jhi+1,k,g) == -1.e0_rt) {
+                            int j = reg_jhi - 3;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b3(4)  * lamfil(i,j-4,k) +
+                                               ff4b3(3)  * lamfil(i,j-3,k) +
+                                               ff4b3(2)  * lamfil(i,j-2,k) +
+                                               ff4b3(1)  * lamfil(i,j-1,k) +
+                                               ff4b3(0)  * lamfil(i,j  ,k) +
+                                               ff4b3(-1) * lamfil(i,j+1,k) +
+                                               ff4b3(-2) * lamfil(i,j+2,k) +
+                                               ff4b3(-3) * lamfil(i,j+3,k);
+                            }                                                               }
+
+                            j = reg_jhi - 2;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b2(4)  * lamfil(i,j-4,k) +
+                                               ff4b2(3)  * lamfil(i,j-3,k) +
+                                               ff4b2(2)  * lamfil(i,j-2,k) +
+                                               ff4b2(1)  * lamfil(i,j-1,k) +
+                                               ff4b2(0)  * lamfil(i,j  ,k) +
+                                               ff4b2(-1) * lamfil(i,j+1,k) +
+                                               ff4b2(-2) * lamfil(i,j+2,k);
+                            }
+
+                            j = reg_jhi - 1;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b1(4)  * lamfil(i,j-4,k) +
+                                               ff4b1(3)  * lamfil(i,j-3,k) +
+                                               ff4b1(2)  * lamfil(i,j-2,k) +
+                                               ff4b1(1)  * lamfil(i,j-1,k) +
+                                               ff4b1(0)  * lamfil(i,j  ,k) +
+                                               ff4b1(-1) * lamfil(i,j+1,k);
+                            }
+
+                            j = reg_jhi;
+                            for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                                lam(i,j,k,g) = ff4b0(4) * lamfil(i,j-4,k) +
+                                               ff4b0(3) * lamfil(i,j-3,k) +
+                                               ff4b0(2) * lamfil(i,j-2,k) +
+                                               ff4b0(1) * lamfil(i,j-1,k) +
+                                               ff4b0(0) * lamfil(i,j  ,k);
+                            }
+                    }
+                }
+
+                for (int k = reg_klo; k <= reg_khi; ++k) {
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4(0,filter_lambda_S) * lam(i,j,k,g) +
+                                            ff4(1,filter_lambda_S) * (lam(i,j,k-1,g) + lam(i,j,k+1,g)) +
+                                            ff4(2,filter_lambda_S) * (lam(i,j,k-2,g) + lam(i,j,k+2,g)) +
+                                            ff4(3,filter_lambda_S) * (lam(i,j,k-3,g) + lam(i,j,k+3,g)) +
+                                            ff4(4,filter_lambda_S) * (lam(i,j,k-4,g) + lam(i,j,k+4,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_klo-1,g) == -1.e0_rt) {
+                    int k = reg_klo;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b0(0) * lam(i,j,k  ,g) +
+                                            ff4b0(1) * lam(i,j,k+1,g) +
+                                            ff4b0(2) * lam(i,j,k+2,g) +
+                                            ff4b0(3) * lam(i,j,k+3,g) +
+                                            ff4b0(4) * lam(i,j,k+4,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b1(-1) * lam(i,j,k-1,g) +
+                                            ff4b1(0)  * lam(i,j,k  ,g) +
+                                            ff4b1(1)  * lam(i,j,k+1,g) +
+                                            ff4b1(2)  * lam(i,j,k+2,g) +
+                                            ff4b1(3)  * lam(i,j,k+3,g) +
+                                            ff4b1(4)  * lam(i,j,k+4,g);
+                                lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 2;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b2(-2) * lam(i,j,k-2,g) +
+                                            ff4b2(-1) * lam(i,j,k-1,g) +
+                                            ff4b2(0)  * lam(i,j,k  ,g) +
+                                            ff4b2(1)  * lam(i,j,k+1,g) +
+                                            ff4b2(2)  * lam(i,j,k+2,g) +
+                                            ff4b2(3)  * lam(i,j,k+3,g) +
+                                            ff4b2(4)  * lam(i,j,k+4,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_klo + 3;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b3(-3) * lam(i,j,k-3,g) +
+                                            ff4b3(-2) * lam(i,j,k-2,g) +
+                                            ff4b3(-1) * lam(i,j,k-1,g) +
+                                            ff4b3(0)  * lam(i,j,k  ,g) +
+                                            ff4b3(1)  * lam(i,j,k+1,g) +
+                                            ff4b3(2)  * lam(i,j,k+2,g) +
+                                            ff4b3(3)  * lam(i,j,k+3,g) +
+                                            ff4b3(4)  * lam(i,j,k+4,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                if (Er(reg_ilo,reg_jlo,reg_khi+1,g) == -1.e0_rt) {
+                    k = reg_khi - 3;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b3(4)  * lam(i,j,k-4,g) +
+                                            ff4b3(3)  * lam(i,j,k-3,g) +
+                                            ff4b3(2)  * lam(i,j,k-2,g) +
+                                            ff4b3(1)  * lam(i,j,k-1,g) +
+                                            ff4b3(0)  * lam(i,j,k  ,g) +
+                                            ff4b3(-1) * lam(i,j,k+1,g) +
+                                            ff4b3(-2) * lam(i,j,k+2,g) +
+                                            ff4b3(-3) * lam(i,j,k+3,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi - 2;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b2(4)  * lam(i,j,k-4,g) +
+                                            ff4b2(3)  * lam(i,j,k-3,g) +
+                                            ff4b2(2)  * lam(i,j,k-2,g) +
+                                            ff4b2(1)  * lam(i,j,k-1,g) +
+                                            ff4b2(0)  * lam(i,j,k  ,g) +
+                                            ff4b2(-1) * lam(i,j,k+1,g) +
+                                            ff4b2(-2) * lam(i,j,k+2,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi - 1;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b1(4)  * lam(i,j,k-4,g) +
+                                            ff4b1(3)  * lam(i,j,k-3,g) +
+                                            ff4b1(2)  * lam(i,j,k-2,g) +
+                                            ff4b1(1)  * lam(i,j,k-1,g) +
+                                            ff4b1(0)  * lam(i,j,k  ,g) +
+                                            ff4b1(-1) * lam(i,j,k+1,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+
+                    k = reg_khi;
+                    for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                            lamfil(i,j,k) = ff4b0(4) * lam(i,j,k-4,g) +
+                                            ff4b0(3) * lam(i,j,k-3,g) +
+                                            ff4b0(2) * lam(i,j,k-2,g) +
+                                            ff4b0(1) * lam(i,j,k-1,g) +
+                                            ff4b0(0) * lam(i,j,k  ,g);
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
+                        }
+                    }
+                }
+
+                amrex::Loop(bx.loVect3d(), bx.hiVect3d(),
+                {
+                    lam(i,j,k,g) = lamfil(i,j,k);
+                });
+
+            }
+
+            // lo-x lo-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x lo-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jlo,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x lo-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x reg-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        lam(i,j,k,g) = lam(reg_ilo,j,reg_klo,g);
+                    }
+                }
+            }
+
+            // reg-x reg-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,j,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x reg-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        lam(i,j,k,g) = lam(reg_ihi,j,reg_klo,g);
+                    }
+                }
+            }
+
+            // lo-x hi-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x hi-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jhi,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x hi-y lo-z
+            for (int k = lam_klo; k < reg_klo; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_klo,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x lo-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jlo,k,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x lo-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jlo,k,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x lo-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jlo,k,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x reg-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,j,k,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x reg-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,j,k,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x reg-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,j,k,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x hi-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jhi,k,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x hi-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jhi,k,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x hi-y reg-z
+            for (int k = reg_klo; k <= reg_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jhi,k,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x lo-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jlo,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x lo-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jlo,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x lo-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = lam_jlo; j < reg_jlo; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jlo,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // lo-x reg-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        lam(i,j,k,g) = lam(reg_ilo,j,reg_khi,g);
+                    }
+                }
+            }
+
+            // reg-x reg-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,j,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x reg-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jlo; j <= reg_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        lam(i,j,k,g) = lam(reg_ihi,j,reg_khi,g);
+                    }
+                }
+            }
+
+            // lo-x hi-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = lam_ilo; i <= reg_ilo-1; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ilo,reg_jhi,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // reg-x hi-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ilo; i <= reg_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(i,reg_jhi,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+            // hi-x hi-y hi-z
+            for (int k = reg_khi+1; k <= lam_khi; ++k) {
+                for (int j = reg_jhi+1; j <= lam_jhi; ++j) {
+                    for (int i = reg_ihi+1; i <= lam_ihi; ++i) {
+                        if (Er(i,j,k,g) == -1.e0_rt) {
+                            lam(i,j,k,g) = lam(reg_ihi,reg_jhi,reg_khi,g);
+                        }
+                    }
+                }
+            }
+
+        } // nGroups
+    } // mfiter
 
     if (filter_lambda_T) {
         lamborder.FillBoundary(parent->Geom(level).periodicity());
