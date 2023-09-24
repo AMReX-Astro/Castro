@@ -1095,12 +1095,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     for (int j = lam_jlo; j <= lam_jhi; ++j) {
+#if AMREX_SPACEDIM >= 2
                         if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
                             for (int i = reg_ilo; i <= reg_ihi; ++i) {
                                 lamfil(i,j,k) = -1.e-50_rt;
                             }
                             continue;
                         }
+#endif
 
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) + ff1(1) * (lam(i-1,j,k,g) + lam(i+1,j,k,g));
@@ -1190,12 +1192,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     for (int j = lam_jlo; j <= lam_jhi; ++j) {
+#if AMREX_SPACEDIM >= 2
                         if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
                             for (int i = reg_ilo; i <= reg_ihi; ++i) {
                                 lamfil(i,j,k) = -1.e-50_rt;
                             }
                             continue;
                         }
+#endif
 
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff2(0,filter_lambda_S) * lam(i,j,k,g) +
@@ -1355,12 +1359,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     for (int j = lam_jlo; j <= lam_jhi; ++j) {
+#if AMREX_SPACEDIM >= 2
                         if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
                             for (int i = reg_ilo; i <= reg_ihi; ++i) {
                                 lamfil(i,j,k) = -1.e-50_rt;
                             }
                             continue;
                         }
+#endif
 
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff3(0,filter_lambda_S) * lam(i,j,k,g) +
@@ -1601,12 +1607,14 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 
                 for (int k = lam_klo; k <= lam_khi; ++k) {
                     for (int j = lam_jlo; j <= lam_jhi; ++j) {
+#if AMREX_SPACEDIM >= 2
                         if (Er(reg_ilo,j,k,g) == -1.e0_rt) {
                             for (int i = reg_ilo; i <= reg_ihi; ++i) {
                                 lamfil(i,j,k) = -1.e-50_rt;
                             }
                             continue;
                         }
+#endif
 
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lamfil(i,j,k) = ff4(0,filter_lambda_S) * lam(i,j,k,g) +
