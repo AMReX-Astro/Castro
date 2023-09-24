@@ -1175,7 +1175,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     int k = reg_khi;
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
                         for (int i = reg_ilo; i <= reg_ihi; ++i) {
-                            lamfil(i,j,k) = ff1b(1) * lam(i,j,k-1,k,g) + ff1b(0) * lam(i,j,k,g);
+                            lamfil(i,j,k) = ff1b(1) * lam(i,j,k-1,g) + ff1b(0) * lam(i,j,k,g);
                             lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
