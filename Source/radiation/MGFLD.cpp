@@ -1198,6 +1198,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             lamfil(i,j,k) = ff2(0,filter_lambda_S) * lam(i,j,k,g) +
                                             ff2(1,filter_lambda_S) * (lam(i-1,j,k,g) + lam(i+1,j,k,g)) +
                                             ff2(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
@@ -1239,6 +1240,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                             lam(i,j,k,g) = ff2(0,filter_lambda_S) * lamfil(i,j,k) +
                                            ff2(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
                                            ff2(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
@@ -1359,6 +1361,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff3(1,filter_lambda_S) * (lam(i-1,j,k,g) + lam(i+1,j,k,g)) +
                                             ff3(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g)) +
                                             ff3(3,filter_lambda_S) * (lam(i-3,j,k,g) + lam(i+3,j,k,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
@@ -1421,6 +1424,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff3(1,filter_lambda_S) * (lamfil(i,j-1,k) + lamfil(i,j+1,k)) +
                                            ff3(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
                                            ff3(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
@@ -1597,6 +1601,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                             ff4(2,filter_lambda_S) * (lam(i-2,j,k,g) + lam(i+2,j,k,g)) +
                                             ff4(3,filter_lambda_S) * (lam(i-3,j,k,g) + lam(i+3,j,k,g)) +
                                             ff4(4,filter_lambda_S) * (lam(i-4,j,k,g) + lam(i+4,j,k,g));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
 
                         if (Er(reg_ilo-1,j,k,g) == -1.e0_rt) {
@@ -1686,6 +1691,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                                            ff4(2,filter_lambda_S) * (lamfil(i,j-2,k) + lamfil(i,j+2,k)) +
                                            ff4(3,filter_lambda_S) * (lamfil(i,j-3,k) + lamfil(i,j+3,k)) +
                                            ff4(4,filter_lambda_S) * (lamfil(i,j-4,k) + lamfil(i,j+4,k));
+                            lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                         }
                     }
 
