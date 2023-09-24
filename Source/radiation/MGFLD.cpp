@@ -1010,7 +1010,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
         FArrayBox lamfilfab;
         Box lambx = lamborder[mfi].box();
-        Box bx = lambx.grow(-ngrow);
+        Box bx = grow(lambx, -ngrow);
 
         if (filter_lambda_T > 0) {
             lamfilfab.resize(bx);
