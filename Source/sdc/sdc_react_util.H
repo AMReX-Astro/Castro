@@ -1,10 +1,6 @@
 #ifndef SDC_REACT_UTIL_H
 #define SDC_REACT_UTIL_H
 
-constexpr int iwfs = 1;
-constexpr int iwe = NumSpec+1;
-
-
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
@@ -68,7 +64,6 @@ single_zone_react_source(const int i, const int j, const int k,
 
     for (int n = 0; n < NUM_STATE; ++n) {
         state_arr[n] = state(i,j,k,n);
-        R_arr[n] = R(i,j,k,n);
     }
 
     single_zone_react_source(state_arr, R_arr, burn_state);
@@ -89,8 +84,6 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     amrex::Error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)");
 #endif
 #else
-
-    const auto eps = 1.e-8_rt;
 
     // Jac has the derivatives with respect to the native
     // network variables, X, e.  Note: the e derivative
