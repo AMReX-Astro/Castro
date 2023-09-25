@@ -12,9 +12,8 @@
 #include <actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
-#include <sdc_react_util.H>
 
-#include <vode_dvode.H>
+#include <burner.H>
 
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -100,6 +99,9 @@ sdc_vode_solve(const Real dt_m,
     }
 #endif
 
+    burn_state.sdc_iter = sdc_iteration;
+    burn_state.num_sdc_iters = sdc_order + sdc_extra;
+
     burner(burn_state, dt_m);
 
     if (! burn_state.success) {
@@ -122,7 +124,6 @@ sdc_vode_solve(const Real dt_m,
     // keep our temperature guess
     U_new[UTEMP] = U_old[UTEMP];
 
-#endif
 }
 
 #endif
