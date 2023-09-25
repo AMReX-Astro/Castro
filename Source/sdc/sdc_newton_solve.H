@@ -364,7 +364,7 @@ sdc_newton_subdivide(const Real dt_m,
 
             // our solve may have resulted in mass fractions outside
             // of [0, 1] -- reject if this is the case
-            for (int n = 0; n <= NumSpec; ++n) {
+            for (int n = 0; n < NumSpec; ++n) {
                 if (U_new[UFS+n] < -newton::species_failure_tolerance * U_new[URHO] ||
                     U_new[UFS+n] > (1.0_rt + newton::species_failure_tolerance) * U_new[URHO]) {
                     ierr = newton::BAD_MASS_FRACTIONS;
