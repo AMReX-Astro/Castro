@@ -23,7 +23,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // valid data is always present.
 
     Vector<BCRec> bcr_noinflow{bcr};
-    for (auto bc : bcr_noinflow) {
+    for (auto & bc : bcr_noinflow) {
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             if (bc.lo(dir) == EXT_DIR) {
                 bc.setLo(dir, FOEXTRAP);
