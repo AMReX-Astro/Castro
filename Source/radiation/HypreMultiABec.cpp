@@ -3,6 +3,7 @@
 #include <AMReX_ParmParse.H>
 
 #include <HypreMultiABec.H>
+#include <HABEC.H>
 #include <HABEC_F.H>
 #include <rad_util.H>
 #include <AMReX_LO_BCTYPES.H>
@@ -3960,14 +3961,14 @@ void HypreMultiABec::boundaryFlux(int level,
                            pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
                 }
                 else {
-                    hbflx(BL_TO_FORTRAN(Flux[idim][mfi]),
-                          BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                          cdir, bct, bho, bcl,
-                          BL_TO_FORTRAN_N(fs, bdcomp),
-                          BL_TO_FORTRAN(msk),
-                          BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-                          beta, geom[level].CellSize(), inhom);
+                    HABEC::hbflx(Flux[idim][mfi].array(),
+                                 Soln[mfi].array(icomp),
+                                 reg,
+                                 cdir, bct, bho, bcl,
+                                 fs.array(bdcomp),
+                                 msk.array(),
+                                 (*bcoefs[level])[idim][mfi].array(),
+                                 beta, geom[level].CellSize(), inhom);
                 }
             }
         }

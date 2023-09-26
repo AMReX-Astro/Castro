@@ -6,6 +6,7 @@
 #include <network.H>
 #include <model_parser.H>
 #include <ambient.H>
+#include <burn_type.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -34,7 +35,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
     Real sumX{0.0_rt};
     for (int n = 0; n < NumSpec; ++n) {
-        state(i,j,k,UFS+n) = amrex::min(1.0_rt, amrex::max(interpolate(dist, model::ispec+n), small_x));
+        state(i,j,k,UFS+n) = amrex::min(1.0_rt, amrex::max(interpolate(dist, model::ispec+n), network_rp::small_x));
         sumX += state(i,j,k,UFS+n);
     }
 

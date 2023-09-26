@@ -25,6 +25,7 @@ CEXE_headers += RadSolve.H
 CEXE_headers += RadBndry.H
 CEXE_headers += RadTypes.H
 CEXE_headers += MGRadBndry.H
+CEXE_headers += HABEC.H
 CEXE_headers += filter.H
 CEXE_headers += filt_prim.H
 

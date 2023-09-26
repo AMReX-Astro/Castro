@@ -38,14 +38,7 @@ castro.sdc_quadrature = @@SDC_QUADRATURE@@
 
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
-castro.sdc_solve_for_rhoe=1
-castro.sdc_solver_tol_dens=1.e-8
-castro.sdc_solver_tol_spec=1.e-8
-castro.sdc_solver_tol_ener=1.e-8
-castro.sdc_solver_atol = 1.e-8
 castro.sdc_solver=2
-castro.sdc_newton_use_analytic_jac = 1
-
 
 
 # TIME STEP CONTROL
@@ -113,9 +106,10 @@ amr.refine.tempgrad.field_name = Temp
 
 integrator.call_eos_in_rhs = 1
 
-integrator.rtol_spec = 1.e-6
-integrator.atol_spec = 1.e-6
-integrator.rtol_enuc = 1.e-6
+integrator.rtol_spec = 1.e-8
+integrator.atol_spec = 1.e-8
+integrator.rtol_enuc = 1.e-8
+integrator.atol_enuc = 1.e-8
 
 integrator.jacobian = 2
 integrator.ode_max_steps = 1500000

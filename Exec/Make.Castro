@@ -89,6 +89,12 @@ ifeq ($(USE_SDC), TRUE)
   $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
 endif
 
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    $(error USE_SIMPLIFIED_SDC cannot be combined with USE_TRUE_SDC)
+  endif
+endif
+
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
   USERSuffix = .SMPLSDC
@@ -164,6 +170,10 @@ NUM_MODELS ?= 1
 ifeq ($(USE_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser
   DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+endif
+
+ifeq ($(USE_RNG_STATE_INIT), TRUE)
+  DEFINES += -DRNG_STATE_INIT
 endif
 
 # add / define any special physics we need

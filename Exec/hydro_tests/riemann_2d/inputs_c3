@@ -25,7 +25,7 @@ castro.do_react = 0
 
 castro.cfl           = 0.6
 castro.init_shrink   = 1.0
-castro.changemax     = 1.1
+castro.change_max     = 1.1
 #castro.fixed_dt      = 
 
 
