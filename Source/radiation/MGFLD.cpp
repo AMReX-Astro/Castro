@@ -1027,6 +1027,12 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
             {
                 lam(i,j,k,g) = -1.e50_rt;
 
+                // The radiation energy Er being equal to -1 is our arbitrary
+                // convention that we're on a boundary zone. This is meaningless
+                // from the perspective of computing the limiter, so we skip this
+                // step on all boundary zones. On all zones adjacent to the boundary
+                // we use a one-sided difference.
+
                 if (Er(i,j,k,g) == -1.e0_rt) {
                     return;
                 }
