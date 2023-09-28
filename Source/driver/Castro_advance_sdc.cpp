@@ -321,7 +321,6 @@ Castro::do_advance_sdc (Real time,
 
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
 
-      // we don't worry about the difference between centers and averages
       ca_store_reaction_state(obx, Sburn_arr, U_center_arr, R_center_arr);
 
       // convert R_new from centers to averages in place

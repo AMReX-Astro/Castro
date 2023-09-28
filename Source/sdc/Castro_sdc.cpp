@@ -209,8 +209,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             {
                 normalize_species_sdc(i, j, k, U_center_arr);
             });
-            // ca_normalize_species(AMREX_INT_ANYD(bx1.loVect()), AMREX_INT_ANYD(bx1.hiVect()),
-            //                      BL_TO_FORTRAN_ANYD(U_center));
 
             // convert the C source to cell-centers
             C_center.resize(bx1, NUM_STATE);
@@ -235,15 +233,20 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
                 sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, sdc_iteration);
             });
 
+            // enforce that the species sum to one after the reaction solve
+            amrex::ParallelFor(bx1,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                normalize_species_sdc(i, j, k, U_new_center_arr);
+            });
+
+
             // compute R_i and in 1 ghost cell and then convert to <R> in
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
             Elixir elix_R_new = R_new.elixir();
             Array4<Real> const& R_new_arr = R_new.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
-            //                        BL_TO_FORTRAN_3D(U_new_center),
-            //                        BL_TO_FORTRAN_3D(R_new));
             amrex::ParallelFor(bx1,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -354,14 +357,18 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
             make_cell_center(obx, U_state.array(mfi), U_center_arr, domain_lo, domain_hi);
 
+            // sometimes the Laplacian can make the species go negative near discontinuities
+            amrex::ParallelFor(bx1,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                normalize_species_sdc(i, j, k, U_center_arr);
+            });
+
             // burn, including one ghost cell
             R_center.resize(obx, NUM_STATE);
             Elixir elix_r_center = R_center.elixir();
             auto const R_center_arr = R_center.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
-            //                        BL_TO_FORTRAN_3D(U_center),
-            //                        BL_TO_FORTRAN_3D(R_center));
             amrex::ParallelFor(obx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -398,10 +405,6 @@ Castro::construct_old_react_source(MultiFab& U_state,
             auto const U_state_arr = U_state.array(mfi);
             auto const R_source_arr = R_source.array(mfi);
 
-            // construct the reactive source term
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-            //                        BL_TO_FORTRAN_3D(U_state[mfi]),
-            //                        BL_TO_FORTRAN_3D(R_source[mfi]));
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
