@@ -358,7 +358,7 @@ Castro::construct_old_react_source(MultiFab& U_state,
             make_cell_center(obx, U_state.array(mfi), U_center_arr, domain_lo, domain_hi);
 
             // sometimes the Laplacian can make the species go negative near discontinuities
-            amrex::ParallelFor(bx1,
+            amrex::ParallelFor(obx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 normalize_species_sdc(i, j, k, U_center_arr);
