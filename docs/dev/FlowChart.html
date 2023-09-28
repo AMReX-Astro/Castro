@@ -760,7 +760,8 @@ accuracy</p></th>
 <p>The overall evolution appears as:</p>
 <ol class="arabic" id="index-5">
 <li><p><em>Initialization</em> (<code class="docutils literal notranslate"><span class="pre">initialize_advance</span></code>)</p>
-<p>Here we create the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s that store the needed information
+<p>We first do a <code class="docutils literal notranslate"><span class="pre">clean_state</span></code> on the old data (<code class="docutils literal notranslate"><span class="pre">S_old</span></code>).</p>
+<p>We next create the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s that store the needed information
 at the different time nodes.  Each of the quantities below is a
 vector of size <code class="docutils literal notranslate"><span class="pre">SDC_NODES</span></code>, whose components are the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>
 for that time node:</p>
@@ -792,12 +793,12 @@ all the time nodes for a single iteration.</p>
 </ol>
 <section id="sdc-single-iteration-flowchart">
 <h3>SDC Single Iteration Flowchart<a class="headerlink" href="#sdc-single-iteration-flowchart" title="Link to this heading"></a></h3>
-<p id="index-6">The update through all time nodes for a single iteration is done by
-<code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code>.  The basic update appears as:</p>
-<p>Throughout this driver we use the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> as
+<p id="index-6">Throughout this driver we use the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> as
 storage for the current node.  In particular, we use the new time slot
 in the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> (which we refer to as <code class="docutils literal notranslate"><span class="pre">S_new</span></code>) to allow us to
 do <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> operations.</p>
+<p>The update through all time nodes for a single iteration is done by
+<code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code>.  The basic update appears as:</p>
 <ol class="arabic">
 <li><p><em>Initialize</em></p>
 <p>We allocate <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>.  Just like with the Strang CTU driver, we
@@ -840,28 +841,26 @@ store this in <code class="docutils literal notranslate"><span class="pre">R_old
 </li>
 </ul>
 </li>
-</ul>
-<blockquote>
-<div><ul>
 <li><p>Do the SDC update from node <code class="docutils literal notranslate"><span class="pre">m</span></code> to <code class="docutils literal notranslate"><span class="pre">m+1</span></code>.</p>
 <p>We call <code class="docutils literal notranslate"><span class="pre">do_sdc_update()</span></code> to do the update in time to the next
 node.  This solves the nonlinear system (when we have reactions)
 and stores the solution in <code class="docutils literal notranslate"><span class="pre">k_new[m+1]</span></code>.</p>
 </li>
 </ul>
-</div></blockquote>
 </li>
 <li><p>Store the advective terms for the next iteration.</p>
 <p>Since we are done with this iteration, we do: <code class="docutils literal notranslate"><span class="pre">A_old[n]</span></code>
 <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">A_new[n]</span></code>.</p>
-<p>We also store <code class="docutils literal notranslate"><span class="pre">R_old</span></code> for the next iteration.  We do this by
-calling the reaction source one last time using the data for each
-time node.</p>
 </li>
+<li><p>Store <code class="docutils literal notranslate"><span class="pre">R_old</span></code> for the next iteration.  We do this by
+calling the reaction source one last time using the data for each
+time node.</p></li>
 <li><p>Store the new-time solution.</p>
 <p>On the last iteration, we save the solution to the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code>:</p>
 <p><code class="docutils literal notranslate"><span class="pre">S_new</span></code> <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">k_new[SDC_NODES-1]</span></code></p>
 </li>
+<li><p>Store the old and new sources in the State Data.</p></li>
+<li><p>Store the reaction information for the plotfiles.</p></li>
 <li><p>Call <code class="docutils literal notranslate"><span class="pre">finalize_do_advance</span></code> to clean up the memory.</p></li>
 </ol>
 </section>
