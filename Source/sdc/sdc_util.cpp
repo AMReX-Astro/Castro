@@ -365,9 +365,13 @@ Castro::ca_sdc_conservative_update(const Box& bx, Real const dt_m,
     // given <U>_old, <R>_new, and <C>, compute <U>_new
 
     // now consider the reacting system
-    AMREX_PARALLEL_FOR_4D(bx, U_new.nComp(), i, j, k, n,
+    amrex::ParallelFor(bx, 
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-        U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
+        for (int n = 0; n < NUM_STATE; ++n) {
+            U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
+        }
+
     });
 } // end subroutine ca_sdc_conservative_update
 #endif
