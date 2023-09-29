@@ -214,16 +214,6 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="vode__rhs__true__sdc_8H_1a0374860929568037028a5cdb41dd94b2"></span><span class="sig-name descname"><span class="pre">template&lt;typename</span> <span class="pre">DvodeT&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">rhs</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">DvodeT</span> <span class="pre">&amp;vode_state,</span> <span class="pre">RArray1D</span> <span class="pre">&amp;dUdt,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">in_jacobian=false)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="vode__rhs__true__sdc_8H_1a4712eb2dba45aee5ac760563f4a8b423"></span><span class="sig-name descname"><span class="pre">template&lt;class</span> <span class="pre">MatrixType,</span> <span class="pre">typename</span> <span class="pre">DvodeT&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">jac</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">DvodeT</span> <span class="pre">&amp;vode_state,</span> <span class="pre">MatrixType</span> <span class="pre">&amp;pd)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
 <span class="target" id="vode__rhs__true__sdc_8H_1a3a46fbef272c137435f402f5ad778661"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_vode_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
 <dd></dd></dl>
 
