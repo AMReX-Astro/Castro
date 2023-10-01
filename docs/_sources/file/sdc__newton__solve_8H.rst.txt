@@ -1,0 +1,4 @@
+File sdc_newton_solve.H
+=======================
+
+.. doxygenfile:: sdc_newton_solve.H

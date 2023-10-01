@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File Castro_io.H &mdash; Castro  documentation</title>
+  <title>File HABEC.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Castro_mhd.H" href="Castro__mhd_8H.html" />
-    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
+    <link rel="next" title="File HABEC_F.H" href="HABEC__F_8H.html" />
+    <link rel="prev" title="File Gravity_util.H" href="Gravity__util_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../file/Castro__io_8H.html">main</a> | <a href="../dev/file/Castro__io_8H.html">development</a>
+        Branch: <a href="../file/HABEC_8H.html">main</a> | <a href="../dev/file/HABEC_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -103,10 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_io.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv411inputs_name"><code class="docutils literal notranslate"><span class="pre">inputs_name</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -119,7 +116,10 @@
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File HABEC.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv45HABEC"><code class="docutils literal notranslate"><span class="pre">HABEC</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
@@ -201,9 +201,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File Castro_io.H</li>
+      <li class="breadcrumb-item active">File HABEC.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/Castro__io_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/HABEC_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -211,24 +211,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-castro-io-h">
-<h1>File Castro_io.H<a class="headerlink" href="#file-castro-io-h" title="Link to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv411inputs_name">
-<span id="_CPPv311inputs_name"></span><span id="_CPPv211inputs_name"></span><span id="inputs_name__ss"></span><span class="target" id="Castro__io_8H_1aabaa127a3a319c1b86090d6c88568965"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">inputs_name</span></span></span><a class="headerlink" href="#_CPPv411inputs_name" title="Link to this definition"></a><br /></dt>
+  <section id="file-habec-h">
+<h1>File HABEC.H<a class="headerlink" href="#file-habec-h" title="Link to this heading"></a></h1>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv45HABEC">
+<span id="_CPPv35HABEC"></span><span id="_CPPv25HABEC"></span><span id="HABEC"></span><span class="target" id="namespaceHABEC"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HABEC</span></span></span><a class="headerlink" href="#_CPPv45HABEC" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHABEC_1a8c15b88094b40d748341cc0dc539e00a"></span><span class="sig-name descname"><span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">hbflx</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">flux,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">er,</span> <span class="pre">const</span> <span class="pre">Box</span> <span class="pre">&amp;reg,</span> <span class="pre">int</span> <span class="pre">cdir,</span> <span class="pre">int</span> <span class="pre">bct,</span> <span class="pre">int</span> <span class="pre">bho,</span> <span class="pre">Real</span> <span class="pre">bcl,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">bcval,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">mask,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">b,</span> <span class="pre">Real</span> <span class="pre">beta,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*dx,</span> <span class="pre">int</span> <span class="pre">inhom)</span></span></dt>
 <dd></dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Castro__mhd_8H.html" class="btn btn-neutral float-right" title="File Castro_mhd.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Gravity__util_8H.html" class="btn btn-neutral float-left" title="File Gravity_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="HABEC__F_8H.html" class="btn btn-neutral float-right" title="File HABEC_F.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
