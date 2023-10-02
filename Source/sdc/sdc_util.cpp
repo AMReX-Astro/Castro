@@ -405,7 +405,6 @@ void Castro::ca_sdc_compute_initial_guess(const Box& bx,
 #ifdef REACTIONS
 void Castro::ca_store_reaction_state(const Box& bx,
                                      Array4<const Real> const& R_old,
-                                     Array4<const Real> const& state,
                                      Array4<Real> const& R_store)
 {
     // copy the data from the last node's reactive source to the state data
