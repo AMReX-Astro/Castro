@@ -222,8 +222,8 @@ Castro::ca_sdc_compute_C2_radau(const Box& bx,
             C(i,j,k,n) = -R_1_old(i,j,k,n) +
                 (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
                 (dt/dt_m) * (1.0_rt/12.0_rt) *
-                5.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
-                (A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+                (5.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
+                        (A_2_old(i,j,k,n) + R_2_old(i,j,k,n)));
         });
     }
     else if (m_start == 1)
@@ -233,8 +233,8 @@ Castro::ca_sdc_compute_C2_radau(const Box& bx,
             C(i,j,k,n) = -R_2_old(i,j,k,n) +
                 (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
                 (dt/dt_m) * (1.0_rt/3.0_rt) *
-                (A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                (A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+                ((A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (A_2_old(i,j,k,n) + R_2_old(i,j,k,n)));
         });
     }
 } // end ca_sdc_compute_C2_radau
@@ -308,7 +308,7 @@ Castro::ca_sdc_compute_C4_radau(const Box& bx,
     // compute the 'C' term for the 4th-order solve with reactions
     // note: this 'C' is cell-averages
 
-    // Gauss-Lobatto (Simpsons)
+    // Radau
 
     if (m_start == 0)
     {
