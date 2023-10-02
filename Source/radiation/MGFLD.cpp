@@ -1148,13 +1148,13 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 amrex::Loop(bx, [=] (int i, int j, int k) noexcept
                 {
                     if (Er(i,j,k-1,g) == -1.e0_rt) {
-                        lamfil(i,j,k) = ff1b(0) * lam(i,j,k,g) + ff1b(1) * lam(i,j,k+1,g);
+                        lamfil(i,j,k) = ff1b(0) * lamfil(i,j,k,g) + ff1b(1) * lamfil(i,j,k+1,g);
                     }
                     else if (Er(i,j,k+1,g) == -1.e0_rt) {
-                        lamfil(i,j,k) = ff1b(1) * lam(i,j,k-1,g) + ff1b(0) * lam(i,j,k,g);
+                        lamfil(i,j,k) = ff1b(1) * lamfil(i,j,k-1,g) + ff1b(0) * lamfil(i,j,k,g);
                     }
                     else {
-                        lamfil(i,j,k) = ff1(0) * lam(i,j,k,g) + ff1(1) * (lam(i,j,k-1,g) + lam(i,j,k+1,g));
+                        lamfil(i,j,k) = ff1(0) * lamfil(i,j,k,g) + ff1(1) * (lamfil(i,j,k-1,g) + lamfil(i,j,k+1,g));
                     }
                     lamfil(i,j,k) = std::min(1.e0_rt/3.e0_rt, std::max(1.e-25_rt, lamfil(i,j,k)));
                 });
