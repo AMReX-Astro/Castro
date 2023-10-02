@@ -1136,7 +1136,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                     }
 
                     for (int j = reg_jlo; j <= reg_jhi; ++j) {
-                        for (int i = reg_ilo; i <= reg_ihi; ++j) {
+                        for (int i = reg_ilo; i <= reg_ihi; ++i) {
                             lam(i,j,k,g) = ff1(0) * lamfil(i,j,k) + ff1(1) * (lamfil(i,j-1,k) + lamfil(i,j+1,k));
                         }
                     }
