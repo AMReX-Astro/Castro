@@ -446,12 +446,12 @@ namespace HABEC
                             }
                         }
                         else if (bct == LO_NEUMANN) {
-                            bfv  = beta * r[i];
+                            bfv  = beta * r[i - reg_ilo];
                             bfm  = 0.e0_rt;
                             bfm2 = 0.e0_rt;
                         }
                         else if (bct == LO_MARSHAK) {
-                            bfv = 2.e0_rt * beta * r[i];
+                            bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
                                 bfm  =  0.75e0_rt * beta * c;
                                 bfm2 = -0.25e0_rt * beta * c;
@@ -461,7 +461,7 @@ namespace HABEC
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
-                            bfv = 2.e0_rt * beta * r[i];
+                            bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
                                 bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
                                 bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
@@ -509,12 +509,12 @@ namespace HABEC
                             }
                         }
                         else if (bct == LO_NEUMANN) {
-                            bfv  = beta * r[i];
+                            bfv  = beta * r[i - reg_ilo];
                             bfm  = 0.e0_rt;
                             bfm2 = 0.e0_rt;
                         }
                         else if (bct == LO_MARSHAK) {
-                            bfv = 2.e0_rt * beta * r[i];
+                            bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
                                 bfm  =  0.75e0_rt * beta * c;
                                 bfm2 = -0.25e0_rt * beta * c;
@@ -524,7 +524,7 @@ namespace HABEC
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
-                            bfv = 2.e0_rt * beta * r[i];
+                            bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
                                 bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
                                 bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
