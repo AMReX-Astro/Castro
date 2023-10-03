@@ -58,7 +58,7 @@ public:
                               ///< 1: rhoe,
                               ///< 2: residue of Eq. rhoe,
                               ///< 3: T
-  amrex::Real relInTol, absInTol; ///< tolerance for inner iternation of J equation
+  amrex::Real relInTol, absInTol; ///< tolerance for inner iteration of J equation
   int maxInIter;           ///< iteration limit for inner iteration of J equation
   int minInIter;
   int skipAccelAllowed;   ///< Skip acceleration if it doesn't help
