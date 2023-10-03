@@ -145,6 +145,10 @@ void problem_initialize ()
     // lower boundary, we'll add 4 ghostcells to this, so we need to
     // compute dx
 
+    auto dx_fine = get_fine_grid_dx();
+    std::cout << "dx_fine = " << dx_fine[0] << " " << dx_fine[1] << std::endl;
+    amrex::Error("stop");
+
     int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] - problo[AMREX_SPACEDIM-1]) /
                                     problem::dx_model);
 

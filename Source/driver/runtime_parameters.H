@@ -104,7 +104,7 @@ validate_runparams()
         // "castro"
         if (ParmParse::hasUnusedInputs(nm)) {
             amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs(nm); 
+            auto unused = ParmParse::getUnusedInputs(nm);
             for (const auto& p: unused) {
                 amrex::Print() << p << "\n";
             }
@@ -118,4 +118,61 @@ validate_runparams()
 
 }
 
+///
+/// Parse the AMReX runtime parameters to compute dx on the finest level.
+/// This is needed for problem_initialize.H, since we have not yet
+/// created the level hierarchy at that point.
+///
+AMREX_INLINE
+Vector<Real>
+get_fine_grid_dx() {
+
+    Vector<Real> prob_lo(AMREX_SPACEDIM);
+    Vector<Real> prob_hi(AMREX_SPACEDIM);
+
+    {
+        ParmParse pp("geometry");
+
+        pp.getarr("prob_lo", prob_lo, 0, AMREX_SPACEDIM);
+        pp.getarr("prob_hi", prob_hi, 0, AMREX_SPACEDIM);
+    }
+
+    int max_level{-1};
+    Vector<int> ratios;
+    Vector<int> n_cell(AMREX_SPACEDIM);
+
+    {
+        ParmParse pp("amr");
+
+        pp.get("max_level", max_level);
+
+        const int got_int = pp.queryarr("ref_ratio", ratios);
+
+        if (! got_int) {
+            amrex::Error("cannot read ref_ratio");
+        }
+
+        pp.getarr("n_cell", n_cell, 0, AMREX_SPACEDIM);
+    }
+
+    if (ratios.size() < max_level) {
+        amrex::Error("not enough ref_ratio defined");
+    }
+
+    // now compute the dx
+    Vector<Real> dx(AMREX_SPACEDIM);
+
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        dx[idim] = (prob_hi[idim] - prob_lo[idim]) /
+            static_cast<Real>(n_cell[idim]);
+    }
+
+    for (int ilev = 0; ilev < max_level; ++ilev) {
+        for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+            dx[idim] /= static_cast<Real>(ratios[ilev]);
+        }
+    }
+
+    return dx;
+}
 #endif
