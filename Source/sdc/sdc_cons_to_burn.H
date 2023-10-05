@@ -24,6 +24,9 @@ copy_cons_to_burn_type(const int i, const int j, const int k,
     }
 #endif
 
+    burn_state.T = state(i,j,k,UTEMP);
+    burn_state.rho = state(i,j,k,URHO);
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -45,6 +48,9 @@ copy_cons_to_burn_type(GpuArray<Real, NUM_STATE> const& state,
         burn_state.y[SFX+n] = state[UFX+n];
     }
 #endif
+
+    burn_state.T = state[UTEMP];
+    burn_state.rho = state[URHO];
 
 }
 
