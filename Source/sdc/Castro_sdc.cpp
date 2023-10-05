@@ -241,9 +241,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             Elixir elix_R_new = R_new.elixir();
             Array4<Real> const& R_new_arr = R_new.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
-            //                        BL_TO_FORTRAN_3D(U_new_center),
-            //                        BL_TO_FORTRAN_3D(R_new));
             amrex::ParallelFor(bx1,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -359,9 +356,6 @@ Castro::construct_old_react_source(MultiFab& U_state,
             Elixir elix_r_center = R_center.elixir();
             auto const R_center_arr = R_center.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
-            //                        BL_TO_FORTRAN_3D(U_center),
-            //                        BL_TO_FORTRAN_3D(R_center));
             amrex::ParallelFor(obx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -399,9 +393,6 @@ Castro::construct_old_react_source(MultiFab& U_state,
             auto const R_source_arr = R_source.array(mfi);
 
             // construct the reactive source term
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-            //                        BL_TO_FORTRAN_3D(U_state[mfi]),
-            //                        BL_TO_FORTRAN_3D(R_source[mfi]));
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {

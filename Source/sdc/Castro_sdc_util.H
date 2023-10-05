@@ -219,8 +219,7 @@ instantaneous_react(const int i, const int j, const int k,
     // (in that case, I am not sure if I can assume UTEMP is defined)
 
     if (okay_to_burn(i, j, k, state)) {
-        burn_t burn_state;
-        single_zone_react_source(i, j, k, state, R_source, burn_state);
+        single_zone_react_source(i, j, k, state, R_source);
     } else {
         for (int n = 0; n < NUM_STATE; ++n) {
             R_source(i, j, k, n) = 0.0_rt;

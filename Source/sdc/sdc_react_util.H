@@ -1,32 +1,34 @@
 #ifndef SDC_REACT_UTIL_H
 #define SDC_REACT_UTIL_H
 
+#include <burn_type.H>
+
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
-                         GpuArray<Real, NUM_STATE>& R,
-                         burn_t& burn_state) {
+single_zone_react_source(burn_t& burn_state,
+                         GpuArray<Real, NUM_STATE>& R) {
 
     // note: we want this burn_state to come out of here so we can
     // reuse it elsewhere
 
-    auto rhoInv = 1.0_rt / state[URHO];
+    // we assume that burn_state.y[] holds the current state, except
+    // for temperature guess, and we will initialize the pieces needed
+    // to call the RHS
 
-    burn_state.rho = state[URHO];
-    burn_state.T = state[UTEMP];
-    burn_state.e = state[UEINT] * rhoInv;
+    auto rhoInv = 1.0_rt / burn_state.y[SRHO];
+
+    burn_state.rho = burn_state.y[SRHO];
+    burn_state.e = burn_state.y[SEINT] * rhoInv;
 
     for (int n = 0; n < NumSpec; ++n) {
-       burn_state.xn[n] = amrex::max(amrex::min(state[UFS+n] * rhoInv, 1.0_rt), small_x);
+       burn_state.xn[n] = amrex::max(amrex::min(burn_state.y[SFS+n] * rhoInv, 1.0_rt), small_x);
     }
 
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; ++n) {
-       burn_state.aux[n] = state[UFX+n] * rhoInv;
+       burn_state.aux[n] = burn_state.y[SFX+n] * rhoInv;
     }
 #endif
-
-    eos_t eos_state;
 
     // Ensure that the temperature going in is consistent with the internal energy.
     eos(eos_input_re, burn_state);
@@ -45,28 +47,39 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
 
     // species rates come back in terms of molar fractions
     for (int n = 0; n < NumSpec; ++n) {
-        R[UFS+n] = state[URHO] * aion[n] * ydot(1+n);
+        R[UFS+n] = burn_state.rho * aion[n] * ydot(1+n);
     }
 
-    R[UEDEN] = state[URHO] * ydot(net_ienuc);
-    R[UEINT] = state[URHO] * ydot(net_ienuc);
+    R[UEDEN] = burn_state.rho * ydot(net_ienuc);
+    R[UEINT] = burn_state.rho * ydot(net_ienuc);
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_react_source(const int i, const int j, const int k,
                          Array4<const Real> const& state,
-                         Array4<Real> const& R,
-                         burn_t& burn_state) {
+                         Array4<Real> const& R) {
 
-    GpuArray<Real, NUM_STATE> state_arr;
-    GpuArray<Real, NUM_STATE> R_arr; 
+    GpuArray<Real, NUM_STATE> R_arr;
 
-    for (int n = 0; n < NUM_STATE; ++n) {
-        state_arr[n] = state(i,j,k,n);
+    burn_t burn_state;
+
+    burn_state.y[SRHO] = state(i,j,k,URHO);
+    burn_state.y[SMX] = state(i,j,k,UMX);
+    burn_state.y[SMY] = state(i,j,k,UMY);
+    burn_state.y[SMZ] = state(i,j,k,UMZ);
+    burn_state.y[SEDEN] = state(i,j,k,UEDEN);
+    burn_state.y[SEINT] = state(i,j,k,UEINT);
+    for (int n = 0; n < NumSpec; n++) {
+        burn_state.y[SFS+n] = state(i,j,k,UFS+n);
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; n++) {
+        burn_state.y[SFX+n] = state(i,j,k,UFX+n);
+    }
+#endif
 
-    single_zone_react_source(state_arr, R_arr, burn_state);
+    single_zone_react_source(R_arr, burn_state);
 
     for (int n = 0; n < NUM_STATE; ++n) {
         R(i,j,k,n) = R_arr[n];
@@ -75,8 +88,7 @@ single_zone_react_source(const int i, const int j, const int k,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
-                burn_t& burn_state, const Real dt,
+single_zone_jac(burn_t& burn_state, const Real dt,
                 JacNetArray2D& Jac) {
 
 #ifdef SIMPLIFIED_SDC
