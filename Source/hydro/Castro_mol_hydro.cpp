@@ -38,7 +38,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   MultiFab& S_new = get_new_data(State_Type);
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
   int coord = geom.Coord();
 #endif
 
