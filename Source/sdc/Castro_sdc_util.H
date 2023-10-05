@@ -132,8 +132,6 @@ sdc_update_o2(const int i, const int j, const int k,
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 
-    burn_t burn_state;
-
     GpuArray<Real, NUM_STATE> U_old;
     GpuArray<Real, NUM_STATE> U_new;
     GpuArray<Real, NUM_STATE> R_full;
@@ -170,9 +168,13 @@ sdc_update_o2(const int i, const int j, const int k,
 
         sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration);
 
-        // we solved our system to some tolerance, but let's be sure we are conservative by
-        // reevaluating the reactions and { doing the full step update
-        single_zone_react_source(U_new, R_full, burn_state);
+        // we solved our system to some tolerance, but let's be sure
+        // we are conservative by reevaluating the reactions and {
+        // doing the full step update
+        burn_t burn_state;
+
+        copy_cons_to_burn_type(U_new, burn_state);
+        single_zone_react_source(burn_state, R_full);
     }
 
     for (int n = 0; n < NUM_STATE; ++n) {

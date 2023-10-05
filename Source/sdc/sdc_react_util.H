@@ -2,6 +2,7 @@
 #define SDC_REACT_UTIL_H
 
 #include <burn_type.H>
+#include <sdc_cons_to_burn.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
@@ -64,20 +65,7 @@ single_zone_react_source(const int i, const int j, const int k,
 
     burn_t burn_state;
 
-    burn_state.y[SRHO] = state(i,j,k,URHO);
-    burn_state.y[SMX] = state(i,j,k,UMX);
-    burn_state.y[SMY] = state(i,j,k,UMY);
-    burn_state.y[SMZ] = state(i,j,k,UMZ);
-    burn_state.y[SEDEN] = state(i,j,k,UEDEN);
-    burn_state.y[SEINT] = state(i,j,k,UEINT);
-    for (int n = 0; n < NumSpec; n++) {
-        burn_state.y[SFS+n] = state(i,j,k,UFS+n);
-    }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; n++) {
-        burn_state.y[SFX+n] = state(i,j,k,UFX+n);
-    }
-#endif
+    copy_cons_to_burn_type(i, j, k, state, burn_state);
 
     single_zone_react_source(burn_state, R_arr);
 
