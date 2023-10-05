@@ -21,7 +21,6 @@ castro.hi_bc       =  2   2   2
 castro.do_hydro = 1
 castro.do_react = 0
 castro.ppm_type = 1
-castro.allow_negative_energy = 0
 
 #MHD
 castro.use_flattening = 1

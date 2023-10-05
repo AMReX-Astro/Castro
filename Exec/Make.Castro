@@ -89,6 +89,12 @@ ifeq ($(USE_SDC), TRUE)
   $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
 endif
 
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    $(error USE_SIMPLIFIED_SDC cannot be combined with USE_TRUE_SDC)
+  endif
+endif
+
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
   USERSuffix = .SMPLSDC
@@ -161,9 +167,13 @@ endif
 MAX_NPTS_MODEL ?= 10000
 NUM_MODELS ?= 1
 
-ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
-  Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+ifeq ($(USE_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser
+  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+endif
+
+ifeq ($(USE_RNG_STATE_INIT), TRUE)
+  DEFINES += -DRNG_STATE_INIT
 endif
 
 # add / define any special physics we need
@@ -297,8 +307,6 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # file (including the general_null network) to our temporary build
 # directory
 NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
-
-USE_CXX_EOS := TRUE
 
 include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
 

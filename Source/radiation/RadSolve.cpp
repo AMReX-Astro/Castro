@@ -869,33 +869,31 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   {
       Vector<Real> rc, re, s;
       
-      if (geom.IsSPHERICAL()) {
+      if (geom.IsSPHERICAL() || geom.IsRZ()) {
           for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
               int i = fi.index();
               const Box &reg = grids[i];
+
               parent->Geom(level).GetEdgeLoc(re, reg, 0);
               parent->Geom(level).GetCellLoc(rc, reg, 0);
-              parent->Geom(level).GetCellLoc(s, reg, 0);
-              const Box &dbox = Dterm_face[0][fi].box();
-              sphe(re.dataPtr(), s.dataPtr(), 0,
-                   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx.data());
-              
-              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
-                               re.dataPtr(), rc.dataPtr());
-          }
-#ifdef _OPENMP
-#pragma omp barrier
+
+              if (geom.IsSPHERICAL()) {
+                  parent->Geom(level).GetCellLoc(s, reg, 0);
+
+                  const Box &dbox = Dterm_face[0][fi].box();
+
+                  for (int i = dbox.loVect()[0]; i <= dbox.hiVect()[0]; ++i) {
+                      re[i] *= re[i];
+                  }
+#if AMREX_SPACEDIM >= 2
+                  Real h2 = 0.5e0_rt * dx[1];
+                  Real d2 = 1.e0_rt / dx[1];
+                  for (int j = dbox.loVect()[1]; j <= dbox.hiVect()[1]; ++j) {
+                      s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
+                  }
 #endif
-      }
-      else if (geom.IsRZ()) {
-          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-              int i = fi.index();
-              const Box &reg = grids[i];
-              parent->Geom(level).GetEdgeLoc(re, reg, 0);
-              parent->Geom(level).GetCellLoc(rc, reg, 0);
-              
+              }
+
               ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
                                       BL_TO_FORTRAN(Dterm_face[1][fi]),
                                       BL_TO_FORTRAN(Dterm_face[2][fi])),
@@ -1160,8 +1158,31 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
         geom.GetEdgeLoc(s, reg, I);
       }
       const Real *dx = geom.CellSize();
-      sphe(r.dataPtr(), s.dataPtr(), idim,
-           ARLIM(edgebox.loVect()), ARLIM(edgebox.hiVect()), dx);
+
+      if (idim == 0) {
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] *= r[i];
+          }
+#if AMREX_SPACEDIM >= 2
+          Real h2 = 0.5e0_rt * dx[1];
+          Real d2 = 1.e0_rt / dx[1];
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
+          }
+#endif
+      }
+      else {
+          Real h1 = 0.5e0_rt * dx[0];
+          Real d1 = 1.e0_rt / (3.e0_rt * dx[0]);
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] = d1 * (std::pow(r[i] + h1, 3) - std::pow(r[i] - h1, 3));
+          }
+#if AMREX_SPACEDIM >= 2
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = std::sin(s[j]);
+          }
+#endif
+      }
     }
 }
 

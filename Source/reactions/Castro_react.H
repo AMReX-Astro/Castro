@@ -16,11 +16,11 @@
 /// @param time         current time
 /// @param dt           reaction timestep
 ///
-    bool react_state(amrex::MultiFab& state,
-                     amrex::MultiFab& reactions,
-                     amrex::Real time,
-                     amrex::Real dt,
-                     const int strang_half);
+    int react_state(amrex::MultiFab& state,
+                    amrex::MultiFab& reactions,
+                    amrex::Real time,
+                    amrex::Real dt,
+                    const int strang_half);
 
 ///
 /// Simplified SDC version of react_state. Reacts the current state through a single timestep.
@@ -28,7 +28,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    bool react_state(amrex::Real time, amrex::Real dt);
+    int react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// Are there any zones in ``State`` that can burn?

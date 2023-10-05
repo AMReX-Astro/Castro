@@ -525,17 +525,11 @@ Castro::variableSetUp ()
     }
 
 #if NAUX_NET > 0
-  // Get the auxiliary names from the network model.
-  std::vector<std::string> aux_names;
-  for (int i = 0; i < NumAux; i++) {
-    aux_names.push_back(short_aux_names_cxx[i]);
-  }
-
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++) {
-        std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << short_aux_names_cxx[i] << ' ' << ' ';
       }
       std::cout << std::endl;
     }
@@ -544,7 +538,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFX+i] = bc;
-      name[UFX+i] = "rho_" + aux_names[i];
+      name[UFX+i] = "rho_" + short_aux_names_cxx[i];
     }
 #endif
 
@@ -1010,9 +1004,9 @@ Castro::variableSetUp ()
 
 #if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
-    derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
+    derive_lst.add(short_aux_names_cxx[i], IndexType::TheCellType(), 1, ca_derspec, the_same_box);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, URHO, 1);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, UFX+i, 1);
   }
 #endif
 

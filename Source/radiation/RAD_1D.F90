@@ -11,21 +11,6 @@ module rad_module
 
 contains
 
-subroutine sphe(r, s, n, &
-                DIMS(reg), dx) bind(C, name="sphe")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(1)
-  integer :: n
-  real(rt)         :: dx(1)
-  integer :: i
-  do i = reg_l1, reg_h1
-     r(i) = r(i)**2
-  enddo
-end subroutine sphe
-
 subroutine rfface(fine, &
                   DIMS(fbox), &
                   crse, &

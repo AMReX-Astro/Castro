@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('agg')
-
-import numpy as np
-
 import sys
+
+import matplotlib
+import numpy as np
 
 import yt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-#from yt.visualization.volume_rendering.render_source import VolumeSource
-from yt.visualization.volume_rendering.api import create_volume_source, Scene
 from yt.units import cm
+#from yt.visualization.volume_rendering.render_source import VolumeSource
+from yt.visualization.volume_rendering.api import Scene, create_volume_source
+
+matplotlib.use('agg')
+
+
+
 
 # this is for the wdconvect problem
 
@@ -42,7 +44,7 @@ def doit(plotfile):
     ds._get_field_info(field).take_log = True
 
     vol = create_volume_source(ds.all_data(), field=field)
-    vol.use_ghost_zones = True
+    #vol.use_ghost_zones = True
 
     vals = [18.0, 18.5, 19.0, 19.5, 20.0, 20.5, 21.0, 21.5, 22.0]
     sigma = 0.1
@@ -112,8 +114,8 @@ def doit(plotfile):
     normal /= np.sqrt(normal.dot(normal))
 
     cam.switch_orientation(normal_vector=normal, north_vector=[0., 0., 1.])
-    cam.set_width(ds.domain_width)
-    cam.zoom(1.3)
+    cam.set_width(0.5*ds.domain_width)
+    cam.zoom(3.0)
     sc.camera = cam
 
     sc.save_annotated("{}_enuc_pos_annotated.png".format(plotfile),
