@@ -79,7 +79,7 @@ single_zone_react_source(const int i, const int j, const int k,
     }
 #endif
 
-    single_zone_react_source(R_arr, burn_state);
+    single_zone_react_source(burn_state, R_arr);
 
     for (int n = 0; n < NUM_STATE; ++n) {
         R(i,j,k,n) = R_arr[n];
