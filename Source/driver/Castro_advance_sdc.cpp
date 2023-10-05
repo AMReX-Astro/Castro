@@ -307,22 +307,17 @@ Castro::do_advance_sdc (Real time,
 
     if (sdc_order == 4) {
 
-      // convert S_new to cell-centers
-      U_center.resize(obx, NUM_STATE);
-      Elixir elix_u_center = U_center.elixir();
-      auto const U_center_arr = U_center.array();
-
-      make_cell_center(obx, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
-
-      // pass in the reaction source and state at centers, including one ghost cell
-      // and derive everything that is needed including 1 ghost cell
+      // pass in the reaction source at centers (Sburn_arr), including
+      // one ghost cell and derive everything that is needed including
+      // 1 ghost cell
       R_center.resize(obx, R_new.nComp());
       Elixir elix_r_center = R_center.elixir();
       auto const R_center_arr = R_center.array();
 
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
 
-      ca_store_reaction_state(obx, Sburn_arr, U_center_arr, R_center_arr);
+      // we don't worry about the difference between centers and averages
+      ca_store_reaction_state(obx, Sburn_arr, R_center_arr);
 
       // convert R_new from centers to averages in place
       tmp.resize(bx, 1);
@@ -337,13 +332,10 @@ Castro::do_advance_sdc (Real time,
     } else {
 
       Array4<const Real> const R_old_arr = R_old[SDC_NODES-1]->array(mfi);
-      Array4<const Real> const S_new_arr = S_new.array(mfi);
       Array4<Real> const R_new_arr = R_new.array(mfi);
+
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(bx,
-                              R_old_arr,
-                              S_new_arr,
-                              R_new_arr);
+      ca_store_reaction_state(bx, R_old_arr, R_new_arr);
     }
 
   }

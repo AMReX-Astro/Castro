@@ -883,40 +883,40 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
     if (idir == 0) {
 
       if (is_avg) {
-        // we are working with the cell-center state
-        dTdx = (-q_arr(i+1,j,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
-                27*q_arr(i-1,j,k,temp_comp) + q_arr(i-2,j,k,temp_comp)) / (24.0_rt * dx[0]);
-
-      } else {
         // we are working with the cell-average state
         dTdx = (-q_arr(i+1,j,k,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
                 15*q_arr(i-1,j,k,temp_comp) + q_arr(i-2,j,k,temp_comp)) / (12.0_rt * dx[0]);
+
+      } else {
+        // we are working with the cell-center state
+        dTdx = (-q_arr(i+1,j,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i-1,j,k,temp_comp) + q_arr(i-2,j,k,temp_comp)) / (24.0_rt * dx[0]);
       }
 
     } else if (idir == 1) {
 
       if (is_avg) {
-        // we are working with the cell-center state
-        dTdx = (-q_arr(i,j+1,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
-                27*q_arr(i,j-1,k,temp_comp) + q_arr(i,j-2,k,temp_comp)) / (24.0_rt * dx[1]);
-
-      } else {
         // we are working with the cell-average state
         dTdx = (-q_arr(i,j+1,k,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
                 15*q_arr(i,j-1,k,temp_comp) + q_arr(i,j-2,k,temp_comp)) / (12.0_rt * dx[1]);
+
+      } else {
+        // we are working with the cell-center state
+        dTdx = (-q_arr(i,j+1,k,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i,j-1,k,temp_comp) + q_arr(i,j-2,k,temp_comp)) / (24.0_rt * dx[1]);
       }
 
     } else {
 
       if (is_avg) {
-        // we are working with the cell-center state
-        dTdx = (-q_arr(i,j,k+1,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
-                27*q_arr(i,j,k-1,temp_comp) + q_arr(i,j,k-2,temp_comp)) / (24.0_rt * dx[2]);
-
-      } else {
         // we are working with the cell-average state
         dTdx = (-q_arr(i,j,k+1,temp_comp) + 15*q_arr(i,j,k,temp_comp) -
                 15*q_arr(i,j,k-1,temp_comp) + q_arr(i,j,k-2,temp_comp)) / (12.0_rt * dx[2]);
+
+      } else {
+        // we are working with the cell-center state
+        dTdx = (-q_arr(i,j,k+1,temp_comp) + 27*q_arr(i,j,k,temp_comp) -
+                27*q_arr(i,j,k-1,temp_comp) + q_arr(i,j,k-2,temp_comp)) / (24.0_rt * dx[2]);
       }
 
     }
