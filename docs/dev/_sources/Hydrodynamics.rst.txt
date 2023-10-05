@@ -1020,9 +1020,13 @@ parameters apply:
 
    -  1: the Colella & Glaz solver
 
-   -  2: the HLLC solver. Note: this should only be used with Cartesian
-      geometries because it relies on the pressure term being part of the flux
-      in the momentum equation.
+   -  2: the HLLC solver.
+
+      .. note::
+
+         HLLC should only be used with Cartesian
+         geometries because it relies on the pressure term being part of the flux
+         in the momentum equation.
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :cite:`pember:1996`),

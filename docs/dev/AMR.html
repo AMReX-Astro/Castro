@@ -254,7 +254,7 @@ time <span class="math notranslate nohighlight">\(n+1\)</span>. (Assume <span cl
 the data on coarse cells underlying fine cells is the average of the
 fine cell data above it.)</p>
 <p>The synchronization consists of two parts:</p>
-<ul>
+<ul id="index-1">
 <li><p>Step 1: Hyperbolic reflux</p>
 <p>In the hyperbolic reflux step, we update the conserved variables with
 the flux synchronization and adjust the gravitational terms to reflect
@@ -263,7 +263,7 @@ the changes in <span class="math notranslate nohighlight">\(\rho\)</span> and <s
 \[{\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},\]</div>
 <p>where <span class="math notranslate nohighlight">\(V\)</span> is the volume of the cell and the correction from
 <span class="math notranslate nohighlight">\(\delta\Fb\)</span> is supported only on coarse cells adjacent to fine grids.</p>
-<p>Note: this can be enabled/disabled via castro.do_reflux. Generally,
+<p>Note: this can be enabled/disabled via <code class="docutils literal notranslate"><span class="pre">castro.do_reflux</span></code>. Generally,
 it should be enabled (1).</p>
 <p>Also note that for axisymmetric or 1D spherical coordinates, the
 reflux of the pressure gradient is different, since it cannot be

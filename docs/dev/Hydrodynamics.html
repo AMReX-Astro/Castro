@@ -1147,12 +1147,17 @@ described in the original paper.</p>
 parameters apply:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.riemann_solver</span></code>: this can be one of the following values:</p>
-<ul class="simple">
+<ul>
 <li><p>0: the Colella, Glaz, &amp; Ferguson solver.</p></li>
 <li><p>1: the Colella &amp; Glaz solver</p></li>
-<li><p>2: the HLLC solver. Note: this should only be used with Cartesian
+<li><p>2: the HLLC solver.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HLLC should only be used with Cartesian
 geometries because it relies on the pressure term being part of the flux
-in the momentum equation.</p></li>
+in the momentum equation.</p>
+</div>
+</li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
 Glaz, &amp; Ferguson manuscript (it also appears in <span id="id12">[<a class="reference internal" href="zreferences.html#id15" title="Richard B. Pember, Jeffrey A. Greenough, and Phillip Colella. An adaptive, higher-order godunov method for gas dynamics in three-dimensional orthogonal curvilinear coordinates. In unknown. 1996.">8</a>]</span>),
