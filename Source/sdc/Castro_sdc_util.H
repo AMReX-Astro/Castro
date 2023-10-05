@@ -132,11 +132,8 @@ sdc_update_o2(const int i, const int j, const int k,
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 
-    burn_t burn_state;
-
     GpuArray<Real, NUM_STATE> U_old;
     GpuArray<Real, NUM_STATE> U_new;
-    GpuArray<Real, NUM_STATE> R_full;
     GpuArray<Real, NUM_STATE> C_zone;
 
     for (int n = 0; n < NUM_STATE; ++n) {
@@ -146,11 +143,7 @@ sdc_update_o2(const int i, const int j, const int k,
 
     // Only burn if we are within the temperature and density
     // limits for burning
-    if (!okay_to_burn(U_old)) {
-        for (int n = 0; n < NUM_STATE; ++n) {
-            R_full[n] = 0.0_rt;
-        }
-    } else {
+    if (okay_to_burn(U_old)) {
 
         // This is the full state -- this will be updated as we
         // solve the nonlinear system.  We want to start with a
@@ -170,16 +163,26 @@ sdc_update_o2(const int i, const int j, const int k,
 
         sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration);
 
-        // we solved our system to some tolerance, but let's be sure we are conservative by
-        // reevaluating the reactions and { doing the full step update
-        single_zone_react_source(U_new, R_full, burn_state);
+        // we solved our system to some tolerance.  Store it in k_n.
+
+        for (int n = 0; n < NUM_STATE; ++n) {
+            k_n(i,j,k,n) = U_new[n];
+        }
+
+    }
+
+    // let's be sure we are conservative by reevaluating the reactions
+    // and doing the full step update
+
+    GpuArray<Real, NUM_STATE> R_full{0.0};
+
+    if (okay_to_burn(U_old)) {
+        burn_t burn_state;
+        single_zone_react_source(i, j, k, k_n, R_full, burn_state);
     }
 
     for (int n = 0; n < NUM_STATE; ++n) {
-        U_new[n] = U_old[n] + dt_m * R_full[n] + dt_m * C_zone[n];
-
-        // copy back to k_n
-        k_n(i,j,k,n) = U_new[n];
+        k_n(i,j,k,n) = U_old[n] + dt_m * R_full[n] + dt_m * C_zone[n];
     }
 }
 
