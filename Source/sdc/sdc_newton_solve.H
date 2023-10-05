@@ -51,7 +51,8 @@ f_sdc_jac(const Real dt_m,
     // normalize the species
     auto sum_rhoX = 0.0_rt;
     for (int n = 0; n < NumSpec; ++n) {
-        burn_state.y[SFS+n] = amrex::max(burn_state.y[SRHO] * network_rp::small_x, burn_state.y[SFS+n]);
+        // TODO: this should have a rho weighting on small_x
+        burn_state.y[SFS+n] = amrex::max(network_rp::small_x, burn_state.y[SFS+n]);
         sum_rhoX += burn_state.y[SFS+n];
     }
 
