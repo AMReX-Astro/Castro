@@ -693,17 +693,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> const qex_fab = qe[idir].array();
             const int prescomp = GDPRES;
 
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-              amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-              {
-                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-              });
-            }
-#endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
             if (!mom_flux_has_p(0, 0, coord)) {
               amrex::ParallelFor(nbx,
               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
