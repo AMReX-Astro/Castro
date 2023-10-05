@@ -95,7 +95,6 @@ Castro::do_advance_sdc (Real time,
 #endif
 
       if (apply_sources()) {
-#ifndef AMREX_USE_GPU
         if (sdc_order == 4) {
           // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
           // we'll use Sburn for this memory buffer at the moment
@@ -145,8 +144,6 @@ Castro::do_advance_sdc (Real time,
         if (sdc_order == 2 && use_pslope == 1) {
           AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
         }
-#endif
-
       }
 
       // Now compute the advective term for the current node -- this
