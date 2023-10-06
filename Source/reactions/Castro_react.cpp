@@ -583,24 +583,9 @@ Castro::react_state(Real time, Real dt)
             }
 
             // Feed in the old-time state data.
+            // this also sets burn_state.{rho,T}
 
-            burn_state.y[SRHO] = U_old(i,j,k,URHO);
-            burn_state.y[SMX] = U_old(i,j,k,UMX);
-            burn_state.y[SMY] = U_old(i,j,k,UMY);
-            burn_state.y[SMZ] = U_old(i,j,k,UMZ);
-            burn_state.y[SEDEN] = U_old(i,j,k,UEDEN);
-            burn_state.y[SEINT] = U_old(i,j,k,UEINT);
-            for (int n = 0; n < NumSpec; n++) {
-                burn_state.y[SFS+n] = U_old(i,j,k,UFS+n);
-            }
-#if NAUX_NET > 0
-            for (int n = 0; n < NumAux; n++) {
-                burn_state.y[SFX+n] = U_old(i,j,k,UFX+n);
-            }
-#endif
-
-            // we need an initial T guess for the EOS
-            burn_state.T = U_old(i,j,k,UTEMP);
+            copy_cons_to_burn_type(i, j, k, U_old, burn_state);
 
             burn_state.T_fixed = -1.e30_rt;
 
@@ -628,8 +613,6 @@ Castro::react_state(Real time, Real dt)
 
             }
 #endif
-
-            burn_state.rho = burn_state.y[SRHO];
 
             // Don't burn if we're outside of the relevant (rho, T) range.
 
