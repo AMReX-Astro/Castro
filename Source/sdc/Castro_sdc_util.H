@@ -169,7 +169,7 @@ sdc_update_o2(const int i, const int j, const int k,
         sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration);
 
         // we solved our system to some tolerance, but let's be sure
-        // we are conservative by reevaluating the reactions and {
+        // we are conservative by reevaluating the reactions and
         // doing the full step update
         burn_t burn_state;
 
