@@ -410,6 +410,7 @@ Castro::construct_old_react_source(MultiFab& U_state,
             auto const U_state_arr = U_state.array(mfi);
             auto const R_source_arr = R_source.array(mfi);
 
+            // construct the reactive source term
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
