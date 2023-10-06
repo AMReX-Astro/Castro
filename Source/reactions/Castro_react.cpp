@@ -5,6 +5,7 @@
 #ifdef MODEL_PARSER
 #include <model_parser.H>
 #endif
+#include <sdc_cons_to_burn.H>
 
 using std::string;
 using namespace amrex;
