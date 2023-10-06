@@ -1,7 +1,7 @@
 
 #ifdef ROTATION
     //
-    // Momemtum
+    // Momentum
     //
     derive_lst.add("inertial_momentum_x",IndexType::TheCellType(),1,ca_derinertialmomentumx,the_same_box);
     derive_lst.addComponent("inertial_momentum_x",desc_lst,State_Type,URHO,1);

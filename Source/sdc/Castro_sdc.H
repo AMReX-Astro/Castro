@@ -134,7 +134,6 @@ void ca_sdc_compute_initial_guess(const amrex::Box& bx,
 #ifdef REACTIONS
 void ca_store_reaction_state(const amrex::Box& bx,
                              amrex::Array4<const amrex::Real> const& R_old,
-                             amrex::Array4<const amrex::Real> const& state,
                              amrex::Array4<amrex::Real> const& R_store);
 #endif
 

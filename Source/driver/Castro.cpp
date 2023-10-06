@@ -3465,12 +3465,12 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Apply each of the tagging criteria defined in the inputs.
 
-    for (int j = 0; j < error_tags.size(); j++) {
+    for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
-        if (!error_tags[j].Field().empty()) {
-            mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
+        if (! etag.Field().empty()) {
+            mf = derive(etag.Field(), time, etag.NGrow());
         }
-        error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -4418,10 +4418,10 @@ Castro::build_interior_boundary_mask (int ng)
 {
     BL_PROFILE("Castro::build_interior_boundary_mask()");
 
-    for (int i = 0; i < ib_mask.size(); ++i)
+    for (const auto & ibm : ib_mask)
     {
-        if (ib_mask[i]->nGrow() == ng) {
-            return *ib_mask[i];
+        if (ibm->nGrow() == ng) {
+            return *ibm;
         }
     }
 

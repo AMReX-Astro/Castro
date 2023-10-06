@@ -38,12 +38,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   MultiFab& S_new = get_new_data(State_Type);
 
+#if AMREX_SPACEDIM <= 2
   int coord = geom.Coord();
+#endif
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
+#if AMREX_SPACEDIM >= 2
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
+#endif
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -230,9 +234,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Elixir elix_qavg = q_avg.elixir();
             auto q_avg_arr = q_avg.array();
 
+#if AMREX_SPACEDIM >= 2
             q_fc.resize(nbx, NQ);
             Elixir elix_qfc = q_fc.elixir();
             auto q_fc_arr = q_fc.array();
+#endif
 
             f_avg.resize(ibx[idir], NUM_STATE);
             Elixir elix_favg = f_avg.elixir();
@@ -687,17 +693,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> const qex_fab = qe[idir].array();
             const int prescomp = GDPRES;
 
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-              amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-              {
-                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-              });
-            }
-#endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
             if (!mom_flux_has_p(0, 0, coord)) {
               amrex::ParallelFor(nbx,
               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
