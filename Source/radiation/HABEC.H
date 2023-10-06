@@ -327,21 +327,21 @@ namespace HABEC
                         else if (bct == LO_MARSHAK) {
                             bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
                             bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm =   1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
@@ -390,21 +390,21 @@ namespace HABEC
                         else if (bct == LO_MARSHAK) {
                             bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
                             bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm  =  1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
@@ -453,21 +453,21 @@ namespace HABEC
                         else if (bct == LO_MARSHAK) {
                             bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
                             bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm  =  1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
@@ -516,21 +516,21 @@ namespace HABEC
                         else if (bct == LO_MARSHAK) {
                             bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
                             bfv = 2.e0_rt * beta * r[i - reg_ilo];
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm  =  1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
@@ -577,23 +577,23 @@ namespace HABEC
                             bfm2 = 0.e0_rt;
                         }
                         else if (bct == LO_MARSHAK) {
-                            bfv = 2.e0_rt * beta;
+                            bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
-                            bfv = 2.e0_rt * beta;
+                            bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm  =  1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
@@ -640,23 +640,23 @@ namespace HABEC
                             bfm2 = 0.e0_rt;
                         }
                         else if (bct == LO_MARSHAK) {
-                            bfv = 2.e0_rt * beta;
+                            bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  0.75e0_rt * beta * c;
-                                bfm2 = -0.25e0_rt * beta * c;
+                                bfm  =  0.375e0_rt * c * bfv;
+                                bfm2 = -0.125e0_rt * c * bfv;
                             }
                             else {
-                                bfm = 0.5e0_rt * beta * c;
+                                bfm = 0.25e0_rt * c * bfv;
                             }
                         }
                         else if (bct == LO_SANCHEZ_POMRANING) {
-                            bfv = 2.e0_rt * beta;
+                            bfv = 2.e0_rt * beta * r0;
                             if (bho >= 1) {
-                                bfm  =  3.0e0_rt * spa(i,j,k) * beta * c;
-                                bfm2 = -1.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm  =  1.5e0_rt * spa(i,j,k) * c * bfv;
+                                bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
                             }
                             else {
-                                bfm = 2.0e0_rt * spa(i,j,k) * beta * c;
+                                bfm = spa(i,j,k) * c * bfv;
                             }
                         }
                         else {
