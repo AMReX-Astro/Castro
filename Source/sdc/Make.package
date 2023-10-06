@@ -1,4 +1,5 @@
 CEXE_headers += Castro_sdc.H
+CEXE_headers += sdc_const_to_burn.H
 
 CEXE_sources += sdc_util.cpp
 
