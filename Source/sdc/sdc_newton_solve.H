@@ -80,11 +80,12 @@ f_sdc_jac(const Real dt_m,
 
     // we are solving J dU = -f
     // where f is Eq. 36 evaluated with the current guess for U
+    // note: we store -f
 
     for (int n = 1; n <= NumSpec; ++n) {
-        f(n) = U(n) - dt_m * R_full[UFS-1+n] - f_source(n);
+        f(n) = -U(n) + dt_m * R_full[UFS-1+n] + f_source(n);
     }
-    f(NumSpec+1) = U(NumSpec+1) - dt_m * R_full[UEINT] - f_source(NumSpec+1);
+    f(NumSpec+1) = -U(NumSpec+1) + dt_m * R_full[UEINT] + f_source(NumSpec+1);
 
     // get the Jacobian.
 
@@ -117,13 +118,17 @@ sdc_newton_solve(const Real dt_m,
                  const int sdc_iteration,
                  Real& err_out,
                  int& ierr) {
+
     // the purpose of this function is to solve the system
-    // U - dt R(U) = U_old + dt C using a Newton solve.
-    // This is Eq. 36 in the paper.
+    //  U - dt R(U) = U_old + dt C
+    // using a Newton solve.  This is Eq. 36 in the paper.
     //
-    // here, U_new should come in as a guess for the new U
-    // and will be returned with the value that satisfied the
-    // nonlinear function
+    // here, U_new should come in as a guess for the new U for
+    // iterations > 0, it will be the solution from the previous
+    // iteration initially.
+    //
+    // upon exit, U_new will be returned with the value that satisfied
+    // the nonlinear function
 
     JacNetArray2D Jac;
 
@@ -135,9 +140,7 @@ sdc_newton_solve(const Real dt_m,
 
     Array1D<Real, 1, NumSpec+1> U_react;
     Array1D<Real, 1, NumSpec+1> f_source;
-    Array1D<Real, 1, NumSpec+1> dU_react;
     Array1D<Real, 1, NumSpec+1> f;
-    RArray1D f_rhs;
 
     const int MAX_ITER = 100;
 
@@ -195,7 +198,7 @@ sdc_newton_solve(const Real dt_m,
         int info = 0;
         f_sdc_jac(dt_m, U_react, f, Jac, f_source, rho_new, T_old);
 
-        // solve the linear system: Jac dU_react = -f
+        // solve the linear system: Jac dU = -f
 #ifdef NEW_NETWORK_IMPLEMENTATION
         RHS::dgefa(Jac);
         info = 0;
@@ -208,44 +211,33 @@ sdc_newton_solve(const Real dt_m,
             return;
         }
 
-        for (int n = 1; n <= NumSpec+1; ++n) {
-            f_rhs(n) = -f(n);
-        }
-
 #ifdef NEW_NETWORK_IMPLEMENTATION
-        RHS::dgesl(Jac, f_rhs);
+        RHS::dgesl(Jac, f);
 #else
-        dgesl<NumSpec+1>(Jac, ipvt, f_rhs);
+        dgesl<NumSpec+1>(Jac, ipvt, f);
 #endif
 
+        // on output, f is the solution (dU)
         for (int n = 1; n <= NumSpec+1; ++n) {
-            dU_react(n) = f_rhs(n);
+            U_react(n) += f(n);
         }
-
-        // how much of dU_react should we apply?
-        Real eta = 1.0_rt;
-        for (int n = 1; n <= NumSpec+1; ++n) {
-            U_react(n) += eta * dU_react(n);
-        }
-
-        Array1D<Real, 1, NumSpec+1> eps_tot;
-
-        // for species, atol is the mass fraction limit, so we
-        // multiply by density to get a partial density limit
-
-        for (int n = 0; n < NumSpec; ++n) {
-            eps_tot(1 + n) = integrator_rp::rtol_spec * std::abs(U_react(1 + n)) +
-                integrator_rp::atol_spec * std::abs(U_new[URHO]);
-        }
-        eps_tot(NumSpec+1) = integrator_rp::rtol_enuc * std::abs(U_react(NumSpec+1)) +
-            integrator_rp::atol_enuc;
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
 
         auto err_sum = 0.0_rt;
         for (int n = 1; n <= NumSpec+1; ++n) {
-            err_sum += dU_react(n) * dU_react(n) / (eps_tot(n) * eps_tot(n));
+            Real eps;
+            if (n < NumSpec+1) {
+                // for species, atol is the mass fraction limit, so we
+                // multiply by density to get a partial density limit
+                eps = integrator_rp::rtol_spec * std::abs(U_react(n)) +
+                      integrator_rp::atol_spec * std::abs(U_new[URHO]);
+            } else {
+                eps = integrator_rp::rtol_enuc * std::abs(U_react(NumSpec+1)) +
+                      integrator_rp::atol_enuc;
+            }
+            err_sum += f(n) * f(n) / (eps * eps);
         }
         err = std::sqrt(err_sum / static_cast<Real>(NumSpec+1));
 
