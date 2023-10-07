@@ -61,6 +61,7 @@ Castro::fourth_interfaces(const Box& bx,
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i-1,j,k,ncomp) - 23.0_rt*a(i-2,j,k,ncomp) +
                                          13.0_rt*a(i-3,j,k,ncomp) - 3.0_rt*a(i-4,j,k,ncomp));
 
+#if 0
       } else if (i == domlo[0]-1 && lo_bc[0] == Outflow) {
         // extrapolate to the domlo[0]-1 cell using a
         // conservative cubic polynomial averaged over
@@ -82,7 +83,7 @@ Castro::fourth_interfaces(const Box& bx,
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i-2,j,k,ncomp) +
                                          13.0_rt*a(i-3,j,k,ncomp) - 3.0_rt*a(i-4,j,k,ncomp));
-
+#endif
       } else {
         // regular stencil
         a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,ncomp) + a(i,j,k,ncomp)) -
@@ -124,6 +125,7 @@ Castro::fourth_interfaces(const Box& bx,
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j-1,k,ncomp) - 23.0_rt*a(i,j-2,k,ncomp) +
                                          13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp));
 
+#if 0
       } else if (j == domlo[1]-1 && lo_bc[1] == Outflow) {
         // extrapolate to the domlo[1]-1 cell using a
         // conservative cubic polynomial averaged over
@@ -145,6 +147,7 @@ Castro::fourth_interfaces(const Box& bx,
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j-2,k,ncomp) +
                                          13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp));
+#endif
 
       } else {
         // regular stencil
@@ -188,6 +191,7 @@ Castro::fourth_interfaces(const Box& bx,
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,ncomp) - 23.0_rt*a(i,j,k-2,ncomp) +
                                          13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
 
+#if 0
       } else if (k == domlo[2]-1 && lo_bc[2] == Outflow) {
         // extrapolate to the domlo[2]-1 cell using a
         // conservative cubic polynomial averaged over
@@ -209,6 +213,7 @@ Castro::fourth_interfaces(const Box& bx,
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k-2,ncomp) +
                                          13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
+#endif
 
       } else {
         // regular stencil
@@ -367,7 +372,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[0] if needed -- it is outside the domain
 
           if (lo_bc[0] == Outflow) {
-            //al(domlo[0],j,k,:) = ar(domlo[0],j,k,:)
+            al(domlo[0],j,k,:) = ar(domlo[0],j,k,:)
 
           } else if (lo_bc[0] == Symmetry) {
             if (ncomp == QU) {
@@ -391,7 +396,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[0]+1 if needed -- it is outside the domain
 
           if (hi_bc[0] == Outflow) {
-            //ar(domhi[0]+1,j,k,:) = al(domhi[0]+1,j,k,:)
+            ar(domhi[0]+1,j,k,:) = al(domhi[0]+1,j,k,:)
 
           } else if (hi_bc[0] == Symmetry) {
             if (ncomp == QU) {
@@ -532,7 +537,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[1] if needed -- it is outside the domain
 
           if (lo_bc[1] == Outflow) {
-            //al(i,domlo[1],k,:) = ar(i,domlo[1],k,:)
+            al(i,domlo[1],k,:) = ar(i,domlo[1],k,:)
 
           } else if (lo_bc[1] == Symmetry) {
             if (ncomp == QV) {
@@ -556,7 +561,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[1]+1 if needed -- it is outside the domain
 
           if (hi_bc[1] == Outflow) {
-            //ar(i,domhi[1]+1,k,:) = al(i,domhi[1]+1,k,:)
+            ar(i,domhi[1]+1,k,:) = al(i,domhi[1]+1,k,:)
 
           } else if (hi_bc[1] == Symmetry) {
             if (ncomp == QV) {
@@ -695,7 +700,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[2] if needed -- it is outside the domain
 
           if (lo_bc[2] == Outflow) {
-            //al(i,j,domlo[2],:) = ar(i,j,domlo[2],:)
+            al(i,j,domlo[2],:) = ar(i,j,domlo[2],:)
 
           } else if (lo_bc[2] == Symmetry) {
             if (ncomp == QW) {
@@ -718,7 +723,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[2]+1 if needed -- it is outside the domain
 
           if (hi_bc[2] == Outflow) {
-            //ar(i,j,domhi[2]+1,:) = al(i,j,domhi[2]+1,:)
+            ar(i,j,domhi[2]+1,:) = al(i,j,domhi[2]+1,:)
 
           } else if (hi_bc[2] == Symmetry) {
             if (ncomp == QW) {
