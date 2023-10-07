@@ -1,5 +1,6 @@
 #include <wdmerger_util.H>
 #include <binary.H>
+#include <global.H>
 #include <network.H>
 #include <ambient.H>
 #include <model_parser.H>
@@ -555,8 +556,22 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
+    // Use the smallest dx on the finest possible level for determining the resolution
+    // of the initial model.
+
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+    auto fine_dx = fine_geom.CellSizeArray();
+
+    Real initial_model_dx = fine_dx[0];
+#if AMREX_SPACEDIM >= 2
+    initial_model_dx = std::min(initial_model_dx, fine_dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+    initial_model_dx = std::min(initial_model_dx, fine_dx[2]);
+#endif
+
     establish_hse(problem::mass_P, problem::central_density_P, problem::radius_P,
-                  problem::core_comp_P, problem::stellar_temp, problem::initial_model_dx,
+                  problem::core_comp_P, problem::stellar_temp, initial_model_dx,
                   problem::envelope_mass_P, problem::envelope_comp_P, 0);
 
     amrex::Print() << std::endl;
@@ -571,7 +586,7 @@ void binary_setup ()
     if (!problem::single_star) {
 
         establish_hse(problem::mass_S, problem::central_density_S, problem::radius_S,
-                      problem::core_comp_S, problem::stellar_temp, problem::initial_model_dx,
+                      problem::core_comp_S, problem::stellar_temp, initial_model_dx,
                       problem::envelope_mass_S, problem::envelope_comp_S, 1);
 
         amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << problem::mass_S / C::M_solar
