@@ -138,8 +138,6 @@ problem.dtemp = 1.1e9
 problem.x_half_max = 4.096e4
 problem.x_half_width = 2048.e0
 
-problem.dx_model = 25.e0
-
 problem.dens_base = 3.43e6
 
 problem.T_star = 3.e8
