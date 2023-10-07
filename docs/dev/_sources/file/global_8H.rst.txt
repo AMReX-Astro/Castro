@@ -1,0 +1,4 @@
+File global.H
+=============
+
+.. doxygenfile:: global.H
