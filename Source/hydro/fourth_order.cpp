@@ -372,7 +372,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[0] if needed -- it is outside the domain
 
           if (lo_bc[0] == Outflow) {
-            al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
+            //al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
 
           } else if (lo_bc[0] == Symmetry) {
             if (ncomp == QU) {
@@ -396,7 +396,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[0]+1 if needed -- it is outside the domain
 
           if (hi_bc[0] == Outflow) {
-            ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
+            //ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
 
           } else if (hi_bc[0] == Symmetry) {
             if (ncomp == QU) {
@@ -537,7 +537,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[1] if needed -- it is outside the domain
 
           if (lo_bc[1] == Outflow) {
-            al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
+            //al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
 
           } else if (lo_bc[1] == Symmetry) {
             if (ncomp == QV) {
@@ -561,7 +561,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[1]+1 if needed -- it is outside the domain
 
           if (hi_bc[1] == Outflow) {
-            ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
+            //ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
 
           } else if (hi_bc[1] == Symmetry) {
             if (ncomp == QV) {
@@ -700,7 +700,7 @@ Castro::states(const Box& bx,
           // reset the left state at domlo[2] if needed -- it is outside the domain
 
           if (lo_bc[2] == Outflow) {
-            al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
+            //al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
 
           } else if (lo_bc[2] == Symmetry) {
             if (ncomp == QW) {
@@ -723,7 +723,7 @@ Castro::states(const Box& bx,
           // reset the right state at domhi[2]+1 if needed -- it is outside the domain
 
           if (hi_bc[2] == Outflow) {
-            ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
+            //ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
 
           } else if (hi_bc[2] == Symmetry) {
             if (ncomp == QW) {
