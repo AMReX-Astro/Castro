@@ -1249,7 +1249,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
                 }
 
                 lam(i,j,k,g) = lam(ic,jc,kc,g);
-           });
+            });
         } // nGroups
     } // mfiter
 

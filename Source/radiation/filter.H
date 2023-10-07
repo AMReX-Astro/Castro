@@ -402,7 +402,7 @@ namespace filter
     template<int width>
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void load_filter_stencil(Array4<Real const> const input,
-                             Array1D<Real, -width, width> stencil,
+                             Array1D<Real, -width, width>& stencil,
                              int dir, int i, int j, int k, int g)
     {
         stencil(0) = input(i,j,k,g);
