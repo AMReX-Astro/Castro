@@ -3,6 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
+#include <global.H>
 #include <network.H>
 #include <model_parser.H>
 #include <initial_model.H>
