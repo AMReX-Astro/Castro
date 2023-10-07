@@ -445,7 +445,7 @@ Light Front
 
 The light front problem tests the ability of the radiation solver to
 operate in the free-streaming limit. A radiation front is
-estabilished by initializing one end of the computational domain with
+established by initializing one end of the computational domain with
 a finite radiation field, and zero radiation field everywhere else.
 The speed of propagation of the radiation front is keep in check by
 the flux-limiters, to prevent it from exceeding :math:`c`.

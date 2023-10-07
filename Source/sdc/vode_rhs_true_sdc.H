@@ -12,7 +12,7 @@
 #include <actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
-
+#include <sdc_cons_to_burn.H>
 #include <burner.H>
 
 
@@ -55,20 +55,7 @@ sdc_vode_solve(const Real dt_m,
 
     // store the state
 
-    burn_state.y[SRHO] = U_old[URHO];
-    burn_state.y[SMX] = U_old[UMX];
-    burn_state.y[SMY] = U_old[UMY];
-    burn_state.y[SMZ] = U_old[UMZ];
-    burn_state.y[SEDEN] = U_old[UEDEN];
-    burn_state.y[SEINT] = U_old[UEINT];
-    for (int n = 0; n < NumSpec; n++) {
-        burn_state.y[SFS+n] = U_old[UFS+n];
-    }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; n++) {
-        burn_state.y[SFX+n] = U_old[UFX+n];
-    }
-#endif
+    copy_cons_to_burn_type(U_old, burn_state);
 
     // we need an initial T guess for the EOS
     burn_state.T = U_old[UTEMP];
