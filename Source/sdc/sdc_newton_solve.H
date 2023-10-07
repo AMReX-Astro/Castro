@@ -27,23 +27,11 @@ f_sdc_jac(const Real dt_m,
     // from the current solution U
 
 
-    // normalize the species
-    auto sum_rhoX = 0.0_rt;
-    for (int n = 0; n < NumSpec; ++n) {
-        // TODO: this should have a rho weighting on small_x
-        burn_state.y[SFS+n] = amrex::max(network_rp::small_x, burn_state.y[SFS+n]);
-        sum_rhoX += burn_state.y[SFS+n];
-    }
-
-    for (int n = 0; n < NumSpec; ++n) {
-        burn_state.y[SFS+n] *= burn_state.y[SRHO] / sum_rhoX;
-    }
-
     // compute the temperature -- this can be removed shortly, since
     // we already do this in single_zone_react_source
 
     for (int n = 0; n < NumSpec; ++n) {
-        burn_state.xn[n] = burn_state.y[SFS+n] / burn_state.y[SRHO];
+        burn_state.xn[n] = std::max(network_rp::small_x, std::min(1.0_rt, burn_state.y[SFS+n] / burn_state.y[SRHO]));
     }
 #if NAUX_NET > 0
     amrex::Error("error: aux data not currently supported in true SDC");
