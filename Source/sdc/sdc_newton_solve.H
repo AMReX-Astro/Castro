@@ -134,9 +134,6 @@ sdc_newton_solve(const Real dt_m,
     copy_cons_to_burn_type(U_new, burn_state);
     burn_state.rho = U_new[URHO];
 
-    // initial guess
-    burn_state.T = U_old[UTEMP];
-
     // for the Jacobian solve, we are solving
     //   f(U) = U - dt R(U) - U_old - dt C = 0
     // we define f_source = U_old + dt C so we are solving
@@ -161,6 +158,9 @@ sdc_newton_solve(const Real dt_m,
 
         // burn_state.y[] will always contain the current guess for the solution
         // only the species and internal energy are updated though
+
+        // initial guess
+        burn_state.T = U_old[UTEMP];
 
         int info = 0;
         f_sdc_jac(dt_m, burn_state, f, Jac);
