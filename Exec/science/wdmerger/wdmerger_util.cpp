@@ -556,8 +556,9 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
-    // Use the smallest dx on the finest possible level for determining the resolution
-    // of the initial model.
+    // Scale the resolution of the initial model based on dx on the finest possible level.
+    // Make sure that our resolution is a significant factor better than that dx, and factor
+    // in sub-grid sampling if we're using that.
 
     auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
     auto fine_dx = fine_geom.CellSizeArray();
@@ -569,6 +570,10 @@ void binary_setup ()
 #if AMREX_SPACEDIM == 3
     initial_model_dx = std::min(initial_model_dx, fine_dx[2]);
 #endif
+
+    const Real resolution_safety_factor = 10.0_rt;
+
+    initial_model_dx /= (resolution_safety_factor * problem::nsub);
 
     establish_hse(problem::mass_P, problem::central_density_P, problem::radius_P,
                   problem::core_comp_P, problem::stellar_temp, initial_model_dx,
