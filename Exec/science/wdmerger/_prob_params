@@ -61,6 +61,11 @@ single_star                     integer               0                        n
 
 # 1D initial model parameters
 
+# For the grid spacing for our model, we'll scale up the resolution on the finest level
+# by this factor. The resolution will be further enhanced by a factor of nsub.
+
+initial_model_dx_factor         real                  10.0_rt                  y
+
 # Composition properties of initial models.
 # We follow the prescription of Dan et al. 2012 for determining
 # the composition of the WDs. In this approach, below a certain 

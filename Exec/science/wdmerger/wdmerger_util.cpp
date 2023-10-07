@@ -571,9 +571,7 @@ void binary_setup ()
     initial_model_dx = std::min(initial_model_dx, fine_dx[2]);
 #endif
 
-    const Real resolution_safety_factor = 10.0_rt;
-
-    initial_model_dx /= (resolution_safety_factor * problem::nsub);
+    initial_model_dx /= (problem::initial_model_dx_factor * problem::nsub);
 
     establish_hse(problem::mass_P, problem::central_density_P, problem::radius_P,
                   problem::core_comp_P, problem::stellar_temp, initial_model_dx,
