@@ -3,26 +3,6 @@
 
 #include <AMReX_BLFort.H>
 
-#ifdef __cplusplus
-#include <AMReX.H>
-extern "C"
-{
-#endif
-
-
-#ifdef AUX_UPDATE
-  void ca_auxupdate
-    (BL_FORT_FAB_ARG(state_old),
-     BL_FORT_FAB_ARG(state_new),
-     const int* lo, const int* hi,
-     const amrex::Real * dt);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-
 #ifdef MAESTRO_INIT
 BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
   (const int* lo, const int* hi, const int& MAESTRO_init_type,

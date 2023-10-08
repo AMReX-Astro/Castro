@@ -997,16 +997,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef AUX_UPDATE
-
-///
-/// Calculate auxiliary variables at new timestep
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void advance_aux(amrex::Real time, amrex::Real dt);
-#endif
 
 
 // Hydrodynamics
