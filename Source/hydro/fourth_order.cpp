@@ -37,53 +37,30 @@ Castro::fourth_interfaces(const Box& bx,
       // interpolate to the edges -- this is a_{i-1/2}
       // note for non-periodic physical boundaries, we use a special stencil
 
-      if (i == domlo[0]+1 && lo_bc[0] != Interior) {
+      if (i == domlo[0]+1 && lo_bc[0] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i-1,j,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i+1,j,k,ncomp) + a(i+2,j,k,ncomp));
 
-      } else if (i == domlo[0] && lo_bc[0] != Interior) {
+      } else if (i == domlo[0] && lo_bc[0] == Symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i+1,j,k,ncomp) +
                                          13.0_rt*a(i+2,j,k,ncomp) - 3.0_rt*a(i+3,j,k,ncomp));
 
-      } else if (i == domhi[0] && hi_bc[0] != Interior) {
+      } else if (i == domhi[0] && hi_bc[0] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i-1,j,k,ncomp) -
                                          5.0_rt*a(i-2,j,k,ncomp) + a(i-3,j,k,ncomp));
 
-      } else if (i == domhi[0]+1 && hi_bc[0] != Interior) {
+      } else if (i == domhi[0]+1 && hi_bc[0] == Symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i-1,j,k,ncomp) - 23.0_rt*a(i-2,j,k,ncomp) +
                                          13.0_rt*a(i-3,j,k,ncomp) - 3.0_rt*a(i-4,j,k,ncomp));
 
-#if 0
-      } else if (i == domlo[0]-1 && lo_bc[0] == Outflow) {
-        // extrapolate to the domlo[0]-1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(domlo[0],j,k,ncomp) - 6.0_rt*a(domlo[0]+1,j,k,ncomp) + 4.0_rt*a(domlo[0]+2,j,k,ncomp) - a(domlo[0]+3,j,k,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i+1,j,k,ncomp) +
-                                         13.0_rt*a(i+2,j,k,ncomp) - 3.0_rt*a(i+3,j,k,ncomp));
-
-      } else if (i == domhi[0]+2 && hi_bc[0] == Outflow) {
-        // extrapolate to the domhi[0]+1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(domhi[0],j,k,ncomp) - 6.0_rt*a(domhi[0]-1,j,k,ncomp) + 4.0_rt*a(domhi[0]-2,j,k,ncomp) - a(domhi[0]-3,j,k,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i-2,j,k,ncomp) +
-                                         13.0_rt*a(i-3,j,k,ncomp) - 3.0_rt*a(i-4,j,k,ncomp));
-#endif
       } else {
         // regular stencil
         a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,ncomp) + a(i,j,k,ncomp)) -
@@ -101,53 +78,29 @@ Castro::fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (j == domlo[1]+1 && lo_bc[1] != Interior) {
+      if (j == domlo[1]+1 && lo_bc[1] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j-1,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j+1,k,ncomp) + a(i,j+2,k,ncomp));
 
-      } else if (j == domlo[1] && lo_bc[1] != Interior) {
+      } else if (j == domlo[1] && lo_bc[1] == Symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j+1,k,ncomp) +
                                          13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp));
 
-      } else if (j == domhi[1] && hi_bc[1] != Interior) {
+      } else if (j == domhi[1] && hi_bc[1] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j-1,k,ncomp) -
                                          5.0_rt*a(i,j-2,k,ncomp) + a(i,j-3,k,ncomp));
 
-      } else if (j == domhi[1]+1 && hi_bc[1] != Interior) {
+      } else if (j == domhi[1]+1 && hi_bc[1] == Symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j-1,k,ncomp) - 23.0_rt*a(i,j-2,k,ncomp) +
                                          13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp));
-
-#if 0
-      } else if (j == domlo[1]-1 && lo_bc[1] == Outflow) {
-        // extrapolate to the domlo[1]-1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(i,domlo[1],k,ncomp) - 6.0_rt*a(i,domlo[1]+1,k,ncomp) + 4.0_rt*a(i,domlo[1]+2,k,ncomp) - a(i,domlo[1]+3,k,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j+1,k,ncomp) +
-                                         13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp));
-
-      } else if (j == domhi[1]+2 && hi_bc[1] == Outflow) {
-        // extrapolate to the domhi[1]+1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(i,domhi[1],k,ncomp) - 6.0_rt*a(i,domhi[1]-1,k,ncomp) + 4.0_rt*a(i,domhi[1]-2,k,ncomp) - a(i,domhi[1]-3,k,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j-2,k,ncomp) +
-                                         13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp));
-#endif
 
       } else {
         // regular stencil
@@ -167,53 +120,29 @@ Castro::fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (k == domlo[2]+1 && lo_bc[2] != Interior) {
+      if (k == domlo[2]+1 && lo_bc[2] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k-1,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j,k+1,ncomp) + a(i,j,k+2,ncomp));
 
-      } else if (k == domlo[2] && lo_bc[2] != Interior) {
+      } else if (k == domlo[2] && lo_bc[2] == Symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j,k+1,ncomp) +
                                          13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp));
 
-      } else if (k == domhi[2] && hi_bc[2] != Interior) {
+      } else if (k == domhi[2] && hi_bc[2] == Symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j,k-1,ncomp) -
                                          5.0_rt*a(i,j,k-2,ncomp) + a(i,j,k-3,ncomp));
 
-      } else if (k == domhi[2]+1 && hi_bc[2] != Interior) {
+      } else if (k == domhi[2]+1 && hi_bc[2] == Symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,ncomp) - 23.0_rt*a(i,j,k-2,ncomp) +
                                          13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
-
-#if 0
-      } else if (k == domlo[2]-1 && lo_bc[2] == Outflow) {
-        // extrapolate to the domlo[2]-1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(i,j,domlo[2],ncomp) - 6.0_rt*a(i,j,domlo[2]+1,ncomp) + 4.0_rt*a(i,j,domlo[2]+2,ncomp) - a(i,j,domlo[2]+3,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k+1,ncomp) +
-                                         13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp));
-
-      } else if (k == domhi[2]+2 && hi_bc[2] == Outflow) {
-        // extrapolate to the domhi[2]+1 cell using a
-        // conservative cubic polynomial averaged over
-        // the cell
-        Real ac = 4.0_rt*a(i,j,domhi[2],ncomp) - 6.0_rt*a(i,j,domhi[2]-1,ncomp) + 4.0_rt*a(i,j,domhi[2]-2,ncomp) - a(i,j,domhi[2]-3,ncomp);
-
-        // now use the 1-sided stencil from above with
-        // this extrapolated value
-        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k-2,ncomp) +
-                                         13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
-#endif
 
       } else {
         // regular stencil
