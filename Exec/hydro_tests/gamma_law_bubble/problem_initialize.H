@@ -28,8 +28,14 @@ void problem_initialize ()
     // first make a 1D initial model for the entire domain
     // we'll create it ourselves, but hook it into the model_parser
 
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
+
     int nx = (2.0_rt * problem::center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
-        problem::dx_model;
+        dx_model;
 
     model_t model_params;
     model_params.p_base = problem::pres_base;
