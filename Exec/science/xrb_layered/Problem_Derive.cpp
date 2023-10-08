@@ -1,9 +1,7 @@
 #include <AMReX_REAL.H>
 
 #include <Derive.H>
-#include <Problem_Derive_F.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <model_parser.H>
 
 using namespace amrex;

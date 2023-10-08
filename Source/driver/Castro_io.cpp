@@ -10,7 +10,6 @@
 
 #include <AMReX_Utility.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 

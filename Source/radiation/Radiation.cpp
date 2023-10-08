@@ -4,7 +4,6 @@
 #include <RadSolve.H>
 #include <rad_util.H>
 #include <filt_prim.H>
-#include <Castro_F.H>
 
 #include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>

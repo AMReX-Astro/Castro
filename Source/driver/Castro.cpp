@@ -15,7 +15,6 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -2533,36 +2532,6 @@ Castro::okToContinue ()
 
     return test;
 }
-
-#ifdef AUX_UPDATE
-void
-Castro::advance_aux(Real time, Real dt)
-{
-    BL_PROFILE("Castro::advance_aux()");
-
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-      std::cout << "... special update for auxiliary variables \n";
-    }
-
-    MultiFab&  S_old = get_old_data(State_Type);
-    MultiFab&  S_new = get_new_data(State_Type);
-
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& box = mfi.tilebox();
-        FArrayBox& old_fab = S_old[mfi];
-        FArrayBox& new_fab = S_new[mfi];
-        void ca_auxupdate(BL_TO_FORTRAN(old_fab),
-                          BL_TO_FORTRAN(new_fab),
-                          box.loVect(), box.hiVect(),
-                          &dt);
-    }
-}
-#endif
-
 
 void
 Castro::FluxRegCrseInit() {
