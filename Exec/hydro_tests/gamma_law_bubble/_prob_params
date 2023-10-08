@@ -9,5 +9,3 @@ y_pert_center     real           0.7_rt      y
 pert_width        real           0.025_rt    y
 
 do_isentropic     integer        0           y
-
-dx_model          real           0.00390625  y

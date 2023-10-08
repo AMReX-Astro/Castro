@@ -53,11 +53,6 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 
-BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
-   (const BL_FORT_FAB_ARG(Er), const BL_FORT_FAB_ARG(kap), 
-    BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
-    const int* filter_lambda_T, const int* filter_lambda_S);
- 
 #ifdef __cplusplus
 extern "C" {
 #endif

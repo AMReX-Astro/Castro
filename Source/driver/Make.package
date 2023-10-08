@@ -30,8 +30,9 @@ CEXE_sources += Derive.cpp
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 
-CEXE_headers      += Castro_util.H
-CEXE_headers      += math.H
+CEXE_headers += Castro_util.H
+CEXE_headers += global.H
+CEXE_headers += math.H
 
 NEED_MGUTIL =
 
