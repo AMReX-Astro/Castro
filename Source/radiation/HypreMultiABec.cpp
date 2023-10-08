@@ -3909,7 +3909,6 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
 
         for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
@@ -3943,7 +3942,6 @@ void HypreMultiABec::boundaryFlux(int level,
                         sp_arr = (*SPa[level])[mfi].array();
                     }
 
-                    getFaceMetric(r, reg, oitr(), geom[level]);
                     HABEC::hbflx3(Flux[idim][mfi].array(),
                                   Soln[mfi].array(icomp),
                                   reg,
@@ -3954,7 +3952,8 @@ void HypreMultiABec::boundaryFlux(int level,
                                   msk.array(),
                                   (*bcoefs[level])[idim][mfi].array(),
                                   beta, geom[level].CellSize(),
-                                  flux_factor, r.dataPtr(), inhom,
+                                  flux_factor, oitr(),
+                                  geom[level].data(), inhom,
                                   sp_arr);
                 }
                 else {

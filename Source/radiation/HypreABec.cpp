@@ -255,12 +255,11 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
     
     const NGBndry& bd = getBndry();
     const Box& domain = bd.getDomain();
-    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
         
         for (MFIter si(Soln); si.isValid(); ++si) {
@@ -290,7 +289,6 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                     if (SPa != 0) {
                         sp_arr = (*SPa)[si].array();
                     }
-                    getFaceMetric(r, reg, oitr(), geom);
                     HABEC::hbflx3(Flux[idim][si].array(),
                                   Soln[si].array(icomp),
                                   reg,
@@ -300,7 +298,8 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                                   fs.array(bdcomp),
                                   msk.array(),
                                   (*bcoefs[idim])[si].array(),
-                                  beta, dx, flux_factor, r.dataPtr(), inhom,
+                                  beta, dx, flux_factor,
+                                  oitr(), geom.data(), inhom,
                                   sp_arr);
                 }
                 else {
