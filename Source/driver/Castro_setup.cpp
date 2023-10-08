@@ -12,7 +12,6 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
