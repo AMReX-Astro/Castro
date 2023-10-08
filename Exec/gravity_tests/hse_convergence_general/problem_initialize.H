@@ -7,6 +7,7 @@
 #include <initial_model.H>
 #include <network.H>
 #include <ambient.H>
+#include <global.H>
 
 AMREX_INLINE
 void problem_initialize ()
