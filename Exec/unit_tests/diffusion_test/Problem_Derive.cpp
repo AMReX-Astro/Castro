@@ -2,7 +2,6 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <prob_parameters.H>
 #include <prob_util.H>
 

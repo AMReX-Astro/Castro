@@ -1,6 +1,5 @@
 #ifdef SPONGE
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
