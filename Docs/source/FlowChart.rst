@@ -176,17 +176,6 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantity evolution*
-
-   Auxiliary variables in Castro are those that obey a continuity
-   equation (with optional sources) that are passed into the EOS, but
-   not subjected to the constraint on mass fractions (summing to one).
-
-   The advection and source terms are already dealt with in the
-   main hydrodynamics advance (above step). A user-supplied routine
-   ca_auxupdate can be provided here to further update these
-   quantities.
-
 #. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
