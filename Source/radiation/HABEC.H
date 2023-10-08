@@ -278,7 +278,7 @@ namespace HABEC
         }
 #endif
 
-        amrex::Loop(reg, [=] (int i, int j, int k) noexcept
+        amrex::LoopOnCpu(reg, [=] (int i, int j, int k) noexcept
         {
             Real r;
             face_metric(i, j, k, reg.loVect()[0], reg.hiVect()[0], geomdata, ori.coordDir(), ori.isLow(), r);
