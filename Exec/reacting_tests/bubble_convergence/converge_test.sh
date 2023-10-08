@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# echo the commands
+set -x
+
 EXEC=./Castro2d.gnu.MPI.TRUESDC.ex
 
 CONV_TOOL=RichardsonConvergenceTest2d.gnu.ex 
