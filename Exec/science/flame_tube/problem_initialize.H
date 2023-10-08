@@ -8,6 +8,7 @@
 #include <model_parser.H>
 #include <initial_model.H>
 #include <ambient.H>
+#include <global.H>
 
 AMREX_INLINE
 void problem_initialize ()
