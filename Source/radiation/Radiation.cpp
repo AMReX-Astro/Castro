@@ -1220,7 +1220,7 @@ void Radiation::extrapolateBorders(MultiFab& f, int indx)
 #endif
     for (MFIter mfi(f); mfi.isValid(); ++mfi) {
         // Note no tiling in the current implementation.
-        const Box& bx = mfi.box();
+        const Box& bx = mfi.validbox();
         const Box& grownbx = amrex::grow(bx, 1);
 
         Array4<Real> const f_arr = f[mfi].array(indx);
