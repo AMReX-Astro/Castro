@@ -53,15 +53,6 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 
-// <MGFLD>
-#ifdef __cplusplus
-extern "C" {
-#endif
-void ca_initfluxlimiter
-   (const int* limiter, const int* closure);
-#ifdef __cplusplus
-}
-#endif
 
 extern "C"
 {
