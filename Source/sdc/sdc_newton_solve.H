@@ -15,12 +15,9 @@ constexpr int CONVERGENCE_FAILURE = -2;
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 f_sdc_jac(const Real dt_m,
-          Array1D<Real, 1, NumSpec+1> const& U,
+          burn_t& burn_state,
           Array1D<Real, 1, NumSpec+1>& f,
-          JacNetArray2D& Jac,
-          Array1D<Real, 1, NumSpec+1>& f_source,
-          const Real rho,
-          const Real T_old) {
+          JacNetArray2D& Jac) {
 
     // This is used with the Newton solve and returns f and the Jacobian
 
@@ -29,30 +26,10 @@ f_sdc_jac(const Real dt_m,
     // create a burn_t -- this will hold the full state, reconstructed
     // from the current solution U
 
-    burn_t burn_state;
-
-    burn_state.y[SRHO] = rho;
-
-    for (int n = 0; n < NumSpec; ++n) {
-        burn_state.y[SFS+n] = U(n+1);
-    }
-
-    burn_state.y[SEINT] = U(NumSpec+1);
-
-    // we are not solving or accessing the momentum or total energy,
-    // so we'll just set those to zero here
-
-    for (int n = 0; n < 3; ++n) {
-        burn_state.y[SMX+n] = 0.0_rt;
-    }
-
-    burn_state.y[SEDEN] = 0.0_rt;
 
     // compute the temperature -- this can be removed shortly, since
     // we already do this in single_zone_react_source
 
-    burn_state.rho = burn_state.y[SRHO];
-    burn_state.T = T_old;   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
         burn_state.xn[n] = std::max(network_rp::small_x, std::min(1.0_rt, burn_state.y[SFS+n] / burn_state.y[SRHO]));
     }
@@ -71,9 +48,9 @@ f_sdc_jac(const Real dt_m,
     // note: we store -f
 
     for (int n = 1; n <= NumSpec; ++n) {
-        f(n) = -U(n) + dt_m * R_full[UFS-1+n] + f_source(n);
+        f(n) = -burn_state.y[SFS-1+n] + dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
     }
-    f(NumSpec+1) = -U(NumSpec+1) + dt_m * R_full[UEINT] + f_source(NumSpec+1);
+    f(NumSpec+1) = -burn_state.y[SEINT] + dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
 
     // get the Jacobian.
 
@@ -126,8 +103,6 @@ sdc_newton_solve(const Real dt_m,
     // 1:NumSpec : species
     // NumSpec+1 : (rho e)
 
-    Array1D<Real, 1, NumSpec+1> U_react;
-    Array1D<Real, 1, NumSpec+1> f_source;
     Array1D<Real, 1, NumSpec+1> f;
 
     const int MAX_ITER = 100;
@@ -142,37 +117,22 @@ sdc_newton_solve(const Real dt_m,
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
 
-    // now only save the subset that participates in the
-    // nonlinear solve -- note: we include the old state in
-    // f_source
+    burn_t burn_state;
+
+    copy_cons_to_burn_type(U_new, burn_state);
+    burn_state.rho = U_new[URHO];
 
     // for the Jacobian solve, we are solving
     //   f(U) = U - dt R(U) - U_old - dt C = 0
     // we define f_source = U_old + dt C so we are solving
     //   f(U) = U - dt R(U) - f_source = 0
+    //
+    // we'll store this in the burn_t ydot_a[]
 
     for (int n = 0; n < NumSpec; ++n) {
-        f_source(1 + n) = U_old[UFS + n] + dt_m * C[UFS + n];
+        burn_state.ydot_a[SFS + n] = U_old[UFS + n] + dt_m * C[UFS + n];
     }
-    f_source(NumSpec+1) = U_old[UEINT] + dt_m * C[UEINT];
-
-    // temperature will be used as an initial guess in the EOS
-
-    Real T_old = U_old[UTEMP];
-
-    // we need the density too
-
-    Real rho_new = U_new[URHO];
-
-    // store the subset for the nonlinear solve
-    // We use an initial guess if possible
-
-    for (int n = 0; n < NumSpec; ++n) {
-        U_react(1+n) = U_new[UFS+n];
-    }
-    U_react(NumSpec+1) = U_new[UEINT];
-
-#if (INTEGRATOR == 0)
+    burn_state.ydot_a[SEINT] = U_old[UEINT] + dt_m * C[UEINT];
 
     // do a simple Newton solve
 
@@ -183,8 +143,15 @@ sdc_newton_solve(const Real dt_m,
     bool converged = false;
 
     while (!converged && iter < MAX_ITER) {
+
+        // burn_state.y[] will always contain the current guess for the solution
+        // only the species and internal energy are updated though
+
+        // initial guess
+        burn_state.T = U_old[UTEMP];
+
         int info = 0;
-        f_sdc_jac(dt_m, U_react, f, Jac, f_source, rho_new, T_old);
+        f_sdc_jac(dt_m, burn_state, f, Jac);
 
         // solve the linear system: Jac dU = -f
 #ifdef NEW_NETWORK_IMPLEMENTATION
@@ -206,9 +173,10 @@ sdc_newton_solve(const Real dt_m,
 #endif
 
         // on output, f is the solution (dU)
-        for (int n = 1; n <= NumSpec+1; ++n) {
-            U_react(n) += f(n);
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.y[SFS+n] += f(n + 1);
         }
+        burn_state.y[SEINT] += f(NumSpec+1);
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
@@ -219,10 +187,10 @@ sdc_newton_solve(const Real dt_m,
             if (n < NumSpec+1) {
                 // for species, atol is the mass fraction limit, so we
                 // multiply by density to get a partial density limit
-                eps = integrator_rp::rtol_spec * std::abs(U_react(n)) +
+                eps = integrator_rp::rtol_spec * std::abs(burn_state.y[SFS-1+n]) +
                       integrator_rp::atol_spec * std::abs(U_new[URHO]);
             } else {
-                eps = integrator_rp::rtol_enuc * std::abs(U_react(NumSpec+1)) +
+                eps = integrator_rp::rtol_enuc * std::abs(burn_state.y[SEINT]) +
                       integrator_rp::atol_enuc;
             }
             err_sum += f(n) * f(n) / (eps * eps);
@@ -242,19 +210,17 @@ sdc_newton_solve(const Real dt_m,
         return;
     }
 
-#endif
-
     // update the full U_new
 
     for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS+n] = U_react(1+n);
+        U_new[UFS+n] = burn_state.y[SFS+n];
     }
     auto v2 = 0.0_rt;
     for (int m = 0; m < 3; ++m) {
         v2 += U_new[UMX+m] * U_new[UMX+m];
     }
 
-    U_new[UEINT] = U_react(NumSpec+1);
+    U_new[UEINT] = burn_state.y[SEINT];
     U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 
 }
