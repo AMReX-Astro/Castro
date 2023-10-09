@@ -350,20 +350,18 @@ namespace HABEC
                     if (inhom == 0) {
                         bfv = 0.e0_rt;
                     }
-                    flux(i+iep,j+jep,k+kep) = (bfv * bcval(i+icp,j+jcp,k+kcp) - bfm * er(i,j,k));
+
+                    Real flux_sign = 1.0_rt;
+                    if (iep != 0 || jep != 0 || kep != 0) {
+                        // right edge
+                        flux_sign = -1.0_rt;
+                    }
+
+                    flux(i+iep,j+jep,k+kep) = flux_sign * (bfv * bcval(i+icp,j+jcp,k+kcp) - bfm * er(i,j,k));
 
                     if (bho >= 1) {
-                        Real df = 0.0_rt;
-                        if (iep == 0 && jep == 0 && kep == 0) {
-                            // left edge
-                            df = -bfm2 * er(i-icp,j-jcp,k-kcp);
-                        }
-                        else {
-                            // right edge
-                            df = bfm2 * er(i-icp,j-jcp,k-kcp);
-                        }
-
-                        flux(i+iep,j+jep,k+kep) += df;
+                        Real df = -bfm2 * er(i-icp,j-jcp,k-kcp);
+                        flux(i+iep,j+jep,k+kep) -= flux_sign * df;
                     }
                 }
             }
