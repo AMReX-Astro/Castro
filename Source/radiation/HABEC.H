@@ -220,61 +220,73 @@ namespace HABEC
         // Index shift for whichever edge we're checking.
         // Negative means we're looking at the lo edge,
         // positive means we're looking at the hi edge.
+        // The first group is for cell centers, the second
+        // group is for cell edges.
 
-        int ip = 0;
-        int jp = 0;
-        int kp = 0;
+        int icp = 0;
+        int jcp = 0;
+        int kcp = 0;
+
+        int iep = 0;
+        int jep = 0;
+        int kep = 0;
 
 #if AMREX_SPACEDIM == 1
         if (cdir == 0) {
             h = dx[0];
-            ip = -1;
+            icp = -1;
         }
         else if (cdir == 1) {
             h = dx[0];
-            ip = 1;
+            icp = 1;
+            iep = 1;
         }
 #elif AMREX_SPACEDIM == 2
         if (cdir == 0) {
             h = dx[0];
-            ip = -1;
+            icp = -1;
         }
         else if (cdir == 2) {
             h = dx[0];
-            ip = 1;
+            icp = 1;
+            iep = 1;
         }
         else if (cdir == 1) {
             h = dx[1];
-            jp = -1;
+            jcp = -1;
         }
         else if (cdir == 3) {
             h = dx[1];
-            jp = 1;
+            jcp = 1;
+            jep = 1;
         }
 #else
         if (cdir == 0) {
             h = dx[0];
-            ip = -1;
+            icp = -1;
         }
         else if (cdir == 3) {
             h = dx[0];
-            ip = 1;
+            icp = 1;
+            iep = 1;
         }
         else if (cdir == 1) {
             h = dx[1];
-            jp = -1;
+            jcp = -1;
         }
         else if (cdir == 4) {
             h = dx[1];
-            jp = 1;
+            jcp = 1;
+            jep = 1;
         }
         else if (cdir == 2) {
             h = dx[2];
-            kp = -1;
+            kcp = -1;
         }
         else if (cdir == 5) {
             h = dx[2];
-            kp = 1;
+            kcp = 1;
+            kep = 1;
         }
 #endif
 
@@ -286,10 +298,10 @@ namespace HABEC
             Real bfv, bfm, bfm2, h2, th2;
             int bct;
 
-            if (mask.contains(i+ip,j+jp,k+kp)) {
-                if (mask(i+ip,j+jp,k+kp) > 0) {
+            if (mask.contains(i+icp,j+jcp,k+kcp)) {
+                if (mask(i+icp,j+jcp,k+kcp) > 0) {
                     if (bctype == -1) {
-                        bct = tf(i+ip,j+jp,k+kp);
+                        bct = tf(i+icp,j+jcp,k+kcp);
                     }
                     else {
                         bct = bctype;
@@ -338,9 +350,15 @@ namespace HABEC
                     if (inhom == 0) {
                         bfv = 0.e0_rt;
                     }
-                    flux(i,j,k) = (bfv * bcval(i+ip,j+jp,k+kp) - bfm * er(i,j,k));
+                    flux(i+iep,j+jep,k+kep) = (bfv * bcval(i+icp,j+jcp,k+kcp) - bfm * er(i,j,k));
                     if (bho >= 1) {
-                        flux(i,j,k) = flux(i,j,k) - bfm2 * er(i-ip,j-jp,k-kp);
+                        Real df = bfm2 * er(i-icp,j-jcp,k-kcp);
+                        if (iep == 0) {
+                            // left edge
+                            df = -df;
+                        }
+
+                        flux(i+iep,j+jep,k+kep) += df;
                     }
                 }
             }
