@@ -4,6 +4,8 @@
 #include <AMReX_Array4.H>
 #include <AMReX_REAL.H>
 
+#include <rad_util.H>
+
 using namespace amrex;
 
 namespace HABEC
@@ -35,37 +37,37 @@ namespace HABEC
 #if AMREX_SPACEDIM == 1
         if (cdir == 0) {
             h = dx[0];
-            x_left= true;
+            x_left = true;
         }
         else if (cdir == 1) {
             h = dx[0];
-            x_right= true;
+            x_right = true;
         }
 #elif AMREX_SPACEDIM == 2
         if (cdir == 0) {
             h = dx[0];
-            x_left= true;
+            x_left = true;
         }
         else if (cdir == 2) {
             h = dx[0];
-            x_right= true;
+            x_right = true;
         }
         else if (cdir == 1) {
             h = dx[1];
-            y_left= true;
+            y_left = true;
         }
         else if (cdir == 3) {
             h = dx[1];
-            y_right= true;
+            y_right = true;
         }
 #else
         if (cdir == 0) {
             h = dx[0];
-            x_left= true;
+            x_left = true;
         }
         else if (cdir == 3) {
             h = dx[0];
-            x_right= true;
+            x_right = true;
         }
         else if (cdir == 1) {
             h = dx[1];
@@ -198,6 +200,173 @@ namespace HABEC
         }
     }
 
+    AMREX_INLINE
+    void hbflx3 (Array4<Real> const flux,
+                 Array4<Real const> const er,
+                 const Box& reg,
+                 int cdir, int bctype,
+                 Array4<int const> const tf,
+                 int bho, Real bcl,
+                 Array4<Real const> const bcval,
+                 Array4<int const> const mask,
+                 Array4<Real const> const b,
+                 Real beta, const Real* const dx, Real c,
+                 const Orientation& ori,
+                 const GeometryData& geomdata, int inhom,
+                 Array4<Real const> const spa)
+    {
+        Real h;
+
+        // Index shift for whichever edge we're checking.
+        // Negative means we're looking at the lo edge,
+        // positive means we're looking at the hi edge.
+        // The first group is for cell centers, the second
+        // group is for cell edges.
+
+        int icp = 0;
+        int jcp = 0;
+        int kcp = 0;
+
+        int iep = 0;
+        int jep = 0;
+        int kep = 0;
+
+#if AMREX_SPACEDIM == 1
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 1) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+#elif AMREX_SPACEDIM == 2
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 2) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+#else
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 4) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+        else if (cdir == 2) {
+            h = dx[2];
+            kcp = -1;
+        }
+        else if (cdir == 5) {
+            h = dx[2];
+            kcp = 1;
+            kep = 1;
+        }
+#endif
+
+        amrex::LoopOnCpu(reg, [=] (int i, int j, int k) noexcept
+        {
+            Real r;
+            face_metric(i, j, k, reg.loVect()[0], reg.hiVect()[0], geomdata, ori.coordDir(), ori.isLow(), r);
+
+            Real bfv, bfm, bfm2, h2, th2;
+            int bct;
+
+            if (mask.contains(i+icp,j+jcp,k+kcp)) {
+                if (mask(i+icp,j+jcp,k+kcp) > 0) {
+                    if (bctype == -1) {
+                        bct = tf(i+icp,j+jcp,k+kcp);
+                    }
+                    else {
+                        bct = bctype;
+                    }
+                    if (bct == LO_DIRICHLET) {
+                        if (bho >= 1) {
+                            h2 = 0.5e0_rt * h;
+                            th2 = 3.e0_rt * h2;
+                            bfv = 2.e0_rt * beta * h / ((bcl + h2) * (bcl + th2)) * b(i,j,k);
+                            bfm = (beta / h) * (th2 - bcl) / (bcl + h2)  * b(i,j,k);
+                            bfm2 = (beta / h) * (bcl - h2) / (bcl + th2) * b(i,j,k);
+                        }
+                        else {
+                            bfv = beta / (0.5e0_rt * h + bcl) * b(i,j,k);
+                            bfm = bfv;
+                        }
+                    }
+                    else if (bct == LO_NEUMANN) {
+                        bfv  = beta * r;
+                        bfm  = 0.e0_rt;
+                        bfm2 = 0.e0_rt;
+                    }
+                    else if (bct == LO_MARSHAK) {
+                        bfv = 2.e0_rt * beta * r;
+                        if (bho >= 1) {
+                            bfm  =  0.375e0_rt * c * bfv;
+                            bfm2 = -0.125e0_rt * c * bfv;
+                        }
+                        else {
+                            bfm = 0.25e0_rt * c * bfv;
+                        }
+                    }
+                    else if (bct == LO_SANCHEZ_POMRANING) {
+                        bfv = 2.e0_rt * beta * r;
+                        if (bho >= 1) {
+                            bfm =   1.5e0_rt * spa(i,j,k) * c * bfv;
+                            bfm2 = -0.5e0_rt * spa(i,j,k) * c * bfv;
+                        }
+                        else {
+                            bfm = spa(i,j,k) * c * bfv;
+                        }
+                    }
+                    else {
+                        amrex::Error("hbflx3: unsupported boundary type");
+                    }
+                    if (inhom == 0) {
+                        bfv = 0.e0_rt;
+                    }
+
+                    Real flux_sign = 1.0_rt;
+                    if (iep != 0 || jep != 0 || kep != 0) {
+                        // right edge
+                        flux_sign = -1.0_rt;
+                    }
+
+                    flux(i+iep,j+jep,k+kep) = flux_sign * (bfv * bcval(i+icp,j+jcp,k+kcp) - bfm * er(i,j,k));
+
+                    if (bho >= 1) {
+                        Real df = -bfm2 * er(i-icp,j-jcp,k-kcp);
+                        flux(i+iep,j+jep,k+kep) -= flux_sign * df;
+                    }
+                }
+            }
+        });
+    }
 } // namespace HABEC
 
 #endif
