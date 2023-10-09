@@ -431,7 +431,7 @@ namespace HABEC
         else if (cdir == 3) {
             h = dx[0];
             icp = 1;
-            oep = 1;
+            iep = 1;
         }
         else if (cdir == 1) {
             h = dx[1];
