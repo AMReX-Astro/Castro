@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_util.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -14,9 +13,14 @@
 
 using namespace amrex;
 
-void
+advance_status
 Castro::construct_ctu_hydro_source(Real time, Real dt)
 {
+  advance_status status {};
+
+  if (!do_hydro) {
+      return status;
+  }
 
 #ifndef TRUE_SDC
 
@@ -28,14 +32,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // divergence) using the CTU framework for unsplit hydrodynamics
 
   if (verbose) {
-      amrex::Print() << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Entering construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
   int coord = geom.Coord();
 #endif
 
@@ -211,7 +215,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const rho_inv_arr = rho_inv.array();
 
       amrex::ParallelFor(qbx3,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
       });
@@ -263,7 +267,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
       else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
           shk_arr(i,j,k) = 0.0;
         });
@@ -280,7 +284,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
       amrex::ParallelFor(qbx3,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
@@ -1165,7 +1169,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1237,7 +1241,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto dx_arr = geom.CellSizeArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
           GpuArray<Real, 3> loc;
@@ -1309,14 +1313,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
             // get the scaled radial pressure -- we need to treat this specially
 #if AMREX_SPACEDIM <= 2
-
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-#endif
                 amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
@@ -1341,7 +1340,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
 
             amrex::ParallelFor(mfi.nodaltilebox(idir), NUM_STATE,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
@@ -1351,24 +1350,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
 
             amrex::ParallelFor(mfi.nodaltilebox(idir), Radiation::nGroups,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
 #endif
 
 #if AMREX_SPACEDIM <= 2
-
-#if AMREX_SPACEDIM == 1
-            if (idir == 0 && !Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-#endif
                 Array4<Real> pradial_fab = pradial.array();
                 Array4<Real> P_radial_fab = P_radial.array(mfi);
 
                 amrex::ParallelFor(mfi.nodaltilebox(0),
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
@@ -1382,7 +1376,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
         amrex::ParallelFor(mfi.nodaltilebox(idir),
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             // This is a copy, not an add, since we need mass_fluxes to be
             // only this subcycle's data when we evaluate the gravitational
@@ -1481,8 +1475,45 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
+  // Check for small/negative densities and X > 1 or X < 0.
+
+  status = check_for_negative_density();
+
+  if (status.success == false) {
+      return status;
+  }
+
+  // Sync up state after hydro source.
+
+  clean_state(
+#ifdef MHD
+               Bx_new, By_new, Bz_new,
+#endif
+               S_new, time + dt, 0);
+
+  // Check for NaN's.
+
+  check_for_nan(S_new);
+
+#ifdef GRAVITY
+  // Must define new value of "center" after advecting on the grid
+
+  if (moving_center == 1) {
+      define_new_center(S_new, time);
+  }
+#endif
+
+  // Perform reflux (for non-subcycling advances).
+
+  if (parent->subcyclingMode() == "None") {
+      if (do_reflux == 1) {
+          FluxRegCrseInit();
+          FluxRegFineAdd();
+      }
+  }
+
   if (verbose) {
-      amrex::Print() << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+      amrex::Print() << "... Leaving construct_ctu_hydro_source() on level " << level << std::endl << std::endl;
   }
 
   if (verbose > 0)
@@ -1495,7 +1526,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_ctu_hydro_source() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -1503,4 +1534,5 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #endif
 
+  return status;
 }

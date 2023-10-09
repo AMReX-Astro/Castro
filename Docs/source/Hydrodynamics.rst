@@ -568,7 +568,7 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
-.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species
 
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
@@ -587,15 +587,6 @@ runtime parameters for hydrodynamics:
 
 -  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
-
--  ``castro.spherical_star``: this is used to set the boundary
-   conditions by assuming the star is spherically symmetric in
-   the outer regions (0 or 1; default: 0)
-
-   When used, Castro averages the values at a given radius over the
-   cells that are inside the domain to define a radial function. This
-   function is then used to set the values outside the domain in
-   implementing the boundary conditions.
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
@@ -1029,9 +1020,13 @@ parameters apply:
 
    -  1: the Colella & Glaz solver
 
-   -  2: the HLLC solver. Note: this should only be used with Cartesian
-      geometries because it relies on the pressure term being part of the flux
-      in the momentum equation.
+   -  2: the HLLC solver.
+
+      .. note::
+
+         HLLC should only be used with Cartesian
+         geometries because it relies on the pressure term being part of the flux
+         in the momentum equation.
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :cite:`pember:1996`),

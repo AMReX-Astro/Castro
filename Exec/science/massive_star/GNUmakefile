@@ -17,7 +17,7 @@ USE_NSE_TABLE    = TRUE
 
 BL_NO_FORT := TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

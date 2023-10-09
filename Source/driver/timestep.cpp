@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef DIFFUSION
 #include <conductivity.H>
@@ -14,15 +13,16 @@
 #endif
 
 #ifdef REACTIONS
+#include <actual_network.H>
+#ifdef NEW_NETWORK_IMPLEMENTATION
+#include <rhs.H>
+#else
 #include <actual_rhs.H>
+#endif
 #endif
 
 #ifdef RADIATION
 #include <Radiation.H>
-#endif
-
-#ifdef NEW_NETWORK_IMPLEMENTATION
-#include <rhs.H>
 #endif
 
 
@@ -474,7 +474,7 @@ Castro::estdt_rad (int is_new)
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)

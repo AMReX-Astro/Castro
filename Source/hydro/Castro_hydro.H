@@ -41,7 +41,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_ctu_hydro_source(amrex::Real time, amrex::Real dt);
+    advance_status construct_ctu_hydro_source(amrex::Real time, amrex::Real dt);
 
 ///
 /// this constructs the hydrodynamic source (essentially the flux

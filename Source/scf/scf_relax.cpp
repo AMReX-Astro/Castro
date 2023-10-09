@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <Gravity.H>
 #include <Rotation.H>
@@ -450,7 +449,7 @@ Castro::do_hscf_solve()
                 auto phi_arr = (*phi[lev])[mfi].array();
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     // The Bernoulli equation says that energy is conserved:
                     // enthalpy + gravitational potential + rotational potential = const

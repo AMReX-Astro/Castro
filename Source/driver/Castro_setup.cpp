@@ -3,7 +3,6 @@
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -13,7 +12,6 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
@@ -348,14 +346,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#if defined(RADIATION) 
-  // Radiation should always have at least one ghost zone.
-  int ngrow_state = std::max(1, state_nghost);
-#else
-  int ngrow_state = state_nghost;
-#endif
-
-  BL_ASSERT(ngrow_state >= 0);
+  int ngrow_state = 0;
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
@@ -532,17 +523,11 @@ Castro::variableSetUp ()
     }
 
 #if NAUX_NET > 0
-  // Get the auxiliary names from the network model.
-  std::vector<std::string> aux_names;
-  for (int i = 0; i < NumAux; i++) {
-    aux_names.push_back(short_aux_names_cxx[i]);
-  }
-
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++) {
-        std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << short_aux_names_cxx[i] << ' ' << ' ';
       }
       std::cout << std::endl;
     }
@@ -551,7 +536,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFX+i] = bc;
-      name[UFX+i] = "rho_" + aux_names[i];
+      name[UFX+i] = "rho_" + short_aux_names_cxx[i];
     }
 #endif
 
@@ -1017,9 +1002,9 @@ Castro::variableSetUp ()
 
 #if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
-    derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
+    derive_lst.add(short_aux_names_cxx[i], IndexType::TheCellType(), 1, ca_derspec, the_same_box);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, URHO, 1);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, UFX+i, 1);
   }
 #endif
 

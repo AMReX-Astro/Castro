@@ -11,21 +11,6 @@ module rad_module
 
 contains
 
-subroutine sphe(r, s, n, &
-                DIMS(reg), dx) bind(C, name="sphe")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(1)
-  integer :: n
-  real(rt)         :: dx(1)
-  integer :: i
-  do i = reg_l1, reg_h1
-     r(i) = r(i)**2
-  enddo
-end subroutine sphe
-
 subroutine rfface(fine, &
                   DIMS(fbox), &
                   crse, &
@@ -40,20 +25,5 @@ subroutine rfface(fine, &
   integer :: idim, irat(0:0)
   fine(fbox_l1) = crse(cbox_l1)
 end subroutine rfface
-
-subroutine bextrp(f, fbox_l1, fbox_h1, reg_l1, reg_h1) bind(C, name="bextrp")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: fbox_l1, fbox_h1
-  integer ::  reg_l1,  reg_h1
-  real(rt)         :: f(fbox_l1:fbox_h1)
-  integer :: i
-
-  !     i direction first:
-  i = reg_l1
-  f(i-1) = 2.e0_rt * f(i) - f(i+1)
-  i = reg_h1
-  f(i+1) = 2.e0_rt * f(i) - f(i-1)
-end subroutine bextrp
 
 end module rad_module

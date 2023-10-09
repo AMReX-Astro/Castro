@@ -69,18 +69,14 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
     if (mom_dir == 0 && flux_dir == 0) {
 
-        if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && coord == CoordSys::RZ)) {
+        if (coord != CoordSys::cartesian) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
 
-    }
-    else {
-
+    } else {
         return (mom_dir == flux_dir);
-
     }
 
 #else // AMREX_SPACEDIM == 3; Cartesian
@@ -184,8 +180,16 @@ Real volume(const int& i, const int& j, const int& k,
 
         vol = dx[0];
 
-    }
-    else {
+    } else if (coord == 1) {
+
+        // 1-d cylindrical
+
+        Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real rr = rl + dx[0];
+
+        vol = M_PI * dx[0] * (rr + rl);
+
+   } else {
 
         // Spherical
 
@@ -253,8 +257,15 @@ Real area(const int& i, const int& j, const int& k,
 
         a = 1.0_rt;
 
-    }
-    else {
+    } else if (coord == 1) {
+
+        // 1-D cylindrical
+
+        Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+
+        a = 2.0_rt * M_PI * r;
+
+    } else {
 
         // Spherical
 

@@ -42,14 +42,9 @@ particles.timestamp_dir         = particle_dir    # directory for output
 particles.timestamp_density     = 1
 particles.timestamp_temperature = 1
 particles.v                     = 1               # verbosity
-particles.write_in_plotfile     = 1
-
-
 
 
 castro.ppm_type = 1
-castro.ppm_reference = 1
-castro.ppm_reference_edge_limit = 1
 #castro.riemann_solver = 1
 
 gravity.gravity_type = ConstantGrav

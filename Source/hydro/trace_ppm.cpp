@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -60,8 +59,10 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -144,7 +145,7 @@ Castro::trace_ppm(const Box& bx,
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 
