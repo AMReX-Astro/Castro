@@ -71,8 +71,6 @@ problem.pert_width = 2.56e5
 problem.dens_base = 1.e7
 problem.temp_base = 1.0e8
 
-problem.nx_model = 128
-
 problem.do_pert = 1
 
 # Refinement

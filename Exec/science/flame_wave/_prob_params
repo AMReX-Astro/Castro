@@ -17,8 +17,6 @@ cutoff_density          real              500.e0_rt                 y
 # used if we are refining based on height rather than density
 refine_height           real              3600                      y
 
-dx_model                real              10.0_rt                   y
-
 T_hi                    real              5.e8_rt                   y
 
 T_star                  real              1.e8_rt                   y
