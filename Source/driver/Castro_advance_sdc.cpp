@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -72,7 +71,6 @@ Castro::do_advance_sdc (Real time,
     // our staging area.  Note we need to pass new_time here to the
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
-
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
     clean_state(S_new, cur_time, 0);
     expand_state(Sborder, cur_time, NUM_GROW);
