@@ -15,7 +15,6 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>

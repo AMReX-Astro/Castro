@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <problem_source.H>
 
 using namespace amrex;

@@ -65,16 +65,6 @@ extern "C" {
 }
 #endif
 
-// <MGFLD>
-#ifdef __cplusplus
-extern "C" {
-#endif
-void ca_initfluxlimiter
-   (const int* limiter, const int* closure);
-#ifdef __cplusplus
-}
-#endif
-
 extern "C"
 {
   void ca_rad_source
@@ -152,9 +142,6 @@ extern "C" {
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
                       const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);
-
-  void bextrp(BL_FORT_FAB_ARG(f), 
-              ARLIM_P(reglo), ARLIM_P(reghi));
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <string>
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <particles_params.H>
 
