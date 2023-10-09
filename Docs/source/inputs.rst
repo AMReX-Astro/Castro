@@ -66,9 +66,9 @@ computational domain. The main parameters here are:
     center is used for gravity, rotation, and some other quantities.
     This is not necessarily the geometric center of the domain—often
     you should choose it to coincide with the center of mass of your
-    system. See § :ref:`soft:prob_params` for more details.
+    system.
 
-   Note: a number is needed for each dimension in the problem.
+    Note: a number is needed for each dimension in the problem.
 
 As an example, the following::
 

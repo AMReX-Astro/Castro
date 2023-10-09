@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -36,23 +35,26 @@ Castro::source_flag(int src)
 
 #ifdef SPONGE
     case sponge_src:
-        if (do_sponge)
+        if (do_sponge) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     case ext_src:
-        if (add_ext_src)
+        if (add_ext_src) {
             return true;
-        else
+        } else {
             return false;
+        }
 #ifndef MHD
     case thermo_src:
-        if (time_integration_method == SpectralDeferredCorrections)
-          return true;
-        else
+        if (time_integration_method == SpectralDeferredCorrections) {
+            return true;
+        } else {
           return false;
+        }
 #else
     case thermo_src:
         return true;
@@ -83,18 +85,20 @@ Castro::source_flag(int src)
 
 #ifdef GRAVITY
     case grav_src:
-        if (do_grav)
+        if (do_grav) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
 #ifdef ROTATION
     case rot_src:
-        if (do_rotation)
+        if (do_rotation) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     default:
@@ -119,16 +123,15 @@ Castro::do_old_sources(
 
     source.setVal(0.0, source.nGrow());
 
+    if (!apply_sources()) {
+        return;
+    }
+
     for (int n = 0; n < num_src; ++n) {
         construct_old_source(n, source, state_old, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
@@ -137,6 +140,13 @@ Castro::do_old_sources(
                      state_new, time, 0);
     }
 
+    // Fill the ghost cells (but only for CTU; the time would not be correct for true SDC, so
+    // the FillPatch is handled separately in the SDC advance).
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NSRC);
+    }
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -156,13 +166,35 @@ Castro::do_old_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_old_sources() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
+}
 
+advance_status
+Castro::do_old_sources (Real time, Real dt)
+{
+    advance_status status {};
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& old_source = get_old_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+#endif
+
+    do_old_sources(
+#ifdef MHD
+                   Bx_old, By_old, Bz_old,
+#endif
+                   old_source, Sborder, S_new, time, dt);
+
+    return status;
 }
 
 void
@@ -179,18 +211,17 @@ Castro::do_new_sources(
 
     source.setVal(0.0, NUM_GROW_SRC);
 
+    if (!apply_sources()) {
+        return;
+    }
+
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
         construct_new_source(n, source, state_old, state_new, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
@@ -218,13 +249,36 @@ Castro::do_new_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_new_sources() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
 
+}
+
+advance_status
+Castro::do_new_sources (Real time, Real dt)
+{
+    advance_status status {};
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_source = get_new_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif
+
+    do_new_sources(
+#ifdef MHD
+                   Bx_new, By_new, Bz_new,
+#endif
+                   new_source, Sborder, S_new, time, dt);
+
+    return status;
 }
 
 void
@@ -353,8 +407,9 @@ Castro::apply_sources()
 {
 
     for (int n = 0; n < num_src; ++n) {
-        if (source_flag(n))
+        if (source_flag(n)) {
             return true;
+        }
     }
 
     return false;
@@ -427,7 +482,7 @@ Castro::print_source_change(Vector<Real> update)
 // and also print the results.
 
 void
-Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::string source_name)
+Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, const std::string& source_name)
 {
     bool local = true;
     Vector<Real> update = evaluate_source_change(source, dt, local);
@@ -435,7 +490,7 @@ Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::
 #ifdef BL_LAZY
     Lazy::QueueReduction( [=] () mutable {
 #endif
-        ParallelDescriptor::ReduceRealSum(update.dataPtr(), update.size(), ParallelDescriptor::IOProcessorNumber());
+        ParallelDescriptor::ReduceRealSum(update.dataPtr(), static_cast<int>(update.size()), ParallelDescriptor::IOProcessorNumber());
 
         if (ParallelDescriptor::IOProcessor()) {
             if (std::abs(update[URHO]) != 0.0 || std::abs(update[UEDEN]) != 0.0) {
@@ -463,101 +518,103 @@ Castro::print_all_source_changes(Real dt, bool is_new)
     evaluate_and_print_source_change(source, dt, source_name);
 }
 
-// Obtain the sum of all source terms.
+// Perform all operations that occur prior to computing the predictor sources
+// and the hydro advance.
 
-void
-Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
+advance_status
+Castro::pre_advance_operators (Real time, Real dt)
 {
-  BL_PROFILE("Castro::make_sdc_hydro_plus_sources()");
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
-  // this computes advective_source + 1/2 (old source + new source)
-  //
-  //
-  // we have the following:
-  //
-  // S_new :      U^n - dt div{F} + dt/2 (S^n + S^{n+1})
-  // S_old:       U^n
-  //
-  // so we can compute:
-  //
-  //   (1 / dt) * (S_new - S_old)
-  //
-  // to get:
-  //
-  //     -div{F} + (1/2) (S^n + S^{n+1})
-  //
+    advance_status status {};
 
-  int ng = source.nGrow();
+    // If we are Strang splitting the reactions, do the old-time contribution now.
 
-  source.setVal(0.0, ng);
+#ifndef TRUE_SDC
+#ifdef REACTIONS
+    status = do_old_reactions(time, dt);
 
-  MultiFab& S_old = get_old_data(State_Type);
-  MultiFab& S_new = get_new_data(State_Type);
+    if (status.success == false) {
+        return status;
+    }
+#endif
+#endif
 
-  MultiFab::Add(source, S_new, 0, 0, S_new.nComp(), ng);
-  MultiFab::Subtract(source, S_old, 0, 0, S_old.nComp(), ng);
-  source.mult(1.0_rt / dt, ng);
+    // If we are using gravity, solve for the potential and gravitational field.
 
+#ifdef GRAVITY
+    construct_old_gravity(time);
+#endif
+
+    // Initialize the new-time data. This copy needs to come after all Strang-split operators.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+
+    return status;
 }
 
-// Obtain the effective source term due to reactions on the primitive variables.
-// This is done with simplified_SDC
+// Perform all operations that occur after computing the predictor sources
+// but before the hydro advance.
+
+advance_status
+Castro::pre_hydro_operators (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-void
-Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
-{
+    // The SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here.
 
-    BL_PROFILE("Castro::get_react_source_prim()");
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
 
-    MultiFab& S_old = get_old_data(State_Type);
-    MultiFab& S_new = get_new_data(State_Type);
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time + dt, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
 
-    int ng = 0;
-
-    // before the SDC burn, we stashed the state:
-    //    U* = U_old + dt A
-    // where A = -div U + S_hydro
-    // into Simplified_SDC_React_Type.  Let's get that now
-    // as the starting point of finding the primitive react source
-
-    MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
-
-    // Compute its primitive counterpart, q*
-
-    MultiFab q_noreact(grids, dmap, NQ, ng);
-    MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
-
-    cons_to_prim(S_noreact, q_noreact, qaux_noreact, time);
-
-    // Compute the primitive version of the new state.
-
-    MultiFab q_new(grids, dmap, NQ, ng);
-    MultiFab qaux_new(grids, dmap, NQAUX, ng);
-
-    cons_to_prim(S_new, q_new, qaux_new, time + dt);
-
-    // Compute the reaction source term.
-
-    // I_q = (q^{n+1} - q^n) / dt - A(q)
-    //
-    // but A(q) = (q* - q^n) / dt -- that's the effect of advection w/o burning
-    //
-    // so I_q = (q^{n+1} - q*) / dt
-
-    react_src.setVal(0.0, react_src.nGrow());
-
-    if (dt > 0.0) {
-        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, NQ, ng);
-        MultiFab::Saxpy(react_src, -1.0 / dt, q_noreact, 0, 0, NQ, ng);
-    }
-
-
-    // Now fill all of the ghost zones.
-    Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
-
+    return status;
 }
+
+// Perform all operations that occur after the hydro source
+// but before the corrector sources.
+
+advance_status
+Castro::post_hydro_operators (Real time, Real dt)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
+
+#ifdef GRAVITY
+    construct_new_gravity(time);
+#endif
+
+    return status;
+}
+
+// Perform all operations that occur after the corrector sources.
+
+advance_status
+Castro::post_advance_operators (Real time, Real dt)
+{
+    advance_status status {};
+
+#ifndef TRUE_SDC
+#ifdef REACTIONS
+    status = do_new_reactions(time, dt);
+
+    if (status.success == false) {
+        return status;
+    }
 #endif
 #endif
+
+    return status;
+}

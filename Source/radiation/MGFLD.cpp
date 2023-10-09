@@ -1,7 +1,7 @@
 #include <Radiation.H>
-#include <Castro_F.H>
 #include <RAD_F.H>
 #include <rad_util.H>
+#include <filter.H>
 #include <blackbody.H>
 #include <opacity.H>
 #include <problem_emissivity.H>
@@ -977,7 +977,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     BL_ASSERT(ngrow == 4);
   }
 
-  if (limiter == 0) {
+  if (radiation::limiter == 0) {
 
     lamborder.setVal(1./3., ngrow);
 
@@ -1001,16 +1001,256 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
     
     const Real* dx = parent->Geom(level).CellSize();
 
+    using namespace filter;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
-        (BL_TO_FORTRAN(Er_wide[mfi]), 
-         BL_TO_FORTRAN(kpr[mfi]),
-         BL_TO_FORTRAN(lamborder[mfi]), 
-         dx, &ngrow, &limiter, &filter_lambda_T, &filter_lambda_S);
-    }
+        FArrayBox lamfilxfab;
+#if AMREX_SPACEDIM >= 2
+        FArrayBox lamfilyfab;
+#endif
+#if AMREX_SPACEDIM == 3
+        FArrayBox lamfilzfab;
+#endif
+
+        Box lambx = lamborder[mfi].box();
+        Box bx = grow(lambx, -ngrow);
+
+        if (filter_lambda_T > 0) {
+            lamfilxfab.resize(bx);
+#if AMREX_SPACEDIM >= 2
+            lamfilyfab.resize(bx);
+#endif
+#if AMREX_SPACEDIM == 3
+            lamfilzfab.resize(bx);
+#endif
+        }
+
+        Array4<Real> const lam = lamborder[mfi].array();
+        Array4<Real> const Er = Er_wide[mfi].array();
+        Array4<Real> const kap = kpr[mfi].array();
+        Array4<Real> const lamfilx = lamfilxfab.array();
+#if AMREX_SPACEDIM >= 2
+        Array4<Real> const lamfily = lamfilyfab.array();
+#endif
+#if AMREX_SPACEDIM == 3
+        Array4<Real> const lamfilz = lamfilzfab.array();
+#endif
+
+        for (int g = 0; g < Radiation::nGroups; ++g) {
+
+            amrex::Loop(lambx, [=] (int i, int j, int k) noexcept
+            {
+                lam(i,j,k,g) = -1.0e50_rt;
+
+                // The radiation energy Er being equal to -1 is our arbitrary
+                // convention that we're on a boundary zone. This is meaningless
+                // from the perspective of computing the limiter, so we skip this
+                // step on all boundary zones. On all zones adjacent to the boundary
+                // we use a one-sided difference.
+
+                if (Er(i,j,k,g) == -1.0_rt) {
+                    return;
+                }
+
+                Real r1 = 0.0;
+                Real r2 = 0.0;
+                Real r3 = 0.0;
+
+                if (Er(i-1,j,k,g) == -1.0_rt) {
+                    r1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx[0]);
+                }
+                else if (Er(i+1,j,k,g) == -1.0_rt) {
+                    r1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx[0]);
+                }
+                else {
+                    r1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.e0_rt*dx[0]);
+                }
+
+#if AMREX_SPACEDIM >= 2
+                if (Er(i,j-1,k,g) == -1.0_rt) {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx[1]);
+                }
+                else if (Er(i,j+1,k,g) == -1.0_rt) {
+                    r2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx[1]);
+                }
+                else {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.e0_rt*dx[1]);
+                }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                if (Er(i,j,k-1,g) == -1.0_rt) {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / dx[2];
+                }
+                else if (Er(i,j,k+1,g) == -1.0_rt) {
+                    r3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / dx[2];
+                }
+                else {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.e0_rt*dx[2]);
+                }
+#endif
+
+                Real r = std::sqrt(r1 * r1 + r2 * r2 + r3 * r3);
+                r = r / (kap(i,j,k,g) * std::max(Er(i,j,k,g), 1.e-50_rt));
+
+                lam(i,j,k,g) = FLDlambda(r);
+            });
+
+            // filter
+
+            int lam_ilo = lambx.loVect3d()[0];
+            int lam_ihi = lambx.hiVect3d()[0];
+            int lam_jlo = lambx.loVect3d()[1];
+            int lam_jhi = lambx.hiVect3d()[1];
+            int lam_klo = lambx.loVect3d()[2];
+            int lam_khi = lambx.hiVect3d()[2];
+
+            int reg_ilo = bx.loVect3d()[0];
+            int reg_ihi = bx.hiVect3d()[0];
+            int reg_jlo = bx.loVect3d()[1];
+            int reg_jhi = bx.hiVect3d()[1];
+            int reg_klo = bx.loVect3d()[2];
+            int reg_khi = bx.hiVect3d()[2];
+
+            if (filter_lambda_T > 0) {
+                // initialize
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    lamfilx(i,j,k) = -1.0e-50_rt;
+#if AMREX_SPACEDIM >= 2
+                    lamfily(i,j,k) = -1.0e-50_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+                    lamfilz(i,j,k) = -1.0e-50_rt;
+#endif
+                });
+
+                // filter in the x direction
+
+                int dir = 0;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfilx(i,j,k) = apply_filter<1>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfilx(i,j,k) = apply_filter<2>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfilx(i,j,k) = apply_filter<3>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfilx(i,j,k) = apply_filter<4>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+
+                // filter in the y direction
+
+#if AMREX_SPACEDIM >= 2
+                dir = 1;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfily(i,j,k) = apply_filter<1>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfily(i,j,k) = apply_filter<2>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfily(i,j,k) = apply_filter<3>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfily(i,j,k) = apply_filter<4>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+#endif
+
+                // filter in the z direction
+
+#if AMREX_SPACEDIM == 3
+                dir = 2;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfilz(i,j,k) = apply_filter<1>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfilz(i,j,k) = apply_filter<2>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfilz(i,j,k) = apply_filter<3>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfilz(i,j,k) = apply_filter<4>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+#endif
+
+                // store the final results
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+#if AMREX_SPACEDIM == 1
+                    lam(i,j,k,g) = lamfilx(i,j,k);
+#elif AMREX_SPACEDIM == 2
+                    lam(i,j,k,g) = lamfily(i,j,k);
+#else
+                    lam(i,j,k,g) = lamfilz(i,j,k);
+#endif
+                });
+            } // filter_lambda_T
+
+            // For all zones outside the valid region, do a piecewise constant copy
+            // from the nearest valid edge or corner.
+
+            amrex::Loop(lambx, [=] (int i, int j, int k) noexcept
+            {
+                // Only apply this step if we're outside the valid region.
+
+                if (Er(i,j,k,g) != -1.0_rt) {
+                    return;
+                }
+
+                // Assume in each dimension that we're copying from the same index,
+                // then shift to the nearest edge in that dimension if we're outside
+                // the box.
+
+                int ic = i;
+                int jc = j;
+                int kc = k;
+
+                if (i < reg_ilo) {
+                    ic = reg_ilo;
+                }
+                else if (i > reg_ihi) {
+                    ic = reg_ihi;
+                }
+
+                if (j < reg_jlo) {
+                    jc = reg_jlo;
+                }
+                else if (j > reg_jhi) {
+                    jc = reg_jhi;
+                }
+
+                if (k < reg_klo) {
+                    kc = reg_klo;
+                }
+                else if (k > reg_khi) {
+                    kc = reg_khi;
+                }
+
+                lam(i,j,k,g) = lam(ic,jc,kc,g);
+            });
+        } // nGroups
+    } // mfiter
 
     if (filter_lambda_T) {
         lamborder.FillBoundary(parent->Geom(level).periodicity());
@@ -1025,9 +1265,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
     auto gPr_arr = gPr.array();
     auto Er_arr = Er.array();
 
-    if (limiter == 0) {
+    if (radiation::limiter == 0) {
 
-        amrex::ParallelFor(box,
+        amrex::ParallelFor(gPr.box(),
         [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
             gPr_arr(i,j,k) = 0.e0_rt;
@@ -1099,9 +1339,16 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
         }
 #endif
 
+        const Real dx0 = dx[0];
+#if AMREX_SPACEDIM >= 2
+        const Real dx1 = dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+        const Real dx2 = dx[2];
+#endif
+
         amrex::ParallelFor(gPr.box(),
-        [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
-        AMREX_GPU_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
             gPr_arr(i,j,k) = 0.0_rt;
 
@@ -1151,309 +1398,309 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
                 Real gE3 = 0.0_rt;
 
                 if (i_interior && j_interior && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // lo-x lo-y lo-z
                 else if (i_lo && j_lo && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // med-x lo-y lo-z
                 else if (i_interior && j_lo && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // hi-x lo-y lo-z
                 else if (i_hi && j_lo && k_lo) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // lo-x med-y lo-z
                 else if (i_lo && j_interior && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // med-x med-y lo-z
                 else if (i_interior && j_interior && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // hi-x med-y lo-z
                 else if (i_hi && j_interior && k_lo) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // lo-x hi-y lo-z
                 else if (i_lo && j_hi && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // med-x hi-y lo-z
                 else if (i_interior && j_hi && k_lo) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // hi-x hi-y lo-z
                 else if (i_hi && j_hi && k_lo) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx2);
 #endif
                 }
 
                 // lo-x lo-y med-z
                 else if (i_lo && j_lo && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // med-x lo-y med-z
                 else if (i_interior && j_lo && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // hi-x lo-y med-z
                 else if (i_hi && j_lo && k_interior) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // lo-x med-y med-z
                 else if (i_lo && j_interior && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // hi-x med-y med-z
                 else if (i_hi && j_interior && k_interior) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // lo-x hi-y med-z
                 else if (i_lo && j_hi && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // med-x hi-y med-z
                 else if (i_interior && j_hi && k_interior) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // hi-x hi-y med-z
                 else if (i_hi && j_hi && k_interior) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx2);
 #endif
                 }
 
                 // lo-x lo-y hi-z
                 else if (i_lo && j_lo && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // med-x lo-y hi-z
                 else if (i_interior && j_lo && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // hi-x lo-y hi-z
                 else if (i_hi && j_lo && k_hi) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // lo-x med-y hi-z
                 else if (i_lo && j_interior && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // med-x med-y hi-z
                 else if (i_interior && j_interior && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // hi-x med-y hi-z
                 else if (i_hi && j_interior && k_hi) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // lo-x hi-y hi-z
                 else if (i_lo && j_hi && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // med-x hi-y hi-z
                 else if (i_interior && j_hi && k_hi) {
-                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 // hi-x hi-y hi-z
                 else if (i_hi && j_hi && k_hi) {
-                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx0);
 #if AMREX_SPACEDIM >= 2
-                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx1);
 #endif
 #if AMREX_SPACEDIM == 3
-                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx2);
 #endif
                 }
 
                 Real gE = std::sqrt(gE1 * gE1 + gE2 * gE2 + gE3 * gE3);
 
                 Real r = gE / (kappa_r_arr(i,j,k,g) * amrex::max(Er_arr(i,j,k,g), 1.e-50_rt));
-                Real lam = FLDlambda(r, limiter);
+                Real lam = FLDlambda(r);
 
                 Real gamr;
-                if (comoving == 1) {
-                    Real f = Edd_factor(lam, limiter, closure);
+                if (radiation::comoving == 1) {
+                    Real f = Edd_factor(lam);
                     gamr = (3.0_rt - f) / 2.0_rt;
                 }
                 else {
@@ -1649,37 +1896,5 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 
             rhs_arr(i,j,k) *= dt / r;
         });
-    }
-}
-
-void Radiation::inelastic_scattering(int level)
-{
-    if (do_inelastic_scattering) {
-        Real dt = parent->dtLevel(level);
-        Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-        MultiFab& S_new = castro->get_new_data(State_Type);
-        MultiFab& Er_new = castro->get_new_data(Rad_Type);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        {
-            FArrayBox kps;
-            for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
-            {
-                const Box& bx = mfi.tilebox();
-
-                kps.resize(bx,1); // we assume scattering is independent of nu
-                MGFLD_compute_scattering(kps, S_new[mfi]);
-
-                ca_inelastic_sct(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(kps),
-                                 dt);           
-            }
-        }
-
-        castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
     }
 }

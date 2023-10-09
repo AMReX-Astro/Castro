@@ -22,18 +22,15 @@ CEXE_headers += runtime_parameters.H
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 
-FEXE_headers += Castro_F.H
-
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
 
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 
-ca_F90EXE_sources += Castro_nd.F90
-CEXE_headers      += Castro_util.H
-CEXE_headers      += math.H
-ca_F90EXE_sources += state_indices_nd.F90
+CEXE_headers += Castro_util.H
+CEXE_headers += global.H
+CEXE_headers += math.H
 
 NEED_MGUTIL =
 
@@ -50,7 +47,4 @@ ifdef NEED_MGUTIL
   CEXE_headers += MGutils.H
 endif
 
-ifeq ($(USE_MHD),TRUE)
-  ca_f90EXE_sources += filfc.f90
-endif
 CEXE_sources += timestep.cpp

@@ -3,8 +3,6 @@
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
-#include <Castro_F.H>
-#include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -14,12 +12,8 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-#include <microphysics_F.H>
-#endif
 #include <eos.H>
 #include <ambient.H>
 
@@ -217,25 +211,20 @@ Castro::variableSetUp ()
   // set small positive values of the "small" quantities if they are
   // negative
   if (small_dens < 0.0_rt) {
-    small_dens = 1.e-200_rt;
+    small_dens = 1.e-100_rt;
   }
 
   if (small_temp < 0.0_rt) {
-    small_temp = 1.e-200_rt;
+    small_temp = 1.e-100_rt;
   }
 
   if (small_pres < 0.0_rt) {
-    small_pres = 1.e-200_rt;
+    small_pres = 1.e-100_rt;
   }
 
   if (small_ener < 0.0_rt) {
-    small_ener = 1.e-200_rt;
+    small_ener = 1.e-100_rt;
   }
-
-#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
-  // Initialize the Fortran Microphysics
-  ca_microphysics_init(small_dens, small_temp);
-#endif
 
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
@@ -259,28 +248,39 @@ Castro::variableSetUp ()
   small_dens = new_min_rho;
   EOSData::mindens = new_min_rho;
 
+  // Given small_temp and small_dens, compute small_pres
+  // and small_ener, assuming a more restrictive value is
+  // not already provided by the user. We'll arbitrarily
+  // set the mass fraction for this call, since we presumably
+  // don't need to be too accurate, we just need to set a
+  // reasonable floor.
+
+  eos_t eos_state;
+
+  eos_state.rho = castro::small_dens;
+  eos_state.T = castro::small_temp;
+  for (double& X : eos_state.xn) {
+      X = 1.0_rt / NumSpec;
+  }
+#ifdef AUX_THERMO
+  set_aux_comp_from_X(eos_state);
+#endif
+
+  eos(eos_input_rt, eos_state);
+
+  castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
+  castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
+
   // some consistency checks on the parameters
 #ifdef REACTIONS
 #ifdef TRUE_SDC
-  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
     use_retry = 0;
   }
-  if (!abort_on_failure) {
-    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
-   abort_on_failure = 1;
-   ca_set_abort_on_failure(&abort_on_failure);
-  }
-#else
-  if (!use_retry && !abort_on_failure) {
-    amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
-  }
 #endif
 #endif
-
-
-  const int dm = AMREX_SPACEDIM;
 
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
@@ -303,18 +303,14 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Geometry& dgeom = DefaultGeometry();
-
-  const int coord_type = dgeom.Coord();
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
   // not (which is reflected by whether ambient_density is positive)
   // then we use the "small" quantities.
 
-  for (int n = 0; n < NUM_STATE; ++n) {
-      ambient::ambient_state[n] = 0.0;
+  for (Real & s : ambient::ambient_state) {
+      s = 0.0;
   }
 
   ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
@@ -326,17 +322,20 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  Interpolater* interp;
+  MFInterpolater* interp = nullptr;
 
   if (state_interp_order == 0) {
-    interp = &pc_interp;
+    interp = &mf_pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1) {
-      interp = &lincc_interp;
+    if (lin_limit_state_interp == 2) {
+      interp = &mf_linear_slope_minmax_interp;
+    }
+    else if (lin_limit_state_interp == 1) {
+      interp = &mf_lincc_interp;
     }
     else {
-      interp = &cell_cons_interp;
+      interp = &mf_cell_cons_interp;
     }
   }
 
@@ -347,14 +346,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#if defined(RADIATION) 
-  // Radiation should always have at least one ghost zone.
-  int ngrow_state = std::max(1, state_nghost);
-#else
-  int ngrow_state = state_nghost;
-#endif
-
-  BL_ASSERT(ngrow_state >= 0);
+  int ngrow_state = 0;
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
@@ -418,29 +410,22 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, source_ng, NSRC,
                          interp, state_data_extrap, store_in_checkpoint);
 
-#ifdef ROTATION
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
-                         StateDescriptor::Point, 1, 1,
-                         interp, state_data_extrap,
-                         store_in_checkpoint);
-#endif
-
 
 #ifdef REACTIONS
-  // Components 0:NumSpec-1                are rho * omegadot_i
-  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
-  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
-  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
+  // Component is  rho_enuc = rho * (eout-ein)
+  // next NumSpec are rho * omegadot_i
+  // next NumAux are rho * auxdot_i
+  // next is nse status indication
   store_in_checkpoint = false;
 
-  int num_react = 0;
-  if (store_omegadot == 1) {
-      num_react = NumSpec+NumAux+2;
-  } else {
-      num_react = 2;
-  }
+  int num_react = 1;
 
+  if (store_omegadot == 1) {
+      num_react += NumSpec + NumAux;
+  }
+#ifdef NSE
+  num_react += 1;
+#endif
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, 0, num_react,
                          interp, state_data_extrap, store_in_checkpoint);
@@ -449,12 +434,16 @@ Castro::variableSetUp ()
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
+  // these are not traced, so we only need a single ghost cell
+
+  // note: this is of size NQ (and not NQSRC) because the species are
+  // always included
 
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW_SRC, NQSRC,
+                             StateDescriptor::Point, 1, NQ,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
@@ -534,17 +523,11 @@ Castro::variableSetUp ()
     }
 
 #if NAUX_NET > 0
-  // Get the auxiliary names from the network model.
-  std::vector<std::string> aux_names;
-  for (int i = 0; i < NumAux; i++) {
-    aux_names.push_back(short_aux_names_cxx[i]);
-  }
-
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++) {
-        std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << short_aux_names_cxx[i] << ' ' << ' ';
       }
       std::cout << std::endl;
     }
@@ -553,7 +536,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFX+i] = bc;
-      name[UFX+i] = "rho_" + aux_names[i];
+      name[UFX+i] = "rho_" + short_aux_names_cxx[i];
     }
 #endif
 
@@ -563,6 +546,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -577,9 +570,9 @@ Castro::variableSetUp ()
 
 #ifdef MHD
   set_mag_field_bc(bc, phys_bc);
-  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
-  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
-  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, genericBndryFunc);
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, genericBndryFunc);
 #endif
 
 
@@ -599,12 +592,6 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,genericBndryFunc);
 #endif
 
-#ifdef ROTATION
-  set_scalar_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-#endif
-
   // Source term array will use source fill
 
   Vector<BCRec> source_bcs(NSRC);
@@ -622,18 +609,17 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
 
   if (store_omegadot == 1) {
 
-      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      // Reactions_Type includes the species -- we put those after rho_enuc
       std::string name_react;
       for (int i = 0; i < NumSpec; ++i)
       {
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+i, name_react, bc,genericBndryFunc);
       }
 #if NAUX_NET > 0
       std::string name_aux;
@@ -641,7 +627,31 @@ Castro::variableSetUp ()
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
           name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+          desc_lst.setComponent(Reactions_Type, 1+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
+#endif
+  }
+#ifdef NSE
+  set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
+  if (store_omegadot == 1) {
+    desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "in_nse", bc, genericBndryFunc);
+  }
+  else {
+    desc_lst.setComponent(Reactions_Type, 1, "in_nse", bc, genericBndryFunc);
+  }
+#endif
+  // names for the burn_weights that are manually added to the plotfile
+  
+  if (store_burn_weights) {
+
+#ifdef STRANG
+      burn_weight_names.emplace_back("burn_weights_firsthalf");
+      burn_weight_names.emplace_back("burn_weights_secondhalf");
+#endif
+#ifdef SIMPLIFIED_SDC
+      for (int n = 0; n < sdc_iters+1; n++) {
+          burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }
@@ -650,7 +660,7 @@ Castro::variableSetUp ()
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      for (int i = 0; i < NQSRC; ++i) {
+      for (int i = 0; i < NQ; ++i) {
           char buf[64];
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
@@ -865,14 +875,20 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
-#ifndef NSE_THERMO
+#ifndef AUX_THERMO
   //
-  // Abar
-  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
+  // Abar and Ye
+  // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+
+#ifdef REACTIONS
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
@@ -975,31 +991,6 @@ Castro::variableSetUp ()
   derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
   derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
 
-//Electric Field
-//x component
-  derive_lst.add("E_x", IndexType::TheCellType(), 1, ca_derex, the_same_box);
-  derive_lst.addComponent("E_x", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("E_x", desc_lst, Mag_Type_z, 0, 1);
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Ymom, 1);
-  derive_lst.addComponent("E_x", desc_lst, State_Type, Zmom, 1);
-
-//y component
-  derive_lst.add("E_y", IndexType::TheCellType(), 1, ca_derey, the_same_box);
-  derive_lst.addComponent("E_y", desc_lst, Mag_Type_x, 0, 1);
-  derive_lst.addComponent("E_y", desc_lst, Mag_Type_z, 0, 1);
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Xmom, 1);
-  derive_lst.addComponent("E_y", desc_lst, State_Type, Zmom, 1);
-
-//z component
-  derive_lst.add("E_z", IndexType::TheCellType(), 1, ca_derez, the_same_box);
-  derive_lst.addComponent("E_z", desc_lst, Mag_Type_x, 0, 1);
-  derive_lst.addComponent("E_z", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Density, 1); //For velocities
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Xmom, 1);
-  derive_lst.addComponent("E_z", desc_lst, State_Type, Ymom, 1);
-
 //Divergence of B
   derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
@@ -1011,15 +1002,10 @@ Castro::variableSetUp ()
 
 #if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
-    derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
+    derive_lst.add(short_aux_names_cxx[i], IndexType::TheCellType(), 1, ca_derspec, the_same_box);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, URHO, 1);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, UFX+i, 1);
   }
-#endif
-
-#ifdef NSE
-  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
-  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //
@@ -1029,39 +1015,39 @@ Castro::variableSetUp ()
   //
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
-  err_list_names.push_back("density");
+  err_list_names.emplace_back("density");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("Temp");
+  err_list_names.emplace_back("Temp");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("pressure");
+  err_list_names.emplace_back("pressure");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("x_velocity");
+  err_list_names.emplace_back("x_velocity");
   err_list_ng.push_back(1);
 
 #if (AMREX_SPACEDIM >= 2)
-  err_list_names.push_back("y_velocity");
+  err_list_names.emplace_back("y_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #if (AMREX_SPACEDIM == 3)
-  err_list_names.push_back("z_velocity");
+  err_list_names.emplace_back("z_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #ifdef REACTIONS
-  err_list_names.push_back("t_sound_t_enuc");
+  err_list_names.emplace_back("t_sound_t_enuc");
   err_list_ng.push_back(0);
 
-  err_list_names.push_back("enuc");
+  err_list_names.emplace_back("enuc");
   err_list_ng.push_back(0);
 #endif
 
 #ifdef RADIATION
   if (do_radiation && !Radiation::do_multigroup) {
-      err_list_names.push_back("rad");
+      err_list_names.emplace_back("rad");
       err_list_ng.push_back(1);
   }
 #endif
@@ -1069,7 +1055,7 @@ Castro::variableSetUp ()
   // Save the number of built-in functions; this will help us
   // distinguish between those, and the ones the user is about to add.
 
-  num_err_list_default = err_list_names.size();
+  num_err_list_default = static_cast<int>(err_list_names.size());
 
   //
   // Construct an array holding the names of the source terms.

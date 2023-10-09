@@ -1,14 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-castro.MAESTRO_plotfile = "MAESTRO_plt00010"
-castro.MAESTRO_modelfile = "./MAESTRO_plt00010/model_cc_00010"
-castro.MAESTRO_first_species = "X(C12)"
-castro.MAESTRO_npts_model = 576
-
-castro.MAESTRO_cutoff_density = 3.e6
-castro.MAESTRO_init_type = 2
-castro.MAESTRO_spherical = 0
-
 max_step = 10000
 stop_time =  2.5
 
@@ -64,7 +55,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 

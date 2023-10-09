@@ -1,21 +1,24 @@
 #include <Castro.H>
 #include <Castro_util.H>
-#include <Castro_F.H>
 
 #include <hybrid.H>
 
 using namespace amrex;
 
 void
-Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state_old, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     BL_PROFILE("Castro::construct_old_hybrid_source()");
 
     const Real strt_time = ParallelDescriptor::second();
 
     Real mult_factor = 1.0;
 
-    fill_hybrid_hydro_source(source, state, mult_factor);
+    fill_hybrid_hydro_source(source, state_old, mult_factor);
 
     if (verbose > 1)
     {
@@ -40,6 +43,10 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time
 void
 Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     BL_PROFILE("Castro::construct_new_hybrid_source()");
 
     const Real strt_time = ParallelDescriptor::second();
@@ -77,7 +84,7 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_factor)
+Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mult_factor)
 {
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
@@ -86,15 +93,15 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
-        auto u = state.array(mfi);
+        auto u = state_in.array(mfi);
         auto src = sources.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 
@@ -103,7 +110,8 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
             loc[0] -= problem::center[0];
             loc[1] -= problem::center[1];
 
-            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
+                                std::numeric_limits<Real>::min());
 
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
             Real RInv = 1.0_rt / R;
@@ -118,7 +126,7 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
 
 void
-Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
+Castro::linear_to_hybrid_momentum(MultiFab& state_in, int ng)
 {
     BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
@@ -127,16 +135,16 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        auto u = state.array(mfi);
+        auto u = state_in.array(mfi);
 
         // Convert linear momentum to hybrid momentum.
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 
@@ -164,7 +172,7 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 
 
 void
-Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
+Castro::hybrid_to_linear_momentum(MultiFab& state_in, int ng)
 {
     BL_PROFILE("Castro::hybrid_to_linear_momentum()");
 
@@ -173,16 +181,16 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-        auto u = state.array(mfi);
+        auto u = state_in.array(mfi);
 
         // Convert hybrid momentum to linear momentum.
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 

@@ -10,7 +10,6 @@
 
 #include <AMReX_Utility.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 
@@ -26,14 +25,13 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
 #endif
 
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;
@@ -55,11 +53,13 @@ using namespace amrex;
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
+// 11: PhiRot_Type was removed from Castro
+// 12: State_Type's additional ghost zone, used when radiation is enabled, has been removed
 
 namespace
 {
     int input_version = -1;
-    int current_version = 10;
+    int current_version = 12;
 }
 
 // I/O routines for Castro
@@ -153,7 +153,7 @@ Castro::restart (Amr&     papa,
     // get the elapsed CPU time to now;
     if (level == 0 && ParallelDescriptor::IOProcessor())
     {
-      // get ellapsed CPU time
+      // get elapsed CPU time
       std::ifstream CPUFile;
       std::string FullPathCPUFile = parent->theRestartFile();
       FullPathCPUFile += "/CPUtime";
@@ -188,6 +188,24 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
+#ifdef ROTATION
+    if (do_rotation && level == 0)
+    {
+        // get current value of the rotation period
+        std::ifstream RotationFile;
+        std::string FullPathRotationFile = parent->theRestartFile();
+        FullPathRotationFile += "/Rotation";
+        RotationFile.open(FullPathRotationFile.c_str(), std::ios::in);
+
+        if (RotationFile.is_open()) {
+            RotationFile >> castro::rotational_period;
+            amrex::Print() << "  Based on the checkpoint, setting the rotational period to "
+                           << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
+            RotationFile.close();
+        }
+    }
+#endif
+
     if (level == 0)
     {
         // get problem-specific stuff -- note all processors do this,
@@ -196,8 +214,6 @@ Castro::restart (Amr&     papa,
 
         problem_restart(dir);
     }
-
-    const Real* dx  = geom.CellSize();
 
     if ( (grown_factor > 1) && (parent->maxLevel() < 1) )
     {
@@ -263,27 +279,28 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
+           const Box& bx = mfi.tilebox();
 
-           const Real* prob_lo = geom.ProbLo();
-           const Box& bx      = mfi.validbox();
-           const int* lo      = bx.loVect();
-           const int* hi      = bx.hiVect();
-
-           if (! orig_domain.contains(bx)) {
-
+           if (!orig_domain.contains(bx)) {
                auto s = S_new[mfi].array();
                auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+               amrex::Error("Error: random initialization not yet supported with grown factor");
+#else
                amrex::ParallelFor(bx,
-               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                {
                    // C++ problem initialization; has no effect if not implemented
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
-
+#endif
            }
        }
     }
@@ -293,18 +310,8 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       MultiFab& S_new = get_new_data(State_Type);
-       const int nc = S_new.nComp();
-       const int n1d = get_numpts();
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     if (do_grav && level == 0) {
-       BL_ASSERT(gravity == 0);
+       BL_ASSERT(gravity == nullptr);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
@@ -465,6 +472,23 @@ Castro::checkPoint(const std::string& dir,
         }
 #endif
 
+#ifdef ROTATION
+        if (do_rotation) {
+            // store current value of the rotation period
+            std::ofstream RotationFile;
+            std::string FullPathRotationFile = dir;
+            FullPathRotationFile += "/Rotation";
+            RotationFile.open(FullPathRotationFile.c_str(), std::ios::out);
+
+            RotationFile << std::scientific;
+            RotationFile.precision(19);
+
+            RotationFile << std::setw(30) << castro::rotational_period << std::endl;
+
+            RotationFile.close();
+        }
+#endif
+
         {
             // store any problem-specific stuff
             problem_checkpoint(dir);
@@ -533,7 +557,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "inputs file: " << inputs_name << "\n\n";
 
   jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
   jobInfoFile << "\n";
@@ -550,14 +574,14 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(0);
+  time_t now = time(nullptr);
 
   // Convert now to tm struct for local timezone
   tm* localtm = localtime(&now);
   jobInfoFile   << "output date / time: " << asctime(localtm);
 
   char currentDir[FILENAME_MAX];
-  if (getcwd(currentDir, FILENAME_MAX)) {
+  if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
     jobInfoFile << "output dir:         " << currentDir << "\n";
   }
 
@@ -595,7 +619,12 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   jobInfoFile << "\n";
-  
+
+#ifdef AMREX_USE_CUDA
+  jobInfoFile << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  jobInfoFile << "\n";
+#endif
+
   jobInfoFile << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   jobInfoFile << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
 
@@ -889,7 +918,7 @@ Castro::plotFileOutput(const std::string& dir,
         if (((parent->isStatePlotVar(desc_lst[typ].name(comp)) && is_small == 0) ||
              (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) && is_small == 1)) &&
             desc_lst[typ].getType() == IndexType::TheCellType()) {
-          plot_var_map.push_back(std::pair<int,int>(typ,comp));
+            plot_var_map.emplace_back(typ, comp);
         }
       }
     }
@@ -898,33 +927,41 @@ Castro::plotFileOutput(const std::string& dir,
     std::list<std::string> derive_names;
     const std::list<DeriveRec>& dlist = derive_lst.dlist();
 
-    for (auto it = dlist.begin(); it != dlist.end(); ++it)
-    {
-        if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-            (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
+    for (const auto & dd : dlist) {
+
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
-            if (it->name() == "particle_count" ||
-                it->name() == "total_particle_count")
+            if (dd.name() == "particle_count" ||
+                dd.name() == "total_particle_count")
             {
                 if (Castro::theTracerPC())
                 {
-                    derive_names.push_back(it->name());
-                    num_derive = num_derive + it->numDerive();
+                    derive_names.push_back(dd.name());
+                    num_derive = num_derive + dd.numDerive();
                 }
             } else
 #endif
             {
-               derive_names.push_back(it->name());
-               num_derive = num_derive + it->numDerive();
+               derive_names.push_back(dd.name());
+               num_derive = num_derive + dd.numDerive();
             }
         }
     }
 
-    int n_data_items = plot_var_map.size() + num_derive;
+    int n_data_items = static_cast<int>(plot_var_map.size()) + num_derive;
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        n_data_items += static_cast<int>(Castro::burn_weight_names.size());
+    }
+#endif
 #endif
 
     Real cur_time = state[State_Type].curTime();
@@ -945,16 +982,14 @@ Castro::plotFileOutput(const std::string& dir,
         //
         // Names of variables -- first state, then derived
         //
-        for (int i =0; i < plot_var_map.size(); i++)
+        for (const auto& [typ, comp] : plot_var_map)
         {
-            int typ = plot_var_map[i].first;
-            int comp = plot_var_map[i].second;
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
+        for (auto &name : derive_names)
         {
-            const DeriveRec* rec = derive_lst.get(*it);
+            const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
                     os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
@@ -969,6 +1004,16 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i=0; i<Radiation::nplotvar; ++i) {
           os << Radiation::plotvar_names[i] << '\n';
         }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+        if (store_burn_weights) {
+            for (const auto& name: Castro::burn_weight_names) {
+                os << name << '\n';
+            }
+        }
+#endif
 #endif
 
         os << AMREX_SPACEDIM << '\n';
@@ -1078,32 +1123,28 @@ Castro::plotFileOutput(const std::string& dir,
     int       cnt   = 0;
     const int nGrow = 0;
     MultiFab  plotMF(grids,dmap,n_data_items,nGrow);
-    MultiFab* this_dat = 0;
+    MultiFab* this_dat = nullptr;
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (int i = 0; i < plot_var_map.size(); i++)
-    {
-        int typ  = plot_var_map[i].first;
-        int comp = plot_var_map[i].second;
+    for (const auto& [typ, comp] : plot_var_map) {
         this_dat = &state[typ].newData();
-        MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
+        MultiFab::Copy(plotMF, *this_dat, comp, cnt, 1, nGrow);
         cnt++;
     }
     //
     // Cull data from derived variables.
     //
-    if (dlist.size() > 0)
+    if (!dlist.empty())
     {
-        for (auto it = dlist.begin(); it != dlist.end(); ++it)
-        {
-            if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
-                (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
+        for (const auto & dd : dlist) {
 
-                auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
-                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
-                cnt = cnt + it->numDerive();
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+                (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
+                auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);
+                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, dd.numDerive(), nGrow);
+                cnt = cnt + dd.numDerive();
             }
         }
     }
@@ -1113,6 +1154,15 @@ Castro::plotFileOutput(const std::string& dir,
         MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
         cnt += Radiation::nplotvar;
     }
+#endif
+
+#ifdef REACTIONS
+#ifndef TRUE_SDC
+    if (store_burn_weights) {
+        MultiFab::Copy(plotMF, getLevel(level).burn_weights, 0, cnt, static_cast<int>(Castro::burn_weight_names.size()), 0);
+        cnt += static_cast<int>(Castro::burn_weight_names.size());  // NOLINT(clang-analyzer-deadcode.DeadStores)
+    }
+#endif
 #endif
 
     //

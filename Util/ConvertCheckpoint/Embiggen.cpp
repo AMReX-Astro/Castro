@@ -33,9 +33,6 @@
 
 using namespace amrex;
 
-#define VSHOWVAL(verbose, val) { if(verbose && \
-                                   ParallelDescriptor::IOProcessor()) { \
-                                   cout << #val << " = " << val << endl; } }
 LevelBld *getLevelBld() {
   return 0;
 }

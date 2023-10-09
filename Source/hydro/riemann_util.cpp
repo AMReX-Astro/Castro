@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -62,7 +61,7 @@ Castro::compute_flux_from_q(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real u_adv = qint(i,j,k,iu);
@@ -91,6 +90,10 @@ Castro::compute_flux_from_q(const Box& bx,
     F(i,j,k,USHK) = 0.0;
 #endif
 
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n  = upassmap(ipassive);
@@ -132,7 +135,7 @@ Castro::store_godunov_state(const Box& bx,
   // hydro advancement.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 

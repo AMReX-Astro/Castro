@@ -6,6 +6,7 @@
 #include <network.H>
 #include <model_parser.H>
 #include <ambient.H>
+#include <burn_type.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -32,68 +33,115 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = interpolate(dist, model::idens);
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
-    for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(dist, model::ispec+n);
+    Real sumX{0.0_rt};
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) = amrex::min(1.0_rt, amrex::max(interpolate(dist, model::ispec+n), network_rp::small_x));
+        sumX += state(i,j,k,UFS+n);
     }
 
-    eos_t eos_state;
-
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n);
+    // normalize
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) /= sumX;
     }
 
-    eos(eos_input_rt, eos_state);
+    burn_t burn_state;
 
-    state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
-    state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = state(i,j,k,UTEMP);
+    for (int n = 0; n < NumSpec; n++) {
+        burn_state.xn[n] = state(i,j,k,UFS+n);
+    }
+
+    eos(eos_input_rt, burn_state);
+
+    state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
+#ifdef NSE_NET
+    state(i,j,k,UMUP) = problem::mu_p;
+    state(i,j,k,UMUN) = problem::mu_n;
+#endif
 
     // initial velocities = 0
-
     state(i,j,k,UMX) = 0.0_rt;
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-    // add a perturbation
+    // add a perturbation at the north pole
 
-    Real t0 = state(i,j,k,UTEMP);
+    Real T0 = state(i,j,k,UTEMP);
 
     // perturbation is on the vertical-axis
 
+    Real pert_center = problem::R_pert + problem::R_He_base;
+
 #if AMREX_SPACEDIM == 1
-    Real r1 = std::sqrt((x - problem::R_pert) * (x - problem::R_pert)) /
+    Real r1 = std::sqrt((x - pert_center) * (x - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #elif AMREX_SPACEDIM == 2
-    Real r1 = std::sqrt(x * x + (y - problem::R_pert) * (y - problem::R_pert)) /
+    Real r1 = std::sqrt(x * x + (y - pert_center) * (y - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #else
-    Real r1 = std::sqrt(x * x + y * y + (z - problem::R_pert) * (z - problem::R_pert)) /
+    Real r1 = std::sqrt(x * x + y * y + (z - pert_center) * (z - pert_center)) /
         (2.5e6_rt * problem::pert_rad_factor);
 #endif
 
     // convolve the temperature perturbation with the amount of He
-    Real X_he = eos_state.xn[problem::ihe4];
+    Real X_he = burn_state.xn[problem::ihe4];
 
-    state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::pert_temp_factor *
-                               (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
+    Real Tpert = T0 * (1.0_rt + X_he * problem::pert_temp_factor *
+                       (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
+
+    Real dT = Tpert - T0;
 
 
-    eos_state.rho = state(i,j,k,URHO);
-    eos_state.T = state(i,j,k,UTEMP);
+#if AMREX_SPACEDIM == 3
+    // optional second perturbation
+
+    if (problem::second_pert_angle > 0) {
+
+        Real angle_rad = problem::second_pert_angle * M_PI / 180.0_rt;
+
+        Real second_pert_center = problem::second_R_pert + problem::R_He_base;
+
+        // these are measured with respect to the center
+
+        Real x_pert = second_pert_center * std::sin(angle_rad);
+        Real y_pert = 0.0_rt;
+        Real z_pert = second_pert_center * std::cos(angle_rad);
+
+        Real dx_pert = x - x_pert;
+        Real dy_pert = y - y_pert;
+        Real dz_pert = z - z_pert;
+
+        Real r2 = std::sqrt(dx_pert * dx_pert + dy_pert * dy_pert + dz_pert * dz_pert) /
+            (2.5e6_rt * problem::second_pert_rad_factor);
+
+        // we are assuming here that the 2 perturbations don't overlap
+
+        Tpert = T0 * (1.0_rt + X_he * problem::second_pert_temp_factor *
+                      (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r2))));
+
+        dT += (Tpert - T0);
+
+    }
+#endif
+
+    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = T0 + dT;
+
     // we don't need to refill xn, since it still holds unchanged from above
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rt, burn_state);
 
     // the internal energy changed
 
-    state(i,j,k,UEINT) = eos_state.e * state(i,j,k,URHO);
-    state(i,j,k,UEDEN) = eos_state.e * state(i,j,k,URHO);
+    state(i,j,k,UEINT) = burn_state.e * state(i,j,k,URHO);
+    state(i,j,k,UEDEN) = burn_state.e * state(i,j,k,URHO);
 
 }
 

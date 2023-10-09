@@ -23,6 +23,9 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
                        Real& period, Real eccentricity, Real phi, Real& a,
                        Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p)
 {
+    amrex::ignore_unused(radius_1);
+    amrex::ignore_unused(radius_2);
+
     Real M  = mass_1 + mass_2;     // Total mass
     Real mu = mass_1 * mass_2 / M; // Reduced mass
 
@@ -313,6 +316,12 @@ void finalize_probdata ()
         problem::relaxation_is_done = 0;
     }
 
+    // As above, but for radial damping.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        problem::radial_damping_is_done = 0;
+    }
+
     // TDE sanity checks
 
     if (problem::problem == 2) {
@@ -369,6 +378,9 @@ void set_small ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
+#endif
 
     eos(eos_input_rt, eos_state);
 
@@ -378,12 +390,11 @@ void set_small ()
 
 
 
-// Set the locations of the stellar centers of mass
+// Update the locations of the Roche radii
 
-void set_star_data ()
+void update_roche_radii ()
 {
     if (problem::mass_P > 0.0_rt && problem::mass_S > 0.0_rt) {
-
         Real r = std::sqrt(std::pow(problem::com_P[0] - problem::com_S[0], 2) +
                            std::pow(problem::com_P[1] - problem::com_S[1], 2) +
                            std::pow(problem::com_P[2] - problem::com_S[2], 2));
@@ -414,7 +425,28 @@ void set_star_data ()
             problem::roche_rad_P = 0.0_rt;
             problem::t_ff_P = 0.0_rt;
         }
+    }
 
+    // Determine when the radial damping force terminates.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
+        // It does not make sense to do damping if there's only one star remaining.
+
+        if (problem::mass_S == 0.0_rt) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        // Only do radial damping until the stars get sufficiently close. The way we will measure this
+        // is when the secondary overflows the Roche lobe. At that point we terminate the damping and
+        // let Newtonian gravity do the rest of the work.
+
+        if (problem::roche_rad_S <= problem::radial_damping_roche_factor * problem::radius_S) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        if (problem::radial_damping_is_done == 1) {
+            amrex::Print() << "\n\n  Terminating radial damping force since the secondary is about to overflow its Roche lobe.\n\n";
+        }
     }
 }
 
@@ -507,10 +539,8 @@ void binary_setup ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; ++n) {
-        eos_state.aux[n] = ambient::ambient_state[UFX+n] / ambient::ambient_state[URHO];
-    }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
 #endif
 
     eos(eos_input_rt, eos_state);
@@ -780,42 +810,4 @@ void binary_setup ()
         }
 
     }
-}
-
-
-
-void update_center(Real time)
-{
-    // Determine the original location of the center.
-
-    const Real* problo = DefaultGeometry().ProbLo();
-    const Real* probhi = DefaultGeometry().ProbHi();
-
-    if (AMREX_SPACEDIM == 3) {
-
-        problem::center[0] = problo[0] + problem::center_fracx * (probhi[0] - problo[0]);
-        problem::center[1] = problo[1] + problem::center_fracy * (probhi[1] - problo[1]);
-        problem::center[2] = problo[2] + problem::center_fracz * (probhi[2] - problo[2]);
-
-    }
-    else if (AMREX_SPACEDIM == 2) {
-
-        problem::center[0] = problo[0];
-        problem::center[1] = problo[1] + problem::center_fracz * (probhi[1] - problo[1]);
-        problem::center[2] = 0.0_rt;
-
-    }
-    else {
-
-        problem::center[0] = problo[0] + problem::center_fracx * (probhi[0] - problo[0]);
-        problem::center[1] = 0.0_rt;
-        problem::center[2] = 0.0_rt;
-
-    }
-
-    // Now update using the time passed since the beginning of the simulation.
-
-    problem::center[0] += problem::bulk_velx * time;
-    problem::center[1] += problem::bulk_vely * time;
-    problem::center[2] += problem::bulk_velz * time;
 }

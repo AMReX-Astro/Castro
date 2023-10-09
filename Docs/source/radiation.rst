@@ -10,7 +10,7 @@ Introduction
 Castro has three radiation solvers:
 
 -  SingleGroupSolver: this solver does not have radiation
-   pressre. It is pure hydro plus radiation diffusion. This is only
+   pressure. It is pure hydro plus radiation diffusion. This is only
    applicable when the medium is optically thick and the pressure is small.
 
 -  SGFLDSolver: this is the gray flux-limited diffusion
@@ -41,8 +41,7 @@ to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://github.com/hypre-space/hypre (the minimum
-supported release version is 2.19.0, except for the CUDA build which
-requires the latest master branch as of January 2021). Their install
+supported release version is 2.23.0). Their install
 instructions describe what to do; we recommend using the autotools
 and GNU Make build. On HPC clusters, you typically want to build
 with the same compiler you're using to build Castro, and you also
@@ -57,7 +56,7 @@ replacing ``/path/to/Hypre/install`` with the target location
 where you want the Hypre files to be installed.
 ::
 
-   HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+   CUDA_HOME=$OLCF_CUDA_ROOT HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
    make install
 
 Then, when you are building Castro, you would build with
@@ -482,7 +481,7 @@ radiation.absInTol = 0.0
 
 radiation.convergence_check_type = 0
     |
-    | For the MG solver only. This specifiy the way of checking the
+    | For the MG solver only. This specify the way of checking the
       convergence of an outer iteration. Possible values are
 
     -  0: Check :math:`T`, :math:`Y_e`, and the residues of the equations for

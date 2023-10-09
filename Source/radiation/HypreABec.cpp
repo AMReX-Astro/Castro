@@ -3,6 +3,7 @@
 #include <AMReX_LO_BCTYPES.H>
 
 #include <HypreABec.H>
+#include <HABEC.H>
 #include <HABEC_F.H>
 #include <rad_util.H>
 
@@ -254,12 +255,11 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
     
     const NGBndry& bd = getBndry();
     const Box& domain = bd.getDomain();
-    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
         
         for (MFIter si(Soln); si.isValid(); ++si) {
@@ -274,47 +274,43 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                 const Mask      &msk = bd.bndryMasks(oitr(),i);
 
                 if (reg[oitr()] == domain[oitr()]) {
-                    const int *tfp = NULL;
                     int bctype = bct;
+                    Array4<int const> tf_arr;
                     if (bd.mixedBndry(oitr())) {
                         const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
-                        tfp = tf.dataPtr();
+                        tf_arr = tf.array();
                         bctype = -1;
                     }
                     // In normal code operation only the fluxes at internal
                     // Dirichlet boundaries are used.  Some diagnostics use the
                     // fluxes computed at domain boundaries but these do not
                     // influence the evolution of the interior solution.
-                    Real* pSPa;
-                    Box SPabox; 
+                    Array4<Real const> sp_arr;
                     if (SPa != 0) {
-                        pSPa = (*SPa)[si].dataPtr();
-                        SPabox = (*SPa)[si].box();
+                        sp_arr = (*SPa)[si].array();
                     }
-                    else {
-                        pSPa = &foo;
-                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-                    }
-                    getFaceMetric(r, reg, oitr(), geom);
-                    hbflx3(BL_TO_FORTRAN(Flux[idim][si]),
-                           BL_TO_FORTRAN_N(Soln[si], icomp),
-                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                           cdir, bctype, tfp, bho, bcl,
-                           BL_TO_FORTRAN_N(fs, bdcomp),
-                           BL_TO_FORTRAN(msk),
-                           BL_TO_FORTRAN((*bcoefs[idim])[si]),
-                           beta, dx, flux_factor, r.dataPtr(), inhom,
-                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+                    HABEC::hbflx3(Flux[idim][si].array(),
+                                  Soln[si].array(icomp),
+                                  reg,
+                                  cdir, bctype,
+                                  tf_arr,
+                                  bho, bcl,
+                                  fs.array(bdcomp),
+                                  msk.array(),
+                                  (*bcoefs[idim])[si].array(),
+                                  beta, dx, flux_factor,
+                                  oitr(), geom.data(), inhom,
+                                  sp_arr);
                 }
                 else {
-                    hbflx(BL_TO_FORTRAN(Flux[idim][si]),
-                          BL_TO_FORTRAN_N(Soln[si], icomp),
-                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                          cdir, bct, bho, bcl,
-                          BL_TO_FORTRAN_N(fs, bdcomp),
-                          BL_TO_FORTRAN(msk),
-                          BL_TO_FORTRAN((*bcoefs[idim])[si]),
-                          beta, dx, inhom);
+                    HABEC::hbflx(Flux[idim][si].array(),
+                                 Soln[si].array(icomp),
+                                 reg,
+                                 cdir, bct, bho, bcl,
+                                 fs.array(bdcomp),
+                                 msk.array(),
+                                 (*bcoefs[idim])[si].array(),
+                                 beta, dx, inhom);
                 }
             }
         }
@@ -1711,6 +1707,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       fcomp = 0;
 
       AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = d_arr(i,j,k,icomp); });
+      Gpu::streamSynchronize();
     }
     Elixir f_elix = fnew.elixir();
 
@@ -1723,6 +1720,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Array4<Real> const f_arr = f->array();
 
     AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = r_arr(i,j,k,0); });
+    Gpu::streamSynchronize();
 
     // add b.c.'s to rhs
 

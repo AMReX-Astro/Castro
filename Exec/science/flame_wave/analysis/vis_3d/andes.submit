@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH -A ast106
+#SBATCH -J plots
+#SBATCH -N 1
+#SBATCH -t 8:00:00
+#SBATCH -p gpu
+
+cd $SLURM_SUBMIT_DIR
+
+#plotfile=flame_wave_1000Hz_25cm_smallplt207887
+#plotfile=flame_wave_1000Hz_25cm_smallplt40842
+
+source activate andes_env
+
+for i in flame_wave_1000Hz_25cm_smallplt*[0-9]
+do
+  if [ ! -f ${i}_abar_annotated_top.png ]; then
+    srun python vol-xrb-abar.py ${i}
+    srun python vol-xrb-enuc.py ${i}
+  fi
+done
+

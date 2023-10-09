@@ -1,6 +1,5 @@
 #ifdef SPONGE
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
@@ -9,69 +8,31 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
-    const Real strt_time = ParallelDescriptor::second();
+    // We do not apply any sponge at the old time.
 
-    if (!do_sponge) return;
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_in);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
-    const Real mult_factor = 1.0;
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        apply_sponge(bx, state_in.array(mfi), source.array(mfi), dt, mult_factor);
-
-    }
-
-    if (verbose > 1)
-    {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
-
-        if (ParallelDescriptor::IOProcessor()) {
-            std::cout << "Castro::construct_old_sponge_source() time = " << run_time << "\n" << "\n";
-        }
-#ifdef BL_LAZY
-        });
-#endif
-    }
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(time);
+
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!do_sponge) return;
-
-    const Real mult_factor_old = -0.5;
-    const Real mult_factor_new =  0.5;
-
-    // First, subtract half of the old-time source.
-    // Note that the sponge parameters are still current
-    // at this point from their evaluation at the old time.
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        apply_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
+    if (!do_sponge) {
+        return;
     }
-
-    // Now evaluate the new-time part of the corrector.
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -80,8 +41,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        apply_sponge(bx, state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
-
+        apply_sponge(bx, state_new.array(mfi), source.array(mfi), dt);
     }
 
     if (verbose > 1)
@@ -107,7 +67,7 @@ void
 Castro::apply_sponge(const Box& bx,
                      Array4<Real const> const state_in,
                      Array4<Real> const source,
-                     Real dt, Real mult_factor) {
+                     Real dt) {
 
   // alpha is a dimensionless measure of the timestep size; if
   // sponge_timescale < dt, then the sponge will have a larger effect,
@@ -123,14 +83,10 @@ Castro::apply_sponge(const Box& bx,
   auto problo = geom.ProbLoArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real src[NSRC];
-
-    for (int n = 0; n < NSRC; n++) {
-      src[n] = 0.0;
-    }
+    Real src[NSRC] = {0.0};
 
     GpuArray<Real, 3> r;
 
@@ -267,7 +223,7 @@ Castro::apply_sponge(const Box& bx,
                                                 sponge_target_y_velocity,
                                                 sponge_target_z_velocity};
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state_in(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
+      Sr[n] = (state_in(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac / dt;
       src[UMX+n] = Sr[n];
     }
 

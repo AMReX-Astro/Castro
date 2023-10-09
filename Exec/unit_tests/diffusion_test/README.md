@@ -24,7 +24,7 @@ dt < 0.5 dx^2/D
 
 For constant diffusion coefficient, there is an analytic solution: the
 diffusion of a Gaussian remains Gaussian, with the amplitude
-descreasing and the width increasing with time.
+decreasing and the width increasing with time.
 
 
 # Testing
@@ -69,10 +69,10 @@ analytic solution, giving:
 A convergence test of the 4th-order SDC algorithm can be run as:
 
 ```
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=128
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=128
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
 ```
 
 Note: this is Cartesian, not spherical (since we don't have spherical

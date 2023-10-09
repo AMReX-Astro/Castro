@@ -43,9 +43,6 @@ castro.do_reflux      = 1
 #particles.timestamp_density     = 1
 #particles.timestamp_temperature = 1
 #particles.v                     = 1               # verbosity
-#particles.write_in_plotfile     = 1
-
-
 
 
 #castro.ppm_type = 1
@@ -85,7 +82,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 128 
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -220,7 +217,7 @@ radiation.plot_kappa_r = 1
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

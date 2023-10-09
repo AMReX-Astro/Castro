@@ -16,14 +16,13 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
               const Real time)
 {
 
+    amrex::ignore_unused(time);
 
     auto domlo = geom.Domain().loVect3d();
     auto domhi = geom.Domain().hiVect3d();
 
-    auto problo = geom.ProbLoArray();
-
-    auto lo = bx.loVect();
-    auto hi = bx.hiVect();
+    const auto *lo = bx.loVect();
+    const auto *hi = bx.hiVect();
 
     auto adv_bx = Box(adv);
     auto adv_lo = adv_bx.loVect3d();
@@ -49,8 +48,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domlo[0]-1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
+
+                amrex::ignore_unused(i);
 
                 Real dens_above = adv(domlo[0],j,k,URHO);
                 Real temp_above = adv(domlo[0],j,k,UTEMP);
@@ -104,10 +105,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii+1,j,k,UTEMP) - adv(ii+2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -180,8 +185,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                           int ioff = domlo[0]-ii-1;
                           adv(ii,j,k,UMX) = -dens_zone * (adv(domlo[0]+ioff,j,k,UMX) / adv(domlo[0]+ioff,j,k,URHO));
 
-                          adv(ii,j,k,UMY) = -dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
-                          adv(ii,j,k,UMZ) = -dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
+                          adv(ii,j,k,UMY) = dens_zone * (adv(domlo[0],j,k,UMY) / dens_base);
+                          adv(ii,j,k,UMZ) = dens_zone * (adv(domlo[0],j,k,UMZ) / dens_base);
                       } else {
                           // zero gradient
                           adv(ii,j,k,UMX) = dens_zone * (adv(domlo[0],j,k,UMX) / dens_base);
@@ -239,8 +244,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
+
+                amrex::ignore_unused(i);
 
                 Real dens_below = adv(domhi[0],j,k,URHO);
                 Real temp_below = adv(domhi[0],j,k,UTEMP);
@@ -290,10 +297,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(ii-1,j,k,UTEMP) - adv(ii-2,j,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -365,8 +376,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int ioff = ii-domhi[0]-1;
                            adv(ii,j,k,UMX) = -dens_zone * (adv(domhi[0]-ioff,j,k,UMX) / adv(domhi[0]-ioff,j,k,URHO));
 
-                           adv(ii,j,k,UMY) = -dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
-                           adv(ii,j,k,UMZ) = -dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
+                           adv(ii,j,k,UMY) = dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
+                           adv(ii,j,k,UMZ) = dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(ii,j,k,UMX) = dens_zone * (adv(domhi[0],j,k,UMX) / dens_base);
@@ -429,8 +440,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domlo[1]-1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
+
+                amrex::ignore_unused(j);
 
                 Real dens_above = adv(i,domlo[1],k,URHO);
                 Real temp_above = adv(i,domlo[1],k,UTEMP);
@@ -481,10 +494,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj+1,k,UTEMP) - adv(i,jj+2,k,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -557,8 +574,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = domlo[1]-jj-1;
                            adv(i,jj,k,UMY) = -dens_zone*(adv(i,domlo[1]+joff,k,UMY) / adv(i,domlo[1]+joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domlo[1],k,UMX) / dens_base);
@@ -617,8 +634,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domhi[1]+1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
+
+                amrex::ignore_unused(j);
 
                 Real dens_below = adv(i,domhi[1],k,URHO);
                 Real temp_below = adv(i,domhi[1],k,UTEMP);
@@ -668,10 +687,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,jj-1,k,UTEMP) - adv(i,jj-2,k,UTEMP);
                     } else {
-                        temp_zone = temp_below;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_below;
+                        }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -743,8 +766,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int joff = jj-domhi[1]-1;
                            adv(i,jj,k,UMY) = -dens_zone * (adv(i,domhi[1]-joff,k,UMY) / adv(i,domhi[1]-joff,k,URHO));
 
-                           adv(i,jj,k,UMX) = -dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
-                           adv(i,jj,k,UMZ) = -dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
+                           adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone * (adv(i,domhi[1],k,UMZ) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,jj,k,UMX) = dens_zone * (adv(i,domhi[1],k,UMX) / dens_base);
@@ -806,8 +829,10 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], hi[1], domlo[2]-1)));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
+
+                amrex::ignore_unused(k);
 
                 Real dens_above = adv(i,j,domlo[2],URHO);
                 Real temp_above = adv(i,j,domlo[2],UTEMP);
@@ -858,10 +883,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     if (hse_interp_temp == 1) {
                         temp_zone = 2*adv(i,j,kk+1,UTEMP) - adv(i,j,kk+2,UTEMP);
                     } else {
-                        temp_zone = temp_above;
+                        if (hse_fixed_temp > 0.0_rt) {
+                            temp_zone = hse_fixed_temp;
+                        } else {
+                            temp_zone = temp_above;
+                        }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -934,8 +963,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                            int koff = domlo[2]-kk-1;
                            adv(i,j,kk,UMZ) = -dens_zone * (adv(i,j,domlo[2]+koff,UMZ) / adv(i,j,domlo[2]+koff,URHO));
 
-                           adv(i,j,kk,UMX) = -dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
-                           adv(i,j,kk,UMY) = -dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
+                           adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);
+                           adv(i,j,kk,UMY) = dens_zone * (adv(i,j,domlo[2],UMY) / dens_base);
                        } else {
                            // zero gradient
                            adv(i,j,kk,UMX) = dens_zone * (adv(i,j,domlo[2],UMX) / dens_base);

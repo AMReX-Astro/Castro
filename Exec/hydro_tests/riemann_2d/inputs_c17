@@ -1,0 +1,106 @@
+#------------------INPUTS TO MAIN PROGRAM---------------
+#max_step = 1000                           #max of time steps
+stop_time = 0.3                            #stop_time
+
+#PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 1    1    1         # 1 if its periodic and 0 otherwise
+geometry.coord_sys   = 0                   # 0 is cartesian
+geometry.prob_lo     = 0    0    0         # lowest boundary on each domain
+geometry.prob_hi     = 1    1    1         # highest boundary on each domain
+amr.n_cell           = 400 400 400         # number of cells
+
+# >>>>>>>>>>>> BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior          3 = Symmetry
+# 1 = Inflow            4 = SlipWall
+# 2 = Outflow           5 = NoSlipWall
+# >>>>>>>>>>>> BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc         = 0  0  0
+castro.hi_bc         = 0  0  0
+
+#WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 0
+
+#TIME STEP CONTROL
+
+castro.cfl           = 0.6
+castro.init_shrink   = 1.0
+castro.change_max     = 1.1
+#castro.fixed_dt      = 
+
+
+#DIAGNOSTIC & VERBOSITY
+castro.sum_interval = 1
+castro.v            = 1
+amr.v               = 1
+
+
+#REFINEMENT / REGRIDDING
+amr.max_level       = 0             # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2       # refinement ratio
+amr.regrid_int      = 2             # how often to regrid
+amr.blocking_factor = 8             # block factor in grid generation
+amr.max_grid_size   = 256           # maximum default value
+
+amr.refinement_indicators = presserr pressgrad
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3 
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
+# PLOTFILES
+amr.plot_file        = plt_riemman2d_400
+amr.plot_int         = -1
+amr.plot_per         = 0.05
+amr.derive_plot_vars = ALL
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4
+
+#PROBLEM PARAMETERS
+problem.rho_1 = 1.0
+problem.rho_2 = 2.0
+problem.rho_3 = 1.0625
+problem.rho_4 = 0.5197
+
+problem.ux_1  = 0.0
+problem.ux_2  = 0.0
+problem.ux_3  = 0.0
+problem.ux_4  = 0.0
+
+problem.uy_1  = -0.4
+problem.uy_2  = -0.3
+problem.uy_3  = 0.2145
+problem.uy_4  = -1.1259
+
+problem.p_1  = 1.0
+problem.p_2  = 1.0
+problem.p_3  = 0.4
+problem.p_4  = 0.4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

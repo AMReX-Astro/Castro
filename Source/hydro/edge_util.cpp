@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_hydro.H>
 
 using namespace amrex;
 
@@ -15,7 +14,7 @@ Castro::reset_edge_state_thermo(const Box& bx,
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
 #ifdef RADIATION
@@ -86,7 +85,7 @@ Castro::edge_state_temp_to_pres(const Box& bx,
     // use T to define p
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // We just got the extremes corresponding to a particular cell-center, but now

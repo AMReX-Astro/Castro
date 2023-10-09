@@ -1,4 +1,249 @@
+# 23.11
+
+  * The compile option USE_AUX_UPDATE has been removed. If you want to
+    manually update the auxiliary parameters, you can use an external
+    source term or you can use the problem post-timestep hook. (#2614)
+
+# 23.10
+
+  * True-SDC no longer evolves density as part of the reaction system
+    and now uses the same ODE code path as simplified-SDC.  This means
+    we don't need our own custom VODE righthand side functions (#2559,
+    #2560, #2567, #2578, #2580, #2584)
+
+  * The true SDC runtime parameter `sdc_solve_for_rhoe` has been
+    removed. (#2572)
+
+  * The true SDC runtime parameters `sdc_solver_tol_spec`,
+    `sdc_solver_tol_ener`, `sdc_solver_atol` have been removed.
+    Instead the Microphysics integration tolerance parameters should
+    be used. (#2571)
+
+  * The true SDC runtime parameter `sdc_newton_use_analytic_jac` has
+    been removed.  Instead the Microphysics integrator `jacobian`
+    parameter should be used (#2573)
+
+# 23.08
+
+  * Time evolution without subcycling on the fine levels, which is enabled via
+    the runtime parameter amr.subcycling_mode = "None", has been significantly
+    rewritten to improve computational performance for certain cases. When the
+    fine levels do not subcycle, the evolution can be done by processing all
+    of the hydro updates on the fine level together and then immediately doing
+    the flux correction to sync the coarse and fine level fluxes at the
+    boundary between levels. This is how many AMR codes that do not subcycle
+    are written. Castro now does this when the user chooses not to subcycle.
+    The benefit of this approach is most evidence for problems with Poisson
+    gravity that use a multigrid solve, as we can significantly reduce the
+    number of Poisson solves per step, performing only a single composite
+    (multi-level) solve at the new-time simultaneously for all levels. (#2505)
+
+# 23.07
+
+  * The parameter castro.state_nghost, which allowed State_Type to have ghost
+    zones, has been removed. (#2502)
+
+  * The additional ghost zone in State_Type, used when radiation is enabled,
+    has been removed. The checkpoint version number has been updated to avoid
+    restarting from a checkpoint with the wrong number of ghost zones. (#2495)
+
+  * The parameter gravity.no_composite was removed (#2483)
+
+  * The parameter spherical_star was removed (#2482)
+
+# 23.06
+
+  * The job_info file now reports the integrator used (#2463)
+
+  * 1-d cylindrical geometry was fixed (#2465, #2470)
+
+# 23.05
+
+  * fixed some radiation solver indexing for plotting lab/com frame
+    flux (#2415)
+
+  * removed the derived in_nse plot file variable and instead use the
+    value that is returned from the burner (#2409)
+
+# 23.04
+
+  * burn_t now stores whether we are in NSE (#2390)
+
+  * Detonation and subchandra now work with self-consistent NSE
+    (#2369, #2391)
+
+  * clang-tidy fixes (#2380, #2392)
+
+  * added a code of conduct (#2393)
+
+# 23.03
+
+  * add Ye to plotfile output (#2361)
+
+# 23.01
+
+   * fixed the Sedov diagnostic (#2297)
+
+   * removed the timestep limiter diagnostic tool (#2332)
+
+# 22.12
+
+   * castro.lin_limit_state_interp now can be set to 2; this new
+     interpolater both prevents new extrema from being generated
+     and preserves linear combinations of state variables. (#2306)
+
+# 22.11
+
+   * We now output the location where the timestep is set (#2273)
+
+# 22.09
+
+   * Added an option `castro.allow_non_unit_aspect_zones` to permit
+     Castro to be run with dx != dy != dz.  This support is experimental.
+
+# 22.08
+
+   * fixed an issue with restart when using Poisson gravity (#2253)
+
+   * the source term corrector can now be used with simplified-SDC
+     (#2252)
+
+   * derefinement can now be specified via AMRErrorTag (#2238)
+
+# 22.06
+
+   * castro.stopping_criterion_field and castro.stopping_criterion_value have
+     been added; these allow you to stop the simulation once a certain threshold
+     has been exceeded (for example, if the temperature gets too hot). (#2209)
+
+   * The option castro.show_center_of_mass has been removed. If castro.v = 1
+     and castro.sum_interval > 0, then the center of mass will automatically
+     be included with the other diagnostic sums that are displayed. (#2176)
+
+   * The option castro.state_in_rotating_frame has been removed. The default
+     behavior continues to be that when rotation is being used, fluid variables
+     are measured with respect to the rotating frame. (#2172)
+
+   * The default for use_pslope has been changed to 0 -- disabling this.
+     use_pslope enables reconstruction that knows about HSE for the PLM
+     (castro.ppm_type = 0) implementation.  Since that method is not the
+     default, it is unlikely that this has been used.  This change is being
+     done to allow for a PPM implementation to be added without changing
+     the default behavior of that method. (#2205)
+
+   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+     extended to PPM (#2202)
+
+# 22.05
+
+   * A new option castro.hydro_memory_footprint_ratio has been added which
+     can help limit the amount of memory used in GPU builds. (#2153)
+
+   * In #1379, for the 21.04 release, Castro added a check that issued
+     an abort if any species mass fraction was found to be invalid (defined
+     by being less than -0.01 or greater than 1.01). This helps us catch
+     unintended code errors that do not properly normalize updates to the
+     species. (This was originally only enabled for CPU builds, but in the
+     22.04 release was extended for GPU builds, as noted below.) However,
+     as observed in #2096, this issue can legitimately be triggered in
+     regions of sharp composition and density gradients as an unavoidable
+     consequence of how the multi-dimensional CTU solver is designed. An
+     example would be a helium shell around a C/O white dwarf at low to
+     moderate spatial resolution. This was causing the code to abort in
+     a couple of science problems, so several improvements were added to
+     the code in this release to address it. In #2121, we turned this
+     situation into a retry after a hydro update rather than an abort,
+     so that the code has more chances to recover by doing an advance
+     with a smaller timestep. However, this will not always allow you
+     to recover, particularly if you are in an area where density resets
+     are occurring and/or you are using castro.limit_fluxes_on_small_dens,
+     so we also added a new option castro.abundance_failure_rho_cutoff in
+     #2124, which allows you to set a density threshold below which invalid
+     mass fractions will be silently ignored (and reset to valid values
+     between 0 and 1). We also turned the invalid mass fraction threshold
+     into a runtime parameter castro.abundance_failure_tolerance (#2131),
+     so that you can optionally loosen or tighten the strictness of this
+     check.
+
+     Since this scenario was sometimes occurring during the reflux step
+     in AMR simulations, we also improved the reflux code to avoid doing
+     the flux correction locally in zones where it would cause an invalid
+     mass fraction (#2123).
+
+     While doing these changes we noticed also that the option
+     castro.limit_fluxes_on_small_dens was sometimes inadvertently
+     aggravating this problem by creating physically implausible fluxes of
+     the species, so we simplified the algorithm to avoid that. (#2134)
+
+   * The option castro.limit_fluxes_on_large_vel has been removed. (#2132)
+
+# 22.04
+
+   * We now abort on GPUs if species do not sum to 1 (#2099)
+
+   * Fixed an issue with monopole gravity where running with multiple
+     MPI ranks in a GPU build could result in an incorrect gravitational
+     field calculation. (#2091)
+
+# 22.02
+
+   * Microphysics has moved from Starkiller-Astro to AMReX-Astro.  The
+     git submodules have been updated accordingly.  The old URL should
+     redirect to the new location, but you are encouraged to change
+     the submodule URL if you use submodules.  From the top-level Castro/
+     directory this can be done as:
+
+     git submodule set-url -- external/Microphysics/ https://github.com/AMReX-Astro/Microphysics.git
+
+# 21.12
+
+   * Tiling was added to main loop in MHD algorithm to enable
+     scaling performance increase when using multiple threads
+     in with OpenMP. See issue #2038.
+
+   * `castro.hse_fixed_temp` was added to allow for a fixed temperature
+     at an HSE boundary. It can be enabled by setting it to a positive
+     value and setting castro.hse_interp_temp=0. (#2042)
+
+# 21.10
+
+   * A new option, `castro.drive_initial_convection` was added that
+     uses the temperature interpolated from the initial model instead
+     of the value on the grid to call the reactions.  This helps
+     prevent a reactive zone from burning in place before a convective
+     velocity field is established to carry off the energy.
+
+   * The `burn_weights` are no longer stored by default in the plotfile.
+     Instead, they are now enabled by setting
+     castro.store_burn_weights=1.  Additionally, they now give a better
+     estimate of the cost for the numerical Jacobian (#1946, #1949)
+
+   * `castro.change_max` is now required to be greater than 1.0. To enforce
+     a timestep cap but still allow the timestep to decrease, use
+     castro.max_dt. (#1976)
+
+   * Gravity was modified to introduce parallel plane gravity with a
+     point mass by setting the radius of the star by
+     `castro.point_mass_location_offset` and the integer
+     `castro.point_mass_offset_is_true` == 1. By default, both
+     parameters are 0.0 and 0, respectively.
+
+
+# 21.09
+
+   * `castro.source_term_predictor` now works for simplified-SDC to
+     disable the source predictor for the hydrodynamics states to the
+     interface. (#1968)
+
+   * `castro.add_sdc_react_source_to_advection` was added to disable
+     react source to advection in simplified-SDC (#1969)
+
 # 21.07
+
+   * The sponge is now applied in a fully implicit manner at the end of
+     the CTU advance, rather than using a predictor-corrector approach
+     with time centering. This is more consistent with the original form
+     of the sponge in Castro. (#1876)
 
    * Castro can now validate the runtime parameters set in the inputs
      file or on the commandline by setting
@@ -43,7 +288,7 @@
 
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
-     
+
 # 21.05
 
    * The parameter use_eos_in_riemann was removed -- we found no
@@ -69,7 +314,7 @@
 
    * We can now set any of the Microphysics runtime parameters in the
      inputs file instead of probin.  Each group of parameters has a
-     namesapce for the inputs file when set this way
+     namespace for the inputs file when set this way
      (e.g. eos.use_coulomb = 1), and the C++ inputs value will take
      precedence over the value set in probin if it is set in both
      places. (#1527)
@@ -110,7 +355,7 @@
      As a result we have also switched the Strang and simplified SDC burners in Castro
      to use this C++ implementation. Most networks used in Castro have already been
      ported to C++. While networks are not required to have a C++ implementation,
-     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     networks implemented only in Fortran  will not be usable on GPUs, and eventually
      we will use C++ only. (#1313)
 
    * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
@@ -824,7 +1069,7 @@
      the timesteps it chooses will be different. (#538)
 
    * A sign error was fixed in the hybrid_hydro angular momentum
-     algorithm This addresses issue #462.  During commmit 0f09693, a
+     algorithm This addresses issue #462.  During commit 0f09693, a
      change in signs was introduced in add_hybrid_momentum_sources,
      which should be analogous to linear_to_hybrid (#594)
 
@@ -953,7 +1198,7 @@
      max_dxnuc_lev.  (#364, #437, #473)
 
    * The diffusion cutoff now is a linear ramp instead of a
-     discontinous cutoff.  For densities less than
+     discontinuous cutoff.  For densities less than
      diffuse_cutoff_density_hi, the transport coefficient is scaled
      linearly until the density reaches diffuse_cutoff_density, where
      it is zero.
@@ -1139,7 +1384,7 @@
      for neutrinos.
 
      A related change is that it is now possible to set the number
-     of advected quantities (that are not species or EOS auxillary
+     of advected quantities (that are not species or EOS auxiliary
      fields) via NUMADV in your GNUmakefile.
 
 # 18.06
@@ -1204,7 +1449,7 @@
      castro.riemann_solver, which can be set to 1 to use the Colella
      and Glaz Riemann solver.
 
-   * The state variable indicies in Fortran are now all defined in a
+   * The state variable indices in Fortran are now all defined in a
      single file, Source/driver/_variables.  This makes it much
      clearer and consistent and will allow for autodocumentation and
      clean-ups for GPU acceleration in the future.
@@ -1363,7 +1608,7 @@
    * A minor error in the gravity source terms was fixed (#109).
      This error should not normally have been observable.
 
-   * fixed a bug in the artifical viscosity in 1-d in
+   * fixed a bug in the artificial viscosity in 1-d in
      non-Cartesian geometries (issue #175)
 
    * the README.md now describes the process to become a
@@ -1392,7 +1637,7 @@
    * the Riemann solvers have been merged into a single
      dimensional-agnostic version in Src_nd.  In 2-d there was an
      issue with how the Godunov state for the CG solver was stored on
-     interfaces, which would affect the internal enery evolution.
+     interfaces, which would affect the internal energy evolution.
 
    * the PLM and PPM reconstruction routines were merged into
      a single dimensional-agnostic version in hydro/
@@ -1574,7 +1819,7 @@
      are gravity sync solves because there are more of them, but the tradeoff
      is that the simulation is more accurate.
 
-   * the order of computing the temperature and reseting internal
+   * the order of computing the temperature and resetting internal
      energy was changed in a few spots. This will change results by default.
 
    * the radiation-specific source was moved into the Radiation/

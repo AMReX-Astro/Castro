@@ -4,7 +4,6 @@
 #include <RadSolve.H>
 #include <rad_util.H>
 #include <filt_prim.H>
-#include <Castro_F.H>
 
 #include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>
@@ -32,16 +31,8 @@ int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
-int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
-int Radiation::fspace_advection_type = 2;
-int Radiation::do_inelastic_scattering = 0;
-int Radiation::plot_lambda   = 0;
-int Radiation::plot_kappa_p  = 0;
-int Radiation::plot_kappa_r  = 0;
-int Radiation::plot_lab_Er   = 0;
-int Radiation::plot_lab_flux = 0;
-int Radiation::plot_com_flux = 0;
+
 int Radiation::icomp_lambda  = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
@@ -55,8 +46,6 @@ int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
 int Radiation::filter_prim_T = 4;
 int Radiation::filter_prim_S = 0;
-int Radiation::limiter = -1;
-int Radiation::closure = -1;
 
 // These physical constants get their values in the Radiation constructor:
 Real Radiation::convert_MeV_erg = 0.0;
@@ -109,16 +98,9 @@ void Radiation::read_static_params()
     pp.query("rad_hydro_combined", rad_hydro_combined);
   }
 
-  if (SolverType == MGFLDSolver) {
-    comoving = 1;
-    fspace_advection_type = 2;
-    pp.query("fspace_advection_type", fspace_advection_type);
-  }
-  else if (SolverType == SGFLDSolver) {
-    comoving = 1;
-    fspace_advection_type = 1;
-    pp.query("comoving", comoving);
-    if (comoving) {
+  if (SolverType == SGFLDSolver) {
+    radiation::fspace_advection_type = 1;
+    if (radiation::comoving) {
       Er_Lorentz_term = 0;
     }
     else {
@@ -180,22 +162,12 @@ void Radiation::read_static_params()
   }
 
 
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  if (comoving) pp.query("plot_lab_Er", plot_lab_Er);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_com_flux", plot_com_flux);
-
   // set up the extra plot variables
   {
-      if (plot_lambda) {
+      if (radiation::plot_lambda) {
           icomp_lambda = plotvar_names.size();
 
-          int limiter = 2;
-          pp.query("limiter", limiter);
-
-          if (!do_multigroup || limiter == 0) {
+          if (!do_multigroup || radiation::limiter == 0) {
               plotvar_names.push_back("lambda");
           } else {
               for (int g=0; g<nGroups; ++g) {
@@ -205,7 +177,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_p) {
+      if (radiation::plot_kappa_p) {
           icomp_kp = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_P");
@@ -217,7 +189,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_r) {
+      if (radiation::plot_kappa_r) {
           icomp_kr = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_R");
@@ -229,7 +201,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_Er) {
+      if (radiation::plot_lab_Er) {
           icomp_lab_Er = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("Erlab");
@@ -241,7 +213,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_flux) {
+      if (radiation::plot_lab_flux) {
           icomp_lab_Fr = plotvar_names.size();
           std::string frame = "lab";
           Vector<std::string> dimname;
@@ -264,7 +236,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_com_flux) {
+      if (radiation::plot_com_flux) {
           icomp_com_Fr = plotvar_names.size();
           std::string frame = "com";
           Vector<std::string> dimname;
@@ -290,7 +262,7 @@ void Radiation::read_static_params()
       nplotvar = plotvar_names.size();
   }
 
-  std::cout << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
+  amrex::Print() << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
 
 }
 
@@ -306,15 +278,19 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   do_sync = 1; pp.query("do_sync", do_sync);
 
   {
-    Real stefbol;
 
-    ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg);
+    clight = C::c_light;
+    hPlanck = C::hplanck;
+    kBoltz = C::k_B;
+    Avogadro = C::n_A;
+    convert_MeV_erg = 1.e6_rt * C::ev2erg;
 
-    aRad = 4.*stefbol/clight;
+    aRad = 4.*C::sigma_SB / C::c_light;
+
+    ca_init_fort_constants(hPlanck, Avogadro);
 
     c        = clight;
-    sigma    = stefbol;
+    sigma    = C::sigma_SB;
 
     if (!do_multigroup) {
         // In single group and abstract test problems we can play with
@@ -350,18 +326,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   miniter  =  1;             pp.query("miniter", miniter);
   convergence_check_type = 0;
   pp.query("convergence_check_type", convergence_check_type);
-  limiter  = 2;              pp.query("limiter", limiter);
-  if (SolverType == SGFLDSolver && limiter == 1) {
+  if (SolverType == SGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("SGFLDSolver does not support limiter = 1");
   }
-  if (SolverType == MGFLDSolver && limiter == 1) {
+  if (SolverType == MGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
-  closure = 3;
-  pp.query("closure", closure);
-
-  ca_initfluxlimiter(&limiter, &closure);
+  ca_initfluxlimiter(&radiation::limiter, &radiation::closure);
 
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
@@ -458,8 +430,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "maxInIter = " << maxInIter << std::endl;
     std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
     std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
-    std::cout << "limiter  = " << limiter << std::endl;
-    std::cout << "closure  = " << closure << std::endl;
+    std::cout << "limiter  = " << radiation::limiter << std::endl;
+    std::cout << "closure  = " << radiation::closure << std::endl;
     std::cout << "update_limiter   = " << update_limiter << std::endl;
     std::cout << "update_planck    = " << update_planck << std::endl;
     std::cout << "update_rosseland = " << update_rosseland << std::endl;
@@ -479,13 +451,12 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     }
     if (SolverType == MGFLDSolver || SolverType == SGFLDSolver) {
       std::cout << "rad_hydro_combined = " << rad_hydro_combined << std::endl;
-      std::cout << "comoving = " << comoving << std::endl;
+      std::cout << "comoving = " << radiation::comoving << std::endl;
     }
     if (SolverType == MGFLDSolver) {
-      std::cout << "fspace_advection_type = " << fspace_advection_type << std::endl;
-      std::cout << "do_inelastic_scattering = " << do_inelastic_scattering << std::endl;
+      std::cout << "fspace_advection_type = " << radiation::fspace_advection_type << std::endl;
     }
-    if (SolverType == SGFLDSolver && comoving == 0) {
+    if (SolverType == SGFLDSolver && radiation::comoving == 0) {
       std::cout << "Er_Lorentz_term = " << Er_Lorentz_term << std::endl;
     }
   }
@@ -537,13 +508,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_T_rat_level.resize(levels, 0.0);
 
   pp.query("pure_hydro", pure_hydro);
-
-  if (pure_hydro || limiter == 0) {
-      if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-          std::cout << "turning off inelastic scattering when (pure_hydro || limiter == 0)" << std::endl;
-      }
-      do_inelastic_scattering = 0;
-  }
 
 }
 
@@ -1040,34 +1004,64 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
   relative = 0.0;
   absolute = 0.0;
 
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const Real theta = 1.0;
+  const Real tiny = 1.e-50_rt;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
+  for (MFIter mfi(eta,TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box &reg = mfi.tilebox();
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
-          const Box &reg = mfi.tilebox();
-          ceupdterm(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                    relative_priv, absolute_priv,
-                    BL_TO_FORTRAN(frhoes[mfi]),
-                    frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-                    dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-                    exch[mfi].dataPtr(), Dterm[mfi].dataPtr(), delta_t, theta);
-      }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceupdterm)
-#endif
+      const auto eta_arr = eta[mfi].array();
+      const auto etainv_arr = etainv[mfi].array();
+      const auto frhoem_arr = frhoem[mfi].array();
+      const auto exch_arr = exch[mfi].array();
+      const auto dfo = dflux_old[mfi].array();
+      const auto dfn = dflux_new[mfi].array();
+      const auto dterm_arr = Dterm[mfi].array();
+      auto frhoes_arr = frhoes[mfi].array();
+
+      reduce_op.eval(reg, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
-          relative = std::max(relative, relative_priv);
-          absolute = std::max(absolute, absolute_priv);
-      }
+
+          Real chg = 0.e0_rt;
+          Real tot = 0.e0_rt;
+
+          Real tmp = eta_arr(i,j,k) * frhoes_arr(i,j,k) +
+              etainv_arr(i,j,k) * (frhoem_arr(i,j,k) -
+                                   delta_t * ((1.e0_rt - theta) *
+                                              (dfo(i,j,k) - dfn(i,j,k)) +
+                                              exch_arr(i,j,k))) +
+              delta_t * dterm_arr(i,j,k);
+
+          chg = std::abs(tmp - frhoes_arr(i,j,k));
+          tot = std::abs(frhoes_arr(i,j,k));
+
+          frhoes_arr(i,j,k) = tmp;
+
+          Real absres = chg;
+          Real relres = chg / (tot + tiny);
+
+          return {relres, absres};
+
+      });
+
   }
+
+  ReduceTuple hv = reduce_data.value();
+
+  relative = amrex::get<0>(hv);
+  absolute = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);
+
 }
 
 void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
@@ -1085,42 +1079,79 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
 {
   BL_PROFILE("Radiation::nonconservative_energy_update");
 
-  relative = 0.0;
-  absolute = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const Real theta = 1.0;
+  const Real tiny = 1.e-50_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
       FArrayBox c_v;
 
       for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
           const Box &reg = mfi.tilebox();
 
           c_v.resize(reg);
+          Elixir elix_c_v = c_v.elixir();
+
           get_c_v(c_v, temp[mfi], state[mfi], reg);
 
-          nceup(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                relative_priv, absolute_priv,
-                BL_TO_FORTRAN(frhoes[mfi]),
-                frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-                BL_TO_FORTRAN(Er_new[mfi]),
-                dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-                temp[mfi].dataPtr(), fkp[mfi].dataPtr(), c_v.dataPtr(),
-                BL_TO_FORTRAN(state[mfi]),
-                sigma, c, delta_t, theta);
+          const auto state_arr = state[mfi].array();
+          const auto temp_arr = temp[mfi].array();
+          const auto fkp_arr = fkp[mfi].array();
+          const auto er_arr = Er_new[mfi].array();
+          const auto eta_arr = eta[mfi].array();
+          const auto etainv_arr = etainv[mfi].array();
+          const auto frhoem_arr = frhoem[mfi].array();
+          const auto frhoes_arr = frhoes[mfi].array();
+          const auto dfo_arr = dflux_old[mfi].array();
+          const auto dfn_arr = dflux_new[mfi].array();
+          const auto c_v_arr = c_v.array();
+
+          reduce_op.eval(reg, reduce_data,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+          {
+
+              Real chg = 0.e0_rt;
+              Real tot = 0.e0_rt;
+
+              Real frhocv = state_arr(i,j,k,URHO) * c_v_arr(i,j,k);
+
+              Real dbdt = 16.0_rt * C::sigma_SB * std::pow(temp_arr(i,j,k), 3);
+              Real b = 4.0_rt * C::sigma_SB * std::pow(temp_arr(i,j,k), 4);
+              Real exch = fkp_arr(i,j,k) * (b - C::c_light * er_arr(i,j,k));
+              Real tmp = eta_arr(i,j,k) * frhoes_arr(i,j,k) +
+                  etainv_arr(i,j,k) * (frhoem_arr(i,j,k) -
+                                       delta_t * ((1.0_rt - theta) * (dfo_arr(i,j,k) - dfn_arr(i,j,k)) + exch));
+
+              if (frhocv > tiny && tmp > frhoes_arr(i,j,k)) {
+                  Real db = (tmp - frhoes_arr(i,j,k)) * dbdt / frhocv;
+                  tmp = std::pow((b + db) / (4.0_rt * C::sigma_SB), 0.25_rt);
+                  tmp = frhoes_arr(i,j,k) + frhocv * (tmp - temp_arr(i,j,k));
+              }
+
+              chg = std::abs(tmp - frhoes_arr(i,j,k));
+              tot = std::abs(frhoes_arr(i,j,k));
+              frhoes_arr(i,j,k) = tmp;
+
+              Real absres = chg;
+              Real relres = chg / (tot + tiny);
+
+              return {absres, relres};
+          });
+
       }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceupdterm)
-#endif
-      {
-          relative = std::max(relative, relative_priv);
-          absolute = std::max(absolute, absolute_priv);
-      }
-  }
+
+  } // OpenMP
+
+  ReduceTuple hv = reduce_data.value();
+
+  absolute = amrex::get<0>(hv);
+  relative = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);
@@ -1180,21 +1211,54 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 
 void Radiation::extrapolateBorders(MultiFab& f, int indx)
 {
-  BL_PROFILE("Radiation::extrapolateBorders");
+    BL_PROFILE("Radiation::extrapolateBorders");
 
-  BL_ASSERT(f.nGrow() >= 1);
+    BL_ASSERT(f.nGrow() >= 1);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for(MFIter mfi(f); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
+    for (MFIter mfi(f); mfi.isValid(); ++mfi) {
+        // Note no tiling in the current implementation.
+        const Box& bx = mfi.validbox();
+        const Box& grownbx = amrex::grow(bx, 1);
 
-    const Box& reg  = f.box(i);
+        Array4<Real> const f_arr = f[mfi].array(indx);
 
-    bextrp(BL_TO_FORTRAN_N(f[mfi],indx),
-           ARLIM(reg.loVect()), ARLIM(reg.hiVect()));
-  }
+        amrex::LoopOnCpu(grownbx, [=] (int i, int j, int k) noexcept
+        {
+            // Note that the results on the corners will be the same
+            // regardless of which order we do the loop in.
+
+            if (i == bx.smallEnd(0)) {
+                f_arr(i-1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i+1,j,k);
+            }
+
+            if (i == bx.bigEnd(0)) {
+                f_arr(i+1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i-1,j,k);
+            }
+
+#if AMREX_SPACEDIM >= 2
+            if (j == bx.smallEnd(1)) {
+                f_arr(i,j-1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j+1,k);
+            }
+
+            if (j == bx.bigEnd(1)) {
+                f_arr(i,j+1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j-1,k);
+            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+            if (k == bx.smallEnd(2)) {
+                f_arr(i,j,k-1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k+1);
+            }
+
+            if (k == bx.bigEnd(2)) {
+                f_arr(i,j,k+1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k-1);
+            }
+#endif
+        });
+    }
 }
 
 
@@ -2091,14 +2155,14 @@ void Radiation::scaledGradient(int level,
                                Array<MultiFab, AMREX_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
-                               int limiter, int nGrow_Er, int Rcomp)
+                               int nGrow_Er, int Rcomp)
 {
   BL_PROFILE("Radiation::scaledGradient");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
   MultiFab Erbtmp;
   if (nGrow_Er == 0) { // default value
-    if (limiter > 0) {
+    if (radiation::limiter > 0) {
       const BoxArray& grids = parent->boxArray(level);
       const DistributionMapping& dmap = parent->DistributionMap(level);
       Erbtmp.define(grids,dmap,1,1);
@@ -2130,7 +2194,7 @@ void Radiation::scaledGradient(int level,
 
           auto R_arr = R[idim][mfi].array(Rcomp);
 
-          if (limiter == 0) {
+          if (radiation::limiter == 0) {
 
               R[idim][mfi].setVal<RunOn::Device>(0.0, Rcomp);
 
@@ -2139,9 +2203,9 @@ void Radiation::scaledGradient(int level,
 
               int include_cross_terms = 0;
 
-              if (limiter == 1) {
+              if (radiation::limiter == 1) {
                   include_cross_terms = 0;
-              } else if (limiter == 2) {
+              } else if (radiation::limiter == 2) {
                   include_cross_terms = 1;
               } else {
                   amrex::Abort("Unknown limiter");
@@ -2425,7 +2489,7 @@ void Radiation::scaledGradient(int level,
 
 void Radiation::fluxLimiter(int level,
                             Array<MultiFab, AMREX_SPACEDIM>& lambda,
-                            int limiter, int lamcomp)
+                            int lamcomp)
 {
     BL_PROFILE("Radiation:fluxLimiter");
 
@@ -2441,7 +2505,7 @@ void Radiation::fluxLimiter(int level,
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
-                lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k), limiter);
+                lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k));
             });
         }
     }
@@ -2598,8 +2662,8 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.growntilebox();
+    for (MFIter mfi(dcf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
         auto dcf_arr = dcf[mfi].array();
         auto etainv_arr = etainv[mfi].array();

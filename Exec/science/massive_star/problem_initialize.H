@@ -5,10 +5,6 @@
 #include <eos.H>
 #include <model_parser.H>
 
-#ifdef NSE_THERMO
-#include <nse.H>
-#endif
-
 AMREX_INLINE
 void problem_initialize ()
 {
@@ -37,6 +33,8 @@ void problem_initialize ()
     problem::center[1] = 0.5_rt * (problo[1] + probhi[1]);
     problem::center[2] = 0.5_rt * (problo[2] + probhi[2]);
 #endif
+
+    problem::isi28 = network_spec_index("silicon-28");
 
 }
 

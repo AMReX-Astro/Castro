@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -9,16 +8,20 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <reconstruction.H>
+#include <flatten.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
+                  Array4<Real const> const& U_arr,
+                  Array4<Real const> const& rho_inv_arr,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real const> const& srcQ,
-                  Array4<Real const> const& flatn,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -56,8 +59,10 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -85,9 +90,13 @@ Castro::trace_ppm(const Box& bx,
             break;
           }
         }
-        if (do_source_trace[n] == 1) break;
+        if (do_source_trace[n] == 1) {
+            break;
+        }
       }
-      if (do_source_trace[n] == 1) break;
+      if (do_source_trace[n] == 1) {
+          break;
+      }
     }
   }
 #endif
@@ -109,7 +118,7 @@ Castro::trace_ppm(const Box& bx,
   // The choice of reference state is designed to minimize the
   // effects of the characteristic projection.  We subtract the I's
   // off of the reference state, project the quantity such that it is
-  // in terms of the characteristic varaibles, and then add all the
+  // in terms of the characteristic variables, and then add all the
   // jumps that are moving toward the interface to the reference
   // state to get the full state on that interface.
 
@@ -136,8 +145,9 @@ Castro::trace_ppm(const Box& bx,
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
+
 
     Real cc = qaux_arr(i,j,k,QC);
 
@@ -150,8 +160,31 @@ Castro::trace_ppm(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
-    Real s[5];
-    Real flat = flatn(i,j,k);
+    Real s[nslp];
+
+    Real flat = 1.0;
+
+    if (castro::first_order_hydro) {
+        flat = 0.0;
+    }
+    else if (castro::use_flattening) {
+        flat = hydro::flatten(i, j, k, q_arr, QPRES);
+
+#ifdef RADIATION
+        flat *= hydro::flatten(i, j, k, q_arr, QPTOT);
+
+        if (radiation::flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+                if (q_arr(i,j,k,QPRES) < radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                    flat = 0.0;
+                }
+            }
+        }
+#endif
+    }
+
     Real sm;
     Real sp;
 
@@ -183,7 +216,19 @@ Castro::trace_ppm(const Box& bx,
     Real Im_p[3];
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
-    ppm_reconstruct(s, flat, sm, sp);
+
+    if (use_pslope) {
+        Real trho[nslp];
+        Real src[nslp];
+
+        load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+        load_stencil(srcQ, idir, i, j, k, QUN, src);
+
+        ppm_reconstruct_pslope(trho, s, src, flat, dx[idir], sm, sp);
+
+    } else {
+        ppm_reconstruct(s, flat, sm, sp);
+    }
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
     // reconstruct rho e
@@ -339,10 +384,10 @@ Castro::trace_ppm(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
+        int nc = upassmap(ipassive);
         int n = qpassmap(ipassive);
 
-
-        load_stencil(q_arr, idir, i, j, k, n, s);
+        load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
 
@@ -367,10 +412,8 @@ Castro::trace_ppm(const Box& bx,
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
             qm(i+1,j,k,n) = Ip_passive;
-
         } else if (idir == 1 && j <= vhi[1]) {
             qm(i,j+1,k,n) = Ip_passive;
-
         } else if (idir == 2 && k <= vhi[2]) {
             qm(i,j,k+1,n) = Ip_passive;
         }
@@ -451,7 +494,8 @@ Castro::trace_ppm(const Box& bx,
       // note that the a{mpz}right as defined above have the minus already
       qp(i,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
       qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-      qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
+      qp(i,j,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
+                                    rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
       qp(i,j,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
       // Transverse velocities -- there's no projection here, so we
@@ -527,7 +571,8 @@ Castro::trace_ppm(const Box& bx,
       if (idir == 0) {
         qm(i+1,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
+        qm(i+1,j,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
+                                        rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
         qm(i+1,j,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
@@ -537,7 +582,8 @@ Castro::trace_ppm(const Box& bx,
       } else if (idir == 1) {
         qm(i,j+1,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
+        qm(i,j+1,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
+                                        rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
         qm(i,j+1,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
@@ -547,7 +593,8 @@ Castro::trace_ppm(const Box& bx,
       } else if (idir == 2) {
         qm(i,j,k+1,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
+        qm(i,j,k+1,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
+                                        rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
         qm(i,j,k+1,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities

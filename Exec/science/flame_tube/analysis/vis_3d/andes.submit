@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH -A ast106
+#SBATCH -J plots
+#SBATCH -N 1
+#SBATCH -t 8:00:00
+
+cd $SLURM_SUBMIT_DIR
+
+source "/ccs/proj/ast106/$USER/mambaforge_$(uname -m)/etc/profile.d/conda.sh"
+conda activate andes_yt_dev
+
+plotfile=run_256_extra_plotfiles/flame_tube_25cm_smallplt0039200
+#plotfile=flame_wave_1000Hz_25cm_smallplt207887
+#plotfile=flame_wave_1000Hz_25cm_smallplt40842
+
+#for i in flame_wave_1000Hz_25cm_smallplt*[0-9]
+export OMP_NUM_THREADS=16
+for i in $plotfile; do
+  dest=${i/run_/analysis_}
+  if ! [[ -f "${dest}_abar_annotated_top.png" ]]; then
+    srun --cpu-bind=no python ~/dev/Castro/Exec/science/flame_tube/analysis/vis_3d/vol-xrb-abar.py "${i}"
+    srun --cpu-bind=no python ~/dev/Castro/Exec/science/flame_tube/analysis/vis_3d/vol-xrb-enuc.py "${i}"
+  fi
+done
+
+echo "done!"

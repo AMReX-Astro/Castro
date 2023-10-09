@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
@@ -19,11 +18,11 @@
 #
 import os
 import re
-import sys
-import sphinx_rtd_theme
-import breathe
 import shlex
 import subprocess
+import sys
+
+import breathe
 
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.append(os.path.dirname(breathe.__file__))
@@ -50,12 +49,16 @@ def get_version():
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
+              'sphinx_math_dollar',
               'sphinx.ext.ifconfig',
               'sphinx.ext.viewcode',
               'sphinxcontrib.bibtex',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
+              'sphinx_rtd_theme',
+              'sphinx_copybutton',
+              'sphinx-prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -79,7 +82,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = 'Castro'
-copyright = '2018-2020, Castro development tem'
+copyright = '2018-2022, Castro development team'
 author = 'Castro development team'
 
 html_logo = "castro_logo_hot_200.png"
@@ -98,7 +101,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -113,9 +116,17 @@ todo_include_todos = False
 
 
 # -- Options for MathJax
-mathjax3_config = {'tex': {'macros': {}}}
+# for sphinx-math-dollar
+mathjax3_config = {}
 
-with open('mathsymbols.tex', 'r') as f:
+mathjax3_config["tex"] = {
+    "inlineMath": [['\\(', '\\)']],
+    "displayMath": [["\\[", "\\]"]],
+  }
+
+mathjax3_config["tex"]["macros"] = {}
+
+with open('mathsymbols.tex') as f:
     for line in f:
         macros = re.findall(r'\\newcommand{\\(.*?)}(\[(\d)\])?{(.+)}', line)
         for macro in macros:
@@ -135,7 +146,6 @@ numfig = True
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -148,11 +158,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-    ],
-}
+html_css_files = ["theme_overrides.css"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

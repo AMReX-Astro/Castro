@@ -45,16 +45,7 @@ Compiling
 
    This will tell you the value of all the compilers and their options.
 
-#. *How can I check to make sure the function signatures defined
-   in C are consistent with their implementations in Fortran?*
-
-   Use:
-
-   ::
-
-       make typecheck
-
-   This will compile the code and report on any mismatched function signatures.
+.. _debugging_backtrace:
 
 Debugging
 =========
@@ -68,7 +59,7 @@ Debugging
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C and Fortran
+   function to handle various signals raised in both C++ and Fortran
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
@@ -140,7 +131,7 @@ Profiling
 
 #. *How can I get line-by-line profiling information?*
 
-   With the GNU compliers, you can enabling profiling with gprof
+   With the GNU compilers, you can enabling profiling with gprof
    by compiling with
 
    ::
@@ -173,13 +164,18 @@ Managing Runs
        touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
-   to restart. Other options are plot_and_continue to output
-   a plotfile, dump_and_stop to output a checkpoint file
-   and halt the code, and stop_run to simply stop the code.
-   Note that the parameter amr.message_int controls how often
-   the existence of these files is checked; by default it is 10, so the
-   check will be done at the end of every timestep that is a multiple of 10.
-   Set that to 1 in your inputs file if you’d like it to check every timestep.
+   to restart. Other options are ``plot_and_continue`` to output
+   a plotfile, ``dump_and_stop`` to output a checkpoint file
+   and halt the code, and ``stop_run`` to simply stop the code.
+
+
+   .. note::
+
+      The parameter ``amr.message_int`` controls how often the
+      existence of these files is checked; by default it is 1, so the
+      check will be done at the end of every timestep, but you can
+      set it to some other integer to check only timesteps that are a
+      multiple of that number.
 
 #. *How can I output plotfiles in single precision?*
 
@@ -206,6 +202,9 @@ Managing Runs
 Runtime Errors
 ==============
 
+.. index:: castro.limit_fluxes_on_small_dens, castro.state_interp_order,
+           castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff
+
 #. *When running with retries, Castro requests too many substeps
    and crashes.*
 
@@ -214,6 +213,20 @@ Runtime Errors
    ``castro.limit_fluxes_on_small_dens = 1``.  This will use a flux
    limiter to prevent the density from going negative.
 
+#. *There might be a problem when Castro tries to normalize mass fractions
+   and encounters: ``Invalid mass fraction in Castro::normalize_species()``.*
+
+   If the error happens at the beginning of the timestep, it is possible that
+   something unexpected happened durng the interpolation from the coarse-level
+   to the fine-level. Try to set ``castro.state_interp_order = 0`` in the
+   input file. This allows piecewise constant refinement, but sacrifices
+   some benefit of the refinement.
+
+   If the error continues, try to increase the tolerance of determining
+   specie abundance validity check by setting ``castro.abundance_failure_tolerance``
+   to a higher value, or increasing the density floor below which this is
+   ignored by changing ``castro.abundance_failure_rho_cutoff``.
+   
 Visualization
 =============
 

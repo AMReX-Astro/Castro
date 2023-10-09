@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 // #include <Castro_hydro_F.H>
 #include <Castro_sdc_util.H>
 
@@ -172,24 +171,14 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             }
 
-            // ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
-            //                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
-            //                  BL_TO_FORTRAN_3D(C2),
-            //                  &sdc_iteration,
-            //                  &m_start);
-
             auto k_m = (*k_new[m_start]).array(mfi);
             auto k_n = (*k_new[m_end]).array(mfi);
             auto A_m = (*A_new[m_start]).array(mfi);
             auto A_n = (*A_new[m_end]).array(mfi);
-            auto R_m = (*R_old[m_start]).array(mfi);
             auto C_arr = C2.array();
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 sdc_update_o2(i, j, k, k_m, k_n, A_m, A_n, C_arr, dt_m, sdc_iteration, m_start);
             });
@@ -215,7 +204,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             // sometimes the Laplacian can make the species go negative near discontinuities
             amrex::ParallelFor(bx1,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 normalize_species_sdc(i, j, k, U_center_arr);
             });
@@ -240,7 +229,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             make_cell_center(bx1, Sburn.array(mfi), U_new_center_arr, domain_lo, domain_hi);
 
             amrex::ParallelFor(bx1,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, sdc_iteration);
             });
@@ -251,11 +240,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             Elixir elix_R_new = R_new.elixir();
             Array4<Real> const& R_new_arr = R_new.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
-            //                        BL_TO_FORTRAN_3D(U_new_center),
-            //                        BL_TO_FORTRAN_3D(R_new));
             amrex::ParallelFor(bx1,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 instantaneous_react(i, j, k, U_new_center_arr, R_new_arr);
             });
@@ -369,11 +355,8 @@ Castro::construct_old_react_source(MultiFab& U_state,
             Elixir elix_r_center = R_center.elixir();
             auto const R_center_arr = R_center.array();
 
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
-            //                        BL_TO_FORTRAN_3D(U_center),
-            //                        BL_TO_FORTRAN_3D(R_center));
             amrex::ParallelFor(obx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 instantaneous_react(i, j, k, U_center_arr, R_center_arr);
             });
@@ -409,11 +392,8 @@ Castro::construct_old_react_source(MultiFab& U_state,
             auto const R_source_arr = R_source.array(mfi);
 
             // construct the reactive source term
-            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-            //                        BL_TO_FORTRAN_3D(U_state[mfi]),
-            //                        BL_TO_FORTRAN_3D(R_source[mfi]));
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 instantaneous_react(i, j, k, U_state_arr, R_source_arr);
             }); 

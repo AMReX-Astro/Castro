@@ -14,7 +14,7 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
                             (bc.lo(0) == FOEXTRAP || bc.lo(0) == HOEXTRAP);
@@ -36,17 +36,17 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
 #endif
 
         if (castro::fill_ambient_bc == 1) {
-            if (ambient_x_lo && i < domlo[0] ||
-                ambient_x_hi && i > domhi[0]
+            if ((ambient_x_lo && i < domlo[0]) ||
+                (ambient_x_hi && i > domhi[0])
 #if AMREX_SPACEDIM >= 2
                 ||
-                ambient_y_lo && j < domlo[1] ||
-                ambient_y_hi && j > domhi[1]
+                (ambient_y_lo && j < domlo[1]) ||
+                (ambient_y_hi && j > domhi[1])
 #endif
 #if AMREX_SPACEDIM == 3
                 ||
-                ambient_z_lo && k < domlo[2] ||
-                ambient_z_hi && k > domhi[2]
+                (ambient_z_lo && k < domlo[2]) ||
+                (ambient_z_hi && k > domhi[2])
 #endif
                 )
             {
@@ -73,7 +73,7 @@ ambient_fill(const Box& bx, Array4<Real> const& state,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
                             (bcs(URHO).lo(0) == FOEXTRAP || bcs(URHO).lo(0) == HOEXTRAP);
@@ -95,17 +95,17 @@ ambient_fill(const Box& bx, Array4<Real> const& state,
 #endif
 
         if (castro::fill_ambient_bc == 1) {
-            if (ambient_x_lo && i < domlo[0] ||
-                ambient_x_hi && i > domhi[0]
+            if ((ambient_x_lo && i < domlo[0]) ||
+                (ambient_x_hi && i > domhi[0])
 #if AMREX_SPACEDIM >= 2
                 ||
-                ambient_y_lo && j < domlo[1] ||
-                ambient_y_hi && j > domhi[1]
+                (ambient_y_lo && j < domlo[1]) ||
+                (ambient_y_hi && j > domhi[1])
 #endif
 #if AMREX_SPACEDIM == 3
                 ||
-                ambient_z_lo && k < domlo[2] ||
-                ambient_z_hi && k > domhi[2]
+                (ambient_z_lo && k < domlo[2]) ||
+                (ambient_z_hi && k > domhi[2])
 #endif
                 ) {
                 for (int n = 0; n < NUM_STATE; ++n) {

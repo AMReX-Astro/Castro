@@ -38,13 +38,8 @@ public:
   static int nGroups;
 
   static int rad_hydro_combined;
-  static int comoving;
   static int Er_Lorentz_term;
-  static int fspace_advection_type;
-  static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
-  static int plot_lambda, plot_kappa_p, plot_kappa_r;
-  static int plot_lab_Er, plot_lab_flux, plot_com_flux;
   static int icomp_lambda, icomp_kp, icomp_kr;
   static int icomp_lab_Er, icomp_lab_Fr, icomp_com_Fr;
   static int nplotvar;   // extra plot variables
@@ -63,7 +58,7 @@ public:
                               ///< 1: rhoe,
                               ///< 2: residue of Eq. rhoe,
                               ///< 3: T
-  amrex::Real relInTol, absInTol; ///< tolerance for inner iternation of J equation
+  amrex::Real relInTol, absInTol; ///< tolerance for inner iteration of J equation
   int maxInIter;           ///< iteration limit for inner iteration of J equation
   int minInIter;
   int skipAccelAllowed;   ///< Skip acceleration if it doesn't help
@@ -74,11 +69,6 @@ public:
   int inner_convergence_check;
   amrex::Real delta_e_rat_dt_tol; ///< energy change tolerance for adjusting timestep
   amrex::Real delta_T_rat_dt_tol; ///< T change tolerance for adjusting timestep
-  static int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
-                               ///< 12: Bruenn, 22: square root, 32: Minerbo
-  static int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
-                           ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
-                           ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
   int update_planck;     ///< after this number of iterations, lag planck
   int update_rosseland;  ///< after this number of iterations, lag rosseland
   int update_opacity;
@@ -269,12 +259,6 @@ public:
 /// @param ncycle
 ///
   void MGFLD_implicit_update(int level, int iteration, int ncycle);
-
-
-///
-/// @param level
-///
-  void inelastic_scattering(int level);
 
 
 ///
@@ -474,7 +458,6 @@ public:
 /// @param kcomp
 /// @param Er
 /// @param igroup
-/// @param limiter
 /// @param nGrow_Er
 /// @param Rcomp
 ///
@@ -482,7 +465,7 @@ public:
                       amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& R,
                       amrex::MultiFab& kappa_r, int kcomp,
                       amrex::MultiFab& Er, int igroup,
-                      int limiter, int nGrow_Er=0, int Rcomp=0);
+                      int nGrow_Er=0, int Rcomp=0);
 
 ///
 /// On input, lambda should contain scaled gradient.
@@ -491,12 +474,11 @@ public:
 /// @param level
 /// @param amrex::Array<amrex::MultiFab
 /// @param lambda
-/// @param limiter
 /// @param lamcomp
 ///
   void fluxLimiter(int level,
                    amrex::Array<amrex::MultiFab, AMREX_SPACEDIM>& lambda,
-                   int limiter, int lamcomp=0);
+                   int lamcomp=0);
 
 ///
 /// Fab versions of conversion functions.
@@ -883,10 +865,12 @@ public:
 /// @param Er
 /// @param F
 /// @param iflx
+/// @param lab_factor
 ///
-  void save_lab_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-                                const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
-                                const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
+  void save_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
+                            const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
+                            const amrex::MultiFab& Er, const amrex::MultiFab& F,
+                            int iflx, const amrex::Real lab_factor = 1.0);
 
 ///
 /// @param level

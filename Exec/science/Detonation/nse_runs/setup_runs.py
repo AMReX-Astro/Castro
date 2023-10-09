@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import os
+import shlex
 import shutil
 import subprocess
-import shlex
 from multiprocessing import Pool
 
 # parameters for all methods
-CFL = [0.8, 0.4, 0.2]
+CFL = [0.8, 0.2]
 NZONES = [512, 1024, 2048] #, 1024, 2048] #, 8192]
-DTNUC_E = [1.0, 0.25] #, 0.1]
+DTNUC_E = [1.e200, 0.5] # 1.0, 0.25] #, 0.1]
 
 # simplified SDC parameters
 SDC_ITERS = [2, 3]
@@ -60,7 +60,7 @@ def setup_runs():
 
     job_list.append(odir)
 
-    # dump the metdata file
+    # dump the metadata file
     with open(f"{odir}/run.meta", "w") as meta:
         meta.write(f"cfl = {REFERENCE_CFL}\n")
         meta.write(f"nzones = {REFERENCE_NZONES}\n")
@@ -93,7 +93,7 @@ def setup_runs():
 
                     job_list.append(odir)
 
-                    # dump the metdata file
+                    # dump the metadata file
                     with open(f"{odir}/run.meta", "w") as meta:
                         meta.write(f"cfl = {c}\n")
                         meta.write(f"nzones = {nz}\n")
@@ -126,7 +126,7 @@ def setup_runs():
 
                         job_list.append(odir)
 
-                        # dump the metdata file
+                        # dump the metadata file
                         with open(f"{odir}/run.meta", "w") as meta:
                             meta.write(f"cfl = {c}\n")
                             meta.write(f"nzones = {nz}\n")
@@ -161,7 +161,7 @@ def setup_runs():
 
                             job_list.append(odir)
 
-                            # dump the metdata file
+                            # dump the metadata file
                             with open(f"{odir}/run.meta", "w") as meta:
                                 meta.write(f"cfl = {c}\n")
                                 meta.write(f"nzones = {nz}\n")

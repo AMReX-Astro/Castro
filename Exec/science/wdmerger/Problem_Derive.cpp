@@ -2,7 +2,6 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <prob_parameters.H>
 #include <wdmerger_util.H>
@@ -13,7 +12,7 @@
 
 using namespace amrex;
 
-void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -55,7 +54,7 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -97,7 +96,7 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -139,7 +138,7 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -185,7 +184,7 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -231,7 +230,7 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -277,7 +276,7 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -321,7 +320,7 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -365,7 +364,7 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -409,7 +408,7 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& geom,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -418,14 +417,33 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        der(i,j,k,0) = dat(i,j,k,0) + dat(i,j,k,1);
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc);
     });
 }
 
-void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -434,7 +452,8 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     // The u array contains the rotational potential, so we only need to calculate
     // the gravitational potential from the point-mass.
 
-    auto const dat = datfab.array();
+    amrex::ignore_unused(datfab);
+
     auto const der = derfab.array();
 
     const auto dx = geom.CellSizeArray();
@@ -469,17 +488,22 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
                            (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + dat(i,j,k,0);
+        for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+            loc[iloc] -= problem::center[iloc];
+        }
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc);
     });
 }
 
-void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Same as above, but for the secondary.
 
-    auto const dat = datfab.array();
+    amrex::ignore_unused(datfab);
+
     auto const der = derfab.array();
 
     const auto dx = geom.CellSizeArray();
@@ -514,14 +538,21 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
                            (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + dat(i,j,k,0);
+        for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+            loc[iloc] -= problem::center[iloc];
+        }
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc);
     });
 }
 
-void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
+
+    amrex::ignore_unused(geom);
+
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
@@ -532,141 +563,69 @@ void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     });
 }
 
-void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                      const FArrayBox& datfab, const Geometry& geom,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc);
     });
 }
 
-void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                        const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    // Create a mask for all zones considered to be within the primary star.
-    // It uses the same prescription as above for the effective potential of the
-    // star, and uses the stellar density threshold input parameter to determine
-    // what parts of the domain should be considered stellar material.
-    // The convention will be that the mask is positive (1) for zones inside the
-    // star and negative (-1) for zones outside the star.
+    Array4<Real const> const rho = datfab.array();
+    Array4<Real> const mask = derfab.array();
 
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    const auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        // By default, assume we're not inside the star.
-
-        der(i,j,k,0) = -1.0_rt;
-
-        // Don't do anything here if the star no longer exists,
-        // or if it never existed.
-
-        if (problem::mass_P <= 0.0_rt) return;
-
-        GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
-#else
-        loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
-#else
-        loc[2] = 0.0_rt;
-#endif
-
-        // Ignore zones whose density is too low.
-
-        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
-
-        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
-                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
-                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
-
-        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
-                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
-                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
-
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
-
-        if (phi_p < 0.0_rt && phi_p < phi_s) {
-            der(i,j,k,0) = 1.0_rt;
-        }
+        const bool is_primary = true;
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }
 
-void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                          const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-    // Same as above, but for the secondary.
+    Array4<Real const> const rho = datfab.array();
+    Array4<Real> const mask = derfab.array();
 
-    auto const dat = datfab.array();
-    auto const der = derfab.array();
-
-    const auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        // By default, assume we're not inside the star.
-
-        der(i,j,k,0) = -1.0_rt;
-
-        // Don't do anything here if the star no longer exists,
-        // or if it never existed.
-
-        if (problem::mass_S <= 0.0_rt) return;
-
-        GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
-#else
-        loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
-#else
-        loc[2] = 0.0_rt;
-#endif
-
-        // Ignore zones whose density is too low.
-
-        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
-
-        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
-                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
-                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
-
-        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
-                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
-                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
-
-        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
-
-        if (phi_s < 0.0_rt && phi_s < phi_p) {
-            der(i,j,k,0) = 1.0_rt;
-        }
+        bool is_primary = false;
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }

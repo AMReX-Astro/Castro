@@ -78,7 +78,7 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     GpuArray<Real, 3> vel = {0.0};
-    if (rho > problem::ambient_density && (do_rotation == 0 || (do_rotation == 1 && state_in_rotating_frame == 0))) {
+    if (rho > problem::ambient_density && do_rotation == 0) {
         cross_product(omega, loc, vel);
     }
 

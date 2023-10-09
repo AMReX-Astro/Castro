@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #include <mhd_util.H>
@@ -58,7 +57,7 @@ Castro::corner_couple(const Box& bx,
   // in d2 to get a difference across the interface.  We also need to shift by a zone in d1
   // for the left interface.  cr(:) and cl(:) will hold these shifts.
 
-  // the first term of the flxd2 substraction is shifted by 1 on the direction d2
+  // the first term of the flxd2 subtraction is shifted by 1 on the direction d2
   cr[d2] = 1;
 
   // for the normal B component
@@ -89,7 +88,7 @@ Castro::corner_couple(const Box& bx,
   int UMAGD3 = UMAGX + d3;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // first the conserved state
@@ -166,7 +165,7 @@ Castro::corner_couple(const Box& bx,
   ell[d1] -= 1;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // conservative state
@@ -288,12 +287,12 @@ Castro::half_step(const Box& bx,
   e2rl[d] = 1;
 
   // for the normal component of B
-  a1[d2] = 1;  // shift on first term of Ed1 substraction, in d2 direction
-  a2[d1] = 1;  // shift on first term of Ed2 substraction, in d1 direction
+  a1[d2] = 1;  // shift on first term of Ed1 subtraction, in d2 direction
+  a2[d1] = 1;  // shift on first term of Ed2 subtraction, in d1 direction
 
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // first the conservative state
@@ -382,7 +381,7 @@ Castro::half_step(const Box& bx,
 
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)

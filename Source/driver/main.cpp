@@ -19,16 +19,45 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_AmrLevel.H>
 
-#include <time.h>
+#include <ctime>
 
 #include <Castro.H>
 #include <Castro_io.H>
 
+#include <global.H>
+
 using namespace amrex;
 
-std::string inputs_name = "";
+std::string inputs_name{};
 
 amrex::LevelBld* getLevelBld ();
+
+// Any parameters we want to override the defaults for in AMReX
+
+void override_parameters ()
+{
+    {
+        ParmParse pp("amrex");
+#ifndef RADIATION // Radiation is not yet ready to stop using managed memory
+        if (!pp.contains("the_arena_is_managed")) {
+            // Use device memory allocations, not managed memory.
+            pp.add("the_arena_is_managed", false);
+        }
+#endif
+        if (!pp.contains("abort_on_out_of_gpu_memory")) {
+            // Abort if we run out of GPU memory.
+            pp.add("abort_on_out_of_gpu_memory", true);
+        }
+    }
+
+    {
+        ParmParse pp("amr");
+        // Always check for whether to dump a plotfile or checkpoint.
+        if (!pp.contains("message_int")) {
+            pp.add("message_int", 1);
+        }
+    }
+}
 
 int
 main (int   argc,
@@ -48,7 +77,7 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    amrex::Initialize(argc,argv);
+    amrex::Initialize(argc, argv, true, MPI_COMM_WORLD, override_parameters);
     {
 
     // Refuse to continue if we did not provide an inputs file.
@@ -96,26 +125,26 @@ main (int   argc,
 
     time_t time_type;
 
-    struct tm* time_pointer;
+    struct tm* time_pointer = nullptr;
 
     time(&time_type);
 
     time_pointer = gmtime(&time_type);
 
-    if (ParallelDescriptor::IOProcessor())
-      std::cout << std::setfill('0') << "\nStarting run at "
-                << std::setw(2) << time_pointer->tm_hour << ":"
-                << std::setw(2) << time_pointer->tm_min << ":"
-                << std::setw(2) << time_pointer->tm_sec << " UTC on "
-                << time_pointer->tm_year + 1900 << "-"
-                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
-                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+    amrex::Print() << std::setfill('0') << "\nStarting run at "
+                   << std::setw(2) << time_pointer->tm_hour << ":"
+                   << std::setw(2) << time_pointer->tm_min << ":"
+                   << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                   << time_pointer->tm_year + 1900 << "-"
+                   << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                   << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
     //
     // Initialize random seed after we're running in parallel.
     //
 
     Amr* amrptr = new Amr(getLevelBld());
+    global::the_amr_ptr = amrptr;
 
     amrptr->init(strt_time,stop_time);
 
@@ -171,20 +200,19 @@ main (int   argc,
     // object because we need to scale it by the number of zones on the coarse grid.
 
     long numPtsCoarseGrid = amrptr->getLevel(0).boxArray().numPts();
-    Real fom = Castro::num_zones_advanced * numPtsCoarseGrid;
+    Real fom = Castro::num_zones_advanced * static_cast<Real>(numPtsCoarseGrid);
 
     time(&time_type);
 
     time_pointer = gmtime(&time_type);
 
-    if (ParallelDescriptor::IOProcessor())
-      std::cout << std::setfill('0') << "\nEnding run at "
-                << std::setw(2) << time_pointer->tm_hour << ":"
-                << std::setw(2) << time_pointer->tm_min << ":"
-                << std::setw(2) << time_pointer->tm_sec << " UTC on "
-                << time_pointer->tm_year + 1900 << "-"
-                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
-                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+    amrex::Print() << std::setfill('0') << "\nEnding run at "
+                   << std::setw(2) << time_pointer->tm_hour << ":"
+                   << std::setw(2) << time_pointer->tm_min << ":"
+                   << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                   << time_pointer->tm_year + 1900 << "-"
+                   << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                   << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
     delete amrptr;
     //
@@ -214,7 +242,7 @@ main (int   argc,
         std::cout << "\n";
     }
 
-    if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
+    if (auto* arena = dynamic_cast<CArena*>(amrex::The_Arena()))
     {
         //
         // A barrier to make sure our output follows that of RunStats.

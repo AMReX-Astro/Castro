@@ -4,7 +4,6 @@ CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 CEXE_headers += Problem_Derive.H
 CEXE_sources += Problem_Derive.cpp
-FEXE_headers += Problem_Derive_F.H
 CEXE_headers += problem_initialize.H
 CEXE_headers += problem_initialize_state_data.H
 CEXE_headers += problem_tagging.H
@@ -16,16 +15,13 @@ CEXE_headers += problem_emissivity.H
 CEXE_headers += problem_diagnostics.H
 CEXE_headers += problem_rad_source.H
 
-ifeq ($(USE_MHD),TRUE)
-  ca_F90EXE_sources += bc_fill_nd.F90
-endif
 ifeq ($(USE_GRAV),TRUE)
   CEXE_sources += hse_fill.cpp
 endif
 ifeq ($(USE_MHD),TRUE)
   CEXE_headers += problem_initialize_mhd_data.H
 endif
-FEXE_headers += Castro_bc_fill_nd_F.H
+
 CEXE_headers += Castro_bc_fill_nd.H
 CEXE_sources += Castro_bc_fill_nd.cpp
 CEXE_sources += ambient_fill.cpp

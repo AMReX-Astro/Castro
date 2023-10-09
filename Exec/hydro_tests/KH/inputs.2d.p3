@@ -6,7 +6,7 @@ geometry.is_periodic = 1   1
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0 0.0
 geometry.prob_hi     = 1.0 2.0
-castro.center        = 0.5 1.0
+problem.center        = 0.5 1.0 0.0
 
 amr.n_cell           = 256 512
 amr.max_level        = 0        # maximum level number allowed; base level is 0

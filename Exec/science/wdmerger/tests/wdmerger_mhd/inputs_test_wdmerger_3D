@@ -13,7 +13,7 @@ geometry.coord_sys = 0                             # Cartesian coordinate system
 
 geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9         # Lower boundary limits in physical space
 geometry.prob_hi =  5.12e9  5.12e9  5.12e9         # Upper boundary limits in physical space
-castro.center =      0.0e0   0.0e0   0.0e0         # System center of mass
+problem.center =      0.0e0   0.0e0   0.0e0         # System center of mass
 
 castro.cfl = 0.5                                   # CFL number for hyperbolic system
 castro.init_shrink = 0.1                           # Scale back initial timestep by this factor
@@ -52,6 +52,9 @@ amr.refinement_indicators = temperr
 amr.refine.temperr.max_level = 4
 amr.refine.temperr.field_name = Temp
 amr.refine.temperr.value_greater = 2.e8
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
 
 ############################################################################################
 # Physics to include
@@ -133,7 +136,7 @@ castro.v = 1                                       # Control verbosity in Castro
 gravity.v = 1                                      # Control verbosity in Gravity.cpp
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
-#amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+#amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE
 
@@ -156,7 +159,4 @@ problem.relaxation_density_cutoff = -1.0e10
 problem.orbital_eccentricity = 0.0e0
 problem.orbital_angle = 0.0e0
 
-problem.max_tagging_radius = 0.75e0
 problem.stellar_density_threshold = 1.0e0
-
-problem.smallu = 1.0e-12

@@ -16,7 +16,7 @@ amr.n_cell   = 128
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
@@ -80,7 +80,6 @@ castro.small_dens =1.0e-10
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.0e-9 
 
 castro.fixed_dt       = 1.3e-12
 
@@ -148,7 +147,7 @@ radiation.hi_bcval = 2.99 0.0 0.0
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

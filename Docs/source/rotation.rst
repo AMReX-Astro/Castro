@@ -7,7 +7,7 @@ Rotation
 Introduction
 ============
 
-Currently, Castro supports contant, solid-body rotation about a fixed
+Currently, Castro supports constant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.
 
@@ -67,9 +67,6 @@ The main parameters that affect rotation are:
 -  ``castro.rotation_include_domegadt`` : whether to
    include the forcing from the time derivative of the rotation
    frequency (default: 1)
-
--  ``castro.state_in_rotating_frame`` : whether state
-   variables are measured in the rotating frame (default: 1)
 
 -  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
@@ -144,7 +141,7 @@ vector notation, we have
    :label: eq:r-dot
 
 
-The left hand side of :eq:`eq:r-dot` is interpretted as the velocity
+The left hand side of :eq:`eq:r-dot` is interpreted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
 stationary observer in the rotating frame :math:`\widetilde{C}`. The second
@@ -227,7 +224,7 @@ a rotating frame
 
 
 The kinetic energy equation can be obtained from :eq:`eq:v-rot` by
-mulitplying by :math:`\rho\vbt`:
+multiplying by :math:`\rho\vbt`:
 
 .. math::
    \begin{align}
