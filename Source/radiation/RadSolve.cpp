@@ -8,7 +8,6 @@
 #include <rad_util.H>
 #include <problem_rad_source.H>
 #include <RAD_F.H>
-#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 #include <iostream>
 
