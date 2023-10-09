@@ -874,7 +874,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
           Array4<Real> const d = Dterm_face[dir][mfi].array();
 
           amrex::ParallelFor(box,
-          AMREX_GPU_HOST_DEVICE [=] (int i, int j, int k) noexcept
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               if (dir == 0 && (geomdata.Coord() == CoordSys::SPHERICAL || geomdata.Coord() == CoordSys::RZ)) {
                   Real r, s;
