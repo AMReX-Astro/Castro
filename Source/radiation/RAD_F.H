@@ -153,9 +153,6 @@ extern "C" {
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
                       const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);
 
-  void bextrp(BL_FORT_FAB_ARG(f), 
-              ARLIM_P(reglo), ARLIM_P(reghi));
-
 #ifdef __cplusplus
 }
 #endif

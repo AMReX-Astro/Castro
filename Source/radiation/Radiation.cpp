@@ -1218,13 +1218,45 @@ void Radiation::extrapolateBorders(MultiFab& f, int indx)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for(MFIter mfi(f); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
+  for (MFIter mfi(f); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+      const Box& grownbx = amrex::grow(bx, 1);
 
-    const Box& reg  = f.box(i);
+      Array4<Real> const f_arr = f[mfi].array(indx);
 
-    bextrp(BL_TO_FORTRAN_N(f[mfi],indx),
-           ARLIM(reg.loVect()), ARLIM(reg.hiVect()));
+      amrex::LoopOnCpu(grownbx, [=] (int i, int j, int k) noexcept
+      {
+          // Note that the results on the corners will be the same
+          // regardless of which order we do the loop in.
+
+          if (i == bx.smallEnd(0)) {
+              f_arr(i-1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i+1,j,k);
+          }
+
+          if (i == bx.bigEnd(0)) {
+              f_arr(i+1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i-1,j,k);
+          }
+
+#if AMREX_SPACEDIM >= 2
+          if (j == bx.smallEnd(1)) {
+              f_arr(i,j-1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j+1,k);
+          }
+
+          if (j == bx.bigEnd(1)) {
+              f_arr(i,j+1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j-1,k);
+          }
+#endif
+
+#if AMREX_SPACEDIM == 3
+          if (k == bx.smallEnd(2)) {
+              f_arr(i,j,k-1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k+1);
+          }
+
+          if (k == bx.bigEnd(2)) {
+              f_arr(i,j,k+1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k-1);
+          }
+#endif
+      });
   }
 }
 
