@@ -351,11 +351,16 @@ namespace HABEC
                         bfv = 0.e0_rt;
                     }
                     flux(i+iep,j+jep,k+kep) = (bfv * bcval(i+icp,j+jcp,k+kcp) - bfm * er(i,j,k));
+
                     if (bho >= 1) {
-                        Real df = bfm2 * er(i-icp,j-jcp,k-kcp);
-                        if (iep == 0) {
+                        Real df = 0.0_rt;
+                        if (iep == 0 && jep == 0 && kep == 0) {
                             // left edge
-                            df = -df;
+                            df = -bfm2 * er(i-icp,j-jcp,k-kcp);
+                        }
+                        else {
+                            // right edge
+                            df = bfm2 * er(i-icp,j-jcp,k-kcp);
                         }
 
                         flux(i+iep,j+jep,k+kep) += df;
