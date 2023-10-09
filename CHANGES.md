@@ -1,5 +1,8 @@
 # 23.11
 
+  * The ca_rad_source hook in Fortran has been removed. The existing
+    problem_rad_source() hook in C++ can be used instead. (#2626)
+
   * The compile option USE_AUX_UPDATE has been removed. If you want to
     manually update the auxiliary parameters, you can use an external
     source term or you can use the problem post-timestep hook. (#2614)

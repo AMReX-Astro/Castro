@@ -1102,11 +1102,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
           problem_rad_source(i, j, k, rhs_arr, geomdata, time, delta_t, igroup);
       });
-
-      ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(rhs[ri]),
-                    AMREX_REAL_ANYD(dx), delta_t, time, igroup);
-
   }
 }
 
