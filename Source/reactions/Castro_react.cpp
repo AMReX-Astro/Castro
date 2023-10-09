@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 #include <advection_util.H>
 #ifdef MODEL_PARSER
 #include <model_parser.H>

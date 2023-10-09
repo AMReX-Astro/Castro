@@ -8,7 +8,6 @@
 #include <AMReX_ParmParse.H>
 #include <Gravity.H>
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_MLMG.H>
