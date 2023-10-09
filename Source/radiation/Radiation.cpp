@@ -333,8 +333,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
-  ca_initfluxlimiter(&radiation::limiter, &radiation::closure);
-
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
 

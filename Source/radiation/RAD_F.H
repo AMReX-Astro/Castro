@@ -65,16 +65,6 @@ extern "C" {
 }
 #endif
 
-// <MGFLD>
-#ifdef __cplusplus
-extern "C" {
-#endif
-void ca_initfluxlimiter
-   (const int* limiter, const int* closure);
-#ifdef __cplusplus
-}
-#endif
-
 extern "C"
 {
   void ca_rad_source
