@@ -47,5 +47,3 @@ CEXE_sources += RadDerive.cpp
 CEXE_headers += RadDerive.H
 CEXE_headers += rad_util.H
 CEXE_headers += blackbody.H
-
-ca_F90EXE_sources += rad_source.F90
