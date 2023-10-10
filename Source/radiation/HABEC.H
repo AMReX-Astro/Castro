@@ -367,6 +367,222 @@ namespace HABEC
             }
         });
     }
+
+    AMREX_INLINE
+    void hdterm (Array4<Real> const dterm,
+                 Array4<Real> const er,
+                 const Box& reg,
+                 int cdir, int bct, Real bcl,
+                 Array4<Real const> const bcval,
+                 Array4<int const> const mask,
+                 Array4<Real const> const d,
+                 const Real* dx)
+    {
+        Real h;
+
+        // Index shift for whichever edge we're checking.
+        // Negative means we're looking at the lo edge,
+        // positive means we're looking at the hi edge.
+        // The first group is for cell centers, the second
+        // group is for cell edges.
+
+        int icp = 0;
+        int jcp = 0;
+        int kcp = 0;
+
+        int iep = 0;
+        int jep = 0;
+        int kep = 0;
+
+#if AMREX_SPACEDIM == 1
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 1) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+#elif AMREX_SPACEDIM == 2
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 2) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+#else
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 4) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+        else if (cdir == 2) {
+            h = dx[2];
+            kcp = -1;
+        }
+        else if (cdir == 5) {
+            h = dx[2];
+            kcp = 1;
+            kep = 1;
+        }
+#endif
+
+        amrex::LoopOnCpu(reg, [=] (int i, int j, int k) noexcept
+        {
+            if (mask.contains(i+icp,j+jcp,k+kcp)) {
+                if (mask(i+icp,j+jcp,k+kcp) > 0) {
+                    if (bct == LO_DIRICHLET) {
+                        Real d_sign = 1.0_rt;
+                        if (iep != 0 || jep != 0 || kep != 0) {
+                            // right edge
+                            d_sign = -1.0_rt;
+                        }
+                        dterm(i+iep,j+jep,k+kep) = d(i+iep,j+jep,k+kep) * d_sign * (er(i,j,k) - bcval(i+icp,j+jcp,k+kcp)) / (0.5_rt * h + bcl);
+                    }
+                }
+            }
+        });
+    }
+
+    AMREX_INLINE
+    void hdterm3 (Array4<Real> const dterm,
+                  Array4<Real const> const er,
+                  const Box& reg,
+                  int cdir, int bctype,
+                  Array4<int const> const tf,
+                  Real bcl,
+                  Array4<Real const> const bcval,
+                  Array4<int const> const mask,
+                  Array4<Real const> const d,
+                  const Real* const dx)
+    {
+        Real h;
+
+        // Index shift for whichever edge we're checking.
+        // Negative means we're looking at the lo edge,
+        // positive means we're looking at the hi edge.
+        // The first group is for cell centers, the second
+        // group is for cell edges.
+
+        int icp = 0;
+        int jcp = 0;
+        int kcp = 0;
+
+        int iep = 0;
+        int jep = 0;
+        int kep = 0;
+
+#if AMREX_SPACEDIM == 1
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 1) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+#elif AMREX_SPACEDIM == 2
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 2) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+#else
+        if (cdir == 0) {
+            h = dx[0];
+            icp = -1;
+        }
+        else if (cdir == 3) {
+            h = dx[0];
+            icp = 1;
+            iep = 1;
+        }
+        else if (cdir == 1) {
+            h = dx[1];
+            jcp = -1;
+        }
+        else if (cdir == 4) {
+            h = dx[1];
+            jcp = 1;
+            jep = 1;
+        }
+        else if (cdir == 2) {
+            h = dx[2];
+            kcp = -1;
+        }
+        else if (cdir == 5) {
+            h = dx[2];
+            kcp = 1;
+            kep = 1;
+        }
+#endif
+
+        amrex::LoopOnCpu(reg, [=] (int i, int j, int k) noexcept
+        {
+            if (mask.contains(i+icp,j+jcp,k+kcp)) {
+                if (mask(i+icp,j+jcp,k+kcp) > 0) {
+                    int bct;
+                    if (bctype == -1) {
+                        bct = tf(i+icp,j+jcp,k+kcp);
+                    }
+                    else {
+                        bct = bctype;
+                    }
+                    if (bct == LO_DIRICHLET) {
+                        Real d_sign = 1.0_rt;
+                        if (iep != 0 || jep != 0 || kep != 0) {
+                            // right edge
+                            d_sign = -1.0_rt;
+                        }
+                        dterm(i+iep,j+jep,k+kep) = d(i+iep,j+jep,k+kep) * d_sign * (er(i,j,k) - bcval(i+icp,j+jcp,k+kcp)) / (0.5_rt * h + bcl);
+                    }
+                    else if (bct == LO_NEUMANN && bcval(i+icp,j+jcp,k+kcp) == 0.0_rt) {
+                        dterm(i+iep,j+jep,k+kep) = 0.0_rt;
+                    }
+                }
+            }
+        });
+    }
 } // namespace HABEC
 
 #endif
