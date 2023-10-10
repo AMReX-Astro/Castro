@@ -2,7 +2,6 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <prob_parameters.H>
 #include <wdmerger_util.H>
@@ -13,7 +12,7 @@
 
 using namespace amrex;
 
-void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -55,7 +54,7 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -97,7 +96,7 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geom,
                              Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -139,7 +138,7 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     });
 }
 
-void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -185,7 +184,7 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -231,7 +230,7 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -277,7 +276,7 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -321,7 +320,7 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -365,7 +364,7 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                            const FArrayBox& datfab, const Geometry& geom,
                            Real time, const int* /*bcrec*/, int /*level*/)
 {
@@ -409,7 +408,7 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     });
 }
 
-void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& geom,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -444,7 +443,7 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     });
 }
 
-void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -453,7 +452,8 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     // The u array contains the rotational potential, so we only need to calculate
     // the gravitational potential from the point-mass.
 
-    auto const dat = datfab.array();
+    amrex::ignore_unused(datfab);
+
     auto const der = derfab.array();
 
     const auto dx = geom.CellSizeArray();
@@ -488,21 +488,22 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
                            (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
 
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            loc[i] -= problem::center[i];
+        for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+            loc[iloc] -= problem::center[iloc];
         }
 
         der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc);
     });
 }
 
-void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Same as above, but for the secondary.
 
-    auto const dat = datfab.array();
+    amrex::ignore_unused(datfab);
+
     auto const der = derfab.array();
 
     const auto dx = geom.CellSizeArray();
@@ -537,18 +538,21 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
                            (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
                            (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
 
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            loc[i] -= problem::center[i];
+        for (int iloc = 0; iloc < AMREX_SPACEDIM; ++iloc) {
+            loc[iloc] -= problem::center[iloc];
         }
 
         der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc);
     });
 }
 
-void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
+
+    amrex::ignore_unused(geom);
+
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
@@ -559,7 +563,7 @@ void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     });
 }
 
-void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                      const FArrayBox& datfab, const Geometry& geom,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -592,7 +596,7 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     });
 }
 
-void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                        const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -605,11 +609,11 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         const bool is_primary = true;
-        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }
 
-void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                          const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -622,6 +626,6 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         bool is_primary = false;
-        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho, is_primary);
+        mask(i,j,k) = stellar_mask(i, j, k, geomdata, rho(i,j,k), is_primary);
     });
 }

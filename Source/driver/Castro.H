@@ -3,10 +3,6 @@
 
 #include <state_indices.H>
 
-#ifdef MHD
-#include <mhd_sizes.H>
-#endif
-
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
@@ -23,21 +19,6 @@ using namespace castro;
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
 
-// for backwards compatibility with the old way of naming variables
-// these keys are deprecated and may be removed in the future
-constexpr int Density = URHO;
-constexpr int Xmom = UMX;
-constexpr int Ymom = UMY;
-constexpr int Zmom = UMZ;
-constexpr int Eden = UEDEN;
-constexpr int Eint = UEINT;
-constexpr int Temp = UTEMP;
-constexpr int FirstAdv = UFA;
-constexpr int FirstSpec = UFS;
-constexpr int FirstAux = UFX;
-#ifdef SHOCK_VAR
-constexpr int Shock = USHK;
-#endif
 
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
@@ -130,7 +111,9 @@ enum int_method { CornerTransportUpwind = 0,
 
 struct advance_status {
     bool success;
+    Real suggested_dt;
     std::string reason;
+    advance_status() : success(true), suggested_dt(0.0_rt), reason("") {}
 };
 
 ///
@@ -170,6 +153,14 @@ public:
 /// The destructor.
 ///
     ~Castro () override;
+
+///
+/// Remove copy/move constructors/assignment operators.
+///
+    Castro (const Castro&) = delete;
+    Castro (Castro&&) = delete;
+    Castro& operator= (const Castro&) = delete;
+    Castro& operator= (Castro&&) = delete;
 
 ///
 /// Restart from a checkpoint file.
@@ -438,16 +429,8 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    advance_status do_advance_ctu(amrex::Real time,
-                                  amrex::Real dt,
-                                  int  amr_iteration,
-                                  int  amr_ncycle);
+    advance_status do_advance_ctu (amrex::Real time, amrex::Real dt);
 
 
 #ifndef AMREX_USE_GPU
@@ -471,7 +454,7 @@ public:
 ///                    time + dt)
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real dt, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, const advance_status& status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -503,9 +486,8 @@ public:
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_advance(amrex::Real time, amrex::Real dt, int amr_iteration);
 
 ///
 /// If required, adds material lost in timestep to cumulative
@@ -519,14 +501,18 @@ public:
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
+/// @param dt       the timestep to advance
 ///
-    void initialize_do_advance(amrex::Real time);
+    advance_status initialize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-    void finalize_do_advance();
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance
+///
+    advance_status finalize_do_advance (amrex::Real time, amrex::Real dt);
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -534,7 +520,7 @@ public:
 /// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
-    void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+    static void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
 
 #include <Castro_sources.H>
@@ -715,14 +701,14 @@ public:
 ///
 /// Error estimation for regridding.
 ///
-/// @param tb           TagBoxArray of tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval     integer
 /// @param tagval       integer
 /// @param time         current time
 /// @param n_error_buf  integer
 /// @param ngrow        Number of ghost cells
 ///
-    void errorEst (amrex::TagBoxArray& tb,
+    void errorEst (amrex::TagBoxArray& tags,
                    int          clearval,
                    int          tagval,
                    amrex::Real  time,
@@ -815,7 +801,7 @@ public:
 /// @param bx       Box to update
 /// @param u        Current state (Fab)
 ///
-    void reset_internal_energy (const amrex::Box& bx,
+    static void reset_internal_energy (const amrex::Box& bx,
 #ifdef MHD
                                 amrex::Array4<amrex::Real> const Bx,
                                 amrex::Array4<amrex::Real> const By,
@@ -992,24 +978,13 @@ public:
 ///
 /// Are we using point mass gravity?
 ///
-    int using_point_mass ();
+    static int using_point_mass ();
 
 ///
 /// Return the value of the point mass.
 ///
-    amrex::Real get_point_mass ();
+    static amrex::Real get_point_mass ();
 #endif
-
-
-///
-/// Add source terms to ``state``
-///
-/// @param state    State
-/// @param source   Source terms
-/// @param dt       timestep
-/// @param ng       number of ghost cells
-///
-    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -1022,26 +997,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef GRAVITY
-
-///
-/// Calculate state in radial direction by averaging
-///
-/// @param is_new   do we use new (0) or old (1) data?
-///
-    void make_radial_data (int is_new);
-#endif
-
-#ifdef AUX_UPDATE
-
-///
-/// Calculate auxiliary variables at new timestep
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void advance_aux(amrex::Real time, amrex::Real dt);
-#endif
 
 
 // Hydrodynamics
@@ -1071,8 +1026,9 @@ public:
 ///
 /// @param crse_level
 /// @param fine_level
+/// @param in_post_timestep
 ///
-    void reflux (int crse_level, int fine_level);
+    void reflux (int crse_level, int fine_level, bool in_post_timestep);
 
 
 ///
@@ -1081,7 +1037,7 @@ public:
 /// @param S_new    State
 /// @param ng       number of ghost cells
 ///
-    void normalize_species (amrex::MultiFab& S_new, int ng);
+    static void normalize_species (amrex::MultiFab& S_new, int ng);
 
 
 ///
@@ -1092,7 +1048,7 @@ public:
 ///
 /// @param S  State
 ///
-    void enforce_consistent_e (
+    static void enforce_consistent_e (
 #ifdef MHD
                                amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
 #endif
@@ -1108,13 +1064,18 @@ public:
     void enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
+/// After a hydro advance, check to see whether any density went too small.
+///
+    advance_status check_for_negative_density ();
+
+///
 /// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
 /// in any zone.
 ///
 /// @param state        state
 /// @param ng           number of ghost cells
 ///
-    void enforce_speed_limit (amrex::MultiFab& state, int ng);
+    static void enforce_speed_limit (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -1186,15 +1147,16 @@ public:
     void pointmass_update(amrex::Real time, amrex::Real dt);
 #endif
 
-    void stopJob ();
+    static void stopJob ();
 
 ///
 /// Returns true if we're on the GPU and the total
 /// memory on this level oversubscribes GPU memory.
 ///
-    bool oversubscribing() {
+    bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= 
+                static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;
 #endif
@@ -1364,11 +1326,6 @@ protected:
     amrex::Real pres_fine_scale;
 #endif
 
-
-///
-/// Did we trigger a CFL violation?
-///
-    int cfl_violation;
 
 
 ///

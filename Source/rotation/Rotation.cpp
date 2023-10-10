@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <math.H>
 #include <Rotation.H>
 
@@ -7,6 +6,8 @@ void
 Castro::fill_rotational_psi(const Box& bx,
                             Array4<Real> const& psi,
                             const Real time) {
+
+    amrex::ignore_unused(time);
 
   // Construct psi, which is the distance-related part of the rotation
   // law. See e.g. Hachisu 1986a, Equation 15.  For rigid-body
@@ -17,8 +18,6 @@ Castro::fill_rotational_psi(const Box& bx,
   // routine uniquely determines the rotation law. For the other
   // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
 
-  auto coord_type = geom.Coord();
-
   auto omega = get_omega();
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
@@ -27,7 +26,7 @@ Castro::fill_rotational_psi(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     GpuArray<Real, 3> r;

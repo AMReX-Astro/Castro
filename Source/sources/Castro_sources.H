@@ -15,6 +15,17 @@
 
 
 ///
+/// Add source terms to ``state``
+///
+/// @param state    State
+/// @param source   Source terms
+/// @param dt       timestep
+/// @param ng       number of ghost cells
+///
+    static void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
+
+
+///
 /// Construct source terms at old time
 ///
 /// @param source   MultiFab to save sources to
@@ -33,7 +44,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct source terms at old time (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -69,7 +90,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct new time sources (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    advance_status do_new_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -97,13 +128,13 @@
 /// and want to amortize the cost of the parallel reductions.
 /// Note that the resultant output is volume-weighted.
 ///
-/// @param update   MultiFab containing source
+/// @param source   MultiFab containing source
 /// @param dt       timestep
 /// @param local    boolean, do we want to do this calculation
 ///                 globally over all processes
 ///                 or locally just on this processor?
 ///
-    amrex::Vector<amrex::Real> evaluate_source_change(const amrex::MultiFab& update, amrex::Real dt,
+    amrex::Vector<amrex::Real> evaluate_source_change(const amrex::MultiFab& source, amrex::Real dt,
                                                       bool local = false);
 
 
@@ -115,7 +146,7 @@
 ///
 /// @param update       Real Vector of changes
 ///
-    void print_source_change(amrex::Vector<amrex::Real> update);
+    static void print_source_change(amrex::Vector<amrex::Real> update);
 
 
 ///
@@ -136,7 +167,7 @@
 /// @param source_name  string to associate with this source
 ///
     void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
-                                          std::string source_name);
+                                          const std::string& source_name);
 
 
 
@@ -148,10 +179,10 @@
 /// @param src_new  New source term
 /// @param dt       timestep
 ///
-    void time_center_source_terms (amrex::MultiFab& S_new,
-                                   amrex::MultiFab& src_old,
-                                   amrex::MultiFab& src_new,
-                                   amrex::Real dt = 1.0);
+    static void time_center_source_terms (amrex::MultiFab& S_new,
+                                          amrex::MultiFab& src_old,
+                                          amrex::MultiFab& src_new,
+                                          amrex::Real dt = 1.0);
 
 #ifdef SPONGE
 
@@ -163,7 +194,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    static void construct_old_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state,
                                      amrex::Real time, amrex::Real dt);
 
 
@@ -225,14 +256,14 @@
 ///
 /// Fill ``ext_src`` with external sources
 ///
-/// @param time     current time
-/// @param dt       timestep
-/// @param S_old    Old state
-/// @param S_new    New state
-/// @param ext_src MultiFab to save sources to
+/// @param time         current time
+/// @param dt           timestep
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param ext_src      MultiFab to save sources to
 ///
     void fill_ext_source(const amrex::Real time, const amrex::Real dt,
-                         const amrex::MultiFab& S_old, const amrex::MultiFab& S_new,
+                         const amrex::MultiFab& state_old, const amrex::MultiFab& state_new,
                          amrex::MultiFab& ext_src);
 
 
@@ -264,11 +295,10 @@
 ///
 /// Fill ``ext_src`` with thermal sources
 ///
-/// @param S_old    Old state
-/// @param S_new    New state
-/// @param ext_src  MultiFab to fill with sources
+/// @param state_in    input state
+/// @param thermo_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+    void fill_thermo_source(amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
 
 
 ///
@@ -305,4 +335,46 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& S, amrex::MultiFab& ext_src);
+                          amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Perform all operations that occur prior to computing the predictor sources
+/// and the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_advance_operators (amrex::Real time, amrex::Real dt);
+
+///
+/// Perform all operations that occur after computing the predictor sources
+/// but before the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the hydro source
+/// but before the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_advance_operators (amrex::Real time, amrex::Real dt);

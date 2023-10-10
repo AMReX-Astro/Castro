@@ -274,16 +274,13 @@ integrator.atol_spec = 1.0e-6
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.abort_on_failure = 0
-
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
 
 # Maximum temperature allowed in the burn
 integrator.MAX_TEMP = 1.0e10
 
-# Use tabular rate evaluation when availble
+# Use tabular rate evaluation when available
 network.use_tables = 1
 
 ############################################################################################
@@ -441,9 +438,6 @@ problem.interp_temp = 1
 problem.relaxation_damping_factor = -1.0e-1
 problem.relaxation_density_cutoff = 1.0e3
 problem.relaxation_cutoff_time = -1.0e2
-
-problem.radial_damping_factor = -1.0e3
-problem.initial_radial_velocity_factor = -1.0e-3
 
 problem.stellar_temp = 1.0e7
 

@@ -21,7 +21,7 @@ Parallelization is achieved by domain decomposition. We divide our
 domain into many smaller boxes, and distributed these across
 processors. When information is needed at the boundaries of the
 boxes, messages are exchanged and this data is held in a perimeter of
-*ghost cells*. AMReX manages this decompostion and
+*ghost cells*. AMReX manages this decomposition and
 communication for us. Additionally, AMReX implements adaptive mesh
 refinement. In addition to the coarse decomposition of our domain
 into zones and boxes, we can refine rectangular regions by adding
@@ -186,7 +186,7 @@ we can easily fill in C++ kernels.
 ``MultiFab``
 ------------
 
-At the highest abstraction level, we have the ``MultiFab`` (mulitple
+At the highest abstraction level, we have the ``MultiFab`` (multiple
 FArrayBoxes). A ``MultiFab`` contains an array of ``Box`` es, including
 boxes owned by other processors for the purpose of communication,
 an array of MPI ranks specifying which MPI processor owns each ``Box``,
@@ -217,6 +217,8 @@ interact with in the C++ portions of the code.
 
 ``StateData``
 -------------
+
+.. index:: StateData
 
 ``StateData`` is a class that essentially holds a pair of
 ``MultiFab`` s: one at the old time and one at the new
@@ -256,13 +258,10 @@ The current ``StateData`` names Castro carries are:
       simply be advected, but we will allow rotation (in particular,
       the Coriolis force) to affect them.
 
-   ``State_Type`` ``MultiFab`` s have no ghost cells by default for
-   pure hydro and a single ghost cell by default when ``RADIATION``
-   is enabled. There is an option to force them to have ghost cells by
-   setting the parameter ``castro.state_nghost`` at runtime.
+   ``State_Type`` ``MultiFab`` s have no ghost cells.
 
    Note that the prediction of the hydrodynamic state to the interface
-   will require 4 ghost cells. This accomodated by creating a separate
+   will require 4 ghost cells. This accommodated by creating a separate
    MultiFab, ``Sborder`` that lives at the old-time level and
    has the necessary ghost cells. We will describe this more later.
 
@@ -526,7 +525,7 @@ let’s consider the following scenarios:
 In general, one should never assume that ghostcells are valid, and
 instead do a fill patch operation when in doubt. Sometimes we will
 use a ``FillPatchIterator`` to fill the ghost cells into a ``MultiFab``
-without an explict look. This is done as::
+without an explicit look. This is done as::
 
       FillPatchIterator fpi(*this,S_old,1,time,State_Type,0,NUM_STATE);
       MultiFab& state_old = fpi.get_mf();
@@ -623,7 +622,7 @@ get a sense of these is to look at the ``.H`` files in the
 ------------------
 
 There is a ``Geometry`` object, ``geom`` for each level as part of
-the ``Castro`` object (this is inhereted through ``AmrLevel``).
+the ``Castro`` object (this is inherited through ``AmrLevel``).
 
 ``ParmParse`` class
 -------------------

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <mhd_util.H>
 
@@ -55,7 +54,7 @@ Castro::hlld(const Box& bx,
     UMAGP1 = UMAGZ;
     UMAGP2 = UMAGX;
 
-  } else if (dir == 2) {
+  } else {  // dir == 2
     QMAGN  = QMAGZ;
     QMAGP1 = QMAGX;
     QMAGP2 = QMAGY;
@@ -71,7 +70,7 @@ Castro::hlld(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // this is a loop over interfaces, so, e.g., for idir = 0 (x), we are seeing

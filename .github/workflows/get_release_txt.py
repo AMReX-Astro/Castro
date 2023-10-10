@@ -12,9 +12,9 @@ if __name__ == "__main__":
         print('No version provided!')
     else:
         gen_version_re = re.compile(r'#\s(\d\d\.\d\d)')
-        this_version_re = re.compile(f'#\s{sys.argv[1]}')
+        this_version_re = re.compile(fr'#\s{sys.argv[1]}')
 
-        with open('CHANGES.md', 'r') as file:
+        with open('CHANGES.md') as file:
             txt = file.read()
             m = re.search(this_version_re, txt)
             if m:

@@ -1,6 +1,5 @@
 #ifdef SPONGE
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
@@ -9,19 +8,31 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
+                                    Real time, Real dt)
 {
     // We do not apply any sponge at the old time.
 
-    return;
+    amrex::ignore_unused(source);
+    amrex::ignore_unused(state_in);
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+                                    Real time, Real dt)
 {
+
+    amrex::ignore_unused(state_old);
+    amrex::ignore_unused(time);
+
     const Real strt_time = ParallelDescriptor::second();
 
-    if (!do_sponge) return;
+    if (!do_sponge) {
+        return;
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -72,14 +83,10 @@ Castro::apply_sponge(const Box& bx,
   auto problo = geom.ProbLoArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real src[NSRC];
-
-    for (int n = 0; n < NSRC; n++) {
-      src[n] = 0.0;
-    }
+    Real src[NSRC] = {0.0};
 
     GpuArray<Real, 3> r;
 

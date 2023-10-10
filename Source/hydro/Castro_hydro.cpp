@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -62,7 +61,7 @@ Castro::cons_to_prim(const Real time)
 #endif
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-void
+void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
 {
 
@@ -233,8 +232,9 @@ Castro::cons_to_prim_fourth(const Real time)
 void
 Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
 {
-
     BL_PROFILE("Castro::check_for_cfl_violation()");
+
+    int cfl_violation = 0;
 
     auto dx = geom.CellSizeArray();
 
@@ -390,4 +390,8 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
         cfl_violation = 1;
     }
 
+    // If we detect a CFL violation, abort.
+    if (cfl_violation) {
+        amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number");
+    }
 }

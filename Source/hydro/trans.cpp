@@ -97,14 +97,18 @@ Castro::actual_trans_single(const Box& bx,
     // and ir,jr,kr to be the face-centered indices needed for
     // the transverse flux difference
 
+    amrex::ignore_unused(hdt);
+
+#if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+#endif
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // We are handling the states at the interface of
@@ -343,7 +347,7 @@ Castro::actual_trans_single(const Box& bx,
 
         // Reset to original value if adding transverse terms made density negative
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;
@@ -540,7 +544,7 @@ Castro::actual_trans_final(const Box& bx,
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // the normal state
@@ -798,7 +802,7 @@ Castro::actual_trans_final(const Box& bx,
         // Reset to original value if adding transverse terms
         // made density negative
         bool reset_state = false;
-        if (reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;

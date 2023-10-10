@@ -1,3 +1,5 @@
+.. _sec:flowchart:
+
 *********
 Flowchart
 *********
@@ -30,7 +32,7 @@ the different code paths.  These fall into two categories:
      reaction source as inputs and do the final conservative update by
      integrating the reaction system using an ODE solver with the
      explicit advective source included in a
-     piecewise-constant-in-time fastion.
+     piecewise-constant-in-time fastion.  This is described in :cite:`castro_simple_sdc`.
 
    - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
@@ -56,10 +58,9 @@ The time-integration method used is controlled by
     order integration implemented.  At the moment, this does not support
     multilevel domains.  Note: because of differences in the interfaces with the 
     default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
-    method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
-    additional EOS derivatives).
+    method to work.
 
-  * ``time_integration_method = 3``: this is the simplifed SDC method
+  * ``time_integration_method = 3``: this is the simplified SDC method
     described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
@@ -175,24 +176,7 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantitiy evolution*
-
-   Auxiliary variables in Castro are those that obey a continuity
-   equation (with optional sources) that are passed into the EOS, but
-   not subjected to the constraint on mass fractions (summing to one).
-
-   The advection and source terms are already dealt with in the
-   main hydrodynamics advance (above step). A user-supplied routine
-   ca_auxupdate can be provided here to further update these
-   quantities.
-
-#. *Radial data and [POINTMASS] point mass*
-
-   If ``castro.spherical_star`` is set, then we average the state data
-   over angles here to create a radial profile. This is then used in the
-   boundary filling routines to properly set Dirichlet BCs when our domain
-   is smaller than the star, so the profile on the boundaries will not
-   be uniform.
+#. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
    change the mass of the point mass that optionally contributes to the
@@ -312,8 +296,8 @@ here, consistent with the names used in the code:
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
 
-Single Step Flowchat
---------------------
+Single Step Flowchart
+---------------------
 
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
@@ -322,7 +306,8 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. Check for NaNs in the initial state, ``S_old``.
+   B. Call ``clean_state()`` to make sure the thermodynamics are in sync, in particular,
+      compute the temperature.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -391,7 +376,12 @@ In the code, the objective is to evolve the state from the old time,
       rather than computing it from the Riemann problem.  This source is
       computed here for the internal energy equation.
 
-   D. [``DIFFUSION``] diffusion : thermal diffusion can be
+   D. geometry source: this is applied only for 2-d axisymmetric data
+      and captures the geometric term arising from applying the
+      cylindrical divergence in :math:`\nabla \cdot (\rho \Ub \Ub)` in
+      the momentum equation.  See :cite:`bernard-champmartin_eulerian_2012`.
+
+   E. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -402,10 +392,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   E. [``HYBRID_MOMENTUM``] angular momentum
+   F. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   F. [``GRAVITY``] gravity:
+   G. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -420,7 +410,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   G. [``ROTATION``] rotation
+   H. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -533,7 +523,7 @@ In the code, the objective is to evolve the state from the old time,
 
 #. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
 
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
+   We do the final :math:`\dt/2` reacting on the state, beginning with :math:`\Ub^{n+1,(c)}` to
    give us the final state on this level, :math:`\Ub^{n+1}`.
 
    This is largely the same as ``strang_react_first_half()``, but
@@ -661,11 +651,12 @@ The overall evolution appears as:
 
 #. *Initialization* (``initialize_advance``)
 
-   Here we create the ``MultiFab`` s that store the needed information
+   We first do a ``clean_state`` on the old data (``S_old``).
+
+   We next create the ``MultiFab`` s that store the needed information
    at the different time nodes.  Each of the quantities below is a
    vector of size ``SDC_NODES``, whose components are the ``MultiFab``
    for that time node:
-
 
     * ``k_new`` : the current solution at this time node.
 
@@ -699,13 +690,14 @@ SDC Single Iteration Flowchart
 
 .. index:: do_advance_sdc
 
-The update through all time nodes for a single iteration is done by
-``do_advance_sdc``.  The basic update appears as:
-
 Throughout this driver we use the ``State_Type`` ``StateData`` as
 storage for the current node.  In particular, we use the new time slot
 in the ``StateData`` (which we refer to as ``S_new``) to allow us to
 do ``FillPatch`` operations.
+
+The update through all time nodes for a single iteration is done by
+``do_advance_sdc``.  The basic update appears as:
+
 
 #. *Initialize*
 
@@ -755,18 +747,18 @@ do ``FillPatch`` operations.
 
        Then fill all other time nodes as: ``R_old[n]`` = ``R_old[0]``
 
-    * Do the SDC update from node ``m`` to ``m+1``.
+   * Do the SDC update from node ``m`` to ``m+1``.
 
-      We call ``do_sdc_update()`` to do the update in time to the next
-      node.  This solves the nonlinear system (when we have reactions)
-      and stores the solution in ``k_new[m+1]``.
+     We call ``do_sdc_update()`` to do the update in time to the next
+     node.  This solves the nonlinear system (when we have reactions)
+     and stores the solution in ``k_new[m+1]``.
 
 #. Store the advective terms for the next iteration.
 
    Since we are done with this iteration, we do: ``A_old[n]``
    :math:`\leftarrow` ``A_new[n]``.
 
-   We also store ``R_old`` for the next iteration.  We do this by
+#. Store ``R_old`` for the next iteration.  We do this by
    calling the reaction source one last time using the data for each
    time node.
 
@@ -775,6 +767,10 @@ do ``FillPatch`` operations.
    On the last iteration, we save the solution to the ``State_Type`` ``StateData``:
 
    ``S_new`` :math:`\leftarrow` ``k_new[SDC_NODES-1]``
+
+#. Store the old and new sources in the State Data.
+
+#. Store the reaction information for the plotfiles.
 
 #. Call ``finalize_do_advance`` to clean up the memory.
    

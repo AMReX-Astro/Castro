@@ -140,7 +140,7 @@ hydrostatic boundary condition here, we set::
 
 The first parameter tells Castro to use the HSE boundary condition for the lower
 y direction.
-In filling the ghost cells, hydrostatic equilibrum will be integrated
+In filling the ghost cells, hydrostatic equilibrium will be integrated
 from the last interior zone into the boundary.  We need one more
 equation for this integration, so we either interpolate the density or
 temperature into the ghost cells, depending on the value of
@@ -234,7 +234,7 @@ Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The ``model_parser.H`` provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add::
 
-  USE_CXX_MODEL_PARSER = TRUE
+  USE_MODEL_PARSER = TRUE
 
 to the problem ``GNUmakefile``.  There are 2 other parameters that can
 be set in the makefile to control the initial model storage:

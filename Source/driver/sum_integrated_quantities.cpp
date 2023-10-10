@@ -1,7 +1,6 @@
 #include <iomanip>
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef GRAVITY
 #include <Gravity.H>
@@ -14,7 +13,9 @@ using namespace amrex;
 void
 Castro::sum_integrated_quantities ()
 {
-    if (verbose <= 0) return;
+    if (verbose <= 0) {
+        return;
+    }
 
     BL_PROFILE("Castro::sum_integrated_quantities()");
 
@@ -87,8 +88,9 @@ Castro::sum_integrated_quantities ()
         rho_K += ca_lev.volWgtSum("kineng", time, local_flag);
         rho_E += ca_lev.volWgtSum(S_new, UEDEN, local_flag);
 #ifdef GRAVITY
-        if (gravity->get_gravity_type() == "PoissonGrav")
+        if (gravity->get_gravity_type() == "PoissonGrav") {
             rho_phi += ca_lev.volProductSum(S_new, phi_new, URHO, 0, local_flag);
+        }
 #endif
 
         // Compute extrema
@@ -272,7 +274,7 @@ Castro::sum_integrated_quantities ()
             i = 0;
             T_max     = foo_max[i++];
             rho_max   = foo_max[i++];
-            ts_te_max = foo_max[i++];
+            ts_te_max = foo_max[i++];    // NOLINT(clang-analyzer-deadcode.DeadStores)
 
             std::cout << '\n';
             std::cout << "TIME= " << time << " MASS        = "   << mass      << '\n';
@@ -305,7 +307,7 @@ Castro::sum_integrated_quantities ()
 
             std::cout << "TIME= " << time << " MAXIMUM TEMPERATURE  = " << T_max << '\n';
             std::cout << "TIME= " << time << " MAXIMUM DENSITY      = " << rho_max << '\n';
-#ifdef REACTION
+#ifdef REACTIONS
             std::cout << "TIME= " << time << " MAXIMUM T_S / T_E    = " << ts_te_max << '\n';
 #endif
 
@@ -593,10 +595,12 @@ Castro::sum_integrated_quantities ()
                 // We need to be careful here since the species names have differing numbers of characters
 
                 for (int i = 0; i < NumSpec; i++) {
-                    std::string outString  = "";
-                    std::string massString = "Mass ";
-                    std::string specString = species_names[i];
-                    while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
+                    std::string outString{};
+                    std::string massString{"Mass "};
+                    std::string specString{species_names[i]};
+                    while (static_cast<int>(outString.length() + specString.length() + massString.length()) < datwidth) {
+                        outString += " ";
+                    }
                     outString += massString;
                     outString += specString;
                     header << std::setw(datwidth) << outString; ++n;
@@ -607,8 +611,9 @@ Castro::sum_integrated_quantities ()
                 log << std::setw(intwidth) << "#   COLUMN 1";
                 log << std::setw(fixwidth) << "                        2";
 
-                for (int i = 3; i <= n; ++i)
+                for (int i = 3; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
+                }
 
                 log << std::endl;
 
@@ -634,8 +639,9 @@ Castro::sum_integrated_quantities ()
 
             log << std::scientific;
 
-            for (int i = 0; i < NumSpec; i++)
+            for (int i = 0; i < NumSpec; i++) {
                 log << std::setw(datwidth) << std::setprecision(datprecision) << species_mass[i];
+            }
 
             log << std::endl;
 

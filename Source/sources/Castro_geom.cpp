@@ -1,5 +1,4 @@
 #include "Castro.H"
-#include "Castro_F.H"
 
 using namespace amrex;
 
@@ -30,7 +29,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 
   Real mult_factor = 1.0;
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);  // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -42,8 +41,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_old_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -78,7 +76,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
   Real mult_factor = -0.5;
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);   // NOLINT(readability-suspicious-call-argument)
 
   // Time center with the new data
 
@@ -88,7 +86,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
   fill_geom_source(time, dt, state_new, geom_src);
 
-  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
+  MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);   // NOLINT(readability-suspicious-call-argument)
 
   if (verbose > 1)
   {
@@ -100,8 +98,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 #endif
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
+      amrex::Print() << "Castro::construct_new_geom_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif
@@ -113,7 +110,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
 
 void
-Castro::fill_geom_source (Real time, Real dt,
+Castro::fill_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
                           MultiFab& cons_state, MultiFab& geom_src)
 {
 
@@ -123,9 +120,6 @@ Castro::fill_geom_source (Real time, Real dt,
 
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
-
-  auto coord = geom.Coord();
-
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -139,7 +133,7 @@ Castro::fill_geom_source (Real time, Real dt,
     Array4<Real> const src = geom_src.array(mfi);
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian

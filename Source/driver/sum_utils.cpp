@@ -1,7 +1,6 @@
 #include <iomanip>
 
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef GRAVITY
@@ -38,7 +37,7 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -67,8 +66,9 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -100,7 +100,7 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -156,8 +156,9 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -193,7 +194,7 @@ Castro::volProductSum (const MultiFab& mf1,
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -217,8 +218,9 @@ Castro::volProductSum (const MultiFab& mf1,
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -247,7 +249,7 @@ Castro::locSquaredSum (const std::string& name,
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
@@ -300,8 +302,9 @@ Castro::locSquaredSum (const std::string& name,
     ReduceTuple hv = reduce_data.value();
     Real sum = amrex::get<0>(hv);
 
-    if (!local)
+    if (!local) {
         ParallelDescriptor::ReduceRealSum(sum);
+    }
 
     return sum;
 }
@@ -315,6 +318,8 @@ Castro::gwstrain (Real time,
 		  Real& h_plus_2, Real& h_cross_2,
 		  Real& h_plus_3, Real& h_cross_3,
 		  bool local) {
+
+    amrex::ignore_unused(time);
 
     BL_PROFILE("Castro::gwstrain()");
 
@@ -564,7 +569,7 @@ Castro::gwstrain (Real time,
 
         r *= C::parsec * 1.e3_rt; // Convert from kpc to cm
 
-        for (int j = 0; j < 3; ++j) {
+        for (int j = 0; j < 3; ++j) {   // NOLINT(modernize-loop-convert)
             for (int i = 0; i < 3; ++i) {
                 h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
             }

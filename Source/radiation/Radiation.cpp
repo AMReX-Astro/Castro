@@ -4,7 +4,6 @@
 #include <RadSolve.H>
 #include <rad_util.H>
 #include <filt_prim.H>
-#include <Castro_F.H>
 
 #include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>
@@ -33,12 +32,7 @@ int Radiation::nGroups = NGROUPS;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
 int Radiation::Er_Lorentz_term = 1;
-int Radiation::plot_lambda   = 0;
-int Radiation::plot_kappa_p  = 0;
-int Radiation::plot_kappa_r  = 0;
-int Radiation::plot_lab_Er   = 0;
-int Radiation::plot_lab_flux = 0;
-int Radiation::plot_com_flux = 0;
+
 int Radiation::icomp_lambda  = -1;
 int Radiation::icomp_kp      = -1;
 int Radiation::icomp_kr      = -1;
@@ -168,16 +162,9 @@ void Radiation::read_static_params()
   }
 
 
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  if (radiation::comoving) pp.query("plot_lab_Er", plot_lab_Er);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_com_flux", plot_com_flux);
-
   // set up the extra plot variables
   {
-      if (plot_lambda) {
+      if (radiation::plot_lambda) {
           icomp_lambda = plotvar_names.size();
 
           if (!do_multigroup || radiation::limiter == 0) {
@@ -190,7 +177,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_p) {
+      if (radiation::plot_kappa_p) {
           icomp_kp = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_P");
@@ -202,7 +189,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_kappa_r) {
+      if (radiation::plot_kappa_r) {
           icomp_kr = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("kappa_R");
@@ -214,7 +201,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_Er) {
+      if (radiation::plot_lab_Er) {
           icomp_lab_Er = plotvar_names.size();
           if (!do_multigroup) {
               plotvar_names.push_back("Erlab");
@@ -226,7 +213,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_lab_flux) {
+      if (radiation::plot_lab_flux) {
           icomp_lab_Fr = plotvar_names.size();
           std::string frame = "lab";
           Vector<std::string> dimname;
@@ -249,7 +236,7 @@ void Radiation::read_static_params()
               }
           }
       }
-      if (plot_com_flux) {
+      if (radiation::plot_com_flux) {
           icomp_com_Fr = plotvar_names.size();
           std::string frame = "com";
           Vector<std::string> dimname;
@@ -345,8 +332,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   if (SolverType == MGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
-
-  ca_initfluxlimiter(&radiation::limiter, &radiation::closure);
 
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
@@ -1224,21 +1209,54 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 
 void Radiation::extrapolateBorders(MultiFab& f, int indx)
 {
-  BL_PROFILE("Radiation::extrapolateBorders");
+    BL_PROFILE("Radiation::extrapolateBorders");
 
-  BL_ASSERT(f.nGrow() >= 1);
+    BL_ASSERT(f.nGrow() >= 1);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for(MFIter mfi(f); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
+    for (MFIter mfi(f); mfi.isValid(); ++mfi) {
+        // Note no tiling in the current implementation.
+        const Box& bx = mfi.validbox();
+        const Box& grownbx = amrex::grow(bx, 1);
 
-    const Box& reg  = f.box(i);
+        Array4<Real> const f_arr = f[mfi].array(indx);
 
-    bextrp(BL_TO_FORTRAN_N(f[mfi],indx),
-           ARLIM(reg.loVect()), ARLIM(reg.hiVect()));
-  }
+        amrex::LoopOnCpu(grownbx, [=] (int i, int j, int k) noexcept
+        {
+            // Note that the results on the corners will be the same
+            // regardless of which order we do the loop in.
+
+            if (i == bx.smallEnd(0)) {
+                f_arr(i-1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i+1,j,k);
+            }
+
+            if (i == bx.bigEnd(0)) {
+                f_arr(i+1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i-1,j,k);
+            }
+
+#if AMREX_SPACEDIM >= 2
+            if (j == bx.smallEnd(1)) {
+                f_arr(i,j-1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j+1,k);
+            }
+
+            if (j == bx.bigEnd(1)) {
+                f_arr(i,j+1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j-1,k);
+            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+            if (k == bx.smallEnd(2)) {
+                f_arr(i,j,k-1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k+1);
+            }
+
+            if (k == bx.bigEnd(2)) {
+                f_arr(i,j,k+1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k-1);
+            }
+#endif
+        });
+    }
 }
 
 

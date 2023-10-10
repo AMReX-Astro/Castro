@@ -1,11 +1,14 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
 void
 Castro::pointmass_update(Real time, Real dt)
 {
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     int finest_level = parent->finestLevel();
 
     if (level == finest_level && point_mass_fix_solution)
@@ -33,23 +36,21 @@ Castro::pointmass_update(Real time, Real dt)
             Array4<Real const> const vol  = volume.array(mfi);
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 // This is just a small number to keep precision issues from making
                 // icen, jcen, kcen one cell too low.
                 const Real eps = 1.e-8_rt;
 
                 // This should be the cell whose lower left corner is at center
-                int icen = std::floor((problem::center[0] - problo[0]) / dx[0] + eps);
+                int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                int jcen = std::floor((problem::center[1] - problo[1]) / dx[1] + eps);
+                int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                 int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                int kcen = std::floor((problem::center[2] - problo[2]) / dx[2] + eps);
-#else
-                int kcen = 0;
+                int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                 // Make sure we only count contributions from this grid
@@ -115,7 +116,7 @@ Castro::pointmass_update(Real time, Real dt)
                 Array4<Real> const uout = S_new.array(mfi);
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     // This is just a small number to keep precision issues from making
                     // icen, jcen, kcen one cell too low.
@@ -123,16 +124,14 @@ Castro::pointmass_update(Real time, Real dt)
                     const Real eps = 1.e-8_rt;
 
                     // This should be the cell whose lower left corner is at center
-                    int icen = std::floor((problem::center[0] - problo[0]) / dx[0] + eps);
+                    int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
-                    int jcen = std::floor((problem::center[1] - problo[1]) / dx[1] + eps);
+                    int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
 #else
                     int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
-                    int kcen = std::floor((problem::center[2] - problo[2]) / dx[2] + eps);
-#else
-                    int kcen = 0;
+                    int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
 #endif
 
                     // Make sure we only count contributions from this grid

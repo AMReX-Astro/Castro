@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -13,6 +12,7 @@
 #include <slope.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::mol_plm_reconstruct(const Box& bx,
@@ -37,7 +37,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
   // piecewise linear slopes
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
@@ -48,7 +48,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                   (idir == 1 && j == domhi[1]) ||
                                   (idir == 2 && k == domhi[2]));
 
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn_arr(i,j,k);
 
     load_stencil(q_arr, idir, i, j, k, n, s);
@@ -62,14 +62,14 @@ Castro::mol_plm_reconstruct(const Box& bx,
   if (use_pslope == 1) {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
-      Real s[5];
+      Real s[nslp];
       Real flat = flatn_arr(i,j,k);
 
-      Real trho[5];
-      Real src[5];
+      Real trho[nslp];
+      Real src[nslp];
 
       bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
                                     (idir == 1 && j == domlo[1]) ||
@@ -91,7 +91,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   }
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 
@@ -152,10 +152,10 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const& qp) {
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn_arr(i,j,k);
     Real sm;
     Real sp;
@@ -225,6 +225,7 @@ Castro::mol_consup(const Box& bx,
 #endif
                    Array4<Real const> const& vol) {
 
+  amrex::ignore_unused(dt);
 
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
@@ -232,14 +233,11 @@ Castro::mol_consup(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
-#endif
-
-#if AMREX_SPACEDIM == 2
   auto coord = geom.Coord();
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -255,22 +253,14 @@ Castro::mol_consup(const Box& bx,
                         flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1) ) / vol(i,j,k);
 #endif
 
-#if AMREX_SPACEDIM == 1
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
-      }
-    }
-#endif
+#if AMREX_SPACEDIM <= 2
+    if (n == UMX && do_hydro == 1) {
+        // Add gradp term to momentum equation -- only for axisymmetric
+        // coords (and only for the radial flux).
 
-#if AMREX_SPACEDIM == 2
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        // add the pressure source term for axisymmetry
-        if (coord > 0) {
-          update(i,j,k,n) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
+        if (!mom_flux_has_p(0, 0, coord)) {
+            update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
         }
-      }
     }
 #endif
 
@@ -288,7 +278,7 @@ Castro::mol_consup(const Box& bx,
   // we'll be multiplying that for the update calculation.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     update(i,j,k,USHK) = shk(i,j,k) / dt;
   });
@@ -307,7 +297,7 @@ Castro::mol_diffusive_flux(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cond_int;

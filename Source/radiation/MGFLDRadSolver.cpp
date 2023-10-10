@@ -5,7 +5,6 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 
-#include <Castro_F.H>
 
 #include <RAD_F.H>
 
@@ -29,7 +28,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   int fine_level =  parent->finestLevel();
 
-  // allocation and intialization
+  // allocation and initialization
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const BoxArray& grids = castro->boxArray();
   const DistributionMapping& dmap = castro->DistributionMap();
@@ -41,7 +40,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Real oldtime = castro->get_state_data(Rad_Type).prevTime();
 
   MultiFab& S_new = castro->get_new_data(State_Type);
-  AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
+  FillPatchIterator fpi_new(*castro, S_new, ngrow, time, State_Type, 0, S_new.nComp());
+  MultiFab& S_new_border = fpi_new.get_mf();
 
   Array<MultiFab, AMREX_SPACEDIM> lambda;
   if (radiation::limiter > 0) {
@@ -54,11 +54,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Er_lag.setBndry(-1.0);
       Er_lag.FillBoundary(parent->Geom(level).periodicity());
 
-      MultiFab& S_lag = castro->get_old_data(State_Type);
-      for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
-                                 0,S_lag.nComp()); fpi.isValid(); ++fpi) {
-          S_lag[fpi].copy<RunOn::Device>(fpi());
-      }
+      MultiFab& S_old = castro->get_old_data(State_Type);
+      FillPatchIterator fpi_old(*castro, S_old, ngrow, oldtime, State_Type, 0, S_old.nComp());
+      MultiFab& S_lag = fpi_old.get_mf();
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
       MGFLD_compute_rosseland(kpr_lag, S_lag); 
@@ -111,18 +109,16 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
-
+  for (MFIter mfi(S_new_border, true); mfi.isValid(); ++mfi) {
       const Box &gbx = mfi.growntilebox(1);
       const Box &bx  = mfi.tilebox();
 
-      rho[mfi].copy<RunOn::Device>(S_new[mfi],gbx, URHO, gbx,0,1);
+      rho[mfi].copy<RunOn::Device>(S_new_border[mfi], gbx, URHO, gbx, 0, 1);
 
-      rhoe_new[mfi].copy<RunOn::Device>(S_new[mfi], bx, UEINT, bx,0,1);
+      rhoe_new[mfi].copy<RunOn::Device>(S_new_border[mfi], bx, UEINT, bx, 0, 1);
       rhoe_old[mfi].copy<RunOn::Device>(rhoe_new[mfi], bx);
 
-      temp_new[mfi].copy<RunOn::Device>(S_new[mfi],gbx, UTEMP, gbx,0,1);
-    
+      temp_new[mfi].copy<RunOn::Device>(S_new_border[mfi], gbx, UTEMP, gbx, 0, 1);
   }
 
   // Planck mean and Rosseland 
@@ -179,10 +175,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   std::unique_ptr<MultiFab> flxsave;
   MultiFab* flxcc;
   int icomp_flux = -1;
-  if (plot_com_flux) {
+  if (radiation::plot_com_flux) {
       flxcc = plotvar[level].get();
       icomp_flux = icomp_com_Fr;
-  } else if (plot_lab_Er || plot_lab_flux) {
+  } else if (radiation::plot_lab_Er || radiation::plot_lab_flux) {
       flxsave.reset(new MultiFab(grids, dmap, nGroups*AMREX_SPACEDIM, 0));
       flxcc = flxsave.get();
       icomp_flux = 0;
@@ -206,7 +202,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     it++;
 
     if (it == 1) {
-      eos_opacity_emissivity(S_new, temp_new,
+      eos_opacity_emissivity(S_new_border, temp_new,
                              temp_star, // input
                              kappa_p, kappa_r, jg, 
                              djdT, dkdT, dedT, // output
@@ -404,9 +400,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
                   etaT, etaTz, eta1,
                   coupT,
                   kappa_p, jg, mugT,
-                  S_new, level, delta_t, ptc_tau, it, conservative_update);
+                  S_new_border, level, delta_t, ptc_tau, it, conservative_update);
 
-    eos_opacity_emissivity(S_new, temp_new,
+    eos_opacity_emissivity(S_new_border, temp_new,
                            temp_star, // input
                            kappa_p, kappa_r, jg, 
                            djdT, dkdT, dedT, // output
@@ -474,9 +470,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     if (!converged && it > n_bisect) {
       bisect_matter(rhoe_new, temp_new,
                     rhoe_star, temp_star,
-                    S_new, grids, level);
+                    S_new_border, grids, level);
 
-      eos_opacity_emissivity(S_new, temp_new,
+      eos_opacity_emissivity(S_new_border, temp_new,
                              temp_star, // input
                              kappa_p, kappa_r, jg, 
                              djdT, dkdT, dedT, // output
@@ -549,19 +545,19 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
   }
 
-  if (plot_lambda) {
+  if (radiation::plot_lambda) {
       save_lambda_in_plotvar(level, lambda);
   }
 
-  if (plot_kappa_p) {
+  if (radiation::plot_kappa_p) {
       MultiFab::Copy(*plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
   }
 
-  if (plot_kappa_r) {
+  if (radiation::plot_kappa_r) {
       MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
   }
 
-  if (plot_lab_Er) {
+  if (radiation::plot_lab_Er) {
       save_lab_Er_in_plotvar(level, S_new, Er_new, *flxcc, icomp_flux);
   }
 
@@ -569,7 +565,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   //     already done when calling solver->levelFluxFaceToCenter()
   // }
 
-  if (plot_lab_flux) {
+  if (radiation::plot_lab_flux) {
       save_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 

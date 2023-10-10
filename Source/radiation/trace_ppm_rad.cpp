@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -106,7 +105,7 @@ Castro::trace_ppm_rad(const Box& bx,
   // The choice of reference state is designed to minimize the
   // effects of the characteristic projection.  We subtract the I's
   // off of the reference state, project the quantity such that it is
-  // in terms of the characteristic varaibles, and then add all the
+  // in terms of the characteristic variables, and then add all the
   // jumps that are moving toward the interface to the reference
   // state to get the full state on that interface.
 

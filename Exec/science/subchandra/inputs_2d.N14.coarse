@@ -3,8 +3,8 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 100000
-stop_time = 1.0
+max_step = 1000000
+stop_time = 10.0
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -62,7 +62,7 @@ castro.sponge_timescale     = 1.e-3
 castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.05     # scale back initial timestep by this factor
 castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
-castro.sum_interval   = 0       # timesteps between computing and printing volume averages
+castro.sum_interval   = 5       # timesteps between computing and printing volume averages
 castro.update_sources_after_reflux = 0
 castro.time_integration_method = 3
 
@@ -147,13 +147,12 @@ integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-5
-integrator.jacobian = 2
-
-integrator.abort_on_failure = 0
+integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
 
-#integrator.use_jacobian_caching = 0
+# disable jacobian caching in VODE
+integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 500000
+integrator.ode_max_steps = 1000000
 

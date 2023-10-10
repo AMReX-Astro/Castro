@@ -55,7 +55,7 @@ class Index:
         is 0-based, we subtract 1, so we sync with the Fortran
         value
         """
-        sstr = "  constexpr int {} = {};\n".format(self.var, self.cxx_value)
+        sstr = f"  constexpr int {self.var} = {self.cxx_value};\n"
         return sstr
 
 
@@ -89,7 +89,7 @@ class Counter:
         if self.cxx_strings:
             val = "{} + {}".format(self.numeric - offset - 1, " + ".join(self.cxx_strings))
         else:
-            val = "{}".format(self.numeric - offset - 1)
+            val = f"{self.numeric - offset - 1}"
 
         return val
 
@@ -108,7 +108,7 @@ def doit(variables_file, odir, defines, nadv):
     # (e.g., conserved, primitive, ...)
     default_set = {}
 
-    with open(variables_file, "r") as f:
+    with open(variables_file) as f:
         current_set = None
         default_group = None
         for line in f:
@@ -169,7 +169,7 @@ def doit(variables_file, odir, defines, nadv):
     # the size of each set
     all_counters = []
 
-    # loop over sets, create the counters, and store any indicies that belong to those
+    # loop over sets, create the counters, and store any indices that belong to those
     for s in sorted(unique_sets):
 
         # these are the indices that belong to the default set s.
@@ -183,7 +183,7 @@ def doit(variables_file, odir, defines, nadv):
                 for v in q.adds_to:
                     adds_to.append(v)
 
-        adds_to = set(adds_to)
+        adds_to = sorted(set(adds_to))
 
         # initialize the counters
         counter_main = Counter(default_set[s])
@@ -215,21 +215,21 @@ def doit(variables_file, odir, defines, nadv):
     with open(os.path.join(odir, "state_indices.H"), "w") as f:
 
         # first write out the counter sizes
-        f.write("#ifndef _state_indices_H_\n")
-        f.write("#define _state_indices_H_\n")
+        f.write("#ifndef STATE_INDICES_H\n")
+        f.write("#define STATE_INDICES_H\n")
 
         f.write("#include <network_properties.H>\n\n")
 
-        f.write("  constexpr int NumAdv = {};\n".format(nadv))
+        f.write(f"  constexpr int NumAdv = {nadv};\n")
         for ac in all_counters:
-            f.write("  {}\n".format(ac.get_cxx_set_string()))
+            f.write(f"  {ac.get_cxx_set_string()}\n")
         f.write("  constexpr int npassive = NumSpec + NumAux + NumAdv;\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
-        for s in unique_sets:
+        for s in sorted(unique_sets):
             set_indices = [q for q in indices if q.iset == s]
-            f.write("\n   // {}\n".format(s))
+            f.write(f"\n   // {s}\n")
             for i in set_indices:
                 f.write(i.get_cxx_set_string())
 

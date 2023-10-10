@@ -11,7 +11,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    int coord_type = geomdata.Coord();
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
@@ -54,8 +53,8 @@ void problem_initialize_state_data (int i, int j, int k,
     eos_state.rho = problem::rho0;  // initial guess
     eos_state.s = problem::s0;
 
-    Real xn[NumSpec] = {small_x};
-    xn[0] = 1.0_rt - (NumSpec-1)*small_x;
+    Real xn[NumSpec] = {network_rp::small_x};
+    xn[0] = 1.0_rt - (NumSpec-1) * network_rp::small_x;
 
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = xn[n];

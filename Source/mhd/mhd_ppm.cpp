@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <ppm.H>
 
@@ -71,7 +70,7 @@ Castro::ppm_mhd(const Box& bx,
 
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // compute the eigenvectors and eigenvalues for this coordinate direction

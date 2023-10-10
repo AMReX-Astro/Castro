@@ -568,7 +568,7 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
-.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species
 
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
@@ -587,15 +587,6 @@ runtime parameters for hydrodynamics:
 
 -  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
-
--  ``castro.spherical_star``: this is used to set the boundary
-   conditions by assuming the star is spherically symmetric in
-   the outer regions (0 or 1; default: 0)
-
-   When used, Castro averages the values at a given radius over the
-   cells that are inside the domain to define a radial function. This
-   function is then used to set the values outside the domain in
-   implementing the boundary conditions.
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
@@ -1029,9 +1020,13 @@ parameters apply:
 
    -  1: the Colella & Glaz solver
 
-   -  2: the HLLC solver. Note: this should only be used with Cartesian
-      geometries because it relies on the pressure term being part of the flux
-      in the momentum equation.
+   -  2: the HLLC solver.
+
+      .. note::
+
+         HLLC should only be used with Cartesian
+         geometries because it relies on the pressure term being part of the flux
+         in the momentum equation.
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :cite:`pember:1996`),
@@ -1123,15 +1118,13 @@ which takes values:
 Resets
 ======
 
-Density Resets
---------------
-
-Need to document density_reset_method
 
 .. _app:hydro:flux_limiting:
 
 Flux Limiting
 -------------
+
+.. index:: castro.limit_fluxes_on_small_dens, castro.small_dens
 
 Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
@@ -1149,7 +1142,7 @@ limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
 implements the positivity-preserving method of :cite:`hu:2013`. This
 behavior is controlled by
-castro.limit_fluxes_on_small_dens.
+``castro.limit_fluxes_on_small_dens``.
 
 A hydrodynamical update to a zone can be broken down into an update
 over every face of the zone where a flux crosses the face over the
@@ -1174,7 +1167,7 @@ guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting
 the density component equal to a value just larger than the density floor,
-castro.small_dens, and solving
+``castro.small_dens``, and solving
 for the value of :math:`\theta` at the interface that makes the equality
 hold. In regions where the density is not at risk of going negative,
 :math:`\theta \approx 1` and the original hydrodynamic update is recovered.

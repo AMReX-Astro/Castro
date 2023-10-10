@@ -1,17 +1,20 @@
 #!/usr/bin/python
 """
 This is a script to run the analytical solution of Rad2TShock. This will take that solution and
-with a user inputed plotfile, will produce graphs of the solutions to density and temperature
+with a user inputted plotfile, will produce graphs of the solutions to density and temperature
 vs the plot files.
 """
-import sys, getopt
-import numpy as np
-from scipy import optimize, integrate
-import yt
 import argparse
+import getopt
+import os
+import sys
+
 #matplotlib.use('agg')
 import matplotlib.pyplot as plt
-import os
+import numpy as np
+import yt
+from scipy import integrate, optimize
+
 plt.switch_backend('agg')
 
 parser = argparse.ArgumentParser()

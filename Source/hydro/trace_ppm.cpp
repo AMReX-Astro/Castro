@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -13,6 +12,7 @@
 #include <flatten.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::trace_ppm(const Box& bx,
@@ -59,8 +59,10 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -88,9 +90,13 @@ Castro::trace_ppm(const Box& bx,
             break;
           }
         }
-        if (do_source_trace[n] == 1) break;
+        if (do_source_trace[n] == 1) {
+            break;
+        }
       }
-      if (do_source_trace[n] == 1) break;
+      if (do_source_trace[n] == 1) {
+          break;
+      }
     }
   }
 #endif
@@ -112,7 +118,7 @@ Castro::trace_ppm(const Box& bx,
   // The choice of reference state is designed to minimize the
   // effects of the characteristic projection.  We subtract the I's
   // off of the reference state, project the quantity such that it is
-  // in terms of the characteristic varaibles, and then add all the
+  // in terms of the characteristic variables, and then add all the
   // jumps that are moving toward the interface to the reference
   // state to get the full state on that interface.
 
@@ -139,7 +145,7 @@ Castro::trace_ppm(const Box& bx,
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 
@@ -154,7 +160,7 @@ Castro::trace_ppm(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
-    Real s[5];
+    Real s[nslp];
 
     Real flat = 1.0;
 
@@ -212,8 +218,8 @@ Castro::trace_ppm(const Box& bx,
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
 
     if (use_pslope) {
-        Real trho[5];
-        Real src[5];
+        Real trho[nslp];
+        Real src[nslp];
 
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);

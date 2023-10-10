@@ -3,6 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
+#include <global.H>
 #include <network.H>
 #include <model_parser.H>
 #include <initial_model.H>
@@ -40,7 +41,7 @@ void problem_initialize ()
     }
 
     int ifuel2;
-    if (problem::fuel2_name != "") {
+    if (!problem::fuel2_name.empty()) {
         ifuel2 = network_spec_index(problem::fuel2_name);
         if (ifuel2 < 0) {
             species_defined = false;
@@ -48,7 +49,7 @@ void problem_initialize ()
     }
 
     int ifuel3;
-    if (problem::fuel3_name != "") {
+    if (!problem::fuel3_name.empty()) {
         ifuel3 = network_spec_index(problem::fuel3_name);
         if (ifuel3 < 0) {
             species_defined = false;
@@ -56,7 +57,7 @@ void problem_initialize ()
     }
 
     int ifuel4;
-    if (problem::fuel4_name != "") {
+    if (!problem::fuel4_name.empty()) {
         ifuel4 = network_spec_index(problem::fuel4_name);
         if (ifuel4 < 0) {
             species_defined = false;
@@ -69,7 +70,7 @@ void problem_initialize ()
     }
 
     int iash2;
-    if (problem::ash2_name != "") {
+    if (!problem::ash2_name.empty()) {
         iash2 = network_spec_index(problem::ash2_name);
         if (iash2 < 0) {
             species_defined = false;
@@ -77,7 +78,7 @@ void problem_initialize ()
     }
 
     int iash3;
-    if (problem::ash3_name != "") {
+    if (!problem::ash3_name.empty()) {
         iash3 = network_spec_index(problem::ash3_name);
         if (iash3 < 0) {
             species_defined = false;
@@ -94,46 +95,47 @@ void problem_initialize ()
 
     // set the composition of the underlying star
 
-    for (int n = 0; n < NumSpec; n++) {
-        model_params.xn_star[n] = problem::smallx;
+
+    for (Real &X : model_params.xn_star) {
+        X = problem::smallx;
     }
     model_params.xn_star[iash1] = problem::ash1_frac;
-    if (problem::ash2_name != "") {
+    if (!problem::ash2_name.empty()) {
         model_params.xn_star[iash2] = problem::ash2_frac;
     }
-    if (problem::ash3_name != "") {
+    if (!problem::ash3_name.empty()) {
         model_params.xn_star[iash3] = problem::ash3_frac;
     }
 
     // and the composition of the accreted layer
 
-    for (int n = 0; n < NumSpec; n++) {
-        model_params.xn_base[n] = problem::smallx;
+    for (Real &X : model_params.xn_base) {
+        X = problem::smallx;
     }
     model_params.xn_base[ifuel1] = problem::fuel1_frac;
-    if (problem::fuel2_name != "") {
+    if (!problem::fuel2_name.empty()) {
         model_params.xn_base[ifuel2] = problem::fuel2_frac;
     }
-    if (problem::fuel3_name != "") {
+    if (!problem::fuel3_name.empty()) {
         model_params.xn_base[ifuel3] = problem::fuel3_frac;
     }
-    if (problem::fuel4_name != "") {
+    if (!problem::fuel4_name.empty()) {
         model_params.xn_base[ifuel4] = problem::fuel4_frac;
     }
 
     // check if they sum to 1
 
     Real sumX = 0.0_rt;
-    for (int n = 0; n < NumSpec; n++) {
-        sumX += model_params.xn_star[n];
+    for (Real X : model_params.xn_star) {
+        sumX += X;
     }
     if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: ash mass fractions don't sum to 1");
     }
 
     sumX = 0.0_rt;
-    for (int n = 0; n < NumSpec; n++) {
-        sumX += model_params.xn_base[n];
+    for (Real X : model_params.xn_base) {
+        sumX += X;
     }
     if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: fuel mass fractions don't sum to 1");
@@ -144,8 +146,14 @@ void problem_initialize ()
     // lower boundary, we'll add 4 ghostcells to this, so we need to
     // compute dx
 
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
+
     int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] - problo[AMREX_SPACEDIM-1]) /
-                                    problem::dx_model);
+                                    dx_model);
 
     int ng = 4;
 
@@ -162,7 +170,7 @@ void problem_initialize ()
     model_params.low_density_cutoff = problem::low_density_cutoff;
 
     generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 0);
 
@@ -172,7 +180,7 @@ void problem_initialize ()
     model_params.T_hi = model_params.T_hi + problem::dtemp;
 
     generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 1);
 

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <riemann_solvers.H>
 
@@ -67,7 +66,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
 
@@ -76,12 +75,11 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             // first find the interface state on the current interface
 
-            RiemannState qint;
+            RiemannState qint{};
 
             riemann_state(i, j, k, idir,
                           qm, qp, qaux_arr,
                           qint,
-                          geomdata,
                           special_bnd_lo, special_bnd_hi,
                           domlo, domhi);
 

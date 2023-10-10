@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
 import matplotlib
@@ -13,7 +12,7 @@ import numpy as np
 
 def get_Te_profile(plotfile):
 
-    ds = yt.load(plotfile)
+    ds = yt.load(plotfile, hint="castro")
 
     time = float(ds.current_time)
     ad = ds.all_data()
@@ -35,16 +34,16 @@ def doit(pprefix, nums, skip):
 
     ax_T = f.add_subplot(211)
     ax_e = f.add_subplot(212)
-    
+
     for n in range(0, len(nums), skip):
 
-        pfile = "{}{}".format(prefix, nums[n])
+        pfile = f"{prefix}{nums[n]}"
 
         time, x, T, enuc = get_Te_profile(pfile)
 
-        ax_T.plot(x, T, 'rx', label="t = {:6.4g} s".format(time))
+        ax_T.plot(x, T, 'rx', label=f"t = {time:6.4g} s")
         ax_e.plot(x, enuc)
-        
+
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")
     ax_T.set_xlim(22000, 28000)
@@ -56,7 +55,7 @@ def doit(pprefix, nums, skip):
     ax_e.set_xlim(22000, 28000)
 
     f.savefig("flame.png")
-    
+
 
 if __name__ == "__main__":
 

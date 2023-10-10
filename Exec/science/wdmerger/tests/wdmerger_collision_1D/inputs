@@ -18,7 +18,7 @@ geometry.prob_lo = -2.56e9
 geometry.prob_hi =  2.56e9
 
 # System center of mass
-castro.center    =   0.0e0
+problem.center    =   0.0e0
 
 ############################################################################################
 # Boundary conditions
@@ -188,9 +188,6 @@ castro.dtnuc_e = 1.e200
 # Limit timestep based on nuclear burning considerations (changes in species)
 castro.dtnuc_X = 1.e200
 
-# Which method to use for estimating de/dt and dX/dt
-castro.dtnuc_mode = 1
-
 # Minimum temperature for allowing nuclear burning
 castro.react_T_min = 1.0e7
 
@@ -216,16 +213,13 @@ integrator.atol_spec = 1.0e-6
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.abort_on_failure = 0
-
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
 
 # Maximum temperature allowed in the burn
 integrator.MAX_TEMP = 1.0e10
 
-# Use tabular rate evaluation when availble
+# Use tabular rate evaluation when available
 network.use_tables = 1
 
 ############################################################################################

@@ -8,7 +8,7 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
 
 geometry.prob_lo   =    0.0   0.0   0.0
-geometry.prob_hi   =  102.4   1.    1.    
+geometry.prob_hi   =  102.4   0.8   0.8
 
 amr.n_cell   =  1024  8  8
 
@@ -161,7 +161,7 @@ radiation.hi_bcval = 0.0 0.0 0.0
 # solver flag values <  100 use HypreABec, support symmetric matrices only
 # solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
 #
-# PFMG does not supprt 1D.
+# PFMG does not support 1D.
 # ParCSR does not work for periodic boundaries.
 # For MGFLD with accelerate = 2, must use >=100.
 #

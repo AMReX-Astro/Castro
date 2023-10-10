@@ -3,7 +3,6 @@
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -13,7 +12,6 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
@@ -261,8 +259,8 @@ Castro::variableSetUp ()
 
   eos_state.rho = castro::small_dens;
   eos_state.T = castro::small_temp;
-  for (int n = 0; n < NumSpec; ++n) {
-      eos_state.xn[n] = 1.0_rt / NumSpec;
+  for (double& X : eos_state.xn) {
+      X = 1.0_rt / NumSpec;
   }
 #ifdef AUX_THERMO
   set_aux_comp_from_X(eos_state);
@@ -281,17 +279,8 @@ Castro::variableSetUp ()
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
     use_retry = 0;
   }
-#else
-  if (!use_retry && !abort_on_failure) {
-    amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
-  }
-  if (use_retry && abort_on_failure) {
-      amrex::Warning("use_retry = 1, so disabling abort_on_failure");
-      abort_on_failure = 0;
-  }
 #endif
 #endif
-
 
   // NUM_GROW is the number of ghost cells needed for the hyperbolic
   // portions -- note that this includes the flattening, which
@@ -314,16 +303,14 @@ Castro::variableSetUp ()
   }
 #endif
 
-  const Geometry& dgeom = DefaultGeometry();
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
   // not (which is reflected by whether ambient_density is positive)
   // then we use the "small" quantities.
 
-  for (int n = 0; n < NUM_STATE; ++n) {
-      ambient::ambient_state[n] = 0.0;
+  for (Real & s : ambient::ambient_state) {
+      s = 0.0;
   }
 
   ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
@@ -335,7 +322,7 @@ Castro::variableSetUp ()
       ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
-  MFInterpolater* interp;
+  MFInterpolater* interp = nullptr;
 
   if (state_interp_order == 0) {
     interp = &mf_pc_interp;
@@ -359,14 +346,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#if defined(RADIATION) 
-  // Radiation should always have at least one ghost zone.
-  int ngrow_state = std::max(1, state_nghost);
-#else
-  int ngrow_state = state_nghost;
-#endif
-
-  BL_ASSERT(ngrow_state >= 0);
+  int ngrow_state = 0;
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
@@ -435,6 +415,7 @@ Castro::variableSetUp ()
   // Component is  rho_enuc = rho * (eout-ein)
   // next NumSpec are rho * omegadot_i
   // next NumAux are rho * auxdot_i
+  // next is nse status indication
   store_in_checkpoint = false;
 
   int num_react = 1;
@@ -442,7 +423,9 @@ Castro::variableSetUp ()
   if (store_omegadot == 1) {
       num_react += NumSpec + NumAux;
   }
-
+#ifdef NSE
+  num_react += 1;
+#endif
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, 0, num_react,
                          interp, state_data_extrap, store_in_checkpoint);
@@ -540,17 +523,11 @@ Castro::variableSetUp ()
     }
 
 #if NAUX_NET > 0
-  // Get the auxiliary names from the network model.
-  std::vector<std::string> aux_names;
-  for (int i = 0; i < NumAux; i++) {
-    aux_names.push_back(short_aux_names_cxx[i]);
-  }
-
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++) {
-        std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << short_aux_names_cxx[i] << ' ' << ' ';
       }
       std::cout << std::endl;
     }
@@ -559,7 +536,7 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFX+i] = bc;
-      name[UFX+i] = "rho_" + aux_names[i];
+      name[UFX+i] = "rho_" + short_aux_names_cxx[i];
     }
 #endif
 
@@ -569,6 +546,16 @@ Castro::variableSetUp ()
   name[USHK] = "Shock";
 #endif
 
+#ifdef NSE_NET
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUP] = bc;
+  name[UMUP] = "mu_p";
+
+  set_scalar_bc(bc, phys_bc);
+  bcs[UMUN] = bc;
+  name[UMUN] = "mu_n";
+#endif
+  
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -644,18 +631,27 @@ Castro::variableSetUp ()
       }
 #endif
   }
-
+#ifdef NSE
+  set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
+  if (store_omegadot == 1) {
+    desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "in_nse", bc, genericBndryFunc);
+  }
+  else {
+    desc_lst.setComponent(Reactions_Type, 1, "in_nse", bc, genericBndryFunc);
+  }
+#endif
   // names for the burn_weights that are manually added to the plotfile
   
   if (store_burn_weights) {
 
 #ifdef STRANG
-      burn_weight_names.push_back("burn_weights_firsthalf");
-      burn_weight_names.push_back("burn_weights_secondhalf");
+      burn_weight_names.emplace_back("burn_weights_firsthalf");
+      burn_weight_names.emplace_back("burn_weights_secondhalf");
 #endif
 #ifdef SIMPLIFIED_SDC
       for (int n = 0; n < sdc_iters+1; n++) {
-          burn_weight_names.push_back("burn_weights_iter_" + std::to_string(n+1));
+          burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
       }
 #endif
   }
@@ -881,12 +877,18 @@ Castro::variableSetUp ()
 
 #ifndef AUX_THERMO
   //
-  // Abar
+  // Abar and Ye
   // note: if we are using aux thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+
+#ifdef REACTIONS
+  derive_lst.add("Ye",IndexType::TheCellType(),1,ca_derye,the_same_box);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("Ye",desc_lst,State_Type,UFS,NumSpec);
+#endif
 #endif
 
   //
@@ -1000,15 +1002,10 @@ Castro::variableSetUp ()
 
 #if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
-    derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
+    derive_lst.add(short_aux_names_cxx[i], IndexType::TheCellType(), 1, ca_derspec, the_same_box);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, URHO, 1);
+    derive_lst.addComponent(short_aux_names_cxx[i], desc_lst, State_Type, UFX+i, 1);
   }
-#endif
-
-#ifdef NSE
-  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
-  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //
@@ -1018,39 +1015,39 @@ Castro::variableSetUp ()
   //
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
-  err_list_names.push_back("density");
+  err_list_names.emplace_back("density");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("Temp");
+  err_list_names.emplace_back("Temp");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("pressure");
+  err_list_names.emplace_back("pressure");
   err_list_ng.push_back(1);
 
-  err_list_names.push_back("x_velocity");
+  err_list_names.emplace_back("x_velocity");
   err_list_ng.push_back(1);
 
 #if (AMREX_SPACEDIM >= 2)
-  err_list_names.push_back("y_velocity");
+  err_list_names.emplace_back("y_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #if (AMREX_SPACEDIM == 3)
-  err_list_names.push_back("z_velocity");
+  err_list_names.emplace_back("z_velocity");
   err_list_ng.push_back(1);
 #endif
 
 #ifdef REACTIONS
-  err_list_names.push_back("t_sound_t_enuc");
+  err_list_names.emplace_back("t_sound_t_enuc");
   err_list_ng.push_back(0);
 
-  err_list_names.push_back("enuc");
+  err_list_names.emplace_back("enuc");
   err_list_ng.push_back(0);
 #endif
 
 #ifdef RADIATION
   if (do_radiation && !Radiation::do_multigroup) {
-      err_list_names.push_back("rad");
+      err_list_names.emplace_back("rad");
       err_list_ng.push_back(1);
   }
 #endif
@@ -1058,7 +1055,7 @@ Castro::variableSetUp ()
   // Save the number of built-in functions; this will help us
   // distinguish between those, and the ones the user is about to add.
 
-  num_err_list_default = err_list_names.size();
+  num_err_list_default = static_cast<int>(err_list_names.size());
 
   //
   // Construct an array holding the names of the source terms.

@@ -8,7 +8,6 @@ using std::endl;
 
 #include <Castro.H>
 #include <Radiation.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
