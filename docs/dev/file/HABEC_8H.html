@@ -23,7 +23,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File HABEC_F.H" href="HABEC__F_8H.html" />
+    <link rel="next" title="File HypreABec.H" href="HypreABec_8H.html" />
     <link rel="prev" title="File Gravity_util.H" href="Gravity__util_8H.html" /> 
 </head>
 
@@ -119,7 +119,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv45HABEC"><code class="docutils literal notranslate"><span class="pre">HABEC</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -228,6 +227,16 @@
 <span class="target" id="namespaceHABEC_1adafe9b19862c987b2bd19431d7646390"></span><span class="sig-name descname"><span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">hbflx3</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">flux,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">er,</span> <span class="pre">const</span> <span class="pre">Box</span> <span class="pre">&amp;reg,</span> <span class="pre">int</span> <span class="pre">cdir,</span> <span class="pre">int</span> <span class="pre">bctype,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">tf,</span> <span class="pre">int</span> <span class="pre">bho,</span> <span class="pre">Real</span> <span class="pre">bcl,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">bcval,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">mask,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">b,</span> <span class="pre">Real</span> <span class="pre">beta,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*const</span> <span class="pre">dx,</span> <span class="pre">Real</span> <span class="pre">c,</span> <span class="pre">const</span> <span class="pre">Orientation</span> <span class="pre">&amp;ori,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">inhom,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">spa)</span></span></dt>
 <dd></dd></dl>
 
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHABEC_1ab9346bee81b1e646106f98e4d13726ee"></span><span class="sig-name descname"><span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">hdterm</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">dterm,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">er,</span> <span class="pre">const</span> <span class="pre">Box</span> <span class="pre">&amp;reg,</span> <span class="pre">int</span> <span class="pre">cdir,</span> <span class="pre">int</span> <span class="pre">bct,</span> <span class="pre">Real</span> <span class="pre">bcl,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">bcval,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">mask,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">d,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*dx)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHABEC_1ad78721f33f00e630f91526d049a871c2"></span><span class="sig-name descname"><span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">hdterm3</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">dterm,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">er,</span> <span class="pre">const</span> <span class="pre">Box</span> <span class="pre">&amp;reg,</span> <span class="pre">int</span> <span class="pre">cdir,</span> <span class="pre">int</span> <span class="pre">bctype,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">tf,</span> <span class="pre">Real</span> <span class="pre">bcl,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">bcval,</span> <span class="pre">Array4&lt;</span> <span class="pre">int</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">mask,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">d,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*const</span> <span class="pre">dx)</span></span></dt>
+<dd></dd></dl>
+
 </div>
 </dd></dl>
 
@@ -238,7 +247,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Gravity__util_8H.html" class="btn btn-neutral float-left" title="File Gravity_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="HABEC__F_8H.html" class="btn btn-neutral float-right" title="File HABEC_F.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="HypreABec_8H.html" class="btn btn-neutral float-right" title="File HypreABec.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
