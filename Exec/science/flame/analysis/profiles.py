@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import glob
 import sys
 
 import numpy as np
@@ -12,6 +13,28 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 import yt
+yt.set_log_level(50)
+
+dt = 0.005
+tmax = 0.05
+
+times = np.arange(0.0, tmax, dt)
+
+def find_files(plist):
+
+    mask = np.zeros(len(times))
+    files_to_plot = []
+    for pfile in plist:
+        ds = yt.load(pfile, hint="castro")
+        for k, t in enumerate(times):
+            if mask[k]:
+                continue
+            if ds.current_time >= t:
+                files_to_plot.append(pfile)
+                print(f"plotting {pfile} at t = {t}")
+                mask[k] = 1.0
+
+    return files_to_plot
 
 ## Define RGBA to HEX
 def rgba_to_hex(rgba):
@@ -37,7 +60,7 @@ def get_Te_profile(plotfile):
     return time, x_coord, temp, enuc
 
 
-def doit(prefix, nums, skip, limitlabels, xmin, xmax):
+def doit(pfiles, limitlabels, xmin, xmax):
 
     f = plt.figure()
     f.set_size_inches(7.0, 9.0)
@@ -46,9 +69,9 @@ def doit(prefix, nums, skip, limitlabels, xmin, xmax):
     ax_e = f.add_subplot(212)
 
     # Get set of colors to use and apply to plot
-    numplots = int(len(nums) / skip)
+    numplots = int(len(pfiles))
     cm = plt.get_cmap('nipy_spectral')
-    clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
+    clist = [cm(i) for i in np.linspace(0.0, 0.95, numplots, endpoint=True)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
@@ -62,11 +85,9 @@ def doit(prefix, nums, skip, limitlabels, xmin, xmax):
         skiplabels = 1
     index = 0
 
-    for n in range(0, len(nums), skip):
+    for pf in pfiles:
 
-        pfile = "{}{}".format(prefix, nums[n])
-
-        time, x, T, enuc = get_Te_profile(pfile)
+        time, x, T, enuc = get_Te_profile(pf)
 
         if index % skiplabels == 0:
             ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
@@ -100,20 +121,26 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
 
-    p.add_argument("--skip", type=int, default=10,
-                   help="interval between plotfiles")
+    p.add_argument("--prefix", type=str, default="plt",
+                   help="plotfile prefix")
     p.add_argument("--xmin", type=float, default=0,
                    help="minimum x-coordinate to show")
     p.add_argument("--xmax", type=float, default=-1,
                    help="maximum x-coordinate to show")
-    p.add_argument("plotfiles", type=str, nargs="+",
-                   help="list of plotfiles to plot")
     p.add_argument("--limitlabels", type=float, default=1.,
                    help="Show all labels (default) or reduce to ~ given value")
 
     args = p.parse_args()
 
-    plot_prefix = args.plotfiles[0].split("plt")[0] + "plt"
-    plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
+    pfiles = glob.glob(f"{args.prefix}?????")
+    pfiles += glob.glob(f"{args.prefix}??????")
+    pfiles += glob.glob(f"{args.prefix}??????")
 
-    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin, args.xmax)
+    plot_nums = sorted([p.split(args.prefix)[1] for p in pfiles], key=int)
+
+    psorted = [f"{args.prefix}{q}" for q in plot_nums]
+
+    plot_want = find_files(psorted)
+    print(plot_want)
+
+    doit(plot_want, args.limitlabels, args.xmin, args.xmax)
