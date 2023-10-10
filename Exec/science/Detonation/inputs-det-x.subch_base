@@ -74,6 +74,7 @@ problem.T_r = 1.75e8
 
 problem.dens = 1.1e6
 problem.cfrac = 0.0
+problem.nfrac = 0.01
 
 problem.smallx = 1.e-10
 

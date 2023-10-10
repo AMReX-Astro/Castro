@@ -117,7 +117,7 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
 def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
 
     f = plt.figure()
-    f.set_size_inches(16.0, 10.0)
+    f.set_size_inches(32.0, 20.0)
 
     # Get set of colors to use and apply to plot
     numplots = int(len(nums) / skip)
