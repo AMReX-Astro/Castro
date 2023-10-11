@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
     pfiles = glob.glob(f"{args.prefix}?????")
     pfiles += glob.glob(f"{args.prefix}??????")
-    pfiles += glob.glob(f"{args.prefix}??????")
+    pfiles += glob.glob(f"{args.prefix}???????")
 
     plot_nums = sorted([p.split(args.prefix)[1] for p in pfiles], key=int)
 
