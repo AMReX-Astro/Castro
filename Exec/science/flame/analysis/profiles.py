@@ -18,7 +18,7 @@ yt.set_log_level(50)
 dt = 0.005
 tmax = 0.05
 
-times = np.arange(0.0, tmax, dt)
+times = np.arange(0.0, tmax + dt, dt)
 
 def find_files(plist):
 
