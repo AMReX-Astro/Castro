@@ -6,6 +6,7 @@
 #include <model_parser.H>
 #include <initial_model.H>
 #include <network.H>
+#include <global.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -41,7 +42,17 @@ void problem_initialize ()
     // generate the initial model -- it will be stored in the model
     // parser global data
 
-    generate_initial_model(problem::nx_model,
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
+
+    int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] -
+                                     problo[AMREX_SPACEDIM-1] + 1.e-8_rt) / dx_model);
+
+
+    generate_initial_model(nx_model,
                            problo[AMREX_SPACEDIM-1], probhi[AMREX_SPACEDIM-1],
                            model_params, nbuf);
 

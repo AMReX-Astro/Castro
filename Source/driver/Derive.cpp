@@ -2,7 +2,6 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef DIFFUSION
 #include <diffusion_util.H>

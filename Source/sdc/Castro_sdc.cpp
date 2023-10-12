@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 // #include <Castro_hydro_F.H>
 #include <Castro_sdc_util.H>
 
@@ -263,12 +262,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             ca_sdc_conservative_update(bx, dt_m, k_new_m_start_arr, k_new_m_end_arr,
                                        C_source_arr, R_new_arr);
 
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-            {
-                normalize_species_sdc(i, j, k, k_new_m_end_arr);
-            });
-
         }
 #else
         Array4<const Real> const& k_new_m_start_arr=
@@ -410,6 +403,7 @@ Castro::construct_old_react_source(MultiFab& U_state,
             auto const U_state_arr = U_state.array(mfi);
             auto const R_source_arr = R_source.array(mfi);
 
+            // construct the reactive source term
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {

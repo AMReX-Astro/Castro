@@ -5,7 +5,6 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 
-#include <Castro_F.H>
 
 #include <RAD_F.H>
 

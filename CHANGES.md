@@ -1,3 +1,9 @@
+# 23.11
+
+  * The compile option USE_AUX_UPDATE has been removed. If you want to
+    manually update the auxiliary parameters, you can use an external
+    source term or you can use the problem post-timestep hook. (#2614)
+
 # 23.10
 
   * True-SDC no longer evolves density as part of the reaction system

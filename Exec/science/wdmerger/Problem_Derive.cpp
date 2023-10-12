@@ -2,7 +2,6 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <fundamental_constants.H>
 #include <prob_parameters.H>
 #include <wdmerger_util.H>

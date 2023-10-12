@@ -3,7 +3,6 @@
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -13,7 +12,6 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
