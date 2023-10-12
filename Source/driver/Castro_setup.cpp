@@ -685,7 +685,7 @@ Castro::variableSetUp ()
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
   }
 
-  char rad_name[10];
+  std::string rad_name;
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
@@ -693,7 +693,7 @@ Castro::variableSetUp ()
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-        sprintf(rad_name, "rad%d", i);
+        rad_name = "rad" + std::to_string(i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
                         genericBndryFunc);

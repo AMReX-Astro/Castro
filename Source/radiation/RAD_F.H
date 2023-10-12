@@ -53,27 +53,6 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void ca_correct_dterm
-    (D_DECL(BL_FORT_FAB_ARG(dfx),
-            BL_FORT_FAB_ARG(dfy),
-            BL_FORT_FAB_ARG(dfz)),
-     const amrex::Real* re, const amrex::Real* rc);
-#ifdef __cplusplus
-}
-#endif
-
-extern "C"
-{
-  void ca_rad_source
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(rhs),
-     const amrex::Real* dx, amrex::Real dt,
-     amrex::Real time, int igroup);
-
-}
 
 #ifdef __cplusplus
 extern "C" {

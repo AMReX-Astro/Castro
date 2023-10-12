@@ -288,11 +288,6 @@ sdc_newton_subdivide(const Real dt_m,
 
             sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err_out, ierr);
 
-            if (ierr != newton::NEWTON_SUCCESS) {
-                // no point in continuing this subdivision if one stage failed
-                break;
-            }
-
             // our solve may have resulted in mass fractions outside
             // of [0, 1] -- reject if this is the case
             for (int n = 0; n < NumSpec; ++n) {
@@ -300,6 +295,11 @@ sdc_newton_subdivide(const Real dt_m,
                     U_new[UFS+n] > (1.0_rt + newton::species_failure_tolerance) * U_new[URHO]) {
                     ierr = newton::BAD_MASS_FRACTIONS;
                 }
+            }
+
+            if (ierr != newton::NEWTON_SUCCESS) {
+                // no point in continuing this subdivision if one stage failed
+                break;
             }
 
             for (int n = 0; n < NUM_STATE; ++n) {
