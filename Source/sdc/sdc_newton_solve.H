@@ -368,6 +368,7 @@ sdc_newton_subdivide(const Real dt_m,
                 if (U_new[UFS+n] < -newton::species_failure_tolerance * U_new[URHO] ||
                     U_new[UFS+n] > (1.0_rt + newton::species_failure_tolerance) * U_new[URHO]) {
                     ierr = newton::BAD_MASS_FRACTIONS;
+                    break;
                 }
             }
 
