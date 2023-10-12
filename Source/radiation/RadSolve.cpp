@@ -8,7 +8,6 @@
 #include <rad_util.H>
 #include <problem_rad_source.H>
 #include <RAD_F.H>
-#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 #include <iostream>
 
@@ -813,6 +812,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
   const Geometry& geom = parent->Geom(level);
+  const GeometryData& geomdata = geom.data();
   auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
@@ -863,75 +863,64 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   // Correct D terms at physical and coarse-fine boundaries.
   hem->boundaryDterm(level, &Dterm_face[0], Er, igroup);
 
+  // Correct for metric terms (only has an effect in non-Cartesian geometries).
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> rc, re, s;
-      
-      if (geom.IsSPHERICAL() || geom.IsRZ()) {
-          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-              int i = fi.index();
-              const Box &reg = grids[i];
+      for (MFIter mfi(Dterm_face[dir], true); mfi.isValid(); ++mfi) {
+          const Box& box = mfi.tilebox();
+          Array4<Real> const d = Dterm_face[dir][mfi].array();
 
-              parent->Geom(level).GetEdgeLoc(re, reg, 0);
-              parent->Geom(level).GetCellLoc(rc, reg, 0);
-
-              if (geom.IsSPHERICAL()) {
-                  parent->Geom(level).GetCellLoc(s, reg, 0);
-
-                  const Box &dbox = Dterm_face[0][fi].box();
-
-                  for (int i = dbox.loVect()[0]; i <= dbox.hiVect()[0]; ++i) {
-                      re[i] *= re[i];
-                  }
-#if AMREX_SPACEDIM >= 2
-                  Real h2 = 0.5e0_rt * dx[1];
-                  Real d2 = 1.e0_rt / dx[1];
-                  for (int j = dbox.loVect()[1]; j <= dbox.hiVect()[1]; ++j) {
-                      s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
-                  }
-#endif
-              }
-
-              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
-                               re.dataPtr(), rc.dataPtr());
-          }
-#ifdef _OPENMP
-#pragma omp barrier
-#endif
-      }
-
-      for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
-          const Box& bx = fi.tilebox();
-
-          auto Dx = Dterm_face[0][fi].array();
-#if AMREX_SPACEDIM >= 2
-          auto Dy = Dterm_face[1][fi].array();
-#endif
-#if AMREX_SPACEDIM == 3
-          auto Dz = Dterm_face[2][fi].array();
-#endif
-
-          auto D = Dterm[fi].array();
-
-          amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
-#if AMREX_SPACEDIM == 1
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
-#elif AMREX_SPACEDIM == 2
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
-                          Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
-#else
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
-                          Dy(i,j,k) + Dy(i,j+1,k) +
-                          Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
-#endif
+              if (dir == 0 && (geomdata.Coord() == CoordSys::SPHERICAL || geomdata.Coord() == CoordSys::RZ)) {
+                  Real r, s;
+                  edge_center_metric(i, j, k, dir, geomdata, r, s);
+
+                  d(i,j,k) = d(i,j,k) / (r + 1.0e-50_rt);
+              }
+              else if (dir == 1 && geomdata.Coord() == CoordSys::RZ) {
+                  Real r, s;
+                  cell_center_metric(i, j, k, geomdata, r, s);
+
+                  d(i,j,k) = d(i,j,k) / r;
+              }
           });
       }
+  }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
+      const Box& bx = fi.tilebox();
+
+      auto Dx = Dterm_face[0][fi].array();
+#if AMREX_SPACEDIM >= 2
+      auto Dy = Dterm_face[1][fi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+      auto Dz = Dterm_face[2][fi].array();
+#endif
+
+      auto D = Dterm[fi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+#if AMREX_SPACEDIM == 1
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
+#elif AMREX_SPACEDIM == 2
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                      Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
+#else
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                      Dy(i,j,k) + Dy(i,j+1,k) +
+                      Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
+#endif
+      });
   }
 }
 

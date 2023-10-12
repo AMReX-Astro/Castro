@@ -4,7 +4,6 @@
 
 #include <HypreABec.H>
 #include <HABEC.H>
-#include <HABEC_F.H>
 #include <rad_util.H>
 
 #include <iostream>

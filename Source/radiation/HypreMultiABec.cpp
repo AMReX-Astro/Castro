@@ -4,7 +4,6 @@
 
 #include <HypreMultiABec.H>
 #include <HABEC.H>
-#include <HABEC_F.H>
 #include <rad_util.H>
 #include <AMReX_LO_BCTYPES.H>
 

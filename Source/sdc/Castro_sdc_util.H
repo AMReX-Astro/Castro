@@ -52,13 +52,6 @@ sdc_solve(const Real dt_m,
     int ierr;
     Real err_out;
 
-    // for debugging
-    GpuArray<Real, NUM_STATE> U_orig;
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        U_orig[n] = U_old[n];
-    }
-
     if (sdc_solver == NEWTON_SOLVE) {
         // We are going to assume we already have a good guess
         // for the solve in U_new and just pass the solve onto
@@ -66,7 +59,7 @@ sdc_solve(const Real dt_m,
         sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // failing?
-        if (ierr != NEWTON_SUCCESS) {
+        if (ierr != newton::NEWTON_SUCCESS) {
             Abort("Newton subcycling failed in sdc_solve");
         }
     } else if (sdc_solver == VODE_SOLVE) {
@@ -85,7 +78,7 @@ sdc_solve(const Real dt_m,
         sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // Failing?
-        if (ierr != NEWTON_SUCCESS) {
+        if (ierr != newton::NEWTON_SUCCESS) {
             Abort("Newton failure in sdc_solve");
         }
     }
