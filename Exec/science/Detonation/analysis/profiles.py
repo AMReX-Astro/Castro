@@ -13,12 +13,14 @@ import matplotlib.pyplot as plt
 import math
 import yt
 
+
 ## Define RGBA to HEX
 def rgba_to_hex(rgba):
     r = int(rgba[0]*255.0)
     g = int(rgba[1]*255.0)
     b = int(rgba[2]*255.0)
     return f'#{r:02X}{g:02X}{b:02X}'
+
 
 def get_Te_profile(plotfile):
 
@@ -35,6 +37,7 @@ def get_Te_profile(plotfile):
     enuc = np.array(ad['enuc'][srt])
 
     return time, x_coord, temp, enuc
+
 
 def get_nuc_profile(plotfile):
 
@@ -55,6 +58,7 @@ def get_nuc_profile(plotfile):
             nuc_fracs.append(np.array(ad[f[1]][srt]))
 
     return time, x_coord, nuc_fracs
+
 
 def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
 
@@ -114,7 +118,8 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
 
     f.savefig("det_Te.png")
 
-def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min):
+
+def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
 
     f = plt.figure()
     f.set_size_inches(32.0, 20.0)
@@ -124,7 +129,7 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min):
     cm = plt.get_cmap('nipy_spectral')
     clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
-    
+
     if limitlabels > 1:
         skiplabels = int(numplots / limitlabels)
     elif limitlabels < 0:
@@ -132,30 +137,26 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min):
         sys.exit()
     else:
         skiplabels = 1
-        
+
     pfile = f"{prefix}{nums[1]}"
     ds = yt.load(pfile, hint="castro")
-    
+
     nuc_fracs = [f[1] for f in ds.field_list if f[1][0] == "X"]
     N = len(nuc_fracs)
 
     nrows = math.ceil(math.sqrt(N))
     ncols = math.ceil(math.sqrt(N))
-    
+
     for i in range(N):
         ax = f.add_subplot(nrows, ncols, i+1)
+        ax.set_prop_cycle(cycler('color', hexclist))
 
         index = 0
-        max_nucx = 0.0
-
         for n in range(0, len(nums), skip):
 
             pfile = f"{prefix}{nums[n]}"
 
             time, x, nuc_prof = get_nuc_profile(pfile)
-
-            if np.amax(nuc_prof[i]) > max_nucx:
-                max_nucx = np.amax(nuc_prof[i])
 
             if i == 0 and index % skiplabels == 0:
                 ax.plot(x, nuc_prof[i], label=f"t = {time:6.4g} s")
@@ -165,23 +166,22 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min):
             index = index + 1
 
             ax.legend(frameon=False)
-            ax.set_ylabel(nuc_fracs[i])        
+            ax.set_ylabel(nuc_fracs[i])
             ax.set_yscale("log")
 
             if xmax > 0:
                 ax.set_xlim(xmin, xmax)
 
-        if max_nucx < nuc_min:
-            f.delaxes(ax)
-
     f.savefig("det_nuc.png")
-    
-def doit(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min, do_nuc_fracs=False):
+
+
+def doit(prefix, nums, skip, limitlabels, xmin, xmax, do_nuc_fracs=False):
 
     if do_nuc_fracs:
-        plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax, nuc_min)
+        plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax)
     else:
         plot_Te(prefix, nums, skip, limitlabels, xmin, xmax)
+
 
 if __name__ == "__main__":
 
@@ -197,15 +197,12 @@ if __name__ == "__main__":
                    help="list of plotfiles to plot")
     p.add_argument("--limitlabels", type=float, default=1.,
                    help="Show all labels (default) or reduce to ~ given value")
-    p.add_argument("--do_nuc_fracs", type=bool, default=False,
-                   help="Set to True if want to plot nuc fracs, otherwise Temp and enuc plot")
-    
-    p.add_argument("--nuc_min", type=float, default=1.e-10,
-                   help="Plot the specific nucleus only if the maximum mass fraction goes beyond nuc_min")
-    
+    p.add_argument("--do_nuc_fracs", dest="do_nuc_fracs", action="store_true",
+                   help="if want to plot nuc fracs, otherwise Temp and enuc plot")
+
     args = p.parse_args()
 
     plot_prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
-    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin, args.xmax, args.nuc_min, do_nuc_fracs=args.do_nuc_fracs)
+    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin, args.xmax, do_nuc_fracs=args.do_nuc_fracs)
