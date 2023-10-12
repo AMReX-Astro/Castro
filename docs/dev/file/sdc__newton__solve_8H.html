@@ -170,9 +170,14 @@
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_newton_solve.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv414NEWTON_SUCCESS"><code class="docutils literal notranslate"><span class="pre">NEWTON_SUCCESS</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv415SINGULAR_MATRIX"><code class="docutils literal notranslate"><span class="pre">SINGULAR_MATRIX</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv419CONVERGENCE_FAILURE"><code class="docutils literal notranslate"><span class="pre">CONVERGENCE_FAILURE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv46newton"><code class="docutils literal notranslate"><span class="pre">newton</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton14NEWTON_SUCCESSE"><code class="docutils literal notranslate"><span class="pre">newton::NEWTON_SUCCESS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton15SINGULAR_MATRIXE"><code class="docutils literal notranslate"><span class="pre">newton::SINGULAR_MATRIX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton19CONVERGENCE_FAILUREE"><code class="docutils literal notranslate"><span class="pre">newton::CONVERGENCE_FAILURE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton18BAD_MASS_FRACTIONSE"><code class="docutils literal notranslate"><span class="pre">newton::BAD_MASS_FRACTIONS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton25species_failure_toleranceE"><code class="docutils literal notranslate"><span class="pre">newton::species_failure_tolerance</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
@@ -232,24 +237,39 @@
 <dd></dd></dl>
 
 </div>
-<div class="breathe-sectiondef docutils container">
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv46newton">
+<span id="_CPPv36newton"></span><span id="_CPPv26newton"></span><span id="newton"></span><span class="target" id="namespacenewton"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newton</span></span></span><a class="headerlink" href="#_CPPv46newton" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv414NEWTON_SUCCESS">
-<span id="_CPPv314NEWTON_SUCCESS"></span><span id="_CPPv214NEWTON_SUCCESS"></span><span id="NEWTON_SUCCESS__i"></span><span class="target" id="sdc__newton__solve_8H_1af85c20b906ca198099e08a5f87f60a9e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEWTON_SUCCESS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv414NEWTON_SUCCESS" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N6newton14NEWTON_SUCCESSE">
+<span id="_CPPv3N6newton14NEWTON_SUCCESSE"></span><span id="_CPPv2N6newton14NEWTON_SUCCESSE"></span><span id="newton::NEWTON_SUCCESS__i"></span><span class="target" id="namespacenewton_1ae9346576729c373d0ac79c9be05593d0"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEWTON_SUCCESS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N6newton14NEWTON_SUCCESSE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv415SINGULAR_MATRIX">
-<span id="_CPPv315SINGULAR_MATRIX"></span><span id="_CPPv215SINGULAR_MATRIX"></span><span id="SINGULAR_MATRIX__i"></span><span class="target" id="sdc__newton__solve_8H_1a3279be649ad5640259a7b6050b8a3af1"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SINGULAR_MATRIX</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv415SINGULAR_MATRIX" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N6newton15SINGULAR_MATRIXE">
+<span id="_CPPv3N6newton15SINGULAR_MATRIXE"></span><span id="_CPPv2N6newton15SINGULAR_MATRIXE"></span><span id="newton::SINGULAR_MATRIX__i"></span><span class="target" id="namespacenewton_1a6087aa2c97d30a78634c400ef11f53c2"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SINGULAR_MATRIX</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv4N6newton15SINGULAR_MATRIXE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv419CONVERGENCE_FAILURE">
-<span id="_CPPv319CONVERGENCE_FAILURE"></span><span id="_CPPv219CONVERGENCE_FAILURE"></span><span id="CONVERGENCE_FAILURE__i"></span><span class="target" id="sdc__newton__solve_8H_1a0d8a29692068027115cd1a61771067bc"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CONVERGENCE_FAILURE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv419CONVERGENCE_FAILURE" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N6newton19CONVERGENCE_FAILUREE">
+<span id="_CPPv3N6newton19CONVERGENCE_FAILUREE"></span><span id="_CPPv2N6newton19CONVERGENCE_FAILUREE"></span><span id="newton::CONVERGENCE_FAILURE__i"></span><span class="target" id="namespacenewton_1afa37592a3e926f94856c5a9c98e26ea3"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CONVERGENCE_FAILURE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv4N6newton19CONVERGENCE_FAILUREE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N6newton18BAD_MASS_FRACTIONSE">
+<span id="_CPPv3N6newton18BAD_MASS_FRACTIONSE"></span><span id="_CPPv2N6newton18BAD_MASS_FRACTIONSE"></span><span id="newton::BAD_MASS_FRACTIONS__i"></span><span class="target" id="namespacenewton_1a37047d0287a1e67de2804538aa094462"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BAD_MASS_FRACTIONS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv4N6newton18BAD_MASS_FRACTIONSE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N6newton25species_failure_toleranceE">
+<span id="_CPPv3N6newton25species_failure_toleranceE"></span><span id="_CPPv2N6newton25species_failure_toleranceE"></span><span id="newton::species_failure_tolerance__Real"></span><span class="target" id="namespacenewton_1a54a0613b5bec843e6f0f5e7eac02911e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">species_failure_tolerance</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-2</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N6newton25species_failure_toleranceE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 
