@@ -24,5 +24,5 @@ papers, including:
 * Chen et al. 2023 (https://ui.adsabs.harvard.edu/abs/2023ApJ...955..128C/abstract)
 
   This looked at 2D pure He flames and explored different reaction networks.
-  The inputs files are avaiable on Zenodo: https://zenodo.org/record/8117761
+  The inputs files are available on Zenodo: https://zenodo.org/record/8117761
 
