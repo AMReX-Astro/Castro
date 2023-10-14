@@ -1,7 +1,7 @@
 #ifndef problem_bc_fill_H
 #define problem_bc_fill_H
 
-#include <AMReX_Real.H>
+#include <AMReX_REAL.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
