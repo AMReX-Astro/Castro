@@ -43,7 +43,7 @@ def rgba_to_hex(rgba):
     b = int(rgba[2]*255.0)
     return '#{:02X}{:02X}{:02X}'.format(r, g, b)
 
-def get_Te_profile(plotfile):
+def get_Tev_profile(plotfile):
 
     ds = yt.load(plotfile, hint="castro")
 
@@ -56,17 +56,19 @@ def get_Te_profile(plotfile):
     x_coord = np.array(ad['x'][srt])
     temp = np.array(ad['Temp'][srt])
     enuc = np.array(ad['enuc'][srt])
+    vx = np.array(ad['x_velocity'][srt])
 
-    return time, x_coord, temp, enuc
+    return time, x_coord, temp, enuc, vx
 
 
 def doit(pfiles, limitlabels, xmin, xmax):
 
     f = plt.figure()
-    f.set_size_inches(7.0, 9.0)
+    f.set_size_inches(7.0, 10.0)
 
-    ax_T = f.add_subplot(211)
-    ax_e = f.add_subplot(212)
+    ax_T = f.add_subplot(311)
+    ax_e = f.add_subplot(312)
+    ax_v = f.add_subplot(313)
 
     # Get set of colors to use and apply to plot
     numplots = int(len(pfiles))
@@ -75,6 +77,7 @@ def doit(pfiles, limitlabels, xmin, xmax):
     hexclist = [rgba_to_hex(ci) for ci in clist]
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
+    ax_v.set_prop_cycle(cycler('color', hexclist))
 
     if limitlabels > 1:
         skiplabels = int(numplots / limitlabels)
@@ -87,7 +90,7 @@ def doit(pfiles, limitlabels, xmin, xmax):
 
     for pf in pfiles:
 
-        time, x, T, enuc = get_Te_profile(pf)
+        time, x, T, enuc, velx = get_Tev_profile(pf)
 
         if index % skiplabels == 0:
             ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
@@ -95,6 +98,8 @@ def doit(pfiles, limitlabels, xmin, xmax):
             ax_T.plot(x, T)
 
         ax_e.plot(x, enuc)
+
+        ax_v.plot(x, velx)
 
         index = index + 1
 
@@ -106,7 +111,6 @@ def doit(pfiles, limitlabels, xmin, xmax):
 
     ax_e.set_yscale("log")
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    ax_e.set_xlabel("x (cm)")
 
     cur_lims = ax_e.get_ylim()
     ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
@@ -114,6 +118,13 @@ def doit(pfiles, limitlabels, xmin, xmax):
     if xmax > 0:
         ax_e.set_xlim(xmin, xmax)
 
+    ax_v.set_ylabel("v (cm/s)")
+    ax_v.set_xlabel("x (cm)")
+
+    if xmax > 0:
+        ax_v.set_xlim(xmin, xmax)
+
+    f.tight_layout()
     f.savefig("flame.png")
 
 
