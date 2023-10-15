@@ -37,23 +37,14 @@ Castro::ctu_rad_consup(const Box& bx,
 
   GpuArray<Real, NGROUPS> Erscale = {0.0};
 
-  GpuArray<Real, NGROUPS> dlognu = {0.0};
-
-  GpuArray<Real, NGROUPS> nugroup = {0.0};
-
-
-
   if (NGROUPS > 1) {
-    ca_get_nugroup(nugroup.begin());
-    ca_get_dlognu(dlognu.begin());
-
     if (radiation::fspace_advection_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
-        Erscale[g] = dlognu[g];
+        Erscale[g] = radiation->dlognugroup[g];
       }
     } else {
       for (int g = 0; g < NGROUPS; g++) {
-        Erscale[g] = nugroup[g] * dlognu[g];
+        Erscale[g] = radiation->nugroup[g] * radiation->dlognugroup[g];
       }
     }
   }
@@ -308,7 +299,7 @@ Castro::ctu_rad_consup(const Box& bx,
           ustar[g] = Erout(i,j,k,g) / Erscale[g];
         }
 
-        update_one_species(NGROUPS, ustar, af, dlognu.begin(), dt, nstep_fsp_tmp);
+        update_one_species(NGROUPS, ustar, af, radiation->dlognugroup.dataPtr(), dt, nstep_fsp_tmp);
 
         for (int g = 0; g < NGROUPS; g++) {
           Erout(i,j,k,g) = ustar[g] * Erscale[g];
