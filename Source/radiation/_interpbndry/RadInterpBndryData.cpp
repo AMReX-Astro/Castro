@@ -2,34 +2,8 @@
 #include <math.h>
 #include <AMReX_LO_BCTYPES.H>
 #include <RadInterpBndryData.H>
-#include <RADINTERPBNDRYDATA_F.H>
 
 using namespace amrex;
-
-static BDInterpFunc* bdfunc[2*AMREX_SPACEDIM];
-static int bdfunc_set = 0;
-
-static void bdfunc_init()
-{
-    Orientation xloface(0,Orientation::low);
-    Orientation xhiface(0,Orientation::high);
-
-    bdfunc[xloface] = FORT_BDINTERPXLO;
-    bdfunc[xhiface] = FORT_BDINTERPXHI;
-#if (AMREX_SPACEDIM > 1)
-    Orientation yloface(1,Orientation::low);
-    Orientation yhiface(1,Orientation::high);
-    bdfunc[yloface] = FORT_BDINTERPYLO;
-    bdfunc[yhiface] = FORT_BDINTERPYHI;
-#endif
-#if (AMREX_SPACEDIM > 2)
-    Orientation zloface(2,Orientation::low);
-    Orientation zhiface(2,Orientation::high);
-    bdfunc[zloface] = FORT_BDINTERPZLO;
-    bdfunc[zhiface] = FORT_BDINTERPZHI;
-#endif
-
-}
 
 #if (AMREX_SPACEDIM == 2)
 #define NUMDERIV 2
@@ -111,8 +85,6 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                                 int bnd_start, int num_comp, IntVect& ratio,
                                 const BCRec& bc)
 {
-    if (! bdfunc_set) bdfunc_init();
-
       // check that boxarrays are identical
     BL_ASSERT( grids.size() );
     BL_ASSERT( grids == fine.boxArray() );
@@ -159,24 +131,213 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                 const Mask& mask = *masks[face][grd];
                 const int* mlo = mask.loVect();
                 const int* mhi = mask.hiVect();
-                const int* mdat = mask.dataPtr();
+                Array4<int const> const mask_arr = mask.array();
 
                 const FArrayBox& crse_fab = crse[face][mfi];
                 const int* clo = crse_fab.loVect();
                 const int* chi = crse_fab.hiVect();
-                const Real* cdat = crse_fab.dataPtr(c_start);
+                Array4<Real const> const crse = crse_fab.array(c_start);
+
+                int iclo = 0;
+                int ichi = 0;
+                int jclo = 0;
+                int jchi = 0;
+                int kclo = 0;
+                int kchi = 0;
+
+                if (face.coordDir() != 0) {
+                    iclo = cblo[0];
+                    ichi = cbhi[1];
+                }
+
+#if AMREX_SPACEDIM >= 2
+                if (face.coordDir() != 1) {
+                    jclo = cblo[1];
+                    jchi = cbhi[1];
+                }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                if (face.coordDir() != 2) {
+                    kclo = cblo[2];
+                    kchi = cbhi[2];
+                }
+#endif
+
+                int ratiox = 1;
+                int ratioy = 1;
+                int ratioz = 1;
+
+                if (face.coordDir() != 0) {
+                    ratiox = ratio[0];
+                }
+
+#if AMREX_SPACEDIM >= 2
+                if (face.coordDir() != 1) {
+                    ratioy = ratio[1];
+                }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                if (face.coordDir() != 2) {
+                    ratioz = ratio[2];
+                }
+#endif
 
                 FArrayBox& bnd_fab = bndry[face][mfi];
                 const int* blo = bnd_fab.loVect();
                 const int* bhi = bnd_fab.hiVect();
-                Real* bdat = bnd_fab.dataPtr(bnd_start);
+                Array4<Real> const bdry = bnd_fab.array(bnd_start);
 
                 int is_not_covered = RadBndryData::not_covered;
-                bdfunc[face](bdat,ARLIM(blo),ARLIM(bhi),
-                             lo,hi,ARLIM(cblo),ARLIM(cbhi),
-                             &num_comp,ratio.getVect(),&is_not_covered,
-                             mdat,ARLIM(mlo),ARLIM(mhi),
-                             cdat,ARLIM(clo),ARLIM(chi),derives);
+
+                for (int n = 0; n < num_comp; ++n) {
+
+                    // Note that only two of these three loops will do something
+                    // nontrivial, depending on which face we are working on.
+
+                    for (int koff = 0; koff < ratioz; ++koff) {
+                        Real zz = (koff - 0.5_rt * ratioz + 0.5_rt) / ratioz;
+
+                        for (int kc = kclo; kc <= kchi; ++kc) {
+                            int k = ratioz * kc + koff;
+
+                            for (int joff = 0; joff < ratioy; ++joff) {
+                                Real yy = (joff - 0.5_rt * ratioy + 0.5_rt) / ratioy;
+
+                                for (int jc = jclo; jc <= jchi; ++jc) {
+                                    int j = ratioy * jc + joff;
+
+                                    for (int ioff = 0; ioff < ratiox; ++ioff) {
+                                        Real xx = (ioff - 0.5_rt * ratiox + 0.5_rt) / ratiox;
+
+                                        for (int ic = iclo; ic <= ichi; ++ic) {
+                                            int i = ratiox * ic + ioff;
+
+                                            Real xderiv = 0.0_rt;
+                                            Real yderiv = 0.0_rt;
+                                            Real zderiv = 0.0_rt;
+
+                                            Real xxderiv = 0.0_rt;
+                                            Real yyderiv = 0.0_rt;
+                                            Real zzderiv = 0.0_rt;
+
+                                            Real xyderiv = 0.0_rt;
+                                            Real xzderiv = 0.0_rt;
+                                            Real yzderiv = 0.0_rt;
+
+                                            if (face.coordDir() != 0) {
+                                                xderiv = 0.5_rt * (crse(ic+1,jc,kc,n) - crse(ic-1,jc,kc,n));
+                                                xxderiv = 0.5_rt * (crse(ic+1,jc,kc,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic-1,jc,kc,n));
+                                            }
+
+#if AMREX_SPACEDIM >= 2
+                                            if (face.coordDir() != 1) {
+                                                yderiv = 0.5_rt * (crse(ic,jc+1,kc,n) - crse(ic,jc-1,kc,n));
+                                                yyderiv = 0.5_rt * (crse(ic,jc+1,kc,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic,jc-1,kc,n));
+                                            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                                            if (face.coordDir() != 2) {
+                                                zderiv = 0.5_rt * (crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n));
+                                                zzderiv = 0.5_rt * (crse(ic,jc,kc+1,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic,jc,kc-1,n));
+                                            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                                            if (face.coordDir() == 0) {
+                                                yzderiv = 0.25_rt * (crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) +
+                                                                     crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n));
+                                            }
+
+                                            if (face.coordDir() == 1) {
+                                                xzderiv = 0.25_rt * (crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) +
+                                                                     crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n));
+                                            }
+
+                                            if (face.coordDir() == 2) {
+                                                xyderiv = 0.25_rt * (crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) +
+                                                                     crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n));
+                                            }
+#endif
+
+                                            if (mask_arr(i-1,j,k) != not_covered) {
+                                                xderiv = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n);
+                                                xxderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i+ratiox,j,k) != not_covered) {
+                                                xderiv = crse(ic,jc,kc,n) - crse(ic-1,jc,kc,n);
+                                                xxderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i-1,j,k) != not_covered && mask_arr(i+ratiox,j,k) != not_covered) {
+                                                xderiv = 0.0_rt;
+                                            }
+
+#if AMREX_SPACEDIM >= 2
+                                            if (mask_arr(i,j-1,k) != not_covered) {
+                                                yderiv = crse(ic,jc+1,kc,n) - crse(ic,jc,kc,n);
+                                                yyderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i,j+ratioy,k) != not_covered) {
+                                                yderiv = crse(ic,jc,kc,n) - crse(ic,jc-1,kc,n);
+                                                yyderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i,j-1,k) != not_covered && mask_arr(i,j+ratioy,k) != not_covered) {
+                                                yderiv = 0.0_rt;
+                                            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                                            if (mask_arr(i,j,k-1) != not_covered) {
+                                                yderiv = crse(ic,jc,kc+1,n) - crse(ic,jc,kc,n);
+                                                yyderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i,j,k+ratioz) != not_covered) {
+                                                yderiv = crse(ic,jc,kc,n) - crse(ic,jc,kc-1,n);
+                                                yyderiv = 0.0_rt;
+                                            }
+                                            if (mask_arr(i,j,k-1) != not_covered && mask_arr(i,j,k+ratioz) != not_covered) {
+                                                yderiv = 0.0_rt;
+                                            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                                            if ((mask_arr(i,j+ratioy,k+ratioz) != not_covered) ||
+                                                (mask_arr(i,j-1     ,k+ratioz) != not_covered) ||
+                                                (mask_arr(i,j+ratioy,k-1     ) != not_covered) ||
+                                                (mask_arr(i,j-1     ,k-1     ) != not_covered)) {
+                                                yzderiv = 0.0_rt;
+                                            }
+
+                                            if ((mask_arr(i+ratiox,j,k+ratioz) != not_covered) ||
+                                                (mask_arr(i-1     ,j,k+ratioz) != not_covered) ||
+                                                (mask_arr(i+ratiox,j,k-1     ) != not_covered) ||
+                                                (mask_arr(i-1     ,j,k-1     ) != not_covered)) {
+                                                xzderiv = 0.0_rt;
+                                            }
+
+                                            if ((mask_arr(i+ratiox,j+ratioy,k) != not_covered) ||
+                                                (mask_arr(i-1     ,j+ratioy,k) != not_covered) ||
+                                                (mask_arr(i+ratiox,j-1     ,k) != not_covered) ||
+                                                (mask_arr(i-1     ,j-1     ,k) != not_covered)) {
+                                                xyderiv = 0.0_rt;
+                                            }
+#endif
+
+                                            bdry(i,j,k,n) = crse(ic,jc,kc,n) +
+                                                            xx * xderiv + xx * xx * xxderiv +
+                                                            yy * yderiv + yy * yy * yyderiv +
+                                                            zz * zderiv + zz * zz * zzderiv +
+                                                            xx * yy * xyderiv + xx * zz * xzderiv + yy * zz * yzderiv;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } // num_comp
             } else {
                   // physical bndry, copy from ghost region of
                   // corresponding grid
