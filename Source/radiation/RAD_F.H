@@ -74,10 +74,6 @@ extern "C" {
                BL_FORT_FAB_ARG_3D(state),
                BL_FORT_FAB_ARG_3D(kappar));
   
-  void rfface(BL_FORT_FAB_ARG(fine), 
-              BL_FORT_FAB_ARG(crse), 
-              const int& idim, const int* irat);
-
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
                       const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);

@@ -2094,17 +2094,17 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
           for (FabSetIter fsi(ref_sync_flux[lo_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[lo_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[lo_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[lo_face][fsi].array(),
+                   crse_sync_flux[lo_face][fsi].array(indx),
+                   dir, ref_rat);
           }
 
           for (FabSetIter fsi(ref_sync_flux[hi_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[hi_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[hi_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[hi_face][fsi].array(),
+                   crse_sync_flux[hi_face][fsi].array(indx),
+                   dir, ref_rat);
           }
         }
 
