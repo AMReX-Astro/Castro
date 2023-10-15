@@ -6,6 +6,7 @@
 namespace global
 {
     AMREX_INLINE Amr* the_amr_ptr;
+    AMREX_INLINE Radiation* the_radiation_ptr;
 }
 
 #endif
