@@ -15,46 +15,6 @@
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void ca_init_fort_constants(const amrex::Real hplanck, const amrex::Real avogadro);
-
-void ca_initsinglegroup
-  (const int& ngroups);
-
-void ca_get_dlognu
-  (amrex::Real* dlognu_out);
-
-void ca_get_nugroup
-  (amrex::Real* nugroup);
-
-void ca_get_dnugroup
-  (amrex::Real* dnugroup);
-
-#ifdef __cplusplus
-}
-#endif
-
-
-BL_FORT_PROC_DECL(CA_INITGROUPS,ca_initgroups)
-  (const amrex::Real* nugroup, const amrex::Real* dnugroup,
-   const int& ngroups, const int& ng0, const int& ng1);
-
-BL_FORT_PROC_DECL(CA_INITGROUPS2,ca_initgroups2)
-  (const amrex::Real* nugroup, const amrex::Real* dnugroup,
-   const amrex::Real* xnu, const int& ngroups);
-
-BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
-  (const amrex::Real* nugroup, const amrex::Real* dnugroup, const amrex::Real* dlognugroup,
-   const amrex::Real* xnu, const int& ngroups, const int& ng0, const int& ng1);
-
-BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
-     (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
-
-
-#ifdef __cplusplus
 extern "C" {
 #endif
   void ca_filt_prim

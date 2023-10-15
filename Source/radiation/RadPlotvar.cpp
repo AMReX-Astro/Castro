@@ -72,7 +72,9 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
     GpuArray<Real, NGROUPS> dlognu = {0.0};
 
     if (NGROUPS > 1) {
-        ca_get_dlognu(dlognu.begin());
+        for (int i = 0; i < NGROUPS; ++i) {
+            dlognu[i] = dlognugroup[i];
+        }
     }
 
 #ifdef _OPENMP
@@ -155,7 +157,9 @@ void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
     GpuArray<Real, NGROUPS> dlognu = {0.0};
 
     if (NGROUPS > 1) {
-        ca_get_dlognu(dlognu.begin());
+        for (int i = 0; i < NGROUPS; ++i) {
+            dlognu[i] = dlognugroup[i];
+        }
     }
 
 #ifdef _OPENMP
