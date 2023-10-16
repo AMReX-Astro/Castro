@@ -138,50 +138,99 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                 const int* chi = crse_fab.hiVect();
                 Array4<Real const> const crse = crse_fab.array(c_start);
 
-                int iclo = 0;
-                int ichi = 0;
+                int ilo = lo[0];
+                int ihi = hi[0];
+
+#if AMREX_SPACEDIM >= 2
+                int jlo = lo[1];
+                int jhi = hi[1];
+#else
+                int jlo = 0;
+                int jhi = 0;
+#endif
+
+#if AMREX_SPACEDIM == 3
+                int klo = lo[2];
+                int khi = hi[2];
+#else
+                int klo = 0;
+                int khi = 0;
+#endif
+
+                int iclo = cblo[0];
+                int ichi = cbhi[0];
+
+#if AMREX_SPACEDIM >= 2
+                int jclo = cblo[1];
+                int jchi = cbhi[1];
+#else
                 int jclo = 0;
                 int jchi = 0;
+#endif
+
+#if AMREX_SPACEDIM == 3
+                int kclo = cblo[2];
+                int kchi = cbhi[2];
+#else
                 int kclo = 0;
                 int kchi = 0;
+#endif
 
-                if (face.coordDir() != 0) {
-                    iclo = cblo[0];
-                    ichi = cbhi[1];
+                if (dir == 0) {
+                    if (face.isLow()) {
+                        iclo -= 1;
+                        ilo -= 1;
+                        ichi = iclo;
+                        ihi = ilo;
+                    }
+                    else {
+                        ichi += 1;
+                        ihi += 1;
+                        iclo = ichi;
+                        ilo = ihi;
+                    }
                 }
+                else if (dir == 1) {
+                    if (face.isLow()) {
+                        jclo -= 1;
+                        jlo -= 1;
+                        jchi = jclo;
+                        jhi = jlo;
+                    }
+                    else {
+                        jchi += 1;
+                        jhi += 1;
+                        jclo = jchi;
+                        jlo = jhi;
+                    }
+                }
+                else {
+                    if (face.isLow()) {
+                        kclo -= 1;
+                        klo -= 1;
+                        kchi = kclo;
+                        khi = klo;
+                    }
+                    else {
+                        kchi += 1;
+                        khi += 1;
+                        kclo = kchi;
+                        klo = khi;
+                    }
+                }
+
+                int ratiox = ratio[0];
 
 #if AMREX_SPACEDIM >= 2
-                if (face.coordDir() != 1) {
-                    jclo = cblo[1];
-                    jchi = cbhi[1];
-                }
-#endif
-
-#if AMREX_SPACEDIM == 3
-                if (face.coordDir() != 2) {
-                    kclo = cblo[2];
-                    kchi = cbhi[2];
-                }
-#endif
-
-                int ratiox = 1;
+                int ratioy = ratio[1];
+#else
                 int ratioy = 1;
-                int ratioz = 1;
-
-                if (face.coordDir() != 0) {
-                    ratiox = ratio[0];
-                }
-
-#if AMREX_SPACEDIM >= 2
-                if (face.coordDir() != 1) {
-                    ratioy = ratio[1];
-                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                if (face.coordDir() != 2) {
-                    ratioz = ratio[2];
-                }
+                int ratioz = ratio[2];
+#else
+                int ratioz = 1;
 #endif
 
                 FArrayBox& bnd_fab = bndry[face][mfi];
@@ -200,19 +249,19 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                         Real zz = (koff - 0.5_rt * ratioz + 0.5_rt) / ratioz;
 
                         for (int kc = kclo; kc <= kchi; ++kc) {
-                            int k = ratioz * kc + koff;
+                            int k = (dir == 2) ? klo : ratioz * kc + koff;
 
                             for (int joff = 0; joff < ratioy; ++joff) {
                                 Real yy = (joff - 0.5_rt * ratioy + 0.5_rt) / ratioy;
 
                                 for (int jc = jclo; jc <= jchi; ++jc) {
-                                    int j = ratioy * jc + joff;
+                                    int j = (dir == 1) ? jlo : ratioy * jc + joff;
 
                                     for (int ioff = 0; ioff < ratiox; ++ioff) {
                                         Real xx = (ioff - 0.5_rt * ratiox + 0.5_rt) / ratiox;
 
                                         for (int ic = iclo; ic <= ichi; ++ic) {
-                                            int i = ratiox * ic + ioff;
+                                            int i = (dir == 0) ? ilo : ratiox * ic + ioff;
 
                                             Real xderiv = 0.0_rt;
                                             Real yderiv = 0.0_rt;
@@ -226,102 +275,135 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                                             Real xzderiv = 0.0_rt;
                                             Real yzderiv = 0.0_rt;
 
-                                            if (face.coordDir() != 0) {
+                                            if (dir != 0) {
                                                 xderiv = 0.5_rt * (crse(ic+1,jc,kc,n) - crse(ic-1,jc,kc,n));
                                                 xxderiv = 0.5_rt * (crse(ic+1,jc,kc,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic-1,jc,kc,n));
                                             }
 
 #if AMREX_SPACEDIM >= 2
-                                            if (face.coordDir() != 1) {
+                                            if (dir != 1) {
                                                 yderiv = 0.5_rt * (crse(ic,jc+1,kc,n) - crse(ic,jc-1,kc,n));
                                                 yyderiv = 0.5_rt * (crse(ic,jc+1,kc,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic,jc-1,kc,n));
                                             }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (face.coordDir() != 2) {
+                                            if (dir != 2) {
                                                 zderiv = 0.5_rt * (crse(ic,jc,kc+1,n) - crse(ic,jc,kc-1,n));
                                                 zzderiv = 0.5_rt * (crse(ic,jc,kc+1,n) - 2.0_rt * crse(ic,jc,kc,n) + crse(ic,jc,kc-1,n));
                                             }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (face.coordDir() == 0) {
+                                            if (dir == 0) {
                                                 yzderiv = 0.25_rt * (crse(ic,jc+1,kc+1,n) - crse(ic,jc-1,kc+1,n) +
                                                                      crse(ic,jc-1,kc-1,n) - crse(ic,jc+1,kc-1,n));
                                             }
 
-                                            if (face.coordDir() == 1) {
+                                            if (dir == 1) {
                                                 xzderiv = 0.25_rt * (crse(ic+1,jc,kc+1,n) - crse(ic-1,jc,kc+1,n) +
                                                                      crse(ic-1,jc,kc-1,n) - crse(ic+1,jc,kc-1,n));
                                             }
 
-                                            if (face.coordDir() == 2) {
+                                            if (dir == 2) {
                                                 xyderiv = 0.25_rt * (crse(ic+1,jc+1,kc,n) - crse(ic-1,jc+1,kc,n) +
                                                                      crse(ic-1,jc-1,kc,n) - crse(ic+1,jc-1,kc,n));
                                             }
 #endif
 
-                                            if (mask_arr(i-1,j,k) != not_covered) {
-                                                xderiv = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n);
-                                                xxderiv = 0.0_rt;
+                                            if (mask_arr.contains(i-1, j, k)) {
+                                                if (mask_arr(i-1,j,k) != is_not_covered) {
+                                                    xderiv = crse(ic+1,jc,kc,n) - crse(ic,jc,kc,n);
+                                                    xxderiv = 0.0_rt;
+                                                }
                                             }
-                                            if (mask_arr(i+ratiox,j,k) != not_covered) {
-                                                xderiv = crse(ic,jc,kc,n) - crse(ic-1,jc,kc,n);
-                                                xxderiv = 0.0_rt;
+                                            if (mask_arr.contains(i+ratiox, j, k)) {
+                                                if (mask_arr(i+ratiox,j,k) != is_not_covered) {
+                                                    xderiv = crse(ic,jc,kc,n) - crse(ic-1,jc,kc,n);
+                                                    xxderiv = 0.0_rt;
+                                                }
                                             }
-                                            if (mask_arr(i-1,j,k) != not_covered && mask_arr(i+ratiox,j,k) != not_covered) {
-                                                xderiv = 0.0_rt;
+                                            if (mask_arr.contains(i-1, j, k) && mask_arr.contains(i+ratiox, j, k)) {
+                                                if (mask_arr(i-1,j,k) != is_not_covered && mask_arr(i+ratiox,j,k) != is_not_covered) {
+                                                    xderiv = 0.0_rt;
+                                                }
                                             }
 
 #if AMREX_SPACEDIM >= 2
-                                            if (mask_arr(i,j-1,k) != not_covered) {
-                                                yderiv = crse(ic,jc+1,kc,n) - crse(ic,jc,kc,n);
-                                                yyderiv = 0.0_rt;
+                                            if (mask_arr.contains(i, j-1, k)) {
+                                                if (mask_arr(i,j-1,k) != is_not_covered) {
+                                                    yderiv = crse(ic,jc+1,kc,n) - crse(ic,jc,kc,n);
+                                                    yyderiv = 0.0_rt;
+                                                }
                                             }
-                                            if (mask_arr(i,j+ratioy,k) != not_covered) {
-                                                yderiv = crse(ic,jc,kc,n) - crse(ic,jc-1,kc,n);
-                                                yyderiv = 0.0_rt;
+                                            if (mask_arr.contains(i, j+ratioy, k)) {
+                                                if (mask_arr(i,j+ratioy,k) != is_not_covered) {
+                                                    yderiv = crse(ic,jc,kc,n) - crse(ic,jc-1,kc,n);
+                                                    yyderiv = 0.0_rt;
+                                                }
                                             }
-                                            if (mask_arr(i,j-1,k) != not_covered && mask_arr(i,j+ratioy,k) != not_covered) {
-                                                yderiv = 0.0_rt;
-                                            }
-#endif
-
-#if AMREX_SPACEDIM == 3
-                                            if (mask_arr(i,j,k-1) != not_covered) {
-                                                yderiv = crse(ic,jc,kc+1,n) - crse(ic,jc,kc,n);
-                                                yyderiv = 0.0_rt;
-                                            }
-                                            if (mask_arr(i,j,k+ratioz) != not_covered) {
-                                                yderiv = crse(ic,jc,kc,n) - crse(ic,jc,kc-1,n);
-                                                yyderiv = 0.0_rt;
-                                            }
-                                            if (mask_arr(i,j,k-1) != not_covered && mask_arr(i,j,k+ratioz) != not_covered) {
-                                                yderiv = 0.0_rt;
+                                            if (mask_arr.contains(i, j-1, k) && mask_arr.contains(i, j+ratioy, k)) {
+                                                if (mask_arr(i,j-1,k) != is_not_covered && mask_arr(i,j+ratioy,k) != is_not_covered) {
+                                                    yderiv = 0.0_rt;
+                                                }
                                             }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if ((mask_arr(i,j+ratioy,k+ratioz) != not_covered) ||
-                                                (mask_arr(i,j-1     ,k+ratioz) != not_covered) ||
-                                                (mask_arr(i,j+ratioy,k-1     ) != not_covered) ||
-                                                (mask_arr(i,j-1     ,k-1     ) != not_covered)) {
-                                                yzderiv = 0.0_rt;
+                                            if (mask_arr.contains(i, j, k-1)) {
+                                                if (mask_arr(i,j,k-1) != is_not_covered) {
+                                                    yderiv = crse(ic,jc,kc+1,n) - crse(ic,jc,kc,n);
+                                                    yyderiv = 0.0_rt;
+                                                }
+                                            }
+                                            if (mask_arr.contains(i, j, k+ratioz)) {
+                                                if (mask_arr(i,j,k+ratioz) != is_not_covered) {
+                                                    yderiv = crse(ic,jc,kc,n) - crse(ic,jc,kc-1,n);
+                                                    yyderiv = 0.0_rt;
+                                                }
+                                            }
+                                            if (mask_arr.contains(i, j, k-1) && mask_arr.contains(i, j, k+ratioz)) {
+                                                if (mask_arr(i,j,k-1) != is_not_covered && mask_arr(i,j,k+ratioz) != is_not_covered) {
+                                                    yderiv = 0.0_rt;
+                                                }
+                                            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                                            if (mask_arr.contains(i, j+ratioy, k+ratioz) &&
+                                                mask_arr.contains(i, j-1     , k+ratioz) &&
+                                                mask_arr.contains(i, j+ratioy, k-1     ) &&
+                                                mask_arr.contains(i, j-1     , k-1     )) {
+                                                if ((mask_arr(i,j+ratioy,k+ratioz) != is_not_covered) ||
+                                                    (mask_arr(i,j-1     ,k+ratioz) != is_not_covered) ||
+                                                    (mask_arr(i,j+ratioy,k-1     ) != is_not_covered) ||
+                                                    (mask_arr(i,j-1     ,k-1     ) != is_not_covered)) {
+                                                    yzderiv = 0.0_rt;
+                                                }
                                             }
 
-                                            if ((mask_arr(i+ratiox,j,k+ratioz) != not_covered) ||
-                                                (mask_arr(i-1     ,j,k+ratioz) != not_covered) ||
-                                                (mask_arr(i+ratiox,j,k-1     ) != not_covered) ||
-                                                (mask_arr(i-1     ,j,k-1     ) != not_covered)) {
-                                                xzderiv = 0.0_rt;
+                                            if (mask_arr.contains(i+ratiox, j, k+ratioz) &&
+                                                mask_arr.contains(i-1     , j, k+ratioz) &&
+                                                mask_arr.contains(i+ratiox, j, k-1     ) &&
+                                                mask_arr.contains(i-1     , j, k-1     )) {
+                                                if ((mask_arr(i+ratiox,j,k+ratioz) != is_not_covered) ||
+                                                    (mask_arr(i-1     ,j,k+ratioz) != is_not_covered) ||
+                                                    (mask_arr(i+ratiox,j,k-1     ) != is_not_covered) ||
+                                                    (mask_arr(i-1     ,j,k-1     ) != is_not_covered)) {
+                                                    xzderiv = 0.0_rt;
+                                                }
                                             }
 
-                                            if ((mask_arr(i+ratiox,j+ratioy,k) != not_covered) ||
-                                                (mask_arr(i-1     ,j+ratioy,k) != not_covered) ||
-                                                (mask_arr(i+ratiox,j-1     ,k) != not_covered) ||
-                                                (mask_arr(i-1     ,j-1     ,k) != not_covered)) {
-                                                xyderiv = 0.0_rt;
+                                            if (mask_arr.contains(i+ratiox, j+ratioy, k) &&
+                                                mask_arr.contains(i-1     , j+ratioy, k) &&
+                                                mask_arr.contains(i+ratiox, j-1     , k) &&
+                                                mask_arr.contains(i-1     , j-1     , k)) {
+                                                if ((mask_arr(i+ratiox,j+ratioy,k) != is_not_covered) ||
+                                                    (mask_arr(i-1     ,j+ratioy,k) != is_not_covered) ||
+                                                    (mask_arr(i+ratiox,j-1     ,k) != is_not_covered) ||
+                                                    (mask_arr(i-1     ,j-1     ,k) != is_not_covered)) {
+                                                    xyderiv = 0.0_rt;
+                                                }
                                             }
 #endif
 
