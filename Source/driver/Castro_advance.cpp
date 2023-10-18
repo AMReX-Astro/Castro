@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -91,10 +90,6 @@ Castro::advance (Real time,
     }
 
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
-#ifdef AUX_UPDATE
-        getLevel(lev).advance_aux(time, dt);
-#endif
-
 #ifdef GRAVITY
         // Update the point mass.
         if (use_point_mass == 1) {

@@ -52,13 +52,6 @@ sdc_solve(const Real dt_m,
     int ierr;
     Real err_out;
 
-    // for debugging
-    GpuArray<Real, NUM_STATE> U_orig;
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        U_orig[n] = U_old[n];
-    }
-
     if (sdc_solver == NEWTON_SOLVE) {
         // We are going to assume we already have a good guess
         // for the solve in U_new and just pass the solve onto
@@ -66,7 +59,7 @@ sdc_solve(const Real dt_m,
         sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // failing?
-        if (ierr != NEWTON_SUCCESS) {
+        if (ierr != newton::NEWTON_SUCCESS) {
             Abort("Newton subcycling failed in sdc_solve");
         }
     } else if (sdc_solver == VODE_SOLVE) {
@@ -85,7 +78,7 @@ sdc_solve(const Real dt_m,
         sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // Failing?
-        if (ierr != NEWTON_SUCCESS) {
+        if (ierr != newton::NEWTON_SUCCESS) {
             Abort("Newton failure in sdc_solve");
         }
     }
@@ -132,8 +125,6 @@ sdc_update_o2(const int i, const int j, const int k,
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 
-    burn_t burn_state;
-
     GpuArray<Real, NUM_STATE> U_old;
     GpuArray<Real, NUM_STATE> U_new;
     GpuArray<Real, NUM_STATE> R_full;
@@ -170,9 +161,13 @@ sdc_update_o2(const int i, const int j, const int k,
 
         sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration);
 
-        // we solved our system to some tolerance, but let's be sure we are conservative by
-        // reevaluating the reactions and { doing the full step update
-        single_zone_react_source(U_new, R_full, burn_state);
+        // we solved our system to some tolerance, but let's be sure
+        // we are conservative by reevaluating the reactions and
+        // doing the full step update
+        burn_t burn_state;
+
+        copy_cons_to_burn_type(U_new, burn_state);
+        single_zone_react_source(burn_state, R_full);
     }
 
     for (int n = 0; n < NUM_STATE; ++n) {
@@ -219,8 +214,7 @@ instantaneous_react(const int i, const int j, const int k,
     // (in that case, I am not sure if I can assume UTEMP is defined)
 
     if (okay_to_burn(i, j, k, state)) {
-        burn_t burn_state;
-        single_zone_react_source(i, j, k, state, R_source, burn_state);
+        single_zone_react_source(i, j, k, state, R_source);
     } else {
         for (int n = 0; n < NUM_STATE; ++n) {
             R_source(i, j, k, n) = 0.0_rt;

@@ -12,97 +12,8 @@
 #include <actual_rhs.H>
 #endif
 #include <Castro_react_util.H>
-#include <sdc_react_util.H>
-
-#include <vode_dvode.H>
-
-// The f_rhs routine provides the right-hand-side for the DVODE solver.
-// This is a generic interface that calls the specific RHS routine in the
-// network you're actually using.
-
-template <typename DvodeT>
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void rhs(const Real time, burn_t& burn_state, DvodeT& vode_state, RArray1D& dUdt, const bool in_jacobian=false)
-{
-
-    // note: dUdt is 1-based
-
-    GpuArray<Real, NUM_STATE> U_full;
-    GpuArray<Real, NUM_STATE> R_full;
-
-    // evaluate R
-
-    // update the density -- we'll need this for the EOS call in the
-    // react update
-
-    U_full[URHO] = burn_state.rho_orig + time * burn_state.ydot_a[SRHO];
-
-    // we are not solving the momentum equations
-    // and never need total energy, so we don't worry about filling those
-
-    for (int n = 0; n < NumSpec; n++) {
-        U_full[UFS+n] = vode_state.y(1+n);
-    }
-    U_full[UEINT] = vode_state.y(NumSpec+1);
-
-    // initialize the temperature -- a better value will be found when we do the EOS
-    // call in single_zone_react_source
-
-    U_full[UTEMP] = burn_state.T;
-
-    // create a temporary burn_t for this call.  It is just going to
-    // get loaded up with U_full
-
-    burn_t burn_state_pass;
-    single_zone_react_source(U_full, R_full, burn_state_pass);
-
-    // update our temperature for next time
-
-    burn_state.T = burn_state_pass.T;
-
-    // now construct the RHS -- note this is 1-based
-
-    for (int n = 0; n < NumSpec; ++n) {
-        dUdt(n+1) = R_full[UFS+n] + burn_state.ydot_a[SFS+n];
-    }
-    dUdt(NumSpec+1) = R_full[UEINT] + burn_state.ydot_a[SEINT];
-
-}
-
-
-template<class MatrixType, typename DvodeT>
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void jac (const Real time, burn_t& burn_state, DvodeT& vode_state, MatrixType& pd)
-{
-    // Call the specific network routine to get the Jacobian.
-
-    // note the Jacobian is 1-based at the moment
-
-    GpuArray<Real, NUM_STATE> U_full;
-    GpuArray<Real, NUM_STATE> R_full;
-
-    // we are not solving the momentum equations
-    // create a full state -- we need this for some interfaces
-
-    U_full[URHO] = burn_state.rho_orig + time * burn_state.ydot_a[URHO];
-
-    for (int n = 0; n < NumSpec; n++) {
-        U_full[UFS+n] = vode_state.y(1+n);
-    }
-    U_full[UEINT] = vode_state.y(NumSpec+1);
-
-    U_full[UTEMP] = burn_state.T;
-
-    burn_t burn_state_pass;
-
-    // this will initialize burn_state_pass and fill the temperature
-    // via the EOS
-
-    single_zone_react_source(U_full, R_full, burn_state_pass);
-
-    single_zone_jac(U_full, burn_state_pass, vode_state.H, pd);
-
-}
+#include <sdc_cons_to_burn.H>
+#include <burner.H>
 
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -122,13 +33,13 @@ sdc_vode_solve(const Real dt_m,
     // We will do the implicit update of only the terms that
     // have reactive sources
     //
-    // 0 : rho
-    // 1:NumSpec : species
-    // NumSpec+1 : (rho E) or (rho e)
+    // 1:NumSpec : (rho X)
+    // NumSpec+1 : (rho e)
 
-#if (INTEGRATOR == 0)
 
-    // Update the momenta for this zone -- they don't react
+    // Update the density and momenta for this zone -- they don't react
+
+    U_new[URHO] = U_old[URHO] + dt_m * C[URHO];
 
     for (int n = 0; n < 3; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
@@ -138,15 +49,19 @@ sdc_vode_solve(const Real dt_m,
     // nonlinear solve -- note: we include the old state
     // in f_source
 
-    // load rpar
-
-
-    dvode_t<NumSpec+1> dvode_state;
-
     burn_t burn_state;
 
-    burn_state.rho_orig = U_old[URHO];
-    burn_state.rhoe_orig = U_old[UEINT];
+    burn_state.success = true;
+
+    // store the state
+
+    copy_cons_to_burn_type(U_old, burn_state);
+
+    // we need an initial T guess for the EOS
+    burn_state.T = U_old[UTEMP];
+
+    burn_state.T_fixed = -1.e30_rt;
+    burn_state.rho = burn_state.y[SRHO];
 
     // If we are solving the system as an ODE, then we are
     // solving
@@ -171,65 +86,31 @@ sdc_vode_solve(const Real dt_m,
     }
 #endif
 
-    burn_state.success = true;
+    burn_state.sdc_iter = sdc_iteration;
+    burn_state.num_sdc_iters = sdc_order + sdc_extra;
 
-    // temperature will be used as an initial guess in the EOS
-    burn_state.T = U_old[UTEMP];
+    burner(burn_state, dt_m);
 
-
-    // store the subset for the nonlinear solve. We only
-    // consider (rho e), not (rho E). This is because at
-    // present we do not have a method of updating the
-    // velocities during the multistep integration.
-
-    // Also note that the dvode_state is 1-based, but we'll
-    // access it as 0-based in our implementation of the
-    // RHS routine
-
-    for (int n = 0; n < NumSpec; ++n) {
-        dvode_state.y(1+n) = U_old[UFS+n];
-    }
-    dvode_state.y(NumSpec+1) = U_old[UEINT];
-
-    // // set the maximum number of steps allowed
-    // dvode_state.MXSTEP = 25000;
-
-    dvode_state.t = 0.0_rt;
-    dvode_state.tout = dt_m;
-    dvode_state.HMXI = 1.0_rt / ode_max_dt;
-
-    dvode_state.jacobian_type = static_cast<short>(integrator_rp::jacobian);
-
-    // relative tolerances
-    dvode_state.rtol_spec = integrator_rp::rtol_spec;
-    dvode_state.rtol_enuc = integrator_rp::rtol_enuc;
-
-    // absolute tolerances
-    dvode_state.atol_spec = integrator_rp::atol_spec * U_old[URHO]; // this way, atol is the minimum x
-    dvode_state.atol_enuc = integrator_rp::atol_enuc * U_old[UEINT];
-
-    int istate = dvode(burn_state, dvode_state);
-
-    if (istate < 0) {
-        Abort("Vode terminated poorly");
+    if (! burn_state.success) {
+        amrex::Error("Error: integration failed");
     }
 
-    // update the full U_new
-    for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS+n] = dvode_state.y(1+n);
-    }
-    U_new[UEINT] = dvode_state.y(NumSpec+1);
+    // update the full U_new -- we already did density and momentum
 
-    auto v2 = 0.0_rt;
-    for (int n = 0; n < 3; ++n) {
-        v2 += U_new[UMX+n] * U_new[UMX+n];
+    U_new[UEDEN] = burn_state.y[SEDEN];
+    U_new[UEINT] = burn_state.y[SEINT];
+    for (int n = 0; n < NumSpec; n++) {
+        U_new[UFS+n] = burn_state.y[SFS+n];
     }
-    U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; n++) {
+        U_new[UFX+n] = burn_state.y[SFX+n];
+    }
+#endif
 
     // keep our temperature guess
     U_new[UTEMP] = U_old[UTEMP];
 
-#endif
 }
 
 #endif

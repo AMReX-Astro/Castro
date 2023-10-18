@@ -176,17 +176,6 @@ of each step.
 
       Only Strang+CTU and simplified-SDC support retries.
 
-#. [AUX_UPDATE] *Auxiliary quantity evolution*
-
-   Auxiliary variables in Castro are those that obey a continuity
-   equation (with optional sources) that are passed into the EOS, but
-   not subjected to the constraint on mass fractions (summing to one).
-
-   The advection and source terms are already dealt with in the
-   main hydrodynamics advance (above step). A user-supplied routine
-   ca_auxupdate can be provided here to further update these
-   quantities.
-
 #. [POINTMASS] *Point mass*
 
    If ``castro.point_mass_fix_solution`` is set, then we
@@ -662,11 +651,12 @@ The overall evolution appears as:
 
 #. *Initialization* (``initialize_advance``)
 
-   Here we create the ``MultiFab`` s that store the needed information
+   We first do a ``clean_state`` on the old data (``S_old``).
+
+   We next create the ``MultiFab`` s that store the needed information
    at the different time nodes.  Each of the quantities below is a
    vector of size ``SDC_NODES``, whose components are the ``MultiFab``
    for that time node:
-
 
     * ``k_new`` : the current solution at this time node.
 
@@ -700,13 +690,14 @@ SDC Single Iteration Flowchart
 
 .. index:: do_advance_sdc
 
-The update through all time nodes for a single iteration is done by
-``do_advance_sdc``.  The basic update appears as:
-
 Throughout this driver we use the ``State_Type`` ``StateData`` as
 storage for the current node.  In particular, we use the new time slot
 in the ``StateData`` (which we refer to as ``S_new``) to allow us to
 do ``FillPatch`` operations.
+
+The update through all time nodes for a single iteration is done by
+``do_advance_sdc``.  The basic update appears as:
+
 
 #. *Initialize*
 
@@ -756,18 +747,18 @@ do ``FillPatch`` operations.
 
        Then fill all other time nodes as: ``R_old[n]`` = ``R_old[0]``
 
-    * Do the SDC update from node ``m`` to ``m+1``.
+   * Do the SDC update from node ``m`` to ``m+1``.
 
-      We call ``do_sdc_update()`` to do the update in time to the next
-      node.  This solves the nonlinear system (when we have reactions)
-      and stores the solution in ``k_new[m+1]``.
+     We call ``do_sdc_update()`` to do the update in time to the next
+     node.  This solves the nonlinear system (when we have reactions)
+     and stores the solution in ``k_new[m+1]``.
 
 #. Store the advective terms for the next iteration.
 
    Since we are done with this iteration, we do: ``A_old[n]``
    :math:`\leftarrow` ``A_new[n]``.
 
-   We also store ``R_old`` for the next iteration.  We do this by
+#. Store ``R_old`` for the next iteration.  We do this by
    calling the reaction source one last time using the data for each
    time node.
 
@@ -776,6 +767,10 @@ do ``FillPatch`` operations.
    On the last iteration, we save the solution to the ``State_Type`` ``StateData``:
 
    ``S_new`` :math:`\leftarrow` ``k_new[SDC_NODES-1]``
+
+#. Store the old and new sources in the State Data.
+
+#. Store the reaction information for the plotfiles.
 
 #. Call ``finalize_do_advance`` to clean up the memory.
    

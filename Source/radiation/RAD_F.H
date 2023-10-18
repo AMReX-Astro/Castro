@@ -53,42 +53,6 @@ BL_FORT_PROC_DECL(CA_INITGROUPS3,ca_initgroups3)
 BL_FORT_PROC_DECL(CA_COMPUTE_KAPKAP, ca_compute_kapkap)
      (BL_FORT_FAB_ARG(kapkap), const BL_FORT_FAB_ARG(kap_r)); 
 
-BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
-   (const BL_FORT_FAB_ARG(Er), const BL_FORT_FAB_ARG(kap), 
-    BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
-    const int* filter_lambda_T, const int* filter_lambda_S);
- 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void ca_correct_dterm
-    (D_DECL(BL_FORT_FAB_ARG(dfx),
-            BL_FORT_FAB_ARG(dfy),
-            BL_FORT_FAB_ARG(dfz)),
-     const amrex::Real* re, const amrex::Real* rc);
-#ifdef __cplusplus
-}
-#endif
-
-// <MGFLD>
-#ifdef __cplusplus
-extern "C" {
-#endif
-void ca_initfluxlimiter
-   (const int* limiter, const int* closure);
-#ifdef __cplusplus
-}
-#endif
-
-extern "C"
-{
-  void ca_rad_source
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(rhs),
-     const amrex::Real* dx, amrex::Real dt,
-     amrex::Real time, int igroup);
-
-}
 
 #ifdef __cplusplus
 extern "C" {
@@ -150,16 +114,9 @@ extern "C" {
                BL_FORT_FAB_ARG_3D(state),
                BL_FORT_FAB_ARG_3D(kappar));
   
-  void rfface(BL_FORT_FAB_ARG(fine), 
-              BL_FORT_FAB_ARG(crse), 
-              const int& idim, const int* irat);
-
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
                       const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);
-
-  void bextrp(BL_FORT_FAB_ARG(f), 
-              ARLIM_P(reglo), ARLIM_P(reghi));
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,6 @@
 #include <iomanip>
 
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef GRAVITY

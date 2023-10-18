@@ -1,3 +1,31 @@
+# 23.11
+
+  * The ca_rad_source hook in Fortran has been removed. The existing
+    problem_rad_source() hook in C++ can be used instead. (#2626)
+
+  * The compile option USE_AUX_UPDATE has been removed. If you want to
+    manually update the auxiliary parameters, you can use an external
+    source term or you can use the problem post-timestep hook. (#2614)
+
+# 23.10
+
+  * True-SDC no longer evolves density as part of the reaction system
+    and now uses the same ODE code path as simplified-SDC.  This means
+    we don't need our own custom VODE righthand side functions (#2559,
+    #2560, #2567, #2578, #2580, #2584)
+
+  * The true SDC runtime parameter `sdc_solve_for_rhoe` has been
+    removed. (#2572)
+
+  * The true SDC runtime parameters `sdc_solver_tol_spec`,
+    `sdc_solver_tol_ener`, `sdc_solver_atol` have been removed.
+    Instead the Microphysics integration tolerance parameters should
+    be used. (#2571)
+
+  * The true SDC runtime parameter `sdc_newton_use_analytic_jac` has
+    been removed.  Instead the Microphysics integrator `jacobian`
+    parameter should be used (#2573)
+
 # 23.08
 
   * Time evolution without subcycling on the fine levels, which is enabled via
@@ -29,7 +57,7 @@
 # 23.06
 
   * The job_info file now reports the integrator used (#2463)
-  
+
   * 1-d cylindrical geometry was fixed (#2465, #2470)
 
 # 23.05

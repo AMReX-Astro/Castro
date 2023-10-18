@@ -15,7 +15,6 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -217,6 +216,7 @@ Castro::read_params ()
     initialize_cpp_runparams();
 
     ParmParse pp("castro");
+    ParmParse ppa("amr");
 
     using namespace castro;
 
@@ -442,6 +442,13 @@ Castro::read_params ()
         }
     }
 
+    // Post-timestep regrids only make sense if we're subcycling.
+    std::string subcycling_mode;
+    ppa.query("subcycling_mode", subcycling_mode);
+    if (use_post_step_regrid == 1 && subcycling_mode == "None") {
+        amrex::Error("castro.use_post_step_regrid == 1 is not consistent with amr.subcycling_mode = None.");
+    }
+
 #ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
@@ -546,7 +553,6 @@ Castro::read_params ()
 
    }
 
-   ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
@@ -2534,36 +2540,6 @@ Castro::okToContinue ()
     return test;
 }
 
-#ifdef AUX_UPDATE
-void
-Castro::advance_aux(Real time, Real dt)
-{
-    BL_PROFILE("Castro::advance_aux()");
-
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-      std::cout << "... special update for auxiliary variables \n";
-    }
-
-    MultiFab&  S_old = get_old_data(State_Type);
-    MultiFab&  S_new = get_new_data(State_Type);
-
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& box = mfi.tilebox();
-        FArrayBox& old_fab = S_old[mfi];
-        FArrayBox& new_fab = S_new[mfi];
-        void ca_auxupdate(BL_TO_FORTRAN(old_fab),
-                          BL_TO_FORTRAN(new_fab),
-                          box.loVect(), box.hiVect(),
-                          &dt);
-    }
-}
-#endif
-
-
 void
 Castro::FluxRegCrseInit() {
     BL_PROFILE("Castro::FluxRegCrseInit");
@@ -3465,12 +3441,12 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Apply each of the tagging criteria defined in the inputs.
 
-    for (int j = 0; j < error_tags.size(); j++) {
+    for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
-        if (!error_tags[j].Field().empty()) {
-            mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
+        if (! etag.Field().empty()) {
+            mf = derive(etag.Field(), time, etag.NGrow());
         }
-        error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -4418,10 +4394,10 @@ Castro::build_interior_boundary_mask (int ng)
 {
     BL_PROFILE("Castro::build_interior_boundary_mask()");
 
-    for (int i = 0; i < ib_mask.size(); ++i)
+    for (const auto & ibm : ib_mask)
     {
-        if (ib_mask[i]->nGrow() == ng) {
-            return *ib_mask[i];
+        if (ibm->nGrow() == ng) {
+            return *ibm;
         }
     }
 
