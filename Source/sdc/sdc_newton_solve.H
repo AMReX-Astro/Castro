@@ -5,10 +5,14 @@
 #include <linpack.H>
 
 // error codes
-constexpr int NEWTON_SUCCESS = 0;
-constexpr int SINGULAR_MATRIX = -1;
-constexpr int CONVERGENCE_FAILURE = -2;
+namespace newton {
+    constexpr int NEWTON_SUCCESS = 0;
+    constexpr int SINGULAR_MATRIX = -1;
+    constexpr int CONVERGENCE_FAILURE = -2;
+    constexpr int BAD_MASS_FRACTIONS = -3;
 
+    constexpr Real species_failure_tolerance = 1.e-2_rt;
+};
 
 #ifdef REACTIONS
 
@@ -107,7 +111,7 @@ sdc_newton_solve(const Real dt_m,
 
     const int MAX_ITER = 100;
 
-    ierr = NEWTON_SUCCESS;
+    ierr = newton::NEWTON_SUCCESS;
 
     // update the density and momenta for this zone -- they don't react
 
@@ -162,7 +166,7 @@ sdc_newton_solve(const Real dt_m,
         dgefa<NumSpec+1>(Jac, ipvt, info);
 #endif
         if (info != 0) {
-            ierr = SINGULAR_MATRIX;
+            ierr = newton::SINGULAR_MATRIX;
             return;
         }
 
@@ -206,7 +210,7 @@ sdc_newton_solve(const Real dt_m,
     err_out = err;
 
     if (!converged) {
-        ierr = CONVERGENCE_FAILURE;
+        ierr = newton::CONVERGENCE_FAILURE;
         return;
     }
 
@@ -221,7 +225,13 @@ sdc_newton_solve(const Real dt_m,
     }
 
     U_new[UEINT] = burn_state.y[SEINT];
-    U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
+
+    // we want to do a conservative update for (rho E), so first figure out the 
+    // energy generation rate
+
+    Real rho_Sdot = (U_new[UEINT] - U_old[UEINT]) / dt_m - C[UEINT];
+
+    U_new[UEDEN] = U_old[UEDEN] + dt_m * (C[UEDEN] + rho_Sdot);
 
 }
 
@@ -251,13 +261,13 @@ sdc_newton_subdivide(const Real dt_m,
     // use the old time solution.
 
     int nsub = 1;
-    ierr = CONVERGENCE_FAILURE;
+    ierr = newton::CONVERGENCE_FAILURE;
 
     for (int n = 0; n < NUM_STATE; ++n) {
         U_begin[n] = U_old[n];
     }
 
-    while (nsub < MAX_NSUB && ierr != NEWTON_SUCCESS) {
+    while (nsub < MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
         if (nsub > 1) {
             for (int n = 0; n < NUM_STATE; ++n) {
                 U_new[n] = U_old[n];
@@ -277,6 +287,20 @@ sdc_newton_subdivide(const Real dt_m,
             }
 
             sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err_out, ierr);
+
+            // our solve may have resulted in mass fractions outside
+            // of [0, 1] -- reject if this is the case
+            for (int n = 0; n < NumSpec; ++n) {
+                if (U_new[UFS+n] < -newton::species_failure_tolerance * U_new[URHO] ||
+                    U_new[UFS+n] > (1.0_rt + newton::species_failure_tolerance) * U_new[URHO]) {
+                    ierr = newton::BAD_MASS_FRACTIONS;
+                }
+            }
+
+            if (ierr != newton::NEWTON_SUCCESS) {
+                // no point in continuing this subdivision if one stage failed
+                break;
+            }
 
             for (int n = 0; n < NUM_STATE; ++n) {
                 U_begin[n] = U_new[n];
