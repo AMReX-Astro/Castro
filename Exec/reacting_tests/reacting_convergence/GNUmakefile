@@ -14,7 +14,7 @@ USE_OMP    = FALSE
 USE_REACT = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_DIR     := helmholtz

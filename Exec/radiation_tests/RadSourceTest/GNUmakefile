@@ -10,7 +10,7 @@ PROFILE    = FALSE
 USE_RAD = TRUE
 
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # has the f90 routine ca_initgroups and group structure in probdata_module
 #HAS_INITGROUPS = TRUE

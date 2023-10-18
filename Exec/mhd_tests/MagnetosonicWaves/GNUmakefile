@@ -13,7 +13,7 @@ USE_OMP    = FALSE
 USE_MHD    = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_DIR     := gamma_law

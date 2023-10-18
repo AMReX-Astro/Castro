@@ -13,7 +13,7 @@ USE_REACT = TRUE
 
 USE_DIFFUSION = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

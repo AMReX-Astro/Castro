@@ -16,7 +16,7 @@ USE_ROTATION  = FALSE
 USE_DIFFUSION = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 USE_JACOBIAN_CACHING = TRUE
 USE_MODEL_PARSER = TRUE

@@ -14,7 +14,7 @@ USE_REACT        = TRUE
 USE_MODEL_PARSER = TRUE
 USE_RNG_STATE_INIT = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

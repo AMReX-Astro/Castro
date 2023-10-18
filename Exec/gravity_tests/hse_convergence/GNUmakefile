@@ -13,7 +13,7 @@ USE_MODEL_PARSER = TRUE
 
 USE_MAESTRO_INIT = FALSE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
