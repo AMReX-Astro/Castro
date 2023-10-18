@@ -3,14 +3,17 @@
 # Take a sequence of plotfiles and plot T and enuc vs. position
 
 import argparse
+import re
 import sys
 
+import matplotlib
 import numpy as np
 from cycler import cycler
-import matplotlib
+
 matplotlib.use('agg')
-import matplotlib.pyplot as plt
 import math
+
+import matplotlib.pyplot as plt
 import yt
 
 
@@ -20,6 +23,16 @@ def rgba_to_hex(rgba):
     g = int(rgba[1]*255.0)
     b = int(rgba[2]*255.0)
     return f'#{r:02X}{g:02X}{b:02X}'
+
+
+# Extract number from nuc list
+def nuc_list_filter(nuc):
+
+    match = re.search(r'\d+', nuc)
+    if match:
+        return int(match.group())
+
+    return 0
 
 
 def get_Te_profile(plotfile):
@@ -51,11 +64,10 @@ def get_nuc_profile(plotfile):
     srt = np.argsort(ad['x'])
     x_coord = np.array(ad['x'][srt])
 
-    nuc_fracs = []
+    nuc_list = [f[1] for f in ds.field_list if f[1][0] == "X"]
+    nuc_list.sort(key=nuc_list_filter)
 
-    for f in ds.field_list:
-        if f[1][0] == "X":
-            nuc_fracs.append(np.array(ad[f[1]][srt]))
+    nuc_fracs = [np.array(ad[nuc][srt]) for nuc in nuc_list]
 
     return time, x_coord, nuc_fracs
 
@@ -141,8 +153,9 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
     pfile = f"{prefix}{nums[1]}"
     ds = yt.load(pfile, hint="castro")
 
-    nuc_fracs = [f[1] for f in ds.field_list if f[1][0] == "X"]
-    N = len(nuc_fracs)
+    nuc_list = [f[1] for f in ds.field_list if f[1][0] == "X"]
+    nuc_list.sort(key=nuc_list_filter)
+    N = len(nuc_list)
 
     nrows = math.ceil(math.sqrt(N))
     ncols = math.ceil(math.sqrt(N))
@@ -166,12 +179,13 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
             index = index + 1
 
             ax.legend(frameon=False)
-            ax.set_ylabel(nuc_fracs[i])
+            ax.set_ylabel(nuc_list[i])
             ax.set_yscale("log")
 
             if xmax > 0:
                 ax.set_xlim(xmin, xmax)
 
+    f.tight_layout()
     f.savefig("det_nuc.png")
 
 
@@ -197,12 +211,14 @@ if __name__ == "__main__":
                    help="list of plotfiles to plot")
     p.add_argument("--limitlabels", type=float, default=1.,
                    help="Show all labels (default) or reduce to ~ given value")
-    p.add_argument("--do_nuc_fracs", dest="do_nuc_fracs", action="store_true",
-                   help="if want to plot nuc fracs, otherwise Temp and enuc plot")
+    p.add_argument("--do_nuc_fracs", dest="do_nuc_fracs",
+                   action="store_true",
+                   help="Plot nuc fracs, otherwise Temp and enuc plot")
 
     args = p.parse_args()
 
     plot_prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
-    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin, args.xmax, do_nuc_fracs=args.do_nuc_fracs)
+    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin,
+         args.xmax, do_nuc_fracs=args.do_nuc_fracs)
