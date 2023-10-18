@@ -14,7 +14,7 @@ USE_DIFFUSION = TRUE
 
 USE_POST_SIM = TRUE
 
-CASTRO_HOME := ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := gamma_law

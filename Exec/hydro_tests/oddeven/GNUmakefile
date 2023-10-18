@@ -13,7 +13,7 @@ USE_OMP    = FALSE
 USE_SHOCK_VAR = TRUE
 
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := gamma_law

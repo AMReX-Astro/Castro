@@ -13,7 +13,7 @@ USE_REACT        = TRUE
 USE_DIFFUSION    = TRUE
 USE_GRAV         = TRUE
 
-CASTRO_HOME := ../../..
+CASTRO_HOME ?= ../../..
 
 USE_MODEL_PARSER = TRUE
 

@@ -23,7 +23,7 @@ USE_ROTATION = FALSE
 
 USE_MODEL_PARSER = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law
