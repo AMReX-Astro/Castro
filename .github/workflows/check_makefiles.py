@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 
@@ -28,12 +29,9 @@ def check_makefile(makefile):
             for key in correct_params:
                 if key in line:
                     try:
-                        _, v = line.split(":=")
+                        k, v = re.split(":=|\?=|=", line)
                     except ValueError:
-                        try:
-                            _, v = line.split("=")
-                        except ValueError:
-                            sys.exit(f"invalid line: {line}")
+                        sys.exit(f"invalid line: {line}")
 
                     if not v.strip() == correct_params[key]:
                         sys.exit(f"invalid param {key} in {makefile}")
