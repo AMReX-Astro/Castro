@@ -18,7 +18,7 @@ USE_DIFFUSION = TRUE
 USE_MODEL_PARSER = TRUE
 NUM_MODELS := 2
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law

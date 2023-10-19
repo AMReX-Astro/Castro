@@ -13,7 +13,7 @@ USE_RAD = TRUE
 
 USE_MODEL_PARSER = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 EOS_DIR     = breakout
 NETWORK_DIR := general_null
