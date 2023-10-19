@@ -6,13 +6,14 @@ import argparse
 import glob
 import sys
 
+import matplotlib
 import numpy as np
 from cycler import cycler
-import matplotlib
+
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-
 import yt
+
 yt.set_log_level(50)
 
 dt = 0.005
@@ -33,6 +34,7 @@ def find_files(plist):
                 files_to_plot.append(pfile)
                 print(f"plotting {pfile} at t = {t}")
                 mask[k] = 1.0
+                break
 
     return files_to_plot
 
