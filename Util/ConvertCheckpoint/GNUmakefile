@@ -10,7 +10,7 @@ DIM       = 2
 DIM       = 3
 
 USE_MPI     = TRUE
-USE_MPI     = TRUE
+USE_MPI     = FALSE
 
 COMP      = g++
 

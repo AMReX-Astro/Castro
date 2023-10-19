@@ -7,14 +7,14 @@ DIM        = 3
 
 COMP	   = gnu
 
-USE_MPI    = TRUE
+USE_MPI    = FALSE
 USE_OMP    = FALSE
 
 USE_ALL_CASTRO = FALSE
 USE_AMR_CORE = FALSE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  ?= ../..
+CASTRO_HOME  := ../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_DIR     := helmholtz
