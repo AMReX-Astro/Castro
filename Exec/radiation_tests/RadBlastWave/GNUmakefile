@@ -8,7 +8,7 @@ USE_MPI    = TRUE
 
 USE_RAD    = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 EOS_DIR     := gamma_law
 

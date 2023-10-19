@@ -11,7 +11,7 @@ USE_MPI    = TRUE
 
 USE_REACT  = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

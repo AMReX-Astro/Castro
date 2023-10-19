@@ -1,4 +1,4 @@
-CASTRO_HOME := ../../..
+CASTRO_HOME ?= ../../..
 
 PRECISION        = DOUBLE
 PROFILE          = FALSE

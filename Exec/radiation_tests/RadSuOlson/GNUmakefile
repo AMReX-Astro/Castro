@@ -9,7 +9,7 @@ PROFILE    = FALSE
 
 USE_RAD = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 EOS_DIR     := rad_power_law
 
