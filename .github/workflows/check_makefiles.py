@@ -5,6 +5,7 @@ from pathlib import Path
 correct_params = {
     "DEBUG": "FALSE",
     "USE_MPI": "TRUE",
+    "USE_OMP": "FALSE",
     "COMP": "gnu",
     "USE_CUDA": "FALSE",
     "USE_HIP": "FALSE",
