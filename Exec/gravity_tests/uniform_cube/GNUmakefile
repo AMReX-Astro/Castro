@@ -12,7 +12,7 @@ DIM         ?= 3
 
 COMP	    ?= gcc
 
-USE_MPI     ?= FALSE
+USE_MPI     ?= TRUE
 USE_OMP     ?= FALSE
 
 USE_GRAV    ?= TRUE
