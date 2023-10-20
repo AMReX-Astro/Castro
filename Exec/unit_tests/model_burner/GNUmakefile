@@ -33,6 +33,8 @@ NETWORK_DIR := aprox21
 # This sets the integrator directory in $(MICROPHYSICS_HOME)/integration
 INTEGRATOR_DIR := VODE
 
+PROBLEM_DIR ?= ./
+
 Bpack   := $(PROBLEM_DIR)/Make.package
 Blocs   := $(PROBLEM_DIR)
 

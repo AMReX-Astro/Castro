@@ -25,6 +25,8 @@ CONDUCTIVITY_DIR = constant
 NETWORK_DIR := general_null
 NETWORK_INPUTS = gammalaw.net
 
+PROBLEM_DIR ?= ./
+
 Bpack   := $(PROBLEM_DIR)/Make.package
 Blocs   := $(PROBLEM_DIR)
 
