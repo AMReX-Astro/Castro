@@ -15,7 +15,7 @@ DEBUG       ?= FALSE
 
 DIM         ?= 3
 
-COMP	    ?= gcc
+COMP	    ?= gnu
 
 USE_MPI     ?= TRUE
 USE_OMP     ?= FALSE
