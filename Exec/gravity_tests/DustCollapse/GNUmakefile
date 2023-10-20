@@ -26,7 +26,9 @@ EOS_DIR     := gamma_law
 NETWORK_DIR := general_null
 NETWORK_INPUTS = ignition.net
 
-Bpack	:= ./Make.package
-Blocs	:= .
+PROBLEM_DIR ?= ./
+
+Bpack	:= $(PROBLEM_DIR)/Make.package
+Blocs	:= $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

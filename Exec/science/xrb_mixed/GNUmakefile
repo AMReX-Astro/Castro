@@ -21,7 +21,9 @@ EOS_DIR     := helmholtz
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := rprox
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

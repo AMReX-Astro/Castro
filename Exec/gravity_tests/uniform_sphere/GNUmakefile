@@ -3,11 +3,6 @@
 
 CASTRO_HOME ?= ../../..
 
-# Location of this directory. Useful if
-# you're trying to compile this from another location.
-
-TEST_DIR = $(CASTRO_HOME)/Exec/gravity_tests/uniform_sphere
-
 PRECISION   ?= DOUBLE
 PROFILE     ?= FALSE
 
@@ -29,7 +24,9 @@ EOS_DIR     := gamma_law
 NETWORK_DIR ?= general_null
 NETWORK_INPUTS = gammalaw.net
 
-Bpack   += $(TEST_DIR)/Make.package
-Blocs   += $(TEST_DIR)
+PROBLEM_DIR ?= ./
+
+Bpack   += $(PROBLEM_DIR)/Make.package
+Blocs   += $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

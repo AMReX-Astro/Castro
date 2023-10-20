@@ -33,7 +33,7 @@ NETWORK_DIR := aprox21
 # This sets the integrator directory in $(MICROPHYSICS_HOME)/integration
 INTEGRATOR_DIR := VODE
 
-Bpack   := ./Make.package
-Blocs   := .
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -24,7 +24,9 @@ NETWORK_DIR := aprox13
 #Conductivity_dir := constant_opacity
 CONDUCTIVITY_DIR := stellar
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro
