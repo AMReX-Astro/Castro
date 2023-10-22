@@ -25,9 +25,11 @@ EOS_DIR     := helmholtz
 NETWORK_DIR := general_null
 NETWORK_INPUTS = ignition.net
 
-Bpack   := ./Make.package 
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
 #$(CASTRO_HOME)/Util/exact_riemann/Make.package
-#Blocs   := . $(CASTRO_HOME)/Util/exact_riemann/
+#Blocs   := $(PROBLEM_DIR) $(CASTRO_HOME)/Util/exact_riemann/
 #EXTERN_CORE_ADD := $(CASTRO_HOME)/Util/exact_riemann/
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -30,7 +30,9 @@ EOS_DIR     := helmholtz
 # This sets the network directory in Castro/Networks
 NETWORK_DIR := aprox13
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -23,7 +23,9 @@ USE_NSE_TABLE := TRUE
 
 INTEGRATOR_DIR := VODE
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

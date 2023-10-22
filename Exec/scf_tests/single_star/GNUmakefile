@@ -3,11 +3,6 @@
 
 CASTRO_HOME ?= ../../..
 
-# Location of this directory. Useful if
-# you're trying to compile this from another location.
-
-TEST_DIR = $(CASTRO_HOME)/Exec/scf_tests/single_star
-
 PRECISION   ?= DOUBLE
 PROFILE     ?= FALSE
 
@@ -26,8 +21,9 @@ USE_ROTATION := TRUE
 EOS_DIR     ?= helmholtz
 NETWORK_DIR ?= aprox13
 
+PROBLEM_DIR ?= ./
 
-Bpack   += $(TEST_DIR)/Make.package
-Blocs   += $(TEST_DIR)
+Bpack   += $(PROBLEM_DIR)/Make.package
+Blocs   += $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

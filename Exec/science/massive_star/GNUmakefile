@@ -29,7 +29,9 @@ INTEGRATOR_DIR := VODE
 
 MAX_NPTS_MODEL = 32768
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro
