@@ -287,8 +287,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     aRad = 4.*C::sigma_SB / C::c_light;
 
-    ca_init_fort_constants(hPlanck, Avogadro);
-
     c        = clight;
     sigma    = C::sigma_SB;
 
@@ -460,13 +458,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   if (do_multigroup) {
-
     get_groups(verbose);
-
   }
   else {
-    ca_initsinglegroup(nGroups);
-
     // xnu is a dummy for single group
     xnu.resize(2, 1.0);
     nugroup.resize(1, 1.0);
