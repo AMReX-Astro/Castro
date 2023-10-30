@@ -97,11 +97,19 @@ endif
 
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  USERSuffix = .SMPLSDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .SMPLSDC$(USERSuffix)
+  else
+    USERSuffix = .SMPLSDC
+  endif
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  USERSuffix = .TRUESDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .TRUESDC$(USERSuffix)
+  else
+    USERSuffix = .TRUESDC
+  endif
 endif
 
 USE_MLMG = FALSE

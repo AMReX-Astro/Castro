@@ -1,3 +1,5 @@
 USE_POINTMASS=TRUE
 
-include ../../GNUmakefile
+PROBLEM_DIR := ../../
+
+include $(PROBLEM_DIR)/GNUmakefile

@@ -2,4 +2,6 @@ DIM=1
 
 NETWORK_DIR=iso7
 
-include ../../GNUmakefile
+PROBLEM_DIR := ../../
+
+include $(PROBLEM_DIR)/GNUmakefile

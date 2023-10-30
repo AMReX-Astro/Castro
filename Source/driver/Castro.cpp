@@ -217,6 +217,7 @@ Castro::read_params ()
     initialize_cpp_runparams();
 
     ParmParse pp("castro");
+    ParmParse ppa("amr");
 
     using namespace castro;
 
@@ -442,6 +443,13 @@ Castro::read_params ()
         }
     }
 
+    // Post-timestep regrids only make sense if we're subcycling.
+    std::string subcycling_mode;
+    ppa.query("subcycling_mode", subcycling_mode);
+    if (use_post_step_regrid == 1 && subcycling_mode == "None") {
+        amrex::Error("castro.use_post_step_regrid == 1 is not consistent with amr.subcycling_mode = None.");
+    }
+
 #ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
@@ -546,7 +554,6 @@ Castro::read_params ()
 
    }
 
-   ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
