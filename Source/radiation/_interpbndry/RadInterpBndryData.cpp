@@ -162,18 +162,24 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                     }
                 }
 
-                int ratiox = ratio[0];
+                int ratiox = 1;
+                int ratioy = 1;
+                int ratioz = 1;
+
+                if (dir != 0) {
+                    ratiox = ratio[0];
+                }
 
 #if AMREX_SPACEDIM >= 2
-                int ratioy = ratio[1];
-#else
-                int ratioy = 1;
+                if (dir != 1) {
+                    ratioy = ratio[1];
+                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                int ratioz = ratio[2];
-#else
-                int ratioz = 1;
+                if (dir != 2) {
+                    ratioz = ratio[2];
+                }
 #endif
 
                 FArrayBox& bnd_fab = bndry[face][mfi];
@@ -252,38 +258,30 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                                             }
 #endif
 
-                                            if (mask_arr.contains(i-1, j, k)) {
+                                            if (dir != 0) {
                                                 if (mask_arr(i-1,j,k) != is_not_covered) {
                                                     dcdx = crse_arr(ic+1,jc,kc,n) - crse_arr(ic,jc,kc,n);
                                                     dcdx2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i+ratiox, j, k)) {
                                                 if (mask_arr(i+ratiox,j,k) != is_not_covered) {
                                                     dcdx = crse_arr(ic,jc,kc,n) - crse_arr(ic-1,jc,kc,n);
                                                     dcdx2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i-1, j, k) && mask_arr.contains(i+ratiox, j, k)) {
                                                 if (mask_arr(i-1,j,k) != is_not_covered && mask_arr(i+ratiox,j,k) != is_not_covered) {
                                                     dcdx = 0.0_rt;
                                                 }
                                             }
 
 #if AMREX_SPACEDIM >= 2
-                                            if (mask_arr.contains(i, j-1, k)) {
+                                            if (dir != 1) {
                                                 if (mask_arr(i,j-1,k) != is_not_covered) {
                                                     dcdy = crse_arr(ic,jc+1,kc,n) - crse_arr(ic,jc,kc,n);
                                                     dcdy2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i, j+ratioy, k)) {
                                                 if (mask_arr(i,j+ratioy,k) != is_not_covered) {
                                                     dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc-1,kc,n);
                                                     dcdy2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i, j-1, k) && mask_arr.contains(i, j+ratioy, k)) {
                                                 if (mask_arr(i,j-1,k) != is_not_covered && mask_arr(i,j+ratioy,k) != is_not_covered) {
                                                     dcdy = 0.0_rt;
                                                 }
@@ -291,19 +289,15 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (mask_arr.contains(i, j, k-1)) {
+                                            if (dir != 2) {
                                                 if (mask_arr(i,j,k-1) != is_not_covered) {
                                                     dcdy = crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc,n);
                                                     dcdy2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i, j, k+ratioz)) {
                                                 if (mask_arr(i,j,k+ratioz) != is_not_covered) {
                                                     dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc,kc-1,n);
                                                     dcdy2 = 0.0_rt;
                                                 }
-                                            }
-                                            if (mask_arr.contains(i, j, k-1) && mask_arr.contains(i, j, k+ratioz)) {
                                                 if (mask_arr(i,j,k-1) != is_not_covered && mask_arr(i,j,k+ratioz) != is_not_covered) {
                                                     dcdy = 0.0_rt;
                                                 }
@@ -311,10 +305,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (mask_arr.contains(i, j+ratioy, k+ratioz) &&
-                                                mask_arr.contains(i, j-1     , k+ratioz) &&
-                                                mask_arr.contains(i, j+ratioy, k-1     ) &&
-                                                mask_arr.contains(i, j-1     , k-1     )) {
+                                            if (dir == 0) {
                                                 if ((mask_arr(i,j+ratioy,k+ratioz) != is_not_covered) ||
                                                     (mask_arr(i,j-1     ,k+ratioz) != is_not_covered) ||
                                                     (mask_arr(i,j+ratioy,k-1     ) != is_not_covered) ||
@@ -323,10 +314,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                                                 }
                                             }
 
-                                            if (mask_arr.contains(i+ratiox, j, k+ratioz) &&
-                                                mask_arr.contains(i-1     , j, k+ratioz) &&
-                                                mask_arr.contains(i+ratiox, j, k-1     ) &&
-                                                mask_arr.contains(i-1     , j, k-1     )) {
+                                            if (dir == 1) {
                                                 if ((mask_arr(i+ratiox,j,k+ratioz) != is_not_covered) ||
                                                     (mask_arr(i-1     ,j,k+ratioz) != is_not_covered) ||
                                                     (mask_arr(i+ratiox,j,k-1     ) != is_not_covered) ||
@@ -335,10 +323,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                                                 }
                                             }
 
-                                            if (mask_arr.contains(i+ratiox, j+ratioy, k) &&
-                                                mask_arr.contains(i-1     , j+ratioy, k) &&
-                                                mask_arr.contains(i+ratiox, j-1     , k) &&
-                                                mask_arr.contains(i-1     , j-1     , k)) {
+                                            if (dir == 2) {
                                                 if ((mask_arr(i+ratiox,j+ratioy,k) != is_not_covered) ||
                                                     (mask_arr(i-1     ,j+ratioy,k) != is_not_covered) ||
                                                     (mask_arr(i+ratiox,j-1     ,k) != is_not_covered) ||
