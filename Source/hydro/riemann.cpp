@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <riemann_solvers.H>
 
@@ -67,7 +66,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
 

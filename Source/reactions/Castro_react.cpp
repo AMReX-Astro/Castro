@@ -1,10 +1,10 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 #include <advection_util.H>
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
 #include <model_parser.H>
 #endif
+#include <sdc_cons_to_burn.H>
 
 using std::string;
 using namespace amrex;
@@ -20,7 +20,7 @@ Castro::do_old_reactions (Real time, Real dt)
     advance_status status {};
 
 #ifndef SIMPLIFIED_SDC
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
@@ -29,7 +29,7 @@ Castro::do_old_reactions (Real time, Real dt)
         // The result of the reactions is added directly to Sborder.
         burn_success = react_state(Sborder, R_old, time, 0.5 * dt, 0);
 
-        if (!burn_success) {
+        if (burn_success != 1) {
             status.success = false;
             status.reason = "burn unsuccessful";
 
@@ -57,7 +57,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
     advance_status status {};
 
-    bool burn_success = true;
+    int burn_success{1};
 
     MultiFab& R_new = get_new_data(Reactions_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -73,7 +73,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
             burn_success = react_state(time, dt);
 
-            if (!burn_success) {
+            if (burn_success != 1) {
                 status.success = false;
                 status.reason = "burn unsuccessful";
 
@@ -107,7 +107,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
         burn_success = react_state(S_new, R_new, time - 0.5 * dt, 0.5 * dt, 1);
 
-        if (!burn_success) {
+        if (burn_success != 1) {
             status.success = false;
             status.reason = "burn unsuccessful";
 
@@ -129,7 +129,7 @@ Castro::do_new_reactions (Real time, Real dt)
 
 // Strang version
 
-bool
+int
 Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int strang_half)
 {
 
@@ -204,7 +204,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
         const auto problo = geom.ProbLoArray();
 #endif
 
@@ -262,7 +262,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.T_fixed = -1.e30_rt;
 
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
 
@@ -452,7 +452,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #ifdef SIMPLIFIED_SDC
 // Simplified SDC version
 
-bool
+int
 Castro::react_state(Real time, Real dt)
 {
 
@@ -583,28 +583,13 @@ Castro::react_state(Real time, Real dt)
             }
 
             // Feed in the old-time state data.
+            // this also sets burn_state.{rho,T}
 
-            burn_state.y[SRHO] = U_old(i,j,k,URHO);
-            burn_state.y[SMX] = U_old(i,j,k,UMX);
-            burn_state.y[SMY] = U_old(i,j,k,UMY);
-            burn_state.y[SMZ] = U_old(i,j,k,UMZ);
-            burn_state.y[SEDEN] = U_old(i,j,k,UEDEN);
-            burn_state.y[SEINT] = U_old(i,j,k,UEINT);
-            for (int n = 0; n < NumSpec; n++) {
-                burn_state.y[SFS+n] = U_old(i,j,k,UFS+n);
-            }
-#if NAUX_NET > 0
-            for (int n = 0; n < NumAux; n++) {
-                burn_state.y[SFX+n] = U_old(i,j,k,UFX+n);
-            }
-#endif
-
-            // we need an initial T guess for the EOS
-            burn_state.T = U_old(i,j,k,UTEMP);
+            copy_cons_to_burn_type(i, j, k, U_old, burn_state);
 
             burn_state.T_fixed = -1.e30_rt;
 
-#ifdef CXX_MODEL_PARSER
+#ifdef MODEL_PARSER
             if (drive_initial_convection) {
                 Real rr[3] = {0.0_rt};
 
@@ -628,8 +613,6 @@ Castro::react_state(Real time, Real dt)
 
             }
 #endif
-
-            burn_state.rho = burn_state.y[SRHO];
 
             // Don't burn if we're outside of the relevant (rho, T) range.
 
@@ -804,7 +787,9 @@ Castro::react_state(Real time, Real dt)
     ReduceTuple hv = reduce_data.value();
     Real burn_failed = amrex::get<0>(hv);
 
-    if (burn_failed != 0.0) burn_success = 0;
+    if (burn_failed != 0.0) {
+        burn_success = 0;
+    }
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
@@ -843,11 +828,7 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    if (burn_success) {
-        return true;
-    } else {
-        return false;
-    }
+    return burn_success;
 
 }
 #endif

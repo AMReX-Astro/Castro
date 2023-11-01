@@ -25,14 +25,7 @@ castro.do_react = 1
 castro.time_integration_method = 2
 castro.sdc_order = 4
 
-castro.sdc_solve_for_rhoe = 1
-castro.sdc_solver_tol_dens = 1.e-10
-castro.sdc_solver_tol_spec = 1.e-10
-castro.sdc_solver_tol_ener = 1.e-6
-castro.sdc_solver_atol = 1.e-10
 castro.sdc_solver = 1
-castro.sdc_newton_use_analytic_jac = 1
-castro.sdc_solver_relax_factor = 1
 
 castro.use_reconstructed_gamma1 = 1
 
@@ -76,6 +69,7 @@ amr.plot_file       = plt        # root name of plotfile
 amr.plot_per        = 5.e-7
 castro.plot_per_is_exact = 1
 amr.derive_plot_vars = ALL
+castro.store_omegadot = 1
 
 # problem initialization
 
@@ -108,9 +102,11 @@ amr.refine.dengrad.field_name = density
 
 # Microphysics
 
-integrator.rtol_spec = 1.e-8
-integrator.atol_spec = 1.e-8
+integrator.rtol_spec = 1.e-10
+integrator.atol_spec = 1.e-10
+integrator.rtol_enuc = 1.e-6
+integrator.atol_enuc = 1.e-10
 
 network.small_x = 1.e-10
 
-integrator.jacobian = 2
+integrator.jacobian = 1

@@ -3,7 +3,6 @@
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Derive.H>
@@ -13,7 +12,6 @@
 #include <RadDerive.H>
 #include <opacity.H>
 #endif
-#include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
 #include <eos.H>
@@ -687,7 +685,7 @@ Castro::variableSetUp ()
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
   }
 
-  char rad_name[10];
+  std::string rad_name;
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
@@ -695,7 +693,7 @@ Castro::variableSetUp ()
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-        sprintf(rad_name, "rad%d", i);
+        rad_name = "rad" + std::to_string(i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
                         genericBndryFunc);

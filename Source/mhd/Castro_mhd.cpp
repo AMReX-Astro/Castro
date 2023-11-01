@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <advection_util.H>
 
@@ -183,7 +182,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                   q_arr, qaux_arr);
 
           amrex::ParallelFor(bx_gc,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               hydro::src_to_prim(i, j, k, dt, u_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
           });
@@ -203,7 +202,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
           if (use_flattening == 0) {
             amrex::ParallelFor(bxi,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
               flatn_arr(i,j,k) = 1.0;
             });
@@ -214,7 +213,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
             uflatten(bxi, q_arr, flatg_arr, QPTOT);
 
             amrex::ParallelFor(bxi,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
               flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
             });
@@ -485,19 +484,19 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           // eq. 42 and 43
 
           amrex::ParallelFor(ccbx, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
           {
             flxx1D_arr(i,j,k,n) = 0.5_rt * (flx_xy_arr(i,j,k,n) + flx_xz_arr(i,j,k,n));
           });
 
           amrex::ParallelFor(ccby, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
           {
             flxy1D_arr(i,j,k,n) = 0.5_rt * (flx_yx_arr(i,j,k,n) + flx_yz_arr(i,j,k,n));
           });
 
           amrex::ParallelFor(ccbz, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
           {
             flxz1D_arr(i,j,k,n) = 0.5_rt * (flx_zx_arr(i,j,k,n) + flx_zy_arr(i,j,k,n));
           });
@@ -624,7 +623,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
             // Zero out shock and temp fluxes -- these are physically meaningless here
             amrex::ParallelFor(nbox,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -648,7 +647,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           Real dtdx = dt / dx[0];
 
           amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
             Bxo_arr(i,j,k) = Bx_arr(i,j,k) + dtdx *
               ((Ey_arr(i,j,k+1) - Ey_arr(i,j,k)) - (Ez_arr(i,j+1,k) - Ez_arr(i,j,k)));
@@ -661,7 +660,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 #endif
 
           amrex::ParallelFor(nby,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
             Byo_arr(i,j,k) = By_arr(i,j,k) + dtdx *
               ((Ez_arr(i+1,j,k) - Ez_arr(i,j,k)) - (Ex_arr(i,j,k+1) - Ex_arr(i,j,k)));
@@ -674,7 +673,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 #endif
 
           amrex::ParallelFor(nbz,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
             Bzo_arr(i,j,k) = Bz_arr(i,j,k) + dtdx *
               ((Ex_arr(i,j+1,k) - Ex_arr(i,j,k)) - (Ey_arr(i+1,j,k) - Ey_arr(i,j,k)));

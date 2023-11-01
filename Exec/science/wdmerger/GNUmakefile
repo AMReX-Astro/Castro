@@ -14,7 +14,7 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
 # define the location of the CASTRO top directory
@@ -50,7 +50,7 @@ endif
 
 # Location where the source files are coming from.
 
-PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/science/wdmerger
+PROBLEM_DIR ?= ./
 
 Blocs = $(PROBLEM_DIR)
 Bpack = $(PROBLEM_DIR)/Make.package

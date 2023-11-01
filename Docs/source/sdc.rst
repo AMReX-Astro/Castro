@@ -42,23 +42,13 @@ The options that affect the nonlinear solve are:
   * 3 : use VODE for the first iteration and then Newton for the
     subsequent iterations.
 
-* ``sdc_solver_tol_dens`` : the relative error on the density in solving the nonlinear system.
+  The tolerances for both the Newton and VODE solver are controlled by
+  the usual Microphysics parameters: ``integrator.rtol_spec``,
+  ``integrator.atol_spec``, ``integrator.rtol_enuc``,
+  ``integrator.atol_enuc``.
 
-* ``sdc_solver_tol_spec`` : the relative error on the partial densities, :math:`(\rho X_k)`
-  in the nonlinear solve.
-
-* ``sdc_solver_tol_ener`` : the relative error of the energy in the nonlinear solve.
-
-* ``sdc_solver_atol`` : the absolute error in the mass fractions during the nonlinear solve.
-
-* ``sdc_solver_relax_factor`` : the factor by which to relax the
-  tolerances (i.e. increase them) for earlier iterations.  We reach
-  the desired tolerances on the final iteration.
-
-* ``sdc_solve_for_rhoe`` : whether we solve the system in terms of :math:`(\rho e)` or :math:`(\rho E)`.
-
-* ``sdc_newton_use_analytic_jac`` : whether we use the analytic Jacobian when doing Newton iterations for
-  the reaction part of the system or compute it numerically.
+  In all cases, the type of Jacobian (analytic or numerical) is determined by
+  ``integrator.jacobian``.
 
 
 

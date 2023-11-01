@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -29,7 +28,7 @@ Castro::consup_hydro(const Box& bx,
   auto geomdata = geom.data();
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
     Real volinv = 1.0 / geometry_util::volume(i, j, k, geomdata);
 
@@ -317,7 +316,7 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
 {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // of the state variables, only pressure, rhoe, and

@@ -13,7 +13,7 @@ USE_OMP    = FALSE
 USE_MHD    = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 # This sets the EOS directory in Castro/EOS
 EOS_DIR     := gamma_law
@@ -22,7 +22,9 @@ EOS_DIR     := gamma_law
 NETWORK_DIR := general_null
 NETWORK_INPUTS = gammalaw.net
 
-Blocs   := .
-Bpack   := ./Make.package
+PROBLEM_DIR ?= ./
+
+Blocs   := $(PROBLEM_DIR)
+Bpack   := $(PROBLEM_DIR)/Make.package
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -66,14 +66,14 @@ CWARNING = """
 // To update or add runtime parameters, please edit _cpp_parameters and rebuild.\n
 """
 
-def parse_params(infile, out_directory):
+def read_param_file(infile):
 
     params = []
 
     namespace = None
 
     try:
-        f = open(infile)
+        f = open(infile, encoding="UTF-8")
     except OSError:
         sys.exit("error opening the input file")
 
@@ -115,17 +115,7 @@ def parse_params(infile, out_directory):
             debug_default = None
 
         try:
-            in_fortran_string = fields[3]
-        except IndexError:
-            in_fortran = 0
-        else:
-            if in_fortran_string.lower().strip() == "y":
-                in_fortran = 1
-            else:
-                in_fortran = 0
-
-        try:
-            ifdef = fields[4]
+            ifdef = fields[3]
         except IndexError:
             ifdef = None
 
@@ -139,6 +129,9 @@ def parse_params(infile, out_directory):
                                ifdef=ifdef))
 
 
+    return params
+
+def write_headers(params, out_directory):
 
     # output
 
@@ -153,7 +146,7 @@ def parse_params(infile, out_directory):
 
         # write name_declares.H
         try:
-            cd = open(f"{out_directory}/{nm}_declares.H", "w")
+            cd = open(f"{out_directory}/{nm}_declares.H", "w", encoding="UTF-8")
         except OSError:
             sys.exit(f"unable to open {nm}_declares.H for writing")
 
@@ -179,7 +172,7 @@ def parse_params(infile, out_directory):
 
         # write name_params.H
         try:
-            cp = open(f"{out_directory}/{nm}_params.H", "w")
+            cp = open(f"{out_directory}/{nm}_params.H", "w", encoding="UTF-8")
         except OSError:
             sys.exit(f"unable to open {nm}_params.H for writing")
 
@@ -205,7 +198,7 @@ def parse_params(infile, out_directory):
 
         # write castro_queries.H
         try:
-            cq = open(f"{out_directory}/{nm}_queries.H", "w")
+            cq = open(f"{out_directory}/{nm}_queries.H", "w", encoding="UTF-8")
         except OSError:
             sys.exit(f"unable to open {nm}_queries.H for writing")
 
@@ -229,7 +222,7 @@ def parse_params(infile, out_directory):
 
         # write the job info tests
         try:
-            jo = open(f"{out_directory}/{nm}_job_info_tests.H", "w")
+            jo = open(f"{out_directory}/{nm}_job_info_tests.H", "w", encoding="UTF-8")
         except OSError:
             sys.exit(f"unable to open {nm}_job_info_tests.H")
 
@@ -256,7 +249,8 @@ def main():
 
     args = parser.parse_args()
 
-    parse_params(args.input_file[0], args.o)
+    p = read_param_file(args.input_file[0])
+    write_headers(p, args.o)
 
 if __name__ == "__main__":
     main()

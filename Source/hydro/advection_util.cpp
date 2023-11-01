@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef ROTATION
 #include <Rotation.H>
@@ -42,7 +41,7 @@ Castro::ctoprim(const Box& bx,
   amrex::ignore_unused(time);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
       auto q = [&] (int n) -> Real& { return q_arr(i,j,k,n); };
       auto qaux = [&] (int n) -> Real& { return qaux_arr(i,j,k,n); };
@@ -87,7 +86,7 @@ Castro::shock(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     Real div_u = 0.0_rt;
 
@@ -244,7 +243,7 @@ Castro::divu(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -347,7 +346,7 @@ Castro::apply_av(const Box& bx,
   Real diff_coeff = difmag;
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     if (n == UTEMP) {
@@ -406,7 +405,7 @@ Castro::apply_av_rad(const Box& bx,
   Real diff_coeff = difmag;
 
   amrex::ParallelFor(bx, Radiation::nGroups,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real div1;
@@ -448,7 +447,7 @@ Castro::normalize_species_fluxes(const Box& bx,
   // defined in Plewa & Muller, 1999, A&A, 342, 179.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real sum = 0.0_rt;
@@ -492,7 +491,7 @@ Castro::scale_flux(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
@@ -514,7 +513,7 @@ Castro::scale_rad_flux(const Box& bx,
                        const Real dt) {
 
   amrex::ParallelFor(bx, Radiation::nGroups,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int g) noexcept
   {
     rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });
@@ -555,7 +554,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
     Real density_floor = small_dens * density_floor_tolerance;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         // Grab the states on either side of the interface we are working with,
         // depending on which dimension we're currently calling this with.
@@ -641,7 +640,7 @@ Castro::do_enforce_minimum_density(const Box& bx,
   amrex::ignore_unused(verbose);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     if (state_arr(i,j,k,URHO) < small_dens) {
@@ -749,7 +748,7 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
     if (lo_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
 
             // reset the left state at domlo if needed -- it is outside the domain
@@ -770,7 +769,7 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
     if (hi_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
 
             // reset the right state at domhi+1 if needed -- it is outside the domain

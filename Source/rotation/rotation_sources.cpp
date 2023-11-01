@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 #include <Rotation.H>
 #ifdef HYBRID_MOMENTUM
@@ -15,7 +14,7 @@ Castro::rsrc(const Box& bx,
   GeometryData geomdata = geom.data();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real Sr[3] = {};
@@ -227,7 +226,7 @@ Castro::corrrsrc(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real Sr_old[3] = {};

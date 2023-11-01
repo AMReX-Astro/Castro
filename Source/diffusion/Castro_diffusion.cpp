@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <diffusion_util.H>
 

@@ -2,7 +2,7 @@
 #define CASTRO_SDC_H
 
 #ifndef AMREX_USE_GPU
-void do_sdc_update(int m1, int m2, amrex::Real dt);
+void do_sdc_update(int m_start, int m_end, amrex::Real dt);
 #endif
 
 #ifdef REACTIONS
@@ -134,7 +134,6 @@ void ca_sdc_compute_initial_guess(const amrex::Box& bx,
 #ifdef REACTIONS
 void ca_store_reaction_state(const amrex::Box& bx,
                              amrex::Array4<const amrex::Real> const& R_old,
-                             amrex::Array4<const amrex::Real> const& state,
                              amrex::Array4<amrex::Real> const& R_store);
 #endif
 

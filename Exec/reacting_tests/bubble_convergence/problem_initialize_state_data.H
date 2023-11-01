@@ -12,8 +12,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    int coord_type = geomdata.Coord();
-
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
@@ -24,8 +22,8 @@ void problem_initialize_state_data (int i, int j, int k,
     y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
 
-    Real z = 0.0;
 #if AMREX_SPACEDIM == 3
+    Real z = 0.0;
     z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
 

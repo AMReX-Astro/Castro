@@ -48,7 +48,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domlo[0]-1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(i);
@@ -244,7 +244,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(i);
@@ -440,7 +440,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domlo[1]-1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(j);
@@ -634,7 +634,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], domhi[1]+1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(j);
@@ -829,7 +829,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     IntVect(D_DECL(hi[0], hi[1], domlo[2]-1)));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(k);

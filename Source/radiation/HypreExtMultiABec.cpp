@@ -1,6 +1,6 @@
 
 #include <HypreExtMultiABec.H>
-#include <HABEC_F.H>
+#include <HABEC.H>
 #include <AMReX_LO_BCTYPES.H>
 
 #include <_hypre_sstruct_mv.h>
@@ -1040,31 +1040,31 @@ void HypreExtMultiABec::boundaryDterm(int level,
       const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
 
       if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
+        Array4<int const> tf_arr;
         int bctype = bct;
         if (bd[level]->mixedBndry(oitr())) {
           const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-          tfp = tf.dataPtr();
+          tf_arr = tf.array();
           bctype = -1;
         }
-        hdterm3(BL_TO_FORTRAN(Dterm[idim][mfi]),
-                BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                cdir, bctype, tfp, bcl,
-                BL_TO_FORTRAN_N(bcv, bdcomp),
-                BL_TO_FORTRAN(msk),
-                BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-                geom[level].CellSize());
+        HABEC::hdterm3(Dterm[idim][mfi].array(),
+                       Soln[mfi].array(icomp),
+                       reg,
+                       cdir, bctype, tf_arr, bcl,
+                       bcv.array(bdcomp),
+                       msk.array(),
+                       (*d2coefs[level])[idim][mfi].array(),
+                       geom[level].CellSize());
       }
       else {
-        hdterm(BL_TO_FORTRAN(Dterm[idim][mfi]),
-               BL_TO_FORTRAN_N(Soln[mfi], icomp), 
-               ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-               cdir, bct, bcl,
-               BL_TO_FORTRAN_N(bcv, bdcomp),
-               BL_TO_FORTRAN(msk),
-               BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-               geom[level].CellSize());
+          HABEC::hdterm(Dterm[idim][mfi].array(),
+                        Soln[mfi].array(icomp),
+                        reg,
+                        cdir, bct, bcl,
+                        bcv.array(bdcomp),
+                        msk.array(),
+                        (*d2coefs[level])[idim][mfi].array(),
+                        geom[level].CellSize());
       }
     }
   }
