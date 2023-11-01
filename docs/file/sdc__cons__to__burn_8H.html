@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File problem_tagging.H &mdash; Castro  documentation</title>
+  <title>File sdc_cons_to_burn.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File rad_util.H" href="rad__util_8H.html" />
-    <link rel="prev" title="File problem_source.H" href="problem__source_8H.html" /> 
+    <link rel="next" title="File sdc_newton_solve.H" href="sdc__newton__solve_8H.html" />
+    <link rel="prev" title="File runtime_parameters.H" href="runtime__parameters_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../file/problem__tagging_8H.html">main</a> | <a href="../dev/file/problem__tagging_8H.html">development</a>
+        Branch: <a href="../file/sdc__cons__to__burn_8H.html">main</a> | <a href="../dev/file/sdc__cons__to__burn_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -162,13 +162,13 @@
 <li class="toctree-l2"><a class="reference internal" href="problem__rad__source_8H.html">File problem_rad_source.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problem__source_8H.html">File problem_source.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File problem_tagging.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
@@ -197,9 +197,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File problem_tagging.H</li>
+      <li class="breadcrumb-item active">File sdc_cons_to_burn.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/problem__tagging_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/sdc__cons__to__burn_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -207,28 +207,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-problem-tagging-h">
-<h1>File problem_tagging.H<a class="headerlink" href="#file-problem-tagging-h" title="Link to this heading"></a></h1>
+  <section id="file-sdc-cons-to-burn-h">
+<h1>File sdc_cons_to_burn.H<a class="headerlink" href="#file-sdc-cons-to-burn-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="problem__tagging_8H_1a0db54260935ab528b9b3e6154f37dfd3"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">problem_tagging</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">char</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;tag,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">int</span> <span class="pre">level,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata)</span></span></dt>
-<dd><p>Define problem-specific tagging criteria</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> – x-index </p></li>
-<li><p><strong>j</strong> – y-index </p></li>
-<li><p><strong>k</strong> – z-index </p></li>
-<li><p><strong>tag</strong> – tag array (TagBox) </p></li>
-<li><p><strong>state</strong> – simulation state (Fab) </p></li>
-<li><p><strong>level</strong> – AMR level </p></li>
-<li><p><strong>geomdata</strong> – geometry data </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
+<span class="target" id="sdc__cons__to__burn_8H_1a7eab6a6bdadf1f9f09bd9f036a1acb1e"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">copy_cons_to_burn_type</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__cons__to__burn_8H_1ad777ab784e589d9154ce84d5c54f6d28"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">copy_cons_to_burn_type</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
+<dd></dd></dl>
 
 </div>
 </section>
@@ -237,8 +228,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="problem__source_8H.html" class="btn btn-neutral float-left" title="File problem_source.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="rad__util_8H.html" class="btn btn-neutral float-right" title="File rad_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="runtime__parameters_8H.html" class="btn btn-neutral float-left" title="File runtime_parameters.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sdc__newton__solve_8H.html" class="btn btn-neutral float-right" title="File sdc_newton_solve.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

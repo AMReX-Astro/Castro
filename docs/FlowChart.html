@@ -293,15 +293,6 @@ See <a class="reference internal" href="timestepping.html#ch-retry"><span class=
 <p>Only Strang+CTU and simplified-SDC support retries.</p>
 </div>
 </li>
-<li><p>[AUX_UPDATE] <em>Auxiliary quantity evolution</em></p>
-<p>Auxiliary variables in Castro are those that obey a continuity
-equation (with optional sources) that are passed into the EOS, but
-not subjected to the constraint on mass fractions (summing to one).</p>
-<p>The advection and source terms are already dealt with in the
-main hydrodynamics advance (above step). A user-supplied routine
-ca_auxupdate can be provided here to further update these
-quantities.</p>
-</li>
 <li><p>[POINTMASS] <em>Point mass</em></p>
 <p>If <code class="docutils literal notranslate"><span class="pre">castro.point_mass_fix_solution</span></code> is set, then we
 change the mass of the point mass that optionally contributes to the

@@ -181,8 +181,29 @@ in the inputs file. Reactions are enabled by setting:</p>
 <p>(Note: turning reactions off for problems where they’re not required can help improve
 the efficiency).</p>
 <p>It is possible to set the maximum and minimum temperature and density for allowing
-reactions to occur in a zone using the parameters <code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code>,
-<code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>.</p>
+reactions to occur in a zone using the parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code> for temperature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code> for density</p></li>
+</ul>
+<p id="index-2">Burning can also be disabled inside shocks.  This requires that the code be
+compiled with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_SHOCK_VAR</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  This will allocate storage for a shock flag in the conserved
+state array.  This flag is computed via a multidimensional shock detection algorithm
+that looks for compression (<span class="math notranslate nohighlight">\(\nabla \cdot \ub &lt; 0\)</span>) along with a pressure jump
+in the direction of compression.  The runtime parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">disable_shock_burning</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>will skip reactions in a zone where we’ve detected a shock.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Both the compilation with <code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> and the runtime parameter
+<code class="docutils literal notranslate"><span class="pre">castro.disable_shock_burning</span> <span class="pre">=</span> <span class="pre">1</span></code> are needed to turn off burning in shocks.</p>
+</div>
 </section>
 <section id="reactions-flowchart">
 <h2>Reactions Flowchart<a class="headerlink" href="#reactions-flowchart" title="Link to this heading"></a></h2>
@@ -240,12 +261,12 @@ the step again with a smaller timestep.</p>
 </ul>
 </li>
 <li><p>Store the burning sources for plotting</p>
-<p id="index-2">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+<p id="index-3">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
 sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
 diagnostics.</p>
 <p>We fill these as:</p>
-<ul id="index-3">
+<ul id="index-4">
 <li><p>energy generation rate:</p>
 <p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
 </li>
@@ -343,12 +364,12 @@ the step again with a smaller timestep.</p>
 </ul>
 </li>
 <li><p>Store the burning sources for plotting</p>
-<p id="index-4">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+<p id="index-5">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
 sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
 diagnostics.</p>
 <p>We fill these as:</p>
-<ul id="index-5">
+<ul id="index-6">
 <li><p>energy generation rate:</p>
 <p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
 </li>
