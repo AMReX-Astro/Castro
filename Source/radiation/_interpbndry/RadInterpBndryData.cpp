@@ -192,152 +192,155 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                     // Note that only two of these three loops will do something
                     // nontrivial, depending on which face we are working on.
 
-                    for (int koff = 0; koff < ratioz; ++koff) {
-                        Real zz = (koff - 0.5_rt * ratioz + 0.5_rt) / ratioz;
+                    for (int kc = clo[2]; kc <= chi[2]; ++kc) {
+                        int k = (dir == 2) ? flo[2] : ratioz * kc;
 
-                        for (int kc = clo[2]; kc <= chi[2]; ++kc) {
-                            int k = (dir == 2) ? flo[2] : ratioz * kc + koff;
+                        for (int jc = clo[1]; jc <= chi[1]; ++jc) {
+                            int j = (dir == 1) ? flo[1] : ratioy * jc;
 
-                            for (int joff = 0; joff < ratioy; ++joff) {
-                                Real yy = (joff - 0.5_rt * ratioy + 0.5_rt) / ratioy;
+                            for (int ic = clo[0]; ic <= chi[0]; ++ic) {
+                                int i = (dir == 0) ? flo[0] : ratiox * ic;
 
-                                for (int jc = clo[1]; jc <= chi[1]; ++jc) {
-                                    int j = (dir == 1) ? flo[1] : ratioy * jc + joff;
+                                Real dcdx = 0.0_rt;
+                                Real dcdy = 0.0_rt;
+                                Real dcdz = 0.0_rt;
 
-                                    for (int ioff = 0; ioff < ratiox; ++ioff) {
-                                        Real xx = (ioff - 0.5_rt * ratiox + 0.5_rt) / ratiox;
+                                Real dcdx2 = 0.0_rt;
+                                Real dcdy2 = 0.0_rt;
+                                Real dcdz2 = 0.0_rt;
 
-                                        for (int ic = clo[0]; ic <= chi[0]; ++ic) {
-                                            int i = (dir == 0) ? flo[0] : ratiox * ic + ioff;
+                                Real dcdxy = 0.0_rt;
+                                Real dcdxz = 0.0_rt;
+                                Real dcdyz = 0.0_rt;
 
-                                            Real dcdx = 0.0_rt;
-                                            Real dcdy = 0.0_rt;
-                                            Real dcdz = 0.0_rt;
-
-                                            Real dcdx2 = 0.0_rt;
-                                            Real dcdy2 = 0.0_rt;
-                                            Real dcdz2 = 0.0_rt;
-
-                                            Real dcdxy = 0.0_rt;
-                                            Real dcdxz = 0.0_rt;
-                                            Real dcdyz = 0.0_rt;
-
-                                            if (dir != 0) {
-                                                dcdx = 0.5_rt * (crse_arr(ic+1,jc,kc,n) - crse_arr(ic-1,jc,kc,n));
-                                                dcdx2 = 0.5_rt * (crse_arr(ic+1,jc,kc,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic-1,jc,kc,n));
-                                            }
+                                if (dir != 0) {
+                                    dcdx = 0.5_rt * (crse_arr(ic+1,jc,kc,n) - crse_arr(ic-1,jc,kc,n));
+                                    dcdx2 = 0.5_rt * (crse_arr(ic+1,jc,kc,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic-1,jc,kc,n));
+                                }
 
 #if AMREX_SPACEDIM >= 2
-                                            if (dir != 1) {
-                                                dcdy = 0.5_rt * (crse_arr(ic,jc+1,kc,n) - crse_arr(ic,jc-1,kc,n));
-                                                dcdy2 = 0.5_rt * (crse_arr(ic,jc+1,kc,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic,jc-1,kc,n));
-                                            }
+                                if (dir != 1) {
+                                    dcdy = 0.5_rt * (crse_arr(ic,jc+1,kc,n) - crse_arr(ic,jc-1,kc,n));
+                                    dcdy2 = 0.5_rt * (crse_arr(ic,jc+1,kc,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic,jc-1,kc,n));
+                                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (dir != 2) {
-                                                dcdz = 0.5_rt * (crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc-1,n));
-                                                dcdz2 = 0.5_rt * (crse_arr(ic,jc,kc+1,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic,jc,kc-1,n));
-                                            }
+                                if (dir != 2) {
+                                    dcdz = 0.5_rt * (crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc-1,n));
+                                    dcdz2 = 0.5_rt * (crse_arr(ic,jc,kc+1,n) - 2.0_rt * crse_arr(ic,jc,kc,n) + crse_arr(ic,jc,kc-1,n));
+                                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (dir == 0) {
-                                                dcdyz = 0.25_rt * (crse_arr(ic,jc+1,kc+1,n) - crse_arr(ic,jc-1,kc+1,n) +
-                                                                   crse_arr(ic,jc-1,kc-1,n) - crse_arr(ic,jc+1,kc-1,n));
-                                            }
+                                if (dir == 0) {
+                                    dcdyz = 0.25_rt * (crse_arr(ic,jc+1,kc+1,n) - crse_arr(ic,jc-1,kc+1,n) +
+                                                       crse_arr(ic,jc-1,kc-1,n) - crse_arr(ic,jc+1,kc-1,n));
+                                }
 
-                                            if (dir == 1) {
-                                                dcdxz = 0.25_rt * (crse_arr(ic+1,jc,kc+1,n) - crse_arr(ic-1,jc,kc+1,n) +
-                                                                   crse_arr(ic-1,jc,kc-1,n) - crse_arr(ic+1,jc,kc-1,n));
-                                            }
+                                if (dir == 1) {
+                                    dcdxz = 0.25_rt * (crse_arr(ic+1,jc,kc+1,n) - crse_arr(ic-1,jc,kc+1,n) +
+                                                       crse_arr(ic-1,jc,kc-1,n) - crse_arr(ic+1,jc,kc-1,n));
+                                }
 
-                                            if (dir == 2) {
-                                                dcdxy = 0.25_rt * (crse_arr(ic+1,jc+1,kc,n) - crse_arr(ic-1,jc+1,kc,n) +
-                                                                   crse_arr(ic-1,jc-1,kc,n) - crse_arr(ic+1,jc-1,kc,n));
-                                            }
+                                if (dir == 2) {
+                                    dcdxy = 0.25_rt * (crse_arr(ic+1,jc+1,kc,n) - crse_arr(ic-1,jc+1,kc,n) +
+                                                       crse_arr(ic-1,jc-1,kc,n) - crse_arr(ic+1,jc-1,kc,n));
+                                }
 #endif
 
-                                            if (dir != 0) {
-                                                if (mask_arr(i-1,j,k) != is_not_covered) {
-                                                    dcdx = crse_arr(ic+1,jc,kc,n) - crse_arr(ic,jc,kc,n);
-                                                    dcdx2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i+ratiox,j,k) != is_not_covered) {
-                                                    dcdx = crse_arr(ic,jc,kc,n) - crse_arr(ic-1,jc,kc,n);
-                                                    dcdx2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i-1,j,k) != is_not_covered && mask_arr(i+ratiox,j,k) != is_not_covered) {
-                                                    dcdx = 0.0_rt;
-                                                }
-                                            }
+                                if (dir != 0) {
+                                    if (mask_arr(i-1,j,k) != is_not_covered) {
+                                        dcdx = crse_arr(ic+1,jc,kc,n) - crse_arr(ic,jc,kc,n);
+                                        dcdx2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i+ratiox,j,k) != is_not_covered) {
+                                        dcdx = crse_arr(ic,jc,kc,n) - crse_arr(ic-1,jc,kc,n);
+                                        dcdx2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i-1,j,k) != is_not_covered && mask_arr(i+ratiox,j,k) != is_not_covered) {
+                                        dcdx = 0.0_rt;
+                                    }
+                                }
 
 #if AMREX_SPACEDIM >= 2
-                                            if (dir != 1) {
-                                                if (mask_arr(i,j-1,k) != is_not_covered) {
-                                                    dcdy = crse_arr(ic,jc+1,kc,n) - crse_arr(ic,jc,kc,n);
-                                                    dcdy2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i,j+ratioy,k) != is_not_covered) {
-                                                    dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc-1,kc,n);
-                                                    dcdy2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i,j-1,k) != is_not_covered && mask_arr(i,j+ratioy,k) != is_not_covered) {
-                                                    dcdy = 0.0_rt;
-                                                }
-                                            }
+                                if (dir != 1) {
+                                    if (mask_arr(i,j-1,k) != is_not_covered) {
+                                        dcdy = crse_arr(ic,jc+1,kc,n) - crse_arr(ic,jc,kc,n);
+                                        dcdy2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i,j+ratioy,k) != is_not_covered) {
+                                        dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc-1,kc,n);
+                                        dcdy2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i,j-1,k) != is_not_covered && mask_arr(i,j+ratioy,k) != is_not_covered) {
+                                        dcdy = 0.0_rt;
+                                    }
+                                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (dir != 2) {
-                                                if (mask_arr(i,j,k-1) != is_not_covered) {
-                                                    dcdy = crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc,n);
-                                                    dcdy2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i,j,k+ratioz) != is_not_covered) {
-                                                    dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc,kc-1,n);
-                                                    dcdy2 = 0.0_rt;
-                                                }
-                                                if (mask_arr(i,j,k-1) != is_not_covered && mask_arr(i,j,k+ratioz) != is_not_covered) {
-                                                    dcdy = 0.0_rt;
-                                                }
-                                            }
+                                if (dir != 2) {
+                                    if (mask_arr(i,j,k-1) != is_not_covered) {
+                                        dcdy = crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc,n);
+                                        dcdy2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i,j,k+ratioz) != is_not_covered) {
+                                        dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc,kc-1,n);
+                                        dcdy2 = 0.0_rt;
+                                    }
+                                    if (mask_arr(i,j,k-1) != is_not_covered && mask_arr(i,j,k+ratioz) != is_not_covered) {
+                                        dcdy = 0.0_rt;
+                                    }
+                                }
 #endif
 
 #if AMREX_SPACEDIM == 3
-                                            if (dir == 0) {
-                                                if ((mask_arr(i,j+ratioy,k+ratioz) != is_not_covered) ||
-                                                    (mask_arr(i,j-1     ,k+ratioz) != is_not_covered) ||
-                                                    (mask_arr(i,j+ratioy,k-1     ) != is_not_covered) ||
-                                                    (mask_arr(i,j-1     ,k-1     ) != is_not_covered)) {
-                                                    dcdyz = 0.0_rt;
-                                                }
-                                            }
+                                if (dir == 0) {
+                                    if ((mask_arr(i,j+ratioy,k+ratioz) != is_not_covered) ||
+                                        (mask_arr(i,j-1     ,k+ratioz) != is_not_covered) ||
+                                        (mask_arr(i,j+ratioy,k-1     ) != is_not_covered) ||
+                                        (mask_arr(i,j-1     ,k-1     ) != is_not_covered)) {
+                                        dcdyz = 0.0_rt;
+                                    }
+                                }
 
-                                            if (dir == 1) {
-                                                if ((mask_arr(i+ratiox,j,k+ratioz) != is_not_covered) ||
-                                                    (mask_arr(i-1     ,j,k+ratioz) != is_not_covered) ||
-                                                    (mask_arr(i+ratiox,j,k-1     ) != is_not_covered) ||
-                                                    (mask_arr(i-1     ,j,k-1     ) != is_not_covered)) {
-                                                    dcdxz = 0.0_rt;
-                                                }
-                                            }
+                                if (dir == 1) {
+                                    if ((mask_arr(i+ratiox,j,k+ratioz) != is_not_covered) ||
+                                        (mask_arr(i-1     ,j,k+ratioz) != is_not_covered) ||
+                                        (mask_arr(i+ratiox,j,k-1     ) != is_not_covered) ||
+                                        (mask_arr(i-1     ,j,k-1     ) != is_not_covered)) {
+                                        dcdxz = 0.0_rt;
+                                    }
+                                }
 
-                                            if (dir == 2) {
-                                                if ((mask_arr(i+ratiox,j+ratioy,k) != is_not_covered) ||
-                                                    (mask_arr(i-1     ,j+ratioy,k) != is_not_covered) ||
-                                                    (mask_arr(i+ratiox,j-1     ,k) != is_not_covered) ||
-                                                    (mask_arr(i-1     ,j-1     ,k) != is_not_covered)) {
-                                                    dcdxy = 0.0_rt;
-                                                }
-                                            }
+                                if (dir == 2) {
+                                    if ((mask_arr(i+ratiox,j+ratioy,k) != is_not_covered) ||
+                                        (mask_arr(i-1     ,j+ratioy,k) != is_not_covered) ||
+                                        (mask_arr(i+ratiox,j-1     ,k) != is_not_covered) ||
+                                        (mask_arr(i-1     ,j-1     ,k) != is_not_covered)) {
+                                        dcdxy = 0.0_rt;
+                                    }
+                                }
 #endif
 
-                                            bdry(i,j,k,n) = crse_arr(ic,jc,kc,n) +
-                                                            xx * dcdx + xx * xx * dcdx2 +
-                                                            yy * dcdy + yy * yy * dcdy2 +
-                                                            zz * dcdz + zz * zz * dcdz2 +
-                                                            xx * yy * dcdxy + xx * zz * dcdxz + yy * zz * dcdyz;
+                                for (int koff = 0; koff < ratioz; ++koff) {
+                                    Real zz = (koff - 0.5_rt * ratioz + 0.5_rt) / ratioz;
+                                    int kk = (dir == 2) ? flo[2] : ratioz * kc + koff;
+
+                                    for (int joff = 0; joff < ratioy; ++joff) {
+                                        Real yy = (joff - 0.5_rt * ratioy + 0.5_rt) / ratioy;
+                                        int jj = (dir == 1) ? flo[1] : ratioy * jc + joff;
+
+                                        for (int ioff = 0; ioff < ratiox; ++ioff) {
+                                            Real xx = (ioff - 0.5_rt * ratiox + 0.5_rt) / ratiox;
+                                            int ii = (dir == 0) ? flo[0] : ratiox * ic + ioff;
+
+                                            bdry(ii,jj,kk,n) = crse_arr(ic,jc,kc,n) +
+                                                               xx * dcdx + xx * xx * dcdx2 +
+                                                               yy * dcdy + yy * yy * dcdy2 +
+                                                               zz * dcdz + zz * zz * dcdz2 +
+                                                               xx * yy * dcdxy + xx * zz * dcdxz + yy * zz * dcdyz;
                                         }
                                     }
                                 }
