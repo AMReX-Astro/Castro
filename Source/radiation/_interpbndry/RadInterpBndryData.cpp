@@ -282,15 +282,15 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
 #if AMREX_SPACEDIM == 3
                                 if (dir != 2) {
                                     if (mask_arr(i,j,k-1) != is_not_covered) {
-                                        dcdy = crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc,n);
-                                        dcdy2 = 0.0_rt;
+                                        dcdz = crse_arr(ic,jc,kc+1,n) - crse_arr(ic,jc,kc,n);
+                                        dcdz2 = 0.0_rt;
                                     }
                                     if (mask_arr(i,j,k+ratioz) != is_not_covered) {
-                                        dcdy = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc,kc-1,n);
-                                        dcdy2 = 0.0_rt;
+                                        dcdz = crse_arr(ic,jc,kc,n) - crse_arr(ic,jc,kc-1,n);
+                                        dcdz2 = 0.0_rt;
                                     }
                                     if (mask_arr(i,j,k-1) != is_not_covered && mask_arr(i,j,k+ratioz) != is_not_covered) {
-                                        dcdy = 0.0_rt;
+                                        dcdz = 0.0_rt;
                                     }
                                 }
 #endif
