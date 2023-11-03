@@ -29,8 +29,6 @@ CEXE_headers += HABEC.H
 CEXE_headers += filter.H
 CEXE_headers += filt_prim.H
 
-FEXE_headers += RAD_F.H
-
 CEXE_sources += trace_ppm_rad.cpp
 
 CEXE_headers += fluxlimiter.H
