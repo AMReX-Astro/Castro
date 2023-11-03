@@ -1,5 +1,4 @@
 #include <Radiation.H>
-#include <RAD_F.H>
 #include <rad_util.H>
 #include <filter.H>
 #include <blackbody.H>

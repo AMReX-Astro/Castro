@@ -5,9 +5,6 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 
-
-#include <RAD_F.H>
-
 #include <iostream>
 #include <iomanip>
 

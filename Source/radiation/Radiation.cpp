@@ -5,7 +5,6 @@
 #include <rad_util.H>
 #include <filt_prim.H>
 
-#include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>
 
 #include <opacity.H>

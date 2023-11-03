@@ -24,7 +24,6 @@
 
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
