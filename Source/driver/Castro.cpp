@@ -15,7 +15,7 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
-#include <Castro_F.H>
+#include <global.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -24,7 +24,6 @@
 
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -217,6 +216,7 @@ Castro::read_params ()
     initialize_cpp_runparams();
 
     ParmParse pp("castro");
+    ParmParse ppa("amr");
 
     using namespace castro;
 
@@ -442,6 +442,13 @@ Castro::read_params ()
         }
     }
 
+    // Post-timestep regrids only make sense if we're subcycling.
+    std::string subcycling_mode;
+    ppa.query("subcycling_mode", subcycling_mode);
+    if (use_post_step_regrid == 1 && subcycling_mode == "None") {
+        amrex::Error("castro.use_post_step_regrid == 1 is not consistent with amr.subcycling_mode = None.");
+    }
+
 #ifdef AMREX_PARTICLES
     read_particle_params();
 #endif
@@ -546,7 +553,6 @@ Castro::read_params ()
 
    }
 
-   ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
@@ -568,9 +574,8 @@ Castro::read_params ()
     Vector<std::string> refinement_indicators;
     ppa.queryarr("refinement_indicators", refinement_indicators, 0, ppa.countval("refinement_indicators"));
 
-    for (int i = 0; i < refinement_indicators.size(); ++i)
-    {
-        std::string ref_prefix = "amr.refine." + refinement_indicators[i];
+    for (const auto & ref_indicator : refinement_indicators) {
+        std::string ref_prefix = "amr.refine." + ref_indicator;
 
         ParmParse ppr(ref_prefix);
 
@@ -631,7 +636,7 @@ Castro::read_params ()
             error_tags.emplace_back(value, AMRErrorTag::RELGRAD, field, info);
         }
         else {
-            amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
+            amrex::Abort("Unrecognized refinement indicator for " + ref_indicator);
         }
     }
 
@@ -724,6 +729,7 @@ Castro::Castro (Amr&            papa,
       if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         radiation = new Radiation(parent, this);
+        global::the_radiation_ptr = radiation;
       }
       radiation->regrid(level, grids, dmap);
 
@@ -1061,7 +1067,7 @@ Castro::initData ()
           const Box& box_x = mfi.nodaltilebox(0);
 
           amrex::ParallelFor(box_x,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // C++ MHD problem initialization; has no effect if not
               // implemented by a problem setup (defaults to an empty
@@ -1072,7 +1078,7 @@ Castro::initData ()
           const Box& box_y = mfi.nodaltilebox(1);
 
           amrex::ParallelFor(box_y,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // C++ MHD problem initialization; has no effect if not
               // implemented by a problem setup (defaults to an empty
@@ -1083,7 +1089,7 @@ Castro::initData ()
           const Box& box_z = mfi.nodaltilebox(2);
 
           amrex::ParallelFor(box_z,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // C++ MHD problem initialization; has no effect if not
               // implemented by a problem setup (defaults to an empty
@@ -1105,12 +1111,21 @@ Castro::initData ()
           auto s = S_new[mfi].array();
           auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+          amrex::ParallelForRNG(box,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k, amrex::RandomEngine const& engine) noexcept
+          {
+              // problem initialization
+              problem_initialize_state_data(i, j, k, s, geomdata, engine);
+          });
+#else
           amrex::ParallelFor(box,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // problem initialization
               problem_initialize_state_data(i, j, k, s, geomdata);
           });
+#endif
        }
 
 
@@ -1149,7 +1164,7 @@ Castro::initData ()
            Real lsmall_dens = small_dens;
 
            reduce_op.eval(bx, reduce_data,
-           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+           [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
            {
                // if the problem tried to initialize a thermodynamic
                // state that is at or below small_temp, then we abort.
@@ -1199,7 +1214,7 @@ Castro::initData ()
          auto S_arr = S_new.array(mfi);
 
          amrex::ParallelFor(bx,
-         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
          {
            Real spec_sum = 0.0_rt;
            for (int n = 0; n < NumSpec; n++) {
@@ -1287,7 +1302,7 @@ Castro::initData ()
              auto S_arr = Sborder.array(mfi);
 
              amrex::ParallelFor(box,
-             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
              {
 
                Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
@@ -1384,7 +1399,7 @@ Castro::initData ()
 #endif
 
           amrex::ParallelFor(box,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               // C++ problem initialization; has no effect if not implemented
               // by a problem setup (defaults to an empty routine).
@@ -2526,36 +2541,6 @@ Castro::okToContinue ()
     return test;
 }
 
-#ifdef AUX_UPDATE
-void
-Castro::advance_aux(Real time, Real dt)
-{
-    BL_PROFILE("Castro::advance_aux()");
-
-    if (verbose && ParallelDescriptor::IOProcessor()) {
-      std::cout << "... special update for auxiliary variables \n";
-    }
-
-    MultiFab&  S_old = get_old_data(State_Type);
-    MultiFab&  S_new = get_new_data(State_Type);
-
-#ifdef AMREX_USE_OMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& box = mfi.tilebox();
-        FArrayBox& old_fab = S_old[mfi];
-        FArrayBox& new_fab = S_new[mfi];
-        void ca_auxupdate(BL_TO_FORTRAN(old_fab),
-                          BL_TO_FORTRAN(new_fab),
-                          box.loVect(), box.hiVect(),
-                          &dt);
-    }
-}
-#endif
-
-
 void
 Castro::FluxRegCrseInit() {
     BL_PROFILE("Castro::FluxRegCrseInit");
@@ -2764,32 +2749,32 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
                 crse_lev.limit_hydro_fluxes_on_small_dens(nbx, idir, U, V, F, A, dt, scale_by_dAdt);
 #endif
                 amrex::ParallelFor(nbx,
-                                   [=] AMREX_GPU_DEVICE (int i, int j, int k)
-                                   {
-                                       bool zero_fluxes = false;
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                {
+                    bool zero_fluxes = false;
 
-                                       Real rho = U(i,j,k,URHO);
-                                       Real drhoV = F(i,j,k,URHO) / V(i,j,k);
-                                       Real rhoInvNew = 1.0_rt / (rho + drhoV);
+                    Real rho = U(i,j,k,URHO);
+                    Real drhoV = F(i,j,k,URHO) / V(i,j,k);
+                    Real rhoInvNew = 1.0_rt / (rho + drhoV);
 
-                                       for (int n = 0; n < NumSpec; ++n) {
-                                           Real rhoX = U(i,j,k,UFS+n);
-                                           Real drhoX = F(i,j,k,UFS+n) / V(i,j,k);
-                                           Real XNew = (rhoX + AMREX_SPACEDIM * drhoX) * rhoInvNew;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        Real rhoX = U(i,j,k,UFS+n);
+                        Real drhoX = F(i,j,k,UFS+n) / V(i,j,k);
+                        Real XNew = (rhoX + AMREX_SPACEDIM * drhoX) * rhoInvNew;
 
-                                           if (XNew < -castro::abundance_failure_tolerance ||
-                                               XNew > 1.0_rt + castro::abundance_failure_tolerance) {
-                                               zero_fluxes = true;
-                                               break;
-                                           }
-                                       }
+                        if (XNew < -castro::abundance_failure_tolerance ||
+                            XNew > 1.0_rt + castro::abundance_failure_tolerance) {
+                            zero_fluxes = true;
+                            break;
+                        }
+                    }
 
-                                       if (zero_fluxes) {
-                                           for (int n = 0; n < NUM_STATE; ++n) {
-                                               F(i,j,k,n) = 0.0;
-                                           }
-                                       }
-                                   });
+                    if (zero_fluxes) {
+                        for (int n = 0; n < NUM_STATE; ++n) {
+                            F(i,j,k,n) = 0.0;
+                        }
+                    }
+                });
             }
         }
 
@@ -3116,7 +3101,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // then normalize them so that they sum to 1.
 
         reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoX_sum = 0.0_rt;
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -3193,7 +3178,7 @@ Castro::enforce_consistent_e (
 #endif
 
         ParallelFor(box,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
           Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
           Real u = S_arr(i,j,k,UMX) * rhoInv;
@@ -3369,7 +3354,7 @@ Castro::enforce_speed_limit (MultiFab& state_in, int ng)
         auto u = state_in[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             Real rho = u(i,j,k,URHO);
             Real rhoInv = 1.0_rt / rho;
@@ -3457,12 +3442,12 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Apply each of the tagging criteria defined in the inputs.
 
-    for (int j = 0; j < error_tags.size(); j++) {
+    for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
-        if (!error_tags[j].Field().empty()) {
-            mf = derive(error_tags[j].Field(), time, error_tags[j].NGrow());
+        if (! etag.Field().empty()) {
+            mf = derive(etag.Field(), time, etag.NGrow());
         }
-        error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -3504,7 +3489,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             const GeometryData& geomdata = geom.data();
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 problem_tagging(i, j, k, tag_arr, state_arr, lev, geomdata);
             });
@@ -3563,7 +3548,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             auto tag = tags[mfi].array();
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 bool outer_boundary_test[3] = {false};
 
@@ -3607,7 +3592,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
         auto tag = tags[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             const Real* problo = geomdata.ProbLo();
             const Real* probhi = geomdata.ProbHi();
@@ -3700,7 +3685,7 @@ Castro::reset_internal_energy(const Box& bx,
     Real ldual_energy_eta2 = dual_energy_eta2;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         Real rhoInv = 1.0_rt / u(i,j,k,URHO);
         Real Up = u(i,j,k,UMX) * rhoInv;
@@ -3827,7 +3812,7 @@ Castro::add_magnetic_e( MultiFab& Bx,
 
 
       ParallelFor(box,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
           Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
@@ -3872,7 +3857,7 @@ Castro::check_div_B( MultiFab& Bx,
       const auto dx = geom.CellSizeArray();
 
       reduce_op.eval(box, reduce_data,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
       {
           
           Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
@@ -3961,7 +3946,6 @@ Castro::computeTemp(
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
-      const int idx = mfi.tileIndex();
 
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
@@ -4019,7 +4003,7 @@ Castro::computeTemp(
       Array4<Real> const u = u_fab.array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -4046,7 +4030,7 @@ Castro::computeTemp(
 
       if (clamp_ambient_temp == 1) {
           amrex::ParallelFor(bx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
@@ -4082,7 +4066,6 @@ Castro::computeTemp(
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
-      const int idx = mfi.tileIndex();
 
       tmp.resize(bx, 1);
       Elixir elix_tmp = tmp.elixir();
@@ -4293,7 +4276,7 @@ Castro::define_new_center(MultiFab& S, Real time)
         Real cen = data(mi[0], mi[1], mi[2]);
 
         amrex::ParallelFor(box,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) {
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept {
             data(i,j,k) -= cen;
         });
 
@@ -4412,10 +4395,10 @@ Castro::build_interior_boundary_mask (int ng)
 {
     BL_PROFILE("Castro::build_interior_boundary_mask()");
 
-    for (int i = 0; i < ib_mask.size(); ++i)
+    for (const auto & ibm : ib_mask)
     {
-        if (ib_mask[i]->nGrow() == ng) {
-            return *ib_mask[i];
+        if (ibm->nGrow() == ng) {
+            return *ibm;
         }
     }
 

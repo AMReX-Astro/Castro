@@ -45,8 +45,9 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
     AMREX_ASSERT(coord == 2);
 
     r_zone = p[0] - center[0];
-    Real r_r = problo[0]+static_cast<Real>(i+1)*dx_level[0];
-    Real r_l = problo[0]+static_cast<Real>(i)*dx_level[0];
+
+    Real r_r = p[0] + 0.5_rt * dx_level[0];
+    Real r_l = p[0] - 0.5_rt * dx_level[0];
     vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
         (r_r*r_r + r_l*r_r + r_l*r_l);
 

@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -91,10 +90,6 @@ Castro::advance (Real time,
     }
 
     for (int lev = level; lev <= max_level_to_advance; ++lev) {
-#ifdef AUX_UPDATE
-        getLevel(lev).advance_aux(time, dt);
-#endif
-
 #ifdef GRAVITY
         // Update the point mass.
         if (use_point_mass == 1) {
@@ -428,8 +423,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                 auto s = S_old[mfi].array();
                 auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+                amrex::Error("drive initial convection not yet supported for random initialization");
+#else
                 amrex::ParallelFor(box,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     // redo the problem initialization.  We want to preserve
                     // the current velocity though, so save that and then
@@ -449,6 +447,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                         (vx_orig * vx_orig + vy_orig * vy_orig + vz_orig * vz_orig);
 
                 });
+#endif
+
             }
 
         }
@@ -497,25 +497,24 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 
     if (time_integration_method == SpectralDeferredCorrections) {
 
-      MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
 
-      k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
+      k_new[0] = std::make_unique<MultiFab>(S_old, amrex::make_alias, 0, NUM_STATE);
       for (int n = 1; n < SDC_NODES; ++n) {
-        k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        k_new[n] = std::make_unique<MultiFab>(grids, dmap, NUM_STATE, 0);
         k_new[n]->setVal(0.0);
       }
 
       A_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
-        A_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_old[n] = std::make_unique<MultiFab>(grids, dmap, NUM_STATE, 0);
         A_old[n]->setVal(0.0);
       }
 
       A_new.resize(SDC_NODES);
-      A_new[0].reset(new MultiFab(*A_old[0], amrex::make_alias, 0, NUM_STATE));
+      A_new[0] = std::make_unique<MultiFab>(*A_old[0], amrex::make_alias, 0, NUM_STATE);
       for (int n = 1; n < SDC_NODES; ++n) {
-        A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_new[n] = std::make_unique<MultiFab>(grids, dmap, NUM_STATE, 0);
         A_new[n]->setVal(0.0);
       }
 
@@ -531,7 +530,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
 #ifdef REACTIONS
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
-        R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        R_old[n] = std::make_unique<MultiFab>(grids, dmap, NUM_STATE, 0);
         R_old[n]->setVal(0.0);
       }
 #endif

@@ -14,7 +14,7 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
                             (bc.lo(0) == FOEXTRAP || bc.lo(0) == HOEXTRAP);
@@ -73,7 +73,7 @@ ambient_fill(const Box& bx, Array4<Real> const& state,
     const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
                             (bcs(URHO).lo(0) == FOEXTRAP || bcs(URHO).lo(0) == HOEXTRAP);

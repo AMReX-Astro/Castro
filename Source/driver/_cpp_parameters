@@ -1,4 +1,4 @@
-# name   type   default   need in Fortran?   ifdef
+# name   type   default   ifdef
 #
 # note, name can have two values, as (a, b).  a will be the name used
 # in the inputs file, b is the variable name in the C++ class.
@@ -40,18 +40,18 @@ allow_non_unit_aspect_zones  int           0
 difmag                       Real          0.1
 
 # the small density cutoff.  Densities below this value will be reset
-small_dens                   Real         -1.e200             y
+small_dens                   Real         -1.e200
 
 # the small temperature cutoff.  Temperatures below this value will
 # be reset
-small_temp                   Real         -1.e200             y
+small_temp                   Real         -1.e200
 
 # the small pressure cutoff.  Pressures below this value will be reset
-small_pres                   Real         -1.e200             y
+small_pres                   Real         -1.e200
 
 # the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
-small_ener                   Real         -1.e200             y
+small_ener                   Real         -1.e200
 
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1
@@ -267,32 +267,6 @@ sdc_extra                    int           0
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1
 
-# relative tolerance for the nonlinear solve on rho with SDC
-sdc_solver_tol_dens           Real          1.e-6
-
-# relative tolerance for the nonlinear solve on rho X_k with SDC
-sdc_solver_tol_spec           Real          1.e-6
-
-# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
-sdc_solver_tol_ener           Real          1.e-6
-
-# absolute tolerance for species with SDC (this will be multiplied by
-# the current rho in the zone to define the absolute tolerance on (rho
-# X)).
-sdc_solver_atol               Real          1.e-10
-
-# factor by which to reduce the SDC solver tol for each iteration before the last
-# (e.g., for iteration k out of kmax iterations, the tol is
-# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
-sdc_solver_relax_factor      Real          1.0
-
-# do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
-sdc_solve_for_rhoe           int           1
-
-# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
-# for the VODE solver, we use integrator.jacobian instead
-sdc_newton_use_analytic_jac         int           1
-
 # for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
 use_axisymmetric_geom_source int           1
 
@@ -436,37 +410,37 @@ disable_shock_burning        int           0
 
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
-T_guess                     Real           1.e8               y
+T_guess                     Real           1.e8
 
 # if set to 1, we interpolate from the initial model to get the temperature
 # used to call the burner.  This prevents reactions from going nonlinear
 # and running away in place before a convective field is established.
-drive_initial_convection     int           0                  y
+drive_initial_convection     int           0
 
 # maximum time over which to do the drive_initial_convection procedure
-drive_initial_convection_tmax   Real       1.e200             y
+drive_initial_convection_tmax   Real       1.e200
 
 # frequency with which to re-initialize the thermodynamic data while preserving
 # the velocity field during drive_initial_convection
-drive_initial_convection_reinit_period   Real    1.e200      y
+drive_initial_convection_reinit_period   Real    1.e200
 
 #-----------------------------------------------------------------------------
 # category: diffusion
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  n     DIFFUSION
+diffuse_temp                 int           0                  DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            n     DIFFUSION
+diffuse_cutoff_density       Real          -1.e200            DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            n     DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200            DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                n     DIFFUSION
+diffuse_cond_scale_fac       Real          1.0                DIFFUSION
 
 
 #-----------------------------------------------------------------------------
@@ -487,89 +461,89 @@ grav_source_type             int           4
 do_rotation                  int          -1
 
 # the rotation period for the corotating frame
-rotational_period            Real         -1.e200             y        ROTATION
+rotational_period            Real         -1.e200             ROTATION
 
 # permits the centrifugal terms in the rotation to be turned on and off
-rotation_include_centrifugal int           1                  n        ROTATION
+rotation_include_centrifugal int           1                  ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
-rotation_include_coriolis    int           1                  n        ROTATION
+rotation_include_coriolis    int           1                  ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations
-rot_source_type              int           4                  n        ROTATION
+rot_source_type              int           4                  ROTATION
 
 # we can do a implicit solution of the rotation update to allow
 # for better coupling of the Coriolis terms
-implicit_rotation_update     int           1                  n        ROTATION
+implicit_rotation_update     int           1                  ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  n        ROTATION
+rot_axis                     int           3                  ROTATION
 
 # include a central point mass
-use_point_mass               int           0                  n        GRAVITY
+use_point_mass               int           0                  GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                n        GRAVITY
+point_mass                   Real          0.0                GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  n        GRAVITY
+point_mass_fix_solution      int           0                  GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
 # (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
-gw_dist                      Real          0.0                n        GRAVITY
+gw_dist                      Real          0.0                GRAVITY
 
 # This integer is used to activate parallel plane 1/r**2 gravity.
-point_mass_offset_is_true    int           0                  n        GRAVITY
+point_mass_offset_is_true    int           0                  GRAVITY
 
 # Distance, shifted from the origin, and used to compute the gravity on
-# plane parallel due to the action of an star with a radius given by this offset. 
+# plane parallel due to the action of an star with a radius given by this offset.
 
-point_mass_location_offset   Real          0.0                n        GRAVITY
+point_mass_location_offset   Real          0.0                GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: sponge
 #-----------------------------------------------------------------------------
 
 # Minimum simulation distance from center to start applying the sponge
-sponge_lower_radius          Real         -1.0                n        SPONGE
+sponge_lower_radius          Real         -1.0                SPONGE
 
 # Simulation distance from the center at which the sponge is fully applied
-sponge_upper_radius          Real         -1.0                n        SPONGE
+sponge_upper_radius          Real         -1.0                SPONGE
 
 # Minimum density at which to start applying the sponge
-sponge_lower_density         Real         -1.0                n        SPONGE
+sponge_lower_density         Real         -1.0                SPONGE
 
 # Density at which the sponge is fully applied
-sponge_upper_density         Real         -1.0                n        SPONGE
+sponge_upper_density         Real         -1.0                SPONGE
 
 # Minimum pressure at which to start applying the sponge
-sponge_lower_pressure        Real         -1.0                n        SPONGE
+sponge_lower_pressure        Real         -1.0                SPONGE
 
 # Pressure at which the sponge is fully applied
-sponge_upper_pressure        Real         -1.0                n        SPONGE
+sponge_upper_pressure        Real         -1.0                SPONGE
 
 # Scaling factor for the sponge below the low end
-sponge_lower_factor          Real          0.0                n        SPONGE
+sponge_lower_factor          Real          0.0                SPONGE
 
 # Scaling factor for the sponge above the high end
-sponge_upper_factor          Real          1.0                n        SPONGE
+sponge_upper_factor          Real          1.0                SPONGE
 
 # Target x-velocity for the sponge to drive to
-sponge_target_x_velocity     Real          0.0                n        SPONGE
+sponge_target_x_velocity     Real          0.0                SPONGE
 
 # Target y-velocity for the sponge to drive to
-sponge_target_y_velocity     Real          0.0                n        SPONGE
+sponge_target_y_velocity     Real          0.0                SPONGE
 
 # Target z-velocity for the sponge to drive to
-sponge_target_z_velocity     Real          0.0                n        SPONGE
+sponge_target_z_velocity     Real          0.0                SPONGE
 
 # Timescale on which the sponge operates
-sponge_timescale             Real         -1.0                n        SPONGE
+sponge_timescale             Real         -1.0                SPONGE
 
 
 #-----------------------------------------------------------------------------
@@ -587,7 +561,7 @@ bndry_func_thread_safe       int           1
 #-----------------------------------------------------------------------------
 
 # the factor by which to extend the domain upon restart for embiggening
-grown_factor                 int           1                  y
+grown_factor                 int           1
 
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               int          -1
@@ -698,7 +672,7 @@ do_radiation                 int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      AMREX_PARTICLES
+do_tracer_particles          int           0       AMREX_PARTICLES
 
 
 @namespace: particles
@@ -732,11 +706,11 @@ timestamp_temperature        int           0
 @namespace: gravity
 
 # what type
-gravity_type                 string        "fillme"           y
+gravity_type                 string        "fillme"
 
 
 # if doing constant gravity, what is the acceleration
-const_grav                   Real          0.0                y
+const_grav                   Real          0.0
 
 # Check if the user wants to compute the boundary conditions using the
 # brute force method.  Default is false, since this method is slow.
@@ -813,7 +787,7 @@ beta                         Real          1.0
 
 @namespace: radiation
 
-prop_temp_floor              Real          0.0                y
+prop_temp_floor              Real          0.0
 
 flatten_pp_threshold         Real          -1.0
 
@@ -857,4 +831,3 @@ plot_lab_flux                int           0
 
 # do we plot the comoving frame radiation flux?
 plot_com_flux                int           0
-

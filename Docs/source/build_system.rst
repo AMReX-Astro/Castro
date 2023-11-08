@@ -177,13 +177,6 @@ Hydrodynamics and Source Term Parameters
 Simulation Flow Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  * ``USE_AUX_UPDATE``: some networks define auxiliary quantities, which in general
-    Castro will advect, but not otherwise change.  If we set ``USE_AUX_UPDATE=TRUE``
-    then Castro will call a user-supplied routine ``advance_aux()`` that can
-    change the auxiliary quantities.
-
-    .. index:: USE_AUX_UPDATE
-
   * ``USE_POST_SIM``: if this is defined, then Castro will call the user-defined 
     routine ``problem_post_simulation()`` after the full evolution of the problem
     has ended.

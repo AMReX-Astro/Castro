@@ -5,6 +5,7 @@
 #include <eos.H>
 #include <model_parser.H>
 #include <initial_model.H>
+#include <global.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -37,8 +38,14 @@ void problem_initialize ()
 
     // we'll generate the initial model at the needed resolution
 
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
+
     int nx = (2.0_rt * problem::center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
-        problem::dx_model;
+        dx_model;
 
     model_t model_params;
     model_params.dens_base = problem::dens_base;

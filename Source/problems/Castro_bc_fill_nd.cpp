@@ -23,13 +23,13 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // valid data is always present.
 
     Vector<BCRec> bcr_noinflow{bcr};
-    for (int i = 0; i < bcr_noinflow.size(); ++i) {
+    for (auto & bc : bcr_noinflow) {
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            if (bcr_noinflow[i].lo(dir) == EXT_DIR) {
-                bcr_noinflow[i].setLo(dir, FOEXTRAP);
+            if (bc.lo(dir) == EXT_DIR) {
+                bc.setLo(dir, FOEXTRAP);
             }
-            if (bcr_noinflow[i].hi(dir) == EXT_DIR) {
-                bcr_noinflow[i].setHi(dir, FOEXTRAP);
+            if (bc.hi(dir) == EXT_DIR) {
+                bc.setHi(dir, FOEXTRAP);
             }
         }
     }
@@ -117,7 +117,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         problem_bc_fill(i, j, k, state, time, bcs, geomdata);
     });

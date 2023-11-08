@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_util.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -40,7 +39,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   GeometryData geomdata = geom.data();
 #endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
   int coord = geom.Coord();
 #endif
 
@@ -216,7 +215,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const rho_inv_arr = rho_inv.array();
 
       amrex::ParallelFor(qbx3,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
       });
@@ -268,7 +267,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
       else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
           shk_arr(i,j,k) = 0.0;
         });
@@ -285,7 +284,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
       amrex::ParallelFor(qbx3,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
@@ -1170,7 +1169,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1242,7 +1241,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto dx_arr = geom.CellSizeArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
           GpuArray<Real, 3> loc;
@@ -1314,14 +1313,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
             // get the scaled radial pressure -- we need to treat this specially
 #if AMREX_SPACEDIM <= 2
-
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-#endif
                 amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
@@ -1346,7 +1340,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
 
             amrex::ParallelFor(mfi.nodaltilebox(idir), NUM_STATE,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
@@ -1356,24 +1350,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
 
             amrex::ParallelFor(mfi.nodaltilebox(idir), Radiation::nGroups,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
 #endif
 
 #if AMREX_SPACEDIM <= 2
-
-#if AMREX_SPACEDIM == 1
-            if (idir == 0 && !Geom().IsCartesian()) {
-#elif AMREX_SPACEDIM == 2
             if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-#endif
                 Array4<Real> pradial_fab = pradial.array();
                 Array4<Real> P_radial_fab = P_radial.array(mfi);
 
                 amrex::ParallelFor(mfi.nodaltilebox(0),
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
@@ -1387,7 +1376,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
         amrex::ParallelFor(mfi.nodaltilebox(idir),
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             // This is a copy, not an add, since we need mass_fluxes to be
             // only this subcycle's data when we evaluate the gravitational

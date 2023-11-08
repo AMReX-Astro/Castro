@@ -2,12 +2,12 @@
 
 #include <Derive.H>
 #include <Castro.H>
-#include <Castro_F.H>
+#include <Radiation.H>
 #include <prob_parameters.H>
 #include <extern_parameters.H>
+#include <global.H>
 #include <gravity_params.H>
 #include <problem_util.H>
-#include <RAD_F.H>
 
 using namespace amrex;
 
@@ -24,10 +24,12 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   GpuArray<Real, NGROUPS> nugroup = {0.0};
-  ca_get_nugroup(nugroup.begin());
-
   GpuArray<Real, NGROUPS> dnugroup = {0.0};
-  ca_get_dnugroup(dnugroup.begin());
+
+  for (int i = 0; i < NGROUPS; ++i) {
+      nugroup[i] = global::the_radiation_ptr->nugroup[i];
+      dnugroup[i] = global::the_radiation_ptr->dnugroup[i];
+  }
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)

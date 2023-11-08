@@ -622,7 +622,7 @@ get a sense of these is to look at the ``.H`` files in the
 ------------------
 
 There is a ``Geometry`` object, ``geom`` for each level as part of
-the ``Castro`` object (this is inhereted through ``AmrLevel``).
+the ``Castro`` object (this is inherited through ``AmrLevel``).
 
 ``ParmParse`` class
 -------------------

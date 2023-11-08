@@ -14,7 +14,7 @@ USE_REACT = TRUE
 USE_DIFFUSION = TRUE
 
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law
@@ -24,7 +24,9 @@ NETWORK_DIR := powerlaw
 
 CONDUCTIVITY_DIR := constant
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

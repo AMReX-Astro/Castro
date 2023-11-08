@@ -130,9 +130,6 @@ the same time and each line corresponds to each particle info. while
 in the other output file for the other 6 particles, 6 lines are stored
 at the same time.
 
-If ``particles.write_in_plotfile`` = 1, the particle data are stored
-in a binary file along with the main CASTRO output plotfile in
-directories ``pltXXXXX/Tracer/``.
 
 Run-time Screen Output
 ----------------------

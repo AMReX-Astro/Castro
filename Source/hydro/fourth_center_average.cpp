@@ -18,8 +18,8 @@ Castro::make_cell_center(const Box& bx,
   auto U_lo = lbound(U);
   auto U_hi = ubound(U);
 
-  auto lo = bx.loVect();
-  auto hi = bx.hiVect();
+  const auto *lo = bx.loVect();
+  const auto *hi = bx.hiVect();
 
   AMREX_ASSERT(U_lo.x <= lo[0]-1 && U_hi.x >= hi[0]+1);
 #if AMREX_SPACEDIM >= 2
@@ -40,7 +40,7 @@ Castro::make_cell_center(const Box& bx,
   }
 
   amrex::ParallelFor(bx, U.nComp(),
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
     Real lap = compute_laplacian(i, j, k, n, U,
                                  lo_periodic, hi_periodic, domlo, domhi);
@@ -75,14 +75,14 @@ Castro::make_cell_center_in_place(const Box& bx,
   for (int n = 0; n < U.nComp(); n++) {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
       tmp(i,j,k) = compute_laplacian(i, j, k, n, U,
                                      lo_periodic, hi_periodic, domlo, domhi);
     });
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
       U(i,j,k,n) = U(i,j,k,n) - (1.0_rt/24.0_rt) * tmp(i,j,k);
     });
@@ -110,7 +110,7 @@ Castro::compute_lap_term(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     lap(i,j,k) = (1.0_rt/24.0_rt) *
       compute_laplacian(i, j, k, ncomp, U,
@@ -141,7 +141,7 @@ Castro::make_fourth_average(const Box& bx,
   }
 
   amrex::ParallelFor(bx, q.nComp(),
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
     Real lap = compute_laplacian(i, j, k, n, q_bar,
                                  lo_periodic, hi_periodic, domlo, domhi);
@@ -191,14 +191,14 @@ Castro::make_fourth_in_place_n(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     tmp(i,j,k) = compute_laplacian(i, j, k, ncomp, q,
                                    lo_periodic, hi_periodic, domlo, domhi);
   });
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     q(i,j,k,ncomp) += (1.0_rt/24.0_rt) * tmp(i,j,k);
   });

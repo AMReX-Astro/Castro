@@ -7,6 +7,7 @@
 #include <initial_model.H>
 #include <network.H>
 #include <ambient.H>
+#include <global.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -133,9 +134,14 @@ void problem_initialize ()
         amrex::Error("ERROR: fuel mass fractions don't sum to 1");
     }
 
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
 
     int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] -
-                                     problo[AMREX_SPACEDIM-1]) / problem::dx_model);
+                                     problo[AMREX_SPACEDIM-1]) / dx_model);
 
     int ng = 4;
 
@@ -152,7 +158,7 @@ void problem_initialize ()
     model_params.low_density_cutoff = problem::low_density_cutoff;
 
     generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng*problem::dx_model,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params);
 

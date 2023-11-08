@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <cmath>
 
@@ -23,7 +22,7 @@ Castro::uflatten(const Box& bx,
   constexpr Real dzcut = 1.0_rt / (zcut2-zcut1);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // x-direction flattening coef
