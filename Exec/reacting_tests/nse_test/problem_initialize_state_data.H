@@ -67,8 +67,11 @@ void problem_initialize_state_data (int i, int j, int k,
     Real abar;
     Real dq;
     Real dyedt;
+    Real dabardt;
+    Real dbeadt;
+    Real e_nu;
 
-    nse_interp(T, problem::rho0, ye, abar, dq, dyedt, burn_state.xn);
+    nse_interp(T, problem::rho0, ye, abar, dq, dyedt, dabardt, dbeadt, e_nu, burn_state.xn);
 #elif defined(NSE_NET)
     Real eps = 1.e-10_rt;
     bool input_ye_is_valid = true;
