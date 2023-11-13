@@ -29,12 +29,8 @@ CEXE_headers += HABEC.H
 CEXE_headers += filter.H
 CEXE_headers += filt_prim.H
 
-FEXE_headers += RAD_F.H
-
 CEXE_sources += trace_ppm_rad.cpp
 
-ca_F90EXE_sources += rad_params.F90
-ca_F90EXE_sources += Rad_nd.F90
 CEXE_headers += fluxlimiter.H
 CEXE_headers += RadHydro.H
 

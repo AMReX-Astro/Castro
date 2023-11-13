@@ -82,10 +82,13 @@ void problem_initialize_state_data (int i, int j, int k,
         Real abar;
         Real dq;
         Real dyedt;
+        Real dabardt;
+        Real dbeadt;
+        Real e_nu;
         Real xn[NumSpec];
 
         nse_interp(state(i,j,k,UTEMP), state(i,j,k,URHO),
-                   state(i,j,k,UFX+AuxZero::iye), abar, dq, dyedt, xn);
+                   state(i,j,k,UFX+AuxZero::iye), abar, dq, dyedt, dabardt, dbeadt, e_nu, xn);
 
         state(i,j,k,UFX+AuxZero::iabar) = abar;
         state(i,j,k,UFX+AuxZero::ibea) = dq;

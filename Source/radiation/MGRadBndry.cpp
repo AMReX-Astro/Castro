@@ -10,8 +10,6 @@
 #include <omp.h>
 #endif
 
-#include <RAD_F.H>
-
 using namespace amrex;
 
 int         MGRadBndry::ngroups = 1;

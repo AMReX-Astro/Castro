@@ -15,6 +15,7 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
+#include <global.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -23,7 +24,6 @@
 
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -729,6 +729,7 @@ Castro::Castro (Amr&            papa,
       if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         radiation = new Radiation(parent, this);
+        global::the_radiation_ptr = radiation;
       }
       radiation->regrid(level, grids, dmap);
 

@@ -16,7 +16,7 @@ USE_ROTATION  = TRUE
 USE_DIFFUSION = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 USE_JACOBIAN_CACHING = TRUE
 USE_MODEL_PARSER = TRUE
@@ -32,7 +32,9 @@ INTEGRATOR_DIR := VODE
 
 CONDUCTIVITY_DIR := stellar
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro
