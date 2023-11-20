@@ -58,7 +58,7 @@ void problem_initialize ()
        problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::nfrac - problem::ofrac - (NumSpec - 3) * problem::smallx;
     }
     else {
-       problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::nfrac - problem::ofrac - (NumSpec - 3) * problem::smallx;
+       problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::ofrac - (NumSpec - 2) * problem::smallx;
     }
 
     // Set the ambient material
