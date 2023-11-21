@@ -59,7 +59,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 50     # number of timesteps between checkpoints
+amr.check_int       = 10     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
 amr.plot_per = 0.2
@@ -83,7 +83,7 @@ castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
+problem.model_name =  "15m_500_sec.aprox19.hse.10.0km"
 
 problem.perturb_model = 1
 problem.velpert_amplitude = 5.e6
