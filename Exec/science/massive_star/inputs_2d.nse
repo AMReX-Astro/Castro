@@ -77,7 +77,7 @@ castro.store_burn_weights = 1
 castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 castro.use_retry = 1
 castro.max_subcycles = 16
 
