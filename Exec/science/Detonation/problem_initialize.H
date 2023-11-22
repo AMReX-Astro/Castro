@@ -53,7 +53,7 @@ void problem_initialize ()
     problem::xn[problem::ic12] = amrex::max(problem::cfrac, problem::smallx);
     problem::xn[problem::io16] = amrex::max(problem::ofrac, problem::smallx);
 
-    if (!problem::in14 < 0) {
+    if (problem::in14 >= 0) {
        problem::xn[problem::in14] = amrex::max(problem::nfrac, problem::smallx);
        problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::nfrac - problem::ofrac - (NumSpec - 3) * problem::smallx;
     }
