@@ -58,12 +58,12 @@ castro.sponge_upper_density = 1.e4
 castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.e-3
 
-castro.cfl            = 0.4     # cfl number for hyperbolic system
+castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.05     # scale back initial timestep by this factor
 castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
 castro.update_sources_after_reflux = 0
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 
 castro.use_retry = 1
 castro.retry_subcycle_factor = 0.5
@@ -133,7 +133,7 @@ integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-8
-integrator.jacobian = 2
+integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
 
