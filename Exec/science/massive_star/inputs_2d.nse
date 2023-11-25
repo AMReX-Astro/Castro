@@ -115,6 +115,8 @@ integrator.jacobian = 1
 network.rho_nse = 1.e7
 network.T_nse = 3.e9
 
+integrator.ode_max_steps = 500000
+
 network.small_x = 1.e-10
 
 network.nse_relax_factor = 0.9
