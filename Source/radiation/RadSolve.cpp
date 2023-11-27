@@ -7,7 +7,6 @@
 #include <Radiation.H>  // for access to static physical constants only
 #include <rad_util.H>
 #include <problem_rad_source.H>
-#include <RAD_F.H>
 
 #include <iostream>
 

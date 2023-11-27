@@ -2,8 +2,6 @@
 #include <Radiation.H>
 #include <fluxlimiter.H>
 
-#include <RAD_F.H>
-
 using namespace amrex;
 
 void Radiation::save_lambda_in_plotvar(int level, const Array<MultiFab,AMREX_SPACEDIM>& lambda)
