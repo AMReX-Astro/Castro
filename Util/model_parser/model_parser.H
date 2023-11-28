@@ -64,6 +64,10 @@ namespace model_string
 }
 
 
+///
+/// return the index into the model coordinate such that
+/// model::profile(model_index).r(lo) < r < model::profile(model_index).r(hi)
+///
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
 locate(const Real r, const int model_index) {
@@ -74,7 +78,7 @@ locate(const Real r, const int model_index) {
        loc = 0;
 
     } else if (r > model::profile(model_index).r(model::npts-2)) {
-       loc = model::npts-1;
+       loc = model::npts-2;
 
     } else {
 
@@ -100,11 +104,7 @@ locate(const Real r, const int model_index) {
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
-interpolate(const Real r, const int var_index, const int model_index=0) {
-
-    // find the value of model_state component var_index at point r
-    // using linear interpolation.  Eventually, we can do something
-    // fancier here.
+linear_interpolate(const Real r, const int var_index, const int model_index=0) {
 
     int id = locate(r, model_index);
 
@@ -119,12 +119,11 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
        interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
 
        // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::profile(model_index).state(id+1, var_index),
+       Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
                                 model::profile(model_index).state(id, var_index));
-       Real maxvar = amrex::max(model::profile(model_index).state(id+1, var_index),
+       Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
                                 model::profile(model_index).state(id, var_index));
-       interp = amrex::max(interp, minvar);
-       interp = amrex::min(interp, maxvar);
+       interp = std::clamp(interp, minvar, maxvar);
 
     } else if (id == model::npts-1) {
 
@@ -135,12 +134,11 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
 
 
        // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::profile(model_index).state(id-1, var_index),
+       Real minvar = std::min(model::profile(model_index).state(id-1, var_index),
                                 model::profile(model_index).state(id, var_index));
-       Real maxvar = amrex::max(model::profile(model_index).state(id-1, var_index),
+       Real maxvar = std::max(model::profile(model_index).state(id-1, var_index),
                                 model::profile(model_index).state(id, var_index));
-       interp = amrex::max(interp, minvar);
-       interp = amrex::min(interp, maxvar);
+       interp = std::clamp(interp, minvar, maxvar);
 
     } else {
 
@@ -166,9 +164,73 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
 
 }
 
-// Subsample the interpolation to get an averaged profile. For this we need to know the
-// 3D coordinate (relative to the model center) and cell size.
 
+AMREX_INLINE AMREX_GPU_HOST_DEVICE
+Real
+cubic_interpolate(const Real r, const int var_index, const int model_index=0) {
+
+    int id = locate(r, model_index);
+    // we will use 4 zones, id-1, id, id+1, id+2
+    // make sure all are valid indices
+    id = std::clamp(id, 1, model::npts-3);
+
+    // note: we are assuming that everything is equally spaced here
+
+    // fit a cubic of the form
+    // v(r) = a (r - r_i)**3 + b (r - r_i)**2 + c (r - r_i) + d
+    // to the data (rs, vs)
+    // we take r_i to be r[1]
+
+    const Real vs[4] = {model::profile(model_index).state(id-1, var_index),
+                        model::profile(model_index).state(id, var_index),
+                        model::profile(model_index).state(id+1, var_index),
+                        model::profile(model_index).state(id+2, var_index)};
+
+    const Real rs[4] = {model::profile(model_index).r(id-1),
+                        model::profile(model_index).r(id),
+                        model::profile(model_index).r(id+1),
+                        model::profile(model_index).r(id+2)};
+
+    const Real dx = rs[1] - rs[0];
+
+    Real a = (3 * vs[1] - 3 * vs[2] + vs[3] - vs[0]) / (6 * std::pow(dx, 3));
+    Real b = (-2 * vs[1] + vs[2] + vs[0]) / (2 * dx * dx);
+    Real c = (-3 * vs[1] + 6 * vs[2] - vs[3] - 2 * vs[0]) / (6 * dx);
+    Real d = vs[1];
+
+    Real interp = a * std::pow(r - rs[1], 3) + b * std::pow(r - rs[1], 2) + c * (r - rs[1]) + d;
+
+    // safety check to make sure interp lies within the bounding points
+    Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
+                             model::profile(model_index).state(id, var_index));
+    Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
+                           model::profile(model_index).state(id, var_index));
+    interp = std::clamp(interp, minvar, maxvar);
+
+    return interp;
+}
+
+
+///
+/// Find the value of model_state component var_index at point r.
+/// This is a wrapper for the specific implementation of the interpolation.
+///
+AMREX_INLINE AMREX_GPU_HOST_DEVICE
+Real
+interpolate(const Real r, const int var_index, const int model_index=0) {
+
+    if (model_interpolation_method == 0) {
+        return linear_interpolate(r, var_index, model_index);
+    } else {
+        return cubic_interpolate(r, var_index, model_index);
+    }
+}
+
+
+///
+/// Subsample the interpolation to get an averaged profile. For this we need to know the
+/// 3D coordinate (relative to the model center) and cell size.
+///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 1, int model_index = 0)
 {
