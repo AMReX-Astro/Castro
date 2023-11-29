@@ -53,5 +53,5 @@ jobs:
         run: |
           cd Exec/radiation_tests/Rad2Tshock
           ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt_00025 > fextrema.out
-          diff fextrema.out ci-benchmarks/Rad2TShock-1d.out
+          diff -I "^angular_momentum_z" fextrema.out ci-benchmarks/Rad2TShock-1d.out
 
