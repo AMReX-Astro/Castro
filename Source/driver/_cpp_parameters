@@ -558,9 +558,6 @@ sponge_timescale             Real         -1.0                SPONGE
 # category: parallelization
 #-----------------------------------------------------------------------------
 
-# determines whether we use accelerators for specific loops
-do_acc                       int          -1
-
 bndry_func_thread_safe       int           1
 
 
