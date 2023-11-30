@@ -19,7 +19,6 @@ void problem_initialize ()
 
     read_model_file(problem::model_name);
 
-
 #if AMREX_SPACEDIM == 1
     problem::center[0] = 0.0_rt;
 
