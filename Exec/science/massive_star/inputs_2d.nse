@@ -83,7 +83,7 @@ castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.10.0km"
+problem.model_name =  "15m_500_sec.aprox19.hse.10.00km"
 
 problem.perturb_model = 1
 problem.velpert_amplitude = 5.e6
