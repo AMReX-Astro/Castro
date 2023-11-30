@@ -14,7 +14,7 @@ USE_ALL_CASTRO = FALSE
 USE_AMR_CORE = FALSE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  ?= ../..
+CASTRO_HOME  ?= ../../..
 
 USE_MODEL_PARSER = TRUE
 NUM_MODELS := 2
