@@ -1,8 +1,8 @@
-name: exact Riemann
+name: model parser
 
 on: [pull_request]
 jobs:
-  exact_riemann:
+  model_parser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
