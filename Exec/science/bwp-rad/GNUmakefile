@@ -19,7 +19,7 @@ USE_REACT        = FALSE
 
 USE_MODEL_PARSER = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law
@@ -31,7 +31,9 @@ NETWORK_INPUTS := H_He.net
 # power-law opacity
 Opacity_dir := rad_power_law
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

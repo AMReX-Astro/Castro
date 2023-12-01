@@ -12,7 +12,7 @@ USE_OMP    = FALSE
 
 USE_REACT  = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
@@ -21,7 +21,9 @@ EOS_DIR     := helmholtz
 NETWORK_DIR := aprox19
 USE_NSE_TABLE = TRUE
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

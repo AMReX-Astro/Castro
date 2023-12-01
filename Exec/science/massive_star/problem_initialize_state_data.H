@@ -33,6 +33,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = interpolate(dist, model::idens);
     state(i,j,k,UTEMP) = interpolate(dist, model::itemp);
+    Real pres = interpolate(dist, model::ipres);
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = amrex::max(interpolate(dist, model::ispec+n), small_x);
     }
@@ -82,10 +83,13 @@ void problem_initialize_state_data (int i, int j, int k,
         Real abar;
         Real dq;
         Real dyedt;
+        Real dabardt;
+        Real dbeadt;
+        Real e_nu;
         Real xn[NumSpec];
 
         nse_interp(state(i,j,k,UTEMP), state(i,j,k,URHO),
-                   state(i,j,k,UFX+AuxZero::iye), abar, dq, dyedt, xn);
+                   state(i,j,k,UFX+AuxZero::iye), abar, dq, dyedt, dabardt, dbeadt, e_nu, xn);
 
         state(i,j,k,UFX+AuxZero::iabar) = abar;
         state(i,j,k,UFX+AuxZero::ibea) = dq;
@@ -113,22 +117,29 @@ void problem_initialize_state_data (int i, int j, int k,
         }
     }
 
-    // now call the EOS -- reload the eos_state since composition may
-    // have changed
+    // now call the EOS -- we need to use an eos_t here since we are
+    // going to take pressure as an input
 
-    burn_state.rho = state(i,j,k,URHO);
-    burn_state.T = state(i,j,k,UTEMP);
+    eos_t eos_state;
+    eos_state.rho = state(i,j,k,URHO);
+    eos_state.T = state(i,j,k,UTEMP);
+    eos_state.p = pres;
     for (int n = 0; n < NumSpec; n++) {
-        burn_state.xn[n] = state(i,j,k,UFS+n);
+        eos_state.xn[n] = state(i,j,k,UFS+n);
     }
     for (int n = 0; n < NumAux; n++) {
-        burn_state.aux[n] = state(i,j,k,UFX+n);
+        eos_state.aux[n] = state(i,j,k,UFX+n);
     }
 
-    eos(eos_input_rt, burn_state);
+    if (problem::interpolate_pres == 1) {
+        eos(eos_input_rp, eos_state);
+        state(i,j,k,UTEMP) = eos_state.T;
+    } else {
+        eos(eos_input_rt, eos_state);
+    }
 
-    state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
-    state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
+    state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
 
     // add density scaling to composition
 
