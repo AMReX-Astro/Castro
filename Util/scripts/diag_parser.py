@@ -55,7 +55,12 @@ FIELD_WIDTHS = {
 def read_diag_file(file_path, dedupe=True):
     """Reads a Castro diagnostic file into a numpy structured array.
 
-    Currently only supports the default files that Castro generates.
+    The output can be used directly (the functions in numpy.lib.recfunctions
+    are helpful for this), or converted into a Pandas dataframe (recommended if
+    you plan to do any non-trivial processing).
+
+    Currently only supports the default files that Castro generates, not any of
+    the problem-specific ones.
     """
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
