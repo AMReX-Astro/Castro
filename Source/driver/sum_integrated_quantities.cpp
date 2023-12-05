@@ -359,7 +359,7 @@ Castro::sum_integrated_quantities ()
                    header << std::endl;
 
                    data_log1 << std::setw(intwidth) << "#   COLUMN 1";
-                   data_log1 << std::setw(fixwidth) << "                        2";
+                   data_log1 << std::setw(fixwidth) << 2;
 
                    for (int icol = 3; icol <= n; ++icol) {
                        data_log1 << std::setw(datwidth) << icol;
@@ -482,27 +482,28 @@ Castro::sum_integrated_quantities ()
 
             if (time == 0.0) {
 
-                log << std::setw(intwidth) << "#   COLUMN 1";
-                log << std::setw(fixwidth) << "                         2";
-                log << std::setw(fixwidth) << "                         3";
-                log << std::setw(fixwidth) << "                         4";
-                log << std::setw(fixwidth) << "                         5";
-                log << std::setw(fixwidth) << "                         6";
-                log << std::setw(fixwidth) << "                         7";
+                int n = 0;
 
                 std::ostringstream header;
 
-                header << std::setw(intwidth) << "#   TIMESTEP";
-                header << std::setw(fixwidth) << "                     TIME";
+                header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                header << std::setw(fixwidth) << "                     TIME"; ++n;
 
-                header << std::setw(datwidth) << "             h_+ (x)";
-                header << std::setw(datwidth) << "             h_x (x)";
-                header << std::setw(datwidth) << "             h_+ (y)";
-                header << std::setw(datwidth) << "             h_x (y)";
-                header << std::setw(datwidth) << "             h_+ (z)";
-                header << std::setw(datwidth) << "             h_x (z)";
+                header << std::setw(datwidth) << "                  h_+ (x)"; ++n;
+                header << std::setw(datwidth) << "                  h_x (x)"; ++n;
+                header << std::setw(datwidth) << "                  h_+ (y)"; ++n;
+                header << std::setw(datwidth) << "                  h_x (y)"; ++n;
+                header << std::setw(datwidth) << "                  h_+ (z)"; ++n;
+                header << std::setw(datwidth) << "                  h_x (z)"; ++n;
 
                 header << std::endl;
+
+                log << std::setw(intwidth) << "#   COLUMN 1";
+                log << std::setw(fixwidth) << 2;
+
+                for (int i = 3; i <= n; ++i) {
+                    log << std::setw(datwidth) << i;
+                }
 
                 log << std::endl;
 
@@ -589,27 +590,17 @@ Castro::sum_integrated_quantities ()
 
                 std::ostringstream header;
 
-                header << std::setw(intwidth) << "#   TIMESTEP";           ++n;
-                header << std::setw(fixwidth) << "                  TIME"; ++n;
-
-                // We need to be careful here since the species names have differing numbers of characters
+                header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                header << std::setw(fixwidth) << "                     TIME"; ++n;
 
                 for (int i = 0; i < NumSpec; i++) {
-                    std::string outString{};
-                    std::string massString{"Mass "};
-                    std::string specString{species_names[i]};
-                    while (static_cast<int>(outString.length() + specString.length() + massString.length()) < datwidth) {
-                        outString += " ";
-                    }
-                    outString += massString;
-                    outString += specString;
-                    header << std::setw(datwidth) << outString; ++n;
+                    header << std::setw(datwidth) << ("Mass " + species_names[i]); ++n;
                 }
 
                 header << std::endl;
 
                 log << std::setw(intwidth) << "#   COLUMN 1";
-                log << std::setw(fixwidth) << "                        2";
+                log << std::setw(fixwidth) << 2;
 
                 for (int i = 3; i <= n; ++i) {
                     log << std::setw(datwidth) << i;
@@ -694,19 +685,19 @@ Castro::sum_integrated_quantities ()
                 header << std::setw(fixwidth) << "                       DT"; ++n;
                 header << std::setw(intwidth) << "  FINEST LEV";              ++n;
                 header << std::setw(fixwidth) << "  MAX NUMBER OF SUBCYCLES"; ++n;
-                header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
+                header << std::setw(datwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
 #ifdef AMREX_USE_GPU
-                header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
-                header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
+                header << std::setw(datwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
+                header << std::setw(datwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
 #endif
 
                 header << std::endl;
 
                 log << std::setw(intwidth) << "#   COLUMN 1";
-                log << std::setw(fixwidth) << "                        2";
+                log << std::setw(fixwidth) << 2;
 
                 for (int i = 3; i < 4; ++i) {
-                    log << std::setw(datwidth) << i;
+                    log << std::setw(fixwidth) << i;
                 }
 
                 log << std::setw(intwidth) << 4; // Handle the finest lev column
