@@ -8,6 +8,7 @@ RUNPARAMS="
 castro.time_integration_method=3
 problem.u0=1.e8
 problem.v0=1.e8
+integrator.nse_deriv_dt_factor=0.01
 "
 
 mpiexec -n 8 ${EXEC} inputs.64 ${RUNPARAMS} >& /dev/null

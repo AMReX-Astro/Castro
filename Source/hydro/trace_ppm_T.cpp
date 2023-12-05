@@ -72,7 +72,6 @@ Castro::trace_ppm_T(const Box& bx,
 
   GpuArray<int, NQSRC> do_source_trace;
 
-
   for (int n = 0; n < NQSRC; n++) {
     do_source_trace[n] = 0;
 
@@ -151,7 +150,7 @@ Castro::trace_ppm_T(const Box& bx,
     eos_state.rho = rho;
     eos_state.T = T;
     for (int n = 0; n < NumSpec; ++n) {
-        eos_state.xn[n] = q_arr(i,j,k,QFS+n);
+        eos_state.xn[n] = U_arr(i,j,k,UFS+n) * rho_inv_arr(i,j,k);
     }
 
     eos(eos_input_rt, eos_state);
@@ -171,7 +170,6 @@ Castro::trace_ppm_T(const Box& bx,
 
     Real sm;
     Real sp;
-
 
     // reconstruct density
 
@@ -218,7 +216,6 @@ Castro::trace_ppm_T(const Box& bx,
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_utt_1, Im_utt_1);
 
-
     // source terms -- we only trace if the terms in the stencil are non-zero
     int do_trace;
 
@@ -260,7 +257,6 @@ Castro::trace_ppm_T(const Box& bx,
     }
 
     // T would go here, but we don't currently fill temperature sources
-
 
     // transverse velocities
 
