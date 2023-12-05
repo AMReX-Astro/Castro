@@ -562,7 +562,15 @@ By default, 4 output files are created:
 
        The species masses are given in units of solar masses.
 
-Some problems have custom versions of the diagnostics with additional information.
+``Castro/Util/scripts/diag_parser.py`` contains Python code for parsing
+these output files into Numpy arrays.  Usage instructions are included
+in the file, along with an example script at
+``Castro/Util/scripts/plot_species.py``.  This reads a
+``species_diag.out`` file provided on the command line and makes a plot
+of the total mass fractions over time.
+
+Some problems have custom versions of the diagnostics with additional
+information.  These are not currently supported by the Python parser.
 
 
 .. _sec:parallel_io:
