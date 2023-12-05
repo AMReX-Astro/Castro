@@ -84,7 +84,13 @@ def read_diag_file(file_path):
                 dtypes[7] = int  # minimum gpu memory free
         # already read the first header line, so we don't need to skip any rows
         data = np.genfromtxt(
-            f, delimiter=widths, comments="#", dtype=dtypes, names=True
+            f,
+            delimiter=widths,
+            comments="#",
+            dtype=dtypes,
+            names=True,
+            deletechars="",
+            replace_space=None,
         )
     return data
 
