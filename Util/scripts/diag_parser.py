@@ -10,7 +10,7 @@ To use these in a standalone script, you can do one of the following:
 
 * copy this file into the same directory as your script
 
-Then you can do `from diag_parser import deduplicate, read_diag_file`.
+Then you can do `from diag_parser import read_diag_file`.
 """
 
 from pathlib import Path
@@ -52,7 +52,7 @@ FIELD_WIDTHS = {
 }
 
 
-def read_diag_file(file_path):
+def read_diag_file(file_path, dedupe=True):
     """Reads a Castro diagnostic file into a numpy structured array.
 
     Currently only supports the default files that Castro generates.
@@ -92,6 +92,8 @@ def read_diag_file(file_path):
             deletechars="",
             replace_space=None,
         )
+    if dedupe:
+        data = deduplicate(data)
     return data
 
 
