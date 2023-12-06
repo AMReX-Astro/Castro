@@ -5,13 +5,11 @@ import os
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-from mpl_toolkits.axes_grid1 import ImageGrid
 
 import yt
 from yt.frontends.boxlib.api import CastroDataset
 # assume that our data is in CGS
-from yt.units import amu, cm
+from yt.units import cm
 
 matplotlib.use('agg')
 
