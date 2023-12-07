@@ -4,11 +4,13 @@
 #include <cmath>
 
 #include <ppm.H>
+#include <reconstruction.H>
 #include <flatten.H>
 
 #include <network.H>
 
 using namespace amrex;
+using namespace reconstruction;
 
 void
 Castro::trace_ppm_T(const Box& bx,
@@ -55,8 +57,10 @@ Castro::trace_ppm_T(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -83,9 +87,13 @@ Castro::trace_ppm_T(const Box& bx,
             break;
           }
         }
-        if (do_source_trace[n] == 1) break;
+        if (do_source_trace[n] == 1) {
+            break;
+        }
       }
-      if (do_source_trace[n] == 1) break;
+      if (do_source_trace[n] == 1) {
+          break;
+      }
     }
   }
 #endif
@@ -135,7 +143,7 @@ Castro::trace_ppm_T(const Box& bx,
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cc = qaux_arr(i,j,k,QC);
@@ -157,7 +165,7 @@ Castro::trace_ppm_T(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
-    Real s[5];
+    Real s[nslp];
 
     Real flat = 1.0;
 
