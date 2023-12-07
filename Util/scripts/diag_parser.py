@@ -10,7 +10,7 @@ To use these in a standalone script, you can do one of the following:
 
 * copy this file into the same directory as your script
 
-Then you can do `from diag_parser import deduplicate, read_diag_file`.
+Then you can do `from diag_parser import read_diag_file`.
 """
 
 from pathlib import Path
@@ -52,10 +52,15 @@ FIELD_WIDTHS = {
 }
 
 
-def read_diag_file(file_path):
+def read_diag_file(file_path, dedupe=True):
     """Reads a Castro diagnostic file into a numpy structured array.
 
-    Currently only supports the default files that Castro generates.
+    The output can be used directly (the functions in numpy.lib.recfunctions
+    are helpful for this), or converted into a Pandas dataframe (recommended if
+    you plan to do any non-trivial processing).
+
+    Currently only supports the default files that Castro generates, not any of
+    the problem-specific ones.
     """
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -84,8 +89,16 @@ def read_diag_file(file_path):
                 dtypes[7] = int  # minimum gpu memory free
         # already read the first header line, so we don't need to skip any rows
         data = np.genfromtxt(
-            f, delimiter=widths, comments="#", dtype=dtypes, names=True
+            f,
+            delimiter=widths,
+            comments="#",
+            dtype=dtypes,
+            names=True,
+            deletechars="",
+            replace_space=None,
         )
+    if dedupe:
+        data = deduplicate(data)
     return data
 
 

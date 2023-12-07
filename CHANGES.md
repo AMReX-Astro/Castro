@@ -1,3 +1,7 @@
+# 23.12
+
+  * The radiation solver port to C++ has been completed (#2638, #2648)
+
 # 23.11
 
   * Problem GNUmakefiles have been standardized and now allow for the
