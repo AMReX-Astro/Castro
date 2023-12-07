@@ -288,7 +288,7 @@ Castro::trace_ppm(const Box& bx,
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rho, Im_src_rho);
     }
 
-    // normal velcoity
+    // normal velocity
 
     Real Ip_src_un_0 = 0.0_rt;
     Real Im_src_un_0 = 0.0_rt;
