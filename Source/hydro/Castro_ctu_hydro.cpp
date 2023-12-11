@@ -170,7 +170,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     Vector<FArrayBox> rad_flux;
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-        radflux.push_back(FArrayBox(The_Async_Arena()));
+        rad_flux.push_back(FArrayBox(The_Async_Arena()));
     }
 #endif
 #if AMREX_SPACEDIM <= 2
