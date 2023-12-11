@@ -61,13 +61,10 @@ single_star                     integer               0                        n
 
 # 1D initial model parameters
 
-# For the grid spacing for our model, we'll use 
-# 6.25 km. No simulation we do is likely to have a resolution
-# higher than that inside the stars (it represents
-# three jumps by a factor of four compared to our 
-# normal coarse grid resolution).
+# For the grid spacing for our model, we'll scale up the resolution on the finest level
+# by this factor. The resolution will be further enhanced by a factor of nsub.
 
-initial_model_dx                real                  6.25e5_rt                y
+initial_model_dx_factor         real                  10.0_rt                  y
 
 # Composition properties of initial models.
 # We follow the prescription of Dan et al. 2012 for determining
