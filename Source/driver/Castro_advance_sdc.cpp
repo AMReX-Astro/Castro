@@ -122,8 +122,7 @@ Castro::do_advance_sdc (Real time,
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            tmp.resize(bx, 1);
-            Elixir elix_tmp = tmp.elixir();
+            tmp.resize(bx, 1, The_Async_Arena());
             auto tmp_arr = tmp.array();
 
             make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -305,8 +304,7 @@ Castro::do_advance_sdc (Real time,
       // pass in the reaction source at centers (Sburn_arr), including
       // one ghost cell and derive everything that is needed including
       // 1 ghost cell
-      R_center.resize(obx, R_new.nComp());
-      Elixir elix_r_center = R_center.elixir();
+      R_center.resize(obx, R_new.nComp(), The_Async_Arena());
       auto const R_center_arr = R_center.array();
 
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
@@ -315,8 +313,7 @@ Castro::do_advance_sdc (Real time,
       ca_store_reaction_state(obx, Sburn_arr, R_center_arr);
 
       // convert R_new from centers to averages in place
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto const tmp_arr = tmp.array();
 
       make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
