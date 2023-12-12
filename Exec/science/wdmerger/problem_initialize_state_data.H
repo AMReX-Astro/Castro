@@ -64,6 +64,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
         eos(eos_input_rt, zone_state);
 
@@ -79,6 +82,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
         eos(eos_input_rt, zone_state);
 
@@ -91,6 +97,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
     }
 
@@ -101,6 +110,11 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; ++n) {
+        state(i,j,k,UFX+n) = zone_state.rho * zone_state.aux[n];
+    }
+#endif
 
     // Set the velocities in each direction to zero by default.
 

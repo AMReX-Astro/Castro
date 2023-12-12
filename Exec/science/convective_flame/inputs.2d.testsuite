@@ -87,8 +87,6 @@ problem.cutoff_density = 1.e-8
 
 problem.dtemp = 1.0
 
-problem.nx_model = 768
-
 problem.dens_base  = 1.0
 
 problem.T_star = 0.75

@@ -6,4 +6,6 @@ USE_MHD =TRUE
 
 USE_HYBRID_MOMENTUM = FALSE
 
-include ../../GNUmakefile
+PROBLEM_DIR := ../../
+
+include $(PROBLEM_DIR)/GNUmakefile

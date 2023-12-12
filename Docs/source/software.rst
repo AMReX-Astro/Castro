@@ -218,6 +218,8 @@ interact with in the C++ portions of the code.
 ``StateData``
 -------------
 
+.. index:: StateData
+
 ``StateData`` is a class that essentially holds a pair of
 ``MultiFab`` s: one at the old time and one at the new
 time. AMReX knows how to interpolate in time between these states to
@@ -620,7 +622,7 @@ get a sense of these is to look at the ``.H`` files in the
 ------------------
 
 There is a ``Geometry`` object, ``geom`` for each level as part of
-the ``Castro`` object (this is inhereted through ``AmrLevel``).
+the ``Castro`` object (this is inherited through ``AmrLevel``).
 
 ``ParmParse`` class
 -------------------

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -36,7 +35,7 @@ Castro::plm(const Box& bx,
   Real dtdx = dt/dx[idir];
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||

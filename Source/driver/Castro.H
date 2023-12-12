@@ -997,16 +997,6 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef AUX_UPDATE
-
-///
-/// Calculate auxiliary variables at new timestep
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void advance_aux(amrex::Real time, amrex::Real dt);
-#endif
 
 
 // Hydrodynamics
@@ -1036,8 +1026,9 @@ public:
 ///
 /// @param crse_level
 /// @param fine_level
+/// @param in_post_timestep
 ///
-    void reflux (int crse_level, int fine_level);
+    void reflux (int crse_level, int fine_level, bool in_post_timestep);
 
 
 ///
@@ -1164,7 +1155,8 @@ public:
 ///
     bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= 
+                static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;
 #endif
@@ -1334,11 +1326,6 @@ protected:
     amrex::Real pres_fine_scale;
 #endif
 
-
-///
-/// Did we trigger a CFL violation?
-///
-    int cfl_violation;
 
 
 ///

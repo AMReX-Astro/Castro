@@ -3,7 +3,7 @@
 #include <AMReX_ParmParse.H>
 
 #include <HypreMultiABec.H>
-#include <HABEC_F.H>
+#include <HABEC.H>
 #include <rad_util.H>
 #include <AMReX_LO_BCTYPES.H>
 
@@ -3908,7 +3908,6 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
 
         for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
@@ -3926,48 +3925,45 @@ void HypreMultiABec::boundaryFlux(int level,
                 const Box &msb  = msk.box();
                 const Box &bbox = (*bcoefs[level])[idim][mfi].box();
                 if (reg[oitr()] == domain[oitr()]) {
-                    const int *tfp = NULL;
                     int bctype = bct;
+                    Array4<int const> tf_arr;
                     if (bd[level]->mixedBndry(oitr())) {
                         const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-                        tfp = tf.dataPtr();
+                        tf_arr = tf.array();
                         bctype = -1;
                     }
                     // In normal code operation only the fluxes at internal
                     // Dirichlet boundaries are used.  Some diagnostics use the
                     // fluxes computed at domain boundaries but these do not
                     // influence the evolution of the interior solution.
-                    Real* pSPa;
-                    Box SPabox;
+                    Array4<Real const> sp_arr;
                     if (SPa[level]) {
-                        pSPa = (*SPa[level])[mfi].dataPtr();
-                        SPabox = (*SPa[level])[mfi].box();
+                        sp_arr = (*SPa[level])[mfi].array();
                     }
-                    else {
-                        pSPa = &foo;
-                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-                    }
-                    getFaceMetric(r, reg, oitr(), geom[level]);
-                    hbflx3(BL_TO_FORTRAN(Flux[idim][mfi]),
-                           BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                           cdir, bctype, tfp, bho, bcl,
-                           BL_TO_FORTRAN_N(fs, bdcomp),
-                           BL_TO_FORTRAN(msk),
-                           BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-                           beta, geom[level].CellSize(),
-                           flux_factor, r.dataPtr(), inhom,
-                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+
+                    HABEC::hbflx3(Flux[idim][mfi].array(),
+                                  Soln[mfi].array(icomp),
+                                  reg,
+                                  cdir, bctype,
+                                  tf_arr,
+                                  bho, bcl,
+                                  fs.array(bdcomp),
+                                  msk.array(),
+                                  (*bcoefs[level])[idim][mfi].array(),
+                                  beta, geom[level].CellSize(),
+                                  flux_factor, oitr(),
+                                  geom[level].data(), inhom,
+                                  sp_arr);
                 }
                 else {
-                    hbflx(BL_TO_FORTRAN(Flux[idim][mfi]),
-                          BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                          cdir, bct, bho, bcl,
-                          BL_TO_FORTRAN_N(fs, bdcomp),
-                          BL_TO_FORTRAN(msk),
-                          BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-                          beta, geom[level].CellSize(), inhom);
+                    HABEC::hbflx(Flux[idim][mfi].array(),
+                                 Soln[mfi].array(icomp),
+                                 reg,
+                                 cdir, bct, bho, bcl,
+                                 fs.array(bdcomp),
+                                 msk.array(),
+                                 (*bcoefs[level])[idim][mfi].array(),
+                                 beta, geom[level].CellSize(), inhom);
                 }
             }
         }

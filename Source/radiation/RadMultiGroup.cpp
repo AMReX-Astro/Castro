@@ -4,8 +4,6 @@
 
 #include <Radiation.H>
 
-#include <RAD_F.H>
-
 #include <AMReX_ParmParse.H>
 
 #include <iostream>
@@ -21,11 +19,10 @@ void Radiation::get_groups(int verbose)
   group_print_factor   = 1.0;
   group_units          = " (units are Hz)";
 
-  Vector<Real> dlognugroup;
-
   xnu.resize(nGroups+1, 0.0); // Bounds of the frequency group
   nugroup.resize(nGroups, 1.0); // Geometric center of the frequency group
   dnugroup.resize(nGroups, 0.0); // Width of the frequency group
+  lognugroup.resize(nGroups, 0.0); // Log of the center of the frequency group
   dlognugroup.resize(nGroups, 0.0); // Log of the width of the frequency group
 
   ParmParse pp("radiation");
@@ -79,22 +76,10 @@ void Radiation::get_groups(int verbose)
         dlognugroup[i] = log(xnu[i+1]) - log(xnu[i]);
       }
     }
-  }
 
-  int nG0 = 0, nG1 = 0;
-
-  if (SolverType == MGFLDSolver) { 
-    BL_FORT_PROC_CALL(CA_INITGROUPS3,ca_initgroups3)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), dlognugroup.dataPtr(), xnu.dataPtr(), 
-       nGroups, nG0, nG1);
-  }
-  else if (xnu.size() > 0) {
-    BL_FORT_PROC_CALL(CA_INITGROUPS2,ca_initgroups2)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), xnu.dataPtr(), nGroups);
-  }
-  else {
-    BL_FORT_PROC_CALL(CA_INITGROUPS,ca_initgroups)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), nGroups, nG0, nG1);
+    for (int i = 0; i < nGroups; ++i) {
+        lognugroup[i] = std::log(nugroup[i]);
+    }
   }
 
   if (ParallelDescriptor::IOProcessor()) {

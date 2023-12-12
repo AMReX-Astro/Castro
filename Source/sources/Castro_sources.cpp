@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -167,7 +166,7 @@ Castro::do_old_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_old_sources() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -250,7 +249,7 @@ Castro::do_new_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_new_sources() time = " << run_time << " on level " << level << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -542,7 +541,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 #endif
 #endif
 
-    // If we are using gravity, solve for the potential and gravatational field.
+    // If we are using gravity, solve for the potential and gravitational field.
 
 #ifdef GRAVITY
     construct_old_gravity(time);
