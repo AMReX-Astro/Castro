@@ -132,7 +132,6 @@ def doit(variables_file, odir, defines, nadv):
                 count = fields[3]
                 ifdef = fields[4]
 
-                print("here: ", name, var, adds_to_temp, count, ifdef)
                 # we may be fed a pair of the form (SET, DEFINE),
                 # in which case we only add to SET if we define
                 # DEFINE
@@ -154,8 +153,6 @@ def doit(variables_file, odir, defines, nadv):
                     if adds_to_temp == "None":
                         adds_to = None
                     else:
-                        if adds_to_temp.startswith("("):
-                            print("here")
                         adds_to = [adds_to_temp]
 
                 # only recognize the index if we defined any required preprocessor variable
