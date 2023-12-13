@@ -5,6 +5,7 @@
 #include <eos.H>
 #include <model_parser.H>
 #ifdef NSE_TABLE
+#include <nse_table_type.H>
 #include <nse_table_check.H>
 #endif
 
@@ -80,21 +81,16 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (nse_check) {
 
-        Real abar;
-        Real dq;
-        Real dyedt;
-        Real dabardt;
-        Real dbeadt;
-        Real e_nu;
-        Real xn[NumSpec];
+        nse_table_t nse_state;
+        nse_state.T = state(i,j,k,UTEMP);
+        nse_state.rho = state(i,j,k,URHO);
+        nse_state.Ye = state(i,j,k,UFX+AuxZero::iye);
+        nse_interp(nse_state);
 
-        nse_interp(state(i,j,k,UTEMP), state(i,j,k,URHO),
-                   state(i,j,k,UFX+AuxZero::iye), abar, dq, dyedt, dabardt, dbeadt, e_nu, xn);
-
-        state(i,j,k,UFX+AuxZero::iabar) = abar;
-        state(i,j,k,UFX+AuxZero::ibea) = dq;
+        state(i,j,k,UFX+AuxZero::iabar) = nse_state.abar;
+        state(i,j,k,UFX+AuxZero::ibea) = nse_state.bea;
         for (int n = 0; n < NumSpec; n++) {
-            state(i,j,k,UFS+n) = amrex::max(xn[n], small_x);
+            state(i,j,k,UFS+n) = amrex::max(nse_state.X[n], small_x);
         }
 
         // we just got new X's, so we need to re-renormalize them
