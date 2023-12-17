@@ -95,10 +95,10 @@ locate(const Real r, const int model_index) {
             }
         }
 
-        loc = ihi;
+        loc = ilo;
     }
 
-    return loc-1;
+    return loc;
 }
 
 
