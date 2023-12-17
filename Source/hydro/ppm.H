@@ -57,84 +57,95 @@ ppm_reconstruct(const Real* s,
                 const Real flatn, Real& sm, Real& sp) {
 
 
-  // Compute van Leer slopes
+    if (ppm_do_limiting) {
 
-  Real dsl = 2.0_rt * (s[im1] - s[im2]);
-  Real dsr = 2.0_rt * (s[i0] - s[im1]);
+        // Compute van Leer slopes
 
-  Real dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[i0] - s[im2]);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
+        Real dsl = 2.0_rt * (s[im1] - s[im2]);
+        Real dsr = 2.0_rt * (s[i0] - s[im1]);
 
-  dsl = 2.0_rt * (s[i0] - s[im1]);
-  dsr = 2.0_rt * (s[ip1] - s[i0]);
+        Real dsvl_l = 0.0_rt;
+        if (dsl*dsr > 0.0_rt) {
+          Real dsc = 0.5_rt * (s[i0] - s[im2]);
+          dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+        }
 
-  Real dsvl_r = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
+        dsl = 2.0_rt * (s[i0] - s[im1]);
+        dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-  // Interpolate s to edges
+        Real dsvl_r = 0.0_rt;
+        if (dsl*dsr > 0.0_rt) {
+          Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+          dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+        }
 
-  sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+        // Interpolate s to edges
 
-  // Make sure sedge lies in between adjacent cell-centered values
+        sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
-  sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-  sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+        // Make sure sedge lies in between adjacent cell-centered values
 
-
-  // Compute van Leer slopes
-
-  dsl = 2.0_rt * (s[i0] - s[im1]);
-  dsr = 2.0_rt * (s[ip1] - s[i0]);
-
-  dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  dsl = 2.0_rt * (s[ip1] - s[i0]);
-  dsr = 2.0_rt * (s[ip2] - s[ip1]);
-
-  dsvl_r = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[ip2] - s[i0]);
-    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  // Interpolate s to edges
-
-  sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
-
-  // Make sure sedge lies in between adjacent cell-centered values
-
-  sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-  sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+        sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+        sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
 
-  // Flatten the parabola
+        // Compute van Leer slopes
 
-  sm = flatn * sm + (1.0_rt - flatn) * s[i0];
-  sp = flatn * sp + (1.0_rt - flatn) * s[i0];
+        dsl = 2.0_rt * (s[i0] - s[im1]);
+        dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-  // Modify using quadratic limiters -- note this version of the limiting comes
-  // from Colella and Sekora (2008), not the original PPM paper.
+        dsvl_l = 0.0_rt;
+        if (dsl*dsr > 0.0_rt) {
+          Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+          dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+        }
 
-  if ((sp - s[i0]) * (s[i0] - sm) <= 0.0_rt) {
-    sp = s[i0];
-    sm = s[i0];
+        dsl = 2.0_rt * (s[ip1] - s[i0]);
+        dsr = 2.0_rt * (s[ip2] - s[ip1]);
 
-  } else if (std::abs(sp - s[i0]) >= 2.0_rt * std::abs(sm - s[i0])) {
-    sp = 3.0_rt * s[i0] - 2.0_rt * sm;
+        dsvl_r = 0.0_rt;
+        if (dsl*dsr > 0.0_rt) {
+          Real dsc = 0.5_rt * (s[ip2] - s[i0]);
+          dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+        }
 
-  } else if (std::abs(sm - s[i0]) >= 2.0_rt * std::abs(sp - s[i0])) {
-    sm = 3.0_rt * s[i0] - 2.0_rt * sp;
-  }
+        // Interpolate s to edges
+
+        sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+        // Make sure sedge lies in between adjacent cell-centered values
+
+        sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+        sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+
+
+        // Flatten the parabola
+
+        sm = flatn * sm + (1.0_rt - flatn) * s[i0];
+        sp = flatn * sp + (1.0_rt - flatn) * s[i0];
+
+        // Modify using quadratic limiters -- note this version of the limiting comes
+        // from Colella and Sekora (2008), not the original PPM paper.
+
+        if ((sp - s[i0]) * (s[i0] - sm) <= 0.0_rt) {
+          sp = s[i0];
+          sm = s[i0];
+
+        } else if (std::abs(sp - s[i0]) >= 2.0_rt * std::abs(sm - s[i0])) {
+          sp = 3.0_rt * s[i0] - 2.0_rt * sm;
+
+        } else if (std::abs(sm - s[i0]) >= 2.0_rt * std::abs(sp - s[i0])) {
+          sm = 3.0_rt * s[i0] - 2.0_rt * sp;
+        }
+
+    } else {
+
+        // unlimited PPM reconstruction  (Eq. 1.9 in the PPM paper)
+
+        sm = (7.0_rt/12.0_rt) * (s[i0] + s[im1]) - (1.0_rt/12.0_rt) * (s[im2] + s[ip1]);
+        sp = (7.0_rt/12.0_rt) * (s[ip1] + s[i0]) - (1.0_rt/12.0_rt) * (s[im1] + s[ip2]);
+
+    }
 
 }
 
