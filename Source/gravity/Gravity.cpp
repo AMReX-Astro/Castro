@@ -195,7 +195,7 @@ Gravity::read_params ()
             // on the finest level that we solve for.
 
             for (int lev = 1; lev < nlevs; ++lev) {
-                abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+                abs_tol[lev] = abs_tol[lev - 1] * amrex::Math::powi<2>(parent->refRatio(lev - 1)[0]);
             }
 
         } else if (n_abs_tol >= nlevs) {
@@ -2279,7 +2279,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                         calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, cosTheta);
 
-                        Real r_U = std::pow(r, -l-1);
+                        Real r_U = amrex::Math::powi<-l-1>(r);
 
                         // Make sure we undo the volume scaling here.
 
@@ -2296,7 +2296,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                             calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta);
 
-                            Real r_U = std::pow(r, -l-1);
+                            Real r_U = amrex::Math::powi<-l-1>(r);
 
                             // Make sure we undo the volume scaling here.
 

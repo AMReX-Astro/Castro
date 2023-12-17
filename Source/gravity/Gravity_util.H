@@ -28,7 +28,7 @@ void calcAssocLegPolyLM (int l, int m, Real& assocLegPolyLM, Real& assocLegPolyL
 
         // P_m^m
 
-        assocLegPolyLM = std::pow(-1, m) * std::pow((1.0_rt - x) * (1.0_rt + x), m * 0.5_rt);
+        assocLegPolyLM = amrex::Math::powi<m>(-1) * std::pow((1.0_rt - x) * (1.0_rt + x), m * 0.5_rt);
 
         for (int n = (2*m-1); n >= 3; n = n - 2) {
 
@@ -111,7 +111,7 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
             if (index <= n) {
 
-                rho_r_L = rho * (std::pow(r, l));
+                rho_r_L = rho * amrex::Math::powi<l>(r);
 
                 dQL0 = legPolyL * rho_r_L * vol * multipole::volumeFactor;
                 if (parity) {
@@ -121,7 +121,7 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
             }
             else {
 
-                rho_r_U = rho * (std::pow(r, -l-1));
+                rho_r_U = rho * amrex::Math::powi<-l-1>(r);
 
                 dQU0 = legPolyL * rho_r_U * vol * multipole::volumeFactor;
                 if (parity) {
@@ -157,7 +157,7 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
                 if (index <= n) {
 
-                    rho_r_L = rho * (std::pow(r, l));
+                    rho_r_L = rho * amrex::Math::powi<l>(r);
 
                     dQLC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
                     if (parity) {
@@ -172,7 +172,7 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
                 }
                 else {
 
-                    rho_r_U = rho * (std::pow(r, -l-1));
+                    rho_r_U = rho * amrex::Math::powi<-l-1>(r);
 
                     dQUC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
                     if (parity) {
