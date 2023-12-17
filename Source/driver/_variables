@@ -16,9 +16,9 @@
    energy-density         UEDEN     NSRC                                  1                 None
    internal-energy        UEINT     NSRC                                  1                 None
    temperature            UTEMP     NSRC                                  1                 None
-   advected               UFA       None                                  NumAdv            None
-   species                UFS       None                                  NumSpec           None
-   auxiliary              UFX       None                                  NumAux            None
+   advected               UFA       [(NSRC, CONS_SPECIES_HAVE_SOURCES)]   NumAdv            None
+   species                UFS       [(NSRC, CONS_SPECIES_HAVE_SOURCES)]   NumSpec           None
+   auxiliary              UFX       [(NSRC, CONS_SPECIES_HAVE_SOURCES)]   NumAux            None
    shock                  USHK      None                                  1                 SHOCK_VAR
    mu_p                   UMUP      None                                  1                 NSE_NET
    mu_n                   UMUN      None                                  1                 NSE_NET

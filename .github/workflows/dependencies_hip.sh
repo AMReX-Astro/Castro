@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
 #
-# Copyright 2020-2022 The AMReX Community
+# Copyright 2020 The AMReX Community
 #
 # License: BSD-3-Clause-LBNL
 # Authors: Axel Huebl
 
+# search recursive inside a folder if a file contains tabs
+#
+# @result 0 if no files are found, else 1
+#
+
 set -eu -o pipefail
 
+# `man apt.conf`:
+#   Number of retries to perform. If this is non-zero APT will retry
+#   failed files the given number of times.
+echo 'Acquire::Retries "3";' | sudo tee /etc/apt/apt.conf.d/80-retries
 
 # Ref.: https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html#ubuntu
 curl -O https://repo.radeon.com/rocm/rocm.gpg.key
 sudo apt-key add rocm.gpg.key
-echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/debian/ ubuntu main' \
+echo "deb [arch=amd64] https://repo.radeon.com/rocm/apt/${1-debian}/ ubuntu main" \
   | sudo tee /etc/apt/sources.list.d/rocm.list
 echo 'export PATH=/opt/rocm/llvm/bin:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin:$PATH' \
   | sudo tee -a /etc/profile.d/rocm.sh
@@ -34,12 +43,14 @@ sudo apt-get install -y --no-install-recommends \
     roctracer-dev   \
     rocprofiler-dev \
     rocrand-dev     \
-    rocprim-dev
+    rocprim-dev     \
+    hiprand-dev
 
 # activate
 #
 source /etc/profile.d/rocm.sh
 hipcc --version
+hipconfig --full
 which clang
 which clang++
 which flang
