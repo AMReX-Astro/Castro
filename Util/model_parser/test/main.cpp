@@ -49,9 +49,11 @@ int main(int argc, char *argv[]) {
 
     auto idx_lo_bnd = locate(-1.0, 0);
     AMREX_ALWAYS_ASSERT(idx_lo_bnd == 0);
+    std::cout << "value a r < 0 = " << interpolate(-1.0, model::idens) << std::endl;
 
     auto idx_hi_bnd = locate(4.1e9, 0);
     AMREX_ALWAYS_ASSERT(idx_hi_bnd == model::npts-2);
+    std::cout << "value a r > r_max = " << interpolate(4.1e9, model::idens) << std::endl;
 
     // test if we interpolate to exactly a point in the model that we
     // recover the data there to roundoff
