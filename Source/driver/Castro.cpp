@@ -1260,8 +1260,7 @@ Castro::initData ()
              {
                const Box& box = mfi.validbox();
 
-               tmp.resize(box, 1);
-               Elixir elix_tmp = tmp.elixir();
+               tmp.resize(box, 1, The_Async_Arena());
                auto tmp_arr = tmp.array();
 
                make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1287,8 +1286,7 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(2);
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1336,8 +1334,7 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -3950,8 +3947,7 @@ Castro::computeTemp(
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -4067,8 +4063,7 @@ Castro::computeTemp(
 
       const Box& bx = mfi.tilebox();
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       // only temperature
