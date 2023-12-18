@@ -106,7 +106,7 @@ AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
 interpolate(const Real r, const int var_index, const int model_index=0) {
 
-    // this gives us an index suck that profile.r(id) < r < profile.r(id+1)
+    // this gives us an index such that profile.r(id) < r < profile.r(id+1)
 
     int id = locate(r, model_index);
 
