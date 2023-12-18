@@ -53,4 +53,15 @@ int main(int argc, char *argv[]) {
     auto idx_hi_bnd = locate(4.1e9, 0);
     AMREX_ALWAYS_ASSERT(idx_hi_bnd == model::npts-2);
 
+    // test if we interpolate to exactly a point in the model that we
+    // recover the data there to roundoff
+
+    std::cout << "testing interpolating exactly on model point" << std::endl;
+
+    int idx_test{100};
+    Real r_test = model::profile(0).r(idx_test);
+    auto dens_test = interpolate(r_test, model::idens);
+
+    AMREX_ALWAYS_ASSERT(std::abs(dens_test - model::profile(0).state(idx_test, model::idens)) < 1.e-15_rt);
+
 }
