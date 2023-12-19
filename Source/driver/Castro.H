@@ -1199,6 +1199,12 @@ public:
     static Vector<std::unique_ptr<std::fstream> > data_logs;
     static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
 
+///
+/// runtime parameters
+//
+    static params_t params;
+
+
 protected:
 
 
@@ -1408,8 +1414,6 @@ protected:
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
-
-    static params_t params;
 
     int in_retry;
     int num_subcycles_taken;

@@ -206,13 +206,15 @@ def write_headers(params, out_directory, struct_name):
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
                     cq.write(p.get_default_string())
-                    cq.write(p.get_query_string("C++"))
+                    cq.write(p.get_query_string())
+                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
                     cq.write("\n")
             else:
                 cq.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cq.write(p.get_default_string())
-                    cq.write(p.get_query_string("C++"))
+                    cq.write(p.get_query_string())
+                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
                     cq.write("\n")
                 cq.write("#endif\n")
             cq.write("\n")
