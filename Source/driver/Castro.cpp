@@ -108,9 +108,6 @@ Radiation*   Castro::radiation = nullptr;
 #endif
 
 
-std::string  Castro::probin_file = "probin";
-
-
 #if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
@@ -552,8 +549,6 @@ Castro::read_params ()
        }
 
    }
-
-   ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM))
@@ -3656,8 +3651,7 @@ Castro::derive (const std::string& name,
 void
 Castro::extern_init ()
 {
-  // initialize the external runtime parameters -- these will
-  // live in the probin
+  // initialize the external runtime parameters
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
