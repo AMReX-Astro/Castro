@@ -204,8 +204,7 @@ Castro::variableSetUp ()
   init_prob_parameters();
 
   // Initialize the runtime parameters for any of the external
-  // microphysics (these are the parameters that are in the &extern
-  // block of the probin file)
+  // microphysics
   extern_init();
 
   // set small positive values of the "small" quantities if they are
