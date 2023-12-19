@@ -7,7 +7,7 @@ in Castro's C++ routines.
 
 parameters have the format:
 
-  name  type  default  need-in-fortran?  ifdef
+  name  type  default  ifdef
 
 the first three (name, type, default) are mandatory:
 
@@ -21,8 +21,6 @@ the first three (name, type, default) are mandatory:
     debug mode (#ifdef AMREX_DEBUG)
 
 the next are optional:
-
-   need-in-fortran: no longer used
 
    ifdef: only define this parameter if the name provided is #ifdef-ed
 
@@ -131,7 +129,7 @@ def read_param_file(infile):
 
     return params
 
-def write_headers(params, out_directory):
+def write_headers(params, out_directory, struct_name):
 
     # output
 
@@ -196,7 +194,7 @@ def write_headers(params, out_directory):
         cp.write("#endif\n")
         cp.close()
 
-        # write castro_queries.H
+        # write name_queries.H
         try:
             cq = open(f"{out_directory}/{nm}_queries.H", "w", encoding="UTF-8")
         except OSError:
@@ -238,19 +236,62 @@ def write_headers(params, out_directory):
 
         jo.close()
 
+    # now write a single file that contains all of the parameter structs
+    try:
+        sf = open(f"{out_directory}/{struct_name}_type.H", "w", encoding="UTF-8")
+    except OSError:
+        sys.exit(f"unable to open {struct_name}_type.H for writing")
+
+    sf.write(CWARNING)
+    sf.write(f"#ifndef {struct_name.upper()}_TYPE_H\n")
+    sf.write(f"#define {struct_name.upper()}_TYPE_H\n\n")
+
+    for nm in namespaces:
+
+        params_nm = [q for q in params if q.namespace == nm]
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
+
+        sf.write(f"struct {nm}_t {{\n")
+        print("namespace = ", nm)
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    sf.write(p.get_struct_entry())
+            else:
+                sf.write(f"#ifdef {ifdef}\n")
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    sf.write(p.get_struct_entry())
+                sf.write("#endif\n")
+
+
+        sf.write("};\n\n")
+
+    # now the parent struct
+
+    sf.write(f"struct {struct_name}_t {{\n")
+    for nm in namespaces:
+        sf.write(f"    {nm}_t {nm};\n")
+    sf.write("};\n\n")
+
+    sf.write("#endif\n")
+    sf.close()
+
 
 def main():
     """the main driver"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", type=str, default=None,
                         help="output directory for the generated files")
+    parser.add_argument("-s", type=str, default="params",
+                        help="name for the name struct that will hold the parameters")
     parser.add_argument("input_file", type=str, nargs=1,
                         help="input file containing the list of parameters we will define")
 
     args = parser.parse_args()
 
     p = read_param_file(args.input_file[0])
-    write_headers(p, args.o)
+    write_headers(p, args.o, args.s)
 
 if __name__ == "__main__":
     main()
