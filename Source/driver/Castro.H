@@ -48,6 +48,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 #include <memory>
 #include <iostream>
 
+#include <params_type.H>
+
 using std::istream;
 using std::ostream;
 
@@ -534,7 +536,6 @@ public:
 #ifdef MHD
 #include <Castro_mhd.H>
 #endif
-
 
 ///
 /// Estimate time step.
@@ -1407,6 +1408,8 @@ protected:
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
+
+    static params_t params;
 
     int in_retry;
     int num_subcycles_taken;

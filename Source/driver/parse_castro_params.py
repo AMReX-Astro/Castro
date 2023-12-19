@@ -246,6 +246,8 @@ def write_headers(params, out_directory, struct_name):
     sf.write(f"#ifndef {struct_name.upper()}_TYPE_H\n")
     sf.write(f"#define {struct_name.upper()}_TYPE_H\n\n")
 
+    sf.write("#include <castro_limits.H>\n\n")
+
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
