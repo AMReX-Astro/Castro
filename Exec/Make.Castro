@@ -270,6 +270,10 @@ ifeq ($(USE_ROTATION), TRUE)
   DEFINES += -DROTATION
 endif
 
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DCONS_SPECIES_HAVE_SOURCES
+endif
+
 ifeq ($(USE_PARTICLES), TRUE)
   Bdirs += Source/particles
 endif
