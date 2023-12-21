@@ -7,7 +7,8 @@ geometry.is_periodic = 1       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
 geometry.prob_hi     = 3072    3072
-amr.n_cell           = 128     128
+#amr.n_cell           = 128     128
+amr.n_cell           = 512     512   # 6cm resolution
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -53,29 +54,32 @@ castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.0e-7
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 100       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
-amr.v                 = 1       # verbosity in Amr.cpp
+#amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 1       # maximum level number allowed
+#amr.max_level       = 1       # maximum level number allowed
+amr.max_level       = 0
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
-amr.max_grid_size   = 256
+#amr.max_grid_size   = 256
+amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = xrb_chk    # root name of checkpoint file
+amr.check_file      = CHECKS/chk    # root name of checkpoint file
 amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = xrb_plt    # root name of plotfile
-amr.plot_int        = 1000       # number of timesteps between plotfiles
+amr.plot_file       = PLOTS/xrb_    # root name of plotfile
+amr.plot_per        = 1.e-4
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
-problem.model_name =  "toy_atm_hot_castro_3cm.hse"
+#problem.model_name =  "toy_atm_hot_castro_3cm.hse"
+problem.model_name =  "toy_atm_hot_3cm.hse"
 
 problem.apply_perturbation = 1
 
