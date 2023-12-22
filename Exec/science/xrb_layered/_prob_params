@@ -1,5 +1,7 @@
 H_min                 real           1.e-4_rt      y
 
+refine_height         real           0.0           y
+
 cutoff_density        real           50.0_rt       y
 
 model_name            character      ""            y
