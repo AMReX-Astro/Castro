@@ -8,7 +8,7 @@ geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
 geometry.prob_hi     = 3072    3072
 #amr.n_cell           = 128     128
-amr.n_cell           = 512     512   # 6cm resolution
+amr.n_cell           = 256  256  
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -56,16 +56,16 @@ castro.sponge_timescale     = 1.0e-7
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 100       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
-#amr.v                 = 1       # verbosity in Amr.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
 #amr.max_level       = 1       # maximum level number allowed
-amr.max_level       = 0
-amr.ref_ratio       = 4 2 2 2 # refinement ratio
+amr.max_level       = 1
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 #amr.max_grid_size   = 256
-amr.max_grid_size   = 64
+amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -84,6 +84,8 @@ problem.model_name =  "toy_atm_hot_3cm.hse"
 problem.apply_perturbation = 1
 
 problem.model_shift = 300.0
+
+problem.refine_height = 500
 
 # MICROPHYSICS
 integrator.jacobian = 1
