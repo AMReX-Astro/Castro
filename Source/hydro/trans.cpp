@@ -165,8 +165,8 @@ Castro::actual_trans_single(const Box& bx,
         const Real volinv = 1.0_rt / vol(il,jl,kl);
 #endif
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
 #if AMREX_SPACEDIM == 2
             Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
@@ -629,8 +629,8 @@ Castro::actual_trans_final(const Box& bx,
         // transverse terms and convert back to the primitive quantity.
 
         for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
             Real rrn = q_arr(i,j,k,QRHO);
             Real compn = rrn * q_arr(i,j,k,nqp);
