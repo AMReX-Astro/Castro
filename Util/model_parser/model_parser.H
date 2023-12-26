@@ -191,7 +191,7 @@ AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
 interpolate(const Real r, const int var_index, const int model_index=0) {
 
-    if (model_interpolation_method == 0) {
+    if (castro::model_interpolation_method == 0) {
         return linear_interpolate(r, var_index, model_index);
     } else {
         return cubic_interpolate(r, var_index, model_index);

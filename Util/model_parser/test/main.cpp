@@ -1,14 +1,18 @@
 #include <iostream>
 
+#include <AMReX_ParmParse.H>
 #include <model_parser.H>
-
+#include <castro_declares.H>
 
 int main(int argc, char *argv[]) {
 
     amrex::Initialize(argc, argv);
 
-    // initialize the external runtime parameters in C++
+    // we need to get some castro runtime parameters
+    ParmParse pp("castro");
+#include <castro_queries.H>
 
+    // initialize the external runtime parameters in C++
     init_extern_parameters();
 
     // now initialize the C++ Microphysics
