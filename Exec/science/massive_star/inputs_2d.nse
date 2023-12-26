@@ -59,7 +59,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 50     # number of timesteps between checkpoints
+amr.check_int       = 25     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
 amr.plot_per = 0.2
@@ -77,22 +77,24 @@ castro.store_burn_weights = 1
 castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 castro.use_retry = 1
 castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
+problem.model_name =  "15m_500_sec.aprox19.hse.5.00km"
 
 problem.perturb_model = 1
 problem.velpert_amplitude = 5.e6
 
+problem.interpolate_pres = 1
+
 # convection
 
 castro.drive_initial_convection = 1
-castro.drive_initial_convection_reinit_period = 1
-castro.drive_initial_convection_tmax = 10
+castro.drive_initial_convection_reinit_period = 2
+castro.drive_initial_convection_tmax = 250
 
 # refinement
 
@@ -114,6 +116,9 @@ integrator.jacobian = 1
 
 network.rho_nse = 1.e7
 network.T_nse = 3.e9
+network.Si_nse = 0.02
+
+integrator.ode_max_steps = 500000
 
 network.small_x = 1.e-10
 
@@ -124,3 +129,6 @@ network.nse_table_interp_linear = 0
 
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
+
+# do we include weak rate neutrino losses in the energy?
+integrator.nse_include_enu_weak = 0

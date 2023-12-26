@@ -84,8 +84,10 @@ hybrid_hydro                 int           0
 # reconstruction type:
 # 0: piecewise linear;
 # 1: classic Colella \& Woodward ppm;
-# 2: extrema-preserving ppm
 ppm_type                     int           1
+
+# do we limit the ppm parabola?
+ppm_do_limiting              int           1
 
 # For MHD + PLM, do we limit on characteristic or primitive variables
 mhd_limit_characteristic     int           1
@@ -549,9 +551,6 @@ sponge_timescale             Real         -1.0                SPONGE
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------
-
-# determines whether we use accelerators for specific loops
-do_acc                       int          -1
 
 bndry_func_thread_safe       int           1
 

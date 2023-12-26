@@ -969,13 +969,13 @@ HLL(const Real* ql, const Real* qr,
 
   // passively-advected scalar fluxes
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upassmap(ipassive);
-    int nqs = qpassmap(ipassive);
+      const int n  = upassmap(ipassive);
+      const int nqs = qpassmap(ipassive);
 
-    fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
-    fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
+      fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
+      fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
 
-    flux_hll[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
+      flux_hll[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
   }
 }
 

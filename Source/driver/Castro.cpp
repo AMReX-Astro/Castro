@@ -108,9 +108,6 @@ Radiation*   Castro::radiation = nullptr;
 #endif
 
 
-std::string  Castro::probin_file = "probin";
-
-
 #if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
@@ -552,8 +549,6 @@ Castro::read_params ()
        }
 
    }
-
-   ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM))
@@ -1260,8 +1255,7 @@ Castro::initData ()
              {
                const Box& box = mfi.validbox();
 
-               tmp.resize(box, 1);
-               Elixir elix_tmp = tmp.elixir();
+               tmp.resize(box, 1, The_Async_Arena());
                auto tmp_arr = tmp.array();
 
                make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1287,8 +1281,7 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(2);
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1336,8 +1329,7 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -3659,8 +3651,7 @@ Castro::derive (const std::string& name,
 void
 Castro::extern_init ()
 {
-  // initialize the external runtime parameters -- these will
-  // live in the probin
+  // initialize the external runtime parameters
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
@@ -3950,8 +3941,7 @@ Castro::computeTemp(
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -4067,8 +4057,7 @@ Castro::computeTemp(
 
       const Box& bx = mfi.tilebox();
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       // only temperature
