@@ -1455,11 +1455,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-///
-/// Name of the probin file and its length.
-///
-    static std::string probin_file;
-
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
 
