@@ -65,7 +65,7 @@ namespace model_string
 
 
 ///
-/// return the index into the model coordinate such that
+/// return the index into the model coordinate, loc, such that
 /// model::profile(model_index).r(loc) < r < model::profile(model_index).r(loc+1)
 /// if r < model::profile(model_index).r(0) then we return 0, likewise
 /// if r > model::profile(model_index).r(model::npts-2) then we return model::npt-2,
