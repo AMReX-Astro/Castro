@@ -67,6 +67,9 @@ namespace model_string
 ///
 /// return the index into the model coordinate such that
 /// model::profile(model_index).r(loc) < r < model::profile(model_index).r(loc+1)
+/// if r < model::profile(model_index).r(0) then we return 0, likewise
+/// if r > model::profile(model_index).r(model::npts-2) then we return model::npt-2,
+/// since this will give us the interval [npts-2, npts-1] to interpolate in
 ///
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
@@ -95,10 +98,10 @@ locate(const Real r, const int model_index) {
             }
         }
 
-        loc = ihi;
+        loc = ilo;
     }
 
-    return loc-1;
+    return loc;
 }
 
 
@@ -106,58 +109,27 @@ AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
 linear_interpolate(const Real r, const int var_index, const int model_index=0) {
 
+    // this gives us an index such that profile.r(id) < r < profile.r(id+1)
+
     int id = locate(r, model_index);
 
     Real slope;
     Real interp;
 
-    if (id == 0) {
+    slope = (model::profile(model_index).state(id+1, var_index) -
+             model::profile(model_index).state(id, var_index)) /
+        (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
+    interp = slope * (r - model::profile(model_index).r(id)) +
+        model::profile(model_index).state(id, var_index);
 
-       slope = (model::profile(model_index).state(id+1, var_index) -
-                model::profile(model_index).state(id, var_index)) /
-           (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
-       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-       // safety check to make sure interp lies within the bounding points
-       Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       interp = std::clamp(interp, minvar, maxvar);
-
-    } else if (id == model::npts-1) {
-
-       slope = (model::profile(model_index).state(id, var_index) -
-                model::profile(model_index).state(id-1, var_index)) /
-           (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
-       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-
-       // safety check to make sure interp lies within the bounding points
-       Real minvar = std::min(model::profile(model_index).state(id-1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       Real maxvar = std::max(model::profile(model_index).state(id-1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       interp = std::clamp(interp, minvar, maxvar);
-
-    } else {
-
-        if (r >= model::profile(model_index).r(id)) {
-
-            slope = (model::profile(model_index).state(id+1, var_index) -
-                     model::profile(model_index).state(id, var_index)) /
-                (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
-            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-        } else {
-
-            slope = (model::profile(model_index).state(id, var_index) -
-                     model::profile(model_index).state(id-1, var_index)) /
-                (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
-            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-        }
-
+    // safety check to make sure interp lies within the bounding points.  We don't
+    // do this at the lower boundary, which usually corresponds to the center of the star.
+    if (r >= model::profile(model_index).r(0)) {
+	Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
+			       model::profile(model_index).state(id, var_index));
+	Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
+			       model::profile(model_index).state(id, var_index));
+	interp = std::clamp(interp, minvar, maxvar);
     }
 
     return interp;
