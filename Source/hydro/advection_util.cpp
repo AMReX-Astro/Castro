@@ -669,8 +669,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
 #endif
 
       for (int ipassive = 0; ipassive < npassive; ipassive++) {
-        int n = upassmap(ipassive);
-        state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
+          const int n = upassmap(ipassive);
+          state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
       }
 
       eos_re_t eos_state;
