@@ -117,6 +117,8 @@ integrator.jacobian = 1
 network.rho_nse = 1.e7
 network.T_nse = 3.e9
 network.Si_nse = 0.02
+network.C_nse = 1.0
+network.O_nse = 1.0
 
 integrator.ode_max_steps = 500000
 
