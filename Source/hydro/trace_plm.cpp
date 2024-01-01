@@ -327,8 +327,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nc = upassmap(ipassive);
-      int n = qpassmap(ipassive);
+      const int nc = upassmap(ipassive);
+      const int n = qpassmap(ipassive);
 
       // get the slope
 

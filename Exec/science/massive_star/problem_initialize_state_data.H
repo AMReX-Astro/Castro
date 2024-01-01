@@ -154,17 +154,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::perturb_model) {
         // random numbers between -1 and 1
-        GpuArray<Real, 27> alpha;
-        GpuArray<Real, 27> beta;
-        GpuArray<Real, 27> gamma;
+        GpuArray<Real, 27> alpha{};
+        GpuArray<Real, 27> beta{};
+        GpuArray<Real, 27> gamma{};
 
         // random numbers between 0 and 2*pi
-        GpuArray<Real, 27> phix;
-        GpuArray<Real, 27> phiy;
-        GpuArray<Real, 27> phiz;
+        GpuArray<Real, 27> phix{};
+        GpuArray<Real, 27> phiy{};
+        GpuArray<Real, 27> phiz{};
 
         // compute the norm of k
-        GpuArray<Real, 27> normk;
+        GpuArray<Real, 27> normk{};
 
         for (int kk = 1; kk <= 3; ++kk) {
             for (int jj = 1; jj <= 3; ++jj) {
