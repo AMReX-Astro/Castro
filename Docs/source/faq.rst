@@ -1,4 +1,4 @@
-**************************
+*************************
 Frequently Asked Questions
 **************************
 
@@ -54,12 +54,12 @@ Debugging
    I get more information?*
 
    The best thing to do is to recompile the code with ``TEST=TRUE``
-   set in the ``GNUmakefile``. This will have AMReX catch the
-   signals raised in both C++ and Fortran functions. Behind the
+   set in the ``GNUmakefile``. This will have AMReX catch the
+   signals raised in C++ functions. Behind the
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C++ and Fortran
+   function to handle various signals raised in C++
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
