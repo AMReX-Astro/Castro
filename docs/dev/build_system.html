@@ -77,7 +77,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Build System Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#make-parameters">Make Parameters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general-build-parameters">General Build Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fortran-support">Fortran Support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parallelization-and-gpus">Parallelization and GPUs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#general-physics-parameters">General Physics Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#radiation-parameters">Radiation Parameters</a></li>
@@ -174,18 +173,6 @@ and diffusion.  This should always be set to <code class="docutils literal notra
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled
 for radiation.  You need to specify the path to the Hypre library via either
 <code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code> or <code class="docutils literal notranslate"><span class="pre">HYPRE_OMP_DIR</span></code>.</p></li>
-</ul>
-</div></blockquote>
-</section>
-<section id="fortran-support">
-<h3>Fortran Support<a class="headerlink" href="#fortran-support" title="Link to this heading"></a></h3>
-<p>Radiation currently needs Fortran support.  All of the other solvers
-and problem set ups do not require Fortran.  Fortran support in AMReX
-is enabled / disabled via:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">BL_NO_FORT</span></code>: if set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>, then no AMReX Fortran source will be built.
-This cannot currently be used for the radiation solver.</p></li>
 </ul>
 </div></blockquote>
 </section>
@@ -373,14 +360,6 @@ variables in <code class="docutils literal notranslate"><span class="pre">Castro
 <li><p>The script <code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/write_probdata.py</span></code> is used</p></li>
 <li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_parameters.H</span></code> rule.</p></li>
 <li><p>These headers are output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
-</ul>
-</li>
-<li><p>(if Fortran support is enabled) The Fortran dependencies file is created</p>
-<ul class="simple">
-<li><p>This creates the <code class="docutils literal notranslate"><span class="pre">f90.depends</span></code> file in the <code class="docutils literal notranslate"><span class="pre">tmp_build_dir</span></code></p></li>
-<li><p>The script <code class="docutils literal notranslate"><span class="pre">amrex/Tools/F_scripts/dep.py</span></code> is used</p></li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">amrex/Tools/GNUMake/Make.rules</span></code> in the
-<code class="docutils literal notranslate"><span class="pre">$(depEXETempDir)/f90.depends</span></code> target</p></li>
 </ul>
 </li>
 <li><p>The C/C++ dependencies file is created</p>
