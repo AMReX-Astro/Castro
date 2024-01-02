@@ -849,7 +849,14 @@ includes the gravitational wave amplitudes</p></li>
 </li>
 </ul>
 </div></blockquote>
-<p>Some problems have custom versions of the diagnostics with additional information.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/diag_parser.py</span></code> contains Python code for parsing
+these output files into Numpy arrays.  Usage instructions are included
+in the file, along with an example script at
+<code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/plot_species.py</span></code>.  This reads a
+<code class="docutils literal notranslate"><span class="pre">species_diag.out</span></code> file provided on the command line and makes a plot
+of the total mass fractions over time.</p>
+<p>Some problems have custom versions of the diagnostics with additional
+information.  These are not currently supported by the Python parser.</p>
 </section>
 <section id="parallel-i-o">
 <span id="sec-parallel-io"></span><h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Link to this heading"></a></h2>
