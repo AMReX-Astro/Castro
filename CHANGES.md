@@ -1,3 +1,13 @@
+# 24.01
+
+  * An option for unlimited PPM reconstruction was added (#2670)
+
+  * An option allowing for optional passive sources to the conserved
+    state was added (#2678)
+
+  * A script `diag_parser.py` was added to allow for easy parsing of
+    the global diagnostic files output at runtime (#2666, #2667)
+
 # 23.12
 
   * The radiation solver port to C++ has been completed (#2638, #2648)
