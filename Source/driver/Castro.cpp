@@ -76,6 +76,8 @@ int          Castro::NUM_GROW_SRC  = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
+params_t     Castro::params;
+
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
