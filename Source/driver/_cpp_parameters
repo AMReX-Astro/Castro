@@ -25,7 +25,7 @@ do_reflux                    int           1
 # whether to re-compute new-time source terms after a reflux
 # Note: this only works for the CTU and simple-SDC time_integration_method
 # drivers
-update_sources_after_reflux  int           1
+update_sources_after_reflux  int           0
 
 # Castro was originally written assuming dx = dy = dz.  This assumption is
 # enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
@@ -40,24 +40,24 @@ allow_non_unit_aspect_zones  int           0
 difmag                       Real          0.1
 
 # the small density cutoff.  Densities below this value will be reset
-small_dens                   Real         -1.e200
+small_dens                   Real         1.e-5
 
 # the small temperature cutoff.  Temperatures below this value will
 # be reset
-small_temp                   Real         -1.e200
+small_temp                   Real         1.e5
 
 # the small pressure cutoff.  Pressures below this value will be reset
-small_pres                   Real         -1.e200
+small_pres                   Real         5.0585e7
 
 # the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
-small_ener                   Real         -1.e200
+small_ener                   Real         7.49081e+12
 
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1
+do_hydro                     int           1
 
 # how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
-time_integration_method      int           0
+time_integration_method      int           3
 
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1
@@ -112,7 +112,7 @@ hybrid_riemann               int           0
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
 # 1: Colella \& Glaz (a two-shock solver)
 # 2: HLLC
-riemann_solver               int           0
+riemann_solver               int           1
 
 # for the Colella \& Glaz Riemann solver, the maximum number
 # of iterations to take when solving for the star state
@@ -174,7 +174,7 @@ limit_fluxes_on_small_dens   int           0
 speed_limit                  Real          0.0
 
 # permits sponge to be turned on and off
-do_sponge                    int           0
+do_sponge                    int           1
 
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1
@@ -312,16 +312,16 @@ max_dt                       Real          1.e200
 
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
-cfl                          Real          0.8
+cfl                          Real          0.2
 
 # a factor by which to reduce the first timestep from that requested by
 # the timestep estimators
-init_shrink                  Real          1.0
+init_shrink                  Real          0.05
 
 # the maximum factor by which the timestep can increase or decrease from
 # one step to the next. Must be greater than 1.0---use max_dt to set a cap
 # on the timestep.
-change_max                   Real          1.1
+change_max                   Real          1.025
 
 # whether to check that we will take a valid timestep before the advance
 check_dt_before_advance      int           1
@@ -355,14 +355,14 @@ abundance_failure_tolerance  Real          1.e-2
 
 # Do not abort for invalid species abundances if the zone's density is below
 # this threshold.
-abundance_failure_rho_cutoff Real         -1.e200
+abundance_failure_rho_cutoff Real         1
 
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
 # Do not permit more subcycled timesteps than this parameter.
 # Set to a negative value to disable this criterion.
-max_subcycles                int           10
+max_subcycles                int           32
 
 # Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
@@ -393,16 +393,16 @@ dtnuc_X                      Real          1.e200
 dtnuc_X_threshold            Real          1.e-3
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
-do_react                     int          -1
+do_react                     int          1
 
 # minimum temperature for allowing reactions to occur in a zone
-react_T_min                  Real          0.0
+react_T_min                  Real          5.e7
 
 # maximum temperature for allowing reactions to occur in a zone
 react_T_max                  Real          1.e200
 
 # minimum density for allowing reactions to occur in a zone
-react_rho_min                Real          0.0
+react_rho_min                Real          1
 
 # maximum density for allowing reactions to occur in a zone
 react_rho_max                Real          1.e200
@@ -450,7 +450,7 @@ diffuse_cond_scale_fac       Real          1.0                DIFFUSION
 #-----------------------------------------------------------------------------
 
 # permits gravity calculation to be turned on and off
-do_grav                      int          -1
+do_grav                      int          1
 
 # to we recompute the center used for the multipole gravity solve each step?
 moving_center                int           0
@@ -518,10 +518,10 @@ sponge_lower_radius          Real         -1.0                SPONGE
 sponge_upper_radius          Real         -1.0                SPONGE
 
 # Minimum density at which to start applying the sponge
-sponge_lower_density         Real         -1.0                SPONGE
+sponge_lower_density         Real         100                SPONGE
 
 # Density at which the sponge is fully applied
-sponge_upper_density         Real         -1.0                SPONGE
+sponge_upper_density         Real         10000                SPONGE
 
 # Minimum pressure at which to start applying the sponge
 sponge_lower_pressure        Real         -1.0                SPONGE
@@ -545,7 +545,7 @@ sponge_target_y_velocity     Real          0.0                SPONGE
 sponge_target_z_velocity     Real          0.0                SPONGE
 
 # Timescale on which the sponge operates
-sponge_timescale             Real         -1.0                SPONGE
+sponge_timescale             Real         0.001                SPONGE
 
 
 #-----------------------------------------------------------------------------
@@ -606,7 +606,7 @@ max_tagging_radius           real          10.0e0
 #-----------------------------------------------------------------------------
 
 # verbosity level (higher numbers mean more output)
-(v, verbose)                 int           0
+(v, verbose)                 int           1
 
 # do we dump the old state into the checkpoint files too?
 dump_old                     bool          false
@@ -620,7 +620,7 @@ domain_is_plane_parallel     bool          false
 print_update_diagnostics     int           (0, 1)
 
 # how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
-sum_interval                 int           -1
+sum_interval                 int           5
 
 # how often (simulation time) to compute integral sums (for runtime diagnostics)
 sum_per                      Real          -1.0e0
@@ -650,7 +650,7 @@ store_omegadot               int            0
 
 # Do we store the burn weights as a diagnostic in the plotfile?    Note, if this option is
 # enabled then more memory will be allocated to hold the results of the burn
-store_burn_weights           int            0
+store_burn_weights           int            1
 
 # Do we abort the run if the inputs file specifies a runtime parameter that we don't
 # know about?  Note: this will only take effect for those namespaces where 100%
@@ -705,7 +705,7 @@ timestamp_temperature        int           0
 @namespace: gravity
 
 # what type
-gravity_type                 string        "fillme"
+gravity_type                 string        "PoissonGrav"
 
 
 # if doing constant gravity, what is the acceleration
@@ -720,7 +720,7 @@ drdxfac                     int            1
 
 # the maximum mulitpole order to use for multipole BCs when doing
 # Poisson gravity
-(max_multipole_order, lnum) int            0
+(max_multipole_order, lnum) int            6
 
 # the level of verbosity for the gravity solve (higher number means more
 # output on the status of the solve / multigrid
@@ -733,7 +733,7 @@ no_sync                     int            0
 # gets us closer to the composite solution? This makes the
 # resulting fine grid calculation slightly more accurate,
 # at the cost of an additional Poisson solve per timestep.
-do_composite_phi_correction int            1
+do_composite_phi_correction int            0
 
 # For all gravity types, we can choose a maximum level for explicitly
 # calculating the gravity and associated potential. Above that level,
