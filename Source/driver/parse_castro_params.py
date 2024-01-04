@@ -129,7 +129,7 @@ def read_param_file(infile):
 
     return params
 
-def write_headers(params, out_directory, struct_name):
+def write_headers(params, out_directory, struct_name, constexpr):
 
     # output
 
@@ -152,19 +152,23 @@ def write_headers(params, out_directory, struct_name):
         cd.write(f"#ifndef {nm.upper()}_DECLARES_H\n")
         cd.write(f"#define {nm.upper()}_DECLARES_H\n")
 
-        cd.write("\n")
-        cd.write(f"namespace {nm} {{\n")
+        if constexpr:
+            pass
+        else:
+            cd.write("\n")
+            cd.write(f"namespace {nm} {{\n")
 
-        for ifdef in ifdefs:
-            if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    cd.write(p.get_declare_string())
-            else:
-                cd.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cd.write(p.get_declare_string())
-                cd.write("#endif\n")
-        cd.write("}\n\n")
+            for ifdef in ifdefs:
+                if ifdef is None:
+                    for p in [q for q in params_nm if q.ifdef is None]:
+                        cd.write(p.get_declare_string())
+                else:
+                    cd.write(f"#ifdef {ifdef}\n")
+                    for p in [q for q in params_nm if q.ifdef == ifdef]:
+                        cd.write(p.get_declare_string())
+                    cd.write("#endif\n")
+
+            cd.write("}\n\n")
         cd.write("#endif\n")
         cd.close()
 
@@ -177,19 +181,27 @@ def write_headers(params, out_directory, struct_name):
         cp.write(CWARNING)
         cp.write(f"#ifndef {nm.upper()}_PARAMS_H\n")
         cp.write(f"#define {nm.upper()}_PARAMS_H\n")
-
+        cp.write("#include <castro_limits.H>\n")
+        cp.write(f"using namespace amrex::literals;\n")
         cp.write("\n")
         cp.write(f"namespace {nm} {{\n")
 
-        for ifdef in ifdefs:
-            if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    cp.write(p.get_declare_string(with_extern=True))
-            else:
-                cp.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cp.write(p.get_declare_string(with_extern=True))
-                cp.write("#endif\n")
+        if constexpr:
+            for p in params_nm:
+                type = p.get_cxx_decl()
+                if type == "std::string":
+                    type = "std::string_view"
+                cp.write(f"constexpr {type} {p.cpp_var_name}{{{p.default_format()}}};\n")
+        else:
+            for ifdef in ifdefs:
+                if ifdef is None:
+                    for p in [q for q in params_nm if q.ifdef is None]:
+                        cp.write(p.get_declare_string(with_extern=True))
+                else:
+                    cp.write(f"#ifdef {ifdef}\n")
+                    for p in [q for q in params_nm if q.ifdef == ifdef]:
+                        cp.write(p.get_declare_string(with_extern=True))
+                    cp.write("#endif\n")
         cp.write("}\n\n")
         cp.write("#endif\n")
         cp.close()
@@ -202,22 +214,25 @@ def write_headers(params, out_directory, struct_name):
 
         cq.write(CWARNING)
 
-        for ifdef in ifdefs:
-            if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    cq.write(p.get_default_string())
-                    cq.write(p.get_query_string())
-                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
-                    cq.write("\n")
-            else:
-                cq.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cq.write(p.get_default_string())
-                    cq.write(p.get_query_string())
-                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
-                    cq.write("\n")
-                cq.write("#endif\n")
-            cq.write("\n")
+        if constexpr:
+            pass
+        else:
+            for ifdef in ifdefs:
+                if ifdef is None:
+                    for p in [q for q in params_nm if q.ifdef is None]:
+                        cq.write(p.get_default_string())
+                        cq.write(p.get_query_string())
+                        cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
+                        cq.write("\n")
+                else:
+                    cq.write(f"#ifdef {ifdef}\n")
+                    for p in [q for q in params_nm if q.ifdef == ifdef]:
+                        cq.write(p.get_default_string())
+                        cq.write(p.get_query_string())
+                        cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
+                        cq.write("\n")
+                    cq.write("#endif\n")
+                cq.write("\n")
         cq.close()
 
         # write the job info tests
@@ -289,13 +304,15 @@ def main():
                         help="output directory for the generated files")
     parser.add_argument("-s", type=str, default="params",
                         help="name for the name struct that will hold the parameters")
+    parser.add_argument("--constexpr", action="store_true",
+                        help="force the parameters to be constexpr without being able to query")
     parser.add_argument("input_file", type=str, nargs=1,
                         help="input file containing the list of parameters we will define")
 
     args = parser.parse_args()
 
     p = read_param_file(args.input_file[0])
-    write_headers(p, args.o, args.s)
+    write_headers(p, args.o, args.s, args.constexpr)
 
 if __name__ == "__main__":
     main()

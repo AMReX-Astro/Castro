@@ -327,7 +327,7 @@ Castro::do_hscf_solve()
 
         if (std::abs(scf_polar_radius - scf_equatorial_radius) / std::abs(scf_equatorial_radius) < 1.e-6) {
 
-            rotational_period = 0.0;
+            //rotational_period = 0.0;
 
         } else {
 
@@ -344,9 +344,9 @@ Castro::do_hscf_solve()
             // Let's also be sure not to let the period
             // change by too much in a single iteration.
 
-            rotational_period = amrex::min(1.1_rt * rotational_period,
-                                           amrex::max(0.9_rt * rotational_period,
-                                                      2.0_rt * M_PI / omega));
+            //rotational_period = amrex::min(1.1_rt * rotational_period,
+            //                               amrex::max(0.9_rt * rotational_period,
+            //                                          2.0_rt * M_PI / omega));
 
         }
 

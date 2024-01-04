@@ -69,7 +69,7 @@ CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 
 $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H: $(CPP_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py --constexpr -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 # for debugging
 test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H

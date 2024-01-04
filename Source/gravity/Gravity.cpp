@@ -342,7 +342,7 @@ Gravity::install_level (int                   level,
 
 std::string Gravity::get_gravity_type()
 {
-  return gravity::gravity_type;
+  return std::string{gravity::gravity_type};
 }
 
 int Gravity::get_max_solve_level()

@@ -181,7 +181,8 @@ Castro::restart (Amr&     papa,
         PMFile.open(FullPathPMFile.c_str(), std::ios::in);
 
         if (PMFile.good()) {
-            PMFile >> point_mass;
+	    Real pm;
+            PMFile >> pm; // point_mass;
             PMFile.close();
         }
 
@@ -198,7 +199,8 @@ Castro::restart (Amr&     papa,
         RotationFile.open(FullPathRotationFile.c_str(), std::ios::in);
 
         if (RotationFile.is_open()) {
-            RotationFile >> castro::rotational_period;
+	    Real rp;
+            RotationFile >> rp; //castro::rotational_period;
             amrex::Print() << "  Based on the checkpoint, setting the rotational period to "
                            << std::setprecision(7) << std::fixed << castro::rotational_period << " s.\n";
             RotationFile.close();

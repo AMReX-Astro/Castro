@@ -103,7 +103,7 @@ Castro::pointmass_update(Real time, Real dt)
                                << ", to " << point_mass + mass_change_at_center << std::endl << std::endl;
             }
 
-            point_mass += mass_change_at_center;
+            //point_mass += mass_change_at_center;
 
 #ifdef _OPENMP
 #pragma omp parallel

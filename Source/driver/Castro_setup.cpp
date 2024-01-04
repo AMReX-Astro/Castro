@@ -209,6 +209,7 @@ Castro::variableSetUp ()
 
   // set small positive values of the "small" quantities if they are
   // negative
+#if 0
   if (small_dens < 0.0_rt) {
     small_dens = 1.e-100_rt;
   }
@@ -224,13 +225,16 @@ Castro::variableSetUp ()
   if (small_ener < 0.0_rt) {
     small_ener = 1.e-100_rt;
   }
+#endif
 
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
   network_init();
 #endif
 
-  eos_init(castro::small_temp, castro::small_dens);
+  Real st{castro::small_temp};
+  Real sd{castro::small_dens};
+  eos_init(st, sd);
 
 #ifdef RADIATION
   opacity_init();
@@ -240,11 +244,11 @@ Castro::variableSetUp ()
   // with the minimum permitted by the EOS, and vice versa.
 
   Real new_min_T = std::max(small_temp, EOSData::mintemp);
-  small_temp = new_min_T;
+  //small_temp = new_min_T;
   EOSData::mintemp = new_min_T;
 
   Real new_min_rho = std::max(small_dens, EOSData::mindens);
-  small_dens = new_min_rho;
+  //small_dens = new_min_rho;
   EOSData::mindens = new_min_rho;
 
   // Given small_temp and small_dens, compute small_pres
@@ -267,8 +271,8 @@ Castro::variableSetUp ()
 
   eos(eos_input_rt, eos_state);
 
-  castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
-  castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
+  //castro::small_pres = amrex::max(castro::small_pres, eos_state.p);
+  //castro::small_ener = amrex::max(castro::small_ener, eos_state.e);
 
   // some consistency checks on the parameters
 #ifdef REACTIONS

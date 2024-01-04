@@ -415,9 +415,9 @@ Castro::read_params ()
       }
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
-    if (do_hydro == 0) {
-      do_reflux = 0;
-    }
+//    if (do_hydro == 0) {
+//      do_reflux = 0;
+//    }
 
     if (max_dt < fixed_dt)
       {
@@ -475,9 +475,9 @@ Castro::read_params ()
       }
     }
 
-    if (dgeom.IsRZ() == 1) {
-        rot_axis = 2;
-    }
+//    if (dgeom.IsRZ() == 1) {
+//        rot_axis = 2;
+//    }
 #if (AMREX_SPACEDIM == 1)
     if (do_rotation == 1) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
@@ -2070,7 +2070,8 @@ Castro::post_timestep (int iteration_local)
         Real max_field_val = std::numeric_limits<Real>::min();
 
         for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
-            auto mf = getLevel(lev).derive(castro::stopping_criterion_field, state[State_Type].curTime(), 0);
+	    std::string scf{castro::stopping_criterion_field};
+            auto mf = getLevel(lev).derive(scf, state[State_Type].curTime(), 0);
             max_field_val = std::max(max_field_val, mf->max(0));
         }
 
