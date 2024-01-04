@@ -7,9 +7,8 @@ is:
 max_step                            integer            1
 small_dt                            real               1.d-10
 xlo_boundary_type                   character          ""
-octant                              logical            .false.
 
-This specifies the parameter name, datatype, and default
+This specifies the runtime parameter name, datatype, and default
 value.
 
 The optional 4th column indicates whether the parameter appears
@@ -153,7 +152,7 @@ def write_probin(prob_param_files, cxx_prefix):
     params = []
 
     print(" ")
-    print(f"write_probdata.py: creating prob_param C++ files")
+    print("write_probdata.py: creating prob_param C++ files")
 
     # read the parameters defined in the parameter files
 
@@ -231,15 +230,15 @@ def write_probin(prob_param_files, cxx_prefix):
         # we need access to _rt
         fout.write("        using namespace amrex;\n")
 
-        fout.write(f"        amrex::ParmParse pp(\"problem\");\n\n")
+        fout.write("        amrex::ParmParse pp(\"problem\");\n\n")
         for p in params:
             if p.is_array():
                 size = p.size
-                if (size == "nspec"):
+                if size == "nspec":
                     size = "NumSpec"
                 fout.write(f"        for (int n = 0; n < {size}; n++) {{\n")
                 fout.write(f"            problem::{p.name}[n] = {p.default_format(lang='C++')};\n")
-                fout.write(f"        }}\n")
+                fout.write("        }}\n")
             else:
                 fout.write(f"        {p.get_default_string()}")
 
