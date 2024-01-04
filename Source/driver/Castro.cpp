@@ -322,13 +322,6 @@ Castro::read_params ()
     }
 #endif
 
-#ifdef REACTIONS
-#ifdef SIMPLIFIED_SDC
-    if (jacobian == 1) {
-      amrex::Abort("Simplified SDC requires the numerical Jacobian now (jacobian = 2)");
-    }
-#endif
-#endif
     // sanity checks
 
     if (grown_factor < 1) {
