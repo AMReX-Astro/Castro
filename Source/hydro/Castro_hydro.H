@@ -141,6 +141,7 @@
 ///
     void shock(const amrex::Box& bx,
                amrex::Array4<amrex::Real const> const& q_arr,
+               amrex::Array4<amrex::Real const> const& q_src_arr,
                amrex::Array4<amrex::Real> const& shk);
 
 ///

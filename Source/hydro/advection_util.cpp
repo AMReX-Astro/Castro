@@ -61,6 +61,7 @@ Castro::ctoprim(const Box& bx,
 void
 Castro::shock(const Box& bx,
               Array4<Real const> const& q_arr,
+              Array4<Real const> const& q_src_arr,
               Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
