@@ -48,6 +48,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 #include <memory>
 #include <iostream>
 
+#include <params_type.H>
+
 using std::istream;
 using std::ostream;
 
@@ -534,7 +536,6 @@ public:
 #ifdef MHD
 #include <Castro_mhd.H>
 #endif
-
 
 ///
 /// Estimate time step.
@@ -1197,6 +1198,12 @@ public:
 ///
     static Vector<std::unique_ptr<std::fstream> > data_logs;
     static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
+
+///
+/// runtime parameters
+//
+    static params_t params;
+
 
 protected:
 
