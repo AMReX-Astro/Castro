@@ -138,16 +138,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         bool compute_shock = false;
 #endif
 
-    // for well-balancing and shock detection, we need to
-    // primitive variable source terms
+        // for well-balancing and shock detection, we need to
+        // primitive variable source terms
 
-    if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
-        const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
-        src_q.resize(qbx, NQSRC);
-        Elixir elix_src_q = src_q.elixir();
-        Array4<Real> const src_q_arr = src_q.array();
+        if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
+            const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
+            src_q.resize(qbx, NQSRC);
+            Elixir elix_src_q = src_q.elixir();
+            Array4<Real> const src_q_arr = src_q.array();
 
-        amrex::ParallelFor(qbx,
+            amrex::ParallelFor(qbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
@@ -166,14 +166,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
         if (hybrid_riemann == 1 || compute_shock) {
-          shock(obx, q_arr, src_q_arr, shk_arr);
+            shock(obx, q_arr, src_q_arr, shk_arr);
         }
         else {
-          amrex::ParallelFor(obx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-          {
-            shk_arr(i,j,k) = 0.0;
-          });
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                shk_arr(i,j,k) = 0.0;
+            });
         }
 
         const Box& xbx = amrex::surroundingNodes(bx, 0);
