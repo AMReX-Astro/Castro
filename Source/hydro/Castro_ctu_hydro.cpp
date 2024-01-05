@@ -267,17 +267,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       bool compute_shock = false;
 #endif
 
-      if (hybrid_riemann == 1 || compute_shock) {
-        shock(obx, q_arr, shk_arr);
-      }
-      else {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-        {
-          shk_arr(i,j,k) = 0.0;
-        });
-      }
-
       // get the primitive variable hydro sources
 
       src_q.resize(qbx3, NQSRC);
@@ -292,6 +281,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
+
+      if (hybrid_riemann == 1 || compute_shock) {
+        shock(obx, q_arr, src_q_arr, shk_arr);
+      }
+      else {
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          shk_arr(i,j,k) = 0.0;
+        });
+      }
 
       // work on the interface states
 
@@ -1143,8 +1143,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               flux_arr(i,j,k,USHK) = 0.e0;
 #endif
 #ifdef NSE_NET
-	      flux_arr(i,j,k,UMUP) = 0.e0;
-	      flux_arr(i,j,k,UMUN) = 0.e0;
+              flux_arr(i,j,k,UMUP) = 0.e0;
+              flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
           });
 

@@ -131,6 +131,29 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           });
         }
 
+
+#ifdef SHOCK_VAR
+        bool compute_shock = true;
+#else
+        bool compute_shock = false;
+#endif
+
+    // for well-balancing and shock detection, we need to
+    // primitive variable source terms
+
+    if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
+        const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
+        src_q.resize(qbx, NQSRC);
+        Elixir elix_src_q = src_q.elixir();
+        Array4<Real> const src_q_arr = src_q.array();
+
+        amrex::ParallelFor(qbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
+            });
+        }
+
         // get the interface states and shock variable
 
         shk.resize(obx, 1);
@@ -141,11 +164,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         // Multidimensional shock detection
         // Used for the hybrid Riemann solver
 
-#ifdef SHOCK_VAR
-        bool compute_shock = true;
-#else
-        bool compute_shock = false;
-#endif
 
         if (hybrid_riemann == 1 || compute_shock) {
           shock(obx, q_arr, shk_arr);
@@ -409,8 +427,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                     flux_arr(i,j,k,n) = 0.0;
 #endif
 #ifdef NSE_NET
-		  } else if (n == UMUP || n == UMUN) {
-		    flux_arr(i,j,k,n) = 0.0;
+          } else if (n == UMUP || n == UMUN) {
+            flux_arr(i,j,k,n) = 0.0;
 #endif
                   } else {
 
@@ -479,19 +497,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 Elixir elix_dq = dq.elixir();
                 auto dq_arr = dq.array();
 
-                // for well-balancing, we need to primitive variable
-                // source terms
-                const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
-                src_q.resize(qbx, NQSRC);
-                Elixir elix_src_q = src_q.elixir();
-                Array4<Real> const src_q_arr = src_q.array();
-
-                amrex::ParallelFor(qbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-                {
-                    hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);
-                });
-
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,
                                     dq_arr,
@@ -532,11 +537,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 flux_arr(i,j,k,USHK) = 0.e0;
 #endif
 #ifdef NSE_NET
-		flux_arr(i,j,k,UMUP) = 0.e0;
-		flux_arr(i,j,k,UMUN) = 0.e0;
+                flux_arr(i,j,k,UMUP) = 0.e0;
+                flux_arr(i,j,k,UMUN) = 0.e0;
 #endif
               });
-
 
               // apply artificial viscosity
               apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
