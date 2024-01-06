@@ -68,7 +68,6 @@ Castro::shock(const Box& bx,
   // we look for |grad P . dx| / P > 2/3 and div u < 0
   // This is basically the method in Gronow et al. 2020
 
-  constexpr Real small = 1.e-10_rt;
   constexpr Real eps = 2.0_rt / 3.0_rt;
 
   const auto dx = geom.CellSizeArray();
