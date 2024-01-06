@@ -141,9 +141,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
         src_q.resize(qbx, NQSRC);
+        Array4<Real> const src_q_arr = src_q.array();
 
         if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
-            Array4<Real> const src_q_arr = src_q.array();
 
             amrex::ParallelFor(qbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
