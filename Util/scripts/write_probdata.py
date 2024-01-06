@@ -238,7 +238,7 @@ def write_probin(prob_param_files, cxx_prefix):
                     size = "NumSpec"
                 fout.write(f"        for (int n = 0; n < {size}; n++) {{\n")
                 fout.write(f"            problem::{p.name}[n] = {p.default_format(lang='C++')};\n")
-                fout.write("        }}\n")
+                fout.write("        }\n")
             else:
                 fout.write(f"        {p.get_default_string()}")
 
