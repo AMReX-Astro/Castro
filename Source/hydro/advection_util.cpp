@@ -135,16 +135,18 @@ Castro::shock(const Box& bx,
     }
 
 
-    // now compute grad P . dx
-
-    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
+    // now compute (grad P - rho g) . dx
+    // We subtract off the hydrostatic force, since the pressure that
+    // balances that is not available to make a shock.
+    // We'll use a centered diff for the pressure gradient.
+    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES)) - dx[0] * src_q_arr(i,j,k,QU);
     Real dP_y = 0.0_rt;
     Real dP_z = 0.0_rt;
 #if AMREX_SPACEDIM >= 2
-    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
+    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES)) - dx[1] * src_q_arr(i,j,k,QV);
 #endif
 #if AMREX_SPACEDIM == 3
-    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
+    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES)) - dx[2] * src_q_arr(i,j,k,QW);
 #endif
 
     Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
