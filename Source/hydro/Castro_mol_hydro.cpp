@@ -139,8 +139,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         // for well-balancing and shock detection, we need to
         // primitive variable source terms
 
-	const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
-	src_q.resize(qbx, NQSRC);
+        const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
+        src_q.resize(qbx, NQSRC);
 
         if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
             Array4<Real> const src_q_arr = src_q.array();
