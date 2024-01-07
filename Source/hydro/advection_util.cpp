@@ -68,8 +68,6 @@ Castro::shock(const Box& bx,
   // we look for |grad P . dx| / P > 2/3 and div u < 0
   // This is basically the method in Gronow et al. 2020
 
-  constexpr Real eps = 2.0_rt / 3.0_rt;
-
   const auto dx = geom.CellSizeArray();
   const int coord_type = geom.Coord();
 
@@ -150,7 +148,7 @@ Castro::shock(const Box& bx,
 
     Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
 
-    if (gradPdx_over_P > eps && div_u < 0.0_rt) {
+    if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
       shk(i,j,k) = 1.0_rt;
     } else {
       shk(i,j,k) = 0.0_rt;
