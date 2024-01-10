@@ -374,8 +374,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
                 // update the state
 #ifdef NSE_NET
-		U(i,j,k,UMUP) = burn_state.mu_p;
-		U(i,j,k,UMUN) = burn_state.mu_n;
+                U(i,j,k,UMUP) = burn_state.mu_p;
+                U(i,j,k,UMUN) = burn_state.mu_n;
 #endif
                 for (int n = 0; n < NumSpec; ++n) {
                     U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
@@ -692,8 +692,8 @@ Castro::react_state(Real time, Real dt)
 
                 // update the state data.
 #ifdef NSE_NET
-	        U_new(i,j,k,UMUP) = burn_state.mu_p;
-	        U_new(i,j,k,UMUN) = burn_state.mu_n;
+                U_new(i,j,k,UMUP) = burn_state.mu_p;
+                U_new(i,j,k,UMUN) = burn_state.mu_n;
 #endif
                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
