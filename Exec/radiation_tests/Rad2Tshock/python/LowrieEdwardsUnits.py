@@ -40,10 +40,10 @@ def LEunits(P0=1.0e-4, gamma=5./3., uL=1.0e5, uT=100.0, mu=1.0, printmessg=0):
 
 if __name__ == "__main__":
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "L:T:", ["gamma=", "P0=", "mu="])
+        opts, args = getopt.getopt(sys.argv[1:], "L:T:", ["gamma=", "P0=", "mu="])
     except getopt.GetoptError:
-	print '???'
-	sys.exit(1)
+        print '???'
+        sys.exit(1)
 
     mu = 1.0
     P0 = 1.0e-4
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     uT = 100.0
 
     for o, a in opts:
-	if o == "-L":
+        if o == "-L":
             uL = float(a)
         elif o == "-T":
             uT = float(a)
