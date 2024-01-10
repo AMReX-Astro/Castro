@@ -159,11 +159,12 @@ void conservative_to_primitive(int i, int j, int k,
 
     if (fill_passives) {
         // Load passively advected quantities into q
-        for (int ipassive = 0; ipassive < npassive; ipassive++) {
-            int n  = upassmap(ipassive);
-            int iq = qpassmap(ipassive);
+        constexpr_for<0, npassive>([&] (auto ipassive)
+        {
+            constexpr int n  = upassmap(ipassive);
+            constexpr int iq = qpassmap(ipassive);
             q(iq) = uin(i,j,k,n) * rhoinv;
-        }
+        });
     }
 
     // get gamc, p, T, c, csml using q state

@@ -654,6 +654,7 @@ Castro::react_state(Real time, Real dt)
             }
 #endif
 
+#if 0
             // Convert the current state to primitive data.
             // This state is U* = U_old + dt A where A = -div U + S_hydro.
 
@@ -665,6 +666,7 @@ Castro::react_state(Real time, Real dt)
                                              Bx, By, Bz,
 #endif
                                              q_noreact, qaux_dummy, q_noreact.len() == NQ);
+#endif
 
             // dual energy formalism: in doing EOS calls in the burn,
             // switch between e and (E - K) depending on (E - K) / E.
@@ -751,6 +753,7 @@ Castro::react_state(Real time, Real dt)
 
             }
 
+#if 0
             // Convert the updated state (with the contribution from burning) to primitive data.
 
             Array1D<Real, 0, NQ-1> q_new;
@@ -779,6 +782,7 @@ Castro::react_state(Real time, Real dt)
                     I(i,j,k,n) = 0.0_rt;
                 }
             }
+#endif
 
             return {burn_failed};
         });
