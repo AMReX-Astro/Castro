@@ -416,7 +416,11 @@ react_rho_min                Real          0.0
 react_rho_max                Real          1.e200
 
 # disable burning inside hydrodynamic shock regions
+# note: requires compiling with `USE_SHOCK_VAR=TRUE`
 disable_shock_burning        int           0
+
+# shock detection threshold for grad{P} / P
+shock_detection_threshold    Real          0.6666666666666666666666_rt
 
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
