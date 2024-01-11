@@ -384,6 +384,12 @@ Castro::read_params ()
     }
 #endif
 
+#ifndef SHOCK_VAR
+   if (disable_shock_burning != 0) {
+       amrex::Error("ERROR: disable_shock_burning requires compiling with USE_SHOCK_VAR=TRUE");
+   }
+#endif
+
     if (riemann_solver == 1) {
         if (cg_maxiter > HISTORY_SIZE) {
             amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
