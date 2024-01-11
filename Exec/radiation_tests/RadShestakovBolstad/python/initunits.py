@@ -30,10 +30,10 @@ def SBunits(T0, rho0, kap0, printmessg=0):
 
 if __name__ == "__main__":
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "", ["rho0=", "kap0=", "T0="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["rho0=", "kap0=", "T0="])
     except getopt.GetoptError:
-	print '???'
-	sys.exit(1)
+        print '???'
+        sys.exit(1)
 
     rho0 = 1.8212111e-5
     kap0 = 4.0628337e43
