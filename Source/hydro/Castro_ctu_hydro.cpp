@@ -283,7 +283,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       });
 
       if (hybrid_riemann == 1 || compute_shock) {
-        shock(obx, q_arr, src_q_arr, shk_arr);
+        shock(obx, q_arr, old_src_arr, shk_arr);
       }
       else {
         amrex::ParallelFor(obx,

@@ -61,7 +61,7 @@ Castro::ctoprim(const Box& bx,
 void
 Castro::shock(const Box& bx,
               Array4<Real const> const& q_arr,
-              Array4<Real const> const& q_src_arr,
+              Array4<Real const> const& U_src_arr,
               Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
@@ -136,17 +136,23 @@ Castro::shock(const Box& bx,
     // We subtract off the hydrostatic force, since the pressure that
     // balances that is not available to make a shock.
     // We'll use a centered diff for the pressure gradient.
-    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES))
-        - dx[0] * q_arr(i,j,k,QRHO) * q_src_arr(i,j,k,QU);
+    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_x += -0.25_rt * dx[0] * (U_src_arr(i+1,j,k,UMX) + 2.0_rt * U_src_arr(i,j,k,UMX) + U_src_arr(i-1,j,k,UMX));
+    }
     Real dP_y = 0.0_rt;
     Real dP_z = 0.0_rt;
 #if AMREX_SPACEDIM >= 2
-    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES))
-        - dx[1] * q_arr(i,j,k,QRHO) * q_src_arr(i,j,k,QV);
+    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
+    }
 #endif
 #if AMREX_SPACEDIM == 3
-    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES))
-        - dx[2] * q_arr(i,j,k,QRHO) * q_src_arr(i,j,k,QW);
+    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_z += -0.25_rt * dx[2] * (U_src_arr(i,j,k+1,UMZ) + 2.0_rt * U_src_arr(i,j,k,UMZ) + U_src_arr(i,j,k-1,UMZ));
+    }
 #endif
 
     //Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
