@@ -62,7 +62,7 @@ amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 25     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 castro.plot_per_is_exact = 0
-amr.plot_per = 0.2
+amr.plot_per = 0.25
 
 amr.max_grid_size   = 512       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -117,6 +117,8 @@ integrator.jacobian = 1
 network.rho_nse = 1.e7
 network.T_nse = 3.e9
 network.Si_nse = 0.02
+network.C_nse = 1.0
+network.O_nse = 1.0
 
 integrator.ode_max_steps = 500000
 

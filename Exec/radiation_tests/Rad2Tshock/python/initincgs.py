@@ -7,10 +7,10 @@ from RadShock import OneTShock
 
 def main():
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "L:T:", ["P0","gamma=","sigma=","kappa=", "M0=", "mu="])
+        opts, args = getopt.getopt(sys.argv[1:], "L:T:", ["P0","gamma=","sigma=","kappa=", "M0=", "mu="])
     except getopt.GetoptError:
         print '???'
-	sys.exit(1)
+        sys.exit(1)
 
     P0 = 1.0e-4
     gamma = 5./3.
@@ -21,7 +21,7 @@ def main():
     uT = 100.0
     mu = 1.0
     for o, a in opts:
-	if o == "--P0":
+        if o == "--P0":
             P0 = float(a)
         elif o == "--gamma":
             gamma = float(a)

@@ -293,10 +293,10 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
 
 if __name__ == "__main__":
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "", ["P0","gamma=","sigma=","kappa=", "M0="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["P0","gamma=","sigma=","kappa=", "M0="])
     except getopt.GetoptError:
         print '???'
-	sys.exit(1)
+        sys.exit(1)
 
     P0 = 1.0e-4
     gamma = 5./3.
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     M0 = 2.0
 
     for o, a in opts:
-	if o == "--P0":
+        if o == "--P0":
             P0 = float(a)
         elif o == "--gamma":
             gamma = float(a)

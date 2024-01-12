@@ -66,7 +66,7 @@ void problem_initialize_state_data (int i, int j, int k,
       auto nse_state = get_actual_nse_state(burn_state);
 
       for (int n = 0; n < NumSpec; ++n) {
-	state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
       }
 
       state(i,j,k,UMUP) = nse_state.mu_p;
