@@ -166,7 +166,7 @@ Castro::shock(const Box& bx,
                                   dP_y * q_arr(i,j,k,QV) +
                                   dP_z * q_arr(i,j,k,QW)) / vel;
     }
-    gradPdx_over_P /= (q_arr(i,j,k,QPRES) / std::max(dx[0], std::max(dx[1], dx[2])));
+    gradPdx_over_P /= q_arr(i,j,k,QPRES);
 
     if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
       shk(i,j,k) = 1.0_rt;
