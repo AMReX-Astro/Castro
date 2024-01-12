@@ -151,9 +151,12 @@ Castro::shock(const Box& bx,
                          q_arr(i,j,k,QV) * q_arr(i,j,k,QV) +
                          q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
 
-    Real gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
-                                   dP_y * q_arr(i,j,k,QV) +
-                                   dP_z * q_arr(i,j,k,QW)) / vel;
+    Real gradPdx_over_P{0.0_rt};
+    if (vel != 0.0) {
+        gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
+                                  dP_y * q_arr(i,j,k,QV) +
+                                  dP_z * q_arr(i,j,k,QW)) / vel;
+    }
     gradPdx_over_P /= (q_arr(i,j,k,QPRES) / std::max(dx[0], std::max(dx[1], dx[2])));
 
     if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
