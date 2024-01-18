@@ -30,7 +30,7 @@ jobs:
           tar xfz v2.28.0.tar.gz
           cd hypre-2.28.0/src
           ./configure --with-cxxstandard=17 --without-MPI
-          make -j 2
+          make -j 4
           make install
           cd ../../
 
