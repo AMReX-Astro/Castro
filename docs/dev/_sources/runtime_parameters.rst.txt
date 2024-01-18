@@ -344,7 +344,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.shock_detection_threshold, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.shock_detection_threshold, castro.shock_detection_include_sources, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -380,6 +380,9 @@ namespace: ``castro``
 |                                            | requires compiling with `USE_SHOCK_VAR=TRUE`                |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``shock_detection_threshold``              | shock detection threshold for grad{P} / P                   | 0.6666666666666666666666_rt |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``shock_detection_include_sources``        | do we subtract off the hydrostatic pressure when evaluating | 1             |
+|                                            | a shock?                                                    |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``T_guess``                                | initial guess for the temperature when inverting the EoS    | 1.e8          |
 |                                            | (e.g. when calling eos_input_re)                            |               |
