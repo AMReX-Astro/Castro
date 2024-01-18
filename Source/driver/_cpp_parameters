@@ -414,6 +414,9 @@ disable_shock_burning        int           0
 # shock detection threshold for grad{P} / P
 shock_detection_threshold    Real          0.6666666666666666666666_rt
 
+# do we subtract off the hydrostatic pressure when evaluating a shock?
+shock_detection_include_sources   int      1
+
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8
