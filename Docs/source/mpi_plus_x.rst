@@ -98,7 +98,7 @@ To enable this, compile with::
 .. note::
 
    For recent GPUs, like the NVIDIA RTX 4090, you may need to change
-   the default CUDA architecture.  This can be done by ading:
+   the default CUDA architecture.  This can be done by adding:
 
    .. code::
 
