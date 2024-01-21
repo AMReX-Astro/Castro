@@ -47,7 +47,7 @@ static int tang_vel_bc[] =
 #ifdef MHD
 static int mag_field_bc[] = 
 {
-  amrex::BCType::int_dir, amrex::BCType::ext_dir, amrex::BCType::foextrap, amrex::BCType::reflect_even, amrex::BCType::foextrap, HOEXTRAP
+  amrex::BCType::int_dir, amrex::BCType::ext_dir, amrex::BCType::foextrap, amrex::BCType::reflect_even, amrex::BCType::foextrap, amrex::BCType::hoextrap
 };
 #endif
 
