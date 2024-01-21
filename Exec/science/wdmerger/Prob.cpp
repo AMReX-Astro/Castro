@@ -101,10 +101,10 @@ Castro::wd_update (Real time, Real dt)
         GpuArray<bool, 3> symm_bound_hi{false};
 
         for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-            if (phys_bc.lo()[n] == Symmetry) {
+            if (phys_bc.lo()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_lo[n] = true;
             }
-            if (phys_bc.hi()[n] == Symmetry) {
+            if (phys_bc.hi()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_hi[n] = true;
             }
         }
@@ -665,9 +665,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const int* lo_bc = phys_bc.lo();
 
-        const bool symm_lo_x = (lo_bc[0] == Symmetry);
-        const bool symm_lo_y = (lo_bc[1] == Symmetry);
-        const bool symm_lo_z = (lo_bc[2] == Symmetry);
+        const bool symm_lo_x = (lo_bc[0] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_y = (lo_bc[1] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_z = (lo_bc[2] == amrex::PhysBCType::symmetry);
 
         ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
         ReduceData<Real, Real, Real, Real, Real, Real> reduce_data(reduce_op);
