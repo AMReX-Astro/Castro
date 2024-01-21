@@ -223,7 +223,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
-            burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+            burn_state.dx = amrex::min(AMREX_D_DECL(dx[0], dx[1], dx[2]));
 #endif
 
             // Initialize some data for later.
@@ -550,7 +550,7 @@ Castro::react_state(Real time, Real dt)
 #if AMREX_SPACEDIM == 1
             burn_state.dx = dx[0];
 #else
-            burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+            burn_state.dx = amrex::min(AMREX_D_DECL(dx[0], dx[1], dx[2]));
 #endif
 
 #ifdef NSE_NET
