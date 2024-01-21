@@ -143,11 +143,11 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
 /*
         // All physical bc values are located on face
         if (p_bc == EXT_DIR) {
-          bctag[i] = amrex::LinOpBCType::Dirichlet;
+          bctag[i] = LO_DIRICHLET;
           bloc[i] = 0.;
         }
         else if (p_bc == EXTRAP || p_bc == HOEXTRAP || p_bc == REFLECT_EVEN) {
-          bctag[i] = amrex::LinOpBCType::Neumann;
+          bctag[i] = LO_NEUMANN;
           bloc[i] = 0.;
         }
         else if (p_bc == REFLECT_ODD) {
@@ -155,12 +155,12 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
           bloc[i] = 0.;
         }
 */
-        if (p_bc == amrex::LinOpBCType::Dirichlet   || p_bc == amrex::LinOpBCType::Neumann ||
-            p_bc == amrex::LinOpBCType::reflect_odd) {
+        if (p_bc == LO_DIRICHLET   || p_bc == LO_NEUMANN ||
+            p_bc == LO_REFLECT_ODD) {
           bctag[i] = p_bc;
           bloc[i] = 0.;
         }
-        else if (p_bc == amrex::LinOpBCType::Marshak || p_bc == amrex::LinOpBCType::SanchezPomraning) {
+        else if (p_bc == LO_MARSHAK || p_bc == LO_SANCHEZ_POMRANING) {
           bctag[i] = p_bc;
           //gives asymmetric, second-order version of Marshak b.c.
           // (worked for bbmg, works with nonsymmetric hypre solvers):
@@ -176,7 +176,7 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
       }
       else {
         // internal bndry
-        bctag[i] = amrex::LinOpBCType::Dirichlet;
+        bctag[i] = LO_DIRICHLET;
         bloc[i] = 0.5*delta;
       }
     }
@@ -222,8 +222,8 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
       if (domain[face] == grd[face] && !geom.isPeriodic(dir)) {
         if (bcflag[face] <= 1) {
-          if (p_bc == amrex::LinOpBCType::Marshak   || p_bc == amrex::LinOpBCType::SanchezPomraning || 
-              p_bc == amrex::LinOpBCType::Dirichlet || p_bc == amrex::LinOpBCType::Neumann) {
+          if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
+              p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
               for(int igroup = 0; igroup < ngroups; igroup++) {
                   bndry[face][bi].setVal<RunOn::Host>(value_nu[igroup], igroup);
               }

@@ -261,12 +261,12 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
     
       bool nexttoboundary=false;
       for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
-          if (lo_bc[idim] == amrex::LinOpBCType::SanchezPomraning &&
+          if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
               reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
               nexttoboundary=true;
               break;
           }
-          if (hi_bc[idim] == amrex::LinOpBCType::SanchezPomraning &&
+          if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
               reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
               nexttoboundary=true;
               break;
