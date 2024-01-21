@@ -151,12 +151,12 @@ void MGRadBndry::setBndryConds(const BCRec& bc,
           bloc[i] = 0.;
         }
         else if (p_bc == amrex::BCType::reflect_odd) {
-          bctag[i] = AMREX_LO_amrex::BCType::reflect_odd;
+          bctag[i] = AMREX_LO_REFLECT_ODD;
           bloc[i] = 0.;
         }
 */
         if (p_bc == AMREX_LO_DIRICHLET   || p_bc == AMREX_LO_NEUMANN ||
-            p_bc == AMREX_LO_amrex::BCType::reflect_odd) {
+            p_bc == AMREX_LO_REFLECT_ODD) {
           bctag[i] = p_bc;
           bloc[i] = 0.;
         }
