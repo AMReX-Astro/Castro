@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            fradshock(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            fradshock(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                       problo.dataPtr(), probhi.dataPtr(),
                       BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                       nbins, vars_bin.dataPtr(),

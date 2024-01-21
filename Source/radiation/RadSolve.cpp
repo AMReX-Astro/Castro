@@ -785,7 +785,7 @@ void RadSolve::levelFluxReg(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
-  const Real volume = D_TERM(dx[0], * dx[1], * dx[2]);
+  const Real volume = AMREX_D_TERM(dx[0], * dx[1], * dx[2]);
 
   if (flux_in) {
     for (int n = 0; n < AMREX_SPACEDIM; n++) {

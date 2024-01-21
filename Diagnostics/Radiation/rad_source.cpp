@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 
         Real rhoe, rad;
 
-        fradsource(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+        fradsource(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                    BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                    &rhoe, &rad, rhoe_comp, rad_comp);
 

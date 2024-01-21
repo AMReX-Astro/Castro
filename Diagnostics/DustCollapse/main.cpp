@@ -172,17 +172,17 @@ int main(int argc, char* argv[])
                 const Box& bx = mfi.tilebox();
 
 #if (AMREX_SPACEDIM == 1)
-                fdustcollapse1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                fdustcollapse1d(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                                 BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                                 nbins, dens.dataPtr(),
                                 imask.dataPtr(), mask_size, r1, dens_comp, &cnt);
 #elif (AMREX_SPACEDIM == 2)
 
-                fdustcollapse2d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                fdustcollapse2d(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                                 BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                                 nbins, dens.dataPtr(), volcount.dataPtr(),
                                 imask.dataPtr(), mask_size, r1,
-                                ZFILL(level_dx), dx_fine, yctr, dens_comp);
+                                AMREX_ZFILL(level_dx), dx_fine, yctr, dens_comp);
 #else
                 fdustcollapse3d(bx.loVect(), bx.hiVect(),
                                 BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),

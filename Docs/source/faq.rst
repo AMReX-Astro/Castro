@@ -106,10 +106,10 @@ Debugging
 
    ::
 
-           print_state(mf, IntVect(D_DECL(10, 20, 30)));
+           print_state(mf, IntVect(AMREX_D_DECL(10, 20, 30)));
 
    Here, the IntVect has the dimension that we were compiled with
-   (and this is handled through the preprocessor ``D_DECL``). In
+   (and this is handled through the preprocessor ``AMREX_D_DECL``). In
    this case, we are inspecting zone (10, 20, 30), in the global index
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.

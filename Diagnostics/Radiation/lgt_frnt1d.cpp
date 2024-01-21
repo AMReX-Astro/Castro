@@ -114,13 +114,13 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            flgt_frnt1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            flgt_frnt1d(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                         BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                         nbins, dens_bin.dataPtr(), vel_bin.dataPtr(),
                         pres_bin.dataPtr(), rad_bin.dataPtr(),
                         imask.dataPtr(), mask_size, r1,
                         dens_comp, xmom_comp, pres_comp, rad_comp,
-                        ZFILL(dx), dx_fine);
+                        AMREX_ZFILL(dx), dx_fine);
         }
 
         // adjust r1 for the next lowest level

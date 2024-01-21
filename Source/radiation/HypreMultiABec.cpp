@@ -1502,7 +1502,7 @@ HypreMultiABec::hmmat (const Box& bx,
     Real bfm, bfv;
     Real bfm2, h2, th2;
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
 
         if (bho >= 1) {
 
@@ -1520,7 +1520,7 @@ HypreMultiABec::hmmat (const Box& bx,
         }
 
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
 
         bfm = -fac;
         bfm2 = 0.e0_rt;
@@ -1739,7 +1739,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1753,13 +1753,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1772,7 +1772,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1813,7 +1813,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1827,13 +1827,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1846,7 +1846,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1887,7 +1887,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1901,13 +1901,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1920,7 +1920,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1961,7 +1961,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1975,13 +1975,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1994,7 +1994,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2035,7 +2035,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -2049,13 +2049,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2068,7 +2068,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2109,7 +2109,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -2123,13 +2123,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2142,7 +2142,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2286,7 +2286,7 @@ void HypreMultiABec::loadMatrix()
           // level in the current linear system.  Zero out the interior
           // stencil using Neumann BC:
 
-          const RadBoundCond bct_coarse = LO_NEUMANN;
+          const RadBoundCond bct_coarse = AMREX_LO_NEUMANN;
           hmmat(reg, matfab.array(), cdir, bct_coarse, bho, bcl,
                 msk.array(), (*bcoefs[level])[idim][mfi].array(),
                 beta, geom[level].CellSize());
