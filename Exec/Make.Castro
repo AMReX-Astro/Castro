@@ -35,13 +35,7 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-else
-  BL_NO_FORT := TRUE
-endif
-
+BL_NO_FORT := TRUE
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.

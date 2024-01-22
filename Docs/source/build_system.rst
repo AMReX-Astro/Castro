@@ -42,17 +42,6 @@ Most of these are parameters from AMReX.
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
 
 
-Fortran Support
-^^^^^^^^^^^^^^^
-
-Radiation currently needs Fortran support.  All of the other solvers
-and problem set ups do not require Fortran.  Fortran support in AMReX
-is enabled / disabled via:
-
-  * ``BL_NO_FORT``: if set to ``TRUE``, then no AMReX Fortran source will be built.
-    This cannot currently be used for the radiation solver.
-
-
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -272,15 +261,6 @@ This is the current build system process.
   * The hook for this is in ``Make.auto_source`` in the ``prob_parameters.H`` rule.
 
   * These headers are output into ``tmp_build_dir/castro_sources/``.
-
-* (if Fortran support is enabled) The Fortran dependencies file is created
-
-  * This creates the ``f90.depends`` file in the ``tmp_build_dir``
-
-  * The script ``amrex/Tools/F_scripts/dep.py`` is used
-
-  * The hook for this is in ``amrex/Tools/GNUMake/Make.rules`` in the
-    ``$(depEXETempDir)/f90.depends`` target
 
 * The C/C++ dependencies file is created
 

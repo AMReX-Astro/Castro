@@ -1,0 +1,4 @@
+CEXE_sources += main.cpp
+CEXE_sources += extern_parameters.cpp
+CEXE_headers += extern_parameters.H
+

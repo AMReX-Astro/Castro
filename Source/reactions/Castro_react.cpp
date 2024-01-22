@@ -214,10 +214,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_t burn_state;
 #ifdef NSE_NET
-	    burn_state.mu_p = U(i,j,k,UMUP);
-	    burn_state.mu_n = U(i,j,k,UMUN);
+            burn_state.mu_p = U(i,j,k,UMUP);
+            burn_state.mu_n = U(i,j,k,UMUN);
 
-	    burn_state.y_e = -1.0_rt;
+            burn_state.y_e = -1.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -251,9 +251,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             burn_state.rho = U(i,j,k,URHO);
 
-	    // e is used as an input for some NSE solvers
+            // e is used as an input for some NSE solvers
 
-	    burn_state.e = U(i,j,k,UEINT) * rhoInv;
+            burn_state.e = U(i,j,k,UEINT) * rhoInv;
 
             // this T is consistent with UEINT because we did an EOS call before
             // calling this function
@@ -363,19 +363,19 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                         }
                     }
 #ifdef NSE
-		    if (store_omegadot == 1) {
-		      reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
-		    }
-		    else {
-		      reactions(i,j,k,1) = burn_state.nse;
-		    }
+                    if (store_omegadot == 1) {
+                        reactions(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+                    }
+                    else {
+                        reactions(i,j,k,1) = burn_state.nse;
+                    }
 #endif
                 }
 
                 // update the state
 #ifdef NSE_NET
-		U(i,j,k,UMUP) = burn_state.mu_p;
-		U(i,j,k,UMUN) = burn_state.mu_n;
+                U(i,j,k,UMUP) = burn_state.mu_p;
+                U(i,j,k,UMUN) = burn_state.mu_n;
 #endif
                 for (int n = 0; n < NumSpec; ++n) {
                     U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
@@ -554,10 +554,10 @@ Castro::react_state(Real time, Real dt)
 #endif
 
 #ifdef NSE_NET
-	    burn_state.mu_p = U_old(i,j,k,UMUP);
-	    burn_state.mu_n = U_old(i,j,k,UMUN);
+            burn_state.mu_p = U_old(i,j,k,UMUP);
+            burn_state.mu_n = U_old(i,j,k,UMUN);
 
-	    burn_state.y_e = -1.0_rt;
+            burn_state.y_e = -1.0_rt;
 #endif
             // Initialize some data for later.
 
@@ -692,8 +692,8 @@ Castro::react_state(Real time, Real dt)
 
                 // update the state data.
 #ifdef NSE_NET
-	        U_new(i,j,k,UMUP) = burn_state.mu_p;
-	        U_new(i,j,k,UMUN) = burn_state.mu_n;
+                U_new(i,j,k,UMUP) = burn_state.mu_p;
+                U_new(i,j,k,UMUN) = burn_state.mu_n;
 #endif
                 U_new(i,j,k,UEDEN) = burn_state.y[SEDEN];
                 U_new(i,j,k,UEINT) = burn_state.y[SEINT];
@@ -740,12 +740,12 @@ Castro::react_state(Real time, Real dt)
                          }
                      }
 #ifdef NSE
-		    if (store_omegadot == 1) {
-		      react_src(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
-		    }
-		    else {
-		      react_src(i,j,k,1) = burn_state.nse;
-		    }
+                    if (store_omegadot == 1) {
+                        react_src(i,j,k,NumSpec+NumAux+1) = burn_state.nse;
+                    }
+                    else {
+                        react_src(i,j,k,1) = burn_state.nse;
+                    }
 #endif
                  }
 

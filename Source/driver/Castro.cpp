@@ -76,6 +76,8 @@ int          Castro::NUM_GROW_SRC  = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
+params_t     Castro::params;
+
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
@@ -322,13 +324,6 @@ Castro::read_params ()
     }
 #endif
 
-#ifdef REACTIONS
-#ifdef SIMPLIFIED_SDC
-    if (jacobian == 1) {
-      amrex::Abort("Simplified SDC requires the numerical Jacobian now (jacobian = 2)");
-    }
-#endif
-#endif
     // sanity checks
 
     if (grown_factor < 1) {
@@ -387,6 +382,12 @@ Castro::read_params ()
     if (riemann_solver > 1) {
         amrex::Error("ERROR: HLLC not implemented for 1-d");
     }
+#endif
+
+#ifndef SHOCK_VAR
+   if (disable_shock_burning != 0) {
+       amrex::Error("ERROR: disable_shock_burning requires compiling with USE_SHOCK_VAR=TRUE");
+   }
 #endif
 
     if (riemann_solver == 1) {

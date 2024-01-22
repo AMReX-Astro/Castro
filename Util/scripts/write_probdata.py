@@ -244,7 +244,7 @@ def write_probin(prob_param_files, cxx_prefix):
                 fout.write(f"        {p.get_default_string()}")
 
             if p.in_namelist:
-                fout.write(f"        {p.get_query_string('C++')}")
+                fout.write(f"        {p.get_query_string()}")
             fout.write("\n")
         fout.write("    }\n")
 

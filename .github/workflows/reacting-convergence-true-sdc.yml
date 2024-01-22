@@ -5,7 +5,7 @@ jobs:
   reacting-convergence-true-sdc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -26,7 +26,7 @@ jobs:
       - name: Compile reacting_convergence
         run: |
           cd Exec/reacting_tests/reacting_convergence
-          make DIM=2 USE_MPI=FALSE -j 2 USE_TRUE_SDC=TRUE
+          make DIM=2 USE_MPI=FALSE -j 4 USE_TRUE_SDC=TRUE
 
       - name: Run reacting_convergence
         run: |
@@ -36,7 +36,7 @@ jobs:
       - name: Build the fextrema tool
         run: |
           cd external/amrex/Tools/Plotfile
-          make programs=fextrema -j 2
+          make programs=fextrema -j 4
 
       - name: Check the extrema
         run: |
