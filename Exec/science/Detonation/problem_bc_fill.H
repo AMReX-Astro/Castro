@@ -70,32 +70,32 @@ void problem_bc_fill(int i, int j, int k,
         }
         else if (i > domhi[0] && (bcs(0).hi(0) != amrex::BCType::reflect_odd &&
                                   bcs(0).hi(0) != amrex::BCType::int_dir &&
-                                  bcs(0).hi(0) != amrex::BCType::reflect_odd)) {
+                                  bcs(0).hi(0) != amrex::BCType::reflect_even)) {
             do_ambient_fill = true;
         }
 
         if (AMREX_SPACEDIM >= 2) {
             if (j < domlo[1] && (bcs(0).lo(1) != amrex::BCType::reflect_odd &&
                                  bcs(0).lo(1) != amrex::BCType::int_dir &&
-                                 bcs(0).lo(1) != amrex::BCType::reflect_odd)) {
+                                 bcs(0).lo(1) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
             else if (j > domhi[1] && (bcs(0).hi(1) != amrex::BCType::reflect_odd &&
                                       bcs(0).hi(1) != amrex::BCType::int_dir &&
-                                      bcs(0).hi(1) != amrex::BCType::reflect_odd)) {
+                                      bcs(0).hi(1) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
         }
-                
+
         if (AMREX_SPACEDIM == 3) {
             if (k < domlo[2] && (bcs(0).lo(2) != amrex::BCType::reflect_odd &&
                                  bcs(0).lo(2) != amrex::BCType::int_dir &&
-                                 bcs(0).lo(2) != amrex::BCType::reflect_odd)) {
+                                 bcs(0).lo(2) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
             else if (k > domhi[2] && (bcs(0).hi(2) != amrex::BCType::reflect_odd &&
                                       bcs(0).hi(2) != amrex::BCType::int_dir &&
-                                      bcs(0).hi(2) != amrex::BCType::reflect_odd)) {
+                                      bcs(0).hi(2) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
         }
