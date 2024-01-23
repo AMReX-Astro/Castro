@@ -550,6 +550,7 @@ Castro::pre_advance_operators (Real time, Real dt)
     const bool apply_to_state{false};
     do_old_sources(time, dt, apply_to_state);
 
+    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& old_source = get_old_data(Source_Type);
 
     FArrayBox shk(The_Async_Arena());
@@ -571,14 +572,15 @@ Castro::pre_advance_operators (Real time, Real dt)
 	Array4<Real> const q_arr = q.array();
 	Array4<Real> const qaux_arr = qaux.array();
 
-	Array4<Real> const U_old_arr = Sborder.array(mfi);
+	Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
+	Array4<Real> const S_old_arr = S_old.array(mfi);
 	Array4<Real> const old_src_arr = old_source.array(mfi);
 
-	ctoprim(obx, time, U_old_arr, q_arr, qaux_arr);
+	ctoprim(obx, time, Sborder_old_arr, q_arr, qaux_arr);
 
         shock(bx, q_arr, old_src_arr, shk_arr);
 
-	// now store it in Sborder
+	// now store it in S_old -- we'll fillpatch into Sborder in a bit
 
 	// Note: we still compute the shock flag in the hydro for the
 	// hybrid-Riemann (for now) since that version will have seen the
@@ -588,7 +590,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 	amrex::ParallelFor(bx,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-	    U_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
+	    S_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
 	});
 
     }
