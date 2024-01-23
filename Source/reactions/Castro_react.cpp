@@ -236,7 +236,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
 #ifdef SHOCK_VAR
             if (U(i,j,k,USHK) > 0.0_rt && disable_shock_burning == 1) {
-                amrex::Error("shock in react!!!");
                 do_burn = false;
             }
 #endif
