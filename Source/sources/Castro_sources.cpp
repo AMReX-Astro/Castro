@@ -537,6 +537,63 @@ Castro::pre_advance_operators (Real time, Real dt)
     construct_old_gravity(time);
 #endif
 
+#ifdef SHOCK_VAR
+    // we want to compute the shock flag that will be used
+    // (optionally) in disabling reactions in shocks.  We compute this
+    // only once per timestep using the time-level n data.
+
+    // We need to compute the old sources -- note that we will
+    // recompute the old sources after the burn, so this is done here
+    // only for evaluating the shock flag.
+
+    // Note: we still compute the shock flag in the hydro for the
+    // hybrid-Riemann (for now) since that version will have seen the
+    // effect of the burning in the first dt), but that version is
+    // never stored in State_Type
+
+    MultiFab& old_source = get_old_data(Source_Type);
+
+    FArrayBox shk(The_Async_Arena());
+    FArrayBox q(The_Async_Arena()), qaux(The_Async_Arena());
+
+    for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
+
+	shk.resize(bx, 1);
+
+	Array4<Real> const shk_arr = shk.array();
+	Array4<Real> const q_arr = q.array();
+	Array4<Real> const qaux_arr = qaux.array();
+
+	Array4<Real const> const U_old_arr = Sborder.array(mfi);
+	Array4<Real> const old_src_arr = old_source.array(mfi);
+
+	ctoprim(bx, time, U_old_arr, q_arr, qaux_arr);
+
+        shock(obx, q_arr, old_src_arr, shk_arr);
+
+	// now store it in Sborder
+	amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+	    U_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
+	});
+
+    }
+
+    // we only computed the shock flag on the interior, but the first
+    // burn needs ghost cells, so FillPatch just the shock flag
+
+    if (Sborder.nGrow() > 0) {
+      AmrLevel::FillPatch(*this, Sborder, Sborder.nGrow(), time, State_Type, USHK, 1, USHK);
+    }
+
+#endif
+
+    getLevel(lev).pre_hydro_operators(prev_time, dt);
+
+
+#endif
 
     // If we are Strang splitting the reactions, do the old-time contribution now.
 

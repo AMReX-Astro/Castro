@@ -9,9 +9,6 @@ using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
-#ifdef SHOCK_VAR
-                     Array4<Real const> const& shk,
-#endif
                      Array4<Real> const& U_new,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
@@ -70,7 +67,7 @@ Castro::consup_hydro(const Box& bx,
 
 #ifdef SHOCK_VAR
     } else if (n == USHK) {
-      U_new(i,j,k,USHK) = shk(i,j,k);
+      U_new(i,j,k,USHK) = U_old(i,j,k,USHK);
 #endif
 
     } else if (n == UMX) {
