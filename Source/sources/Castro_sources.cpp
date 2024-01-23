@@ -151,7 +151,7 @@ Castro::do_old_sources(
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
 
-    if (print_update_diagnostics) {
+    if (apply_to_state && print_update_diagnostics) {
       bool is_new = false;
       print_all_source_changes(dt, is_new);
     }
@@ -174,7 +174,7 @@ Castro::do_old_sources(
 }
 
 advance_status
-Castro::do_old_sources (Real time, Real dt)
+Castro::do_old_sources (Real time, Real dt, bool apply_to_state)
 {
     advance_status status {};
 
@@ -192,7 +192,8 @@ Castro::do_old_sources (Real time, Real dt)
 #ifdef MHD
                    Bx_old, By_old, Bz_old,
 #endif
-                   old_source, Sborder, S_new, time, dt);
+                   old_source, Sborder, S_new, time, dt,
+		   apply_to_state);
 
     return status;
 }
@@ -546,7 +547,8 @@ Castro::pre_advance_operators (Real time, Real dt)
     // recompute the old sources after the burn, so this is done here
     // only for evaluating the shock flag.
 
-    do_old_sources(time, dt);
+    const bool apply_to_state{false};
+    do_old_sources(time, dt, apply_to_state);
 
     MultiFab& old_source = get_old_data(Source_Type);
 
@@ -555,8 +557,15 @@ Castro::pre_advance_operators (Real time, Real dt)
 
     for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.tilebox();
+	const Box& obx = mfi.growntilebox(1);
 
 	shk.resize(bx, 1);
+#ifdef RADIATION
+	q.resize(obx, NQ);
+#else
+	q.resize(obx, NQTHERM);
+#endif
+	qaux.resize(obx, NQAUX);
 
 	Array4<Real> const shk_arr = shk.array();
 	Array4<Real> const q_arr = q.array();
@@ -565,7 +574,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 	Array4<Real> const U_old_arr = Sborder.array(mfi);
 	Array4<Real> const old_src_arr = old_source.array(mfi);
 
-	ctoprim(bx, time, U_old_arr, q_arr, qaux_arr);
+	ctoprim(obx, time, U_old_arr, q_arr, qaux_arr);
 
         shock(bx, q_arr, old_src_arr, shk_arr);
 

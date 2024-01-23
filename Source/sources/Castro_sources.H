@@ -54,7 +54,7 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 ///
-    advance_status do_old_sources (amrex::Real time, amrex::Real dt);
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
