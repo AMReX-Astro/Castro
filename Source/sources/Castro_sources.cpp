@@ -546,10 +546,7 @@ Castro::pre_advance_operators (Real time, Real dt)
     // recompute the old sources after the burn, so this is done here
     // only for evaluating the shock flag.
 
-    // Note: we still compute the shock flag in the hydro for the
-    // hybrid-Riemann (for now) since that version will have seen the
-    // effect of the burning in the first dt), but that version is
-    // never stored in State_Type
+    do_old_sources(time, dt);
 
     MultiFab& old_source = get_old_data(Source_Type);
 
@@ -565,14 +562,20 @@ Castro::pre_advance_operators (Real time, Real dt)
 	Array4<Real> const q_arr = q.array();
 	Array4<Real> const qaux_arr = qaux.array();
 
-	Array4<Real const> const U_old_arr = Sborder.array(mfi);
+	Array4<Real> const U_old_arr = Sborder.array(mfi);
 	Array4<Real> const old_src_arr = old_source.array(mfi);
 
 	ctoprim(bx, time, U_old_arr, q_arr, qaux_arr);
 
-        shock(obx, q_arr, old_src_arr, shk_arr);
+        shock(bx, q_arr, old_src_arr, shk_arr);
 
 	// now store it in Sborder
+
+	// Note: we still compute the shock flag in the hydro for the
+	// hybrid-Riemann (for now) since that version will have seen the
+	// effect of the burning in the first dt), but that version is
+	// never stored in State_Type
+
 	amrex::ParallelFor(bx,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
@@ -587,11 +590,6 @@ Castro::pre_advance_operators (Real time, Real dt)
     if (Sborder.nGrow() > 0) {
       AmrLevel::FillPatch(*this, Sborder, Sborder.nGrow(), time, State_Type, USHK, 1, USHK);
     }
-
-#endif
-
-    getLevel(lev).pre_hydro_operators(prev_time, dt);
-
 
 #endif
 

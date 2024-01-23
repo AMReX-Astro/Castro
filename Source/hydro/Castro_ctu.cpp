@@ -65,11 +65,6 @@ Castro::consup_hydro(const Box& bx,
 
       U_new(i,j,k,n) = U_new(i,j,k,n) - dt * pdu;
 
-#ifdef SHOCK_VAR
-    } else if (n == USHK) {
-      U_new(i,j,k,USHK) = U_old(i,j,k,USHK);
-#endif
-
     } else if (n == UMX) {
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
