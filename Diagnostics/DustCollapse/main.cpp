@@ -105,15 +105,15 @@ int main(int argc, char* argv[])
         auto x_maxdist = fmax(fabs(problo[0]), fabs(probhi[0]));
         auto y_maxdist = fmax(fabs(problo[1] - yctr), fabs(probhi[1] - yctr));
 
-        auto max_dist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
+        auto max_dist = std::sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
 
         int nbins = int(max_dist / dx_fine);
 #else
-        auto x_maxdist = fmax(fabs(problo[0] - xctr), fabs(probhi[0] - xctr));
-        auto y_maxdist = fmax(fabs(problo[1] - yctr), fabs(probhi[1] - yctr));
-        auto z_maxdist = fmax(fabs(problo[2] - zctr), fabs(probhi[2] - zctr));
+        auto x_maxdist = std::max(std::abs(problo[0] - xctr), std::abs(probhi[0] - xctr));
+        auto y_maxdist = std::max(std::abs(problo[1] - yctr), std::abs(probhi[1] - yctr));
+        auto z_maxdist = std::max(std::abs(problo[2] - zctr), std::abs(probhi[2] - zctr));
 
-        auto max_dist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist +
+        auto max_dist = std::sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist +
                              z_maxdist*z_maxdist);
 
         int nbins = int(max_dist / dx_fine);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
         // over levels, we will compare to the finest level index space to
         // determine if we've already output here
         int mask_size = domain.length().max();
-        Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+        Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
         // counter
         int cnt = 0;

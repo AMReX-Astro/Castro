@@ -3476,7 +3476,7 @@ void HypreMultiABec::solve()
     hypre_SStructInnerProd((hypre_SStructVector *) b,
                            (hypre_SStructVector *) b,
                            &bnorm);
-    bnorm = sqrt(bnorm);
+    bnorm = std::sqrt(bnorm);
 
     Real volume = 0.0;
     for (int level = crse_level; level <= fine_level; level++) {
@@ -3486,7 +3486,7 @@ void HypreMultiABec::solve()
     }
 
     Real reltol_new = (bnorm > 0.0
-                       ? abstol / bnorm * sqrt(volume)
+                       ? abstol / bnorm * std::sqrt(volume)
                        : reltol);
 
     if (reltol_new > reltol) {
@@ -3830,7 +3830,7 @@ Real HypreMultiABec::getAbsoluteResidual()
   hypre_SStructInnerProd((hypre_SStructVector *) b,
                          (hypre_SStructVector *) b,
                          &bnorm);
-  bnorm = sqrt(bnorm);
+  bnorm = std::sqrt(bnorm);
 
   Real res;
   if (solver_flag == 100) {
@@ -3891,7 +3891,7 @@ Real HypreMultiABec::getAbsoluteResidual()
     }
   }
 
-  return bnorm * res / sqrt(volume);
+  return bnorm * res / std::sqrt(volume);
 }
 
 void HypreMultiABec::boundaryFlux(int level,

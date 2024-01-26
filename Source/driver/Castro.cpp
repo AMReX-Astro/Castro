@@ -4215,12 +4215,12 @@ Castro::get_numpts ()
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
