@@ -588,13 +588,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
-                                   const int verbose) {
+                                   const int verbose_warnings) {
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
 
-  amrex::ignore_unused(verbose);
+  amrex::ignore_unused(verbose_warnings);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -603,8 +603,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
     if (state_arr(i,j,k,URHO) < small_dens) {
 
 #ifndef AMREX_USE_GPU
-      if (verbose > 1 ||
-          (verbose > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
+      if (verbose_warnings > 1 ||
+          (verbose_warnings > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
