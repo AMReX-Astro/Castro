@@ -517,7 +517,7 @@ Castro::gwstrain (Real time,
 
     // Standard Kronecker delta.
 
-    Real delta[3][3] = {0.0};
+    Real delta[3][3] = {{0.0}};
 
     for (int i = 0; i < 3; ++i) {
         delta[i][i] = 1.0;
@@ -539,7 +539,7 @@ Castro::gwstrain (Real time,
 
         // Projection operator onto the unit vector n.
 
-        Real proj[3][3][3][3] = {0.0};
+        Real proj[3][3][3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {
@@ -554,7 +554,7 @@ Castro::gwstrain (Real time,
 
         // Now we can calculate the strain tensor.
 
-        Real h[3][3] = {0.0};
+        Real h[3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {
