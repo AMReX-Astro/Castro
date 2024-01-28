@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
-    double maxdist = fabs(probhi[0] - problo[0]);
+    double maxdist = std::abs(probhi[0] - problo[0]);
     double dx_fine = *(std::min_element(dx.begin(), dx.end()));
     int nbins = int(maxdist / dx_fine);
 

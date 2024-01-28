@@ -102,8 +102,8 @@ int main(int argc, char* argv[])
 #if (AMREX_SPACEDIM == 1)
         int nbins = domain.length(0);
 #elif (AMREX_SPACEDIM == 2)
-        auto x_maxdist = fmax(fabs(problo[0]), fabs(probhi[0]));
-        auto y_maxdist = fmax(fabs(problo[1] - yctr), fabs(probhi[1] - yctr));
+        auto x_maxdist = std::max(std::abs(problo[0]), std::abs(probhi[0]));
+        auto y_maxdist = std::max(std::abs(problo[1] - yctr), std::abs(probhi[1] - yctr));
 
         auto max_dist = std::sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
 
@@ -210,21 +210,21 @@ int main(int argc, char* argv[])
         // analytic expression for the radius as a function of time t = 0.00
         Real max_dens = 1.e9;
 
-        if (fabs(data.Time()) <= 1.e-8)
+        if (std::abs(data.Time()) <= 1.e-8)
             max_dens = 1.e9;
-        else if (fabs(data.Time() - 0.01) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.01) <= 1.e-8)
             max_dens = 1.043345e9;
-        else if (fabs(data.Time() - 0.02) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.02) <= 1.e-8)
             max_dens = 1.192524e9;
-        else if (fabs(data.Time() - 0.03) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.03) <= 1.e-8)
             max_dens = 1.527201e9;
-        else if (fabs(data.Time() - 0.04) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.04) <= 1.e-8)
             max_dens = 2.312884e9;
-        else if (fabs(data.Time() - 0.05) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.05) <= 1.e-8)
             max_dens = 4.779133e9;
-        else if (fabs(data.Time() - 0.06) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.06) <= 1.e-8)
             max_dens = 24.472425e9;
-        else if (fabs(data.Time() - 0.065) <= 1.e-8)
+        else if (std::abs(data.Time() - 0.065) <= 1.e-8)
             max_dens = 423.447291e9;
         else {
             Print() << "Dont know the maximum density at this time: " << data.Time() <<std::endl;
