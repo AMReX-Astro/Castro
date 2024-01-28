@@ -1843,8 +1843,11 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
 
         if (lev < fine_level) {
-            const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
-            MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+	    auto *castro_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+	    if (castro_level != nullptr) {
+		const MultiFab& mask = castro_level->build_fine_mask();
+		MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+	    }
         }
 
         // Loop through the grids and compute the individual contributions
@@ -2967,7 +2970,9 @@ Gravity::set_mass_offset (Real time, bool multi_level)
         {
             for (int lev = 0; lev <= parent->finestLevel(); lev++) {
                 auto* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
-                mass_offset += cs->volWgtSum("density", time);
+		if (cs != nullptr) {
+		    mass_offset += cs->volWgtSum("density", time);
+		}
             }
         }
         else
@@ -3131,10 +3136,12 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         if (lev < level)
         {
             auto* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-            const MultiFab& mask = fine_level->build_fine_mask();
-            for (int n = 0; n < NUM_STATE; ++n) {
-                MultiFab::Multiply(S, mask, 0, n, 1, 0);
-            }
+	    if (fine_level != nullptr) {
+		const MultiFab& mask = fine_level->build_fine_mask();
+		for (int n = 0; n < NUM_STATE; ++n) {
+		    MultiFab::Multiply(S, mask, 0, n, 1, 0);
+		}
+	    }
         }
 
         int n1d = static_cast<int>(radial_mass[lev].size());
