@@ -45,8 +45,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     GeometryData& geomdata)
 {
     // Override the generic routine at the physical boundaries by
     // setting the material to the ambient state. Note that we
