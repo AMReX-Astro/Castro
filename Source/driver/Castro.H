@@ -1487,8 +1487,10 @@ protected:
 /// sdc
 ///
     int sdc_iteration;
-    int current_sdc_node;
 
+#ifdef TRUE_SDC
+    int current_sdc_node;
+#endif
 
 
 /* problem-specific includes */

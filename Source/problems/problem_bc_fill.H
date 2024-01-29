@@ -15,8 +15,8 @@
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                       Array4<Real> const& state,
-                      Real time, Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                      GeometryData geomdata) {
+                      Real time, const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                      const GeometryData& geomdata) {
 
     amrex::ignore_unused(i);
     amrex::ignore_unused(j);

@@ -201,7 +201,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
-        auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
+        const auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         const auto dx = geom.CellSizeArray();
 #ifdef MODEL_PARSER
@@ -535,7 +535,7 @@ Castro::react_state(Real time, Real dt)
         auto I     = SDC_react.array(mfi);
         auto react_src = reactions.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
-        auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
+        const auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
 
         int lsdc_iteration = sdc_iteration;
 
