@@ -984,13 +984,13 @@ Castro::initData ()
         // make sure dx = dy = dz -- that's all we guarantee to support
 #if (AMREX_SPACEDIM == 2)
         const Real SMALL = 1.e-13;
-        if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
+        if (std::abs(dx[0] - dx[1]) > SMALL*dx[0])
           {
             amrex::Abort("We don't support dx != dy");
           }
 #elif (AMREX_SPACEDIM == 3)
         const Real SMALL = 1.e-13;
-        if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
+        if ( (std::abs(dx[0] - dx[1]) > SMALL*dx[0]) || (std::abs(dx[0] - dx[2]) > SMALL*dx[0]) )
           {
             amrex::Abort("We don't support dx != dy != dz");
           }
@@ -4215,12 +4215,12 @@ Castro::get_numpts ()
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
