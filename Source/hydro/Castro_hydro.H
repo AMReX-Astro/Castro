@@ -819,7 +819,7 @@
 
     void do_enforce_minimum_density(const amrex::Box& bx,
                                     amrex::Array4<amrex::Real> const& state_arr,
-                                    const int verbose);
+                                    const int verbose_warnings);
 
 #ifdef HYBRID_MOMENTUM
 

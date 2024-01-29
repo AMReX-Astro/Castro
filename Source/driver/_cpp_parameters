@@ -616,12 +616,12 @@ max_tagging_radius           real          10.0e0
 (v, verbose)                 int           0
 
 # do we dump the old state into the checkpoint files too?
-dump_old                     bool          false
+dump_old                     int           0
 
 # do we assume the domain is plane parallel when computing some of the derived
 # quantities (e.g. radial velocity).  Note: this will always assume that the
 # last spatial dimension is vertical
-domain_is_plane_parallel     bool          false
+domain_is_plane_parallel     int           0
 
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)

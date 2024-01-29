@@ -1779,7 +1779,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Real bnorm;
     bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                   (hypre_StructVector *) b);
-    bnorm = sqrt(bnorm);
+    bnorm = std::sqrt(bnorm);
 
     const BoxArray& grids = acoefs->boxArray();
     Real volume = 0.0;
@@ -1788,7 +1788,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     }
 
     Real reltol_new = (bnorm > 0.0
-                       ? abstol / bnorm * sqrt(volume)
+                       ? abstol / bnorm * std::sqrt(volume)
                        : reltol);
 
     if (reltol_new > reltol) {
@@ -1898,7 +1898,7 @@ Real HypreABec::getAbsoluteResidual()
   Real bnorm;
   bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                 (hypre_StructVector *) b);
-  bnorm = sqrt(bnorm);
+  bnorm = std::sqrt(bnorm);
 
   Real res;
   if (solver_flag == 0) {
@@ -1925,5 +1925,5 @@ Real HypreABec::getAbsoluteResidual()
     volume += grids[i].numPts();
   }
 
-  return bnorm * res / sqrt(volume);
+  return bnorm * res / std::sqrt(volume);
 }

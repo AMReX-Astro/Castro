@@ -8,8 +8,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     const GeometryData& geomdata)
 {
     const Real pres_init = 1.0e-6_rt;
     const Real rho_init = 1.0e0_rt;
