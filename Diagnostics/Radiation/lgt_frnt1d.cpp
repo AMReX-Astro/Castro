@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
-    double maxdist = fabs(probhi[0] - problo[0]);
+    double maxdist = std::abs(probhi[0] - problo[0]);
     double dx_fine = *(std::min_element(dx.begin(), dx.end()));
     int nbins = int(maxdist / dx_fine);
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
     // over levels, we will compare to the finest level index space to
     // determine if we've already output here
     int mask_size = domain.length().max();
-    Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+    Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
     // loop over the data, starting at the finest grid, and if we haven't
     // already stored data in that grid location (according to imask),

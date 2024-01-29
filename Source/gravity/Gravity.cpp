@@ -97,6 +97,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _density)
          init_multipole_grav();
      }
      max_rhs = 0.0;
+     numpts_at_level = -1;
 }
 
 Gravity::~Gravity() = default;
@@ -1569,7 +1570,7 @@ Gravity::compute_radial_mass(const Box& bx,
                         r     = std::sqrt(xxsq + yysq + zzsq);
                         index = static_cast<int>(r * drinv);
 
-                        Real vol_frac;
+                        Real vol_frac{};
 
                         if (coord_type == 0) {
 

@@ -131,7 +131,7 @@ Castro::sum_integrated_quantities ()
             auto R = R_new[mfi].array();
 #endif
 
-            auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+            const auto & level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
