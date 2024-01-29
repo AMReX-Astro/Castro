@@ -599,9 +599,9 @@ namespace: ``castro``
 +============================================+=============================================================+===============+
 | ``v``                                      | verbosity level (higher numbers mean more output)           | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | false         |
+| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | false         |
+| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | 0             |
 |                                            | some of the derived quantities (e.g. radial velocity).      |               |
 |                                            | Note: this will always assume that the last spatial         |               |
 |                                            | dimension is vertical                                       |               |
