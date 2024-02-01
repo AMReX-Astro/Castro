@@ -396,42 +396,63 @@ reconstruction will work from.</p></li>
 <code class="docutils literal notranslate"><span class="pre">S_old</span></code>, to the new time, <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <ol class="arabic">
 <li><p><em>Initialize</em></p>
+<p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>:</p>
 <ol class="upperalpha simple">
-<li><p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>, create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> to make sure the thermodynamics are in sync, in particular,
-compute the temperature.</p></li>
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> to make sure the thermodynamics are in</p></li>
+</ol>
+<blockquote>
+<div><p>sync, in particular, compute the temperature.</p>
+</div></blockquote>
+<ol class="upperalpha simple" start="3">
+<li><p>[<code class="docutils literal notranslate"><span class="pre">SHOCK_VAR</span></code>] zero out the shock flag.</p></li>
+<li><p>Create the source corrector (if <code class="docutils literal notranslate"><span class="pre">castro.source_term_predictor</span></code> = 1)</p></li>
 </ol>
 </li>
-<li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code> ]</p>
-<p>Update the solution due to the effect of reactions over half a time
-step. The integration method and system of equations used here is
-determined by a host of runtime parameters that are part of the
-Microphysics package. But the basic idea is to evolve the energy
-release from the reactions, the species mass fractions, and
-temperature through <span class="math notranslate nohighlight">\(\Delta t/2\)</span>.</p>
+<li><p><em>Do the pre-advance operations.</em></p>
+<p>This is handled by <code class="docutils literal notranslate"><span class="pre">pre_advance_operators()</span></code> and the main thing
+that it does is the first half of the Strang burn.</p>
+<p>The steps are:</p>
+<ol class="upperalpha">
+<li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">do_old_reactions()</span></code> ]</p>
+<p>Update the solution due to the effect of reactions over half a
+time step. The integration method and system of equations used
+here is determined by a host of runtime parameters that are part
+of the Microphysics package. But the basic idea is to evolve the
+energy release from the reactions, the species mass fractions,
+and temperature through <span class="math notranslate nohighlight">\(\Delta t/2\)</span>.</p>
 <p>Using the notation above, we begin with the time-level <span class="math notranslate nohighlight">\(n\)</span> state,
 <span class="math notranslate nohighlight">\(\Ub^n\)</span>, and produce a state that has evolved only due to reactions,
 <span class="math notranslate nohighlight">\(\Ub^\star\)</span>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{aligned}
-    (\rho e)^\star &amp;= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho E)^\star &amp;= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho X_k)^\star &amp;= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
-  \end{aligned}\end{split}\]</div>
+  (\rho e)^\star &amp;= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+  (\rho E)^\star &amp;= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+  (\rho X_k)^\star &amp;= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
+\end{aligned}\end{split}\]</div>
 <p>Here, <span class="math notranslate nohighlight">\(H_\mathrm{nuc}\)</span> is the energy release (erg/g/s) over the
 burn, and <span class="math notranslate nohighlight">\(\omegadot_k\)</span> is the creation rate for species <span class="math notranslate nohighlight">\(k\)</span>.</p>
 <p>After exiting the burner, we call the EOS with <span class="math notranslate nohighlight">\(\rho^\star\)</span>,
 <span class="math notranslate nohighlight">\(e^\star\)</span>, and <span class="math notranslate nohighlight">\(X_k^\star\)</span> to get the new temperature, <span class="math notranslate nohighlight">\(T^\star\)</span>.</p>
-<p>Note that the density, <span class="math notranslate nohighlight">\(\rho\)</span>, does not change via reactions in the
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The density, <span class="math notranslate nohighlight">\(\rho\)</span>, does not change via reactions in the
 Strang-split formulation.</p>
+</div>
 <p>The reaction data needs to be valid in the ghost cells, so the reactions
 are applied to the entire patch, including ghost cells.</p>
 <p>After reactions, <code class="docutils literal notranslate"><span class="pre">clean_state</span></code> is called.</p>
+</li>
+<li><p><em>Construct the gravitational potential at time <span class="math notranslate nohighlight">\(n\)</span>.</em></p>
+<p>This is done by calling <code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code></p>
+</li>
+<li><p><em>Initialize ``S_new`` with the current state</em> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>).</p></li>
+</ol>
 <p>At the end of this step, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> sees the effects of the
 reactions.</p>
 </li>
 <li><p><em>Construct time-level n sources and apply</em>
-[<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code> ]</p>
+[<code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code> ]</p>
 <p>The time level <span class="math notranslate nohighlight">\(n\)</span> sources are computed, and added to the
 StateData <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>.</p>
 <p>The sources that we deal with here are:</p>
@@ -492,28 +513,28 @@ given in Chapter <a class="reference internal" href="rotation.html#ch-rotation">
 new state just before the burn, <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span>. This is compatible
 with Strang-splitting, since the hydro and sources takes place
 completely inside of the surrounding burn operations.</p>
-<p>The old-time source terms are stored in <code class="docutils literal notranslate"><span class="pre">old_source</span></code>.</p>
+<p>The old-time source terms are stored in <code class="docutils literal notranslate"><span class="pre">old_source</span></code> (and a ghost
+cell fill is performed).</p>
 <p>The sources are then applied to the state after the burn,
 <span class="math notranslate nohighlight">\(\Ub^\star\)</span> with a full <span class="math notranslate nohighlight">\(\Delta t\)</span> weighting (this will
 be corrected later). This produces the intermediate state,
 <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)</span> (stored in <code class="docutils literal notranslate"><span class="pre">S_new</span></code>).</p>
 </li>
+<li><p><em>Do pre-hydro operations</em> [<code class="docutils literal notranslate"><span class="pre">pre_hydro_operators()</span></code>]</p>
+<p>For Strang+CTU, nothing is done here.</p>
+</li>
 <li><p><em>Construct the hydro / MHD update</em> [<code class="docutils literal notranslate"><span class="pre">construct_ctu_hydro_source()</span></code>, <code class="docutils literal notranslate"><span class="pre">construct_ctu_mhd_source()</span></code>]</p>
 <p>The goal is to advance our system considering only the advective
 terms (which in Cartesian coordinates can be written as the
 divergence of a flux).</p>
-<p>We do the hydro update in two parts—first we construct the
-advective update and store it in the hydro_source
-MultiFab, then we do the conservative update in a separate step. This
-separation allows us to use the advective update separately in more
-complex time-integration schemes.</p>
-<p>In the Strang-split formulation, we start the reconstruction using
-the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>).  For the
-CTU method, we predict to the half-time (<span class="math notranslate nohighlight">\(n+1/2\)</span>) to get a
-second-order accurate method. Note: <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> does not know of
-any sources except for reactions.</p>
-<p>The method done here differs depending on whether we are doing hydro or MHD.</p>
 <ol class="upperalpha">
+<li><p>In the Strang-split formulation, we start the reconstruction
+using the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>).
+For the CTU method, we predict to the half-time (<span class="math notranslate nohighlight">\(n+1/2\)</span>)
+to get a second-order accurate method. Note: <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> does
+not know of any sources except for reactions.</p>
+<p>The method done here differs depending on whether we are doing hydro or MHD.</p>
+<ul>
 <li><p>hydrodynamics</p>
 <p>The advection step is complicated, and more detail is given in
 Section <a class="reference internal" href="Hydrodynamics.html#sec-advection-step"><span class="std std-ref">Hydrodynamics Update</span></a>. Here is the summarized version:</p>
@@ -525,10 +546,15 @@ Section <a class="reference internal" href="Hydrodynamics.html#sec-advection-ste
 <li><p>Compute fluxes and advective term.</p></li>
 </ol>
 </li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<div><ul>
 <li><p>MHD</p>
 <p>The MHD update is described in <a class="reference internal" href="mhd.html#ch-mhd"><span class="std std-ref">MHD</span></a>.</p>
 </li>
-</ol>
+</ul>
 <p>To start the hydrodynamics/MHD source construction, we need to know
 the hydrodynamics source terms at time-level <span class="math notranslate nohighlight">\(n\)</span>, since this
 enters into the prediction to the interface states. This is
@@ -542,16 +568,21 @@ accounted for in the state directly, due to the Strang-splitting
 nature of this method.</p>
 <p>The update computed here is then immediately applied to
 <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-</li>
-<li><p><em>Clean State</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p>
+</div></blockquote>
+<ol class="upperalpha" start="2">
+<li><p><em>Clean State and check for NaNs</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p>
 <p>This is done on <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-<p>After these checks, we check the state for NaNs.</p>
 </li>
-<li><p><em>Update radial data and center of mass for monopole gravity</em></p>
-<p>These quantities are computed using <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
+<li><p><em>Update the center of mass for monopole gravity</em></p>
+<p>This quantities are computed using <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
+</li>
+</ol>
+</li>
+<li><p><em>Do post-hydro operations</em> [<code class="docutils literal notranslate"><span class="pre">post_hydro_operators()</span></code>]</p>
+<p>This constructs the new gravitational potential.</p>
 </li>
 <li><p><em>Correct the source terms with the n+1
-contribution</em> [<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code> ]</p>
+contribution</em> [<code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code> ]</p>
 <p>If we are doing self-gravity, then we first compute the updated gravitational
 potential using the updated density from <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <p>Now we correct the source terms applied to <code class="docutils literal notranslate"><span class="pre">S_new</span></code> so they are time-centered.
@@ -568,21 +599,16 @@ in the <code class="docutils literal notranslate"><span class="pre">new_sources<
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
-<li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
-<p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, beginning with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
-give us the final state on this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
+<li><p><em>Do post advance operations</em> [<code class="docutils literal notranslate"><span class="pre">post_advance_operators()</span></code>]</p>
+<p>This simply does the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state,
+beginning with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to give us the final state on
+this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
 <p>This is largely the same as <code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code>, but
 it does not currently fill the reactions in the ghost cells.</p>
 </li>
 <li><p><em>Finalize</em> [<code class="docutils literal notranslate"><span class="pre">finalize_do_advance()</span></code>]</p>
-<p>Finalize does the following:</p>
-<ol class="upperalpha simple">
-<li><p>for the momentum sources, we compute <span class="math notranslate nohighlight">\(d\Sb/dt\)</span>, to use in the
-source term prediction/extrapolation for the hydrodynamic
-interface states during the next step.</p></li>
-<li><p>If we are doing the hybrid momentum algorithm, then we sync up
-the hybrid and linear momenta</p></li>
-</ol>
+<p>This checks to ensure that we didn’t violate the CFL criteria
+during the advance.</p>
 </li>
 </ol>
 <p>A summary of which state is the input and which is updated for each of
@@ -638,7 +664,7 @@ these processes is presented below:</p>
 <td><p>input / updated</p></td>
 </tr>
 <tr class="row-odd"><td><ol class="arabic simple" start="6">
-<li><p>radial / center</p></li>
+<li><p>center of mass</p></li>
 </ol>
 </td>
 <td></td>

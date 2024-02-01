@@ -181,12 +181,12 @@ all of the make variables are set to?</em></p>
 <li><p><em>Castro crashes with a floating point exception—how can
 I get more information?</em></p>
 <p>The best thing to do is to recompile the code with <code class="docutils literal notranslate"><span class="pre">TEST=TRUE</span></code>
-set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
-signals raised in both C++ and Fortran functions. Behind the
+set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
+signals raised in C++ functions. Behind the
 scenes, this defines the <code class="docutils literal notranslate"><span class="pre">AMREX_TESTING</span></code> preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the <code class="docutils literal notranslate"><span class="pre">BLBackTrace::handler()</span></code>
-function to handle various signals raised in both C++ and Fortran
+function to handle various signals raised in C++
 functions. This is a Linux/UNIX capability. This gives us a chance
 to print out backtrace information. The signals include seg fault,
 floating point exceptions (NaNs, divided by zero and overflow), and

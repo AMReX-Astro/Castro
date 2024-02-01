@@ -213,6 +213,15 @@ To enable this, compile with:</p>
 <span class="n">USE_CUDA</span> <span class="o">=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For recent GPUs, like the NVIDIA RTX 4090, you may need to change
+the default CUDA architecture.  This can be done by adding:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CUDA_ARCH</span><span class="o">=</span><span class="mi">89</span>
+</pre></div>
+</div>
+<p>to the <code class="docutils literal notranslate"><span class="pre">make</span></code> line or <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
+</div>
 </section>
 <section id="amd-gpus">
 <h3>AMD GPUs<a class="headerlink" href="#amd-gpus" title="Link to this heading"></a></h3>

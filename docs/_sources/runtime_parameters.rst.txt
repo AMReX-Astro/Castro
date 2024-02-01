@@ -344,7 +344,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.shock_detection_threshold, castro.shock_detection_include_sources, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
 
 
 +--------------------------------------------+-------------------------------------------------------------+---------------+
@@ -376,7 +376,13 @@ namespace: ``castro``
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``react_rho_max``                          | maximum density for allowing reactions to occur in a zone   | 1.e200        |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``disable_shock_burning``                  | disable burning inside hydrodynamic shock regions           | 0             |
+| ``disable_shock_burning``                  | disable burning inside hydrodynamic shock regions note:     | 0             |
+|                                            | requires compiling with `USE_SHOCK_VAR=TRUE`                |               |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``shock_detection_threshold``              | shock detection threshold for grad{P} / P                   | 0.6666666666666666666666_rt |
++--------------------------------------------+-------------------------------------------------------------+---------------+
+| ``shock_detection_include_sources``        | do we subtract off the hydrostatic pressure when evaluating | 1             |
+|                                            | a shock?                                                    |               |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
 | ``T_guess``                                | initial guess for the temperature when inverting the EoS    | 1.e8          |
 |                                            | (e.g. when calling eos_input_re)                            |               |
@@ -593,9 +599,9 @@ namespace: ``castro``
 +============================================+=============================================================+===============+
 | ``v``                                      | verbosity level (higher numbers mean more output)           | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | false         |
+| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | 0             |
 +--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | false         |
+| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | 0             |
 |                                            | some of the derived quantities (e.g. radial velocity).      |               |
 |                                            | Note: this will always assume that the last spatial         |               |
 |                                            | dimension is vertical                                       |               |

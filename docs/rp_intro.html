@@ -167,8 +167,8 @@ are set at runtime via the inputs file.</p>
 <h3>Castro-specific parameters<a class="headerlink" href="#castro-specific-parameters" title="Link to this heading"></a></h3>
 <p>The Castro parameters that control the behavior of the code and
 physics modules are listed in <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code> and take the form of:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
-name   type   default   need in Fortran?   ifdef
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment describing the parameter</span>
+<span class="n">name</span>   <span class="nb">type</span>   <span class="n">default</span>   <span class="n">ifdef</span>
 </pre></div>
 </div>
 <p>Here,</p>
@@ -186,14 +186,9 @@ was implemented for backwards compatibility.</p>
 <li><p><cite>default</cite> is the default value of the parameter.</p></li>
 </ul>
 </div></blockquote>
-<p>The next columns are optional, but you need to fill in all of the
-information up to and including any of the optional columns you need
-(e.g., if you are going to provide “need in Fortran?” and “ifdef”).</p>
+<p>The next column is optional:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><cite>need in Fortran?</cite> is <code class="docutils literal notranslate"><span class="pre">y</span></code> if the runtime parameter should be
-made available in Fortran (through <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>).
-Note: this option is deprecated.</p></li>
 <li><p><cite>ifdef</cite> provides the name of a preprocessor name that should
 wrap this parameter definition—it will only be compiled in if that
 name is defined to the preprocessor.</p></li>
