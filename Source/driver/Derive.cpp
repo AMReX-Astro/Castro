@@ -352,8 +352,7 @@ extern "C"
       const Box& obx = amrex::grow(bx, 1);
 
       FArrayBox coeff_cc;
-      coeff_cc.resize(obx, 1);
-      Elixir elix_coeff_cc = coeff_cc.elixir();
+      coeff_cc.resize(obx, 1, The_Async_Arena());
       Array4<Real> const coeff_arr = coeff_cc.array();
 
       auto const dat = datfab.array();

@@ -14,13 +14,21 @@ def sci_not(num):
     return r"${:5.3f} \times 10^{{{}}}$".format(round(mant, 3), exp)
 
 class Variable():
-    def __init__(self, name, lo, o1, med, o2, hi):
+    def __init__(self, name, lo, o1, med, o2, hi, o3=None, vhi=None):
         self.name = name
         self.lo = float(lo)
         self.o1 = float(o1)
         self.med = float(med)
         self.o2 = float(o2)
         self.hi = float(hi)
+        if o3 is not None:
+            self.o3 = float(o3)
+        else:
+            self.o3 = None
+        if vhi is not None:
+            self.vhi = float(vhi)
+        else:
+            self.vhi = None
 
     def get_table_line(self, pretty_name=None, simple=False):
         if pretty_name is not None:
@@ -29,69 +37,103 @@ class Variable():
             name = self.name
 
         if simple:
-            _str = r" {:27}   {:14.10g}   {:5.3f}    {:14.10g}   {:5.3f}    {:14.10g}"
-            return _str.format(name, self.lo, round(self.o1, 3), self.med, round(self.o2, 3), self.hi)
+            if self.o3 is None:
+                return rf" {name:27}   {self.lo:14.10g}   {round(self.o1, 3):5.3f}    {self.med:14.10g}   {round(self.o2, 3):5.3f}    {self.hi:14.10g}"
+            else:
+                return rf" {name:27}   {self.lo:14.10g}   {round(self.o1, 3):5.3f}    {self.med:14.10g}   {round(self.o2, 3):5.3f}    {self.hi:14.10g}    {round(self.o3, 3):5.3f}    {self.vhi:14.10g}"
 
         else:
-            _str = r" {:27} & {:23} & {:5.3f}  & {:23} & {:5.3f}  & {:23} \\"
-            return _str.format(name, sci_not(self.lo), round(self.o1, 3), sci_not(self.med), round(self.o2, 3), sci_not(self.hi))
+            if self.o3 is None:
+                return rf" {name:27} & {sci_not(self.lo):23} & {round(self.o1, 3):5.3f}  & {sci_not(self.med):23} & {round(self.o2, 3):5.3f}  & {sci_not(self.hi):23} \\"
+            else:
+                return rf" {name:27} & {sci_not(self.lo):23} & {round(self.o1, 3):5.3f}  & {sci_not(self.med):23} & {round(self.o2, 3):5.3f}  & {sci_not(self.hi):23}  & {round(self.o3, 3):5.3f}  & {sci_not(self.vhi):23} \\"
 
-class ConvergenceData():
+class ConvergenceData2():
     def __init__(self):
         self.data = []
 
     def add_variable(self, name, lo, order1, med, order2, hi):
         self.data.append(Variable(name, lo, order1, med, order2, hi))
 
-def read_convergence(file_lo, file_hi):
+class ConvergenceData3():
+    def __init__(self):
+        self.data = []
+
+    def add_variable(self, name, lo, order1, med, order2, hi, order3, vhi):
+        self.data.append(Variable(name, lo, order1, med, order2, hi, order3, vhi))
+
+def read_convergence(file_lo, file_hi, file_vhi):
 
     # we'll wait until we find the L1 data
 
     lines_lo = []
-    found_l1 = False
-    with open(file_lo, "r") as flo:
-        for line in flo:
-            if "L1 norm" in line:
-                found_l1 = True
-                continue
-            if not found_l1:
-                continue
-            # value data lines have 4 columns
-            if len(line.split()) == 4:
-                lines_lo.append(line.strip())
-
     lines_hi = []
-    found_l1 = False
-    with open(file_hi, "r") as fhi:
-        for line in fhi:
-            if "L1 norm" in line:
-                found_l1 = True
+    lines_vhi = []
+
+    fdata = [(lines_lo, file_lo), (lines_hi, file_hi)]
+    if file_vhi is not None:
+        fdata.append((lines_vhi, file_vhi))
+
+    for lines, filec in fdata:
+        found_l1 = False
+        with open(filec, "r") as fc:
+            for line in fc:
+                if "L1 norm" in line:
+                    found_l1 = True
+                    continue
+                if not found_l1:
+                    continue
+                # value data lines have 4 columns
+                if len(line.split()) == 4:
+                    lines.append(line.strip())
+
+    if file_vhi is None:
+
+        cd = ConvergenceData2()
+
+        for llo, lhi in zip(lines_lo, lines_hi):
+
+            vlo, elo, o1, emed1 = llo.split()
+            vhi, emed2, o2, ehi = lhi.split()
+
+            if "---" in o1 or "---" in o2:
+                print("skipping {}".format(vlo))
                 continue
-            if not found_l1:
+
+            if vlo != vhi:
+                sys.exit("error: variable mismatch")
+
+            if emed1.strip() != emed2.strip():
+                print(emed1, emed2)
+                sys.exit("error: error mismatch")
+
+            cd.add_variable(vlo, elo, o1, emed1, o2, ehi)
+
+    else:
+
+        cd = ConvergenceData3()
+
+        for llo, lhi, lvhi in zip(lines_lo, lines_hi, lines_vhi):
+
+            vlo, elo, o1, emed1 = llo.split()
+            vhi, emed2, o2, ehi1 = lhi.split()
+            vvhi, ehi2, o3, evhi = lvhi.split()
+
+            if "---" in o1 or "---" in o2 or "---" in o3:
+                print("skipping {}".format(vlo))
                 continue
-            # value data lines have 4 columns
-            if len(line.split()) == 4:
-                lines_hi.append(line.strip())
 
-    cd = ConvergenceData()
+            if vlo != vhi or vlo != vvhi:
+                sys.exit("error: variable mismatch")
 
-    for llo, lhi in zip(lines_lo, lines_hi):
+            if emed1.strip() != emed2.strip() or ehi1.strip() != ehi2.strip():
+                print(emed1, emed2, ehi1, ehi2)
+                print(llo)
+                print(lhi)
+                print(lvhi)
+                sys.exit("error: error mismatch")
 
-        vlo, elo, o1, emed1 = llo.split()
-        vhi, emed2, o2, ehi = lhi.split()
-
-        if "---" in o1 or "---" in o2:
-            print("skipping {}".format(vlo))
-            continue
-
-        if vlo != vhi:
-            sys.exit("error: variable mismatch")
-
-        if emed1.strip() != emed2.strip():
-            print(emed1, emed2)
-            sys.exit("error: error mismatch")
-
-        cd.add_variable(vlo, elo, o1, emed1, o2, ehi)
+            cd.add_variable(vlo, elo, o1, emed1, o2, ehi1, o3, evhi)
 
     return cd
 
@@ -103,6 +145,8 @@ if __name__ == "__main__":
                         help="name of the low resolution convergence output file")
     parser.add_argument("hifile", type=str, nargs=1,
                         help="name of the high resolution convergence output file")
+    parser.add_argument("veryhifile", type=str, nargs="?", default=None,
+                        help="(optional) name of the very high resolution convergence output file")
 
     args = parser.parse_args()
 
@@ -112,10 +156,9 @@ if __name__ == "__main__":
                  "rho_E": r"$\rho E$",
                  "rho_e": r"$\rho e$",
                  "Temp": r"$T$",
-                 "rho_H1": r"$\rho X(\isotm{H}{1})$",
+                 "rho_n": r"$\rho X(\mathrm{n})$",
+                 "rho_p": r"$\rho X(\mathrm{p})$",
                  "rho_He4": r"$\rho X(\isotm{He}{4})$",
-                 "rho_C12": r"$\rho X(\isotm{C}{12})$",
-                 "rho_O16": r"$\rho X(\isotm{O}{16})$",
                  "rho_Cr48": r"$\rho X(\isotm{Cr}{48})$",
                  "rho_Fe52": r"$\rho X(\isotm{Fe}{52})$",
                  "rho_Fe54": r"$\rho X(\isotm{Fe}{54})$",
@@ -130,8 +173,10 @@ if __name__ == "__main__":
     # sdc4
     file_lo = args.lofile[0]
     file_hi = args.hifile[0]
+    file_vhi = args.veryhifile
+    print(file_vhi)
 
-    sdc4 = read_convergence(file_lo, file_hi)
+    sdc4 = read_convergence(file_lo, file_hi, file_vhi)
 
     for v in sdc4.data:
         if v.name in good_vars.keys():

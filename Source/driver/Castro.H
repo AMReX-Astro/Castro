@@ -48,6 +48,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 #include <memory>
 #include <iostream>
 
+#include <params_type.H>
+
 using std::istream;
 using std::ostream;
 
@@ -534,7 +536,6 @@ public:
 #ifdef MHD
 #include <Castro_mhd.H>
 #endif
-
 
 ///
 /// Estimate time step.
@@ -1198,6 +1199,12 @@ public:
     static Vector<std::unique_ptr<std::fstream> > data_logs;
     static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
 
+///
+/// runtime parameters
+//
+    static params_t params;
+
+
 protected:
 
 
@@ -1455,11 +1462,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-///
-/// Name of the probin file and its length.
-///
-    static std::string probin_file;
-
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
 
@@ -1485,8 +1487,10 @@ protected:
 /// sdc
 ///
     int sdc_iteration;
-    int current_sdc_node;
 
+#ifdef TRUE_SDC
+    int current_sdc_node;
+#endif
 
 
 /* problem-specific includes */

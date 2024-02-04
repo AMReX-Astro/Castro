@@ -304,52 +304,72 @@ In the code, the objective is to evolve the state from the old time,
 
 #. *Initialize*
 
-   A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
+   In ``initialize_do_advance()``:
 
-   B. Call ``clean_state()`` to make sure the thermodynamics are in sync, in particular,
-      compute the temperature.
+   A. Create ``Sborder``, initialized from ``S_old``
 
+   B. Call ``clean_state()`` to make sure the thermodynamics are in
+     sync, in particular, compute the temperature.
 
-#. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
+   C. [``SHOCK_VAR``] zero out the shock flag.
 
-   Update the solution due to the effect of reactions over half a time
-   step. The integration method and system of equations used here is
-   determined by a host of runtime parameters that are part of the
-   Microphysics package. But the basic idea is to evolve the energy
-   release from the reactions, the species mass fractions, and
-   temperature through :math:`\Delta t/2`.
+   D. Create the source corrector (if ``castro.source_term_predictor`` = 1)
 
-   Using the notation above, we begin with the time-level :math:`n` state,
-   :math:`\Ub^n`, and produce a state that has evolved only due to reactions,
-   :math:`\Ub^\star`.
+#. *Do the pre-advance operations.*
 
-   .. math::
+   This is handled by ``pre_advance_operators()`` and the main thing
+   that it does is the first half of the Strang burn.
 
-      \begin{aligned}
+   The steps are:
+
+   A. *React* :math:`\Delta t/2` [``do_old_reactions()`` ]
+
+      Update the solution due to the effect of reactions over half a
+      time step. The integration method and system of equations used
+      here is determined by a host of runtime parameters that are part
+      of the Microphysics package. But the basic idea is to evolve the
+      energy release from the reactions, the species mass fractions,
+      and temperature through :math:`\Delta t/2`.
+
+      Using the notation above, we begin with the time-level :math:`n` state,
+      :math:`\Ub^n`, and produce a state that has evolved only due to reactions,
+      :math:`\Ub^\star`.
+
+      .. math::
+
+        \begin{aligned}
           (\rho e)^\star &= (\rho e)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
           (\rho E)^\star &= (\rho E)^n + \frac{\dt}{2} \rho H_\mathrm{nuc} \\
           (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
-   Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
-   burn, and :math:`\omegadot_k` is the creation rate for species :math:`k`.
+      Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
+      burn, and :math:`\omegadot_k` is the creation rate for species :math:`k`.
 
-   After exiting the burner, we call the EOS with :math:`\rho^\star`,
-   :math:`e^\star`, and :math:`X_k^\star` to get the new temperature, :math:`T^\star`.
+      After exiting the burner, we call the EOS with :math:`\rho^\star`,
+      :math:`e^\star`, and :math:`X_k^\star` to get the new temperature, :math:`T^\star`.
 
-   Note that the density, :math:`\rho`, does not change via reactions in the
-   Strang-split formulation.
+      .. note::
 
-   The reaction data needs to be valid in the ghost cells, so the reactions
-   are applied to the entire patch, including ghost cells.
+        The density, :math:`\rho`, does not change via reactions in the
+        Strang-split formulation.
 
-   After reactions, ``clean_state`` is called.
+      The reaction data needs to be valid in the ghost cells, so the reactions
+      are applied to the entire patch, including ghost cells.
+
+      After reactions, ``clean_state`` is called.
+
+   B. *Construct the gravitational potential at time $n$.*
+
+      This is done by calling ``construct_old_gravity()``
+
+   C. *Initialize ``S_new`` with the current state* (``Sborder``).
 
    At the end of this step, ``Sborder`` sees the effects of the
    reactions.
 
 #. *Construct time-level n sources and apply*
-   [``construct_old_gravity()``, ``do_old_sources()`` ]
+   [``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
    StateData ``Source_Type``. 
@@ -426,12 +446,17 @@ In the code, the objective is to evolve the state from the old time,
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
-   The old-time source terms are stored in ``old_source``.
+   The old-time source terms are stored in ``old_source`` (and a ghost
+   cell fill is performed).
 
    The sources are then applied to the state after the burn,
    :math:`\Ub^\star` with a full :math:`\Delta t` weighting (this will
    be corrected later). This produces the intermediate state,
    :math:`\Ub^{n+1,(a)}` (stored in ``S_new``).
+
+#. *Do pre-hydro operations* [``pre_hydro_operators()``]
+
+   For Strang+CTU, nothing is done here.
 
 #. *Construct the hydro / MHD update* [``construct_ctu_hydro_source()``, ``construct_ctu_mhd_source()``]
 
@@ -439,67 +464,63 @@ In the code, the objective is to evolve the state from the old time,
    terms (which in Cartesian coordinates can be written as the
    divergence of a flux).
 
-   We do the hydro update in two parts—first we construct the
-   advective update and store it in the hydro_source
-   MultiFab, then we do the conservative update in a separate step. This
-   separation allows us to use the advective update separately in more
-   complex time-integration schemes.
+   A. In the Strang-split formulation, we start the reconstruction
+      using the state after burning, :math:`\Ub^\star` (``Sborder``).
+      For the CTU method, we predict to the half-time (:math:`n+1/2`)
+      to get a second-order accurate method. Note: ``Sborder`` does
+      not know of any sources except for reactions.
 
-   In the Strang-split formulation, we start the reconstruction using
-   the state after burning, :math:`\Ub^\star` (``Sborder``).  For the
-   CTU method, we predict to the half-time (:math:`n+1/2`) to get a
-   second-order accurate method. Note: ``Sborder`` does not know of
-   any sources except for reactions. 
+      The method done here differs depending on whether we are doing hydro or MHD.
 
-   The method done here differs depending on whether we are doing hydro or MHD.
+      * hydrodynamics
 
-   A. hydrodynamics
+        The advection step is complicated, and more detail is given in
+        Section :ref:`Sec:Advection Step`. Here is the summarized version:
 
-      The advection step is complicated, and more detail is given in
-      Section :ref:`Sec:Advection Step`. Here is the summarized version:
+        i. Compute primitive variables.
 
-      i. Compute primitive variables.
+        ii. Convert the source terms to those acting on primitive variables
 
-      ii. Convert the source terms to those acting on primitive variables
+        iii. Predict primitive variables to time-centered edges.
 
-      iii. Predict primitive variables to time-centered edges.
+        iv. Solve the Riemann problem.
 
-      iv. Solve the Riemann problem.
+        v. Compute fluxes and advective term.
 
-      v. Compute fluxes and advective term.
+     * MHD
 
-   B. MHD
+       The MHD update is described in :ref:`ch:mhd`.
 
-      The MHD update is described in :ref:`ch:mhd`.
+     To start the hydrodynamics/MHD source construction, we need to know
+     the hydrodynamics source terms at time-level :math:`n`, since this
+     enters into the prediction to the interface states. This is
+     essentially the same vector that was computed in the previous step,
+     with a few modifications. The most important is that if we set
+     ``castro.source_term_predictor``, then we extrapolate the source
+     terms from :math:`n` to :math:`n+1/2`, using the change from the
+     previous step.
 
-   To start the hydrodynamics/MHD source construction, we need to know
-   the hydrodynamics source terms at time-level :math:`n`, since this
-   enters into the prediction to the interface states. This is
-   essentially the same vector that was computed in the previous step,
-   with a few modifications. The most important is that if we set
-   ``castro.source_term_predictor``, then we extrapolate the source
-   terms from :math:`n` to :math:`n+1/2`, using the change from the
-   previous step.
+     Note: we neglect the reaction source terms, since those are already
+     accounted for in the state directly, due to the Strang-splitting
+     nature of this method.
 
-   Note: we neglect the reaction source terms, since those are already
-   accounted for in the state directly, due to the Strang-splitting
-   nature of this method.
+     The update computed here is then immediately applied to
+     ``S_new``.
 
-   The update computed here is then immediately applied to
-   ``S_new``.
+   B. *Clean State and check for NaNs* [``clean_state()``]
 
-#. *Clean State* [``clean_state()``]
+      This is done on ``S_new``.
 
-   This is done on ``S_new``.
+   C. *Update the center of mass for monopole gravity*
 
-   After these checks, we check the state for NaNs.
+      This quantities are computed using ``S_new``.
 
-#. *Update radial data and center of mass for monopole gravity*
+#. *Do post-hydro operations* [``post_hydro_operators()``]
 
-   These quantities are computed using ``S_new``.
+   This constructs the new gravitational potential.
 
 #. *Correct the source terms with the n+1
-   contribution* [``construct_new_gravity()``, ``do_new_sources`` ]
+   contribution* [``do_new_sources`` ]
 
    If we are doing self-gravity, then we first compute the updated gravitational
    potential using the updated density from ``S_new``.
@@ -521,24 +542,19 @@ In the code, the objective is to evolve the state from the old time,
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
 
-#. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
+#. *Do post advance operations* [``post_advance_operators()``]
 
-   We do the final :math:`\dt/2` reacting on the state, beginning with :math:`\Ub^{n+1,(c)}` to
-   give us the final state on this level, :math:`\Ub^{n+1}`.
+   This simply does the final :math:`\dt/2` reacting on the state,
+   beginning with :math:`\Ub^{n+1,(c)}` to give us the final state on
+   this level, :math:`\Ub^{n+1}`.
 
    This is largely the same as ``strang_react_first_half()``, but
    it does not currently fill the reactions in the ghost cells.
 
 #. *Finalize* [``finalize_do_advance()``]
 
-   Finalize does the following:
-
-   A. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
-      source term prediction/extrapolation for the hydrodynamic
-      interface states during the next step.
-
-   B. If we are doing the hybrid momentum algorithm, then we sync up
-      the hybrid and linear momenta
+   This checks to ensure that we didn't violate the CFL criteria
+   during the advance.
 
 A summary of which state is the input and which is updated for each of
 these processes is presented below:
@@ -559,7 +575,7 @@ these processes is presented below:
    +--------------------+-----------+---------------------+---------------------+
    | 5. clean           |           |                     | input / updated     |
    +--------------------+-----------+---------------------+---------------------+
-   | 6. radial / center |           |                     | input               |
+   | 6. center of mass  |           |                     | input               |
    +--------------------+-----------+---------------------+---------------------+
    | 7. correct sources |           |                     | input / updated     |
    +--------------------+-----------+---------------------+---------------------+
