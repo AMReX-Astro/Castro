@@ -252,7 +252,7 @@ Castro::wd_update (Real time, Real dt)
     bool local_flag = true;
 
     for (int i = 0; i <= 6; ++i) {
-        Castro::volInBoundary(time, vol_P[i], vol_S[i], pow(10.0,i), local_flag);
+        Castro::volInBoundary(time, vol_P[i], vol_S[i], std::pow(10.0,i), local_flag);
     }
 
     // Do all of the reductions.
@@ -355,12 +355,12 @@ Castro::wd_update (Real time, Real dt)
 
     if (mass_P > 0.0 && vol_P[2] > 0.0) {
         rho_avg_P = mass_P / vol_P[2];
-        t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
+        t_ff_P = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
     }
 
     if (mass_S > 0.0 && vol_S[2] > 0.0) {
         rho_avg_S = mass_S / vol_S[2];
-        t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
+        t_ff_S = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
     // Compute updated roche Radii

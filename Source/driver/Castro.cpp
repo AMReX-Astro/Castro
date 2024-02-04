@@ -76,6 +76,8 @@ int          Castro::NUM_GROW_SRC  = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
+params_t     Castro::params;
+
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
@@ -106,9 +108,6 @@ Diffusion*    Castro::diffusion  = nullptr;
 // the radiation object
 Radiation*   Castro::radiation = nullptr;
 #endif
-
-
-std::string  Castro::probin_file = "probin";
 
 
 #if AMREX_SPACEDIM == 1
@@ -325,13 +324,6 @@ Castro::read_params ()
     }
 #endif
 
-#ifdef REACTIONS
-#ifdef SIMPLIFIED_SDC
-    if (jacobian == 1) {
-      amrex::Abort("Simplified SDC requires the numerical Jacobian now (jacobian = 2)");
-    }
-#endif
-#endif
     // sanity checks
 
     if (grown_factor < 1) {
@@ -390,6 +382,12 @@ Castro::read_params ()
     if (riemann_solver > 1) {
         amrex::Error("ERROR: HLLC not implemented for 1-d");
     }
+#endif
+
+#ifndef SHOCK_VAR
+   if (disable_shock_burning != 0) {
+       amrex::Error("ERROR: disable_shock_burning requires compiling with USE_SHOCK_VAR=TRUE");
+   }
 #endif
 
     if (riemann_solver == 1) {
@@ -552,8 +550,6 @@ Castro::read_params ()
        }
 
    }
-
-   ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM))
@@ -988,13 +984,13 @@ Castro::initData ()
         // make sure dx = dy = dz -- that's all we guarantee to support
 #if (AMREX_SPACEDIM == 2)
         const Real SMALL = 1.e-13;
-        if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
+        if (std::abs(dx[0] - dx[1]) > SMALL*dx[0])
           {
             amrex::Abort("We don't support dx != dy");
           }
 #elif (AMREX_SPACEDIM == 3)
         const Real SMALL = 1.e-13;
-        if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
+        if ( (std::abs(dx[0] - dx[1]) > SMALL*dx[0]) || (std::abs(dx[0] - dx[2]) > SMALL*dx[0]) )
           {
             amrex::Abort("We don't support dx != dy != dz");
           }
@@ -1260,8 +1256,7 @@ Castro::initData ()
              {
                const Box& box = mfi.validbox();
 
-               tmp.resize(box, 1);
-               Elixir elix_tmp = tmp.elixir();
+               tmp.resize(box, 1, The_Async_Arena());
                auto tmp_arr = tmp.array();
 
                make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1287,8 +1282,7 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(2);
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1336,8 +1330,7 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -3659,8 +3652,7 @@ Castro::derive (const std::string& name,
 void
 Castro::extern_init ()
 {
-  // initialize the external runtime parameters -- these will
-  // live in the probin
+  // initialize the external runtime parameters
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
@@ -3950,8 +3942,7 @@ Castro::computeTemp(
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -4067,8 +4058,7 @@ Castro::computeTemp(
 
       const Box& bx = mfi.tilebox();
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       // only temperature
@@ -4225,12 +4215,12 @@ Castro::get_numpts ()
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {

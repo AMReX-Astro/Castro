@@ -403,11 +403,11 @@ cons_state(const Real* qstate, Real* U) {
   U[UMUP] = 0.0;
   U[UMUN] = 0.0;
 #endif
-  
+
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upassmap(ipassive);
-    int nqs = qpassmap(ipassive);
-    U[n] = qstate[QRHO]*qstate[nqs];
+      const int n  = upassmap(ipassive);
+      const int nqs = qpassmap(ipassive);
+      U[n] = qstate[QRHO]*qstate[nqs];
   }
 }
 
@@ -459,11 +459,11 @@ HLLC_state(const int idir, const Real S_k, const Real S_c,
   U[UMUP] = 0.0;
   U[UMUN] = 0.0;
 #endif
-  
+
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upassmap(ipassive);
-    int nqs = qpassmap(ipassive);
-    U[n] = hllc_factor*qstate[nqs];
+      const int n  = upassmap(ipassive);
+      const int nqs = qpassmap(ipassive);
+      U[n] = hllc_factor*qstate[nqs];
   }
 }
 
@@ -508,10 +508,10 @@ compute_flux(const int idir, const Real bnd_fac, const int coord,
   F[UMUP] = 0.0;
   F[UMUN] = 0.0;
 #endif
-  
+
   for (int ipassive=0; ipassive < npassive; ipassive++) {
-    int n = upassmap(ipassive);
-    F[n] = U[n]*u_flx;
+      const int n = upassmap(ipassive);
+      F[n] = U[n]*u_flx;
   }
 }
 

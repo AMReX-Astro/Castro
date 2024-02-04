@@ -95,6 +95,16 @@ To enable this, compile with::
   USE_OMP = FALSE
   USE_CUDA = TRUE
 
+.. note::
+
+   For recent GPUs, like the NVIDIA RTX 4090, you may need to change
+   the default CUDA architecture.  This can be done by adding:
+
+   .. code::
+
+      CUDA_ARCH=89
+
+   to the ``make`` line or ``GNUmakefile``.
 
 AMD GPUs
 --------
