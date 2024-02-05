@@ -297,7 +297,11 @@ Source Terms
 We now compute explicit source terms for each variable in :math:`\Qb` and
 :math:`\Ub`. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
-advance the solution. We neglect reaction source terms since they are
+advance the solution. To reduce memory usage, we do not include source terms
+for the advected quantities, species, and auxiliary variables in the conserved
+state vector by default. If your application needs external source terms for
+these variables, set `USE_SPECIES_SOURCES=TRUE` when compiling so that space
+will be allocated for them. We neglect reaction source terms since they are
 accounted for in **Steps 1** and **6**. The source terms are:
 
 .. math::
