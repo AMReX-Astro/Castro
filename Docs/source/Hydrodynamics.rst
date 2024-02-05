@@ -589,9 +589,6 @@ runtime parameters for hydrodynamics:
 
    See :ref:`sponge_section` for more details on the sponge.
 
--  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
-   (0 or 1; default: 0)
-
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
