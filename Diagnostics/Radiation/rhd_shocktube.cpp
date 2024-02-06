@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-        frhdshocktube(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+        frhdshocktube(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                       BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                       nbins, dens_bin.dataPtr(), vel_bin.dataPtr(),
                       pres_bin.dataPtr(), rad_bin.dataPtr(),

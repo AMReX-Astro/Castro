@@ -26,8 +26,8 @@ Castro::plm(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
