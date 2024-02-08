@@ -283,7 +283,7 @@ integrator.renormalize_abundances = 1
 # Maximum temperature allowed in the burn
 integrator.MAX_TEMP = 1.0e10
 
-# Use tabular rate evaluation when availble
+# Use tabular rate evaluation when available
 network.use_tables = 1
 
 ############################################################################################
