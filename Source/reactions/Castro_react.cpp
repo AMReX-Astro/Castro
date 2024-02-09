@@ -186,12 +186,14 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     MultiFab tmp_mask_mf;
     const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
 
-    ReduceOps<ReduceOpSum> reduce_op;
-    ReduceData<Real> reduce_data(reduce_op);
-    using ReduceTuple = typename decltype(reduce_data)::Type;
+#if defined(AMREX_USE_GPU)
+    Gpu::Buffer<int> d_num_failed({0});
+    auto* p_num_failed = d_num_failed.data();
+#endif
+    int num_failed = 0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduce(+:num_failed);
 #endif
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -208,8 +210,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         const auto problo = geom.ProbLoArray();
 #endif
 
-        reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+        ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
 
             burn_t burn_state;
@@ -230,7 +231,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             bool do_burn = true;
             burn_state.success = true;
-            Real burn_failed = 0.0_rt;
+            int burn_failed = 0;
 
             // Don't burn on zones inside shock regions, if the relevant option is set.
 
@@ -329,7 +330,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 // If we were unsuccessful, update the failure count.
 
                 if (!burn_state.success) {
-                    burn_failed = 1.0_rt;
+                    burn_failed = 1;
                 }
 
                 // Add burning rates to reactions MultiFab, but be
@@ -399,19 +400,22 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             }
 
-
-            return {burn_failed};
-
+#if defined(AMREX_USE_GPU)
+            if (burn_failed) {
+                Gpu::Atomic::Add(p_num_failed, burn_failed);
+            }
+#else
+            num_failed += burn_failed;
+#endif
         });
 
     }
 
-    ReduceTuple hv = reduce_data.value();
-    Real burn_failed = amrex::get<0>(hv);
+#if defined(AMREX_USE_GPU)
+    num_failed = *(d_num_failed.copyToHost());
+#endif
 
-    if (burn_failed != 0.0) {
-      burn_success = 0;
-    }
+    burn_success = !num_failed;
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
@@ -516,11 +520,13 @@ Castro::react_state(Real time, Real dt)
 
     int burn_success = 1;
 
-    ReduceOps<ReduceOpSum> reduce_op;
-    ReduceData<Real> reduce_data(reduce_op);
+#if defined(AMREX_USE_GPU)
+    Gpu::Buffer<int> d_num_failed({0});
+    auto* p_num_failed = d_num_failed.data();
+#endif
+    int num_failed = 0;
 
-    using ReduceTuple = typename decltype(reduce_data)::Type;
-
+    // why no omp here?
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
@@ -542,8 +548,7 @@ Castro::react_state(Real time, Real dt)
         const auto dx = geom.CellSizeArray();
         const auto problo = geom.ProbLoArray();
 
-        reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+        ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
         {
             burn_t burn_state;
 
@@ -563,7 +568,7 @@ Castro::react_state(Real time, Real dt)
 
             bool do_burn = true;
             burn_state.success = true;
-            Real burn_failed = 0.0_rt;
+            int burn_failed = 0;
 
             // Don't burn on zones inside shock regions, if the
             // relevant option is set.
@@ -687,7 +692,7 @@ Castro::react_state(Real time, Real dt)
                 // If we were unsuccessful, update the failure count.
 
                 if (!burn_state.success) {
-                    burn_failed = 1.0_rt;
+                    burn_failed = 1;
                 }
 
                 // update the state data.
@@ -780,16 +785,21 @@ Castro::react_state(Real time, Real dt)
                 }
             }
 
-            return {burn_failed};
+#if defined(AMREX_USE_GPU)
+            if (burn_failed) {
+                Gpu::Atomic::Add(p_num_failed, burn_failed);
+            }
+#else
+            num_failed += burn_failed;
+#endif
         });
     }
 
-    ReduceTuple hv = reduce_data.value();
-    Real burn_failed = amrex::get<0>(hv);
+#if defined(AMREX_USE_GPU)
+    num_failed = *(d_num_failed.copyToHost());
+#endif
 
-    if (burn_failed != 0.0) {
-        burn_success = 0;
-    }
+    burn_success = !num_failed;
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
