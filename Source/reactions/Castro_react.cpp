@@ -193,7 +193,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     int num_failed = 0;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:num_failed);
+#pragma omp parallel reduction(+:num_failed)
 #endif
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -210,7 +210,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         const auto problo = geom.ProbLoArray();
 #endif
 
+#if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
+#else
+        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+#endif
         {
 
             burn_t burn_state;
@@ -549,7 +553,11 @@ Castro::react_state(Real time, Real dt)
         const auto dx = geom.CellSizeArray();
         const auto problo = geom.ProbLoArray();
 
+#if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
+#else
+        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+#endif
         {
             burn_t burn_state;
 
