@@ -193,7 +193,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     int num_failed = 0;
 
 #ifdef _OPENMP
-#pragma omp parallel reduce(+:num_failed);
+#pragma omp parallel reduction(+:num_failed);
 #endif
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
