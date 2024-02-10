@@ -123,11 +123,11 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            fgaussian_pulse(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            fgaussian_pulse(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                             BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                             nbins, rad_bin.dataPtr(), ncount.dataPtr(),
                             imask.dataPtr(), mask_size, r1,
-                            rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
+                            rad_comp, AMREX_ZFILL(dx), dx_fine, xctr, yctr);
 
         }
 

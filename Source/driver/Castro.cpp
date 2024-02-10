@@ -245,14 +245,14 @@ Castro::read_params ()
         {
             if (dgeom.isPeriodic(dir))
             {
-                if (lo_bc[dir] != Interior)
+                if (lo_bc[dir] != amrex::PhysBCType::interior)
                 {
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
                               << " but low BC is not Interior\n";
                     amrex::Error();
                 }
-                if (hi_bc[dir] != Interior)
+                if (hi_bc[dir] != amrex::PhysBCType::interior)
                 {
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
@@ -269,14 +269,14 @@ Castro::read_params ()
         //
         for (int dir=0; dir<AMREX_SPACEDIM; dir++)
         {
-            if (lo_bc[dir] == Interior)
+            if (lo_bc[dir] == amrex::PhysBCType::interior)
             {
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
                           << " but not periodic\n";
                 amrex::Error();
             }
-            if (hi_bc[dir] == Interior)
+            if (hi_bc[dir] == amrex::PhysBCType::interior)
             {
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
@@ -286,7 +286,7 @@ Castro::read_params ()
         }
     }
 
-    if ( dgeom.IsRZ() && (lo_bc[0] != Symmetry) ) {
+    if ( dgeom.IsRZ() && (lo_bc[0] != amrex::PhysBCType::symmetry) ) {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for r-z\n";
         amrex::Error();
     }
@@ -294,7 +294,7 @@ Castro::read_params ()
 #if (AMREX_SPACEDIM == 1)
     if ( dgeom.IsSPHERICAL() )
     {
-      if ( (lo_bc[0] != Symmetry) && (dgeom.ProbLo(0) == 0.0) )
+      if ( (lo_bc[0] != amrex::PhysBCType::symmetry) && (dgeom.ProbLo(0) == 0.0) )
       {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for spherical\n";
         amrex::Error();
@@ -3551,12 +3551,12 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
 
                     int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
 
-                    if ((physbc_lo[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                    if ((physbc_lo[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] <= domlo[dim] + boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
 
-                    if ((physbc_hi[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                    if ((physbc_hi[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] >= domhi[dim] - boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
