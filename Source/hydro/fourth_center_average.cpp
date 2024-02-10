@@ -35,8 +35,8 @@ Castro::make_cell_center(const Box& bx,
   GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
   GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    lo_periodic[idir] = lo_bc[idir] == Interior;
-    hi_periodic[idir] = hi_bc[idir] == Interior;
+    lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+    hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
   amrex::ParallelFor(bx, U.nComp(),
@@ -68,8 +68,8 @@ Castro::make_cell_center_in_place(const Box& bx,
   GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
   GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    lo_periodic[idir] = lo_bc[idir] == Interior;
-    hi_periodic[idir] = hi_bc[idir] == Interior;
+    lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+    hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
   for (int n = 0; n < U.nComp(); n++) {
@@ -105,8 +105,8 @@ Castro::compute_lap_term(const Box& bx,
   GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
   GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    lo_periodic[idir] = lo_bc[idir] == Interior;
-    hi_periodic[idir] = hi_bc[idir] == Interior;
+    lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+    hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
   amrex::ParallelFor(bx,
@@ -136,8 +136,8 @@ Castro::make_fourth_average(const Box& bx,
   GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
   GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    lo_periodic[idir] = lo_bc[idir] == Interior;
-    hi_periodic[idir] = hi_bc[idir] == Interior;
+    lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+    hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
   amrex::ParallelFor(bx, q.nComp(),
@@ -186,8 +186,8 @@ Castro::make_fourth_in_place_n(const Box& bx,
   GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
   GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    lo_periodic[idir] = lo_bc[idir] == Interior;
-    hi_periodic[idir] = hi_bc[idir] == Interior;
+    lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+    hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
   }
 
   amrex::ParallelFor(bx,

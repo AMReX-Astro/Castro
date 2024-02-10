@@ -1,5 +1,5 @@
 """
-This script strips out preprocessor directives from C++ headers and Fortran files
+This script strips out preprocessor directives from C++ headers
 and saves the results in source/preprocessed_files
 """
 
@@ -17,8 +17,7 @@ def strip_directives(filename, filepath, outpath):
     Read in file, remove all preprocessor directives and output.
 
     This is also going to switch square brackets initializing arrays to 
-    parentheses and remove the new-line characters in these so sphinx 
-    fortran is happy.
+    parentheses and remove the new-line characters
     """
 
     with open(os.path.join(filepath, filename)) as infile:

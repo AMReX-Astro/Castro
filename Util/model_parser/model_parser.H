@@ -44,22 +44,22 @@ namespace model_string
 {
     inline std::string& ltrim(std::string& s)
     {
-	auto it = std::find_if(s.begin(), s.end(),
+        auto it = std::find_if(s.begin(), s.end(),
                                [](int c) {
                                    return !std::isspace(c);
                                });
-	s.erase(s.begin(), it);
-	return s;
+        s.erase(s.begin(), it);
+        return s;
     }
 
     inline std::string& rtrim(std::string& s)
     {
-	auto it = std::find_if(s.rbegin(), s.rend(),
+        auto it = std::find_if(s.rbegin(), s.rend(),
                                [](int c) {
                                    return !std::isspace(c);
                                });
-	s.erase(it.base(), s.end());
-	return s;
+        s.erase(it.base(), s.end());
+        return s;
     }
 }
 
@@ -125,11 +125,11 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
     // safety check to make sure interp lies within the bounding points.  We don't
     // do this at the lower boundary, which usually corresponds to the center of the star.
     if (r >= model::profile(model_index).r(0)) {
-	Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
-			       model::profile(model_index).state(id, var_index));
-	Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
-			       model::profile(model_index).state(id, var_index));
-	interp = std::clamp(interp, minvar, maxvar);
+        Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
+                               model::profile(model_index).state(id, var_index));
+        Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
+                               model::profile(model_index).state(id, var_index));
+        interp = std::clamp(interp, minvar, maxvar);
     }
 
     return interp;
