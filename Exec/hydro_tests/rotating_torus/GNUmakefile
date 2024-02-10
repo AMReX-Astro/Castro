@@ -15,7 +15,7 @@ USE_ROTATION  = TRUE
 USE_HYBRID_MOMENTUM = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := polytrope
@@ -24,7 +24,9 @@ EOS_DIR     := polytrope
 NETWORK_DIR := general_null
 NETWORK_INPUTS = ignition.net
 
-Bpack	:= ./Make.package
-Blocs	:= .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -5,8 +5,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     const GeometryData& geomdata)
 {
     // The strategy here is to set Dirichlet condition for inflow and
     // outflow boundaries, and let the Riemann solver sort out the
@@ -18,7 +18,7 @@ void problem_bc_fill(int i, int j, int k,
     if (problem::idir == 1) {
 
         // XLO
-        if ((bcs(URHO).lo(0) == EXT_DIR || bcs(URHO).lo(0) == FOEXTRAP) && i < domlo[0]) {
+        if ((bcs(URHO).lo(0) == amrex::BCType::ext_dir || bcs(URHO).lo(0) == amrex::BCType::foextrap) && i < domlo[0]) {
             state(i,j,k,URHO) = problem::rho0;
             state(i,j,k,UMX) = problem::rho0 * problem::v0;
             state(i,j,k,UMY) = 0.e0_rt;
@@ -33,7 +33,7 @@ void problem_bc_fill(int i, int j, int k,
         }
 
         // XHI
-        if ((bcs(URHO).hi(0) == EXT_DIR || bcs(URHO).hi(0) == FOEXTRAP) && i > domhi[0]) {
+        if ((bcs(URHO).hi(0) == amrex::BCType::ext_dir || bcs(URHO).hi(0) == amrex::BCType::foextrap) && i > domhi[0]) {
             state(i,j,k,URHO) = problem::rho1;
             state(i,j,k,UMX) = problem::rho1 * problem::v1;
             state(i,j,k,UMY) = 0.e0_rt;
@@ -51,7 +51,7 @@ void problem_bc_fill(int i, int j, int k,
     else if (problem::idir == 2) {
 
         // YLO
-        if ((bcs(URHO).lo(1) == EXT_DIR || bcs(URHO).lo(1) == FOEXTRAP) && j < domlo[1]) {
+        if ((bcs(URHO).lo(1) == amrex::BCType::ext_dir || bcs(URHO).lo(1) == amrex::BCType::foextrap) && j < domlo[1]) {
             state(i,j,k,URHO) = problem::rho0;
             state(i,j,k,UMX) = 0.e0_rt;
             state(i,j,k,UMY) = problem::rho0 * problem::v0;
@@ -66,7 +66,7 @@ void problem_bc_fill(int i, int j, int k,
         }
 
         // YHI
-        if ((bcs(URHO).hi(1) == EXT_DIR || bcs(URHO).hi(1) == FOEXTRAP) && j > domhi[1]) {
+        if ((bcs(URHO).hi(1) == amrex::BCType::ext_dir || bcs(URHO).hi(1) == amrex::BCType::foextrap) && j > domhi[1]) {
             state(i,j,k,URHO) = problem::rho1;
             state(i,j,k,UMX) = 0.e0_rt;
             state(i,j,k,UMY) = problem::rho1 * problem::v1;
@@ -84,7 +84,7 @@ void problem_bc_fill(int i, int j, int k,
     else if (problem::idir == 3) {
 
         // ZLO
-        if ((bcs(URHO).lo(2) == EXT_DIR || bcs(URHO).lo(2) == FOEXTRAP) && k < domlo[2]) {
+        if ((bcs(URHO).lo(2) == amrex::BCType::ext_dir || bcs(URHO).lo(2) == amrex::BCType::foextrap) && k < domlo[2]) {
             state(i,j,k,URHO) = problem::rho0;
             state(i,j,k,UMX) = 0.e0_rt;
             state(i,j,k,UMY) = 0.e0_rt;
@@ -99,7 +99,7 @@ void problem_bc_fill(int i, int j, int k,
         }
 
         // ZHI
-        if ((bcs(URHO).hi(2) == EXT_DIR || bcs(URHO).hi(2) == FOEXTRAP) && k > domhi[2]) {
+        if ((bcs(URHO).hi(2) == amrex::BCType::ext_dir || bcs(URHO).hi(2) == amrex::BCType::foextrap) && k > domhi[2]) {
             state(i,j,k,URHO) = problem::rho1;
             state(i,j,k,UMX) = 0.e0_rt;
             state(i,j,k,UMY) = 0.e0_rt;

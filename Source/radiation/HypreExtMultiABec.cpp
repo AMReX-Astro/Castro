@@ -423,7 +423,7 @@ void HypreExtMultiABec::loadMatrix()
               if (reg[ori] == domain[ori] && bd[level]->mixedBndry(ori)) {
                 bct = (*(bd[level]->bndryTypes(ori)[i]))(v+vin);
               }
-              if (bct == LO_DIRICHLET) {
+              if (bct == AMREX_LO_DIRICHLET) {
                 if (bho == 1) {
                   evalue(ori,i)(v+vin).push(level, v,
                                             (bcl * th2) / (h * (bcl + h2)));
@@ -478,10 +478,10 @@ void HypreExtMultiABec::loadMatrix()
                   entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin), fac);
                 }
               }
-              else if (bct == LO_NEUMANN) {
+              else if (bct == AMREX_LO_NEUMANN) {
                 // no more action required here
               }
-              else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+              else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                 if (bho == 1) {
                   evalue(ori,i)(v+vin).push(level, v,      1.5);
                   evalue(ori,i)(v+vin).push(level, v-vin, -0.5);
@@ -937,7 +937,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
             if (reg[ori] == domain[ori] && bd[level]->mixedBndry(ori)) {
               bct = (*(bd[level]->bndryTypes(ori)[i]))(v+vin);
             }
-            if (bct == LO_DIRICHLET) {
+            if (bct == AMREX_LO_DIRICHLET) {
               Real dfac, vfac;
               if (bho == 1) {
                 dfac = 1.0 / ((bcl + h2) * (bcl + th2));
@@ -991,7 +991,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
             }
-            else if (bct == LO_NEUMANN) {
+            else if (bct == AMREX_LO_NEUMANN) {
               // cmult should be c for photons, 1 for neutrinos
               Real cmult = 1.0;
               Real xi = 0.0; // xi should be passed in through RadBndry?
@@ -1000,7 +1000,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
                      cmult * fs(v+vin,bdcomp));
               HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
             }
-            else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+            else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
               // cmult should be c for photons, 1 for neutrinos
               Real cmult = 1.0;
               Real xi = 0.0; // xi should be passed in through RadBndry?

@@ -35,13 +35,7 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-else
-  BL_NO_FORT := TRUE
-endif
-
+BL_NO_FORT := TRUE
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -97,11 +91,19 @@ endif
 
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  USERSuffix = .SMPLSDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .SMPLSDC$(USERSuffix)
+  else
+    USERSuffix = .SMPLSDC
+  endif
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  USERSuffix = .TRUESDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .TRUESDC$(USERSuffix)
+  else
+    USERSuffix = .TRUESDC
+  endif
 endif
 
 USE_MLMG = FALSE
@@ -260,6 +262,10 @@ endif
 ifeq ($(USE_ROTATION), TRUE)
   Bdirs += Source/rotation
   DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DCONS_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)

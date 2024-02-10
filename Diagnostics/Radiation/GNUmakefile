@@ -28,7 +28,7 @@ Bpack   := ./Make.package
 Blocs   := .
 # EXTERN_SEARCH = .
 
-CASTRO_HOME := ../..
+CASTRO_HOME ?= ../..
 
 INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 include $(AMREX_HOME)/Src/Extern/amrdata/Make.package

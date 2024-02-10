@@ -5,8 +5,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     const GeometryData& geomdata)
 {
 #if AMREX_SPACEDIM == 3
     const Real* dx = geomdata.CellSize();
@@ -30,7 +30,7 @@ void problem_bc_fill(int i, int j, int k,
     Real r = std::sqrt(x * x + y * y + z * z);
 
     // XLO
-    if (bcs(0).lo(0) == FOEXTRAP && i < domlo[0]) {
+    if (bcs(0).lo(0) == amrex::BCType::foextrap && i < domlo[0]) {
 
         int ic = domlo[0];
         Real xc = problo[0] + (static_cast<Real>(ic) + 0.5_rt) * dx[0] - problem::center[0];
@@ -50,7 +50,7 @@ void problem_bc_fill(int i, int j, int k,
     }
 
     // XHI
-    if (bcs(0).hi(0) == FOEXTRAP && i > domhi[0]) {
+    if (bcs(0).hi(0) == amrex::BCType::foextrap && i > domhi[0]) {
 
         int ic = domhi[0];
         Real xc = problo[0] + (static_cast<Real>(ic) + 0.5_rt) * dx[0] - problem::center[0];
@@ -71,7 +71,7 @@ void problem_bc_fill(int i, int j, int k,
 
 #if AMREX_SPACEDIM >= 2
     // YLO
-    if (bcs(0).lo(1) == FOEXTRAP && j < domlo[1]) {
+    if (bcs(0).lo(1) == amrex::BCType::foextrap && j < domlo[1]) {
 
         int jc = domlo[1];
         Real yc = problo[1] + (static_cast<Real>(jc) + 0.5_rt) * dx[1] - problem::center[1];
@@ -91,7 +91,7 @@ void problem_bc_fill(int i, int j, int k,
     }
 
     // YHI
-    if (bcs(0).hi(1) == FOEXTRAP && j > domhi[1]) {
+    if (bcs(0).hi(1) == amrex::BCType::foextrap && j > domhi[1]) {
 
         int jc = domhi[1];
         Real yc = problo[1] + (static_cast<Real>(jc) + 0.5_rt) * dx[1] - problem::center[1];
@@ -112,7 +112,7 @@ void problem_bc_fill(int i, int j, int k,
 
 #if AMREX_SPACEDIM == 3
     // ZLO
-    if (bcs(0).lo(2) == FOEXTRAP && k < domlo[2]) {
+    if (bcs(0).lo(2) == amrex::BCType::foextrap && k < domlo[2]) {
 
         int kc = domlo[2];
         Real zc = problo[2] + (static_cast<Real>(kc) + 0.5_rt) * dx[2] - problem::center[2];
@@ -132,7 +132,7 @@ void problem_bc_fill(int i, int j, int k,
     }
 
     // ZHI
-    if (bcs(0).hi(2) == FOEXTRAP && k > domhi[2]) {
+    if (bcs(0).hi(2) == amrex::BCType::foextrap && k > domhi[2]) {
 
         int kc = domhi[2];
         Real zc = problo[2] + (static_cast<Real>(kc) + 0.5_rt) * dx[2] - problem::center[2];

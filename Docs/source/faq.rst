@@ -54,12 +54,12 @@ Debugging
    I get more information?*
 
    The best thing to do is to recompile the code with ``TEST=TRUE``
-   set in the ``GNUmakefile``. This will have AMReX catch the
-   signals raised in both C++ and Fortran functions. Behind the
+   set in the ``GNUmakefile``. This will have AMReX catch the
+   signals raised in C++ functions. Behind the
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C++ and Fortran
+   function to handle various signals raised in C++
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
@@ -106,10 +106,10 @@ Debugging
 
    ::
 
-           print_state(mf, IntVect(D_DECL(10, 20, 30)));
+           print_state(mf, IntVect(AMREX_D_DECL(10, 20, 30)));
 
    Here, the IntVect has the dimension that we were compiled with
-   (and this is handled through the preprocessor ``D_DECL``). In
+   (and this is handled through the preprocessor ``AMREX_D_DECL``). In
    this case, we are inspecting zone (10, 20, 30), in the global index
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.

@@ -97,6 +97,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _density)
          init_multipole_grav();
      }
      max_rhs = 0.0;
+     numpts_at_level = -1;
 }
 
 Gravity::~Gravity() = default;
@@ -1569,7 +1570,7 @@ Gravity::compute_radial_mass(const Box& bx,
                         r     = std::sqrt(xxsq + yysq + zzsq);
                         index = static_cast<int>(r * drinv);
 
-                        Real vol_frac;
+                        Real vol_frac{};
 
                         if (coord_type == 0) {
 
@@ -1655,7 +1656,7 @@ Gravity::init_multipole_grav()
 
     for (int b = 0; b < AMREX_SPACEDIM; ++b) {
 
-        if ((lo_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
+        if ((lo_bc[b] == amrex::PhysBCType::symmetry) && (parent->Geom(0).Coord() == 0)) {
             if (std::abs(problem::center[b] - problo[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionLo(b) = true;
@@ -1666,7 +1667,7 @@ Gravity::init_multipole_grav()
             }
         }
 
-        if ((hi_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
+        if ((hi_bc[b] == amrex::PhysBCType::symmetry) && (parent->Geom(0).Coord() == 0)) {
             if (std::abs(problem::center[b] - probhi[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionHi(b) = true;
@@ -1800,9 +1801,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // domain in 2D, since we can only have one
     // radial index for calculating the multipole moments.
 
-    Box boxq0( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, 0,    npts-1)) );
-    Box boxqC( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
-    Box boxqS( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
+    Box boxq0( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, 0,    npts-1)) );
+    Box boxqC( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
+    Box boxqS( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
 
     FArrayBox qL0(boxq0);
     FArrayBox qLC(boxqC);
@@ -2483,12 +2484,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                 bool doSymmetricAdd {false};
 
                 for (int b = 0; b < 3; ++b) {
-                    if (physbc_lo[b] == Symmetry) {
+                    if (physbc_lo[b] == amrex::PhysBCType::symmetry) {
                         doSymmetricAddLo[b] = true;
                         doSymmetricAdd      = true;
                     }
 
-                    if (physbc_hi[b] == Symmetry) {
+                    if (physbc_hi[b] == amrex::PhysBCType::symmetry) {
                         doSymmetricAddHi[b] = true;
                         doSymmetricAdd      = true;
                     }
@@ -2930,12 +2931,12 @@ Gravity::make_mg_bc ()
             mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
             mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
         } else {
-            if (phys_bc->lo(idim) == Symmetry) {
+            if (phys_bc->lo(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
             } else {
                 mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
             }
-            if (phys_bc->hi(idim) == Symmetry) {
+            if (phys_bc->hi(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
             } else {
                 mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
@@ -3524,10 +3525,10 @@ Gravity::sanity_check (int level)
         {
             if (!geom.isPeriodic(dir))
             {
-                if (phys_bc->lo(dir) != Symmetry) {
+                if (phys_bc->lo(dir) != amrex::PhysBCType::symmetry) {
                     shrunk_domain.growLo(dir,-1);
                 }
-                if (phys_bc->hi(dir) != Symmetry) {
+                if (phys_bc->hi(dir) != amrex::PhysBCType::symmetry) {
                     shrunk_domain.growHi(dir,-1);
                 }
             }

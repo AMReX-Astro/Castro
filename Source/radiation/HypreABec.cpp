@@ -507,11 +507,11 @@ void HypreABec::hbmat (const Box& bx,
 
     Real bfv, bfm;
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
         bfv = fac * h / (0.5e0_rt * h + bcl);
         bfm = bfv - fac;
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
         bfv = beta / h;
         bfm = -fac;
     }
@@ -691,18 +691,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -729,18 +729,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i+1,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -766,18 +766,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -804,18 +804,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j+1,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -842,18 +842,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -880,18 +880,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k+1);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -1275,7 +1275,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1287,10 +1287,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1315,7 +1315,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1327,10 +1327,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i+1,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1355,7 +1355,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1367,10 +1367,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1395,7 +1395,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1407,10 +1407,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j+1,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1435,7 +1435,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1447,10 +1447,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1475,7 +1475,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1487,10 +1487,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k+1);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1591,7 +1591,7 @@ void HypreABec::hbvec (const Box& bx,
         }
     }
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
         if (bho >= 1) {
             h2 = 0.5e0_rt * h;
             th2 = 3.e0_rt * h2;
@@ -1601,7 +1601,7 @@ void HypreABec::hbvec (const Box& bx,
             bfv = (beta / h) / (0.5e0_rt * h + bcl);
         }
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
         bfv = beta / h;
     }
     else {
@@ -1779,7 +1779,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Real bnorm;
     bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                   (hypre_StructVector *) b);
-    bnorm = sqrt(bnorm);
+    bnorm = std::sqrt(bnorm);
 
     const BoxArray& grids = acoefs->boxArray();
     Real volume = 0.0;
@@ -1788,7 +1788,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     }
 
     Real reltol_new = (bnorm > 0.0
-                       ? abstol / bnorm * sqrt(volume)
+                       ? abstol / bnorm * std::sqrt(volume)
                        : reltol);
 
     if (reltol_new > reltol) {
@@ -1898,7 +1898,7 @@ Real HypreABec::getAbsoluteResidual()
   Real bnorm;
   bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                 (hypre_StructVector *) b);
-  bnorm = sqrt(bnorm);
+  bnorm = std::sqrt(bnorm);
 
   Real res;
   if (solver_flag == 0) {
@@ -1925,5 +1925,5 @@ Real HypreABec::getAbsoluteResidual()
     volume += grids[i].numPts();
   }
 
-  return bnorm * res / sqrt(volume);
+  return bnorm * res / std::sqrt(volume);
 }

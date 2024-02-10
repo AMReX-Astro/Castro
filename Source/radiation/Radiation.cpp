@@ -5,7 +5,6 @@
 #include <rad_util.H>
 #include <filt_prim.H>
 
-#include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>
 
 #include <opacity.H>
@@ -287,8 +286,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     aRad = 4.*C::sigma_SB / C::c_light;
 
-    ca_init_fort_constants(hPlanck, Avogadro);
-
     c        = clight;
     sigma    = C::sigma_SB;
 
@@ -460,13 +457,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   if (do_multigroup) {
-
     get_groups(verbose);
-
   }
   else {
-    ca_initsinglegroup(nGroups);
-
     // xnu is a dummy for single group
     xnu.resize(2, 1.0);
     nugroup.resize(1, 1.0);
@@ -2100,17 +2093,17 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
           for (FabSetIter fsi(ref_sync_flux[lo_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[lo_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[lo_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[lo_face][fsi].array(),
+                   crse_sync_flux[lo_face][fsi].array(indx),
+                   dir, ref_rat);
           }
 
           for (FabSetIter fsi(ref_sync_flux[hi_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[hi_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[hi_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[hi_face][fsi].array(),
+                   crse_sync_flux[hi_face][fsi].array(indx),
+                   dir, ref_rat);
           }
         }
 

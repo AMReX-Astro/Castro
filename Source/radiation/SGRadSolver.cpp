@@ -5,9 +5,6 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 
-
-#include <RAD_F.H>
-
 #include <iostream>
 
 #ifdef _OPENMP
@@ -132,8 +129,8 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
-    if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
-        hi_bc[idim] == LO_SANCHEZ_POMRANING) {
+    if (lo_bc[idim] == AMREX_LO_SANCHEZ_POMRANING ||
+        hi_bc[idim] == AMREX_LO_SANCHEZ_POMRANING) {
       have_Sanchez_Pomraning = true;
     }
   }
