@@ -64,9 +64,9 @@ int main(int argc, char* argv[])
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
-    double x_maxdist = max(fabs(probhi[0] - xctr), fabs(problo[0] - xctr));
-    double y_maxdist = max(fabs(probhi[1] - yctr), fabs(problo[1] - yctr));
-    double maxdist = sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
+    double x_maxdist = std::max(std::abs(probhi[0] - xctr), std::abs(problo[0] - xctr));
+    double y_maxdist = std::max(std::abs(probhi[1] - yctr), std::abs(problo[1] - yctr));
+    double maxdist = std::sqrt(x_maxdist*x_maxdist + y_maxdist*y_maxdist);
 
     double dx_fine = *(std::min_element(dx.begin(), dx.end()));
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     // over levels, we will compare to the finest level index space to
     // determine if we've already output here
     int mask_size = domain.length().max();
-    Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+    Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
     // loop over the data, starting at the finest grid, and if we haven't
     // already stored data in that grid location (according to imask),
@@ -123,11 +123,11 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            fgaussian_pulse(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            fgaussian_pulse(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                             BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                             nbins, rad_bin.dataPtr(), ncount.dataPtr(),
                             imask.dataPtr(), mask_size, r1,
-                            rad_comp, ZFILL(dx), dx_fine, xctr, yctr);
+                            rad_comp, AMREX_ZFILL(dx), dx_fine, xctr, yctr);
 
         }
 

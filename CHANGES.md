@@ -1,3 +1,15 @@
+# 24.02
+
+  * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,
+    #2735, #2731, #2732, #2733)
+
+  * Fix the boundary condition logic at a wall for Detonation (#2722)
+
+  * Reimplement the shock detection algorithm to account for sources
+    and do a better job in multidimensions (#2711, #2710, #2709, #2704)
+
+  * Start the process of moving the runtime parameters to structs (#2688)
+
 # 24.01
 
   * An option for unlimited PPM reconstruction was added (#2670)

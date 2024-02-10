@@ -61,7 +61,7 @@ Castro::ctoprim(const Box& bx,
 void
 Castro::shock(const Box& bx,
               Array4<Real const> const& q_arr,
-              Array4<Real const> const& q_src_arr,
+              Array4<Real const> const& U_src_arr,
               Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
@@ -136,14 +136,23 @@ Castro::shock(const Box& bx,
     // We subtract off the hydrostatic force, since the pressure that
     // balances that is not available to make a shock.
     // We'll use a centered diff for the pressure gradient.
-    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES)) - dx[0] * q_src_arr(i,j,k,QU);
+    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_x += -0.25_rt * dx[0] * (U_src_arr(i+1,j,k,UMX) + 2.0_rt * U_src_arr(i,j,k,UMX) + U_src_arr(i-1,j,k,UMX));
+    }
     Real dP_y = 0.0_rt;
     Real dP_z = 0.0_rt;
 #if AMREX_SPACEDIM >= 2
-    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES)) - dx[1] * q_src_arr(i,j,k,QV);
+    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
+    }
 #endif
 #if AMREX_SPACEDIM == 3
-    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES)) - dx[2] * q_src_arr(i,j,k,QW);
+    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_z += -0.25_rt * dx[2] * (U_src_arr(i,j,k+1,UMZ) + 2.0_rt * U_src_arr(i,j,k,UMZ) + U_src_arr(i,j,k-1,UMZ));
+    }
 #endif
 
     //Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
@@ -151,10 +160,13 @@ Castro::shock(const Box& bx,
                          q_arr(i,j,k,QV) * q_arr(i,j,k,QV) +
                          q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
 
-    Real gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
-                                   dP_y * q_arr(i,j,k,QV) +
-                                   dP_z * q_arr(i,j,k,QW)) / vel;
-    gradPdx_over_P /= (q_arr(i,j,k,QPRES) / std::max(dx[0], std::max(dx[1], dx[2])));
+    Real gradPdx_over_P{0.0_rt};
+    if (vel != 0.0) {
+        gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
+                                  dP_y * q_arr(i,j,k,QV) +
+                                  dP_z * q_arr(i,j,k,QW)) / vel;
+    }
+    gradPdx_over_P /= q_arr(i,j,k,QPRES);
 
     if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
       shk(i,j,k) = 1.0_rt;
@@ -576,13 +588,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
-                                   const int verbose) {
+                                   const int verbose_warnings) {
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
 
-  amrex::ignore_unused(verbose);
+  amrex::ignore_unused(verbose_warnings);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -591,8 +603,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
     if (state_arr(i,j,k,URHO) < small_dens) {
 
 #ifndef AMREX_USE_GPU
-      if (verbose > 1 ||
-          (verbose > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
+      if (verbose_warnings > 1 ||
+          (verbose_warnings > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
@@ -682,8 +694,8 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
     const auto domlo = geom.Domain().loVect3d();
     const auto domhi = geom.Domain().hiVect3d();
 
-    bool lo_bc_test = lo_bc[idir] == Symmetry;
-    bool hi_bc_test = hi_bc[idir] == Symmetry;
+    bool lo_bc_test = lo_bc[idir] == amrex::PhysBCType::symmetry;
+    bool hi_bc_test = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
     // normal velocity
     const int QUN = QU + idir;

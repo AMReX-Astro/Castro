@@ -126,7 +126,7 @@ void WriteSlicefile(const int nbins, const Vector<Real> r,
         slicefile << std::setw(w) << r[i];
 
         for (auto it=vars.begin(); it!=vars.end(); ++it) {
-            if(fabs((*it)[i]) < SMALL) (*it)[i] = 0.0;
+            if(std::abs((*it)[i]) < SMALL) (*it)[i] = 0.0;
             slicefile << std::setw(w) << (*it)[i];
         }
 

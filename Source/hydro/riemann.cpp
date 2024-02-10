@@ -51,12 +51,12 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const int* hi_bc = phys_bc.hi();
 
     // do we want to force the flux to zero at the boundary?
-    const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                                 lo_bc[idir] == SlipWall ||
-                                 lo_bc[idir] == NoSlipWall);
-    const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                                 hi_bc[idir] == SlipWall ||
-                                 hi_bc[idir] == NoSlipWall);
+    const bool special_bnd_lo = (lo_bc[idir] == amrex::PhysBCType::symmetry ||
+                                 lo_bc[idir] == amrex::PhysBCType::slipwall ||
+                                 lo_bc[idir] == amrex::PhysBCType::noslipwall);
+    const bool special_bnd_hi = (hi_bc[idir] == amrex::PhysBCType::symmetry ||
+                                 hi_bc[idir] == amrex::PhysBCType::slipwall ||
+                                 hi_bc[idir] == amrex::PhysBCType::noslipwall);
 
     auto coord = geom.Coord();
 

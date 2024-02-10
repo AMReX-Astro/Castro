@@ -19,10 +19,10 @@ long double Temp(long double P1,long double Pc,long double P_char,long double T_
   long double Temp;
   
   if(Pc>P1){
-    Temp = Td * pow(1.0e0 + (Lad / (Lin - Lad))*pow((P1/Pc),exp1),exp2);
+    Temp = Td * std::pow(1.0e0 + (Lad / (Lin - Lad)) * std::pow((P1/Pc),exp1),exp2);
   }
   else{
-    Temp = T_char * pow(P1/P_char,Lad);
+    Temp = T_char * std::pow(P1/P_char,Lad);
   }
   return Temp;
 }
@@ -95,9 +95,9 @@ int main(){
   //Defining the properties of the planet atmosphere
                             // the density limit at the top of the atmosphere
   P_top=den_top*R*Td ;                       // the pressure limit at the density limit
-  Tc = Td * pow(Lin/(Lin-Lad),exp2);                 //the temperature at the radiative-convective boundary (RCB)
-  Pc = P_char * pow(Tc/T_char,1.0/Lad);              //the pressure at the RCB
-  Pd = pow((Lin-Lad)/(2.0*Lin-Lad),1.0/exp1)*Pc;     //the characteristic pressure defining the radiative zone
+  Tc = Td * std::pow(Lin/(Lin-Lad),exp2);                 //the temperature at the radiative-convective boundary (RCB)
+  Pc = P_char * std::pow(Tc/T_char,1.0/Lad);              //the pressure at the RCB
+  Pd = std::pow((Lin-Lad)/(2.0*Lin-Lad),1.0/exp1)*Pc;     //the characteristic pressure defining the radiative zone
 
   
   
@@ -112,7 +112,7 @@ int main(){
   }
      
   buffer_height=z_top*2.25/4.0;               // the height at which the buffer and the top of the atmosphere meet (not continuous at RCB).-> needs sponge
-  optical_depth_buffer=6.35e-3*T_buffer*pow(den_buffer,2.0)*(z_top-buffer_height);// the optical depth in the buffer region [dimensionless]
+  optical_depth_buffer=6.35e-3*T_buffer*std::pow(den_buffer,2.0)*(z_top-buffer_height);// the optical depth in the buffer region [dimensionless]
  
   
 
@@ -157,14 +157,14 @@ int main(){
       den2 = density(P2, T2, R);
       T3 = T1;
       den3 = den1;
-      dz2 = abs ((-P1+P2)* (1.0/grav)/((1.0/2.0)*(den1+den2)));
-      dz3 = abs ((-P1+P3)* (1.0/grav)/((1.0/2.0)*(den1+den3)));
+      dz2 = std::abs ((-P1+P2)* (1.0/grav)/((1.0/2.0)*(den1+den2)));
+      dz3 = std::abs ((-P1+P3)* (1.0/grav)/((1.0/2.0)*(den1+den3)));
 
     a:  if(difference(dz2, delta_z)*difference(dz3, delta_z)<0.0){
         P_sol = (P2+P3)/2.0;
         T_sol = Temp(P_sol, Pc, P_char, T_char, Td, Lin, Lad, exp1, exp2);
         den_sol = density(P_sol,T_sol, R);
-        dz_sol = abs ((-P1+P_sol)* (1.0/grav)/((1.0/2.0)*(den1+den_sol)));
+        dz_sol = std::abs ((-P1+P_sol)* (1.0/grav)/((1.0/2.0)*(den1+den_sol)));
         count2++;
         }
         else{
@@ -172,13 +172,13 @@ int main(){
           P3 = P3 - P3/dP_factor/1.0;
           T3 = Temp(P3, Pc, P_char, T_char, Td, Lin, Lad, exp1, exp2);
           den3 = density(P3, T3, R);
-          dz3 = abs ((-P1+P3)* (1.0/grav)/((1.0/2.0)*(den1+den3)));
+          dz3 = std::abs ((-P1+P3)* (1.0/grav)/((1.0/2.0)*(den1+den3)));
           }
         else if(difference(dz2, delta_z)<0.0){
           P2 = P2 + P2/dP_factor/1.0;
           T2 = Temp(P2, Pc, P_char, T_char, Td, Lin, Lad, exp1, exp2);
           den2 = density(P2,T2,R);
-          dz2 = abs ((-P1+P2)* (1.0/grav)/((1.0/2.0)*(den1+den2)));
+          dz2 = std::abs ((-P1+P2)* (1.0/grav)/((1.0/2.0)*(den1+den2)));
           }
           goto a;
         }
@@ -192,11 +192,11 @@ int main(){
       if(count2>100000){
         goto b;
       }
-      if(abs(difference(dz_sol, delta_z)) >= error_expected){
+      if(std::abs(difference(dz_sol, delta_z)) >= error_expected){
         goto a;
       }
 
-    b:  cout<<count_cell<<' ' <<setprecision(5) << "Final value, "<<' '<<"height[km]="<< ' '<< z/1.e5<<' ' <<"pressure[bar]=" <<' ' << P_sol/1.e6  <<' '<< "error="<<' ' << abs(difference(dz_sol, delta_z))<<' ' << abs ((-P1+P_sol)/dz_sol+ grav*((1.0/2.0)*(den1+den_sol))) << '\n';
+    b:  cout<<count_cell<<' ' <<setprecision(5) << "Final value, "<<' '<<"height[km]="<< ' '<< z/1.e5<<' ' <<"pressure[bar]=" <<' ' << P_sol/1.e6  <<' '<< "error="<<' ' << std::abs(difference(dz_sol, delta_z))<<' ' << std::abs ((-P1+P_sol)/dz_sol+ grav*((1.0/2.0)*(den1+den_sol))) << '\n';
       T[count] = T_sol;
       P[count] = P_sol;
       den[count] = den_sol;
@@ -207,9 +207,9 @@ int main(){
       P1 = P_sol;
       count_cell++;
       if(P_sol < Pc){
-      optical_depth_radiative = optical_depth_radiative+kappa0*pow(den_sol,2.0)*T_sol*delta_z;
+      optical_depth_radiative = optical_depth_radiative+kappa0*std::pow(den_sol,2.0)*T_sol*delta_z;
       }
-      optical_depth_atm = optical_depth_atm+kappa0*pow(den_sol,2.0)*T_sol*delta_z;
+      optical_depth_atm = optical_depth_atm+kappa0*std::pow(den_sol,2.0)*T_sol*delta_z;
       if(optical_depth_atm+optical_depth_buffer>=1.0 && P_at_1opticaldepth==0.0 ){
         P_at_1opticaldepth=P_sol;
         T_at_1opticaldepth=T_sol;

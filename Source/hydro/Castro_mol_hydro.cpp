@@ -143,7 +143,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         src_q.resize(qbx, NQSRC);
         Array4<Real> const src_q_arr = src_q.array();
 
-        if (hybrid_riemann == 1 || compute_shock || (sdc_order == 2)) {
+        if (sdc_order == 2) {
 
             amrex::ParallelFor(qbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -162,7 +162,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
         if (hybrid_riemann == 1 || compute_shock) {
-            shock(obx, q_arr, src_q_arr, shk_arr);
+            shock(obx, q_arr, source_in_arr, shk_arr);
         }
         else {
             amrex::ParallelFor(obx,
@@ -314,8 +314,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
             GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
             for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-              lo_periodic[idir] = lo_bc[idir] == Interior;
-              hi_periodic[idir] = hi_bc[idir] == Interior;
+              lo_periodic[idir] = lo_bc[idir] == amrex::PhysBCType::interior;
+              hi_periodic[idir] = hi_bc[idir] == amrex::PhysBCType::interior;
             }
 
             amrex::ParallelFor(nbx, NQ,

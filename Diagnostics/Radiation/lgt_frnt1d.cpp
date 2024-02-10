@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
-    double maxdist = fabs(probhi[0] - problo[0]);
+    double maxdist = std::abs(probhi[0] - problo[0]);
     double dx_fine = *(std::min_element(dx.begin(), dx.end()));
     int nbins = int(maxdist / dx_fine);
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
     // over levels, we will compare to the finest level index space to
     // determine if we've already output here
     int mask_size = domain.length().max();
-    Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+    Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
     // loop over the data, starting at the finest grid, and if we haven't
     // already stored data in that grid location (according to imask),
@@ -114,13 +114,13 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            flgt_frnt1d(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            flgt_frnt1d(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                         BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                         nbins, dens_bin.dataPtr(), vel_bin.dataPtr(),
                         pres_bin.dataPtr(), rad_bin.dataPtr(),
                         imask.dataPtr(), mask_size, r1,
                         dens_comp, xmom_comp, pres_comp, rad_comp,
-                        ZFILL(dx), dx_fine);
+                        AMREX_ZFILL(dx), dx_fine);
         }
 
         // adjust r1 for the next lowest level

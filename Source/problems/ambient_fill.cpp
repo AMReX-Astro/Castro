@@ -17,22 +17,22 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
-                            (bc.lo(0) == FOEXTRAP || bc.lo(0) == HOEXTRAP);
+                            (bc.lo(0) == amrex::BCType::foextrap || bc.lo(0) == amrex::BCType::hoextrap);
         bool ambient_x_hi = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
-                            (bc.hi(0) == FOEXTRAP || bc.hi(0) == HOEXTRAP);
+                            (bc.hi(0) == amrex::BCType::foextrap || bc.hi(0) == amrex::BCType::hoextrap);
 
 #if AMREX_SPACEDIM >= 2
         bool ambient_y_lo = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
-                            (bc.lo(1) == FOEXTRAP || bc.lo(1) == HOEXTRAP);
+                            (bc.lo(1) == amrex::BCType::foextrap || bc.lo(1) == amrex::BCType::hoextrap);
         bool ambient_y_hi = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
-                            (bc.hi(1) == FOEXTRAP || bc.hi(1) == HOEXTRAP);
+                            (bc.hi(1) == amrex::BCType::foextrap || bc.hi(1) == amrex::BCType::hoextrap);
 #endif
 
 #if AMREX_SPACEDIM == 3
         bool ambient_z_lo = (castro::ambient_fill_dir == 2 || castro::ambient_fill_dir == -1) &&
-                            (bc.lo(2) == FOEXTRAP || bc.lo(2) == HOEXTRAP);
+                            (bc.lo(2) == amrex::BCType::foextrap || bc.lo(2) == amrex::BCType::hoextrap);
         bool ambient_z_hi = (castro::ambient_fill_dir == 2 || castro::ambient_fill_dir == -1) &&
-                            (bc.hi(2) == FOEXTRAP || bc.hi(2) == HOEXTRAP);
+                            (bc.hi(2) == amrex::BCType::foextrap || bc.hi(2) == amrex::BCType::hoextrap);
 #endif
 
         if (castro::fill_ambient_bc == 1) {
@@ -76,22 +76,22 @@ ambient_fill(const Box& bx, Array4<Real> const& state,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         bool ambient_x_lo = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).lo(0) == FOEXTRAP || bcs(URHO).lo(0) == HOEXTRAP);
+                            (bcs(URHO).lo(0) == amrex::BCType::foextrap || bcs(URHO).lo(0) == amrex::BCType::hoextrap);
         bool ambient_x_hi = (castro::ambient_fill_dir == 0 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).hi(0) == FOEXTRAP || bcs(URHO).hi(0) == HOEXTRAP);
+                            (bcs(URHO).hi(0) == amrex::BCType::foextrap || bcs(URHO).hi(0) == amrex::BCType::hoextrap);
 
 #if AMREX_SPACEDIM >= 2
         bool ambient_y_lo = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).lo(1) == FOEXTRAP || bcs(URHO).lo(1) == HOEXTRAP);
+                            (bcs(URHO).lo(1) == amrex::BCType::foextrap || bcs(URHO).lo(1) == amrex::BCType::hoextrap);
         bool ambient_y_hi = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).hi(1) == FOEXTRAP || bcs(URHO).hi(1) == HOEXTRAP);
+                            (bcs(URHO).hi(1) == amrex::BCType::foextrap || bcs(URHO).hi(1) == amrex::BCType::hoextrap);
 #endif
 
 #if AMREX_SPACEDIM == 3
         bool ambient_z_lo = (castro::ambient_fill_dir == 2 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).lo(2) == FOEXTRAP || bcs(URHO).lo(2) == HOEXTRAP);
+                            (bcs(URHO).lo(2) == amrex::BCType::foextrap || bcs(URHO).lo(2) == amrex::BCType::hoextrap);
         bool ambient_z_hi = (castro::ambient_fill_dir == 2 || castro::ambient_fill_dir == -1) &&
-                            (bcs(URHO).hi(2) == FOEXTRAP || bcs(URHO).hi(2) == HOEXTRAP);
+                            (bcs(URHO).hi(2) == amrex::BCType::foextrap || bcs(URHO).hi(2) == amrex::BCType::hoextrap);
 #endif
 
         if (castro::fill_ambient_bc == 1) {

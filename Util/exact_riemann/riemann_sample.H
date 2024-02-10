@@ -1,16 +1,20 @@
 #ifndef RIEMANN_SAMPLE_MODULE_H
 #define RIEMANN_SAMPLE_MODULE_H
 
+#include <AMReX_REAL.H>
+
 #include <riemann_support.H>
+
+using namespace amrex::literals;
 
 AMREX_INLINE
 void
-riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_l,
-               const Real rho_r, const Real u_r, const Real p_r, const Real* xn_r,
-               const Real ustar, const Real pstar,
-               const Real W_l, const Real W_r,
-               const Real x, const Real xjump, const Real time,
-               Real& rho, Real& u, Real& p, Real* xn) {
+riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real p_l, const amrex::Real* xn_l,
+               const amrex::Real rho_r, const amrex::Real u_r, const amrex::Real p_r, const amrex::Real* xn_r,
+               const amrex::Real ustar, const amrex::Real pstar,
+               const amrex::Real W_l, const amrex::Real W_r,
+               const amrex::Real x, const amrex::Real xjump, const amrex::Real time,
+               amrex::Real& rho, amrex::Real& u, amrex::Real& p, amrex::Real* xn) {
 
     // get the initial sound speeds
 
@@ -24,7 +28,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
 
     eos(eos_input_rp, eos_state);
 
-    Real cs_l = std::sqrt(eos_state.gam1 * p_l / rho_l);
+    amrex::Real cs_l = std::sqrt(eos_state.gam1 * p_l / rho_l);
 
     eos_state.rho = rho_r;
     eos_state.p = p_r;
@@ -35,7 +39,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
 
     eos(eos_input_rp, eos_state);
 
-    Real cs_r = std::sqrt(eos_state.gam1 * p_r / rho_r);
+    amrex::Real cs_r = std::sqrt(eos_state.gam1 * p_r / rho_r);
 
 
     // find the solution as a function of xi = x/t
@@ -45,14 +49,14 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     // compute xi = x/t -- this is the similarity variable for the
     // solution
 
-    Real xi = (x - xjump) / time;
+    amrex::Real xi = (x - xjump) / time;
 
     // check which side of the contact we need to worry about
 
-    Real chi = std::copysign(1.0_rt, xi - ustar);
+    amrex::Real chi = std::copysign(1.0_rt, xi - ustar);
 
-    Real rho_s, u_s, p_s, W_s, cs_s;
-    Real uhat_s, xihat, uhat_star;
+    amrex::Real rho_s, u_s, p_s, W_s, cs_s;
+    amrex::Real uhat_s, xihat, uhat_star;
 
     if (chi == -1.0_rt) {
         rho_s = rho_l;
@@ -97,7 +101,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
 
     // are we a shock or rarefaction?
 
-    Real rhostar, Z_temp;
+    amrex::Real rhostar, Z_temp;
 
     if (pstar > p_s) {
         // shock
@@ -107,7 +111,7 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
     } else {
         // rarefaction.  Here we need to integrate the Riemann
         // invariant curves to our pstar to get rhostar and cs_star
-        Real Z_temp, W_temp;
+        amrex::Real Z_temp, W_temp;
         if (chi == -1.0_rt) {
             rarefaction(pstar, rho_s, u_s, p_s, xn, 1, Z_temp, W_temp, rhostar);
         } else {
@@ -128,11 +132,11 @@ riemann_sample(const Real rho_l, const Real u_l, const Real p_l, const Real* xn_
 
     eos(eos_input_rp, eos_state);
 
-    Real cs_star = std::sqrt(eos_state.gam1 * pstar / rhostar);
+    amrex::Real cs_star = std::sqrt(eos_state.gam1 * pstar / rhostar);
 
     // now deal with the cases where we are not spanning a rarefaction
 
-    Real lambdahat_s, lambdahat_star;
+    amrex::Real lambdahat_s, lambdahat_star;
 
     if (pstar <= p_s) {
         lambdahat_s = uhat_s + cs_s;

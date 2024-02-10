@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     // over levels, we will compare to the finest level index space to
     // determine if we've already output here
     int mask_size = domain.length().max();
-    Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+    Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
     // counter
     auto cnt = 0;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            fradshock(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+            fradshock(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
                       problo.dataPtr(), probhi.dataPtr(),
                       BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                       nbins, vars_bin.dataPtr(),
@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
             slicefile << std::setw(w) << vars_bin[isv[i]+((*it)+1)*nbins];
 
         auto it = comps.end()-1;
-        slicefile << std::setw(w) << pow(vars_bin[isv[i]+((*it)+1)*nbins] / arad, 0.25);
+        slicefile << std::setw(w) << std::pow(vars_bin[isv[i]+((*it)+1)*nbins] / arad, 0.25);
 
         slicefile << std::endl;
     }

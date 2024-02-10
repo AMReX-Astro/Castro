@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     // over levels, we will compare to the finest level index space to
     // determine if we've already output here
     int mask_size = domain.length()[0];
-    Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
+    Vector<int> imask(std::pow(mask_size, AMREX_SPACEDIM), 1);
 
     // counter
     int cnt = 0;
@@ -163,12 +163,12 @@ int main(int argc, char* argv[])
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-            fradsphere(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                       ZFILL(problo), ZFILL(probhi),
+            fradsphere(AMREX_ARLIM_3D(bx.loVect()), AMREX_ARLIM_3D(bx.hiVect()),
+                       AMREX_ZFILL(problo), AMREX_ZFILL(probhi),
                        BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
                        nbins, vars_bin.dataPtr(),
                        imask.dataPtr(), mask_size, r1,
-                       ZFILL(dx), &cnt);
+                       AMREX_ZFILL(dx), &cnt);
         }
 
         // adjust r1 for the next lowest level
