@@ -403,7 +403,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
           FullPathName = fileName;
           if( ! fileName.empty() && fileName[fileName.length()-1] != '/') {
             FullPathName += '/';
-	  }
+          }
           FullPathName += mf_name;
           VisMF::Read(*(falRef.state[i].old_data), FullPathName);
         }
@@ -458,7 +458,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
            int ncomp = falRef_orig.state[i].new_data->nComp();
            int ngrow = falRef_orig.state[i].new_data->nGrow();
 
-	   DistributionMapping dmap {falRef.grids};
+           DistributionMapping dmap {falRef.grids};
            falRef.state[i].new_data = new MultiFab(falRef.grids, dmap, ncomp, ngrow);
            falRef.state[i].new_data->setVal(0.);
 
@@ -502,17 +502,17 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
       if (oldCastroHeaderFile.good()) {
 
-	std::ofstream newCastroHeaderFile;
+        std::ofstream newCastroHeaderFile;
 
-	std::string newCastroHeaderName = outFileName + "/CastroHeader";
-	newCastroHeaderFile.open(newCastroHeaderName.c_str(), std::ios::binary);
+        std::string newCastroHeaderName = outFileName + "/CastroHeader";
+        newCastroHeaderFile.open(newCastroHeaderName.c_str(), std::ios::binary);
 
-	if (newCastroHeaderFile.good()) {
-	  newCastroHeaderFile << oldCastroHeaderFile.rdbuf();
-	  newCastroHeaderFile.close();
-	}
+        if (newCastroHeaderFile.good()) {
+          newCastroHeaderFile << oldCastroHeaderFile.rdbuf();
+          newCastroHeaderFile.close();
+        }
 
-	oldCastroHeaderFile.close();
+        oldCastroHeaderFile.close();
 
       }
 
@@ -533,15 +533,15 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
     if(ParallelDescriptor::IOProcessor()) {
         // Only the IOProcessor() writes to the header file.
         HeaderFile.open(HeaderFileName.c_str(),
-	                std::ios::out|std::ios::trunc|std::ios::binary);
+                        std::ios::out|std::ios::trunc|std::ios::binary);
 
         if( ! HeaderFile.good()) {
           amrex::FileOpenFailed(HeaderFileName);
-	}
+        }
 
         old_prec = HeaderFile.precision(15);
 
-	int max_level(fakeAmr.finest_level);
+        int max_level(fakeAmr.finest_level);
         HeaderFile << CheckPointVersion << '\n'
                    << AMREX_SPACEDIM       << '\n'
                    << fakeAmr.cumtime           << '\n'
@@ -627,9 +627,9 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
           if(ParallelDescriptor::IOProcessor()) {
             // The relative name gets written to the Header file.
             std::string mf_name_old = name;
-	    mf_name_old += OldSuffix;
+            mf_name_old += OldSuffix;
             std::string mf_name_new = name;
-	    mf_name_new += NewSuffix;
+            mf_name_new += NewSuffix;
 
             os << falRef.state[i].domain << '\n';
 
@@ -663,7 +663,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
             BL_ASSERT(dump_old);
             BL_ASSERT(falRef.state[i].old_data);
             std::string mf_fullpath_old = fullpathname;
-	    mf_fullpath_old += OldSuffix;
+            mf_fullpath_old += OldSuffix;
             VisMF::Write(*(falRef.state[i].old_data),mf_fullpath_old,how);
           }
           // ++++++++++++
@@ -689,7 +689,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
         if( ! HeaderFile.good()) {
           amrex::Error("Amr::checkpoint() failed");
-	}
+        }
     }
 
     FArrayBox::setFormat(thePrevFormat);
@@ -726,7 +726,7 @@ static void ConvertData() {
         {
           int shiftx(jx*dlenx);
           int shifty(jy*dleny);
-          IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+          IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
           Box bx(falRef0.grids[n]);
           bx.shift(shift_box);
@@ -762,7 +762,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz - dlenz/2);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);
@@ -792,7 +792,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);
