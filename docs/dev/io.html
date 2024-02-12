@@ -459,9 +459,207 @@ own variable)</p></td>
 </section>
 <section id="derived-variables">
 <h3>Derived variables<a class="headerlink" href="#derived-variables" title="Link to this heading"></a></h3>
+<table class="docutils align-default" id="index-8">
+<thead>
+<tr class="row-odd"><th class="head"><p>variable name</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>derive routine</p></th>
+<th class="head"><p>units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></p></td>
+<td><p>Angular momentum / volume in the x, y, or z dir
+computed as <span class="math notranslate nohighlight">\([(\rho \ub) \times {\bf r}]_n\)</span>
+where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the distance from
+<code class="docutils literal notranslate"><span class="pre">center</span></code> and <span class="math notranslate nohighlight">\(n\)</span> is either x, y, or z</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derangmomx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
+<td><p>Thermal diffusion coefficient,
+<span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm^2~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdivu</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
+<td><p>Specific internal energy computed from the
+conserved <span class="math notranslate nohighlight">\((\rho e)\)</span> state variable as
+<span class="math notranslate nohighlight">\(e = (\rho e)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dereint2</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
+<td><p>Specific internal energy computed from the
+total energy and momentum conserved state as
+<span class="math notranslate nohighlight">\(e=[(\rho E)-\frac{1}{2}(\rho \ub^2)]/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dereint1</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
+<td><p>Specific entropy, <span class="math notranslate nohighlight">\(s\)</span>, computed as
+<span class="math notranslate nohighlight">\(s = s(\rho, e, X_k)\)</span>, where <cite>e</cite> is
+computed from <span class="math notranslate nohighlight">\((\rho e)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derentropy</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></p></td>
+<td><p>Total radiation energy density
+(for multigroup radiation problems)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derertot</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Frcomx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frcomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frcomz</span></code></p></td>
+<td><p>Comoving radiation flux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Frlabx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frlaby</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frlabz</span></code></p></td>
+<td><p>Lab-frame radiation flux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Gamma_1</span></code></p></td>
+<td><p>Adiabatic index,
+<span class="math notranslate nohighlight">\(d\log p/d\log \rho|_s\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dergamma1</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kineng</span></code></p></td>
+<td><p>Kinetic energy density,
+<span class="math notranslate nohighlight">\(K = \frac{1}{2} |(\rho \ub)|^2\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derkineng</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
+<td><p>Radiation flux limiter</p></td>
+<td></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logden</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\log_{10} \rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derlogten</span></code></p></td>
+<td><p>dimensionless, assuming <span class="math notranslate nohighlight">\(\rho\)</span>
+is in CGS</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MachNumber</span></code></p></td>
+<td><p>Fluid Mach number, <span class="math notranslate nohighlight">\(|\ub|/c_s\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermachnumber</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maggrav</span></code></p></td>
+<td><p>Gravitational acceleration magnitude</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermaggrav</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">magmom</span></code></p></td>
+<td><p>Momentum density magnitude,
+<span class="math notranslate nohighlight">\(|\rho \ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagmom</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">magvel</span></code></p></td>
+<td><p>Velocity magnitude, <span class="math notranslate nohighlight">\(|\ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">magvort</span></code></p></td>
+<td><p>Vorticity magnitude, <span class="math notranslate nohighlight">\(|\nabla\times\ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagvort</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pressure</span></code></p></td>
+<td><p>Total pressure, including ions, electrons,
+and radiation (for non radhydro problems)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derpres</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm dyn~cm^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">radvel</span></code></p></td>
+<td><p>Radial velocity (measured with respect to
+<code class="docutils literal notranslate"><span class="pre">center</span></code> or vertical axis if
+<code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is set)
+<span class="math notranslate nohighlight">\((xu + yv + zw)/r\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">circvel</span></code></p></td>
+<td><p>Circumferential velocity (perpendicular to
+<code class="docutils literal notranslate"><span class="pre">radvel</span></code>.  If <code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is
+set, then this is in the x-y plane</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
+<td><p>Sound speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dersoundspeed</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
+<td><p>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dercond</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-1}~s^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
+<td></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuctimescale</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
+<td><p>(only for 1D) x-velocity <span class="math notranslate nohighlight">\(-\)</span> sound
+speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deruminusc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
+<td><p>(only for 1D) x-velocity + sound speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deruplusc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
+<td><p>Mass fraction of species q
+<span class="math notranslate nohighlight">\(X_k = (\rho X_k)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derspec</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">y_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></p></td>
+<td><p>Fluid velocity,
+<span class="math notranslate nohighlight">\(\ub = (\rho \ub)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dervel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate / gram</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="problem-specific-plotfile-variables">
-<span id="index-8"></span><h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Link to this heading"></a></h3>
+<h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Link to this heading"></a></h3>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>variable name</p></th>
