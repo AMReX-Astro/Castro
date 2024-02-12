@@ -9,6 +9,10 @@ on:
     branches:
       - development
 
+env:
+  # enable color output from Sphinx
+  FORCE_COLOR: "1"
+
 jobs:
   docs:
     runs-on: ubuntu-latest
