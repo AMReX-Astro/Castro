@@ -33,7 +33,7 @@ jobs:
       - name: Build docs
         run: |
           cd Docs/
-          make SPHINXOPTS=-v NO_DOXYGEN=TRUE html
+          make SPHINXOPTS='-v -W --keep-going' NO_DOXYGEN=TRUE html
 
       - name: Check links
         run: |
