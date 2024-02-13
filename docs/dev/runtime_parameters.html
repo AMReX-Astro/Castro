@@ -666,7 +666,96 @@ simulation.</p></td>
 </tbody>
 </table>
 <p><strong>reactions</strong></p>
-<p id="index-3"><strong>diffusion</strong></p>
+<table class="docutils align-default" id="index-3">
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_e</span></code></p></td>
+<td><p>Limit the timestep based on how much the burning can change
+the internal energy of a zone. The timestep is equal to
+<code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(e / \dot{e})\)</span>.</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></p></td>
+<td><p>Limit the timestep based on how much the burning can change
+the species mass fractions of a zone. The timestep is equal
+to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(X / \dot{X})\)</span>.</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></p></td>
+<td><p>If we are using the timestep limiter based on changes in
+<span class="math notranslate nohighlight">\(X\)</span>, set a threshold on the species abundance below which
+the limiter is not applied. This helps prevent the timestep
+from becoming very small due to changes in trace species.</p></td>
+<td><p>1.e-3</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
+<td><p>permits reactions to be turned on and off – mostly for
+efficiency’s sake</p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
+<td><p>minimum temperature for allowing reactions to occur in a
+zone</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></p></td>
+<td><p>maximum temperature for allowing reactions to occur in a
+zone</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></p></td>
+<td><p>minimum density for allowing reactions to occur in a zone</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></p></td>
+<td><p>maximum density for allowing reactions to occur in a zone</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></p></td>
+<td><p>disable burning inside hydrodynamic shock regions note:
+requires compiling with <cite>USE_SHOCK_VAR=TRUE</cite></p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">shock_detection_threshold</span></code></p></td>
+<td><p>shock detection threshold for grad{P} / P</p></td>
+<td><p>0.6666666666666666666666_rt</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">shock_detection_include_sources</span></code></p></td>
+<td><p>do we subtract off the hydrostatic pressure when evaluating
+a shock?</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">T_guess</span></code></p></td>
+<td><p>initial guess for the temperature when inverting the EoS
+(e.g. when calling eos_input_re)</p></td>
+<td><p>1.e8</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">drive_initial_convection</span></code></p></td>
+<td><p>if set to 1, we interpolate from the initial model to get
+the temperature used to call the burner.  This prevents
+reactions from going nonlinear and running away in place
+before a convective field is established.</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">drive_initial_convection_tmax</span></code></p></td>
+<td><p>maximum time over which to do the drive_initial_convection
+procedure</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">drive_initial_convection_reinit_period</span></code></p></td>
+<td><p>frequency with which to re-initialize the thermodynamic
+data while preserving the velocity field during
+drive_initial_convection</p></td>
+<td><p>1.e200</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>diffusion</strong></p>
 <table class="docutils align-default" id="index-4">
 <thead>
 <tr class="row-odd"><th class="head"><p>parameter</p></th>
