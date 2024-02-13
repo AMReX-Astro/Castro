@@ -342,6 +342,14 @@ accounted for in **Steps 1** and **6**. The source terms are:
    S_{{\rm ext},\rho Y_k}
    \end{array}\right)^n.
 
+.. index:: USE_SPECIES_SOURCES
+
+.. note:: To reduce memory usage, we do not include source terms for the
+   advected quantities, species, and auxiliary variables in the conserved
+   state vector by default. If your application needs external source terms for
+   these variables, set `USE_SPECIES_SOURCES=TRUE` when compiling so that space
+   will be allocated for them.
+
 Primitive Forms
 ===============
 
@@ -584,9 +592,6 @@ runtime parameters for hydrodynamics:
    after the solution update (0 or 1; default: 0)
 
    See :ref:`sponge_section` for more details on the sponge.
-
--  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
-   (0 or 1; default: 0)
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
