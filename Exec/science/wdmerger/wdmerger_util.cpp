@@ -462,15 +462,15 @@ void binary_setup ()
     const Real* problo = DefaultGeometry().ProbLo();
     const Real* probhi = DefaultGeometry().ProbHi();
 
-    if (Castro::physbc().lo(0) == Symmetry && problem::center[0] != problo[0]) {
+    if (Castro::physbc().lo(0) == amrex::PhysBCType::symmetry && problem::center[0] != problo[0]) {
         amrex::Error("Symmetric lower x-boundary but the center is not on this boundary.");
     }
 
-    if (Castro::physbc().lo(1) == Symmetry && problem::center[1] != problo[1]) {
+    if (Castro::physbc().lo(1) == amrex::PhysBCType::symmetry && problem::center[1] != problo[1]) {
         amrex::Error("Symmetric lower y-boundary but the center is not on this boundary.");
     }
 
-    if (Castro::physbc().lo(2) == Symmetry && problem::center[2] != problo[2]) {
+    if (Castro::physbc().lo(2) == amrex::PhysBCType::symmetry && problem::center[2] != problo[2]) {
         amrex::Error("Symmetric lower z-boundary but the center is not on this boundary.");
     }
 
@@ -656,7 +656,7 @@ void binary_setup ()
 
             Real length;
 
-            if (Castro::physbc().lo(problem::axis_1-1) == Symmetry) {
+            if (Castro::physbc().lo(problem::axis_1-1) == amrex::PhysBCType::symmetry) {
 
                 // In this case we're only modelling the secondary.
                 length = problem::r_P_initial + problem::radius_P;
@@ -787,7 +787,7 @@ void binary_setup ()
 
     // Safety check: make sure the stars are actually inside the computational domain.
 
-    if (!(AMREX_SPACEDIM == 2 && Castro::physbc().lo(1) == Symmetry)) {
+    if (!(AMREX_SPACEDIM == 2 && Castro::physbc().lo(1) == amrex::PhysBCType::symmetry)) {
 
         if ((0.5_rt * (probhi[0] - problo[0]) < problem::radius_P) ||
             (0.5_rt * (probhi[1] - problo[1]) < problem::radius_P) ||

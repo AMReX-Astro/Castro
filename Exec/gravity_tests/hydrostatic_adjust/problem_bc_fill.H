@@ -14,7 +14,7 @@ void problem_bc_fill(int i, int j, int k,
 
     if (AMREX_SPACEDIM == 1) {
 
-        if (bcs(UMX).hi(0) == FOEXTRAP && i > domhi[0]) {
+        if (bcs(UMX).hi(0) == amrex::BCType::foextrap && i > domhi[0]) {
 
             Real vel = amrex::max(state(i,j,k,UMX) / state(i,j,k,URHO), 0.0);
             state(i,j,k,URHO)  = problem::hse_rho_top;
@@ -36,7 +36,7 @@ void problem_bc_fill(int i, int j, int k,
     }
     else if (AMREX_SPACEDIM == 2) {
 
-        if (bcs(UMY).hi(1) == FOEXTRAP && j > domhi[1]) {
+        if (bcs(UMY).hi(1) == amrex::BCType::foextrap && j > domhi[1]) {
 
             Real vel = amrex::max(state(i,j,k,UMY) / state(i,j,k,URHO), 0.0);
             state(i,j,k,URHO)  = problem::hse_rho_top;
@@ -58,7 +58,7 @@ void problem_bc_fill(int i, int j, int k,
     }
     else {
 
-        if (bcs(UMZ).hi(2) == FOEXTRAP && k > domhi[2]) {
+        if (bcs(UMZ).hi(2) == amrex::BCType::foextrap && k > domhi[2]) {
 
             Real vel = amrex::max(state(i,j,k,UMZ) / state(i,j,k,URHO), 0.0);
             state(i,j,k,URHO)  = problem::hse_rho_top;

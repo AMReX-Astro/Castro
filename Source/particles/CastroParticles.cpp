@@ -137,7 +137,7 @@ Castro::ParticleDerive(const std::string& name,
       //
       auto derive_dat = ParticleDerive("particle_count",time,ngrow);
 
-      IntVect trr(D_DECL(1,1,1));
+      IntVect trr(AMREX_D_DECL(1,1,1));
 
       for (int lev = level+1; lev <= parent->finestLevel(); lev++)
       {
