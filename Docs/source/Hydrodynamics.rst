@@ -347,7 +347,7 @@ accounted for in **Steps 1** and **6**. The source terms are:
 .. note:: To reduce memory usage, we do not include source terms for the
    advected quantities, species, and auxiliary variables in the conserved
    state vector by default. If your application needs external source terms for
-   these variables, set `USE_SPECIES_SOURCES=TRUE` when compiling so that space
+   these variables, set ``USE_SPECIES_SOURCES=TRUE`` when compiling so that space
    will be allocated for them.
 
 Primitive Forms
