@@ -13,7 +13,7 @@ This is used to calculate the orbital distance and the rotational period. (Ref: 
 
 ### Desired masses or densities
 
-Castro either uses the inital WD masses or the initial central densities to generate desired stars. Users can specify one of these and leave the other parameter negative. If both are provided, it will use the central densities to generate the model and assume masses as an estimate for the purpose of determining the envelope mass boundary. This is established [here](https://github.com/AMReX-Astro/Castro/blob/10534968cf09ba73f1044186389740559adc4188/Util/model_parser/model_parser.H#L208).
+Castro either uses the initial WD masses or the initial central densities to generate desired stars. Users can specify one of these and leave the other parameter negative. If both are provided, it will use the central densities to generate the model and assume masses as an estimate for the purpose of determining the envelope mass boundary. This is established [here](https://github.com/AMReX-Astro/Castro/blob/10534968cf09ba73f1044186389740559adc4188/Util/model_parser/model_parser.H#L208).
 
 **Primary**
 ```
