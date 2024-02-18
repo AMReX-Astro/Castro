@@ -60,7 +60,7 @@ https://github.com/amrex-astro/Castro
 
    filelist
    classlist
-   .. namespacelist
+.. namespacelist
 
 .. toctree::
    :caption: References
