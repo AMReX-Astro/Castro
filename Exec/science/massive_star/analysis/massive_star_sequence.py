@@ -15,7 +15,7 @@ from yt.units import cm
 
 matplotlib.use('agg')
 
-times = [50, 100, 150, 200]
+times = [50, 100, 150, 200, 250]
 
 def find_files(plist):
 
@@ -141,6 +141,8 @@ def make_plot(field, pfiles, *,
         plot.cax = grid.cbar_axes[i]
         if i < len(pfiles)-1:
             grid[i].axes.xaxis.offsetText.set_visible(False)
+        if i > 0:
+            grid[i].axes.yaxis.offsetText.set_visible(False)
 
         sp._setup_plots()
 
