@@ -87,7 +87,7 @@ def make_plot(plotfile, prefix="plot", width_frac=0.1,
                                   cbar_location=cbar_location, cbar_pad="2%")
 
     fig.subplots_adjust(left=0.05, right=0.95, bottom=0.025, top=0.975)
-    fig.text(0.02, 0.02, f"$t - \\tau_\\mathrm{{drive}}$ = {float(ds.current_time) - t_drive:8.2f} s",
+    fig.text(0.02, 0.02, f"$t - \\tau_\\mathrm{{drive}}$ = {float(ds.current_time) - t_drive:6.1f} s",
              transform=fig.transFigure)
     fig.set_size_inches(size)
     fig.tight_layout()
@@ -95,7 +95,7 @@ def make_plot(plotfile, prefix="plot", width_frac=0.1,
     if layout[0] >= layout[1]:
         extra = "_vertical"
 
-    fig.savefig(f"{prefix}_{os.path.basename(plotfile)}_w{width_frac:04.2f}{extra}.pdf", pad_inches=0)
+    fig.savefig(f"{prefix}_{os.path.basename(plotfile)}_w{width_frac:04.2f}{extra}.pdf", pad_inches=0.1, bbox_inches="tight")
 
 
 if __name__ == "__main__":

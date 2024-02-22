@@ -51,7 +51,7 @@ def make_plot(field, pfiles, *,
         ncols = len(pfiles)
 
     grid = ImageGrid(fig, 111, nrows_ncols=(nrows, ncols),
-                     axes_pad=0.3, cbar_pad=0.05,
+                     axes_pad=0.2, cbar_pad=0.05,
                      label_mode="L", cbar_mode="single")
 
     # get some metadata
@@ -78,7 +78,7 @@ def make_plot(field, pfiles, *,
 
     f = field
 
-    if f == "Temp":
+    if f == "Temp" or f == "abar":
         text_color = "white"
     else:
         text_color = "black"
@@ -130,7 +130,7 @@ def make_plot(field, pfiles, *,
         if f == "enuc":
             # now do a contour of NSE
             if ("boxlib", "in_nse") in ds.derived_field_list:
-                sp.annotate_contour("in_nse", ncont=1, clim=(0.5, 0.5), take_log=False,
+                sp.annotate_contour("in_nse", levels=1, clim=(0.5, 0.5), take_log=False,
                                     plot_args={"colors": "k", "linewidths": 2})
 
         sp.set_axes_unit("cm")
@@ -150,7 +150,7 @@ def make_plot(field, pfiles, *,
     fig.tight_layout()
     extra = ""
 
-    fig.savefig(f"massive_star_{f}_w{width_frac:04.2f}.pdf", pad_inches=0)
+    fig.savefig(f"massive_star_{f}_w{width_frac:04.2f}.pdf", pad_inches=0.1, bbox_inches="tight")
 
 
 if __name__ == "__main__":
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     if args.vertical:
-        size = (7.5, 11.0)
+        size = (7.5, 8.5)
     else:
         size = (19.2, 8.5)
 
