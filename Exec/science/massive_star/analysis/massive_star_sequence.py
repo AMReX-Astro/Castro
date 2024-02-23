@@ -60,8 +60,8 @@ def make_plot(field, pfiles, *,
     t_drive = 0.0
     if "[*] castro.drive_initial_convection_tmax" in ds.parameters:
         t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
-    elif "[*] castro.drive_initial_convection_tmax" in ds.parameters:
-        t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
+    elif "castro.drive_initial_convection_tmax" in ds.parameters:
+        t_drive = ds.parameters["castro.drive_initial_convection_tmax"]
     print(t_drive)
 
     xmin = ds.domain_left_edge[0]
