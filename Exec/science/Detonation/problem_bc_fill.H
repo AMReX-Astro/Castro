@@ -63,39 +63,39 @@ void problem_bc_fill(int i, int j, int k,
         // Note: in these checks we're only looking at the boundary
         // conditions on the first state component (density).
 
-        if (i < domlo[0] && (bcs(0).lo(0) != REFLECT_ODD &&
-                             bcs(0).lo(0) != INT_DIR &&
-                             bcs(0).lo(0) != REFLECT_EVEN)) {
+        if (i < domlo[0] && (bcs(0).lo(0) != amrex::BCType::reflect_odd &&
+                             bcs(0).lo(0) != amrex::BCType::int_dir &&
+                             bcs(0).lo(0) != amrex::BCType::reflect_even)) {
             do_ambient_fill = true;
         }
-        else if (i > domhi[0] && (bcs(0).hi(0) != REFLECT_ODD &&
-                                  bcs(0).hi(0) != INT_DIR &&
-                                  bcs(0).hi(0) != REFLECT_EVEN)) {
+        else if (i > domhi[0] && (bcs(0).hi(0) != amrex::BCType::reflect_odd &&
+                                  bcs(0).hi(0) != amrex::BCType::int_dir &&
+                                  bcs(0).hi(0) != amrex::BCType::reflect_even)) {
             do_ambient_fill = true;
         }
 
         if (AMREX_SPACEDIM >= 2) {
-            if (j < domlo[1] && (bcs(0).lo(1) != REFLECT_ODD &&
-                                 bcs(0).lo(1) != INT_DIR &&
-                                 bcs(0).lo(1) != REFLECT_EVEN)) {
+            if (j < domlo[1] && (bcs(0).lo(1) != amrex::BCType::reflect_odd &&
+                                 bcs(0).lo(1) != amrex::BCType::int_dir &&
+                                 bcs(0).lo(1) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
-            else if (j > domhi[1] && (bcs(0).hi(1) != REFLECT_ODD &&
-                                      bcs(0).hi(1) != INT_DIR &&
-                                      bcs(0).hi(1) != REFLECT_EVEN)) {
+            else if (j > domhi[1] && (bcs(0).hi(1) != amrex::BCType::reflect_odd &&
+                                      bcs(0).hi(1) != amrex::BCType::int_dir &&
+                                      bcs(0).hi(1) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
         }
 
         if (AMREX_SPACEDIM == 3) {
-            if (k < domlo[2] && (bcs(0).lo(2) != REFLECT_ODD &&
-                                 bcs(0).lo(2) != INT_DIR &&
-                                 bcs(0).lo(2) != REFLECT_EVEN)) {
+            if (k < domlo[2] && (bcs(0).lo(2) != amrex::BCType::reflect_odd &&
+                                 bcs(0).lo(2) != amrex::BCType::int_dir &&
+                                 bcs(0).lo(2) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
-            else if (k > domhi[2] && (bcs(0).hi(2) != REFLECT_ODD &&
-                                      bcs(0).hi(2) != INT_DIR &&
-                                      bcs(0).hi(2) != REFLECT_EVEN)) {
+            else if (k > domhi[2] && (bcs(0).hi(2) != amrex::BCType::reflect_odd &&
+                                      bcs(0).hi(2) != amrex::BCType::int_dir &&
+                                      bcs(0).hi(2) != amrex::BCType::reflect_even)) {
                 do_ambient_fill = true;
             }
         }

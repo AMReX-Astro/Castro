@@ -16,7 +16,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    int coord_type = geomdata.Coord();
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
@@ -101,11 +100,11 @@ void problem_initialize_state_data (int i, int j, int k,
     // since the species are interpolated, normalize them
 
     Real sumX = 0.0_rt;
-    for (int n = 0; n < NumSpec; n++) {
-        sumX += burn_state.xn[n];
+    for (auto X : burn_state.xn) {
+        sumX += X;
     }
-    for (int n = 0; n < NumSpec; n++) {
-        burn_state.xn[n] /= sumX;
+    for (auto & X : burn_state.xn) {
+        X /= sumX;
     }
 
 #ifdef NSE_NET
