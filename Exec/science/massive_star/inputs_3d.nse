@@ -69,16 +69,16 @@ amr.check_int       = 200     # number of timesteps between checkpoints
 amr.plot_file       = massive_star_plt     # root name of plot file
 amr.plot_per = 5.0
 amr.derive_plot_vars = ALL
-castro.store_burn_weights = 1
+castro.store_burn_weights = 0
 
 amr.small_plot_file       = massive_star_smallplt     # root name of plot file
 amr.small_plot_per = 0.5
-amr.small_plot_vars = density Temp
-amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort in_nse
+amr.small_plot_vars = density Temp in_nse
+amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort
 
-amr.checkpoint_files_output = 0
-amr.plot_files_output = 0
-amr.smallplot_files_output = 0
+#amr.checkpoint_files_output = 0
+#amr.plot_files_output = 0
+#amr.smallplot_files_output = 0
 
 fab.format = NATIVE_32
 
