@@ -20,7 +20,7 @@ apply_metric(const Box& bx,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
 
-            IntVect idx(D_DECL(i, j, k));
+            IntVect idx(AMREX_D_DECL(i, j, k));
 
             // at centers
             if (rbx.contains(idx)) {

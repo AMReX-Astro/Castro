@@ -103,6 +103,7 @@ def doit(field, add_contours, pfiles):
         if field == "lap_rho" or add_contours:
             ds.force_periodicity()
             ds.add_field(name=("gas", "lap_rho"), sampling_type="local",
+                         display_name=r"$\log_{10}(|\rho^{-1}\nabla^2\rho|)$",
                          function=_lap_rho, units="",
                          validators=[ValidateSpatial(1)])
 

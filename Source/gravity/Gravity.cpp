@@ -1656,7 +1656,7 @@ Gravity::init_multipole_grav()
 
     for (int b = 0; b < AMREX_SPACEDIM; ++b) {
 
-        if ((lo_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
+        if ((lo_bc[b] == amrex::PhysBCType::symmetry) && (parent->Geom(0).Coord() == 0)) {
             if (std::abs(problem::center[b] - problo[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionLo(b) = true;
@@ -1667,7 +1667,7 @@ Gravity::init_multipole_grav()
             }
         }
 
-        if ((hi_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
+        if ((hi_bc[b] == amrex::PhysBCType::symmetry) && (parent->Geom(0).Coord() == 0)) {
             if (std::abs(problem::center[b] - probhi[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionHi(b) = true;
@@ -1801,9 +1801,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // domain in 2D, since we can only have one
     // radial index for calculating the multipole moments.
 
-    Box boxq0( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, 0,    npts-1)) );
-    Box boxqC( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
-    Box boxqS( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
+    Box boxq0( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, 0,    npts-1)) );
+    Box boxqC( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
+    Box boxqS( IntVect(AMREX_D_DECL(0, 0, 0)), IntVect(AMREX_D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
 
     FArrayBox qL0(boxq0);
     FArrayBox qLC(boxqC);
@@ -1844,8 +1844,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
 
         if (lev < fine_level) {
-            const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
-            MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+	    auto *castro_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+	    if (castro_level != nullptr) {
+		const MultiFab& mask = castro_level->build_fine_mask();
+		MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+	    } else {
+                amrex::Abort("unable to access mask");
+            }
         }
 
         // Loop through the grids and compute the individual contributions
@@ -2484,12 +2489,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                 bool doSymmetricAdd {false};
 
                 for (int b = 0; b < 3; ++b) {
-                    if (physbc_lo[b] == Symmetry) {
+                    if (physbc_lo[b] == amrex::PhysBCType::symmetry) {
                         doSymmetricAddLo[b] = true;
                         doSymmetricAdd      = true;
                     }
 
-                    if (physbc_hi[b] == Symmetry) {
+                    if (physbc_hi[b] == amrex::PhysBCType::symmetry) {
                         doSymmetricAddHi[b] = true;
                         doSymmetricAdd      = true;
                     }
@@ -2931,12 +2936,12 @@ Gravity::make_mg_bc ()
             mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
             mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
         } else {
-            if (phys_bc->lo(idim) == Symmetry) {
+            if (phys_bc->lo(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
             } else {
                 mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
             }
-            if (phys_bc->hi(idim) == Symmetry) {
+            if (phys_bc->hi(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
             } else {
                 mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
@@ -2968,7 +2973,11 @@ Gravity::set_mass_offset (Real time, bool multi_level)
         {
             for (int lev = 0; lev <= parent->finestLevel(); lev++) {
                 auto* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
-                mass_offset += cs->volWgtSum("density", time);
+		if (cs != nullptr) {
+		    mass_offset += cs->volWgtSum("density", time);
+		} else {
+                    amrex::Abort("unable to access volWgtSum");
+                }
             }
         }
         else
@@ -3132,9 +3141,13 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         if (lev < level)
         {
             auto* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-            const MultiFab& mask = fine_level->build_fine_mask();
-            for (int n = 0; n < NUM_STATE; ++n) {
-                MultiFab::Multiply(S, mask, 0, n, 1, 0);
+	    if (fine_level != nullptr) {
+		const MultiFab& mask = fine_level->build_fine_mask();
+		for (int n = 0; n < NUM_STATE; ++n) {
+		    MultiFab::Multiply(S, mask, 0, n, 1, 0);
+		}
+	    } else {
+                amrex::Abort("unable to create mask");
             }
         }
 
@@ -3525,10 +3538,10 @@ Gravity::sanity_check (int level)
         {
             if (!geom.isPeriodic(dir))
             {
-                if (phys_bc->lo(dir) != Symmetry) {
+                if (phys_bc->lo(dir) != amrex::PhysBCType::symmetry) {
                     shrunk_domain.growLo(dir,-1);
                 }
-                if (phys_bc->hi(dir) != Symmetry) {
+                if (phys_bc->hi(dir) != amrex::PhysBCType::symmetry) {
                     shrunk_domain.growHi(dir,-1);
                 }
             }

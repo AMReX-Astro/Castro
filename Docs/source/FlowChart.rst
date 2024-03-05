@@ -309,7 +309,7 @@ In the code, the objective is to evolve the state from the old time,
    A. Create ``Sborder``, initialized from ``S_old``
 
    B. Call ``clean_state()`` to make sure the thermodynamics are in
-     sync, in particular, compute the temperature.
+      sync, in particular, compute the temperature.
 
    C. [``SHOCK_VAR``] zero out the shock flag.
 
