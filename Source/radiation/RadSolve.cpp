@@ -261,12 +261,12 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
     
       bool nexttoboundary=false;
       for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
-          if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (lo_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
               nexttoboundary=true;
               break;
           }
-          if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (hi_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
               nexttoboundary=true;
               break;
@@ -785,7 +785,7 @@ void RadSolve::levelFluxReg(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
-  const Real volume = D_TERM(dx[0], * dx[1], * dx[2]);
+  const Real volume = AMREX_D_TERM(dx[0], * dx[1], * dx[2]);
 
   if (flux_in) {
     for (int n = 0; n < AMREX_SPACEDIM; n++) {

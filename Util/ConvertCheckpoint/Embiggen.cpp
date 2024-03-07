@@ -726,7 +726,7 @@ static void ConvertData() {
         {
           int shiftx(jx*dlenx);
           int shifty(jy*dleny);
-          IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+          IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
           Box bx(falRef0.grids[n]);
           bx.shift(shift_box);
@@ -762,7 +762,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz - dlenz/2);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);
@@ -792,7 +792,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);

@@ -100,7 +100,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
             auto deltax = it->m_pos[0] - p.m_pos[0];
             auto deltay = it->m_pos[1] - p.m_pos[1];
 
-            auto delta = sqrt(deltax*deltax + deltay*deltay);
+            auto delta = std::sqrt(deltax*deltax + deltay*deltay);
 
             // quick nan check here
             if (delta == delta)
