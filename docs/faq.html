@@ -223,11 +223,11 @@ file (e.g. <code class="docutils literal notranslate"><span class="pre">BackTrac
 <li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
 <p>Given a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>, you can dump out the state as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">AMREX_D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
 </pre></div>
 </div>
 <p>Here, the IntVect has the dimension that we were compiled with
-(and this is handled through the preprocessor <code class="docutils literal notranslate"><span class="pre">D_DECL</span></code>). In
+(and this is handled through the preprocessor <code class="docutils literal notranslate"><span class="pre">AMREX_D_DECL</span></code>). In
 this case, we are inspecting zone (10, 20, 30), in the global index
 space. Note that since a multifab exists only on a single level, the
 integer indices here refer to the global index space on that level.</p>

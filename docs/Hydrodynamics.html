@@ -575,6 +575,14 @@ S_{{\rm ext},\rho A_k} \\
 S_{{\rm ext},\rho X_k} \\
 S_{{\rm ext},\rho Y_k}
 \end{array}\right)^n.\end{split}\]</div>
+<div class="admonition note" id="index-0">
+<p class="admonition-title">Note</p>
+<p>To reduce memory usage, we do not include source terms for the
+advected quantities, species, and auxiliary variables in the conserved
+state vector by default. If your application needs external source terms for
+these variables, set <code class="docutils literal notranslate"><span class="pre">USE_SPECIES_SOURCES=TRUE</span></code> when compiling so that space
+will be allocated for them.</p>
+</div>
 </section>
 <section id="primitive-forms">
 <h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Link to this heading"></a></h2>
@@ -768,7 +776,7 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 <li><p>Solving the Riemann problem</p></li>
 <li><p>Doing the conservative update</p></li>
 </ol>
-<p id="index-0">Each of these steps has a variety of runtime parameters that
+<p id="index-1">Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:</p>
 <ul>
@@ -780,10 +788,8 @@ source term (0 or 1; default 0)</p></li>
 after the solution update (0 or 1; default: 0)</p>
 <p>See <a class="reference internal" href="sponge.html#sponge-section"><span class="std std-ref">Sponge</span></a> for more details on the sponge.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.normalize_species</span></code>: enforce that <span class="math notranslate nohighlight">\(\sum_i X_i = 1\)</span>
-(0 or 1; default: 0)</p></li>
 </ul>
-<p id="index-1">Several floors are imposed on the thermodynamic quantities to prevet unphysical
+<p id="index-2">Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>: (Real; default: -1.e20)</p></li>
@@ -1025,7 +1031,7 @@ s_{R,i-\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k &lt; 0}\lb_k\cdot\left[s_i-
 framework, the details follow exactly as given in Section 4.2.1 in
 Miller &amp; Colella, except for the details of the Riemann solver,
 which are given below.</p>
-<p id="index-2">For the reconstruction of the interface states, the following apply:</p>
+<p id="index-3">For the reconstruction of the interface states, the following apply:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
 default: 1).  A value of 1 is the standard piecewise parabolic
@@ -1066,7 +1072,7 @@ manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.</p>
-<div class="admonition note" id="index-3">
+<div class="admonition note" id="index-4">
 <p class="admonition-title">Note</p>
 <p>These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
 that the interface velocity cannot exceed the speed of light in both the
@@ -1211,7 +1217,7 @@ solution, effectively time-centering the source term.</p>
 </section>
 <section id="temperature-fixes">
 <span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Link to this heading"></a></h2>
-<p id="index-4">There are a number of experimental options for improving the behavior
+<p id="index-5">There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
 prediction. The options are controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code>,
 which takes values:</p>
@@ -1242,7 +1248,7 @@ from this.</p></li>
 <h2>Resets<a class="headerlink" href="#resets" title="Link to this heading"></a></h2>
 <section id="flux-limiting">
 <span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Link to this heading"></a></h3>
-<p id="index-5">Multi-dimensional hydrodynamic simulations often have numerical
+<p id="index-6">Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
 occur as a result of a hydro update. Castro contains a prescription

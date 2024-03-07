@@ -399,12 +399,8 @@ reconstruction will work from.</p></li>
 <p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>:</p>
 <ol class="upperalpha simple">
 <li><p>Create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> to make sure the thermodynamics are in</p></li>
-</ol>
-<blockquote>
-<div><p>sync, in particular, compute the temperature.</p>
-</div></blockquote>
-<ol class="upperalpha simple" start="3">
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> to make sure the thermodynamics are in
+sync, in particular, compute the temperature.</p></li>
 <li><p>[<code class="docutils literal notranslate"><span class="pre">SHOCK_VAR</span></code>] zero out the shock flag.</p></li>
 <li><p>Create the source corrector (if <code class="docutils literal notranslate"><span class="pre">castro.source_term_predictor</span></code> = 1)</p></li>
 </ol>

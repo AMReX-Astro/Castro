@@ -415,43 +415,39 @@ defined in the network)</p></td>
 <span class="math notranslate nohighlight">\(\omegadot_k = DX_k/Dt\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
-<td><p>Nuclear energy generation rate / gram</p></td>
-<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></p></td>
 <td><p>Nuclear energy generation rate density</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></p></td>
 <td><p>Gravitational potential</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
 <code class="docutils literal notranslate"><span class="pre">grav_z</span></code></p></td>
 <td><p>Gravitational acceleration</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rmom</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rmom</span></code></p></td>
 <td><p>Radial momentum (defined for
 <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lmom</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lmom</span></code></p></td>
 <td><p>Angular momentum (<span class="math notranslate nohighlight">\(\theta\)</span>; defined for
 <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pmom</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pmom</span></code></p></td>
 <td><p>z-momentum (defined for <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Shock</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Shock</span></code></p></td>
 <td><p>Shock flag (= 1 if a zone has a shock;
 defined for <code class="docutils literal notranslate"><span class="pre">SHOCK</span></code>)</p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
 …</p></td>
 <td><p>Radiation energy density
 (for multigroup radiation, each group has its
@@ -653,6 +649,11 @@ speed</p></td>
 <span class="math notranslate nohighlight">\(\ub = (\rho \ub)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dervel</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate / gram</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
 </tr>
 </tbody>
 </table>
