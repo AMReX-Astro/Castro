@@ -35,7 +35,7 @@ def nuc_list_filter(nuc):
     return 0
 
 
-def get_Te_profile(plotfile):
+def get_Te_profile(plotfile, plot_in_nse=False):
 
     ds = yt.load(plotfile, hint="castro")
 
@@ -48,9 +48,10 @@ def get_Te_profile(plotfile):
     x_coord = np.array(ad['x'][srt])
     temp = np.array(ad['Temp'][srt])
     enuc = np.array(ad['enuc'][srt])
-
+    if plot_in_nse:
+        in_nse = np.array(ad['in_nse'][srt])
+        return time, x_coord, temp, enuc, in_nse
     return time, x_coord, temp, enuc
-
 
 def get_nuc_profile(plotfile):
 
@@ -72,19 +73,27 @@ def get_nuc_profile(plotfile):
     return time, x_coord, nuc_fracs
 
 
-def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
+def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax, plot_in_nse=False):
 
     f = plt.figure()
-    f.set_size_inches(7.0, 9.0)
-
-    ax_T = f.add_subplot(211)
-    ax_e = f.add_subplot(212)
 
     # Get set of colors to use and apply to plot
     numplots = int(len(nums) / skip)
     cm = plt.get_cmap('nipy_spectral')
     clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
+
+    if plot_in_nse:
+        f.set_size_inches(7.0, 12.0)
+        ax_nse = f.add_subplot(311)
+        ax_T = f.add_subplot(312)
+        ax_e = f.add_subplot(313)
+        ax_nse.set_prop_cycle(cycler('color', hexclist))
+    else:
+        f.set_size_inches(7.0, 9.0)
+        ax_T = f.add_subplot(211)
+        ax_e = f.add_subplot(212)
+
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
 
@@ -101,7 +110,11 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
 
         pfile = f"{prefix}{nums[n]}"
 
-        time, x, T, enuc = get_Te_profile(pfile)
+        if plot_in_nse:
+            time, x, T, enuc, in_nse = get_Te_profile(pfile, plot_in_nse)
+            ax_nse.plot(x, in_nse)
+        else:
+            time, x, T, enuc = get_Te_profile(pfile)
 
         if index % skiplabels == 0:
             ax_T.plot(x, T, label=f"t = {time:6.4g} s")
@@ -117,6 +130,9 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
 
     if xmax > 0:
         ax_T.set_xlim(xmin, xmax)
+        ax_e.set_xlim(xmin, xmax)
+        if plot_in_nse:
+            ax_nse.set_xlim(xmin, xmax)
 
     ax_e.set_yscale("log")
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
@@ -125,8 +141,8 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax):
     cur_lims = ax_e.get_ylim()
     ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
-    if xmax > 0:
-        ax_e.set_xlim(xmin, xmax)
+    if plot_in_nse:
+        ax_nse.set_ylabel("IN NSE")
 
     f.savefig("det_Te.png")
 
@@ -189,12 +205,13 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
     f.savefig("det_nuc.png")
 
 
-def doit(prefix, nums, skip, limitlabels, xmin, xmax, do_nuc_fracs=False):
+def doit(prefix, nums, skip, limitlabels, xmin, xmax,
+         do_nuc_fracs=False, plot_in_nse=False):
 
     if do_nuc_fracs:
         plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax)
     else:
-        plot_Te(prefix, nums, skip, limitlabels, xmin, xmax)
+        plot_Te(prefix, nums, skip, limitlabels, xmin, xmax, plot_in_nse)
 
 
 if __name__ == "__main__":
@@ -214,6 +231,9 @@ if __name__ == "__main__":
     p.add_argument("--do_nuc_fracs", dest="do_nuc_fracs",
                    action="store_true",
                    help="Plot nuc fracs, otherwise Temp and enuc plot")
+    p.add_argument("--plot_in_nse", dest="plot_in_nse",
+                   action="store_true",
+                   help="Plot in_nse quantity along with temperature and enuc")
 
     args = p.parse_args()
 
@@ -221,4 +241,4 @@ if __name__ == "__main__":
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
     doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin,
-         args.xmax, do_nuc_fracs=args.do_nuc_fracs)
+         args.xmax, do_nuc_fracs=args.do_nuc_fracs, plot_in_nse=args.plot_in_nse)
