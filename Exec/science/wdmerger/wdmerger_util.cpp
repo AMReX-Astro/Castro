@@ -73,7 +73,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
 // Given a WD mass, set its core and envelope composition.
 
-void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec],int count)
 {
     int iHe4 = network_spec_index("helium-4");
     int iC12 = network_spec_index("carbon-12");
@@ -97,6 +97,11 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         }
 
         core_comp[iHe4] = 1.0_rt;
+	if (count == 1){
+		amrex::Print()<<"Created a pure He primary."<<std::endl;
+	}else{
+		amrex::Print()<<"Creating a pure He secondary."<<std::endl;
+	}
 
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
@@ -115,7 +120,15 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iC12] = problem::hybrid_wd_c_frac;
         core_comp[iO16] = problem::hybrid_wd_o_frac;
 
-        envelope_mass = problem::hybrid_wd_he_shell_mass;
+        envelope_mass = problem::hybrid_wd_he_shell_mass;  
+
+	if (count == 1){
+		amrex::Print()<<"Creating primary with CO core with mass fractions C = "<<problem::hybrid_wd_c_frac<<"and O = "
+		       <<problem::hybrid_wd_o_frac<<" and a He shell of solar mass ="<<problem::hybrid_wd_he_shell_mass<<std::endl;	
+	}else{
+		amrex::Print()<<"Creating secondary with CO core with mass fractions C = "<<problem::hybrid_wd_c_frac<<"and O = "
+                       <<problem::hybrid_wd_o_frac<<" and a He shell of solar mass ="<<problem::hybrid_wd_he_shell_mass<<std::endl;
+	}
 
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
@@ -143,6 +156,14 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16] = problem::co_wd_o_frac;
 
         envelope_mass = problem::co_wd_he_shell_mass;
+	
+	if (count == 1){
+                amrex::Print()<<"Creating primary with CO core with mass fractions C = "<<problem::co_wd_c_frac<<"and O = "
+                       <<problem::co_wd_o_frac<<" and a He shell of solar mass ="<<problem::co_wd_he_shell_mass<<std::endl;
+        }else{
+		amrex::Print()<<"Creating secondary with CO core with mass fractions C = "<<problem::co_wd_c_frac<<"and O = "
+                       <<problem::co_wd_o_frac<<" and a He shell of solar mass ="<<problem::co_wd_he_shell_mass<<std::endl;
+	}
 
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
@@ -172,6 +193,12 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16]  = problem::onemg_wd_o_frac;
         core_comp[iNe20] = problem::onemg_wd_ne_frac;
         core_comp[iMg24] = problem::onemg_wd_mg_frac;
+	
+	if (count == 1){
+                amrex::Print()<<"Creating an ONeMg primary."<<std::endl;
+        }else{
+		amrex::Print()<<"Creating an ONeMg secondary."<<std::endl;
+	}
 
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
@@ -502,7 +529,7 @@ void binary_setup ()
         amrex::Error("Must specify either a positive primary mass or a positive primary central density.");
     }
 
-    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
+    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P, 1);
 
 
 
@@ -516,7 +543,7 @@ void binary_setup ()
             amrex::Error("If we are doing a binary calculation, we must specify either a positive secondary mass or a positive secondary central density");
         }
 
-        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
+        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S, 2);
 
         for (int n = 0; n < NumSpec; ++n) {
             ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (problem::envelope_comp_P[n] + problem::envelope_comp_S[n]) / 2;
