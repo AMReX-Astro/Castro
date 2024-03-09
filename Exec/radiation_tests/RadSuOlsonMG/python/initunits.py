@@ -42,6 +42,6 @@ if __name__ == "__main__":
     for o, a in opts:
         if o == "--eps":
             eps = float(a)
-    
+
     SOunits(eps, 1)
 

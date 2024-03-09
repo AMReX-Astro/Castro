@@ -163,7 +163,7 @@ Subcycling
 ----------
 
 Subcycling with AMR means that coarser grids can take a larger timestep
-than finer grids.  
+than finer grids.
 Castro supports a number of different modes for subcycling in time,
 set via ``amr.subcycling_mode``.
 

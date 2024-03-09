@@ -16,7 +16,7 @@ def strip_directives(filename, filepath, outpath):
     """
     Read in file, remove all preprocessor directives and output.
 
-    This is also going to switch square brackets initializing arrays to 
+    This is also going to switch square brackets initializing arrays to
     parentheses and remove the new-line characters
     """
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             continue
 
         # loop over files in subdirectories and run strip_directives on all
-        # C++ header files 
+        # C++ header files
         for f in sorted(os.listdir(os.path.join(rootdir, subdir))):
             if (f[-2:] == ".H"):
                 strip_directives(f, os.path.join(rootdir, subdir), outdir)

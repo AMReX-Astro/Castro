@@ -24,7 +24,7 @@ Castro::electric_edge_x(const Box& bx,
     // dEx/dy (Eq. 49), located at (i, j-3/4, k-1/2)
 
     // first compute dEx/dy_{i,j-3/4,k-1} using MM Eq. 49
-    // note that the face value Ex_{i,j-1/2,k-1} = -F_{i,j-1/2,k-1}(Bz) 
+    // note that the face value Ex_{i,j-1/2,k-1} = -F_{i,j-1/2,k-1}(Bz)
     // via Faraday's law (MM Eq. 15)
 
     for (int n = 0; n < NQ; n++) {

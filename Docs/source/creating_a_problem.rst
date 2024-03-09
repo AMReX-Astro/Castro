@@ -74,7 +74,7 @@ The variables will all be initialized for the GPU as well.
 Problem Initialization
 ----------------------
 
-Here we describe the main problem initialization routines. 
+Here we describe the main problem initialization routines.
 
 .. index:: initialize_problem
 
@@ -96,7 +96,7 @@ Here we describe the main problem initialization routines.
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  If you need coordinate information, it can be obtained 
+  If you need coordinate information, it can be obtained
   by constructing a ``Geometry`` object using ``DefaultGeometry()``
   and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 

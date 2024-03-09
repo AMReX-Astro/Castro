@@ -18,7 +18,7 @@
         type conversion with the Geometry::Geometry(const Box&) constructor.
         This class can easily make a Geometry object, but does not have a
         ProxyGeometry::ProxyGeometry(const Box&) constructor.
-*/      
+*/
 /*@Doc:
         A ProxyGeometry object is, for most purposes, merely a wrapper to the
         Geometry class.  The Geometry class contains a single-argument
@@ -50,7 +50,7 @@ public:
 /*@Memo:
         A BndryData stores and manipulates boundary data
         information on each side of each box in a BoxArray.
-*/      
+*/
 /*@Doc:
         A BndryData contains a BndryRegister about each side of each grid in
         a Boxarray.  These data are used to store information along the
@@ -166,7 +166,7 @@ public:
     amrex::FabSet &operator[](const amrex::Orientation &_face) {
       return amrex::BndryRegister::bndry[_face];
     }
-    
+
 
 private:
     //

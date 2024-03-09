@@ -195,7 +195,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   int ngrow=0;
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
- 
+
   for (int i = 0; i < AMREX_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
@@ -226,7 +226,7 @@ void HypreABec::aCoefficients(const MultiFab &a)
   BL_ASSERT( a.boxArray() == acoefs->boxArray() );
   MultiFab::Copy(*acoefs, a, 0, 0, 1, 0);
 }
- 
+
 void HypreABec::bCoefficients(const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
@@ -238,7 +238,7 @@ void HypreABec::SPalpha(const MultiFab& a)
 {
   BL_ASSERT( a.ok() );
   if (SPa == 0) {
-    const BoxArray& grids = a.boxArray(); 
+    const BoxArray& grids = a.boxArray();
     const DistributionMapping& dmap = a.DistributionMap();
     SPa.reset(new MultiFab(grids,dmap,1,0));
   }
@@ -249,9 +249,9 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                              BC_Mode inhom)
 {
     BL_PROFILE("HypreABec::boundaryFlux");
-    
+
     const BoxArray &grids = Soln.boxArray();
-    
+
     const NGBndry& bd = getBndry();
     const Box& domain = bd.getDomain();
 
@@ -260,7 +260,7 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 #endif
     {
         Real foo=1.e200;
-        
+
         for (MFIter si(Soln); si.isValid(); ++si) {
             int i = si.index();
             const Box &reg = grids[i];
@@ -748,7 +748,7 @@ void HypreABec::hbmat3 (const Box& bx,
                 else {
                     amrex::Error("hbmat3: unsupported boundary type");
                 }
-#endif                      
+#endif
 
                 mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i+1,j,k);
 
@@ -1067,7 +1067,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       HYPRE_StructSMGSetNumPreRelax(precond, 1);
       HYPRE_StructSMGSetNumPostRelax(precond, 1);
       HYPRE_StructSMGSetLogging(precond, 0);
-      HYPRE_StructPCGSetPrecond(solver, 
+      HYPRE_StructPCGSetPrecond(solver,
                                 HYPRE_StructSMGSolve,
                                 HYPRE_StructSMGSetup,
                                 precond);
@@ -1075,7 +1075,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     HYPRE_StructPCGSetLogging(solver, 1);
     HYPRE_StructPCGSetup(solver, A, b, x);
-  }  
+  }
   else if (solver_flag == 5 || solver_flag == 6) {
     HYPRE_StructHybridCreate(MPI_COMM_WORLD, &solver);
     HYPRE_StructHybridSetDSCGMaxIter(solver, maxiter);

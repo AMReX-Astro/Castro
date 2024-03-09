@@ -42,7 +42,7 @@ void problem_initialize_state_data (int i, int j, int k,
         dist = std::abs(problem::center[2] - zz);
 
     } else {
-#ifndef AMREX_USE_GPU 
+#ifndef AMREX_USE_GPU
         amrex::Error("invalid init_as_1d");
 #endif
     }
