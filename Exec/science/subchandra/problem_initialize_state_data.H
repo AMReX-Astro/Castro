@@ -48,7 +48,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     burn_state.rho = state(i,j,k,URHO);
     burn_state.T = state(i,j,k,UTEMP);
-    for (int n = 0; n < NumSpec; n++) {
+    for (int n = 0; n <= NumSpec; n++) {
         burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
