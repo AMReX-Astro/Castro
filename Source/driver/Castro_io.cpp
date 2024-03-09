@@ -80,7 +80,7 @@ Castro::restart (Amr&     papa,
             if (CastroHeaderFile.good()) {
                 char foo[256];
                 // first line: Checkpoint version: ?
-                CastroHeaderFile.getline(foo, 256, ':');  
+                CastroHeaderFile.getline(foo, 256, ':');
                 CastroHeaderFile >> input_version;
                 CastroHeaderFile.close();
             } else {
@@ -929,7 +929,7 @@ Castro::plotFileOutput(const std::string& dir,
 
     for (const auto & dd : dlist) {
 
-        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
             (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
@@ -1139,7 +1139,7 @@ Castro::plotFileOutput(const std::string& dir,
     {
         for (const auto & dd : dlist) {
 
-            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
                 (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
                 auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);

@@ -1,3 +1,14 @@
+# 24.03
+
+  * Documentation updates (#2742, #2752, #2753)
+
+  * Fix some code warnings (#2737)
+
+  * Fixed the exact Riemann solver compilation (#2745)
+
+  * Fix an issue with large kernel sizes with ROCm in the reduction code
+    in the reactions (#2749)
+
 # 24.02
 
   * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,

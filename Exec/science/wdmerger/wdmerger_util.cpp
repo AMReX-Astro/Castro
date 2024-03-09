@@ -403,7 +403,7 @@ void update_roche_radii ()
 
         // Beyond a certain point, it doesn't make sense to track the stars separately
         // anymore. We'll set the secondary to a fixed constant and keep it there
-        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly 
+        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly
         // equal mass systems sometimes it is the primary that disrupts, perhaps
         // just due to numerical noise, so do the same check for the primary.
 
@@ -491,7 +491,7 @@ void binary_setup ()
     // Fill in the model's physical details.
     // If we're integrating to reach a desired mass, set the composition accordingly.
     // If instead we're fixing the central density, then first we'll assume the composition is
-    // that of a solar mass WD as a initial guess, and get the corresponding mass. 
+    // that of a solar mass WD as a initial guess, and get the corresponding mass.
     // Then we set the composition to match this preliminary mass, and we'll get a final mass later.
 
     if (problem::central_density_P > 0.0_rt) {

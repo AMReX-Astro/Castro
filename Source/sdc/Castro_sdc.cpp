@@ -408,7 +408,7 @@ Castro::construct_old_react_source(MultiFab& U_state,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 instantaneous_react(i, j, k, U_state_arr, R_source_arr);
-            }); 
+            });
         }
     }
 }

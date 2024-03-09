@@ -23,7 +23,7 @@
          * compute face-centered and face-average fluxes
 
       c. separate MFIter:
- 
+
          * compute final fluxes
 
 
@@ -37,7 +37,7 @@ Extra MFs:
 
 Also needed:
 
-  -- for the Riemann solver, we return the interface state of only a subset 
+  -- for the Riemann solver, we return the interface state of only a subset
      of variable NGDNV, not all NQ -- this means that we will need a separate
      Riemann solver here to get all interface states
 

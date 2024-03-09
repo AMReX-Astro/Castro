@@ -24,9 +24,9 @@ void problem_source (int i, int j, int k,
     auto y = (Real(j)+0.5e0_rt)*dx[1] + problo[1];
     auto ey = std::exp(-(y-y_layer)*(y-y_layer)/1.e14_rt);
 
-    auto H = ey * (1.e0_rt + 
-        0.00625_rt * std::sin( 2*M_PI*x/L_x) 
-        + 0.01875_rt * std::sin((6*M_PI*x/L_x) + M_PI/3.e0_rt) 
+    auto H = ey * (1.e0_rt +
+        0.00625_rt * std::sin( 2*M_PI*x/L_x)
+        + 0.01875_rt * std::sin((6*M_PI*x/L_x) + M_PI/3.e0_rt)
         + 0.01250_rt * std::sin((8*M_PI*x/L_x) + M_PI/5.e0_rt));
 
     // Source terms
