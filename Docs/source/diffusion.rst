@@ -39,7 +39,7 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 
 .. math:: \frac{\partial T}{\partial t} = D \nabla^2 T
 
-where :math:`D \equiv \kth/(\rho c_v)`. 
+where :math:`D \equiv \kth/(\rho c_v)`.
 
 The timestep limiter for this is:
 
@@ -84,7 +84,7 @@ code by linearly scaling the conductivity to zero between these limits, e.g.,
 Conductivities
 ==============
 
-To complete the setup, a thermal conductivity must be specified. These 
+To complete the setup, a thermal conductivity must be specified. These
 are supplied by Microphysics, and use an interface similar to the
 equation of state interface.
 

@@ -113,7 +113,7 @@ Castro::construct_old_gravity (Real time)
             gravity->test_level_grad_phi_prev(level);
 
         }
- 
+
     }
 
     // Define the old gravity vector.

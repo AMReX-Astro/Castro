@@ -8,7 +8,7 @@
 void
 Castro::rsrc(const Box& bx,
              Array4<Real const> const& uold,
-             Array4<Real> const& source, 
+             Array4<Real> const& source,
              const Real dt) {
 
   GeometryData geomdata = geom.data();
@@ -328,7 +328,7 @@ Castro::corrrsrc(const Box& bx,
       // of the dt_omega_matrix. It also has the correct form if we have disabled
       // the Coriolis force entirely; at that point it reduces to the identity matrix.
 
-      Real new_mom[3] = {}; 
+      Real new_mom[3] = {};
 
       // new_mom = matmul(dt_omega_matrix, new_mom)
 

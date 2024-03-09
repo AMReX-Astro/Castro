@@ -50,10 +50,10 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for $\rho$-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-  
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-  
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -63,13 +63,13 @@ for i in profilefilelist:
       my_ray = ds.ortho_ray(1,(0,0))
       srt=np.argsort(my_ray['y'])
       x_coord=np.array(my_ray['y'][srt])/1.e5
-    
-    
-    
+
+
+
     temp=np.array(my_ray['Temp'][srt])
     ent=np.array(my_ray['entropy'][srt])
     dens=np.array(my_ray['density'][srt])
-  
+
     my_ray = ds.ortho_ray(1,(0,0))
     plt.semilogy(x_coord,dens,label='t='+filename_time+'s')
     plt.legend()
@@ -92,12 +92,12 @@ for i in profilefilelist:
   ds=load(i)
   time=float(ds.current_time)
   filename_time=str(int(time))
-  
-  
+
+
   kappa=0.18*1e-9
   SB_constant=5.6704*1e-5
-    
-    
+
+
   if Dimension==1:
     my_ray = ds.ortho_ray(0,(0,0))
     srt=np.argsort(my_ray['x'])
@@ -113,7 +113,7 @@ for i in profilefilelist:
   average_T=(average_T*float(j)+temp)/float(j+1)
   average_P=(average_P*float(j)+press)/float(j+1)
 
-  
+
   if j==0 :
     temp0=np.array(my_ray['Temp'][srt])
     ent0=np.array(my_ray['entropy'][srt])
@@ -121,7 +121,7 @@ for i in profilefilelist:
     density0=np.array(my_ray['density'][srt])
     location1=np.amin(pressure0)/1e10
     location2=np.amax(pressure0)
-  
+
   if time>=old_time+time_difference_T_P and time<max_time :
     old_time=time
     plt.plot(average_P,average_T,label='t='+filename_time+'s')
@@ -135,7 +135,7 @@ for i in profilefilelist:
     #plt.yscale('log')
     plt.title('<T> vs <P> (average up to t)')
     plt.savefig("figure_T_P_average.png")
-  
+
   j=j+1
 print("T-P plot average made")
 plt.close()
@@ -146,13 +146,13 @@ for i in profilefilelist:
   ds=load(i)
   time=float(ds.current_time)
   filename_time=str(int(time))
-  
-  
-  
+
+
+
   kappa=0.18*1e-9
   SB_constant=5.6704*1e-5
-  
-  
+
+
   if Dimension==1:
     my_ray = ds.ortho_ray(0,(0,0))
     srt=np.argsort(my_ray['x'])
@@ -167,8 +167,8 @@ for i in profilefilelist:
   press=np.array(my_ray['pressure'][srt])/1.e6
   average_T=(average_T*float(j)+temp)/float(j+1)
   average_P=(average_P*float(j)+press)/float(j+1)
-  
-  
+
+
   if j==0 :
     temp0=np.array(my_ray['Temp'][srt])
     ent0=np.array(my_ray['entropy'][srt])
@@ -194,7 +194,7 @@ for i in profilefilelist:
     #plt.yscale('log')
     plt.title('<$\Delta$ T> vs <P> (average up to t)')
     plt.savefig("figure_T_P_diff_average.png")
-  
+
   j=j+1
 print("T-P difference average plot made")
 plt.close()
@@ -211,8 +211,8 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for P-height plot')
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-  
-  
+
+
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
       srt=np.argsort(my_ray['x'])
@@ -243,10 +243,10 @@ for i in profilefilelist:
   # plt.xscale('linear')
     plt.title('P vs height')
     plt.yscale('log')
-  
+
     plt.savefig("figure_x_P.png")
-  
-  
+
+
   j=j+1
 
 
@@ -264,11 +264,11 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for T-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-  
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-  
-  
+
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -291,8 +291,8 @@ for i in profilefilelist:
   #plt.legend(loc=3)
   #plt.yscale('linear')
     plt.savefig("figure_x_T.png")
-  
-  
+
+
   j=j+1
 
 print("T plot made")
@@ -309,11 +309,11 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for $\kappa$-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-    
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -336,8 +336,8 @@ for i in profilefilelist:
     #plt.legend(loc=3)
     #plt.yscale('linear')
     plt.savefig("figure_x_opacity.png")
-  
-  
+
+
   j=j+1
 
 print("opacity plot made")
@@ -356,8 +356,8 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for $\mathca{M}$-height plot')
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
       srt=np.argsort(my_ray['x'])
@@ -371,7 +371,7 @@ for i in profilefilelist:
     dens=np.array(my_ray['density'][srt])
     press=np.array(my_ray['pressure'][srt])/1.e6
     Mach_number=np.array(my_ray['MachNumber'][srt])
-    
+
     if j==0 :
       temp0=np.array(my_ray['Temp'][srt])
       ent0=np.array(my_ray['entropy'][srt])
@@ -379,10 +379,10 @@ for i in profilefilelist:
       density0=np.array(my_ray['density'][srt])
       location1=np.amin(pressure0)/1e10
       location2=np.amax(pressure0)
-  
+
     plt.plot(press,Mach_number,label='t='+filename_time+'s')
     plt.legend()
-    
+
     plt.ylabel(r'Mach number')
     plt.xlabel(r'$P\/[\mathrm{bar}]$')
     #plt.ylim(location1,location2)
@@ -414,11 +414,11 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for $\kappa$-T plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-    
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -444,8 +444,8 @@ for i in profilefilelist:
     plt.ylim(-100,1000)
     plt.title('Opacity $\kappa $vs T')
     plt.savefig("figure_T_opacity.png")
-  
-  
+
+
   j=j+1
 
 print("opacity-T plot made")
@@ -464,11 +464,11 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for entropy-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-    
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -482,7 +482,7 @@ for i in profilefilelist:
     ent=np.array(my_ray['entropy'][srt])
     dens=np.array(my_ray['density'][srt])
     press=np.array(my_ray['pressure'][srt])/1.e6
-    
+
     plt.semilogy(x_coord,ent,label='t='+filename_time+'s')
     plt.legend()
     plt.ylabel(r'$\mathrm{Entropy}$')
@@ -491,8 +491,8 @@ for i in profilefilelist:
     #plt.yscale('linear')
     plt.title('Entropy $vs height')
     plt.savefig("figure_x_entropy.png")
-  
-  
+
+
   j=j+1
 
 print("entropy plot made")
@@ -510,11 +510,11 @@ for i in profilefilelist:
     print('Adding lines at t='+filename_time+'s for $U$-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
-    
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     ad=ds.all_data()
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
@@ -538,8 +538,8 @@ for i in profilefilelist:
     plt.figtext(0.5,0.3,'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
     plt.title('Radiation energy density $U$ vs height')
     plt.savefig("figure_x_radiation.png")
-  
-  
+
+
   j=j+1
 
 print("radiation plot made")
@@ -559,12 +559,12 @@ for i in profilefilelist:
   if time>=old_time+time_difference_T_P and time<max_time:
     old_time=time
     print('Adding lines at t='+filename_time+'s for $T-P$ plot')
-    
-    
+
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
       srt=np.argsort(my_ray['x'])
@@ -577,8 +577,8 @@ for i in profilefilelist:
     ent=np.array(my_ray['entropy'][srt])
     dens=np.array(my_ray['density'][srt])
     press=np.array(my_ray['pressure'][srt])/1.e6
-    
-    
+
+
     if j==0 :
       temp0=np.array(my_ray['Temp'][srt])
       ent0=np.array(my_ray['entropy'][srt])
@@ -586,10 +586,10 @@ for i in profilefilelist:
       density0=np.array(my_ray['density'][srt])
       location1=np.amin(pressure0)/1e10
       location2=np.amax(pressure0)
-  
+
     plt.plot(press,temp,label='t='+filename_time+'s')
     plt.legend()
-    
+
     plt.xlabel(r'$P\/[\mathrm{bar}=10^{6}\mathrm{dyne}/\mathrm{cm}^2$]')
     plt.ylabel(r'$T\/[\mathrm{K}]$')
     plt.xlim(0.001,2000)
@@ -615,12 +615,12 @@ for i in profilefilelist:
   if time>=old_time+time_difference_T_P and time<max_time:
     old_time=time
     print('Adding lines at t='+filename_time+'s for $\Delta T - P$ plot')
-    
-    
+
+
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
-    
-    
+
+
     if Dimension==1:
       my_ray = ds.ortho_ray(0,(0,0))
       srt=np.argsort(my_ray['x'])
@@ -633,7 +633,7 @@ for i in profilefilelist:
     ent=np.array(my_ray['entropy'][srt])
     dens=np.array(my_ray['density'][srt])
     press=np.array(my_ray['pressure'][srt])/1.e6
-    
+
     if j==0 :
       temp0=np.array(my_ray['Temp'][srt])
       ent0=np.array(my_ray['entropy'][srt])
@@ -641,11 +641,11 @@ for i in profilefilelist:
       density0=np.array(my_ray['density'][srt])
       location1=np.amin(pressure0)/1e10
       location2=np.amax(pressure0)
-  
+
     diff_temp=(temp-temp0)
     plt.plot(press,diff_temp,label='t='+filename_time+'s')
     plt.legend()
-    
+
     plt.xlabel(r'$P\/[\mathrm{bar}=10^{6}\mathrm{dyne}/\mathrm{cm}^2$]')
     plt.ylabel(r'$\Delta T\/[\mathrm{K}]$')
     plt.xlim(0.001,2000)

@@ -53,7 +53,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     MultiFab::Subtract(*analytic, S, UTEMP, 0, 1, 0);
 
     err = std::max(err, analytic->norm0());
-    
+
 
   }
 

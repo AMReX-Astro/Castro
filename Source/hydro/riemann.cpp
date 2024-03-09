@@ -144,7 +144,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             if (idir == 0) {
                 is_shock = static_cast<int>(shk(i-1,j,k) + shk(i,j,k));
-            } else if (idir == 1) { 
+            } else if (idir == 1) {
                 is_shock = static_cast<int>(shk(i,j-1,k) + shk(i,j,k));
             } else {
                 is_shock = static_cast<int>(shk(i,j,k-1) + shk(i,j,k));
@@ -157,7 +157,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                 if (idir == 0) {
                     cl = qaux_arr(i-1,j,k,QC);
                     cr = qaux_arr(i,j,k,QC);
-                } else if (idir == 1) { 
+                } else if (idir == 1) {
                     cl = qaux_arr(i,j-1,k,QC);
                     cr = qaux_arr(i,j,k,QC);
                 } else {

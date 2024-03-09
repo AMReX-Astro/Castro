@@ -70,7 +70,7 @@ void problem_initialize_state_data (int i, int j, int k,
 #if AMREX_SPACEDIM == 1
                 // the volume of a subzone is (4/3) pi (xr^3 - xl^3).
                 // we can factor this as: (4/3) pi dr (xr^2 + xl*xr + xl^2)
-                // The (4/3) pi dr factor is common, so we can neglect it. 
+                // The (4/3) pi dr factor is common, so we can neglect it.
                 if (rr2 <= r2init) {
                     vol_pert += (xr * xr + xl * xr + xl * xl);
                 }

@@ -98,7 +98,7 @@ for i, f in enumerate(fields):
     else:
         # make the offset text look nice and latex-y
         # https://stackoverflow.com/questions/31517156/adjust-exponent-text-after-setting-scientific-limits-on-matplotlib-axis
-        axes[i].yaxis.set_major_formatter(ptick.ScalarFormatter(useMathText=True)) 
+        axes[i].yaxis.set_major_formatter(ptick.ScalarFormatter(useMathText=True))
     if i == 0:
         axes[0].legend(frameon=False)
 
@@ -106,4 +106,4 @@ for i, f in enumerate(fields):
 #fig.set_size_inches(10.0, 9.0)
 plt.tight_layout()
 plt.savefig("{}_profiles.png".format(os.path.basename(plotfile)))
-    
+
