@@ -39,7 +39,7 @@ Now let’s suppose that you want to grow the domain by a factor of 8
 and cover that new larger domain with a level that is a factor of 2
 coarser than the existing level 0 grids.
 
-#. First, set ``DIM =`` in the GNUmakefile, and type ``make`` in the 
+#. First, set ``DIM =`` in the GNUmakefile, and type ``make`` in the
    ``Util/ConvertCheckpoint/`` directory.  This will
    make an executable from the ``Embiggen.cpp`` code.
 

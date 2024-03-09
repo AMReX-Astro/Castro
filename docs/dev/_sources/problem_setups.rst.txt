@@ -44,7 +44,7 @@ problems are:
      gravitational potential of a perfect cube, for which there is an
      analytic solution.  It tests our isolated boundary conditions.
      This was demonstrated in :cite:`katz:2016`.
- 
+
 
 * ``hydro_tests``:
 
@@ -114,7 +114,7 @@ problems are:
 
    * ``Rad2Tshock``: This sets up a radiating shock that can be
      compared to a semi-analytic solution described in :cite:`lowrieedwards`.
-   
+
    * ``RadFront``: This is the optically-thin streaming of a radiation front problem
      demonstrated originally in Castro in :cite:`CastroII`.
 
@@ -127,7 +127,7 @@ problems are:
 
    * ``RadSphere``: This is a multigroup radiating sphere test problem with an analytic solution,
      described in :cite:`graziani:2008` and :cite:`swestymyra:2009` and shown in Castro in :cite:`CastroIII`.
- 
+
    * ``RadSuOlson``: This is a non-equlibrium Marshak wave test described in :cite:`suolson:1996` and shown
      in Castro in :cite:`CastroII`.
 
@@ -136,7 +136,7 @@ problems are:
 
    * ``RadThermalWave``: A thermal wave test adapted from :cite:`howellgreenough:2003` and shown in Castro
      in :cite:`CastroII`.
- 
+
 * ``reacting_tests``:
 
    * ``bubble_convergence``: a reacting bubble problem designed for measuring the convergence of
