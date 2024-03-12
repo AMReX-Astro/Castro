@@ -200,6 +200,8 @@ each of these in the main source tree.
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
+   .. _problem_derives:
+
 -  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derives.cpp``
 
    Together, these provide a mechanism to create derived quantities
