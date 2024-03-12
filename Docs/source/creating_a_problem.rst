@@ -202,7 +202,7 @@ each of these in the main source tree.
 
    .. _problem_derives:
 
--  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derives.cpp``
+-  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derive.cpp``
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. ``Problem_Derives.H``
