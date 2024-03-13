@@ -1,6 +1,6 @@
 ! Print out the analytic solution for the homologous dust collapse problem,
 ! from Colgate and White 1966, ApJ, 143, 626.
-! 
+!
 ! This will yield r(t) as a function of t
 
 module constants_module
@@ -18,7 +18,7 @@ module constants_module
 
   ! we try to do equal timesteps, but eventually, the radius of the
   ! sphere is changing so quickly that we need to adjust the size of
-  ! the timestep.  The code will take nstep timesteps, with the 
+  ! the timestep.  The code will take nstep timesteps, with the
   ! initial timestep to be (t_f - t_i)/(nstep - 1).  Once the radius
   ! begins to change significantly, we will begin halving the timestep
   ! as needed.
@@ -111,7 +111,7 @@ function f(r,t) result (func)
   use constants_module
 
   implicit none
-  
+
   double precision, intent(in) :: r, t
   double precision :: func
 
@@ -130,7 +130,7 @@ function dfdr(r,t) result (dfuncdr)
   use constants_module
 
   implicit none
-  
+
   double precision, intent(in) :: r, t
   double precision :: dfuncdr
 
@@ -145,4 +145,4 @@ function dfdr(r,t) result (dfuncdr)
 end function dfdr
 
 
-  
+

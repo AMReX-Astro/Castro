@@ -113,7 +113,7 @@ void Radiation::get_groups(int verbose)
       for (int i = 0; i < dlognugroup.size(); i++) {
         groupfile << "group(" << i << ") = "
                   << dlognugroup[i] << std::endl;
-      }      
+      }
     }
 
     groupfile.close();

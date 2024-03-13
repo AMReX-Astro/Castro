@@ -48,8 +48,8 @@ ax = fig.add_subplot(211)
 l1 = ax.plot(data[:,0], data[:,idens], label="density")
 l2 = ax.plot(data[:,0], data[:,itemp], label="temperature")
 
-# show where the refinement kicks in 
-rho_refine = 1.e4
+# show where the refinement kicks in
+rho_refine = 2.e4
 
 r_refine = find_r_for_rho(data[:,0], data[:,idens], rho_refine)
 

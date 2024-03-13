@@ -7,7 +7,7 @@
 #include <diffusion_params.H>
 
 ///
-/// @class Diffusion 
+/// @class Diffusion
 /// @brief
 ///
 class Diffusion {
