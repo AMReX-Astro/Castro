@@ -141,7 +141,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         // primitive variable source terms
 
         const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
-        src_q.resize(qbx, NQSRC);
+        src_q.resize(srcbx, NQSRC);
         Array4<Real> const src_q_arr = src_q.array();
 
         if (sdc_order == 2) {
