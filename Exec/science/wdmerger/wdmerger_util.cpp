@@ -180,8 +180,7 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16]  = problem::onemg_wd_o_frac;
         core_comp[iNe20] = problem::onemg_wd_ne_frac;
         core_comp[iMg24] = problem::onemg_wd_mg_frac;
-	
-        
+	 
         amrex::Print()<<"Creating an ONeMg " << star_type << "." <<std::endl;
 
         for (int n = 0; n < NumSpec; ++n) {
