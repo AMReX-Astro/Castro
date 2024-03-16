@@ -97,8 +97,8 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         }
 
         core_comp[iHe4] = 1.0_rt;
-	
-		amrex::Print() << "Created a pure He " << star_type << "." << std::endl;
+
+        amrex::Print() << "Created a pure He " << star_type << "." << std::endl;
 
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
@@ -117,11 +117,11 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iC12] = problem::hybrid_wd_c_frac;
         core_comp[iO16] = problem::hybrid_wd_o_frac;
 
-        envelope_mass = problem::hybrid_wd_he_shell_mass;  
+        envelope_mass = problem::hybrid_wd_he_shell_mass;
 
-		amrex::Print()<< "Creating " << star_type << "with CO core with mass fractions C = "<< problem::hybrid_wd_c_frac << "and O = "
-		       << problem::hybrid_wd_o_frac <<" and a He shell of solar mass =" << problem::hybrid_wd_he_shell_mass << "." << std::endl;	
-	
+        amrex::Print()<< "Creating " << star_type << "with CO core with mass fractions C = "<< problem::hybrid_wd_c_frac << "and O = "
+           << problem::hybrid_wd_o_frac <<" and a He shell of solar mass =" << problem::hybrid_wd_he_shell_mass << "." << std::endl;
+
 
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
@@ -180,7 +180,7 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16]  = problem::onemg_wd_o_frac;
         core_comp[iNe20] = problem::onemg_wd_ne_frac;
         core_comp[iMg24] = problem::onemg_wd_mg_frac;
-	 
+
         amrex::Print()<<"Creating an ONeMg " << star_type << "." <<std::endl;
 
         for (int n = 0; n < NumSpec; ++n) {
@@ -413,7 +413,7 @@ void update_roche_radii ()
 
         // Beyond a certain point, it doesn't make sense to track the stars separately
         // anymore. We'll set the secondary to a fixed constant and keep it there
-        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly 
+        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly
         // equal mass systems sometimes it is the primary that disrupts, perhaps
         // just due to numerical noise, so do the same check for the primary.
 
@@ -501,7 +501,7 @@ void binary_setup ()
     // Fill in the model's physical details.
     // If we're integrating to reach a desired mass, set the composition accordingly.
     // If instead we're fixing the central density, then first we'll assume the composition is
-    // that of a solar mass WD as a initial guess, and get the corresponding mass. 
+    // that of a solar mass WD as a initial guess, and get the corresponding mass.
     // Then we set the composition to match this preliminary mass, and we'll get a final mass later.
 
     if (problem::central_density_P > 0.0_rt) {
