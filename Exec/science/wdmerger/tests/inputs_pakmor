@@ -1,3 +1,5 @@
+## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
+## with 50 km resolution
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -55,10 +57,10 @@ castro.hi_bc = 2 2 2
 # Timestepping
 ############################################################################################
 
-# Maximum coarse timestep
+# Maximum number of level 0 steps
 max_step = 10000000
 
-# Simulation time to stop at
+# Simulation end time
 stop_time = 200.0
 
 # CFL number for hyperbolic system
@@ -85,6 +87,11 @@ castro.retry_small_density_cutoff = 1.0e0
 # Don't abort for invalid X if the zone density is less than this threshold
 castro.abundance_failure_rho_cutoff = 1.0e0
 
+# Maximum number of subcycles
+# Default is 10, 16 is recommended value
+castro.max_subcycles = 16
+
+
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
@@ -102,10 +109,10 @@ castro.abundance_failure_rho_cutoff = 1.0e0
 #endif
 
 # Maximum level number allowed
-amr.max_level = 1
+amr.max_level = 2
 
 # Refinement ratio
-amr.ref_ratio = 4 4 4 4 4 4 4 4 4
+amr.ref_ratio = 4 2
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -132,17 +139,22 @@ castro.state_interp_order = 0
 castro.lin_limit_state_interp = 1
 
 # Add refinement indicators
-amr.refinement_indicators = density temperature
+amr.refinement_indicators = density density2 temperature
 
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e0
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 1
+
+# Density2 refinement criterion
+amr.refine.density2.value_greater = 1.0e5
+amr.refine.density2.field_name = density
+amr.refine.density2.max_level = 20
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8
 amr.refine.temperature.field_name = Temp
-amr.refine.temperature.max_level = 0
+amr.refine.temperature.max_level = 3
 
 # Avoid tagging near the domain boundary
 castro.max_tagging_radius = 0.75e0
@@ -244,10 +256,10 @@ castro.clamp_ambient_temp = 1
 ############################################################################################
 
 # Limit timestep based on nuclear burning considerations (changes in internal energy)
-castro.dtnuc_e = 0.1
+castro.dtnuc_e = 1.e200
 
-# Limit timestep based on nuclear burning considerations (changes in species)
-castro.dtnuc_X = 0.1
+#Limit timestep based on nuclear burning considerations (changes in species)
+castro.dtnuc_X = 1.e200
 
 # Minimum temperature for allowing nuclear burning
 castro.react_T_min = 1.0e8
@@ -393,7 +405,7 @@ amr.plotfile_on_restart = 1
 amr.checkpoint_on_restart = 1
 
 # Restart from last run 
-amr.restart = chk00528 
+#amr.restart = 
 
 # Control verbosity in Amr.cpp
 amr.v = 1
@@ -408,10 +420,13 @@ gravity.v = 1
 amr.plot_vars = ALL
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = pressure X(q)
+amr.derive_plot_vars = pressure
 
 # State variables to add to small plot files
-amr.small_plot_vars = density Temp
+amr.small_plot_vars = density Temp 
+
+# Derived variables to add to small plot files
+amr.derive_small_plot_vars = enuc X(He4) X(C12) X(O16)
 
 # Name of the diagnostic sum output files
 amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
