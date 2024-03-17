@@ -32,6 +32,7 @@ castro.do_sponge = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
@@ -64,12 +65,12 @@ amr.check_int       = 50     # number of timesteps between checkpoints
 amr.plot_file       = massive_star_plt     # root name of plot file
 amr.plot_per = 5.0
 amr.derive_plot_vars = ALL
-castro.store_burn_weights = 1
+castro.store_burn_weights = 0
 
 amr.small_plot_file       = massive_star_smallplt     # root name of plot file
 amr.small_plot_per = 0.5
-amr.small_plot_vars = density Temp
-amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort in_nse
+amr.small_plot_vars = density Temp in_nse
+amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort
 
 fab.format = NATIVE_32
 

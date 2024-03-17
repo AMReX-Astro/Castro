@@ -12,8 +12,8 @@ namespace HABEC
 {
     // habec is Hypre abec, where abec is the form of the linear equation
     // we are solving:
-    // 
-    // alpha*phi - div(beta*grad phi) + div(\vec{c}*phi) 
+    //
+    // alpha*phi - div(beta*grad phi) + div(\vec{c}*phi)
 
     AMREX_INLINE
     void hbflx (Array4<Real> const flux,

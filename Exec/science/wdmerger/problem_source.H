@@ -77,7 +77,7 @@ void problem_source (int i, int j, int k,
         // Do the same thing for the kinetic energy update.
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UEDEN) += rhoInv * mom[dir] * Sr[dir];
-        }        
+        }
     }
 
     // This is an inspiral driving force that is inspired by Pakmor et al. 2021

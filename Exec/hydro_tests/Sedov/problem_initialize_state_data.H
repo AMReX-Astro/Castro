@@ -11,7 +11,7 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
-    
+
 #if AMREX_SPACEDIM == 1
     int nsubx = problem::nsub;
     int nsuby = 1;
