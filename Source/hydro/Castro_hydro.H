@@ -856,7 +856,7 @@
 /// @param source       MultiFab to save source to
 /// @param mult_factor
 ///
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
+    void fill_hybrid_hydro_source(amrex::MultiFab& source, const amrex::MultiFab& state, const amrex::Real mult_factor);
 
 
 ///
