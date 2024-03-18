@@ -227,7 +227,7 @@ void problem_initialize_state_data (int i, int j, int k,
                                         (x + problem::center[0]) /
                                         problem::velpert_scale + phix[n]);
                     Real cy = std::cos(2.0_rt * M_PI * Real(jj) *
-                                        (y + problem::center[1]) / 
+                                        (y + problem::center[1]) /
                                         problem::velpert_scale + phiy[n]);
                     Real cz = std::cos(2.0_rt * M_PI * Real(kk) *
                                         (z + problem::center[2]) /

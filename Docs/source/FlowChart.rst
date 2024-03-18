@@ -56,7 +56,7 @@ The time-integration method used is controlled by
   * ``time_integration_method = 2``: this is a full implementation of
     the spectral deferred corrections formalism, with both 2nd and 4th
     order integration implemented.  At the moment, this does not support
-    multilevel domains.  Note: because of differences in the interfaces with the 
+    multilevel domains.  Note: because of differences in the interfaces with the
     default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
     method to work.
 
@@ -214,7 +214,7 @@ of each step.
 Strang+CTU Evolution
 ====================
 
-``do_advance_ctu()`` in ``Castro_advance_ctu.cpp`` 
+``do_advance_ctu()`` in ``Castro_advance_ctu.cpp``
 
 This described the flow using Strang splitting and the CTU
 hydrodynamics (or MHD) method, including gravity, rotation, and
@@ -264,7 +264,7 @@ defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy the Poisso
 
    \Delta \phi^n = 4\pi G\rho^n
 
-(see :ref:`ch:gravity` for more details about how the Poisson equation is solved.)  
+(see :ref:`ch:gravity` for more details about how the Poisson equation is solved.)
 Note that in
 :eq:`eq:source_correct`, we can actually do some
 sources implicitly by updating density first, and then momentum,
@@ -372,7 +372,7 @@ In the code, the objective is to evolve the state from the old time,
    [``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
-   StateData ``Source_Type``. 
+   StateData ``Source_Type``.
 
    The sources that we deal with here are:
 
@@ -527,14 +527,14 @@ In the code, the objective is to evolve the state from the old time,
 
    Now we correct the source terms applied to ``S_new`` so they are time-centered.
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
-   we really want 
+   we really want
    :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` .
 
    We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
    using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
    correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
    add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
-   and the fully updated state, :math:`\Ub^{n+1,(c)}`. 
+   and the fully updated state, :math:`\Ub^{n+1,(c)}`.
 
    This correction is stored
    in the ``new_sources`` MultiFab [1]_.
@@ -608,7 +608,7 @@ We write our evolution equation as:
 .. math::
    \frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)
 
-where :math:`{\bf A}(\Ub) = -\nabla \cdot {\bf F}(\Ub) + {\bf S}(\Ub)`, with the 
+where :math:`{\bf A}(\Ub) = -\nabla \cdot {\bf F}(\Ub) + {\bf S}(\Ub)`, with the
 hydrodynamic source terms, :math:`{\bf S}` grouped together with the flux divergence.
 
 The SDC update looks at the solution a several time nodes (the number
@@ -635,7 +635,7 @@ is important when we consider the 4th order method.
 In Castro, there are two parameters that together determine the number
 and location of the temporal nodes, the accuracy of the integral, and
 hence the overall accuracy in time: ``castro.sdc_order`` and
-``castro.sdc_quadrature``. 
+``castro.sdc_quadrature``.
 
 ``castro.sdc_quadrature = 0`` uses
 Gauss-Lobatto integration, which includes both the starting and ending
@@ -686,7 +686,7 @@ The overall evolution appears as:
 
     * ``A_new`` : the advective term at each time node at the current
       iteration.
-    
+
     * ``R_old`` : the reactive source term at each time node at the old
       iteration.
 
@@ -749,7 +749,7 @@ The update through all time nodes for a single iteration is done by
 
      * Call ``construct_mol_hydro_source`` to get the advective update
        at the current time node, stored in ``A_new[m]``.
- 
+
    * Bootstrap the first iteration.
 
      For the first iteration, we don't have the old iteration's
@@ -789,7 +789,7 @@ The update through all time nodes for a single iteration is done by
 #. Store the reaction information for the plotfiles.
 
 #. Call ``finalize_do_advance`` to clean up the memory.
-   
+
 
 Simplified-SDC Evolution
 ========================
@@ -855,7 +855,7 @@ summarize those differences.
       \Sb^\mathrm{corr} = \frac{1}{2} \left ( \Sb^{n+1,(k-1)} - S^n \right )
 
    where :math:`\Sb^n` does not have an iteration subscript, since we always have the
-   same old time state.  
+   same old time state.
 
    Applying this corrector to the the source at time :math:`n`, will give
    us a source that is time-centered,
@@ -890,7 +890,7 @@ summarize those differences.
    We first compute :math:`\mathcal{A}(\Ub)` using ``hydro_sources``,
    ``old_source``, and ``new_source`` via the ``sum_of_source()``
    function.  This produces an advective source of the form:
-   
+
    .. math::
 
       \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} = - [\nabla \cdot {\bf F}]^{n+1/2} + \frac{1}{2} (S^n + S^{n+1})

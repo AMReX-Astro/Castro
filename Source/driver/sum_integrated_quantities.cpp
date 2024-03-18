@@ -75,9 +75,9 @@ Castro::sum_integrated_quantities ()
         ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
 
 #ifdef HYBRID_MOMENTUM
-        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, time, local_flag);
-        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, time, local_flag);
-        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, time, local_flag);
+        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, local_flag);
+        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, local_flag);
+        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, local_flag);
 #endif
 
         com[0] += ca_lev.locWgtSum(S_new, URHO, 0, local_flag);

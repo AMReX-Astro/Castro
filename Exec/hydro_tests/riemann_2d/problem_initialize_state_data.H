@@ -8,16 +8,16 @@
 #include <eos.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-//Declare boxes index i, j, k, the state Array4<Real>, and 
-//the geometry information, which emcompases the  
-void problem_initialize_state_data(int i, int j, int k, 
+//Declare boxes index i, j, k, the state Array4<Real>, and
+//the geometry information, which emcompases the
+void problem_initialize_state_data(int i, int j, int k,
                                    Array4<Real> const& state,
                                    const GeometryData& geomdata)
 {
     //The integer "coord_type" represents the coordinate system
-    int coord_type = geomdata.Coord(); 
-    
-    //The pointer *dx represents the real cell size value 
+    int coord_type = geomdata.Coord();
+
+    //The pointer *dx represents the real cell size value
     const Real* dx = geomdata.CellSize();
 
     //The pointer *problo represents the bottom of each dimension
@@ -25,7 +25,7 @@ void problem_initialize_state_data(int i, int j, int k,
 
 #if AMREX_SPACEDIM != 2
     amrex::Abort("The Riemman Problem considered is 2D.");
-    
+
 #endif
 
 

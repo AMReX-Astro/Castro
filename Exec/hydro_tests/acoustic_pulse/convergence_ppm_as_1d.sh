@@ -55,4 +55,4 @@ RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_64_ppm_plt00081 
 
 #RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_128_ppm_plt00161 mediFile=acoustic_pulse_256_ppm_plt00321 fineFile=acoustic_pulse_512_ppm_plt00641 > convergence.${DIM}d.hi.ppm.out
 
- 
+

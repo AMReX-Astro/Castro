@@ -24,7 +24,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
   // Castro* castro = dynamic_cast<Castro*>(&amr_level[0]);
 
   // then you can get the data, e.g. for state data as:
-  
+
   // MultiFab& S = castro->get_new_data(State_Type);
 
   // and if needed, the state descriptor:

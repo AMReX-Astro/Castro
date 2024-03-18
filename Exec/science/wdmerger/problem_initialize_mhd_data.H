@@ -21,7 +21,7 @@ Real A_x (int i, int j, int k,
     Real x_S = loc[0] - problem::center_S_initial[0];
     Real y_S = loc[0] - problem::center_S_initial[1];
     Real z_S = loc[0] - problem::center_S_initial[2];
-    
+
     Real dist_P = std::sqrt(std::pow(x_P, 2) + std::pow(y_P, 2) + std::pow(z_P, 2));
     Real dist_S = std::sqrt(std::pow(x_S, 2) + std::pow(y_S, 2) + std::pow(z_S, 2));
 
@@ -46,14 +46,14 @@ Real A_x (int i, int j, int k,
 
         A = -problem::m_0 * dist_S * std::sin(theta_S) * std::sin(phi_S) / std::pow(problem::radius_S, 3);
 
-    }          
+    }
     else  {
 
         // Dipole outside the primary star
-   
+
         A = -problem::m_0 * std::sin(theta_P) * std::sin(phi_P) / (dist_P * dist_P);
 
-        // Add contribution of dipole outside the secondary star 
+        // Add contribution of dipole outside the secondary star
 
         A += -problem::m_0 * std::sin(theta_S) * std::sin(phi_S) / (dist_S * dist_S);
 
@@ -80,7 +80,7 @@ Real A_y (int i, int j, int k,
     Real x_S = loc[0] - problem::center_S_initial[0];
     Real y_S = loc[0] - problem::center_S_initial[1];
     Real z_S = loc[0] - problem::center_S_initial[2];
-    
+
     Real dist_P = std::sqrt(std::pow(x_P, 2) + std::pow(y_P, 2) + std::pow(z_P, 2));
     Real dist_S = std::sqrt(std::pow(x_S, 2) + std::pow(y_S, 2) + std::pow(z_S, 2));
 
@@ -105,14 +105,14 @@ Real A_y (int i, int j, int k,
 
         A = -problem::m_0 * dist_S * std::sin(theta_S) * std::cos(phi_S) / std::pow(problem::radius_S, 3);
 
-    }          
+    }
     else  {
 
         // Dipole outside the primary star
-   
+
         A = -problem::m_0 * std::sin(theta_P) * std::cos(phi_P) / (dist_P * dist_P);
 
-        // Add contribution of dipole outside the secondary star 
+        // Add contribution of dipole outside the secondary star
 
         A += -problem::m_0 * std::sin(theta_P) * std::cos(phi_P) / (dist_S * dist_S);
 

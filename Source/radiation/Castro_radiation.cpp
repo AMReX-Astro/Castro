@@ -9,7 +9,7 @@ using std::string;
 using namespace amrex;
 
 void
-Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle) 
+Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
 {
     if (do_radiation) {
 
@@ -17,17 +17,17 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
           Castro::computeTemp(S_new, state[State_Type].curTime(), S_new.nGrow());
           return;
         }
-        
+
         Castro::computeTemp(S_new, state[State_Type].curTime(), S_new.nGrow());
 
-        if (Radiation::filter_prim_int > 0 && Radiation::filter_prim_T>0 
+        if (Radiation::filter_prim_int > 0 && Radiation::filter_prim_T>0
             && iteration==ncycle) {
             int nstep = parent->levelSteps(0);
             if (nstep % Radiation::filter_prim_int == 0) {
                 radiation->filter_prim(level, S_new);
             }
         }
-        
+
         if (Radiation::SolverType == Radiation::MGFLDSolver) {
             if (! Radiation::rad_hydro_combined) {
                 MultiFab& Er_old = get_old_data(Rad_Type);
@@ -50,7 +50,7 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
             MultiFab::Copy(Er_new, Er_old, 0, 0, Er_old.nComp(), 0);
             radiation->single_group_update(level, iteration, ncycle);
         }
-        
+
     }
 }
 #endif

@@ -77,7 +77,7 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, you can get 
+   For further capabilities, you can get
    more information than the backtrace of the call stack info by
    instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
@@ -191,7 +191,7 @@ Managing Runs
 
 #. *How can I check the compilation parameters of a Castro executable?*
 
-   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as 
+   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as
 
    ::
 
@@ -226,7 +226,7 @@ Runtime Errors
    specie abundance validity check by setting ``castro.abundance_failure_tolerance``
    to a higher value, or increasing the density floor below which this is
    ignored by changing ``castro.abundance_failure_rho_cutoff``.
-   
+
 Visualization
 =============
 
