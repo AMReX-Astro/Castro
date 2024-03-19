@@ -575,10 +575,8 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << PrettyLine;
 
   const std::time_t now = time(nullptr);
-  char buf[64];
-  if (strftime(buf, sizeof buf, "%c\n", std::localtime(&now))) {
-      jobInfoFile << "output date / time: " << buf << "\n";
-  }
+  jobInfoFile << "output date / time: "
+              << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
   char currentDir[FILENAME_MAX];
   if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
