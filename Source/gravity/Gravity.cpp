@@ -39,7 +39,7 @@ Real Gravity::mass_offset    =  0.0;
 
 // ************************************************************************************** //
 
-static Real Ggravity = 0.;
+const Real Ggravity = 4.0 * M_PI * C::Gconst;
 
 ///
 /// Multipole gravity data
@@ -262,13 +262,6 @@ Gravity::read_params ()
 
             amrex::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
 
-        }
-
-        Ggravity = 4.0 * M_PI * C::Gconst;
-        if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
-        {
-           std::cout << "Getting Gconst from constants: " << C::Gconst << std::endl;
-           std::cout << "Using " << Ggravity << " for 4 pi G in Gravity.cpp " << std::endl;
         }
 
         done = true;
