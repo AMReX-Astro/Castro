@@ -3,14 +3,14 @@ Input Files
 ***********
 
 The Castro executable uses an inputs file at runtime to set and
-alter the behavior of the algorithm and initial conditions.  
+alter the behavior of the algorithm and initial conditions.
 
 Runtime parameters take the form ``namespace.parameter = value`` ,
 where *namespace* identifies the major code component.  Some
 parameters take multiple values separated by spaces.
 
 Typically
-named ``inputs``, it 
+named ``inputs``, it
 
   * Sets the AMReX parameters for gridding, refinement, etc., through the
     ``geometry`` and ``amr`` namespaces.

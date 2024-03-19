@@ -44,7 +44,7 @@ void Radiation::save_lambda_in_plotvar(int level, const Array<MultiFab,AMREX_SPA
     }
 }
 
-void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew, 
+void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
                                        const MultiFab& Ecom, const MultiFab& F, int iflx)
 {
     int nflx = F.nComp();
@@ -137,7 +137,7 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
     }
 }
 
-void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew, 
+void Radiation::save_flux_in_plotvar(int level, const MultiFab& Snew,
                                      const Array<MultiFab,AMREX_SPACEDIM>& lambda,
                                      const MultiFab& Er, const MultiFab& Fr, int iflx,
                                      const Real lab_factor)

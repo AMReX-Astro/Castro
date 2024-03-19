@@ -48,7 +48,7 @@ def main():
     rho = units['rho']
     v = M0 * units['v']
     kappa_p = sigma * units['sigma']
-    kappa_r = c * (1./3.) / (kappa * units['kappa']) 
+    kappa_r = c * (1./3.) / (kappa * units['kappa'])
     cv = R / (gamma-1.0)/mu
 
     rho1, v1, T1 = OneTShock(P0=P0, gamma=gamma, M0=M0)
@@ -58,8 +58,8 @@ def main():
 
     print "In cgs units:"
     print 'Length unit: ', L
-    print 'Pre-shock: ', 'T=', T, 'rho=', rho, 'v=', v, 'v/c=', v/c 
-    print 'Post-shock: ', 'T=', T1, 'rho=', rho1, 'v=', v1, 'v/c=', v1/c 
+    print 'Pre-shock: ', 'T=', T, 'rho=', rho, 'v=', v, 'v/c=', v/c
+    print 'Post-shock: ', 'T=', T1, 'rho=', rho1, 'v=', v1, 'v/c=', v1/c
     print 'kappa_p=', kappa_p, 'kappa_r=', kappa_r
     print 'cv=', cv, 'gamma=', gamma, 'mu=', mu
 

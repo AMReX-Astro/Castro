@@ -39,7 +39,7 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
@@ -102,13 +102,13 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
         auto const& vol = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         //
@@ -196,14 +196,14 @@ Castro::volProductSum (const MultiFab& mf1,
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab1 = mf1[mfi].array(comp1);
         auto const& fab2 = mf2[mfi].array(comp2);
         auto const& vol  = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
@@ -251,12 +251,12 @@ Castro::locSquaredSum (const std::string& name,
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = (*mf).array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,

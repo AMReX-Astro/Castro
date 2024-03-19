@@ -176,7 +176,7 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
      if (problem::do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
-       density[j] = problem::dens_base * 
+       density[j] = problem::dens_base *
          std::pow((gravity::const_grav * problem::dens_base * (eos_gamma - 1.0_rt) * z/
                    (eos_gamma * problem::pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
