@@ -574,11 +574,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(nullptr);
-
-  // Convert now to tm struct for local timezone
-  tm* localtm = localtime(&now);
-  jobInfoFile   << "output date / time: " << asctime(localtm);
+  const std::time_t now = time(nullptr);
+  jobInfoFile << "output date / time: "
+              << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
   char currentDir[FILENAME_MAX];
   if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
