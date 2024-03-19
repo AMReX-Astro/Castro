@@ -85,6 +85,11 @@ You can also use ask it to fix errors automatically via:
 
 and you can treat warnings as errors by adding ``CLANG_TIDY_WARN_ERROR=TRUE``.
 
+.. note::
+
+   Building a Castro problem with ``clang-tidy`` will suppress the 
+   checks in AMReX and Microphysics sources.  This is set by the parameter
+   ``CLANG_TIDY_IGNORE_SOURCES`` in ``Make.Castro``.
 
 
 Thread sanitizer
