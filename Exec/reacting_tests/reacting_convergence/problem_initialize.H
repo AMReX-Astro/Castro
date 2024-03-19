@@ -95,7 +95,7 @@ void problem_initialize ()
         xn[ispec6] = problem::spec6_frac;
     }
 
-    // Normalize species 
+    // Normalize species
     auto sumX = 0.0_rt;
     for (auto X : xn) {
         sumX += X;

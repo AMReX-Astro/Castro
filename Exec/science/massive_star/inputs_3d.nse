@@ -58,7 +58,7 @@ castro.sum_interval   = 10       # timesteps between computing and printing volu
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
 
-amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 10000   # how often to regrid
 amr.n_error_buf     = 4 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
@@ -73,8 +73,12 @@ castro.store_burn_weights = 0
 
 amr.small_plot_file       = massive_star_smallplt     # root name of plot file
 amr.small_plot_per = 0.5
-amr.small_plot_vars = density Temp in_nse\
+amr.small_plot_vars = density Temp in_nse
 amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort
+
+#amr.checkpoint_files_output = 0
+#amr.plot_files_output = 0
+#amr.smallplot_files_output = 0
 
 fab.format = NATIVE_32
 
@@ -115,15 +119,15 @@ castro.drive_initial_convection_tmax = 50
 amr.refinement_indicators = denerr denerr2 denerr3
 
 amr.refine.denerr.max_level = 1
-amr.refine.denerr.value_greater = 1.e3
+amr.refine.denerr.value_greater = 2.e3
 amr.refine.denerr.field_name = density
 
 amr.refine.denerr2.max_level = 2
-amr.refine.denerr2.value_greater = 1.e4
+amr.refine.denerr2.value_greater = 3.e4
 amr.refine.denerr2.field_name = density
 
 amr.refine.denerr3.max_level = 3
-amr.refine.denerr3.value_greater = 1.e5
+amr.refine.denerr3.value_greater = 3.e5
 amr.refine.denerr3.field_name = density
 
 

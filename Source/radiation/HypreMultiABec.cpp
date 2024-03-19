@@ -171,7 +171,7 @@ int BndryAuxVarBase::nextLocal(int i)
   return i;
 }
 
-BndryAuxVar::BndryAuxVar(const BoxArray& _grids, 
+BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
                          const DistributionMapping& _dmap,
                          Location loc)
     : BndryAuxVarBase(_dmap), grids(_grids)

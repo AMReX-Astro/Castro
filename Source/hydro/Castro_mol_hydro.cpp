@@ -93,6 +93,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         const Box& obx = amrex::grow(bx, 1);
         const Box& obx2 = amrex::grow(bx, 2);
+        const Box& srcbx = amrex::grow(bx, old_source.nGrow());
 
         Array4<Real const> const uin_arr = Sborder.array(mfi);
 
@@ -140,12 +141,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         // primitive variable source terms
 
         const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
-        src_q.resize(qbx, NQSRC);
+        src_q.resize(srcbx, NQSRC);
         Array4<Real> const src_q_arr = src_q.array();
 
         if (sdc_order == 2) {
 
-            amrex::ParallelFor(qbx,
+            amrex::ParallelFor(srcbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 hydro::src_to_prim(i, j, k, dt, uin_arr, q_arr, source_in_arr, src_q_arr);

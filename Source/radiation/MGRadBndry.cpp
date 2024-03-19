@@ -48,7 +48,7 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
           bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]),
                          bctypearray[face][igrid]->dataPtr(),
                          ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
@@ -239,7 +239,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
           FArrayBox& bnd_fab = bndry[face][bi];
           BaseFab<int>& tfab = *(bctypearray[face][i]);
 
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab),
                          tfab.dataPtr(), AMREX_ARLIM(domain.loVect()), AMREX_ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
           if (p_bcflag == 0) {

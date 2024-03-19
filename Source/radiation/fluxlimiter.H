@@ -25,7 +25,7 @@ amrex::Real Edd_factor(Real lambda)
             f = 1.0_rt / 3.0_rt;
         }
         else if (radiation::limiter < 10) { // approximate LP, [123]
-            f = 0.5e0_rt * amrex::max(0.0_rt, (1.e0_rt - 3.e0_rt*  lambda)) + 
+            f = 0.5e0_rt * amrex::max(0.0_rt, (1.e0_rt - 3.e0_rt*  lambda)) +
                 std::sqrt(amrex::max(0.0_rt, (1.e0_rt - 3.e0_rt * lambda)) *
                           (1.e0_rt + 5.e0_rt * lambda));
             f = lambda + f * f;

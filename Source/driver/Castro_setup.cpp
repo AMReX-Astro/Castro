@@ -45,7 +45,7 @@ static int tang_vel_bc[] =
   };
 
 #ifdef MHD
-static int mag_field_bc[] = 
+static int mag_field_bc[] =
 {
   amrex::BCType::int_dir, amrex::BCType::ext_dir, amrex::BCType::foextrap, amrex::BCType::reflect_even, amrex::BCType::foextrap, amrex::BCType::hoextrap
 };
@@ -356,7 +356,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
   desc_lst.addDescriptor(Mag_Type_x, xface,
-                         StateDescriptor::Point, 0, 1, 
+                         StateDescriptor::Point, 0, 1,
                          interp, state_data_extrap,
                          store_in_checkpoint);
   IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
@@ -554,7 +554,7 @@ Castro::variableSetUp ()
   bcs[UMUN] = bc;
   name[UMUN] = "mu_n";
 #endif
-  
+
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -641,7 +641,7 @@ Castro::variableSetUp ()
   }
 #endif
   // names for the burn_weights that are manually added to the plotfile
-  
+
   if (store_burn_weights) {
 
 #ifdef STRANG
@@ -994,9 +994,9 @@ Castro::variableSetUp ()
   derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1); 
-  
-#endif 
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1);
+
+#endif
 
 
 #if NAUX_NET > 0

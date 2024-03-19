@@ -7,7 +7,7 @@ Code structure
 
 Castro is built upon the AMReX C++ framework. This provides
 high-level classes for managing an adaptive mesh refinement
-simulation, including the core data structures we will deal with. 
+simulation, including the core data structures we will deal with.
 AMReX provides
 convenient data structures that allow for this workflow—high level
 objects in C++ that communicate with our computational kernels, with
@@ -191,7 +191,7 @@ FArrayBoxes). A ``MultiFab`` contains an array of ``Box`` es, including
 boxes owned by other processors for the purpose of communication,
 an array of MPI ranks specifying which MPI processor owns each ``Box``,
 and an array of pointers to ``FArrayBoxes`` owned by this MPI
-processor. 
+processor.
 
 .. note:: a ``MultiFab`` is a collection of the boxes that together
    make up a single level of data in the AMR hierarchy.
@@ -550,7 +550,7 @@ Physical boundary conditions are specified by an integer index [2]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in 
+velocity, transverse velocity, and generic scalar are shown in
 :numref:`table:castro:bcs`.
 
 The definition of the specific actions are:

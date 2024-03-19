@@ -80,7 +80,7 @@ Castro::restart (Amr&     papa,
             if (CastroHeaderFile.good()) {
                 char foo[256];
                 // first line: Checkpoint version: ?
-                CastroHeaderFile.getline(foo, 256, ':');  
+                CastroHeaderFile.getline(foo, 256, ':');
                 CastroHeaderFile >> input_version;
                 CastroHeaderFile.close();
             } else {
@@ -574,11 +574,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(nullptr);
-
-  // Convert now to tm struct for local timezone
-  tm* localtm = localtime(&now);
-  jobInfoFile   << "output date / time: " << asctime(localtm);
+  const std::time_t now = time(nullptr);
+  jobInfoFile << "output date / time: "
+              << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
   char currentDir[FILENAME_MAX];
   if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
@@ -929,7 +927,7 @@ Castro::plotFileOutput(const std::string& dir,
 
     for (const auto & dd : dlist) {
 
-        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
             (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
@@ -1139,7 +1137,7 @@ Castro::plotFileOutput(const std::string& dir,
     {
         for (const auto & dd : dlist) {
 
-            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
                 (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
                 auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);
