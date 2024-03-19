@@ -46,7 +46,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       Ff_new[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }
 
-  MultiFab Dterm;  
+  MultiFab Dterm;
   if (has_dcoefs) {
       Dterm.define(grids, dmap, AMREX_SPACEDIM, 0);
   }

@@ -28,7 +28,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 
   if (!a2coefs[level]) {
     a2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -41,7 +41,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 
   MultiFab::Copy((*a2coefs[level])[dir], a2, 0, 0, ncomp, ngrow);
 }
- 
+
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
   BL_PROFILE("HypreExtMultiABec::cCoefficients");
@@ -53,7 +53,7 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
   if (!ccoefs[level]) {
     ccoefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -89,7 +89,7 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 
   MultiFab::Copy((*d1coefs[level])[dir], d1, 0, 0, ncomp, ngrow);
 }
- 
+
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
   BL_PROFILE("HypreExtMultiABec::d2Coefficients");
@@ -101,7 +101,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 
   if (!d2coefs[level]) {
     d2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -115,7 +115,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
   MultiFab::Copy((*d2coefs[level])[dir], d2, 0, 0, ncomp, ngrow);
 }
 
-static void 
+static void
 FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
           const Mask& msk, const Box& reg,
           const IntVect& vin, int r, int bho, int flevel)
@@ -456,7 +456,7 @@ void HypreExtMultiABec::loadMatrix()
                   // If we're upwinding from the interior, just use that value.
                   // If we're upwinding from the exterior, interpolate
                   // (linearly) to the ghost cell center position.
-                  
+
                   Real fac = gamma * ofh;
                   int  i0  = ori.isLow();
                   int  i1  = ori.isHigh();

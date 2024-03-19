@@ -1126,11 +1126,11 @@ Castro::initData ()
 
 
 #ifdef MHD
-      //correct energy density with the magnetic field contribution 
+      //correct energy density with the magnetic field contribution
       add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
-      
+
       //check divB
-      check_div_B(Bx_new, By_new, Bz_new, S_new);    
+      check_div_B(Bx_new, By_new, Bz_new, S_new);
 
 #endif
 
@@ -1218,8 +1218,8 @@ Castro::initData ()
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
 #ifndef AMREX_USE_GPU
-             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
-                       << i << " " << j << " " << k << " " 
+             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): "
+                       << i << " " << j << " " << k << " "
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
 #endif
              amrex::Error("Error: failed check of initial species summing to 1");
@@ -3786,11 +3786,11 @@ Castro::reset_internal_energy(
 #ifdef MHD
 void
 Castro::add_magnetic_e( MultiFab& Bx,
-                        MultiFab& By, 
+                        MultiFab& By,
                         MultiFab& Bz,
                         MultiFab& State)
 {
-           
+
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
@@ -3824,18 +3824,18 @@ Castro::add_magnetic_e( MultiFab& Bx,
 
 void
 Castro::check_div_B( MultiFab& Bx,
-                     MultiFab& By, 
+                     MultiFab& By,
                      MultiFab& Bz,
                      MultiFab& State)
 {
 
- 
+
 
   ReduceOps<ReduceOpSum> reduce_op;
   ReduceData<int> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-           
+
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
@@ -3851,28 +3851,28 @@ Castro::check_div_B( MultiFab& Bx,
       reduce_op.eval(box, reduce_data,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
       {
-          
+
           Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
-                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
+                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] +
                       (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
-        
+
           Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
           Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
           Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
 
-          Real magB = std::sqrt(bx_cell_c * bx_cell_c + 
+          Real magB = std::sqrt(bx_cell_c * bx_cell_c +
                                 by_cell_c * by_cell_c +
                                 bz_cell_c * bz_cell_c);
-                  
-  
+
+
           int fail_divB = 0;
 
           if (std::abs(divB) > 1.0e-10*magB){
-             fail_divB = 1; 
+             fail_divB = 1;
           }
-          
 
-          return {fail_divB}; 
+
+          return {fail_divB};
       });
 
   }
@@ -3881,8 +3881,8 @@ Castro::check_div_B( MultiFab& Bx,
   int init_fail_divB = amrex::get<0>(hv);
 
   if (init_fail_divB != 0) {
-     amrex::Error("Error: initial data has divergence of B not zero");  
-  } 
+     amrex::Error("Error: initial data has divergence of B not zero");
+  }
 
 
 }
@@ -3960,7 +3960,7 @@ Castro::computeTemp(
     enforce_min_density(Stemp, Stemp.nGrow());
     reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
-#endif    
+#endif
     reset_internal_energy(
 #ifdef MHD
                           Bx, By, Bz,

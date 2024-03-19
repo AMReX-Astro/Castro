@@ -104,7 +104,7 @@ validate_runparams()
         // "castro"
         if (ParmParse::hasUnusedInputs(nm)) {
             amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
-            auto unused = ParmParse::getUnusedInputs(nm); 
+            auto unused = ParmParse::getUnusedInputs(nm);
             for (const auto& p: unused) {
                 amrex::Print() << p << "\n";
             }

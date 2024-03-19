@@ -399,6 +399,8 @@ Derived variables
 problem-specific plotfile variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+See the section on :ref:`Problem_Derives.H <problem_derives>` for more details about defining your own plotfile variables.
+
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 | variable name                     | description                                       | units                                |
 +===================================+===================================================+======================================+
