@@ -112,10 +112,10 @@ enum int_method { CornerTransportUpwind = 0,
 // why an advance failed.
 
 struct advance_status {
-    bool success;
-    Real suggested_dt;
-    std::string reason;
-    advance_status() : success(true), suggested_dt(0.0_rt), reason("") {}
+    bool success{true};
+    Real suggested_dt{};
+    std::string reason{};
+    advance_status() = default;
 };
 
 ///
