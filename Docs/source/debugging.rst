@@ -87,7 +87,7 @@ and you can treat warnings as errors by adding ``CLANG_TIDY_WARN_ERROR=TRUE``.
 
 .. note::
 
-   Building a Castro problem with ``clang-tidy`` will suppress the 
+   Building a Castro problem with ``clang-tidy`` will suppress the
    checks in AMReX and Microphysics sources.  This is set by the parameter
    ``CLANG_TIDY_IGNORE_SOURCES`` in ``Make.Castro``.
 
@@ -126,5 +126,3 @@ to operate over.
 
 Physics issues
 ==============
-
-
