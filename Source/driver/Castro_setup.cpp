@@ -20,7 +20,7 @@
 using std::string;
 using namespace amrex;
 
-using StateDescriptor::BndryFunc;
+using BndryFunc = StateDescriptor::BndryFunc;
 
 namespace {
 
