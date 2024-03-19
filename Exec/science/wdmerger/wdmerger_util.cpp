@@ -73,7 +73,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
 // Given a WD mass, set its core and envelope composition.
 
-void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec], const std::string& star_type)
 {
     int iHe4 = network_spec_index("helium-4");
     int iC12 = network_spec_index("carbon-12");
@@ -98,6 +98,8 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
 
         core_comp[iHe4] = 1.0_rt;
 
+        amrex::Print() << "Created a pure He " << star_type << "." << std::endl;
+
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
         }
@@ -117,6 +119,10 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
 
         envelope_mass = problem::hybrid_wd_he_shell_mass;
 
+        amrex::Print()<< "Creating " << star_type << "with CO core with mass fractions C = "<< problem::hybrid_wd_c_frac << "and O = "
+           << problem::hybrid_wd_o_frac <<" and a He shell of solar mass =" << problem::hybrid_wd_he_shell_mass << "." << std::endl;
+
+
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
                 amrex::Error("Must have He4 in the nuclear network.");
@@ -128,7 +134,6 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
                 envelope_comp[n] = core_comp[n];
             }
         }
-
     }
     else if (mass >= problem::max_hybrid_wd_mass && mass < problem::max_co_wd_mass) {
 
@@ -143,6 +148,9 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16] = problem::co_wd_o_frac;
 
         envelope_mass = problem::co_wd_he_shell_mass;
+
+        amrex::Print()<<"Creating " << star_type << " with CO core with mass fractions C = "<<problem::co_wd_c_frac<<"and O = "
+            <<problem::co_wd_o_frac<<" and a He shell of solar mass ="<<problem::co_wd_he_shell_mass<< "." << std::endl;
 
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
@@ -172,6 +180,8 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16]  = problem::onemg_wd_o_frac;
         core_comp[iNe20] = problem::onemg_wd_ne_frac;
         core_comp[iMg24] = problem::onemg_wd_mg_frac;
+
+        amrex::Print()<<"Creating an ONeMg " << star_type << "." <<std::endl;
 
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
@@ -502,7 +512,7 @@ void binary_setup ()
         amrex::Error("Must specify either a positive primary mass or a positive primary central density.");
     }
 
-    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
+    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P, "primary");
 
 
 
@@ -516,7 +526,7 @@ void binary_setup ()
             amrex::Error("If we are doing a binary calculation, we must specify either a positive secondary mass or a positive secondary central density");
         }
 
-        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
+        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S, "secondary");
 
         for (int n = 0; n < NumSpec; ++n) {
             ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (problem::envelope_comp_P[n] + problem::envelope_comp_S[n]) / 2;
