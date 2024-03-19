@@ -135,13 +135,14 @@
 ///
 /// A multidimensional shock detection algorithm
 ///
-/// @param bx     the box to operate over
-/// @param q_arr  the primitive variable state
-/// @param shk    the shock flag (1 = shock, 0 = no shock)
+/// @param bx         the box to operate over
+/// @param q_arr      the primitive variable state
+/// @param U_scr_arr  the conservative state sources
+/// @param shk        the shock flag (1 = shock, 0 = no shock)
 ///
     void shock(const amrex::Box& bx,
                amrex::Array4<amrex::Real const> const& q_arr,
-               amrex::Array4<amrex::Real const> const& q_src_arr,
+               amrex::Array4<amrex::Real const> const& U_src_arr,
                amrex::Array4<amrex::Real> const& shk);
 
 ///
