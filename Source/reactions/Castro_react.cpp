@@ -213,7 +213,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k)
+        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
 #endif
         {
 
@@ -558,7 +558,7 @@ Castro::react_state(Real time, Real dt)
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k)
+        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
 #endif
         {
             burn_t burn_state;
