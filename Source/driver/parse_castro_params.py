@@ -212,16 +212,25 @@ def write_headers_and_source(params, out_directory, struct_name):
 
         jo.close()
 
-        # write the C++ source file that actually defines the parameters
-        try:
-            pf = open(f"{out_directory}/{nm}_params.cpp", "w", encoding="UTF-8")
-        except OSError:
-            sys.exit(f"unable to open {nm}_params.cpp")
+    # write a single C++ source file that actually defines the parameters
+    # (one file for all namespaces)
+    try:
+        pf = open(f"{out_directory}/runtime_params.cpp", "w", encoding="UTF-8")
+    except OSError:
+        sys.exit(f"unable to open runtime_params.cpp")
 
-        pf.write("#include <AMReX_REAL.H>\n")
-        pf.write("#include <AMReX_Gpu.H>\n")
-        pf.write("#include <castro_limits.H>\n\n")
-        pf.write(f"#include <{nm}_params.H>\n\n")
+    pf.write("#include <AMReX_REAL.H>\n")
+    pf.write("#include <AMReX_Gpu.H>\n")
+    pf.write("#include <castro_limits.H>\n\n")
+
+    for nm in namespaces:
+        pf.write(f"#include <{nm}_params.H>\n")
+    pf.write("\n")
+
+    for nm in namespaces:
+        params_nm = [q for q in params if q.namespace == nm]
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
 
         pf.write(f"namespace {nm} {{\n")
 
@@ -236,7 +245,7 @@ def write_headers_and_source(params, out_directory, struct_name):
                 pf.write("#endif\n")
         pf.write("}\n\n")
 
-        pf.close()
+    pf.close()
 
     # now write a single file that contains all of the parameter structs
     try:
