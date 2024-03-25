@@ -12,12 +12,15 @@
 using namespace amrex;
 
 advance_status
-Castro::do_advance_ctu (Real time, Real dt)
+Castro::do_advance_ctu (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     // this routine will advance the old state data (called Sborder here)
     // to the new time, for a single level.  The new data is called
     // S_new here.  The update includes reactions (if we are not doing
     // SDC), hydro, and the source terms.
+
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
 
     BL_PROFILE("Castro::do_advance_ctu()");
 
