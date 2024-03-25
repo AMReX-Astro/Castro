@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """This script parses the list of C++ runtime parameters and writes
-the necessary header and souce files to make them available in
+the necessary header and source files to make them available in
 Castro's C++ routines.  They are available in 2 ways: as global
 parameter and in the form of a single struct.
 
