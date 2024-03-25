@@ -1,7 +1,7 @@
 ///
 /// Perform any old-time reactions.
 ///
-    advance_status do_old_reactions (Real time, Real dt);  // NOLINT(readability-convert-member-functions-to-static)
+    advance_status do_old_reactions (Real time, Real dt);
 
 ///
 /// Perform any new-time reactions.
