@@ -1318,7 +1318,7 @@ Gravity::test_composite_phi (int crse_level)
 }
 
 void
-Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab& grav_vector) const
 {
     BL_PROFILE("Gravity::interpolate_monopole_grav()");
 
@@ -1434,7 +1434,7 @@ Gravity::compute_radial_mass(const Box& bx,
 #ifdef GR_GRAV
                              RealVector& radial_pres_local,
 #endif
-                             int n1d, int level)
+                             int n1d, int level) const
 {
     const Geometry& geom = parent->Geom(level);
 
@@ -1599,7 +1599,7 @@ Gravity::compute_radial_mass(const Box& bx,
 }
 
 void
-Gravity::init_multipole_grav()
+Gravity::init_multipole_grav() const
 {
     if (gravity::lnum < 0) {
         amrex::Abort("lnum negative");
@@ -1691,7 +1691,7 @@ Gravity::init_multipole_grav()
         multipole::parity_q0(l) = 1.0_rt;
 
         if (l % 2 != 0) {
-            if (AMREX_SPACEDIM == 3 && (multipole::doReflectionLo(2) || multipole::doReflectionHi(2))) {
+            if (AMREX_SPACEDIM == 3 && (multipole::doReflectionLo(2) || multipole::doReflectionHi(2))) {  // NOLINT(bugprone-branch-clone)
                 multipole::parity_q0(l) = 0.0_rt;
             }
             else if (AMREX_SPACEDIM == 2 && parent->Geom(0).Coord() == 1) {
@@ -1725,7 +1725,7 @@ Gravity::init_multipole_grav()
             if (AMREX_SPACEDIM == 3) {
                 multipole::parity_qC_qS(l,m) = 1.0_rt;
             }
-            else if (AMREX_SPACEDIM == 2 && parent->Geom(0).Coord() == 1) {
+            else if (AMREX_SPACEDIM == 2 && parent->Geom(0).Coord() == 1) {  // NOLINT(bugprone-branch-clone)
                 multipole::parity_qC_qS(l,m) = 0.0_rt;
             }
             else if (AMREX_SPACEDIM == 1 && parent->Geom(0).Coord() == 2) {
@@ -2847,7 +2847,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
 #if (AMREX_SPACEDIM < 3)
 void
-Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
+Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs) const
 {
     BL_PROFILE("Gravity::applyMetricTerms()");
 
@@ -2877,7 +2877,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 }
 
 void
-Gravity::unweight_cc(int level, MultiFab& cc)
+Gravity::unweight_cc(int level, MultiFab& cc) const
 {
     BL_PROFILE("Gravity::unweight_cc()");
 
@@ -2896,7 +2896,7 @@ Gravity::unweight_cc(int level, MultiFab& cc)
 }
 
 void
-Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
+Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges) const
 {
     BL_PROFILE("Gravity::unweight_edges()");
 
@@ -2949,7 +2949,7 @@ Gravity::make_mg_bc ()
 }
 
 void
-Gravity::set_mass_offset (Real time, bool multi_level)
+Gravity::set_mass_offset (Real time, bool multi_level) const
 {
     BL_PROFILE("Gravity::set_mass_offset()");
 
@@ -2999,7 +2999,7 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 }
 
 void
-Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector)
+Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector) const
 {
     BL_PROFILE("Gravity::add_pointmass_to_gravity()");
 
@@ -3094,8 +3094,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         // Create MultiFab with NUM_STATE components and no ghost cells
         MultiFab S(grids[lev],dmap[lev],NUM_STATE,0);
 
-        if ( eps == 0.0 )
-        {
+        if ( eps == 0.0 ) {  // NOLINT(bugprone-branch-clone,-warnings-as-errors)
             // Old and new time are identical; this should only happen if
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
@@ -3713,7 +3712,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
                                  const amrex::Vector<std::array<amrex::MultiFab*,AMREX_SPACEDIM> >& grad_phi,
                                  const amrex::Vector<amrex::MultiFab*>& res,
                                  const amrex::MultiFab* const crse_bcdata,
-                                 amrex::Real rel_eps, amrex::Real abs_eps)
+                                 amrex::Real rel_eps, amrex::Real abs_eps) const
 {
     BL_PROFILE("Gravity::actual_solve_with_mlmg()");
 
