@@ -23,5 +23,5 @@ jobs:
       - name: Compile flame_wave
         run: |
           cd Exec/science/subchandra
-          make USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
 
