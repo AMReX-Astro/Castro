@@ -67,6 +67,8 @@ AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
 CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 
+$(CASTRO_AUTO_SOURCE_DIR)/runtime_params.cpp: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
+
 $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H: $(CPP_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
