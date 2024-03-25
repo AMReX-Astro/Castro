@@ -248,6 +248,8 @@ def write_headers_and_source(params, out_directory, struct_name):
     pf.close()
 
     # now write a single file that contains all of the parameter structs
+    # to minimize padding, we want to sort on type
+
     try:
         sf = open(f"{out_directory}/{struct_name}_type.H", "w", encoding="UTF-8")
     except OSError:
@@ -264,19 +266,24 @@ def write_headers_and_source(params, out_directory, struct_name):
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
         ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
-
         sf.write(f"struct {nm}_t {{\n")
         print("namespace = ", nm)
         for ifdef in ifdefs:
+            params_if = [q for q in params_nm if q.ifdef == ifdef]
+            types = set(q.dtype for q in params_if)
+
             if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    sf.write(p.get_struct_entry())
+                for tt in types:
+                    params_type = [q for q in params_if if q.dtype == tt]
+                    for p in params_type:
+                        sf.write(p.get_struct_entry())
             else:
                 sf.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    sf.write(p.get_struct_entry())
+                for tt in types:
+                    params_type = [q for q in params_if if q.dtype == tt]
+                    for p in params_type:
+                        sf.write(p.get_struct_entry())
                 sf.write("#endif\n")
-
 
         sf.write("};\n\n")
 
