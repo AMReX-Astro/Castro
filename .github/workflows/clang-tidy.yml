@@ -12,8 +12,10 @@ jobs:
           git submodule update --init
           cd external/Microphysics
           git fetch; git checkout development
+          echo 'MICROPHYSICS_HOME=$(pwd)' > $GITHUB_ENV
           cd ../amrex
           git fetch; git checkout development
+          echo 'AMREX_HOME=$(pwd)' > $GITHUB_ENV
           cd ../..
 
       - name: Install dependencies
