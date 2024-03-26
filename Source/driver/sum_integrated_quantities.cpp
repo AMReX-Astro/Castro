@@ -511,10 +511,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time == 0.0_rt) {
-                log << std::fixed;
-            }
-            else if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
