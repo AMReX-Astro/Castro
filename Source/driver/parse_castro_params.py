@@ -48,7 +48,7 @@ For a namespace, name, we write out:
      this tests the current value against the default and outputs
      into a file
 
-  -- name_params.cpp
+  -- runtime_params.cpp
      has the actual definition of the variables (without extern)
 
 """
@@ -134,7 +134,7 @@ def write_headers_and_source(params, out_directory, struct_name):
     # output
 
     # find all the namespaces
-    namespaces = {q.namespace for q in params}
+    namespaces = sorted({q.namespace for q in params})
 
     for nm in namespaces:
 
@@ -271,6 +271,7 @@ def write_headers_and_source(params, out_directory, struct_name):
         for ifdef in ifdefs:
             params_if = [q for q in params_nm if q.ifdef == ifdef]
             types = set(q.dtype for q in params_if)
+            types = sorted(set(q.dtype for q in params_if))
 
             if ifdef is None:
                 for tt in types:
