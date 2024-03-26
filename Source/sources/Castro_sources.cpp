@@ -606,6 +606,9 @@ Castro::post_advance_operators (Real time, Real dt)
 {
     advance_status status {};
 
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
 #ifndef TRUE_SDC
 #ifdef REACTIONS
     status = do_new_reactions(time, dt);
