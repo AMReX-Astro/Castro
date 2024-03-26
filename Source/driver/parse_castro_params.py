@@ -48,7 +48,7 @@ For a namespace, name, we write out:
      this tests the current value against the default and outputs
      into a file
 
-  -- name_params.cpp
+  -- runtime_params.cpp
      has the actual definition of the variables (without extern)
 
 """
