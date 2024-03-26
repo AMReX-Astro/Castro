@@ -270,7 +270,7 @@ def write_headers_and_source(params, out_directory, struct_name):
         print("namespace = ", nm)
         for ifdef in ifdefs:
             params_if = [q for q in params_nm if q.ifdef == ifdef]
-            types = set(q.dtype for q in params_if)
+            types = sorted(set(q.dtype for q in params_if))
 
             if ifdef is None:
                 for tt in types:
