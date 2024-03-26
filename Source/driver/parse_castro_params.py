@@ -136,7 +136,7 @@ def write_headers_and_source(params, out_directory, struct_name):
     # find all the namespaces
     namespaces = sorted({q.namespace for q in params})
 
-    for nm in sorted(namespaces):
+    for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
@@ -227,7 +227,7 @@ def write_headers_and_source(params, out_directory, struct_name):
         pf.write(f"#include <{nm}_params.H>\n")
     pf.write("\n")
 
-    for nm in sorted(namespaces):
+    for nm in namespaces:
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
         ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
@@ -261,7 +261,7 @@ def write_headers_and_source(params, out_directory, struct_name):
 
     sf.write("#include <castro_limits.H>\n\n")
 
-    for nm in sorted(namespaces):
+    for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
