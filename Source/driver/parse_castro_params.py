@@ -134,7 +134,7 @@ def write_headers_and_source(params, out_directory, struct_name):
     # output
 
     # find all the namespaces
-    namespaces = {q.namespace for q in params}
+    namespaces = sorted({q.namespace for q in params})
 
     for nm in sorted(namespaces):
 
