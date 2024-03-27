@@ -23,6 +23,9 @@ void src_to_prim(int i, int j, int k, const Real dt,
 #endif
                  Array4<Real> const& srcQ)
 {
+
+    amrex::ignore_unused(dt);
+
     for (int n = 0; n < NQSRC; ++n) {
       srcQ(i,j,k,n) = 0.0_rt;
     }
