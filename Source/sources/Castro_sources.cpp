@@ -522,7 +522,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 // and the hydro advance.
 
 advance_status
-Castro::pre_advance_operators (Real time, Real dt)
+Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -560,7 +560,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 // but before the hydro advance.
 
 advance_status
-Castro::pre_hydro_operators (Real time, Real dt)
+Castro::pre_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -585,7 +585,7 @@ Castro::pre_hydro_operators (Real time, Real dt)
 // but before the corrector sources.
 
 advance_status
-Castro::post_hydro_operators (Real time, Real dt)
+Castro::post_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -602,12 +602,12 @@ Castro::post_hydro_operators (Real time, Real dt)
 // Perform all operations that occur after the corrector sources.
 
 advance_status
-Castro::post_advance_operators (Real time, Real dt)
+Castro::post_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
-    advance_status status {};
-
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
+
+    advance_status status {};
 
 #ifndef TRUE_SDC
 #ifdef REACTIONS
