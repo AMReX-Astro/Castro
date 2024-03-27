@@ -149,8 +149,8 @@
 [*] castro.verbose = 1
     castro.dump_old = 0
     castro.domain_is_plane_parallel = 0
-    castro.print_update_diagnostics = 0
-[*] castro.sum_interval = 0
+[*] castro.print_update_diagnostics = 1
+[*] castro.sum_interval = 1
     castro.sum_per = -1
     castro.job_name = Castro
     castro.output_at_completion = 1
