@@ -133,6 +133,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
         const Box& bx = mfi.tilebox();
         const Box& bx1 = mfi.growntilebox(1);
 
+        // this is the starting data
+        Array4<const Real> const& k_new_m_start_arr = (k_new[m_start])->array(mfi);
+
+        // this is where the update will be stored
+        Array4<Real> const& k_new_m_end_arr = (k_new[m_end])->array(mfi);
+
 #ifdef REACTIONS
         // advection + reactions
         if (sdc_order == 2)
@@ -171,8 +177,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             }
 
-            auto k_m = (*k_new[m_start]).array(mfi);
-            auto k_n = (*k_new[m_end]).array(mfi);
             auto A_m = (*A_new[m_start]).array(mfi);
             auto A_n = (*A_new[m_end]).array(mfi);
             auto C_arr = C2.array();
@@ -180,7 +184,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                sdc_update_o2(i, j, k, k_m, k_n, A_m, A_n, C_arr, dt_m, sdc_iteration, m_start);
+                sdc_update_o2(i, j, k,
+                              k_new_m_start_arr, k_new_m_end_arr,
+                              A_m, A_n, C_arr, dt_m, sdc_iteration, m_start);
             });
         }
         else
@@ -189,10 +195,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // fourth order SDC reaction update -- we need to respect the
             // difference between cell-centers and averages
 
-            Array4<const Real> const& k_new_m_start_arr=
-                (k_new[m_start])->array(mfi);
-            Array4<Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
-            Array4<const Real> const& C_source_arr=C_source.array(mfi);
+            Array4<const Real> const& C_source_arr = C_source.array(mfi);
 
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
@@ -264,9 +267,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
         }
 #else
-        Array4<const Real> const& k_new_m_start_arr=
-            (k_new[m_start])->array(mfi);
-        Array4<Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
         Array4<const Real> const& A_new_arr=(A_new[m_start])->array(mfi);
         Array4<const Real> const& A_old_0_arr=(A_old[0])->array(mfi);
         Array4<const Real> const& A_old_1_arr=(A_old[1])->array(mfi);
@@ -316,6 +316,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
         }
 #endif
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            normalize_species_sdc(i, j, k, k_new_m_end_arr);
+        });
 
     }
 }
