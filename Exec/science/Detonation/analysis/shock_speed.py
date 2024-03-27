@@ -24,12 +24,12 @@ def get_T_profile(plotfile):
 
 def find_x_for_T(x, T, T_0=2.e9):
     """ given a profile x(T), find the x_0 that corresponds to T_0 """
-    
+
     # our strategy here assumes that the hot ash is in the early part
     # of the profile.  We then find the index of the first point where
     # T drops below T_0
     idx = np.where(T < T_0)[0][0]
-    
+
     T1 = T[idx-1]
     x1 = x[idx-1]
 
@@ -37,7 +37,7 @@ def find_x_for_T(x, T, T_0=2.e9):
     x2 = x[idx]
 
     slope = (x2 - x1)/(T2 - T1)
-    
+
     return x1 + slope*(T_0 - T1)
 
 

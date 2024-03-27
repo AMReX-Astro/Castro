@@ -55,10 +55,10 @@ minorticks_on()
 xlim(0.2,90)
 ylim(4.e-4, 0.2)
 legend((line3,line1,line4,line2),
-       (r'$\tau = 3$'+' numerical', 
-        r'$\tau = 3$'+' analytic', 
-        r'$\tau = 30$'+' numerical', 
-        r'$\tau = 30$'+' analytic'), 
+       (r'$\tau = 3$'+' numerical',
+        r'$\tau = 3$'+' analytic',
+        r'$\tau = 30$'+' numerical',
+        r'$\tau = 30$'+' analytic'),
        loc='lower left',
        prop=matplotlib.font_manager.FontProperties(size=16),
        handlelength=2.5,

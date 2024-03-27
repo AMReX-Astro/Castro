@@ -53,7 +53,7 @@ Castro::ctu_rad_consup(const Box& bx,
   }
 
 
-  // radiation energy update. 
+  // radiation energy update.
 
   amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int g) noexcept
@@ -298,7 +298,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
       if (NGROUPS > 1) {
         Real ustar[NGROUPS];
-        for (int g = 0; g < NGROUPS; g++) { 
+        for (int g = 0; g < NGROUPS; g++) {
           ustar[g] = Erout(i,j,k,g) / Erscale[g];
         }
 

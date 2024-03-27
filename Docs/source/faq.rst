@@ -54,12 +54,12 @@ Debugging
    I get more information?*
 
    The best thing to do is to recompile the code with ``TEST=TRUE``
-   set in the ``GNUmakefile``. This will have AMReX catch the
-   signals raised in both C++ and Fortran functions. Behind the
+   set in the ``GNUmakefile``. This will have AMReX catch the
+   signals raised in C++ functions. Behind the
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C++ and Fortran
+   function to handle various signals raised in C++
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
@@ -77,7 +77,7 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, you can get 
+   For further capabilities, you can get
    more information than the backtrace of the call stack info by
    instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
@@ -106,10 +106,10 @@ Debugging
 
    ::
 
-           print_state(mf, IntVect(D_DECL(10, 20, 30)));
+           print_state(mf, IntVect(AMREX_D_DECL(10, 20, 30)));
 
    Here, the IntVect has the dimension that we were compiled with
-   (and this is handled through the preprocessor ``D_DECL``). In
+   (and this is handled through the preprocessor ``AMREX_D_DECL``). In
    this case, we are inspecting zone (10, 20, 30), in the global index
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.
@@ -191,7 +191,7 @@ Managing Runs
 
 #. *How can I check the compilation parameters of a Castro executable?*
 
-   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as 
+   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as
 
    ::
 
@@ -226,7 +226,7 @@ Runtime Errors
    specie abundance validity check by setting ``castro.abundance_failure_tolerance``
    to a higher value, or increasing the density floor below which this is
    ignored by changing ``castro.abundance_failure_rho_cutoff``.
-   
+
 Visualization
 =============
 

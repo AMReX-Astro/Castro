@@ -408,7 +408,14 @@ react_rho_min                Real          0.0
 react_rho_max                Real          1.e200
 
 # disable burning inside hydrodynamic shock regions
+# note: requires compiling with `USE_SHOCK_VAR=TRUE`
 disable_shock_burning        int           0
+
+# shock detection threshold for grad{P} / P
+shock_detection_threshold    Real          0.6666666666666666666666_rt
+
+# do we subtract off the hydrostatic pressure when evaluating a shock?
+shock_detection_include_sources   int      1
 
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
@@ -609,12 +616,12 @@ max_tagging_radius           real          10.0e0
 (v, verbose)                 int           0
 
 # do we dump the old state into the checkpoint files too?
-dump_old                     bool          false
+dump_old                     int           0
 
 # do we assume the domain is plane parallel when computing some of the derived
 # quantities (e.g. radial velocity).  Note: this will always assume that the
 # last spatial dimension is vertical
-domain_is_plane_parallel     bool          false
+domain_is_plane_parallel     int           0
 
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)

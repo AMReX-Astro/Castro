@@ -139,10 +139,10 @@ static void ScanArguments() {
     if (ref_ratio != 2 && ref_ratio != 4)
        amrex::Abort("ref_ratio must be 2 or 4");
 
-    if (grown_factor <= 1)  
+    if (grown_factor <= 1)
         amrex::Abort("must have grown_factor > 1");
 
-    if (star_at_center == 1)  
+    if (star_at_center == 1)
        if (grown_factor != 2 && grown_factor != 3)
           amrex::Abort("must have grown_factor = 2 or 3 for star at center");
 }
@@ -150,10 +150,10 @@ static void ScanArguments() {
 // ---------------------------------------------------------------
 static void PrintUsage (char *progName) {
     cout << "Usage: " << progName << " checkin=filename "
-         << "checkout=outfilename "  
-         << "ref_ratio= 2 or 4 "   
-         << "grown_factor=integer "   
-         << "star_at_center =0 or 1  "   
+         << "checkout=outfilename "
+         << "ref_ratio= 2 or 4 "
+         << "grown_factor=integer "
+         << "star_at_center =0 or 1  "
          << "[nfiles=nfilesout] "
          << "[verbose=trueorfalse]" << endl;
     exit(1);
@@ -205,10 +205,10 @@ static void ReadCheckpointFile(const std::string& fileName) {
     is >> mx_lev;
     is >> fakeAmr.finest_level;
 
-    if(ParallelDescriptor::IOProcessor()) 
+    if(ParallelDescriptor::IOProcessor())
        std::cout << "previous finest_lev is " << fakeAmr.finest_level <<  std::endl;
 
-    // ADDING LEVELS 
+    // ADDING LEVELS
     int n = num_new_levels;
     mx_lev = mx_lev + n;
     fakeAmr.finest_level = fakeAmr.finest_level + n;
@@ -253,7 +253,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
         amrex::Abort("must have domain divisible by 2*ref_ratio");
     }
 
-    if (grown_factor <= 1)  
+    if (grown_factor <= 1)
         amrex::Abort("must have grown_factor > 1");
 
     for (i = 1; i <  mx_lev; i++) {
@@ -298,18 +298,18 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
     // ADDING LEVELS
 
-    // n_cycle is always equal to 1 at the coarsest level 
+    // n_cycle is always equal to 1 at the coarsest level
     fakeAmr.n_cycle[0] = 1;
 
-    // At the old coarsest level, which is now level 1, we set n_cycle to ref_ratio 
+    // At the old coarsest level, which is now level 1, we set n_cycle to ref_ratio
     fakeAmr.n_cycle[1] = ref_ratio;
 
-    fakeAmr.level_steps[0] = fakeAmr.level_steps[1] / ref_ratio;  
-    if ( (fakeAmr.level_steps[0]*ref_ratio) != fakeAmr.level_steps[1] ) 
+    fakeAmr.level_steps[0] = fakeAmr.level_steps[1] / ref_ratio;
+    if ( (fakeAmr.level_steps[0]*ref_ratio) != fakeAmr.level_steps[1] )
        amrex::Abort("Number of steps in original checkpoint must be divisible by ref_ratio");
 
     // level_count is how many steps we've taken at this level since the last regrid
-    if (fakeAmr.level_count[1] == fakeAmr.level_steps[1]) 
+    if (fakeAmr.level_count[1] == fakeAmr.level_steps[1])
     {
        fakeAmr.level_count[0] = fakeAmr.level_steps[0];
 
@@ -322,7 +322,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
     // READ LEVEL DATA
     for(int lev(1); lev <= fakeAmr.finest_level; ++lev) {
-      
+
       FakeAmrLevel &falRef = fakeAmr.fakeAmrLevels[lev];
 
       is >> falRef.level;
@@ -403,7 +403,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
           FullPathName = fileName;
           if( ! fileName.empty() && fileName[fileName.length()-1] != '/') {
             FullPathName += '/';
-	  }
+          }
           FullPathName += mf_name;
           VisMF::Read(*(falRef.state[i].old_data), FullPathName);
         }
@@ -434,7 +434,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
 
       falRef.geom.define(domain,&prob_domain,coord);
 
-      if(falRef.level > 0) 
+      if(falRef.level > 0)
         falRef.crse_ratio = ref_ratio * IntVect::TheUnitVector();
       falRef.fine_ratio = ref_ratio * IntVect::TheUnitVector();
 
@@ -458,7 +458,7 @@ static void ReadCheckpointFile(const std::string& fileName) {
            int ncomp = falRef_orig.state[i].new_data->nComp();
            int ngrow = falRef_orig.state[i].new_data->nGrow();
 
-	   DistributionMapping dmap {falRef.grids};
+           DistributionMapping dmap {falRef.grids};
            falRef.state[i].new_data = new MultiFab(falRef.grids, dmap, ncomp, ngrow);
            falRef.state[i].new_data->setVal(0.);
 
@@ -502,17 +502,17 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
       if (oldCastroHeaderFile.good()) {
 
-	std::ofstream newCastroHeaderFile;
+        std::ofstream newCastroHeaderFile;
 
-	std::string newCastroHeaderName = outFileName + "/CastroHeader";
-	newCastroHeaderFile.open(newCastroHeaderName.c_str(), std::ios::binary);
+        std::string newCastroHeaderName = outFileName + "/CastroHeader";
+        newCastroHeaderFile.open(newCastroHeaderName.c_str(), std::ios::binary);
 
-	if (newCastroHeaderFile.good()) {
-	  newCastroHeaderFile << oldCastroHeaderFile.rdbuf();
-	  newCastroHeaderFile.close();
-	}
+        if (newCastroHeaderFile.good()) {
+          newCastroHeaderFile << oldCastroHeaderFile.rdbuf();
+          newCastroHeaderFile.close();
+        }
 
-	oldCastroHeaderFile.close();
+        oldCastroHeaderFile.close();
 
       }
 
@@ -533,15 +533,15 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
     if(ParallelDescriptor::IOProcessor()) {
         // Only the IOProcessor() writes to the header file.
         HeaderFile.open(HeaderFileName.c_str(),
-	                std::ios::out|std::ios::trunc|std::ios::binary);
+                        std::ios::out|std::ios::trunc|std::ios::binary);
 
         if( ! HeaderFile.good()) {
           amrex::FileOpenFailed(HeaderFileName);
-	}
+        }
 
         old_prec = HeaderFile.precision(15);
 
-	int max_level(fakeAmr.finest_level);
+        int max_level(fakeAmr.finest_level);
         HeaderFile << CheckPointVersion << '\n'
                    << AMREX_SPACEDIM       << '\n'
                    << fakeAmr.cumtime           << '\n'
@@ -627,9 +627,9 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
           if(ParallelDescriptor::IOProcessor()) {
             // The relative name gets written to the Header file.
             std::string mf_name_old = name;
-	    mf_name_old += OldSuffix;
+            mf_name_old += OldSuffix;
             std::string mf_name_new = name;
-	    mf_name_new += NewSuffix;
+            mf_name_new += NewSuffix;
 
             os << falRef.state[i].domain << '\n';
 
@@ -663,7 +663,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
             BL_ASSERT(dump_old);
             BL_ASSERT(falRef.state[i].old_data);
             std::string mf_fullpath_old = fullpathname;
-	    mf_fullpath_old += OldSuffix;
+            mf_fullpath_old += OldSuffix;
             VisMF::Write(*(falRef.state[i].old_data),mf_fullpath_old,how);
           }
           // ++++++++++++
@@ -689,7 +689,7 @@ static void WriteCheckpointFile(const std::string& inFileName, const std::string
 
         if( ! HeaderFile.good()) {
           amrex::Error("Amr::checkpoint() failed");
-	}
+        }
     }
 
     FArrayBox::setFormat(thePrevFormat);
@@ -726,7 +726,7 @@ static void ConvertData() {
         {
           int shiftx(jx*dlenx);
           int shifty(jy*dleny);
-          IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+          IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
           Box bx(falRef0.grids[n]);
           bx.shift(shift_box);
@@ -742,7 +742,7 @@ static void ConvertData() {
    } else {
 #endif
 
-   if (star_at_center == 1 && grown_factor == 2) 
+   if (star_at_center == 1 && grown_factor == 2)
    {
    // Here we tile the domain with tiles smaller than the original domain --
    //   we first tile with domain-sized pieces, then intersect with the new domain
@@ -762,7 +762,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz - dlenz/2);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);
@@ -777,13 +777,13 @@ static void ConvertData() {
    // Here we tile the domain with tiles the size of the original domain
 
 #if (AMREX_SPACEDIM == 3)
-   for (int jz = 0; jz < grown_factor; jz++) 
+   for (int jz = 0; jz < grown_factor; jz++)
 #endif
 #if (AMREX_SPACEDIM >= 2)
-   for (int jy = 0; jy < grown_factor; jy++) 
+   for (int jy = 0; jy < grown_factor; jy++)
 #endif
-    for (int jx = 0; jx < grown_factor; jx++) 
-      for (int n = 0; n < falRef0.grids.size(); n++) 
+    for (int jx = 0; jx < grown_factor; jx++)
+      for (int n = 0; n < falRef0.grids.size(); n++)
       {
         int shiftx(jx*dlenx);
 #if (AMREX_SPACEDIM >= 2)
@@ -792,7 +792,7 @@ static void ConvertData() {
         int shiftz(jz*dlenz);
 #endif
 #endif
-        IntVect shift_box(D_DECL(shiftx,shifty,shiftz));
+        IntVect shift_box(AMREX_D_DECL(shiftx,shifty,shiftz));
 
         Box bx(falRef0.grids[n]);
         bx.shift(shift_box);
@@ -810,12 +810,12 @@ static void ConvertData() {
 
    int nstatetypes = falRef0.state.size();
 
-   for (int n = 0; n < nstatetypes; n++) 
+   for (int n = 0; n < nstatetypes; n++)
       falRef0.state[n].grids = newgrids;
 
    // Enlarge the ProbDomain (RealBox) of the geom at each level --
    //   but we only have to do this at level 0 because they are
-   //   actually all the same copy 
+   //   actually all the same copy
    RealBox rb(fakeAmr.geom[0].ProbDomain());
 
    // If this is an octant then we always grow only in the high directions
@@ -823,9 +823,9 @@ static void ConvertData() {
    {
       // Here we grow only prob_hi, extending the domain in one direction.
       // This works when the star's center is at the origin
-      for (int dm = 0; dm < AMREX_SPACEDIM; dm++) 
+      for (int dm = 0; dm < AMREX_SPACEDIM; dm++)
          rb.setHi(dm,grown_factor*rb.hi(dm));
-   } 
+   }
 
    // We treat the r-z case with the star in the middle specially
 #if (AMREX_SPACEDIM == 2)
@@ -846,12 +846,12 @@ static void ConvertData() {
    }
 #endif
 
-   // This has star_at_center = 0 
-   else 
+   // This has star_at_center = 0
+   else
    {
       // Here we grow prob_lo and prob_hi, extending the domain in all directions.
       // This works when the star's center is at the center of the domain.
-      for (int dm = 0; dm < AMREX_SPACEDIM; dm++) 
+      for (int dm = 0; dm < AMREX_SPACEDIM; dm++)
       {
          Real dist   = 0.5 * (rb.hi(dm)-rb.lo(dm));
          Real center = 0.5 * (rb.hi(dm)+rb.lo(dm));
@@ -883,7 +883,7 @@ static void ConvertData() {
    {
       if (coord == 1) // r-z
       {
-         for (int i = 0; i <= max_level; i++) 
+         for (int i = 0; i <= max_level; i++)
          {
             Box domain(fakeAmr.geom[i].Domain());
             // We only handle grown_factor = 2
@@ -891,7 +891,7 @@ static void ConvertData() {
             shift_iv[i][1] = domain.size()[1] / 2;
          }
       } else if (coord == 0) { // x-y
-         for (int i = 0; i <= max_level; i++) 
+         for (int i = 0; i <= max_level; i++)
          {
             Box domain(fakeAmr.geom[i].Domain());
             if (grown_factor == 3) {
@@ -901,10 +901,10 @@ static void ConvertData() {
             }
          }
       }
-   } 
+   }
 
    // Enlarge the Domain (Box) of the geom at each level
-   for (int i = 0; i <= max_level; i++) 
+   for (int i = 0; i <= max_level; i++)
    {
       Box domain(fakeAmr.geom[i].Domain());
       domain.refine(grown_factor);
@@ -914,43 +914,43 @@ static void ConvertData() {
       falRef.geom.Domain(domain);
    }
 
-   // Now fix the state data domain 
-   for (int i = 0; i <= max_level; i++) 
+   // Now fix the state data domain
+   for (int i = 0; i <= max_level; i++)
    {
       FakeAmrLevel &falRef = fakeAmr.fakeAmrLevels[i];
-      for (int n = 0; n < nstatetypes; n++) 
+      for (int n = 0; n < nstatetypes; n++)
          falRef.state[n].domain.refine(grown_factor);
    }
 
    DistributionMapping newdm {newgrids};
 
    // We need to allocate a MultiFab for new data but don't need to fill it
-   for (int n = 0; n < nstatetypes; n++) 
+   for (int n = 0; n < nstatetypes; n++)
    {
       if (falRef0.state[n].new_data != 0) {
          int ncomps = (falRef0.state[n].new_data)->nComp();
          MultiFab * newNewData = new MultiFab(newgrids,newdm,ncomps,1);
 
-         newNewData->setVal(0.); 
+         newNewData->setVal(0.);
 
-         if (star_at_center == 1)  
+         if (star_at_center == 1)
             (falRef0.state[n].new_data)->shift(shift_iv[0]);
 
          falRef0.state[n].new_data = newNewData;
-   
+
 //       newNewData->copy(*(falRef0.state[n].new_data),0,0,ncomps);
       }
-   } 
+   }
 
    // If we have old_data as well as new_data
-   for (int n = 0; n < nstatetypes; n++) 
+   for (int n = 0; n < nstatetypes; n++)
    {
       if (falRef0.state[n].old_data != 0) {
          int ncomps = (falRef0.state[n].old_data)->nComp();
          MultiFab * newOldData = new MultiFab(newgrids,newdm,ncomps,1);
          newOldData->setVal(0.);
 
-         if (star_at_center == 1)  
+         if (star_at_center == 1)
             (falRef0.state[n].old_data)->shift(shift_iv[0]);
 
          falRef0.state[n].old_data = newOldData;
@@ -961,22 +961,22 @@ static void ConvertData() {
 
    // Now shift the data at the higher levels
    if (star_at_center == 1) {
-      for (int i = 1; i <= max_level; i++) 
+      for (int i = 1; i <= max_level; i++)
       {
          FakeAmrLevel &falRef = fakeAmr.fakeAmrLevels[i];
 
          // Shift the grids associated with each level
          falRef.grids.shift(shift_iv[i]);
 
-         for (int n = 0; n < nstatetypes; n++) 
+         for (int n = 0; n < nstatetypes; n++)
          {
             // Shift the grids associated with each StateData
             falRef.state[n].grids.shift(shift_iv[i]);
 
             // Shift the grids associated with the MultiFab in each StateData
-            if (falRef0.state[n].new_data != 0) 
+            if (falRef0.state[n].new_data != 0)
                (falRef.state[n].new_data)->shift(shift_iv[i]);
-            if (falRef0.state[n].old_data != 0) 
+            if (falRef0.state[n].old_data != 0)
                (falRef.state[n].old_data)->shift(shift_iv[i]);
          }
       }
@@ -1006,7 +1006,7 @@ int main(int argc, char *argv[]) {
       cout << " " << std::endl;
     }
 
-    // Read in the original checkpoint directory and add a coarser level covering the same domain 
+    // Read in the original checkpoint directory and add a coarser level covering the same domain
     ReadCheckpointFile(CheckFileIn);
 
     // Enlarge the new level 0

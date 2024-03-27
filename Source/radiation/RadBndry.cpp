@@ -44,9 +44,9 @@ RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
           bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]),
                          bctypearray[face][igrid]->dataPtr(),
-                         ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
+                         AMREX_ARLIM(domain.loVect()), AMREX_ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
         }
       }
@@ -143,25 +143,25 @@ void RadBndry::setBndryConds(const BCRec& bc,
       if (domain[face] == grd[face] && !geom.isPeriodic(dir)) {
 /*
         // All physical bc values are located on face
-        if (p_bc == EXT_DIR) {
-          bctag[i] = LO_DIRICHLET;
+        if (p_bc == amrex::BCType::ext_dir) {
+          bctag[i] = AMREX_LO_DIRICHLET;
           bloc[i] = 0.;
         }
-        else if (p_bc == EXTRAP || p_bc == HOEXTRAP || p_bc == REFLECT_EVEN) {
-          bctag[i] = LO_NEUMANN;
+        else if (p_bc == EXTRAP || p_bc == amrex::BCType::hoextrap || p_bc == amrex::BCType::reflect_even) {
+          bctag[i] = AMREX_LO_NEUMANN;
           bloc[i] = 0.;
         }
-        else if (p_bc == REFLECT_ODD) {
-          bctag[i] = LO_REFLECT_ODD;
+        else if (p_bc == amrex::BCType::reflect_odd) {
+          bctag[i] = AMREX_LO_REFLECT_ODD;
           bloc[i] = 0.;
         }
 */
-        if (p_bc == LO_DIRICHLET   || p_bc == LO_NEUMANN ||
-            p_bc == LO_REFLECT_ODD) {
+        if (p_bc == AMREX_LO_DIRICHLET   || p_bc == AMREX_LO_NEUMANN ||
+            p_bc == AMREX_LO_REFLECT_ODD) {
           bctag[i] = p_bc;
           bloc[i] = 0.;
         }
-        else if (p_bc == LO_MARSHAK || p_bc == LO_SANCHEZ_POMRANING) {
+        else if (p_bc == AMREX_LO_MARSHAK || p_bc == AMREX_LO_SANCHEZ_POMRANING) {
           bctag[i] = p_bc;
           //gives asymmetric, second-order version of Marshak b.c.
           // (worked for bbmg, works with nonsymmetric hypre solvers):
@@ -177,7 +177,7 @@ void RadBndry::setBndryConds(const BCRec& bc,
       }
       else {
         // internal bndry
-        bctag[i] = LO_DIRICHLET;
+        bctag[i] = AMREX_LO_DIRICHLET;
         bloc[i] = 0.5*delta;
       }
     }
@@ -211,8 +211,8 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 
       if (domain[face] == grd[face] && !geom.isPeriodic(dir)) {
         if (bcflag[face] <= 1) {
-          if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
-              p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {           
+          if (p_bc == AMREX_LO_MARSHAK   || p_bc == AMREX_LO_SANCHEZ_POMRANING ||
+              p_bc == AMREX_LO_DIRICHLET || p_bc == AMREX_LO_NEUMANN) {
               setValue(face, i, value);
           }
         }
@@ -225,9 +225,9 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 #if 0
           FArrayBox& bnd_fab = bndry[face][bi];
           BaseFab<int>& tfab = bctypearray[face][i];
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab),
                          tfab.dataPtr(),
-                         ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time);
+                         AMREX_ARLIM(domain.loVect()), AMREX_ARLIM(domain.hiVect()), dx, xlo, time);
           if (p_bcflag == 0) {
             // Homogeneous case.  We called RADBNDRY2 only to set tfab right.
             setValue(face, i, value);

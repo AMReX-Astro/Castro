@@ -43,7 +43,7 @@
     void
     rsrc(const Box& bx,
          Array4<Real const> const& uold,
-         Array4<Real> const& source, 
+         Array4<Real> const& source,
          const Real dt);
 
 ///

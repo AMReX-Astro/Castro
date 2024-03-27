@@ -12,8 +12,8 @@ namespace HABEC
 {
     // habec is Hypre abec, where abec is the form of the linear equation
     // we are solving:
-    // 
-    // alpha*phi - div(beta*grad phi) + div(\vec{c}*phi) 
+    //
+    // alpha*phi - div(beta*grad phi) + div(\vec{c}*phi)
 
     AMREX_INLINE
     void hbflx (Array4<Real> const flux,
@@ -89,7 +89,7 @@ namespace HABEC
 
         Real bfv, bfm, bfm2;
 
-        if (bct == LO_DIRICHLET) {
+        if (bct == AMREX_LO_DIRICHLET) {
             if (bho >= 1) {
                 Real h2 = 0.5e0_rt * h;
                 Real th2 = 3.e0_rt * h2;
@@ -306,7 +306,7 @@ namespace HABEC
                     else {
                         bct = bctype;
                     }
-                    if (bct == LO_DIRICHLET) {
+                    if (bct == AMREX_LO_DIRICHLET) {
                         if (bho >= 1) {
                             h2 = 0.5e0_rt * h;
                             th2 = 3.e0_rt * h2;
@@ -319,12 +319,12 @@ namespace HABEC
                             bfm = bfv;
                         }
                     }
-                    else if (bct == LO_NEUMANN) {
+                    else if (bct == AMREX_LO_NEUMANN) {
                         bfv  = beta * r;
                         bfm  = 0.e0_rt;
                         bfm2 = 0.e0_rt;
                     }
-                    else if (bct == LO_MARSHAK) {
+                    else if (bct == AMREX_LO_MARSHAK) {
                         bfv = 2.e0_rt * beta * r;
                         if (bho >= 1) {
                             bfm  =  0.375e0_rt * c * bfv;
@@ -334,7 +334,7 @@ namespace HABEC
                             bfm = 0.25e0_rt * c * bfv;
                         }
                     }
-                    else if (bct == LO_SANCHEZ_POMRANING) {
+                    else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                         bfv = 2.e0_rt * beta * r;
                         if (bho >= 1) {
                             bfm =   1.5e0_rt * spa(i,j,k) * c * bfv;
@@ -457,7 +457,7 @@ namespace HABEC
         {
             if (mask.contains(i+icp,j+jcp,k+kcp)) {
                 if (mask(i+icp,j+jcp,k+kcp) > 0) {
-                    if (bct == LO_DIRICHLET) {
+                    if (bct == AMREX_LO_DIRICHLET) {
                         Real d_sign = 1.0_rt;
                         if (iep != 0 || jep != 0 || kep != 0) {
                             // right edge
@@ -568,7 +568,7 @@ namespace HABEC
                     else {
                         bct = bctype;
                     }
-                    if (bct == LO_DIRICHLET) {
+                    if (bct == AMREX_LO_DIRICHLET) {
                         Real d_sign = 1.0_rt;
                         if (iep != 0 || jep != 0 || kep != 0) {
                             // right edge
@@ -576,7 +576,7 @@ namespace HABEC
                         }
                         dterm(i+iep,j+jep,k+kep) = d(i+iep,j+jep,k+kep) * d_sign * (er(i,j,k) - bcval(i+icp,j+jcp,k+kcp)) / (0.5_rt * h + bcl);
                     }
-                    else if (bct == LO_NEUMANN && bcval(i+icp,j+jcp,k+kcp) == 0.0_rt) {
+                    else if (bct == AMREX_LO_NEUMANN && bcval(i+icp,j+jcp,k+kcp) == 0.0_rt) {
                         dterm(i+iep,j+jep,k+kep) = 0.0_rt;
                     }
                 }

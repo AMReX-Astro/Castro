@@ -28,7 +28,7 @@ fig = plt.figure()
 nrows = 2
 ncols = 3
 
-grid = ImageGrid(fig, 111, nrows_ncols=(nrows, ncols), axes_pad=0.75, cbar_pad="2%", 
+grid = ImageGrid(fig, 111, nrows_ncols=(nrows, ncols), axes_pad=0.75, cbar_pad="2%",
                  label_mode="L", cbar_mode="each")
 
 

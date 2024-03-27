@@ -64,7 +64,7 @@ RadSolve::read_params ()
     }
 
     if (Radiation::SolverType == Radiation::SGFLDSolver
-        && Radiation::Er_Lorentz_term) { 
+        && Radiation::Er_Lorentz_term) {
 
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
@@ -75,7 +75,7 @@ RadSolve::read_params ()
         }
     }
 
-    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+    if (Radiation::SolverType == Radiation::MGFLDSolver &&
         Radiation::accelerate == 2 && Radiation::nGroups > 1) {
 
         if (radsolve::level_solver_flag < 100) {
@@ -135,7 +135,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi) 
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
@@ -242,7 +242,7 @@ void RadSolve::levelACoeffs(int level,
   }
 }
 
-void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int igroup, 
+void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int igroup,
                          int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
@@ -256,23 +256,23 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
 #endif
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
-    
+
       spa[mfi].setVal<RunOn::Host>(1.e210,reg,0);
-    
+
       bool nexttoboundary=false;
       for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
-          if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (lo_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
               nexttoboundary=true;
               break;
           }
-          if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (hi_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
               nexttoboundary=true;
               break;
           }
       }
-    
+
       if (nexttoboundary) {
           auto spa_arr = spa[mfi].array();
 
@@ -324,7 +324,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
     hd->SPalpha(spa);
   }
   else {
-    amrex::Abort("Should not be in RadSolve::levelSPas");    
+    amrex::Abort("Should not be in RadSolve::levelSPas");
   }
 }
 
@@ -644,7 +644,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, AMREX_SPAC
                                      MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
-    
+
     const Geometry& geom = parent->Geom(level);
     auto geomdata = geom.data();
 
@@ -785,7 +785,7 @@ void RadSolve::levelFluxReg(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
-  const Real volume = D_TERM(dx[0], * dx[1], * dx[2]);
+  const Real volume = AMREX_D_TERM(dx[0], * dx[1], * dx[2]);
 
   if (flux_in) {
     for (int n = 0; n < AMREX_SPACEDIM; n++) {
@@ -991,7 +991,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   }
 }
 
-void RadSolve::levelACoeffs(int level, MultiFab& kpp, 
+void RadSolve::levelACoeffs(int level, MultiFab& kpp,
                             Real delta_t, Real c, int igroup, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
@@ -1041,7 +1041,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 }
 
 
-void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg, 
+void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
                         const MultiFab& mugT,
                         const MultiFab& coupT,
                         const MultiFab& etaT,
@@ -1109,11 +1109,11 @@ void RadSolve::restoreHypreMulti()
   if (hem) {
     hem-> cMultiplier() =  cMulti;
     hem->d1Multiplier() = d1Multi;
-    hem->d2Multiplier() = d2Multi;  
+    hem->d2Multiplier() = d2Multi;
   }
 }
 
-void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
+void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
                              Vector<Real>& r, Vector<Real>& s)
 {
     const Box& reg = amrex::enclosedCells(edgebox);

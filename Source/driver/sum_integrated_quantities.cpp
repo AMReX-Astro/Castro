@@ -75,9 +75,9 @@ Castro::sum_integrated_quantities ()
         ang_mom[2] += ca_lev.volWgtSum("angular_momentum_z", time, local_flag);
 
 #ifdef HYBRID_MOMENTUM
-        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, time, local_flag);
-        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, time, local_flag);
-        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, time, local_flag);
+        hyb_mom[0] += ca_lev.volWgtSum(S_new, UMR, local_flag);
+        hyb_mom[1] += ca_lev.volWgtSum(S_new, UML, local_flag);
+        hyb_mom[2] += ca_lev.volWgtSum(S_new, UMP, local_flag);
 #endif
 
         com[0] += ca_lev.locWgtSum(S_new, URHO, 0, local_flag);
@@ -131,7 +131,7 @@ Castro::sum_integrated_quantities ()
             auto R = R_new[mfi].array();
 #endif
 
-            auto level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
+            const auto & level_mask = mask_available ? mask_mf[mfi].array() : Array4<Real>{};
 
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -375,13 +375,9 @@ Castro::sum_integrated_quantities ()
 
                data_log1 << std::setw(intwidth) <<  timestep;
 
-               if (time == 0.0_rt) {
-                   data_log1 << std::fixed;
-               }
-               else if (time < 1.e-4_rt || time > 1.e4_rt) {
+               if (time < 1.e-4_rt || time > 1.e4_rt) {
                    data_log1 << std::scientific;
-               }
-               else {
+               } else {
                    data_log1 << std::fixed;
                }
 
@@ -515,10 +511,7 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time == 0.0_rt) {
-                log << std::fixed;
-            }
-            else if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
             }
             else {
@@ -616,13 +609,9 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time == 0.0_rt) {
-                log << std::fixed;
-            }
-            else if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
-            }
-            else {
+            } else {
                 log << std::fixed;
             }
 
@@ -717,13 +706,9 @@ Castro::sum_integrated_quantities ()
 
             log << std::setw(intwidth)                                    << timestep;
 
-            if (time == 0.0_rt) {
-                log << std::fixed;
-            }
-            else if (time < 1.e-4_rt || time > 1.e4_rt) {
+            if (time < 1.e-4_rt || time > 1.e4_rt) {
                 log << std::scientific;
-            }
-            else {
+            } else {
                 log << std::fixed;
             }
 

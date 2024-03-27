@@ -85,12 +85,12 @@ evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   Real alf;
   Real als;
- 
+
   if (std::abs(cfx-csx) <= 1e-14){
     alf = 1.0_rt;
     als = 0.0_rt;
   }
-  
+
   if (as - csx < 0.0) {
     alf = 0.0_rt;
   } else {
@@ -102,8 +102,8 @@ evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
   } else {
     als = std::sqrt((cfx - as)/(cfx - csx));
   }
-  
-  
+
+
 
   Real bety;
   Real betz;
@@ -286,7 +286,7 @@ evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   Real alf;
   Real als;
-  
+
   if (std::abs(cfy-csy) <= 1e-14){
     alf = 1.0_rt;
     als = 0.0_rt;

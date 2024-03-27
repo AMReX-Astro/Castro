@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
 #else
     double x_maxdist = amrex::max(std::abs(probhi[0] - xctr),
-                                  std::fabs(problo[0] - xctr));
+                                  std::abs(problo[0] - xctr));
     double y_maxdist = amrex::max(std::abs(probhi[1] - yctr),
                                   std::abs(problo[1] - yctr));
     double z_maxdist = amrex::max(std::abs(probhi[2] - zctr),
@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
                                 e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
 
                                 volcount[index] += vol;
-                                
+
                             }
                         }
                     }
@@ -342,10 +342,10 @@ int main(int argc, char* argv[])
     // write the data in columns
     const auto SMALL = 1.e-20;
     for (auto i = 0; i < nbins; i++) {
-        if (fabs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
-        if (fabs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
-        if (fabs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
-        if (fabs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
+        if (std::abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
+        if (std::abs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
+        if (std::abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
+        if (std::abs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
 
         slicefile << std::setw(w) << r[i] << std::setw(w) << dens_bin[i] << std::setw(w) << vel_bin[i] << std::setw(w) << pres_bin[i] << std::setw(w) << e_bin[i] << std::endl;
     }

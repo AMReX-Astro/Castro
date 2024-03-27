@@ -14,7 +14,7 @@ def OneTShock(P0=1.0e-4, gamma=5./3., M0=2):  # Lowrie & Rauenzahn 07
     def rho1_f(T1):
         f1 = f1_f(T1)
         return (f1+sqrt(f1**2+f2_f(T1))) / (6.*(gamma-1.)*T1)
-    def Eq13(T1): 
+    def Eq13(T1):
         rho1 = rho1_f(T1)
         return 3.0*rho1*(rho1*T1-1.) + gamma*P0*rho1*(T1**4-1.) - 3.*gamma*(rho1-1.)*M0**2
     def T1_smallP0():
@@ -47,10 +47,10 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
     Cp = 1./(gamma-1.)
     M_ISP = 1.0/sqrt(gamma)  # Eq. 28
     Km = 3.*(gamma*M0**2+1.) + gamma*P0 # Eq. 16
-    
+
     def rho_f(T, theta, s): # Eq. 17
         b = Km - gamma*P0*theta**4
-        ac4 = 36.*gamma*M0**2*T 
+        ac4 = 36.*gamma*M0**2*T
         return (b + s*sqrt(b**2-ac4))/(6.*T)
 
     def dTdtheta(T, theta, rho, M, v, s):  # Eq. 54
@@ -64,8 +64,8 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
         dGdtheta = c1 * (12.*Cp*drhodtheta*rho*(T-1.) - 6.*M0**2*rho*drhodtheta + 8.*P0*(drhodtheta*(theta**4-2.*rho)+4.*rho*theta**3))
         dFdT = c2 * (4.*v*theta**3*dGdT - 12.*sigma*(gamma*M**2-1.)*T**3)
         dFdtheta = c2 * (4.*v*theta**3*dGdtheta + 12.*sigma*(gamma*M**2-1.)*theta**3)
-        S1 = dFdT - dGdtheta 
-        S2 = sqrt((dFdT-dGdtheta)**2 + 4.*dGdT*dFdtheta) 
+        S1 = dFdT - dGdtheta
+        S2 = sqrt((dFdT-dGdtheta)**2 + 4.*dGdT*dFdtheta)
         dTdtheta_tmp = (S1 + S2) / (2.*dGdT)
         drhodtheta_full = drhodtheta + drhodT * dTdtheta_tmp
         if (drhodtheta > 0.0):
@@ -85,7 +85,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
         theta = th4**0.25
         th3 = th4/theta
         thetaprime = thetaprime_f(T,theta,rho,v)
-        foo = 4.*M0*th3*thetaprime 
+        foo = 4.*M0*th3*thetaprime
         ZD = foo + (gamma-1.)/(gamma+1.)*(gamma*M**2+1.)*r  # Eq. 39
         ZN = foo + (gamma*M**2-1.)*r  # Eq. 24
         dxdM =  -6.*M0*rho*T/((gamma+1.)*P0*M) * (M**2-1.)/ZD
@@ -106,7 +106,7 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
         s1 = 1.
     else:
         s1 = -1.
-    
+
     # Step 2a of LE08
     # i= 0
     eps = 1.0e-10
@@ -223,11 +223,11 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
             #
             foo = rhop*vp**2 + pp  # Eq. 12b
             bar = rhos*vs**2 + ps
-            err1 = abs(foo-bar)/min(foo,bar)  
+            err1 = abs(foo-bar)/min(foo,bar)
             #
             foo = vp*(rhop*Ep+pp)  # Eq. 12c
             bar = vs*(rhos*Es+ps)
-            err2 = abs(foo-bar)/min(foo,bar) 
+            err2 = abs(foo-bar)/min(foo,bar)
             #
             errs.append(sqrt(err1**2+err2**2))
             ilasts.append(ilast)
@@ -293,10 +293,10 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
 
 if __name__ == "__main__":
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "", ["P0","gamma=","sigma=","kappa=", "M0="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["P0","gamma=","sigma=","kappa=", "M0="])
     except getopt.GetoptError:
         print '???'
-	sys.exit(1)
+        sys.exit(1)
 
     P0 = 1.0e-4
     gamma = 5./3.
@@ -305,7 +305,7 @@ if __name__ == "__main__":
     M0 = 2.0
 
     for o, a in opts:
-	if o == "--P0":
+        if o == "--P0":
             P0 = float(a)
         elif o == "--gamma":
             gamma = float(a)

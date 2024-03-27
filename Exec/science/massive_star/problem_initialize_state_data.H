@@ -7,6 +7,7 @@
 #ifdef NSE_TABLE
 #include <nse_table_type.H>
 #include <nse_table_check.H>
+#include <nse_eos.H>
 #endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -128,8 +129,33 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     if (problem::interpolate_pres == 1) {
-        eos(eos_input_rp, eos_state);
-        state(i,j,k,UTEMP) = eos_state.T;
+
+        // we need to get T from P, rho, but consistent with NSE (if
+        // we are in NSE)
+        if (nse_check) {
+            // this will also change the composition, since the new T
+            // alters the NSE
+            nse_T_abar_from_p(eos_state.rho, eos_state.p, eos_state.aux[AuxZero::iye],
+                              eos_state.T, eos_state.aux[AuxZero::iabar]);
+            state(i,j,k,UTEMP) = eos_state.T;
+            state(i,j,k,UFX+AuxZero::iabar) = eos_state.aux[AuxZero::iabar];
+
+            // now call the EOS with the new T and abar to get e
+            eos(eos_input_rt, eos_state);
+
+            // finally, get the updated B/A
+            nse_table_t nse_state;
+            nse_state.T = state(i,j,k,UTEMP);
+            nse_state.rho = state(i,j,k,URHO);
+            nse_state.Ye = state(i,j,k,UFX+AuxZero::iye);
+            nse_interp(nse_state);
+
+            state(i,j,k,UFX+AuxZero::ibea) = nse_state.bea;
+
+        } else {
+            eos(eos_input_rp, eos_state);
+            state(i,j,k,UTEMP) = eos_state.T;
+        }
     } else {
         eos(eos_input_rt, eos_state);
     }
@@ -201,7 +227,7 @@ void problem_initialize_state_data (int i, int j, int k,
                                         (x + problem::center[0]) /
                                         problem::velpert_scale + phix[n]);
                     Real cy = std::cos(2.0_rt * M_PI * Real(jj) *
-                                        (y + problem::center[1]) / 
+                                        (y + problem::center[1]) /
                                         problem::velpert_scale + phiy[n]);
                     Real cz = std::cos(2.0_rt * M_PI * Real(kk) *
                                         (z + problem::center[2]) /

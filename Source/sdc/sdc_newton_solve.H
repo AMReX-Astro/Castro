@@ -226,7 +226,7 @@ sdc_newton_solve(const Real dt_m,
 
     U_new[UEINT] = burn_state.y[SEINT];
 
-    // we want to do a conservative update for (rho E), so first figure out the 
+    // we want to do a conservative update for (rho E), so first figure out the
     // energy generation rate
 
     Real rho_Sdot = (U_new[UEINT] - U_old[UEINT]) / dt_m - C[UEINT];
