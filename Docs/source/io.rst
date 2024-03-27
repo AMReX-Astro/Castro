@@ -304,6 +304,8 @@ Derived variables
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | variable name                     | description                                       | derive routine              | units                                   |
 +===================================+===================================================+=============================+=========================================+
+| ``abar``                          | Mean atomic mass                                  | ``derabar``                 | :math:`\amu`                            |
++-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | ``angular_momentum_x``,           | Angular momentum / volume in the x, y, or z dir   | ``derangmomx``,             | :math:`{\rm g~cm^{-1}~s^{-1}}`          |
 | ``angular_momentum_y``,           | computed as :math:`[(\rho \ub) \times {\bf r}]_n` | ``derangmomy``,             |                                         |
 | ``angular_momentum_z``            | where :math:`{\bf r}` is the distance from        | ``derangmomz``              |                                         |
@@ -327,6 +329,8 @@ Derived variables
 | ``entropy``                       | Specific entropy, :math:`s`, computed as          | ``derentropy``              | :math:`{\rm erg~g^{-1}~K^{-1}}`         |
 |                                   | :math:`s = s(\rho, e, X_k)`, where `e` is         |                             |                                         |
 |                                   | computed from :math:`(\rho e)`                    |                             |                                         |
++-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
+| ``enuc``                          | Nuclear energy generation rate / gram             | ``derenuc``                 | :math:`{\rm erg~g^{-1}~s^{-1}}`         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | ``Ertot``                         | Total radiation energy density                    | ``derertot``                |                                         |
 |                                   | (for multigroup radiation problems)               |                             |                                         |
@@ -390,8 +394,6 @@ Derived variables
 | ``x_velocity``,                   | Fluid velocity,                                   | ``dervel``                  | :math:`\cms`                            |
 | ``y_velocity``,                   | :math:`\ub = (\rho \ub)/\rho`                     |                             |                                         |
 | ``z_velocity``                    |                                                   |                             |                                         |
-+-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
-| ``enuc``                          | Nuclear energy generation rate / gram             | ``derenuc``                 | :math:`{\rm erg~g^{-1}~s^{-1}}`         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 
 problem-specific plotfile variables
