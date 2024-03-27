@@ -12,8 +12,8 @@ using namespace amrex;
 #ifndef TRUE_SDC
 
 advance_status
-Castro::do_old_reactions (Real time, Real dt)
-{
+Castro::do_old_reactions (Real time, Real dt) {  // NOLINT(readability-convert-member-functions-to-static)
+
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
