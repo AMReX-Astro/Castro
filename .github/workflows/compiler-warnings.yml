@@ -1,6 +1,11 @@
 name: "compiler warnings"
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   compiler_warnings:
     runs-on: ubuntu-latest
