@@ -533,7 +533,9 @@ Castro::react_state(Real time, Real dt)
 #endif
     int num_failed = 0;
 
-    // why no omp here?
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:num_failed)
+#endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
