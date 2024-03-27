@@ -30,6 +30,9 @@ Castro::do_advance_sdc (Real time,
 
   // this is the new "formal" SDC integration routine.
 
+  amrex::ignore_unused(amr_iteration);
+  amrex::ignore_unused(amr_ncycle);
+
   // this does the entire update in time for 1 SDC iteration.
 
   BL_PROFILE("Castro::do_advance_sdc()");

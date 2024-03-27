@@ -21,6 +21,8 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
+    amrex::ignore_unused(time);
+
 #ifdef RADIATION
   amrex::Abort("Error: radiation not supported for the MOL hydro source term");
 #else
@@ -648,6 +650,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
         Array4<Real> pradial_fab = pradial.array();
+#endif
+#if AMREX_SPACEDIM == 1
         Array4<Real> const qex_arr = qe[0].array();
 #endif
 
