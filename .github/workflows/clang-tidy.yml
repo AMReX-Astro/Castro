@@ -1,6 +1,11 @@
 name: "clang-tidy"
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   clang_tidy:
     runs-on: ubuntu-latest
