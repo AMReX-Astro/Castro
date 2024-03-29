@@ -468,7 +468,12 @@ own variable)</p></td>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abar</span></code></p></td>
+<td><p>Mean atomic mass</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derabar</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\amu\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
 <code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code>,
 <code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></p></td>
 <td><p>Angular momentum / volume in the x, y, or z dir
@@ -480,42 +485,47 @@ where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the dista
 <code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
 <td><p>Thermal diffusion coefficient,
 <span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm cm^2~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdivu</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
 <td><p>Specific internal energy computed from the
 conserved <span class="math notranslate nohighlight">\((\rho e)\)</span> state variable as
 <span class="math notranslate nohighlight">\(e = (\rho e)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dereint2</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
 <td><p>Specific internal energy computed from the
 total energy and momentum conserved state as
 <span class="math notranslate nohighlight">\(e=[(\rho E)-\frac{1}{2}(\rho \ub^2)]/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dereint1</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
 <td><p>Specific entropy, <span class="math notranslate nohighlight">\(s\)</span>, computed as
 <span class="math notranslate nohighlight">\(s = s(\rho, e, X_k)\)</span>, where <cite>e</cite> is
 computed from <span class="math notranslate nohighlight">\((\rho e)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derentropy</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate / gram</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></p></td>
 <td><p>Total radiation energy density
@@ -649,11 +659,6 @@ speed</p></td>
 <span class="math notranslate nohighlight">\(\ub = (\rho \ub)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dervel</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
-<td><p>Nuclear energy generation rate / gram</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">derenuc</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
 </tr>
 </tbody>
 </table>
