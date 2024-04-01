@@ -61,7 +61,7 @@ There are three sponges, each controlled by different runtime parameters:
                      f_\mathrm{lower}   & r < r_\mathrm{lower} \\
                      f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
                           \left [ 1 - \cos \left ( \frac{\pi (r - r_\mathrm{lower})}{\Delta r} \right ) \right ]  & r_\mathrm{lower} \le r < r_\mathrm{upper} \\
-                     f_\mathrm{upper} & r \ge r_\mathrm{upper} 
+                     f_\mathrm{upper} & r \ge r_\mathrm{upper}
              \end{array} \right .
 
 
@@ -89,7 +89,7 @@ There are three sponges, each controlled by different runtime parameters:
                      f_\mathrm{lower}   & \rho > \rho_\mathrm{upper} \\
                      f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
                           \left [ 1 - \cos \left ( \frac{\pi (\rho - \rho_\mathrm{upper})}{\Delta \rho} \right ) \right ]  & \rho_\mathrm{upper} \ge \rho > \rho_\mathrm{lower} \\
-                     f_\mathrm{upper} & \rho < \rho_\mathrm{lower} 
+                     f_\mathrm{upper} & \rho < \rho_\mathrm{lower}
              \end{array} \right .
 
 
@@ -115,7 +115,7 @@ There are three sponges, each controlled by different runtime parameters:
                      f_\mathrm{lower}   & p > p_\mathrm{upper} \\
                      f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
                           \left [ 1 - \cos \left ( \frac{\pi (p - p_\mathrm{upper})}{\Delta p} \right ) \right ]  & p_\mathrm{upper} \ge p \ge p_\mathrm{lower} \\
-                     f_\mathrm{upper} & \rho < \rho_\mathrm{lower} 
+                     f_\mathrm{upper} & \rho < \rho_\mathrm{lower}
              \end{array} \right .
 
 

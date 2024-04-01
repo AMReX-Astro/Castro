@@ -49,12 +49,12 @@ example, an input file for a model fluid with 6 particles in 2-D
 Cartesian coordinates may look like::
 
     6
-    3.28125e+08 9.9198e+08 
-    5.46875e+08 9.9198e+08 
-    7.65625e+08 9.9198e+08 
-    9.84375e+08 9.9198e+08 
-    1.20312e+09 9.9198e+08 
-    1.42188e+09 9.9198e+08 
+    3.28125e+08 9.9198e+08
+    5.46875e+08 9.9198e+08
+    7.65625e+08 9.9198e+08
+    9.84375e+08 9.9198e+08
+    1.20312e+09 9.9198e+08
+    1.42188e+09 9.9198e+08
 
 According to this input file, the 6 particles will be positioned at
 the same height (same :math:`y` coordinate in the second column),
@@ -105,7 +105,7 @@ a particle and extract its history (i.e., the trajectory in :numref:`fig:particl
    A model atmosphere with the arrows showing the direction of the fluid motion.
 
 .. _fig:particletrajectory:
-.. figure:: tracer_trajectory.png 
+.. figure:: tracer_trajectory.png
 
    The trajectories of 500 particles following the fluid motion on the
    atmosphere. The particles are initially positioned at five
