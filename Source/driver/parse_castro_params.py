@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-"""
-This script parses the list of C++ runtime parameters and writes the
-necessary header files and Fortran routines to make them available
-in Castro's C++ routines.
+"""This script parses the list of C++ runtime parameters and writes
+the necessary header and source files to make them available in
+Castro's C++ routines.  They are available in 2 ways: as global
+parameter and in the form of a single struct.
 
 parameters have the format:
 
@@ -41,15 +41,15 @@ For a namespace, name, we write out:
   -- name_params.H  (for castro, included in Castro.H):
      sets up the namespace and extern parameters
 
-  -- name_declares.H  (for castro, included in Castro.cpp):
-     declares the runtime parameters
-
   -- name_queries.H  (for castro, included in Castro.cpp):
      does the parmparse query to override the default in C++
 
   -- name_job_info_tests.H
      this tests the current value against the default and outputs
      into a file
+
+  -- runtime_params.cpp
+     has the actual definition of the variables (without extern)
 
 """
 
@@ -129,44 +129,18 @@ def read_param_file(infile):
 
     return params
 
-def write_headers(params, out_directory, struct_name):
+def write_headers_and_source(params, out_directory, struct_name):
 
     # output
 
     # find all the namespaces
-    namespaces = {q.namespace for q in params}
+    namespaces = sorted({q.namespace for q in params})
 
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
         ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
-
-        # write name_declares.H
-        try:
-            cd = open(f"{out_directory}/{nm}_declares.H", "w", encoding="UTF-8")
-        except OSError:
-            sys.exit(f"unable to open {nm}_declares.H for writing")
-
-        cd.write(CWARNING)
-        cd.write(f"#ifndef {nm.upper()}_DECLARES_H\n")
-        cd.write(f"#define {nm.upper()}_DECLARES_H\n")
-
-        cd.write("\n")
-        cd.write(f"namespace {nm} {{\n")
-
-        for ifdef in ifdefs:
-            if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    cd.write(p.get_declare_string())
-            else:
-                cd.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cd.write(p.get_declare_string())
-                cd.write("#endif\n")
-        cd.write("}\n\n")
-        cd.write("#endif\n")
-        cd.close()
 
         # write name_params.H
         try:
@@ -238,7 +212,44 @@ def write_headers(params, out_directory, struct_name):
 
         jo.close()
 
+    # write a single C++ source file that actually defines the parameters
+    # (one file for all namespaces)
+    try:
+        pf = open(f"{out_directory}/runtime_params.cpp", "w", encoding="UTF-8")
+    except OSError:
+        sys.exit(f"unable to open runtime_params.cpp")
+
+    pf.write("#include <AMReX_REAL.H>\n")
+    pf.write("#include <AMReX_Gpu.H>\n")
+    pf.write("#include <castro_limits.H>\n\n")
+
+    for nm in namespaces:
+        pf.write(f"#include <{nm}_params.H>\n")
+    pf.write("\n")
+
+    for nm in namespaces:
+        params_nm = [q for q in params if q.namespace == nm]
+        # sort by repr since None may be present
+        ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
+
+        pf.write(f"namespace {nm} {{\n")
+
+        for ifdef in ifdefs:
+            if ifdef is None:
+                for p in [q for q in params_nm if q.ifdef is None]:
+                    pf.write(p.get_declare_string())
+            else:
+                pf.write(f"#ifdef {ifdef}\n")
+                for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    pf.write(p.get_declare_string())
+                pf.write("#endif\n")
+        pf.write("}\n\n")
+
+    pf.close()
+
     # now write a single file that contains all of the parameter structs
+    # to minimize padding, we want to sort on type
+
     try:
         sf = open(f"{out_directory}/{struct_name}_type.H", "w", encoding="UTF-8")
     except OSError:
@@ -255,19 +266,24 @@ def write_headers(params, out_directory, struct_name):
         params_nm = [q for q in params if q.namespace == nm]
         # sort by repr since None may be present
         ifdefs = sorted({q.ifdef for q in params_nm}, key=repr)
-
         sf.write(f"struct {nm}_t {{\n")
         print("namespace = ", nm)
         for ifdef in ifdefs:
+            params_if = [q for q in params_nm if q.ifdef == ifdef]
+            types = sorted(set(q.dtype for q in params_if))
+
             if ifdef is None:
-                for p in [q for q in params_nm if q.ifdef is None]:
-                    sf.write(p.get_struct_entry())
+                for tt in types:
+                    params_type = [q for q in params_if if q.dtype == tt]
+                    for p in params_type:
+                        sf.write(p.get_struct_entry())
             else:
                 sf.write(f"#ifdef {ifdef}\n")
-                for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    sf.write(p.get_struct_entry())
+                for tt in types:
+                    params_type = [q for q in params_if if q.dtype == tt]
+                    for p in params_type:
+                        sf.write(p.get_struct_entry())
                 sf.write("#endif\n")
-
 
         sf.write("};\n\n")
 
@@ -295,7 +311,7 @@ def main():
     args = parser.parse_args()
 
     p = read_param_file(args.input_file[0])
-    write_headers(p, args.o, args.s)
+    write_headers_and_source(p, args.o, args.s)
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,6 @@ CEXE_sources += HypreExtMultiABec.cpp
 CEXE_sources += HypreMultiABec.cpp
 CEXE_sources += HypreABec.cpp
 CEXE_sources += Radiation.cpp
-CEXE_sources += radiation_params.cpp
 CEXE_sources += RadSolve.cpp
 CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
