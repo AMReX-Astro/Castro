@@ -113,7 +113,7 @@ Castro::construct_old_gravity (Real time)
             gravity->test_level_grad_phi_prev(level);
 
         }
- 
+
     }
 
     // Define the old gravity vector.
@@ -388,7 +388,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
             Real SrE{};
 
-            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {
+            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {  // NOLINT(bugprone-branch-clone)
 
                 // Src = rho u dot g, evaluated with all quantities at t^n
 

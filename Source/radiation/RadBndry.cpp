@@ -44,7 +44,7 @@ RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
           bctypearray[face][igrid].reset(new BaseFab<int>(face_box));
           // We don't care about the bndry values here, only the type array.
 #if 0
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bndry[face][bi]),
                          bctypearray[face][igrid]->dataPtr(),
                          AMREX_ARLIM(domain.loVect()), AMREX_ARLIM(domain.hiVect()), dx, xlo, time);
 #endif
@@ -212,7 +212,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
       if (domain[face] == grd[face] && !geom.isPeriodic(dir)) {
         if (bcflag[face] <= 1) {
           if (p_bc == AMREX_LO_MARSHAK   || p_bc == AMREX_LO_SANCHEZ_POMRANING ||
-              p_bc == AMREX_LO_DIRICHLET || p_bc == AMREX_LO_NEUMANN) { 
+              p_bc == AMREX_LO_DIRICHLET || p_bc == AMREX_LO_NEUMANN) {
               setValue(face, i, value);
           }
         }
@@ -225,7 +225,7 @@ void RadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
 #if 0
           FArrayBox& bnd_fab = bndry[face][bi];
           BaseFab<int>& tfab = bctypearray[face][i];
-          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab), 
+          FORT_RADBNDRY2(BL_TO_FORTRAN(bnd_fab),
                          tfab.dataPtr(),
                          AMREX_ARLIM(domain.loVect()), AMREX_ARLIM(domain.hiVect()), dx, xlo, time);
           if (p_bcflag == 0) {

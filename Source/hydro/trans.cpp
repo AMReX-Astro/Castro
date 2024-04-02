@@ -64,7 +64,7 @@ Castro::trans_single(const Box& bx,
 
 
 void
-Castro::actual_trans_single(const Box& bx,
+Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                             int idir_t, int idir_n, int d,
                             Array4<Real const> const& q_arr,
                             Array4<Real> const& qo_arr,
@@ -521,7 +521,7 @@ Castro::trans_final(const Box& bx,
 
 
 void
-Castro::actual_trans_final(const Box& bx,
+Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                            int idir_n, int idir_t1, int idir_t2, int d,
                            Array4<Real const> const& q_arr,
                            Array4<Real> const& qo_arr,

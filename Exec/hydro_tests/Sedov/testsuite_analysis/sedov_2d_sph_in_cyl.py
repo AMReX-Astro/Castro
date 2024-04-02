@@ -23,7 +23,7 @@ def process(castro_dir, plotfile):
     # find the executable
     analysis_routine = None
     for file in os.listdir(build_dir):
-        if (os.path.isfile(file) and 
+        if (os.path.isfile(file) and
             file.startswith("sedov_2d") and
             file.endswith(".ex")):
             analysis_routine = file

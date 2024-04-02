@@ -17,7 +17,7 @@ long double Temp(long double P1,long double Pc,long double P_char,long double T_
 long double Temp(long double P1,long double Pc,long double P_char,long double T_char,long double Td,  long double Lin, long double Lad, long double exp1, long double exp2)    //define the function here, ie give the equation
 {
   long double Temp;
-  
+
   if(Pc>P1){
     Temp = Td * std::pow(1.0e0 + (Lad / (Lin - Lad)) * std::pow((P1/Pc),exp1),exp2);
   }
@@ -48,7 +48,7 @@ int main(){
   int alpha=1, beta=0, count = 0,count_cell,count2=0;
   bool continuous_P, continuous_rho;
   long double P[10000],T[10000],den[10000],y[10000];
-  
+
   //Declaration Block
   Td = 1500.0;                              //T_deep : the temperature at the top of the atmosphere[K]
   P_char = 1.0e6;
@@ -61,13 +61,13 @@ int main(){
 
   exp1=1.0 + alpha;
   exp2=(1.0/(4.0-beta));
-  
-  
+
+
   //Defining the computation box
   z_top=4.0e9;                               // the size of the computation box
   number_cell=1024.0;                        // the number of cells
-  
-  
+
+
   //Initializing
   kappa0 = 6.35e-3 ;
   dP_factor=1.e5;
@@ -87,11 +87,11 @@ int main(){
   //Choosing either continuous pressure or density at the boundary between the buffer and the atmosphere
   continuous_P = true;
   continuous_rho = false;
-  
+
   if((continuous_P==true && continuous_rho==true) || (continuous_P==false && continuous_rho==false)){
     cout<<"P and rho can not be continuous at the same time." <<'\n';
   }
-  
+
   //Defining the properties of the planet atmosphere
                             // the density limit at the top of the atmosphere
   P_top=den_top*R*Td ;                       // the pressure limit at the density limit
@@ -99,8 +99,8 @@ int main(){
   Pc = P_char * std::pow(Tc/T_char,1.0/Lad);              //the pressure at the RCB
   Pd = std::pow((Lin-Lad)/(2.0*Lin-Lad),1.0/exp1)*Pc;     //the characteristic pressure defining the radiative zone
 
-  
-  
+
+
   //Defining the properties of the buffer
   den_buffer=1.3e-15;                          // the density in the buffer above the atmosphere
   T_buffer=1.0e-2;                             // the temperature in the buffer above the atmosphere (not continuous at RCB). -> needs sponge
@@ -110,11 +110,11 @@ int main(){
   }
     else if(continuous_P==true){
   }
-     
+
   buffer_height=z_top*2.25/4.0;               // the height at which the buffer and the top of the atmosphere meet (not continuous at RCB).-> needs sponge
   optical_depth_buffer=6.35e-3*T_buffer*std::pow(den_buffer,2.0)*(z_top-buffer_height);// the optical depth in the buffer region [dimensionless]
- 
-  
+
+
 
   do{
     if(z>buffer_height){
@@ -130,24 +130,24 @@ int main(){
         y[count] = z;
         count_cell++;
         cout<<"In buffer" << ' '<< count_cell << ' ' << z<<' '<< dz/(z_top/number_cell) << ' '<<"Pressure[P/Pc]="<<' ' << P1/Pc << ' '<<"optical depth ="<< ' '<<optical_depth_buffer<<'\n';
-        
+
         z = z-delta_z;
         count++;
-      
+
         if(continuous_rho==true){
           P1 = R*Td*den_buffer;
           P2 = R*Td*den_buffer;
         }
       }
     else{
-      
+
       if(Pc/10.0<P1){
         dP_factor = 1.e5;
       }
-      
+
       T1=Temp(P1,Pc,P_char,T_char, Td,Lin,Lad, exp1,exp2);
       den1 = density(P1,T1,R);
-      
+
       dP = P1/dP_factor;
       P2 = P1;
       P3 = P1;
@@ -182,7 +182,7 @@ int main(){
           }
           goto a;
         }
-      
+
       if(difference(dz_sol, delta_z)*difference(dz2, delta_z)<0.0){
         P3 = P_sol;
       }
@@ -216,37 +216,37 @@ int main(){
         den_at_1opticaldepth=den_sol;
         z_at_1opticaldepth=y[count-1];
       }
-      
+
     }
-  
- 
-    
+
+
+
   }while(z > -2.0*delta_z);
-  
-  
-  
+
+
+
   //output data
   cout<<"count= " << count-1<<'\n';
   cout<<"At bottom, "<< ' ' <<"density[g/cm^3]= " << ' ' << den[count-1] << ' ' << "   T[K]= "<< ' ' << T[count-1] << ' ' << "   P[bar]= " << ' ' << P[count-1]/1.e6  << '\n';
   cout<<"At optical depta=1, "<< ' ' <<"z[km]=" << ' ' << z_at_1opticaldepth/1e5 << ' ' <<"density[g/cm^3]= " << ' ' << den_at_1opticaldepth << ' ' << "   T[K]= "<< ' ' << T_at_1opticaldepth << ' ' << "   P[bar]= " << ' ' << P_at_1opticaldepth/1.e6  << '\n';
-  
+
   if (optical_depth_buffer > 1.0){
     cout<<"Optically [thick] buffer : " << ' ' << "optical depth = " << ' '<<optical_depth_buffer << '\n';
   }
   else{
     cout<<"Optically [thin ] buffer : " << ' ' << "optical depth = " << ' '<<optical_depth_buffer << '\n';
-    
+
   }
-    
-  
+
+
   data_output << "# npts = " << count <<'\n' << "# num of variables = 4" << '\n' << "# density" << '\n' << "# temperature" <<'\n' << "# pressure" << '\n' << "# X " << '\n';
- 
+
   do{
     --count;
     data_output << setprecision(25) << y[count] << ' ' << den[count] << ' ' << T[count] << ' ' << P[count] << ' '<<  X << '\n';
   }while(count>0);
-    
-    
+
+
   //summary
   cout<<"Pc                      [dyne/cm^{2}] = "<< ' ' << Pc << '\n';
   cout<<"Tc                                [K] = "<< ' ' << Tc << '\n';
@@ -255,13 +255,13 @@ int main(){
   cout<<"optical depth (radiative+ convective) =" <<' ' << optical_depth_atm << '\n';
   data_output.close();
   return 0;
-  
-  
-  
+
+
+
 }
 
-  
-  
-  
-  
+
+
+
+
 

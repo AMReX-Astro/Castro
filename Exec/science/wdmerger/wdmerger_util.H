@@ -16,7 +16,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
                        Real& period, Real eccentricity, Real phi, Real& a,
                        Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p);
 
-void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec]);
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec], const std::string& star_type);
 
 void ensure_primary_mass_larger ();
 

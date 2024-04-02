@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
                                 e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
 
                                 volcount[index] += vol;
-                                
+
                             }
                         }
                     }

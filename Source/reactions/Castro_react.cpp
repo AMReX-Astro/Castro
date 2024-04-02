@@ -12,8 +12,8 @@ using namespace amrex;
 #ifndef TRUE_SDC
 
 advance_status
-Castro::do_old_reactions (Real time, Real dt)
-{
+Castro::do_old_reactions (Real time, Real dt) {  // NOLINT(readability-convert-member-functions-to-static)
+
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
@@ -213,7 +213,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+        LoopOnCpu(bx, [&] (int i, int j, int k)
 #endif
         {
 
@@ -414,7 +414,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         });
 
 #if defined(AMREX_USE_HIP)
-        Gpu::streamSynchronize(); // otherwise HIP may faile to allocate the necessary resources.
+        Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
     }
 
@@ -558,7 +558,7 @@ Castro::react_state(Real time, Real dt)
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+        LoopOnCpu(bx, [&] (int i, int j, int k)
 #endif
         {
             burn_t burn_state;
@@ -806,7 +806,7 @@ Castro::react_state(Real time, Real dt)
         });
 
 #if defined(AMREX_USE_HIP)
-        Gpu::streamSynchronize(); // otherwise HIP may faile to allocate the necessary resources.
+        Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
     }
 
