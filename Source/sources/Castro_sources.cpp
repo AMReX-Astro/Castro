@@ -193,7 +193,7 @@ Castro::do_old_sources (Real time, Real dt, bool apply_to_state)
                    Bx_old, By_old, Bz_old,
 #endif
                    old_source, Sborder, S_new, time, dt,
-		   apply_to_state);
+                   apply_to_state);
 
     return status;
 }
@@ -557,41 +557,41 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
     FArrayBox q(The_Async_Arena()), qaux(The_Async_Arena());
 
     for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-	const Box& bx = mfi.tilebox();
-	const Box& obx = mfi.growntilebox(1);
+        const Box& bx = mfi.tilebox();
+        const Box& obx = mfi.growntilebox(1);
 
-	shk.resize(bx, 1);
+        shk.resize(bx, 1);
 #ifdef RADIATION
-	q.resize(obx, NQ);
+        q.resize(obx, NQ);
 #else
-	q.resize(obx, NQTHERM);
+        q.resize(obx, NQTHERM);
 #endif
-	qaux.resize(obx, NQAUX);
+        qaux.resize(obx, NQAUX);
 
-	Array4<Real> const shk_arr = shk.array();
-	Array4<Real> const q_arr = q.array();
-	Array4<Real> const qaux_arr = qaux.array();
+        Array4<Real> const shk_arr = shk.array();
+        Array4<Real> const q_arr = q.array();
+        Array4<Real> const qaux_arr = qaux.array();
 
-	Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
-	Array4<Real> const S_old_arr = S_old.array(mfi);
-	Array4<Real> const old_src_arr = old_source.array(mfi);
+        Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
+        Array4<Real> const S_old_arr = S_old.array(mfi);
+        Array4<Real> const old_src_arr = old_source.array(mfi);
 
-	ctoprim(obx, time, Sborder_old_arr, q_arr, qaux_arr);
+        ctoprim(obx, time, Sborder_old_arr, q_arr, qaux_arr);
 
         shock(bx, q_arr, old_src_arr, shk_arr);
 
-	// now store it in S_old -- we'll fillpatch into Sborder in a bit
+        // now store it in S_old -- we'll fillpatch into Sborder in a bit
 
-	// Note: we still compute the shock flag in the hydro for the
-	// hybrid-Riemann (for now) since that version will have seen the
-	// effect of the burning in the first dt), but that version is
-	// never stored in State_Type
+        // Note: we still compute the shock flag in the hydro for the
+        // hybrid-Riemann (for now) since that version will have seen the
+        // effect of the burning in the first dt), but that version is
+        // never stored in State_Type
 
-	amrex::ParallelFor(bx,
+        amrex::ParallelFor(bx,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-	    S_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
-	});
+            S_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
+        });
 
     }
 
