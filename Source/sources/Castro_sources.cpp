@@ -529,6 +529,15 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
 
     advance_status status {};
 
+    // If we are using gravity, solve for the potential and
+    // gravitational field.  note: since reactions don't change
+    // density, we can do this before or after the burn.
+
+#ifdef GRAVITY
+    construct_old_gravity(time);
+#endif
+
+
     // If we are Strang splitting the reactions, do the old-time contribution now.
 
 #ifndef TRUE_SDC
@@ -541,11 +550,6 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
 #endif
 #endif
 
-    // If we are using gravity, solve for the potential and gravitational field.
-
-#ifdef GRAVITY
-    construct_old_gravity(time);
-#endif
 
     // Initialize the new-time data. This copy needs to come after all Strang-split operators.
 
