@@ -578,10 +578,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "output date / time: "
               << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
-  char currentDir[FILENAME_MAX];
-  if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
-    jobInfoFile << "output dir:         " << currentDir << "\n";
-  }
+  jobInfoFile << "output dir:         " << amrex::FileSystem::CurrentPath() << "\n";
 
   jobInfoFile << "I/O time (s):       " << io_time << "\n";
 

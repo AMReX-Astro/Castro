@@ -199,7 +199,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
 
 void
-Castro::mol_consup(const Box& bx,
+Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
 #ifdef SHOCK_VAR
                    Array4<Real const> const& shk,
 #endif

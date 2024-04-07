@@ -12,8 +12,8 @@ using namespace amrex;
 #ifndef TRUE_SDC
 
 advance_status
-Castro::do_old_reactions (Real time, Real dt)
-{
+Castro::do_old_reactions (Real time, Real dt) {  // NOLINT(readability-convert-member-functions-to-static)
+
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
@@ -213,7 +213,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+        LoopOnCpu(bx, [&] (int i, int j, int k)
 #endif
         {
 
@@ -533,7 +533,9 @@ Castro::react_state(Real time, Real dt)
 #endif
     int num_failed = 0;
 
-    // why no omp here?
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:num_failed)
+#endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
@@ -558,7 +560,7 @@ Castro::react_state(Real time, Real dt)
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
-        LoopOnCpu(bx, [&] (int i, int j, int k) mutable
+        LoopOnCpu(bx, [&] (int i, int j, int k)
 #endif
         {
             burn_t burn_state;

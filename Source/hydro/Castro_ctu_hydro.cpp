@@ -14,8 +14,11 @@
 using namespace amrex;
 
 advance_status
-Castro::construct_ctu_hydro_source(Real time, Real dt)
+Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
+  amrex::ignore_unused(time);
+  amrex::ignore_unused(dt);
+
   advance_status status {};
 
   if (!do_hydro) {
