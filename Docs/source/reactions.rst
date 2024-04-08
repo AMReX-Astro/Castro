@@ -63,7 +63,7 @@ details.
 Controlling burning
 ===================
 
-.. index:: castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max
+.. index:: castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.do_react
 
 There are a number of reactions-related parameters that can be set at runtime
 in the inputs file. Reactions are enabled by setting::
@@ -80,7 +80,6 @@ reactions to occur in a zone using the parameters:
 
 * ``castro.react_rho_min`` and ``castro.react_rho_max`` for density
 
-.. index:: castro.disable_shock_burning, USE_SHOCK_VAR
 
 Burning in Shocks
 -----------------
