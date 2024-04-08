@@ -5,7 +5,7 @@
 /// x component of dipole vector potential
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real compute_A_x(const Real x, const Real y, const Real z) 
+Real compute_A_x(const Real x, const Real y, const Real z)
 {
 
     // this should be called with a node-centered y and z and a cell-centered x
@@ -32,7 +32,7 @@ Real compute_A_x(const Real x, const Real y, const Real z)
 /// y component of dipole vector potential
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real compute_A_y(const Real x, const Real y, const Real z) 
+Real compute_A_y(const Real x, const Real y, const Real z)
 {
 
     // this should be called with a node-centered x and z and a cell-centered y

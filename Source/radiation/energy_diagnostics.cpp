@@ -32,9 +32,9 @@ Castro::do_energy_diagnostics()
           r += getLevel(lev).volWgtSum("rad", prev_time + dt);
       }
       else {
-          char rad_name[10];
+          std::string rad_name;
           for (int igroup = 0; igroup < Radiation::nGroups; igroup++) {
-              sprintf(rad_name, "rad%d", igroup);
+              rad_name = "rad" + std::to_string(igroup);
               r += getLevel(lev).volWgtSum(rad_name, prev_time + dt);
           }
       }

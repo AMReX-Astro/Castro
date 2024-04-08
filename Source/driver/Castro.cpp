@@ -15,6 +15,7 @@
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
+#include <global.H>
 #include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -23,7 +24,6 @@
 
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -76,6 +76,8 @@ int          Castro::NUM_GROW_SRC  = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
+params_t     Castro::params;
+
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
@@ -106,9 +108,6 @@ Diffusion*    Castro::diffusion  = nullptr;
 // the radiation object
 Radiation*   Castro::radiation = nullptr;
 #endif
-
-
-std::string  Castro::probin_file = "probin";
 
 
 #if AMREX_SPACEDIM == 1
@@ -216,6 +215,7 @@ Castro::read_params ()
     initialize_cpp_runparams();
 
     ParmParse pp("castro");
+    ParmParse ppa("amr");
 
     using namespace castro;
 
@@ -245,14 +245,14 @@ Castro::read_params ()
         {
             if (dgeom.isPeriodic(dir))
             {
-                if (lo_bc[dir] != Interior)
+                if (lo_bc[dir] != amrex::PhysBCType::interior)
                 {
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
                               << " but low BC is not Interior\n";
                     amrex::Error();
                 }
-                if (hi_bc[dir] != Interior)
+                if (hi_bc[dir] != amrex::PhysBCType::interior)
                 {
                     std::cerr << "Castro::read_params:periodic in direction "
                               << dir
@@ -269,14 +269,14 @@ Castro::read_params ()
         //
         for (int dir=0; dir<AMREX_SPACEDIM; dir++)
         {
-            if (lo_bc[dir] == Interior)
+            if (lo_bc[dir] == amrex::PhysBCType::interior)
             {
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
                           << " but not periodic\n";
                 amrex::Error();
             }
-            if (hi_bc[dir] == Interior)
+            if (hi_bc[dir] == amrex::PhysBCType::interior)
             {
                 std::cerr << "Castro::read_params:interior bc in direction "
                           << dir
@@ -286,7 +286,7 @@ Castro::read_params ()
         }
     }
 
-    if ( dgeom.IsRZ() && (lo_bc[0] != Symmetry) ) {
+    if ( dgeom.IsRZ() && (lo_bc[0] != amrex::PhysBCType::symmetry) ) {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for r-z\n";
         amrex::Error();
     }
@@ -294,7 +294,7 @@ Castro::read_params ()
 #if (AMREX_SPACEDIM == 1)
     if ( dgeom.IsSPHERICAL() )
     {
-      if ( (lo_bc[0] != Symmetry) && (dgeom.ProbLo(0) == 0.0) )
+      if ( (lo_bc[0] != amrex::PhysBCType::symmetry) && (dgeom.ProbLo(0) == 0.0) )
       {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for spherical\n";
         amrex::Error();
@@ -324,13 +324,6 @@ Castro::read_params ()
     }
 #endif
 
-#ifdef REACTIONS
-#ifdef SIMPLIFIED_SDC
-    if (jacobian == 1) {
-      amrex::Abort("Simplified SDC requires the numerical Jacobian now (jacobian = 2)");
-    }
-#endif
-#endif
     // sanity checks
 
     if (grown_factor < 1) {
@@ -391,6 +384,12 @@ Castro::read_params ()
     }
 #endif
 
+#ifndef SHOCK_VAR
+   if (disable_shock_burning != 0) {
+       amrex::Error("ERROR: disable_shock_burning requires compiling with USE_SHOCK_VAR=TRUE");
+   }
+#endif
+
     if (riemann_solver == 1) {
         if (cg_maxiter > HISTORY_SIZE) {
             amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
@@ -439,6 +438,13 @@ Castro::read_params ()
         else if (dgeom.IsRZ()) {
             amrex::Error("lim_limit_state_interp == 2 is not currently implemented for cylindrical geometries");
         }
+    }
+
+    // Post-timestep regrids only make sense if we're subcycling.
+    std::string subcycling_mode;
+    ppa.query("subcycling_mode", subcycling_mode);
+    if (use_post_step_regrid == 1 && subcycling_mode == "None") {
+        amrex::Error("castro.use_post_step_regrid == 1 is not consistent with amr.subcycling_mode = None.");
     }
 
 #ifdef AMREX_PARTICLES
@@ -544,9 +550,6 @@ Castro::read_params ()
        }
 
    }
-
-   ParmParse ppa("amr");
-   ppa.query("probin_file",probin_file);
 
     Vector<int> tilesize(AMREX_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM))
@@ -722,6 +725,7 @@ Castro::Castro (Amr&            papa,
       if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
         radiation = new Radiation(parent, this);
+        global::the_radiation_ptr = radiation;
       }
       radiation->regrid(level, grids, dmap);
 
@@ -980,13 +984,13 @@ Castro::initData ()
         // make sure dx = dy = dz -- that's all we guarantee to support
 #if (AMREX_SPACEDIM == 2)
         const Real SMALL = 1.e-13;
-        if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
+        if (std::abs(dx[0] - dx[1]) > SMALL*dx[0])
           {
             amrex::Abort("We don't support dx != dy");
           }
 #elif (AMREX_SPACEDIM == 3)
         const Real SMALL = 1.e-13;
-        if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
+        if ( (std::abs(dx[0] - dx[1]) > SMALL*dx[0]) || (std::abs(dx[0] - dx[2]) > SMALL*dx[0]) )
           {
             amrex::Abort("We don't support dx != dy != dz");
           }
@@ -1122,11 +1126,11 @@ Castro::initData ()
 
 
 #ifdef MHD
-      //correct energy density with the magnetic field contribution 
+      //correct energy density with the magnetic field contribution
       add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
-      
+
       //check divB
-      check_div_B(Bx_new, By_new, Bz_new, S_new);    
+      check_div_B(Bx_new, By_new, Bz_new, S_new);
 
 #endif
 
@@ -1214,8 +1218,8 @@ Castro::initData ()
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
 #ifndef AMREX_USE_GPU
-             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
-                       << i << " " << j << " " << k << " " 
+             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): "
+                       << i << " " << j << " " << k << " "
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
 #endif
              amrex::Error("Error: failed check of initial species summing to 1");
@@ -1252,8 +1256,7 @@ Castro::initData ()
              {
                const Box& box = mfi.validbox();
 
-               tmp.resize(box, 1);
-               Elixir elix_tmp = tmp.elixir();
+               tmp.resize(box, 1, The_Async_Arena());
                auto tmp_arr = tmp.array();
 
                make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1279,8 +1282,7 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(2);
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -1328,8 +1330,7 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             tmp.resize(box, 1);
-             Elixir elix_tmp = tmp.elixir();
+             tmp.resize(box, 1, The_Async_Arena());
              auto tmp_arr = tmp.array();
 
              make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -3550,12 +3551,12 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
 
                     int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
 
-                    if ((physbc_lo[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                    if ((physbc_lo[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] <= domlo[dim] + boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
 
-                    if ((physbc_hi[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                    if ((physbc_hi[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] >= domhi[dim] - boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
@@ -3651,8 +3652,7 @@ Castro::derive (const std::string& name,
 void
 Castro::extern_init ()
 {
-  // initialize the external runtime parameters -- these will
-  // live in the probin
+  // initialize the external runtime parameters
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "reading extern runtime parameters ..." << std::endl;
@@ -3786,11 +3786,11 @@ Castro::reset_internal_energy(
 #ifdef MHD
 void
 Castro::add_magnetic_e( MultiFab& Bx,
-                        MultiFab& By, 
+                        MultiFab& By,
                         MultiFab& Bz,
                         MultiFab& State)
 {
-           
+
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
@@ -3824,18 +3824,18 @@ Castro::add_magnetic_e( MultiFab& Bx,
 
 void
 Castro::check_div_B( MultiFab& Bx,
-                     MultiFab& By, 
+                     MultiFab& By,
                      MultiFab& Bz,
                      MultiFab& State)
 {
 
- 
+
 
   ReduceOps<ReduceOpSum> reduce_op;
   ReduceData<int> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
-           
+
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
@@ -3851,28 +3851,28 @@ Castro::check_div_B( MultiFab& Bx,
       reduce_op.eval(box, reduce_data,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
       {
-          
+
           Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
-                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
+                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] +
                       (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
-        
+
           Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
           Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
           Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
 
-          Real magB = std::sqrt(bx_cell_c * bx_cell_c + 
+          Real magB = std::sqrt(bx_cell_c * bx_cell_c +
                                 by_cell_c * by_cell_c +
                                 bz_cell_c * bz_cell_c);
-                  
-  
+
+
           int fail_divB = 0;
 
           if (std::abs(divB) > 1.0e-10*magB){
-             fail_divB = 1; 
+             fail_divB = 1;
           }
-          
 
-          return {fail_divB}; 
+
+          return {fail_divB};
       });
 
   }
@@ -3881,8 +3881,8 @@ Castro::check_div_B( MultiFab& Bx,
   int init_fail_divB = amrex::get<0>(hv);
 
   if (init_fail_divB != 0) {
-     amrex::Error("Error: initial data has divergence of B not zero");  
-  } 
+     amrex::Error("Error: initial data has divergence of B not zero");
+  }
 
 
 }
@@ -3942,8 +3942,7 @@ Castro::computeTemp(
       compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
                        domain_lo, domain_hi);
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
@@ -3961,7 +3960,7 @@ Castro::computeTemp(
     enforce_min_density(Stemp, Stemp.nGrow());
     reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
-#endif    
+#endif
     reset_internal_energy(
 #ifdef MHD
                           Bx, By, Bz,
@@ -4059,8 +4058,7 @@ Castro::computeTemp(
 
       const Box& bx = mfi.tilebox();
 
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto tmp_arr = tmp.array();
 
       // only temperature
@@ -4217,12 +4215,12 @@ Castro::get_numpts ()
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
+     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {

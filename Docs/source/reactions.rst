@@ -57,8 +57,32 @@ in the inputs file. Reactions are enabled by setting::
 the efficiency).
 
 It is possible to set the maximum and minimum temperature and density for allowing
-reactions to occur in a zone using the parameters ``castro.react_T_min``,
-``castro.react_T_max``, ``castro.react_rho_min`` and ``castro.react_rho_max``.
+reactions to occur in a zone using the parameters:
+
+* ``castro.react_T_min`` and ``castro.react_T_max`` for temperature
+
+* ``castro.react_rho_min`` and ``castro.react_rho_max`` for density
+
+.. index:: castro.disable_shock_burning, USE_SHOCK_VAR
+
+Burning can also be disabled inside shocks.  This requires that the code be
+compiled with::
+
+  USE_SHOCK_VAR = TRUE
+
+in the ``GNUmakefile``.  This will allocate storage for a shock flag in the conserved
+state array.  This flag is computed via a multidimensional shock detection algorithm
+that looks for compression (:math:`\nabla \cdot \ub < 0`) along with a pressure jump
+in the direction of compression.  The runtime parameter::
+
+   castro.disable_shock_burning = 1
+
+will skip reactions in a zone where we've detected a shock.
+
+.. note::
+
+   Both the compilation with ``USE_SHOCK_VAR = TRUE`` and the runtime parameter
+   ``castro.disable_shock_burning = 1`` are needed to turn off burning in shocks.
 
 Reactions Flowchart
 ===================
@@ -164,7 +188,7 @@ In ``Castro_react.cpp``, the flow is:
   * $U^\mathrm{new}(\rho X_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.xn[k]}$
 
   * if ``NAUX_NET > 0``: $U^\mathrm{new}(\rho \alpha_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.aux[k]}$
-  
+
   * if ``NSE_NET`` :
 
     * $U(\mu_p) = \mathtt{burn\_state.mu\_p}$
@@ -231,7 +255,7 @@ In ``Castro_react.cpp``, the flow is:
 
 * Store the advective update that will be used during the SDC integration.
 
-* Compute 
+* Compute
 
 * Initialize the metadata that is used for diagnostics
 
@@ -289,7 +313,7 @@ In ``Castro_react.cpp``, the flow is:
   * $U^\mathrm{new}(\rho X_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.xn[k]}$
 
   * if ``NAUX_NET > 0``: $U^\mathrm{new}(\rho \alpha_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.aux[k]}$
-  
+
   * if ``NSE_NET`` :
 
     * $U(\mu_p) = \mathtt{burn\_state.mu\_p}$

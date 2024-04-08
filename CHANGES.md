@@ -1,8 +1,90 @@
+# 24.04
+
+  * Some clang-tidy fixes (#2779, #2780, #2781, #2784, #2786, #2787, #2790,
+    #2791, #2792, #2793, #2797, #2798, #2799, #2800, #2801, #2804)
+
+  * Fix species initialization in the Detonation problem (#2806)
+    and let it work with NSE (#2765)
+
+  * Sync up with AMReX changes (#2794)
+
+  * wdmerger now reports composition of initial stars (#2767)
+
+  * flame_wave now checks if the `atm_delta` is too small (#2782)
+    and stores X(ash) (#2773)
+
+  * a bounds issue in the true SDC integration was fixed (#2775)
+
+# 24.03
+
+  * Documentation updates (#2742, #2752, #2753)
+
+  * Fix some code warnings (#2737)
+
+  * Fixed the exact Riemann solver compilation (#2745)
+
+  * Fix an issue with large kernel sizes with ROCm in the reduction code
+    in the reactions (#2749)
+
+# 24.02
+
+  * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,
+    #2735, #2731, #2732, #2733)
+
+  * Fix the boundary condition logic at a wall for Detonation (#2722)
+
+  * Reimplement the shock detection algorithm to account for sources
+    and do a better job in multidimensions (#2711, #2710, #2709, #2704)
+
+  * Start the process of moving the runtime parameters to structs (#2688)
+
+# 24.01
+
+  * An option for unlimited PPM reconstruction was added (#2670)
+
+  * An option allowing for optional passive sources to the conserved
+    state was added (#2678)
+
+  * A script `diag_parser.py` was added to allow for easy parsing of
+    the global diagnostic files output at runtime (#2666, #2667)
+
+# 23.12
+
+  * The radiation solver port to C++ has been completed (#2638, #2648)
+
 # 23.11
+
+  * Problem GNUmakefiles have been standardized and now allow for the
+    problem to be compiled elsewhere (#2640, #2641, #2642, #2643)
+
+  * The true-SDC Newton solver has been made more robust and faster
+    (#2586, #2602, #2605, #2606)
+
+  * Several problems that required the initial model grid spacing to
+    be specified in the inputs file now automatically compute it as
+    needed, including `flame_wave` (#2610), `convective_flame`,
+    `bubble_convergence`, and `hse_convergence` (#2624), `double_bubble`,
+    `gamma_law_bubble`, and `hse_convergence_general` (#2612)
+
+  * Outflow boundary conditions for the 4th order solver have been changed
+    to no longer use the one-sided stencil (#2607)
+
+  * The ca_rad_source hook in Fortran has been removed. The existing
+    problem_rad_source() hook in C++ can be used instead. (#2626)
 
   * The compile option USE_AUX_UPDATE has been removed. If you want to
     manually update the auxiliary parameters, you can use an external
     source term or you can use the problem post-timestep hook. (#2614)
+
+  * The pressure is now always included in the x-momentum flux in 1-d
+    Cartesian, and this fixes an issue at jumps in refinement with the
+    pressure gradient (#2468)
+
+  * A bug was fixed in the 4th order diffusion operator that was introduced
+    when it was originally converted to C++ (#2592)
+
+  * The 2nd order Radau integrator had the wrong quadrature weights
+    (#2594)
 
 # 23.10
 

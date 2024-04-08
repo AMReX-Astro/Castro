@@ -4,8 +4,6 @@
 
 #include <Radiation.H>
 
-#include <RAD_F.H>
-
 #include <AMReX_ParmParse.H>
 
 #include <iostream>
@@ -21,11 +19,10 @@ void Radiation::get_groups(int verbose)
   group_print_factor   = 1.0;
   group_units          = " (units are Hz)";
 
-  Vector<Real> dlognugroup;
-
   xnu.resize(nGroups+1, 0.0); // Bounds of the frequency group
   nugroup.resize(nGroups, 1.0); // Geometric center of the frequency group
   dnugroup.resize(nGroups, 0.0); // Width of the frequency group
+  lognugroup.resize(nGroups, 0.0); // Log of the center of the frequency group
   dlognugroup.resize(nGroups, 0.0); // Log of the width of the frequency group
 
   ParmParse pp("radiation");
@@ -46,55 +43,43 @@ void Radiation::get_groups(int verbose)
 
       if (lowest == 0.0) {
         nugroup[0] = 0.5*dnugroup[0];
-        dlognugroup[0] = 2.0 * (log(xnu[1]) - log(nugroup[0]));
+        dlognugroup[0] = 2.0 * (std::log(xnu[1]) - std::log(nugroup[0]));
       }
       else {
-        nugroup[0] = sqrt(xnu[0]*xnu[1]);
-        dlognugroup[0] = log(xnu[1]) - log(xnu[0]);
+        nugroup[0] = std::sqrt(xnu[0]*xnu[1]);
+        dlognugroup[0] = std::log(xnu[1]) - std::log(xnu[0]);
       }
 
       for (int i=1; i<nGroups; i++) {
         dnugroup[i] = dnugroup[i-1] * groupGrowFactor;
         xnu[i+1] = xnu[i] + dnugroup[i];
-        nugroup[i] = sqrt(xnu[i]*xnu[i+1]);
-        dlognugroup[i] = log(xnu[i+1]) - log(xnu[i]);
+        nugroup[i] = std::sqrt(xnu[i]*xnu[i+1]);
+        dlognugroup[i] = std::log(xnu[i+1]) - std::log(xnu[i]);
       }
     }
     else {
       Real highest;
       pp.get("highestGroupHz", highest);
 
-      Real loglowest = log10(lowest);
-      Real loghighest = log10(highest);
+      Real loglowest = std::log10(lowest);
+      Real loghighest = std::log10(highest);
       Real dlognu = (loghighest - loglowest) / Real(nGroups);
 
       for (int i=0; i<nGroups; i++) {
-        xnu[i] = pow(10.0, loglowest+i*dlognu);
-        nugroup[i] = pow(10.0, loglowest+(i+0.5)*dlognu);
+        xnu[i] = std::pow(10.0, loglowest+i*dlognu);
+        nugroup[i] = std::pow(10.0, loglowest+(i+0.5)*dlognu);
       }
       xnu[nGroups] = highest;
 
       for (int i=0; i<nGroups; i++) {
         dnugroup[i] = xnu[i+1] - xnu[i];
-        dlognugroup[i] = log(xnu[i+1]) - log(xnu[i]);
+        dlognugroup[i] = std::log(xnu[i+1]) - std::log(xnu[i]);
       }
     }
-  }
 
-  int nG0 = 0, nG1 = 0;
-
-  if (SolverType == MGFLDSolver) { 
-    BL_FORT_PROC_CALL(CA_INITGROUPS3,ca_initgroups3)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), dlognugroup.dataPtr(), xnu.dataPtr(), 
-       nGroups, nG0, nG1);
-  }
-  else if (xnu.size() > 0) {
-    BL_FORT_PROC_CALL(CA_INITGROUPS2,ca_initgroups2)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), xnu.dataPtr(), nGroups);
-  }
-  else {
-    BL_FORT_PROC_CALL(CA_INITGROUPS,ca_initgroups)
-      (nugroup.dataPtr(), dnugroup.dataPtr(), nGroups, nG0, nG1);
+    for (int i = 0; i < nGroups; ++i) {
+        lognugroup[i] = std::log(nugroup[i]);
+    }
   }
 
   if (ParallelDescriptor::IOProcessor()) {
@@ -128,7 +113,7 @@ void Radiation::get_groups(int verbose)
       for (int i = 0; i < dlognugroup.size(); i++) {
         groupfile << "group(" << i << ") = "
                   << dlognugroup[i] << std::endl;
-      }      
+      }
     }
 
     groupfile.close();

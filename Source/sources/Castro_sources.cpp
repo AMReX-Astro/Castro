@@ -522,12 +522,21 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 // and the hydro advance.
 
 advance_status
-Castro::pre_advance_operators (Real time, Real dt)
+Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
     advance_status status {};
+
+    // If we are using gravity, solve for the potential and
+    // gravitational field.  note: since reactions don't change
+    // density, we can do this before or after the burn.
+
+#ifdef GRAVITY
+    construct_old_gravity(time);
+#endif
+
 
     // If we are Strang splitting the reactions, do the old-time contribution now.
 
@@ -541,11 +550,6 @@ Castro::pre_advance_operators (Real time, Real dt)
 #endif
 #endif
 
-    // If we are using gravity, solve for the potential and gravitational field.
-
-#ifdef GRAVITY
-    construct_old_gravity(time);
-#endif
 
     // Initialize the new-time data. This copy needs to come after all Strang-split operators.
 
@@ -560,7 +564,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 // but before the hydro advance.
 
 advance_status
-Castro::pre_hydro_operators (Real time, Real dt)
+Castro::pre_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -585,7 +589,7 @@ Castro::pre_hydro_operators (Real time, Real dt)
 // but before the corrector sources.
 
 advance_status
-Castro::post_hydro_operators (Real time, Real dt)
+Castro::post_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -602,8 +606,11 @@ Castro::post_hydro_operators (Real time, Real dt)
 // Perform all operations that occur after the corrector sources.
 
 advance_status
-Castro::post_advance_operators (Real time, Real dt)
+Castro::post_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     advance_status status {};
 
 #ifndef TRUE_SDC

@@ -19,39 +19,39 @@ Castro::problem_diagnostics ()
         Castro& ca_lev = getLevel(lev);
 
         mass     += ca_lev.volWgtSum("density", time);
-	
-	rho_E    += ca_lev.volWgtSum("rho_E", time);
+
+        rho_E    += ca_lev.volWgtSum("rho_E", time);
 
         auto temp_mf = ca_lev.derive("Temp", time, 0);
-	Tmax_level = temp_mf->max(0, 0);
-	if (Tmax_level > Tmax)
-	  {
-	    Tmax = Tmax_level;
-	  }
+        Tmax_level = temp_mf->max(0, 0);
+        if (Tmax_level > Tmax)
+        {
+            Tmax = Tmax_level;
+        }
 
         auto mach_mf = ca_lev.derive("MachNumber", time, 0);
-	MachMax_level = mach_mf->max(0, 0);
-	if (MachMax_level > MachMax)
-	  {
-	    MachMax = MachMax_level;
-	  }
+        MachMax_level = mach_mf->max(0, 0);
+        if (MachMax_level > MachMax)
+        {
+            MachMax = MachMax_level;
+        }
 
     }
 
- 
+
     if (verbose > 0 && ParallelDescriptor::IOProcessor())
     {
         std::cout << '\n';
         std::cout << "TIME= " << time << " MASS  = "   << mass  << '\n';
         std::cout << "TIME= " << time << " RHO*E = "   << rho_E     << '\n';
 
-	// get output files
-	std::ostream& data_log1 = *Castro::problem_data_logs[0];
+        // get output files
+        std::ostream& data_log1 = *Castro::problem_data_logs[0];
 
         if (time == 0.0) {
            data_log1 << std::setw(14) <<  "#     time    ";
            data_log1 << std::setw(14) <<  "       max(T) ";
-           data_log1 << std::setw(14) <<  "       max(M) ";	   
+           data_log1 << std::setw(14) <<  "       max(M) ";
            data_log1 << std::setw(14) <<  "        rho_E ";
            data_log1 << std::endl;
         }
@@ -63,7 +63,7 @@ Castro::problem_diagnostics ()
         data_log1 << std::setw(14) <<  std::setprecision(6) << rho_E;
         data_log1 << std::endl;
 
-	std::cout<<'\n';
+        std::cout<<'\n';
     }
 }
 

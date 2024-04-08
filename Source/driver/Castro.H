@@ -48,6 +48,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 #include <memory>
 #include <iostream>
 
+#include <params_type.H>
+
 using std::istream;
 using std::ostream;
 
@@ -110,10 +112,10 @@ enum int_method { CornerTransportUpwind = 0,
 // why an advance failed.
 
 struct advance_status {
-    bool success;
-    Real suggested_dt;
-    std::string reason;
-    advance_status() : success(true), suggested_dt(0.0_rt), reason("") {}
+    bool success{true};
+    Real suggested_dt{};
+    std::string reason{};
+    advance_status() = default;
 };
 
 ///
@@ -224,7 +226,7 @@ public:
     void writeSmallPlotFile (const std::string& dir,
                              ostream&       os,
                              amrex::VisMF::How     how) override;
-  
+
 ///
 /// @param dir      directory to write to
 /// @param os       output stream
@@ -247,7 +249,7 @@ public:
 
 
 ///
-/// Dump build info 
+/// Dump build info
 ///
     static void writeBuildInfo ();
 
@@ -535,7 +537,6 @@ public:
 #include <Castro_mhd.H>
 #endif
 
-
 ///
 /// Estimate time step.
 ///
@@ -813,7 +814,7 @@ public:
 #ifdef MHD
 ///
 /// Add magnetic contribution to energy density
-/// @param Bx       magnetic field in x    
+/// @param Bx       magnetic field in x
 /// @param By       magnetic field in y
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
@@ -826,7 +827,7 @@ public:
 
 ///
 /// Check if divergence of B is zero at initialization
-/// @param Bx       magnetic field in x    
+/// @param Bx       magnetic field in x
 /// @param By       magnetic field in y
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
@@ -1002,7 +1003,7 @@ public:
 // Hydrodynamics
 #include <Castro_hydro.H>
 
-// SDC 
+// SDC
 #ifdef TRUE_SDC
 #include <Castro_sdc.H>
 #endif
@@ -1155,7 +1156,7 @@ public:
 ///
     bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= 
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >=
                 static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;
@@ -1197,6 +1198,12 @@ public:
 ///
     static Vector<std::unique_ptr<std::fstream> > data_logs;
     static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
+
+///
+/// runtime parameters
+//
+    static params_t params;
+
 
 protected:
 
@@ -1455,11 +1462,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-///
-/// Name of the probin file and its length.
-///
-    static std::string probin_file;
-
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
 
@@ -1485,8 +1487,10 @@ protected:
 /// sdc
 ///
     int sdc_iteration;
-    int current_sdc_node;
 
+#ifdef TRUE_SDC
+    int current_sdc_node;
+#endif
 
 
 /* problem-specific includes */

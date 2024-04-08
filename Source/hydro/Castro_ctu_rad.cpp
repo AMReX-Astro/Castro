@@ -3,7 +3,6 @@
 
 #include "Radiation.H"
 #include "RadHydro.H"
-#include "RAD_F.H"
 #include "fluxlimiter.H"
 
 using namespace amrex;
@@ -36,30 +35,25 @@ Castro::ctu_rad_consup(const Box& bx,
   const int coord_type = geom.Coord();
 
   GpuArray<Real, NGROUPS> Erscale = {0.0};
-
   GpuArray<Real, NGROUPS> dlognu = {0.0};
 
-  GpuArray<Real, NGROUPS> nugroup = {0.0};
-
-
-
   if (NGROUPS > 1) {
-    ca_get_nugroup(nugroup.begin());
-    ca_get_dlognu(dlognu.begin());
-
+    for (int g = 0; g < NGROUPS; ++g) {
+      dlognu[g] = radiation->dlognugroup[g];
+    }
     if (radiation::fspace_advection_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
       }
     } else {
       for (int g = 0; g < NGROUPS; g++) {
-        Erscale[g] = nugroup[g] * dlognu[g];
+        Erscale[g] = radiation->nugroup[g] * dlognu[g];
       }
     }
   }
 
 
-  // radiation energy update. 
+  // radiation energy update.
 
   amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int g) noexcept
@@ -304,7 +298,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
       if (NGROUPS > 1) {
         Real ustar[NGROUPS];
-        for (int g = 0; g < NGROUPS; g++) { 
+        for (int g = 0; g < NGROUPS; g++) {
           ustar[g] = Erout(i,j,k,g) / Erscale[g];
         }
 

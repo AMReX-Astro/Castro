@@ -237,14 +237,14 @@ def write_probin(prob_param_files, cxx_prefix):
                 size = p.size
                 if (size == "nspec"):
                     size = "NumSpec"
-                fout.write(f"        for (int n = 0; n < {size}; n++) {{\n")
-                fout.write(f"            problem::{p.name}[n] = {p.default_format(lang='C++')};\n")
+                fout.write(f"        for (auto & e : problem::{p.name}) {{\n")
+                fout.write(f"            e = {p.default_format(lang='C++')};\n")
                 fout.write(f"        }}\n")
             else:
                 fout.write(f"        {p.get_default_string()}")
 
             if p.in_namelist:
-                fout.write(f"        {p.get_query_string('C++')}")
+                fout.write(f"        {p.get_query_string()}")
             fout.write("\n")
         fout.write("    }\n")
 

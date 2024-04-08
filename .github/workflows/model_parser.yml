@@ -1,0 +1,34 @@
+name: model parser
+
+on: [pull_request]
+jobs:
+  model_parser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+
+      - name: Compile model_parser test
+        run: |
+          cd Util/model_parser/test
+          make -j 4
+
+      - name: Run model_parser test
+        run: |
+          cd Util/model_parser/test
+          ./Castro3d.gnu.ex

@@ -22,10 +22,7 @@ void problem_initialize ()
         }
     }
 
-    Real xn_zone[NumSpec];
-    for (int n = 0; n < NumSpec; ++n) {
-        xn_zone[n] = 0.0_rt;
-    }
+    Real xn_zone[NumSpec] = {0.0};
     xn_zone[0] = 1.0_rt;
 
     eos_t eos_state;
@@ -53,7 +50,7 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_zone[n];
     }
-        
+
     eos(eos_input_rp, eos_state);
 
     problem::e_ambient = eos_state.e;
@@ -96,17 +93,20 @@ void problem_initialize ()
         vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
 
 #else
-
         amrex::Abort("Sedov problem unsupported in 3D axisymmetric geometry.");
-
 #endif
 
     }
     else if (coord_type == 2) {
 
+
+#if AMREX_SPACEDIM == 1
         // Must have AMREX_SPACEDIM == 1 for this coord_type.
 
         vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
+#else
+        amrex::Abort("Sedov problem unsupported in 2-D or 3-D spherical geometry.");
+#endif
 
     }
 

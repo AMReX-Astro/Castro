@@ -1,11 +1,16 @@
 name: flame_wave
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   flame_wave-2d:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

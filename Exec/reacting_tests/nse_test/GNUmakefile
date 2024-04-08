@@ -11,8 +11,9 @@ USE_MPI    = TRUE
 
 USE_REACT  = TRUE
 
+USE_SIMPLIFIED_SDC := TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
@@ -23,7 +24,9 @@ USE_NSE_TABLE := TRUE
 
 INTEGRATOR_DIR := VODE
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

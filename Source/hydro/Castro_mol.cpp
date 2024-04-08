@@ -29,8 +29,8 @@ Castro::mol_plm_reconstruct(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
@@ -199,7 +199,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
 
 void
-Castro::mol_consup(const Box& bx,
+Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
 #ifdef SHOCK_VAR
                    Array4<Real const> const& shk,
 #endif

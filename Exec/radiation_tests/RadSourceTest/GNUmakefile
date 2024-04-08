@@ -10,7 +10,7 @@ PROFILE    = FALSE
 USE_RAD = TRUE
 
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 # has the f90 routine ca_initgroups and group structure in probdata_module
 #HAS_INITGROUPS = TRUE
@@ -25,7 +25,9 @@ Opacity_dir := rad_power_law
 # use radiation interpbndry
 RAD_INTERP = TRUE
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro
