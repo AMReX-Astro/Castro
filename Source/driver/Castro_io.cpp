@@ -7,7 +7,6 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include <filesystem>
 
 #include <AMReX_Utility.H>
 #include <Castro.H>
@@ -579,7 +578,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "output date / time: "
               << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
-  jobInfoFile << "output dir:         " << std::filesystem::current_path() << "\n";
+  jobInfoFile << "output dir:         " << amrex::FileSystem::CurrentPath() << "\n";
 
   jobInfoFile << "I/O time (s):       " << io_time << "\n";
 

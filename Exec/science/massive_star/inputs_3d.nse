@@ -3,10 +3,10 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 50
+max_step = 5000000
 stop_time = 360000
 
-geometry.is_periodic = 0 0
+geometry.is_periodic = 0 0 0
 geometry.coord_sys = 0         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.    0.
@@ -14,7 +14,7 @@ geometry.prob_hi   =  1.6384e10 1.6384e10 1.6384e10
 
 amr.n_cell         = 512 512 512
 
-amr.max_level      = 3      # maximum level number allowed
+amr.max_level      = 2      # maximum level number allowed
 
 castro.lo_bc       =  2 2 2
 castro.hi_bc       =  2 2 2
@@ -50,21 +50,21 @@ castro.sponge_upper_density = 1.e3
 castro.sponge_lower_density = 1.e2
 castro.sponge_timescale     = 1.e-3
 
-castro.cfl            = 0.4     # cfl number for hyperbolic system
-castro.init_shrink    = 0.01     # scale back initial timestep by this factor
+castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep by this factor
 castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 10       # timesteps between computing and printing volume averages
 
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
 
-amr.ref_ratio       = 4 2 2 2 # refinement ratio
+amr.ref_ratio       = 4 4 2 2 2 # refinement ratio
 amr.regrid_int      = 10000   # how often to regrid
-amr.n_error_buf     = 4 2 2 2 # number of buffer cells in error est
+amr.n_error_buf     = 4 4 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = massive_star_chk     # root name of checkpoint file
-amr.check_int       = 200     # number of timesteps between checkpoints
+amr.check_int       = 10     # number of timesteps between checkpoints
 
 amr.plot_file       = massive_star_plt     # root name of plot file
 amr.plot_per = 5.0
@@ -76,10 +76,6 @@ amr.small_plot_per = 0.5
 amr.small_plot_vars = density Temp in_nse
 amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort
 
-#amr.checkpoint_files_output = 0
-#amr.plot_files_output = 0
-#amr.smallplot_files_output = 0
-
 fab.format = NATIVE_32
 
 castro.plot_per_is_exact = 0
@@ -87,6 +83,8 @@ castro.plot_per_is_exact = 0
 
 amr.max_grid_size   = 64       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
+
+amr.subcycling_mode = None
 
 amr.v               = 1       # control verbosity in Amr.cpp
 castro.v            = 1       # control verbosity in Castro.cpp
@@ -116,17 +114,13 @@ castro.drive_initial_convection_tmax = 50
 
 # refinement
 
-amr.refinement_indicators = denerr denerr2 denerr3
+amr.refinement_indicators = denerr denerr3
 
 amr.refine.denerr.max_level = 1
 amr.refine.denerr.value_greater = 2.e3
 amr.refine.denerr.field_name = density
 
-amr.refine.denerr2.max_level = 2
-amr.refine.denerr2.value_greater = 3.e4
-amr.refine.denerr2.field_name = density
-
-amr.refine.denerr3.max_level = 3
+amr.refine.denerr3.max_level = 2
 amr.refine.denerr3.value_greater = 3.e5
 amr.refine.denerr3.field_name = density
 
@@ -146,7 +140,15 @@ network.Si_nse = 0.02
 network.C_nse = 1.0
 network.O_nse = 1.0
 
-integrator.ode_max_steps = 500000
+integrator.ode_max_steps = 5000
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
+
+integrator.retry_rtol_spec = 1.e-5
+integrator.retry_atol_spec = 1.e-5
+integrator.retry_rtol_enuc = 1.e-5
+integrator.retry_atol_enuc = 1.e-5
 
 network.small_x = 1.e-10
 

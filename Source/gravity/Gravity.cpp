@@ -2966,9 +2966,9 @@ Gravity::set_mass_offset (Real time, bool multi_level) const
         {
             for (int lev = 0; lev <= parent->finestLevel(); lev++) {
                 auto* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
-        if (cs != nullptr) {
-            mass_offset += cs->volWgtSum("density", time);
-        } else {
+                if (cs != nullptr) {
+                    mass_offset += cs->volWgtSum("density", time);
+                } else {
                     amrex::Abort("unable to access volWgtSum");
                 }
             }
@@ -2976,7 +2976,11 @@ Gravity::set_mass_offset (Real time, bool multi_level) const
         else
         {
             auto* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
-            mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
+            if (cs != nullptr) {
+                mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
+            } else {
+                amrex::Abort("unable to access volWgtSum");
+            }
         }
 
         mass_offset = mass_offset / geom.ProbSize();
