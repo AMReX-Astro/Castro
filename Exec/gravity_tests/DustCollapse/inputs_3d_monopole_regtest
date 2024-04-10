@@ -36,6 +36,7 @@ castro.small_dens    = 1.e-6
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
+castro.fixed_dt = 1.5e-3
 
 # SPONGE
 castro.sponge_lower_density = 1.0e-3
@@ -44,17 +45,18 @@ castro.sponge_timescale = 1.0e-3
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
-castro.v              = 0       # verbosity in Castro.cpp
+castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 0       # maximum level number allowed
-amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.max_level       = 1       # maximum level number allowed
+amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+amr.subcycling_mode = None
 
 amr.refinement_indicators = dengrad
 
