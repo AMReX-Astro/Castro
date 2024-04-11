@@ -1,4 +1,4 @@
-#ifdef CASTRO_REACT_H
+#ifndef CASTRO_REACT_H
 #define CASTRO_REACT_H
 
 ///
