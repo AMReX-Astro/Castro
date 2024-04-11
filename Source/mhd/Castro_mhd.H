@@ -1,3 +1,5 @@
+#ifndef CASTRO_MHD_H
+#define CASTRO_MHD_H
 
     advance_status construct_ctu_mhd_source(amrex::Real time, amrex::Real dt);
 
@@ -105,3 +107,4 @@
          const int dir);
 
 
+#endif

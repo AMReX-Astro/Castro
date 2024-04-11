@@ -1,3 +1,6 @@
+#ifndef CASTRO_SOURCES_H
+#define CASTRO_SOURCES_H
+
 ///
 /// Returns true if flag corresponding to source type ``src`` is set.
 ///
@@ -378,3 +381,5 @@
 ///
 
     advance_status post_advance_operators (amrex::Real time, amrex::Real dt);
+
+#endif

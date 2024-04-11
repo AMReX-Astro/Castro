@@ -1,3 +1,5 @@
+#ifndef CASTRO_DIFFUSION_H
+#define CASTRO_DIFFUSION_H
 
 ///
 /// Construct diffusion source at old time
@@ -46,3 +48,4 @@ void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& st
                                    amrex::Real mult_factor = 1.0);
 
 
+#endif
