@@ -346,8 +346,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Set the relevant time levels.
 
-        for (int k = 0; k < num_state_type; k++) {
-          state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            for (int k = 0; k < num_state_type; k++) {
+                getLevel(lev).state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+            }
         }
 
         // Do the advance and construct the relevant source terms. For CTU this
