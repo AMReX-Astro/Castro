@@ -309,7 +309,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (num_subcycles_remaining > max_subcycles) {
             amrex::Print() << std::endl
-                           << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
+                           << "  The subcycle mechanism requested " << num_subcycles_remaining
+                           << " subcycled timesteps, which is larger than the maximum of "
+                           << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
             amrex::Abort("Error: too many subcycles.");
         }
@@ -318,9 +320,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+            std::cout << Font::Bold << FGColor::Green
+                      << "  Beginning subcycle " << sub_iteration + 1
+                      << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
-            std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
+            std::cout << "  Estimated number of subcycles remaining: "
+                      << num_subcycles_remaining << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration;
@@ -329,19 +334,18 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (do_swap) {
 
-            swap_state_time_levels(0.0);
+            for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                getLevel(lev).swap_state_time_levels(0.0);
 
 #ifdef GRAVITY
-            if (do_grav) {
-                gravity->swapTimeLevels(level);
-            }
+                if (do_grav) {
+                    getLevel(lev).gravity->swapTimeLevels(level);
+                }
 #endif
+            }
 
-        }
-        else {
-
+        }  else {
             do_swap = true;
-
         }
 
         // Set the relevant time levels.
@@ -460,7 +464,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     // Record the number of subcycles we took for diagnostic purposes.
 
-    num_subcycles_taken = sub_iteration;
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        getLevel(lev).num_subcycles_taken = sub_iteration;
+    }
 
     if (sub_iteration > 1) {
 
@@ -470,14 +476,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // we still have the last iteration's old data if we need
         // it later.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            if (prev_state[k]->hasOldData()) {
-                state[k].replaceOldData(*prev_state[k]);
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            for (int k = 0; k < num_state_type; k++) {
+                if (getLevel(lev).prev_state[k]->hasOldData()) {
+                    getLevel(lev).state[k].replaceOldData(*getLevel(lev).prev_state[k]);
+                }
+                getLevel(lev).state[k].setTimeLevel(time + dt, dt, 0.0);
+                getLevel(lev).prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
             }
-            state[k].setTimeLevel(time + dt, dt, 0.0);
-            prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
-
         }
 
         // If we took more than one step and are going to do a reflux,
@@ -489,13 +495,18 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // reflux immediately following this, skip this if we're on the
             // finest level and this is not the last iteration.
 
-            if (!(amr_iteration < amr_ncycle && level == parent->finestLevel())) {
-              keep_prev_state = true;
+            for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                if (!(amr_iteration < amr_ncycle && lev == parent->finestLevel())) {
+                    getLevel(lev).keep_prev_state = true;
+                }
             }
 
         }
 
     }
+
+
+
 
     // We want to return the subcycled timestep as a suggestion.
     // Let's be sure to return the subcycled timestep that was
