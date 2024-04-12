@@ -505,9 +505,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
-
-
-
     // We want to return the subcycled timestep as a suggestion.
     // Let's be sure to return the subcycled timestep that was
     // unmodified by anything we had to do in the last subcycle
