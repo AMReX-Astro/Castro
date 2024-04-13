@@ -157,6 +157,12 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
     if (do_retry) {
 
+        int max_level_to_advance = level;
+
+        if (parent->subcyclingMode() == "None" && level == 0) {
+            max_level_to_advance = parent->finestLevel();
+        }
+
         for (int lev = level; lev <= max_level_to_advance; ++lev) {
             if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
                 getLevel(lev).dt_subcycle = status.suggested_dt;
