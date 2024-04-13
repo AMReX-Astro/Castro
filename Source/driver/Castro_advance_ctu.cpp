@@ -157,11 +157,12 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
     if (do_retry) {
 
-        if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
-            dt_subcycle = status.suggested_dt;
-        }
-        else {
-            dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
+                getLevel(lev).dt_subcycle = status.suggested_dt;
+            } else {
+                getLevel(lev).dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+            }
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -178,51 +179,54 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        save_data_for_retry();
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            getLevel(lev).save_data_for_retry();
 
-        // Clear the contribution to the fluxes from this step.
+            // Clear the contribution to the fluxes from this step.
 
-        for (int dir = 0; dir < 3; ++dir) {
-          fluxes[dir]->setVal(0.0);
-        }
+            for (int dir = 0; dir < 3; ++dir) {
+                getLevel(lev).fluxes[dir]->setVal(0.0);
+            }
 
-        for (int dir = 0; dir < 3; ++dir) {
-          mass_fluxes[dir]->setVal(0.0);
-        }
+            for (int dir = 0; dir < 3; ++dir) {
+                getLevel(lev).mass_fluxes[dir]->setVal(0.0);
+            }
 
 #if (AMREX_SPACEDIM <= 2)
-        if (!Geom().IsCartesian()) {
-          P_radial.setVal(0.0);
-        }
+            if (!Geom().IsCartesian()) {
+                getLevel(lev).P_radial.setVal(0.0);
+            }
 #endif
 
 #ifdef RADIATION
-        if (Radiation::rad_hydro_combined) {
-          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            rad_fluxes[dir]->setVal(0.0);
-          }
-        }
+            if (Radiation::rad_hydro_combined) {
+                for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                    getLevel(lev).rad_fluxes[dir]->setVal(0.0);
+                }
+            }
 #endif
 
 #ifdef REACTIONS
-        burn_weights.setVal(0.0);
+            getLevel(lev).burn_weights.setVal(0.0);
 #endif
 
-        // For simplified SDC, we'll have garbage data if we
-        // attempt to use the lagged source terms (both reacting
-        // and non-reacting) from the last timestep, since that
-        // advance failed and we don't know if we can trust it.
-        // So we zero out both source term correctors.
+            // For simplified SDC, we'll have garbage data if we
+            // attempt to use the lagged source terms (both reacting
+            // and non-reacting) from the last timestep, since that
+            // advance failed and we don't know if we can trust it.
+            // So we zero out both source term correctors.
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            source_corrector.setVal(0.0, source_corrector.nGrow());
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                getLevel(lev).source_corrector.setVal(0.0, getLevel(lev).source_corrector.nGrow());
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+                MultiFab& SDC_react_new = getLevel(lev).get_new_data(Simplified_SDC_React_Type);
+                SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 #endif
 #endif
+            }
+
         }
 
     }
