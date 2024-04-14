@@ -362,10 +362,7 @@ castro.gw_dist = 10.0
 castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
-amr.plot_files_output = 0
-
-# Write small plot files
-amr.smallplot_files_output = 0
+amr.plot_files_output = 1
 
 # Whether or not to output checkpoints
 amr.checkpoint_files_output = 0
@@ -377,7 +374,7 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-#amr.check_per = 
+amr.check_per = 0.1
 
 # Number of timesteps between checkpoints
 amr.check_int = 20
@@ -386,16 +383,16 @@ amr.check_int = 20
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = 0.1
+amr.plot_per = -1
 
 # Number of timesteps between plotfiles
-amr.plot_int = -1
+#amr.plot_int = -1
 
 # Root name of small plot files
 amr.small_plot_file = smallplt
 
 # Simulation time between small plotfiles
-amr.small_plot_per = 0.1
+amr.small_plot_per = -1
 
 # Number of timesteps between small plotfiles
 amr.small_plot_int = -1
@@ -420,16 +417,16 @@ castro.v = 1
 gravity.v = 1
 
 # State variables to add to plot files
-amr.plot_vars = ALL
+amr.plot_vars = NONE
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = pressure
+amr.derive_plot_vars = NONE
 
 # State variables to add to small plot files
 amr.small_plot_vars = density Temp 
 
 # Derived variables to add to small plot files
-amr.derive_small_plot_vars = enuc X(He4) X(C12) X(O16)
+amr.derive_small_plot_vars = NONE
 
 # Name of the diagnostic sum output files
 amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
