@@ -213,7 +213,9 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 #endif
 
 #ifdef REACTIONS
-            getLevel(lev).burn_weights.setVal(0.0);
+            if (castro::store_burn_weights) {
+                getLevel(lev).burn_weights.setVal(0.0);
+            }
 #endif
 
             // For simplified SDC, we'll have garbage data if we
