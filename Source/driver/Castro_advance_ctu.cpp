@@ -167,7 +167,7 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
             if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
                 getLevel(lev).dt_subcycle = status.suggested_dt;
             } else {
-                getLevel(lev).dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+                getLevel(lev).dt_subcycle = std::min(dt, getLevel(lev).dt_subcycle) * retry_subcycle_factor;
             }
         }
 
