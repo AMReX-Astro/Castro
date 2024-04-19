@@ -760,6 +760,13 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n";
 
+  jobInfoFile << "     amr.regrid_int:       ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int regridint = parent->regridInt(lev-1);
+    jobInfoFile << regridint << " ";
+  }
+  jobInfoFile << "\n";
+
   jobInfoFile << "     amr.blocking_factor:  ";
   for (int lev = 1; lev <= max_level; lev++) {
     IntVect bf = parent->blockingFactor(lev-1);
