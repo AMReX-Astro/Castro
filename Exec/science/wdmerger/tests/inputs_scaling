@@ -350,7 +350,7 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
-castro.sum_interval = 1
+castro.sum_interval = 0
 
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
@@ -362,7 +362,7 @@ castro.gw_dist = 10.0
 castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
-amr.plot_files_output = 1
+amr.plot_files_output = 0
 
 # Whether or not to output checkpoints
 amr.checkpoint_files_output = 0
@@ -423,13 +423,13 @@ amr.plot_vars = NONE
 amr.derive_plot_vars = NONE
 
 # State variables to add to small plot files
-amr.small_plot_vars = density Temp 
+amr.small_plot_vars = NONE
 
 # Derived variables to add to small plot files
 amr.derive_small_plot_vars = NONE
 
 # Name of the diagnostic sum output files
-amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
+#amr.data_log = NONE
 
 ############################################################################################
 # Problem parameters
