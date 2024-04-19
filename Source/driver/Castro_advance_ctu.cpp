@@ -351,7 +351,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
 #ifdef GRAVITY
                 if (do_grav) {
-                    getLevel(lev).gravity->swapTimeLevels(level);
+                    getLevel(lev).gravity->swapTimeLevels(lev);
                 }
 #endif
             }
