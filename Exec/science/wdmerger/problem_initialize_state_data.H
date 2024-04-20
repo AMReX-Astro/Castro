@@ -39,7 +39,10 @@ void problem_initialize_state_data (int i, int j, int k,
     // things right on the coarse levels. So we can still use the
     // interpolation scheme, because it handles this special case
     // for us by simply using the central zone of the model; we
-    // just need to make sure we catch it.
+    // just need to make sure we catch it.  Finally, sometimes
+    // the stars are so close that the interpolation will overlap.
+    // in this case, look at which model has the highest density
+    // at that location and use that model.
 
     const Real* dx = geomdata.CellSize();
 
@@ -53,43 +56,52 @@ void problem_initialize_state_data (int i, int j, int k,
 
     eos_t zone_state;
 
-    if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P ||
-                                     (problem::radius_P <= max_dx && dist_P < max_dx))) {
-        Real pos[3] = {loc[0] - problem::center_P_initial[0],
-                       loc[1] - problem::center_P_initial[1],
-                       loc[2] - problem::center_P_initial[2]};
+    bool P_star_test = problem::mass_P > 0.0_rt &&
+        (dist_P < problem::radius_P ||
+         (problem::radius_P <= max_dx && dist_P < max_dx));
 
-        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 0);
-        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 0);
-        for (int n = 0; n < NumSpec; ++n) {
-            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
+    bool S_star_test = problem::mass_S > 0.0_rt &&
+        (dist_S < problem::radius_S ||
+         (problem::radius_S <= max_dx && dist_S < max_dx));
+
+    if (P_star_test || S_star_test) {
+
+        Real pos_P[3] = {loc[0] - problem::center_P_initial[0],
+                         loc[1] - problem::center_P_initial[1],
+                         loc[2] - problem::center_P_initial[2]};
+
+        auto rho_P = interpolate_3d(pos_P, dx, model::idens, problem::nsub, 0);
+
+        Real pos_S[3] = {loc[0] - problem::center_S_initial[0],
+                         loc[1] - problem::center_S_initial[1],
+                         loc[2] - problem::center_S_initial[2]};
+
+        auto rho_S = interpolate_3d(pos_S, dx, model::idens, problem::nsub, 1);
+
+        if (rho_P > rho_S) {
+            // use the primary star initialization
+            zone_state.rho = rho_P;
+            zone_state.T   = interpolate_3d(pos_P, dx, model::itemp, problem::nsub, 0);
+            for (int n = 0; n < NumSpec; ++n) {
+                zone_state.xn[n] = interpolate_3d(pos_P, dx, model::ispec + n, problem::nsub, 0);
+            }
+
+        } else {
+            // use the secondary star initialization
+            zone_state.rho = rho_S;
+            zone_state.T   = interpolate_3d(pos_S, dx, model::itemp, problem::nsub, 1);
+            for (int n = 0; n < NumSpec; ++n) {
+                zone_state.xn[n] = interpolate_3d(pos_S, dx, model::ispec + n, problem::nsub, 1);
+            }
         }
+
 #ifdef AUX_THERMO
         set_aux_comp_from_X(zone_state);
 #endif
 
         eos(eos_input_rt, zone_state);
 
-    }
-    else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
-                                          (problem::radius_S <= max_dx && dist_S < max_dx))) {
-        Real pos[3] = {loc[0] - problem::center_S_initial[0],
-                       loc[1] - problem::center_S_initial[1],
-                       loc[2] - problem::center_S_initial[2]};
-
-        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 1);
-        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 1);
-        for (int n = 0; n < NumSpec; ++n) {
-            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
-        }
-#ifdef AUX_THERMO
-        set_aux_comp_from_X(zone_state);
-#endif
-
-        eos(eos_input_rt, zone_state);
-
-    }
-    else {
+    } else {
 
         zone_state.rho = ambient::ambient_state[URHO];
         zone_state.T   = ambient::ambient_state[UTEMP];
