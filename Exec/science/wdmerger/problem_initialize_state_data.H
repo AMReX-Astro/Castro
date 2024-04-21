@@ -64,13 +64,14 @@ void problem_initialize_state_data (int i, int j, int k,
         (dist_S < problem::radius_S ||
          (problem::radius_S <= max_dx && dist_S < max_dx));
 
+    double rho_P{0.0};
+    double rho_S{0.0};
+
     if (P_star_test || S_star_test) {
 
         Real pos_P[3] = {loc[0] - problem::center_P_initial[0],
                          loc[1] - problem::center_P_initial[1],
                          loc[2] - problem::center_P_initial[2]};
-
-        double rho_P{0.0};
 
         if (problem::mass_P > 0.0_rt) {
             rho_P = interpolate_3d(pos_P, dx, model::idens, problem::nsub, 0);
@@ -79,8 +80,6 @@ void problem_initialize_state_data (int i, int j, int k,
         Real pos_S[3] = {loc[0] - problem::center_S_initial[0],
                          loc[1] - problem::center_S_initial[1],
                          loc[2] - problem::center_S_initial[2]};
-
-        double rho_S{0.0};
 
         if (problem::mass_S > 0.0_rt) {
             rho_S = interpolate_3d(pos_S, dx, model::idens, problem::nsub, 1);
@@ -151,17 +150,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::problem != 1) {
 
-        if (dist_P < problem::radius_P) {
-            state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
-            state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
-            state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
+        if (P_star_test || S_star_test) {
+            if (rho_P > rho_S) {
+                state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
+                state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
+                state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
+            } else {
+                state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
+                state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
+                state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
+            }
         }
-        else if (dist_S < problem::radius_S) {
-            state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
-            state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
-            state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
-        }
-
     }
 
     // If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
