@@ -7,7 +7,10 @@ geometry.is_periodic = 1       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
 geometry.prob_hi     = 3072    3072
-amr.n_cell           = 256     256
+amr.n_cell           = 128     256
+
+castro.allow_non_unit_aspect_zones = 1
+castro.domain_is_plane_parallel = 1
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -80,6 +83,9 @@ problem.model_name =  "toy_atm_hot_3cm.hse"
 problem.apply_perturbation = 1
 
 problem.model_shift = 750.0
+
+problem.H_min = 1.e-5
+problem.He_min = 1.e-5
 
 # MICROPHYSICS
 integrator.jacobian = 1
