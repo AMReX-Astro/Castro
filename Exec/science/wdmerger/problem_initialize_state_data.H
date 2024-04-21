@@ -151,11 +151,11 @@ void problem_initialize_state_data (int i, int j, int k,
     if (problem::problem != 1) {
 
         if (P_star_test || S_star_test) {
-            if (rho_P > rho_S) {
+            if (rho_P > rho_S && problem::mass_P > 0.0_rt) {
                 state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
                 state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
                 state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
-            } else {
+            } else if (problem::mass_S > 0.0_rt) {
                 state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
                 state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
                 state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
