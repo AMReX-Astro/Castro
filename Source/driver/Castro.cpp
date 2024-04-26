@@ -591,7 +591,12 @@ Castro::read_params ()
         if (ppr.countval("max_level") > 0) {
             int max_level;
             ppr.get("max_level", max_level);
+            BL_ASSERT(max_level <= MAX_LEV);
             info.SetMaxLevel(max_level);
+        } else {
+            // the default max_level of AMRErrorTagInfo is 1000, but make sure
+            // that it is reasonable for Castro
+            info.SetMaxLevel(MAX_LEV);
         }
         if (ppr.countval("volume_weighting") > 0) {
             int volume_weighting;
@@ -603,10 +608,6 @@ Castro::read_params ()
             ppr.get("derefine", derefine);
             info.SetDerefine(derefine);
         }
-
-        // the default max_level of AMRErrorTagInfo is 1000, but make sure
-        // that it is reasonable for Castro
-        BL_ASSERT(info.m_max_level < MAX_LEV);
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
