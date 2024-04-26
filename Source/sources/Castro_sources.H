@@ -149,7 +149,7 @@
 ///
 /// @param update       Real Vector of changes
 ///
-    static void print_source_change(amrex::Vector<amrex::Real> update);
+    static void print_source_change(const amrex::Vector<amrex::Real>& update);
 
 
 ///

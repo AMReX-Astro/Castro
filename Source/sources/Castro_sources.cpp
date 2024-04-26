@@ -459,7 +459,7 @@ Castro::evaluate_source_change(const MultiFab& source, Real dt, bool local)
 // interested in printing changes to energy, mass, etc.
 
 void
-Castro::print_source_change(Vector<Real> update)
+Castro::print_source_change(const Vector<Real>& update)
 {
 
   if (ParallelDescriptor::IOProcessor()) {
