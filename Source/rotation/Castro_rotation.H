@@ -1,3 +1,5 @@
+#ifndef CASTRO_ROTATION_H
+#define CASTRO_ROTATION_H
 
 ///
 /// Construct rotation source terms at old time
@@ -80,3 +82,4 @@
     fill_rotational_psi(const Box& bx,
                         Array4<Real> const& psi,
                         const Real time);
+#endif
