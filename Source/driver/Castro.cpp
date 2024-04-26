@@ -606,7 +606,7 @@ Castro::read_params ()
 
         // the default max_level of AMRErrorTagInfo is 1000, but make sure
         // that it is reasonable for Castro
-        BL_ASSERT(info.m_max_level < MAX_LEVEL);
+        BL_ASSERT(info.m_max_level < MAX_LEV);
 
         if (ppr.countval("value_greater")) {
             Vector<Real> value;
