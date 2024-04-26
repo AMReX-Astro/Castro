@@ -56,6 +56,7 @@
 #include <problem_tagging.H>
 
 #include <ambient.H>
+#include <castro_limits.H>
 
 using namespace amrex;
 
