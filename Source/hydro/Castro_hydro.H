@@ -711,9 +711,6 @@
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
-#ifdef SHOCK_VAR
-                      amrex::Array4<amrex::Real const> const& shk,
-#endif
                       amrex::Array4<amrex::Real> const& U_new,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,
