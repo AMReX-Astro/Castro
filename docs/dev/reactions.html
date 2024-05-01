@@ -82,7 +82,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Reactions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#controlling-burning">Controlling burning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-burning">Controlling burning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#burning-in-shocks">Burning in Shocks</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#reactions-flowchart">Reactions Flowchart</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#strang">Strang</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#simplified-sdc">Simplified-SDC</a></li>
@@ -146,10 +149,13 @@ components used in both the equation of state and the hydrodynamics,
 and it evolves those components through a nuclear burning step.  All
 of the reaction networks that Castro uses are provided by the
 <a class="reference external" href="https://github.com/amrex-astro/Microphysics">Microphysics repository</a>.</p>
-<div class="admonition note">
+<div class="admonition note" id="index-1">
 <p class="admonition-title">Note</p>
-<p>An arbitrary reaction network can be created for Castro via the
-<a class="reference external" href="https://pynucastro.github.io/pynucastro/">pynucastro library</a>.</p>
+<p>To enable reactions in a simulation, you must compile with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_REACT</span><span class="o">=</span><span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>This can be set in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 </div>
 <p>Microphysics comes with a <code class="docutils literal notranslate"><span class="pre">general_null</span></code>
 network. This is a bare interface for a
@@ -158,6 +164,14 @@ are accepted.  It contains several sets of isotopes; for example,
 <code class="docutils literal notranslate"><span class="pre">Microphysics/networks/general_null/triple_alpha_plus_o.net</span></code> would describe the
 isotopes needed to represent the triple-<span class="math notranslate nohighlight">\(\alpha\)</span> reaction converting
 helium into carbon, as well as oxygen and iron.</p>
+<p>Other reaction networks can be found in <code class="docutils literal notranslate"><span class="pre">Microphysics/networks</span></code>.  To select
+a network, you set the make variable <code class="docutils literal notranslate"><span class="pre">NETWORK_DIR</span></code> to the name of the network
+directory.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An arbitrary reaction network can be created for Castro via the
+<a class="reference external" href="https://pynucastro.github.io/pynucastro/">pynucastro library</a>.</p>
+</div>
 <p>The main interface for burning is in <code class="docutils literal notranslate"><span class="pre">Microphysics/interfaces/burner.H</span></code>:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="n">burner</span><span class="w"> </span><span class="p">(</span><span class="n">burn_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="n">dt</span><span class="p">)</span>
 </pre></div>
@@ -175,7 +189,7 @@ hydrodynamics, selected through the parameter
 details.</p>
 <section id="controlling-burning">
 <h2>Controlling burning<a class="headerlink" href="#controlling-burning" title="Link to this heading"></a></h2>
-<p id="index-1">There are a number of reactions-related parameters that can be set at runtime
+<p id="index-2">There are a number of reactions-related parameters that can be set at runtime
 in the inputs file. Reactions are enabled by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_react</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
@@ -188,24 +202,37 @@ reactions to occur in a zone using the parameters:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code> for temperature</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code> for density</p></li>
 </ul>
-<p id="index-2">Burning can also be disabled inside shocks.  This requires that the code be
+<section id="burning-in-shocks">
+<h3>Burning in Shocks<a class="headerlink" href="#burning-in-shocks" title="Link to this heading"></a></h3>
+<p id="index-3">Burning can also be disabled inside shocks.  This requires that the code be
 compiled with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_SHOCK_VAR</span> <span class="o">=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  This will allocate storage for a shock flag in the conserved
 state array.  This flag is computed via a multidimensional shock detection algorithm
-that looks for compression (<span class="math notranslate nohighlight">\(\nabla \cdot \ub &lt; 0\)</span>) along with a pressure jump
-in the direction of compression.  The runtime parameter:</p>
+described in <span id="id1">[<a class="reference internal" href="zreferences.html#id77" title="Michael Zingale, Zhi Chen, Melissa Rasmussen, Abigail Polin, Max Katz, Alexander Smith Clark, and Eric T. Johnson. Sensitivity of Simulations of Double Detonation Type Ia Supernova to Integration Methodology. arXiv e-prints, pages arXiv:2309.01802, September 2023. arXiv:2309.01802, doi:10.48550/arXiv.2309.01802.">76</a>]</span>.  A zone is tagged as a shock if the following
+conditions are true:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\nabla \cdot \ub &amp;&lt; 0 \\
+\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &gt; &amp;f_\mathrm{shock}
+\end{align*}\end{split}\]</div>
+<p>This requires that there is compression and that the pressure jump (excluding
+the part of the pressure that balances gravity) is large.  The runtime parameter</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">disable_shock_burning</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p>will skip reactions in a zone where we’ve detected a shock.</p>
+<p>will skip reactions in a zone where we’ve detected a shock.  The runtime parameters
+<code class="docutils literal notranslate"><span class="pre">castro.shock_detection_threshold</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.shock_detection_include_sources</span></code>
+will set the value of <span class="math notranslate nohighlight">\(f_\mathrm{shock}\)</span> and whether to subtract <span class="math notranslate nohighlight">\(\rho {\bf g}\)</span>
+from the pressure gradient.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Both the compilation with <code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> and the runtime parameter
 <code class="docutils literal notranslate"><span class="pre">castro.disable_shock_burning</span> <span class="pre">=</span> <span class="pre">1</span></code> are needed to turn off burning in shocks.</p>
 </div>
+</section>
 </section>
 <section id="reactions-flowchart">
 <h2>Reactions Flowchart<a class="headerlink" href="#reactions-flowchart" title="Link to this heading"></a></h2>
@@ -263,12 +290,12 @@ the step again with a smaller timestep.</p>
 </ul>
 </li>
 <li><p>Store the burning sources for plotting</p>
-<p id="index-3">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+<p id="index-4">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
 sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
 diagnostics.</p>
 <p>We fill these as:</p>
-<ul id="index-4">
+<ul id="index-5">
 <li><p>energy generation rate:</p>
 <p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
 </li>
@@ -366,12 +393,12 @@ the step again with a smaller timestep.</p>
 </ul>
 </li>
 <li><p>Store the burning sources for plotting</p>
-<p id="index-5">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+<p id="index-6">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
 sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
 diagnostics.</p>
 <p>We fill these as:</p>
-<ul id="index-6">
+<ul id="index-7">
 <li><p>energy generation rate:</p>
 <p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
 </li>
