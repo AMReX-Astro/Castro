@@ -1,3 +1,25 @@
+# 24.05
+
+  * Changed how the shock flag is computed.  It is now computed once,
+    at the start of a timestep.  It also takes into account sources
+    such that the pressure jump is only the pressure that is available
+    to drive a shock.  (#2726, #2728)
+
+  * Fixed a boundary condition check in gravity (#2833)
+
+  * Some coverity and clang-tidy fixes (#2810, #2811, #2835, #2831,
+    #2832)
+
+  * Fix the wdmerger initialization when the two stars are overlapping
+    (#2829)
+
+  * Fixed the Castro retry mechanism when amr.subcycling_mode = None
+    (#2821, #2824, #2826)
+
+  * Added more amr parameters to the job_info file (#2828)
+
+  * Added OpenMP to the SDC burn loop (#2770)
+
 # 24.04
 
   * Some clang-tidy fixes (#2779, #2780, #2781, #2784, #2786, #2787, #2790,
