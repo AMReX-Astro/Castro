@@ -67,7 +67,7 @@
                     amrex::Array4<amrex::Real const> const& flxx,
                     amrex::Array4<amrex::Real const> const& flxz);
 
-    statc=ic void
+    static void
     electric_edge_z(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
