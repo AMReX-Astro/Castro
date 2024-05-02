@@ -38,7 +38,7 @@
                amrex::Array4<amrex::Real const> const& flux1,
                amrex::Array4<amrex::Real const> const& flux2);
 
-    void
+    static void
     PrimToCons(const amrex::Box& bx,
                amrex::Array4<amrex::Real const> const& q_arr,
                amrex::Array4<amrex::Real> const& u_arr);
@@ -53,21 +53,21 @@
               const amrex::Real dt);
 
 
-    void
+    static void
     electric_edge_x(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
                     amrex::Array4<amrex::Real const> const& flxy,
                     amrex::Array4<amrex::Real const> const& flxz);
 
-    void
+    static void
     electric_edge_y(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
                     amrex::Array4<amrex::Real const> const& flxx,
                     amrex::Array4<amrex::Real const> const& flxz);
 
-    void
+    statc=ic void
     electric_edge_z(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
