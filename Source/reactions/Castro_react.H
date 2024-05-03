@@ -1,3 +1,6 @@
+#ifndef CASTRO_REACT_H
+#define CASTRO_REACT_H
+
 ///
 /// Perform any old-time reactions.
 ///
@@ -36,3 +39,5 @@
 /// @param State    State MultiFab
 ///
     static bool valid_zones_to_burn(amrex::MultiFab& State);
+
+#endif

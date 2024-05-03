@@ -1,3 +1,6 @@
+#ifndef CASTRO_SOURCES_H
+#define CASTRO_SOURCES_H
+
 ///
 /// Returns true if flag corresponding to source type ``src`` is set.
 ///
@@ -54,7 +57,7 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 ///
-    advance_status do_old_sources (amrex::Real time, amrex::Real dt);
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
@@ -146,7 +149,7 @@
 ///
 /// @param update       Real Vector of changes
 ///
-    static void print_source_change(amrex::Vector<amrex::Real> update);
+    static void print_source_change(const amrex::Vector<amrex::Real>& update);
 
 
 ///
@@ -378,3 +381,5 @@
 ///
 
     advance_status post_advance_operators (amrex::Real time, amrex::Real dt);
+
+#endif
