@@ -36,7 +36,7 @@ public:
 ///
 /// @param jobInfoFile
 ///
-  void output_job_info_params(std::ostream& jobInfoFile);
+  static void output_job_info_params(std::ostream& jobInfoFile);
 
 
 ///
