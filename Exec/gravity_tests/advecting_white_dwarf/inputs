@@ -84,7 +84,7 @@ amr.refinement_indicators = density
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e3
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 ############################################################################################
 # Physics to include
