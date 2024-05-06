@@ -220,7 +220,7 @@ energies below this value will be reset</p></td>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_hydro</span></code></p></td>
 <td><p>permits hydro to be turned on and off for running pure rad
 problems</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span></code></p></td>
 <td><p>how do we advance in time? 0 = CTU + Strang, 1 is not used,
@@ -696,7 +696,7 @@ from becoming very small due to changes in trace species.</p></td>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
 <td><p>permits reactions to be turned on and off – mostly for
 efficiency’s sake</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
 <td><p>minimum temperature for allowing reactions to occur in a
@@ -796,7 +796,7 @@ cutoff density. This should be the larger of the two</p></td>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_grav</span></code></p></td>
 <td><p>permits gravity calculation to be turned on and off</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">moving_center</span></code></p></td>
 <td><p>to we recompute the center used for the multipole gravity
@@ -810,7 +810,7 @@ the momentum and energy state variables.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_rotation</span></code></p></td>
 <td><p>permits rotation calculation to be turned on and off</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rotational_period</span></code></p></td>
 <td><p>the rotation period for the corotating frame</p></td>
@@ -968,7 +968,7 @@ embiggening</p></td>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">star_at_center</span></code></p></td>
 <td><p>used with the embiggening routines to determine how to
 extend the domain</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 </tbody>
 </table>
@@ -1124,7 +1124,7 @@ parameters are managed by the python scripts.</p></td>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_radiation</span></code></p></td>
 <td><p>do we enable radiation for a radiation-hydrodynamics run?</p></td>
-<td><p>-1</p></td>
+<td><p>true</p></td>
 </tr>
 </tbody>
 </table>
