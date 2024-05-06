@@ -211,12 +211,12 @@ compiled with:</p>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  This will allocate storage for a shock flag in the conserved
 state array.  This flag is computed via a multidimensional shock detection algorithm
-described in <span id="id1">[<a class="reference internal" href="zreferences.html#id77" title="Michael Zingale, Zhi Chen, Melissa Rasmussen, Abigail Polin, Max Katz, Alexander Smith Clark, and Eric T. Johnson. Sensitivity of Simulations of Double Detonation Type Ia Supernova to Integration Methodology. arXiv e-prints, pages arXiv:2309.01802, September 2023. arXiv:2309.01802, doi:10.48550/arXiv.2309.01802.">76</a>]</span>.  A zone is tagged as a shock if the following
+described in <span id="id1">[<a class="reference internal" href="zreferences.html#id77" title="Michael Zingale, Zhi Chen, Melissa Rasmussen, Abigail Polin, Max Katz, Alexander Smith Clark, and Eric T. Johnson. Sensitivity of simulations of double-detonation type ia supernovae to integration methodology. The Astrophysical Journal, 966(2):150, may 2024. URL: https://dx.doi.org/10.3847/1538-4357/ad3441, doi:10.3847/1538-4357/ad3441.">17</a>]</span>.  A zone is tagged as a shock if the following
 conditions are true:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align*}
 \nabla \cdot \ub &amp;&lt; 0 \\
-\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &gt; &amp;f_\mathrm{shock}
+\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &amp;&gt; f_\mathrm{shock}
 \end{align*}\end{split}\]</div>
 <p>This requires that there is compression and that the pressure jump (excluding
 the part of the pressure that balances gravity) is large.  The runtime parameter</p>
