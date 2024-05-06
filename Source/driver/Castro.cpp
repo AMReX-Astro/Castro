@@ -401,21 +401,21 @@ Castro::read_params ()
     }
 #endif
 
-    if (hybrid_riemann == 1 && AMREX_SPACEDIM == 1)
+    if (hybrid_riemann && AMREX_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
         amrex::Error();
       }
 
-    if (hybrid_riemann == 1 && (dgeom.IsSPHERICAL() || dgeom.IsRZ() ))
+    if (hybrid_riemann && (dgeom.IsSPHERICAL() || dgeom.IsRZ() ))
       {
         std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
         amrex::Error();
       }
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
-    if (do_hydro == 0) {
-      do_reflux = 0;
+    if (!do_hydro) {
+      do_reflux = false;
     }
 
     if (max_dt < fixed_dt)
