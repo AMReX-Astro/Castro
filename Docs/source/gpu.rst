@@ -44,7 +44,7 @@ back.  For an example, see the reduction done in  ``Gravity.cpp``.
 .. note::
 
    For a thorough discussion of how the AMReX GPU offloading works
-   see :ref:`amrex-ecp`.
+   see :cite:`amrex-ecp`.
 
 
 Runtime parameters
