@@ -40,7 +40,7 @@ allow_non_unit_aspect_zones  int           0
 # to cell centers and we convert to cell-averages.  With this option,
 # we take the initialization as cell-averages (except for T, which we
 # compute to fourth-order through the EOS after initialization).
-initialization_is_cell_average  int        0
+initialization_is_cell_average  bool        0
 
 # type of interpolation to use for mapping the 1D initial model onto the
 # domain.  0 = linear, 1 = cubic
@@ -75,12 +75,6 @@ time_integration_method      int           0
 
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           bool           1
-
-# for fourth order, we usually assume that the initialization is done
-# to cell centers and we convert to cell-averages.  With this option,
-# we take the initialization as cell-averages (except for T, which we
-# compute to fourth-order through the EOS after initialization).
-initialization_is_cell_average  bool        0
 
 # should we use a reconstructed version of Gamma_1 in the Riemann
 # solver? or the default zone average (requires SDC
