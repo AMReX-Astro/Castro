@@ -40,11 +40,11 @@ amr.max_grid_size   = 128
 
 amr.refinement_indicators = dengrad_rel tempgrad_rel
 
-amr.refine.dengrad_rel.max_level = 20
+amr.refine.dengrad_rel.max_level = 15
 amr.refine.dengrad_rel.relative_gradient = 0.25
 amr.refine.dengrad_rel.field_name = density
 
-amr.refine.tempgrad_rel.max_level = 20
+amr.refine.tempgrad_rel.max_level = 15
 amr.refine.tempgrad_rel.relative_gradient = 0.25
 amr.refine.tempgrad_rel.field_name = Temp
 

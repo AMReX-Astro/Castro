@@ -39,7 +39,7 @@
 [*] castro.small_temp = 1e+06
 [*] castro.small_pres = 2.98096e+09
 [*] castro.small_ener = 8.25345e+14
-[*] castro.do_hydro = 1
+    castro.do_hydro = 1
     castro.time_integration_method = 0
     castro.limit_fourth_order = 1
     castro.initialization_is_cell_average = 0
@@ -121,7 +121,7 @@
     castro.dtnuc_e = 1e+200
     castro.dtnuc_X = 1e+200
     castro.dtnuc_X_threshold = 0.001
-[*] castro.do_react = 1
+    castro.do_react = 1
 [*] castro.react_T_min = 6e+07
     castro.react_T_max = 1e+200
 [*] castro.react_rho_min = 100
@@ -133,13 +133,13 @@
     castro.drive_initial_convection = 0
     castro.drive_initial_convection_tmax = 1e+200
     castro.drive_initial_convection_reinit_period = 1e+200
-[*] castro.do_grav = 1
+    castro.do_grav = 1
     castro.moving_center = 0
 [*] castro.grav_source_type = 2
-[*] castro.do_rotation = 1
+    castro.do_rotation = 1
     castro.bndry_func_thread_safe = 1
     castro.grown_factor = 1
-    castro.star_at_center = -1
+    castro.star_at_center = 1
     castro.do_scf_initial_model = 0
     castro.scf_maximum_density = -1e+06
     castro.scf_equatorial_radius = -1e+09
@@ -161,7 +161,7 @@
     castro.store_omegadot = 0
     castro.store_burn_weights = 0
     castro.abort_on_invalid_params = 0
-    castro.do_radiation = -1
+    castro.do_radiation = 1
 [*] gravity.gravity_type = ConstantGrav
 [*] gravity.const_grav = -1.5e+14
     gravity.direct_sum_bcs = 0

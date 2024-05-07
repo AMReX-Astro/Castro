@@ -49,8 +49,8 @@ Castro::rsrc(const Box& bx,
     bool coriolis = true;
     rotational_acceleration(loc, v, coriolis, Sr);
 
-    for (int n = 0; n < 3; n++) {
-        Sr[n] = rho * Sr[n];
+    for (auto& e : Sr) {
+        e *= rho;
     }
 
     src[UMX] = Sr[0];
@@ -85,7 +85,7 @@ Castro::rsrc(const Box& bx,
 
     Real SrE;
 
-    if (rot_source_type == 1 || rot_source_type == 2) {
+    if (rot_source_type == 1 || rot_source_type == 2) {  // NOLINT(bugprone-branch-clone)
 
       SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
             uold(i,j,k,UMY) * rhoInv * Sr[1] +
@@ -196,8 +196,8 @@ Castro::corrrsrc(const Box& bx,
 
     } else {
 
-      for (int idir = 0; idir < 3; idir++) {
-        dt_omega[idir] = 0.0_rt;
+      for (auto& e : dt_omega) {
+        e = 0.0_rt;
       }
 
     }
@@ -269,8 +269,8 @@ Castro::corrrsrc(const Box& bx,
     bool coriolis = true;
     rotational_acceleration(loc, vold, coriolis, Sr_old);
 
-    for (int n = 0; n < 3; n++) {
-        Sr_old[n] = rhoo * Sr_old[n];
+    for (auto& e : Sr_old) {
+        e *= rhoo;
     }
 
     Real SrE_old = vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2];
@@ -286,8 +286,8 @@ Castro::corrrsrc(const Box& bx,
 
     rotational_acceleration(loc, vnew, coriolis, Sr_new);
 
-    for (int n = 0; n < 3; n++) {
-        Sr_new[n] = rhon * Sr_new[n];
+    for (auto& e : Sr_new) {
+        e *= rhon;
     }
 
     Real SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];

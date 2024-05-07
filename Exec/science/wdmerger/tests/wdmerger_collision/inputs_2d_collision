@@ -107,7 +107,7 @@ amr.refinement_indicators = density
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e2
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 # Avoid tagging near the domain boundary
 castro.max_tagging_radius = 0.75e0
