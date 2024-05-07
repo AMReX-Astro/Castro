@@ -88,8 +88,8 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& state_in, Mul
     }
 
     if (diffuse_temp == 1) {
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEDEN,1,0);
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEINT,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEDEN,1,0);  // NOLINT(readability-suspicious-call-argument)
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEINT,1,0);  // NOLINT(readability-suspicious-call-argument)
     }
 }
 

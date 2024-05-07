@@ -151,7 +151,7 @@ Castro::do_old_sources(
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
 
-    if (print_update_diagnostics) {
+    if (apply_to_state && print_update_diagnostics) {
       bool is_new = false;
       print_all_source_changes(dt, is_new);
     }
@@ -174,7 +174,7 @@ Castro::do_old_sources(
 }
 
 advance_status
-Castro::do_old_sources (Real time, Real dt)
+Castro::do_old_sources (Real time, Real dt, bool apply_to_state)
 {
     advance_status status {};
 
@@ -192,7 +192,8 @@ Castro::do_old_sources (Real time, Real dt)
 #ifdef MHD
                    Bx_old, By_old, Bz_old,
 #endif
-                   old_source, Sborder, S_new, time, dt);
+                   old_source, Sborder, S_new, time, dt,
+                   apply_to_state);
 
     return status;
 }
@@ -459,7 +460,7 @@ Castro::evaluate_source_change(const MultiFab& source, Real dt, bool local)
 // interested in printing changes to energy, mass, etc.
 
 void
-Castro::print_source_change(Vector<Real> update)
+Castro::print_source_change(const Vector<Real>& update)
 {
 
   if (ParallelDescriptor::IOProcessor()) {
@@ -522,12 +523,86 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 // and the hydro advance.
 
 advance_status
-Castro::pre_advance_operators (Real time, Real dt)
+Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
 
     advance_status status {};
+
+    // If we are using gravity, solve for the potential and
+    // gravitational field.  note: since reactions don't change
+    // density, we can do this before or after the burn.
+
+#ifdef GRAVITY
+    construct_old_gravity(time);
+#endif
+
+#ifdef SHOCK_VAR
+    // we want to compute the shock flag that will be used
+    // (optionally) in disabling reactions in shocks.  We compute this
+    // only once per timestep using the time-level n data.
+
+    // We need to compute the old sources -- note that we will
+    // recompute the old sources after the burn, so this is done here
+    // only for evaluating the shock flag.
+
+    const bool apply_to_state{false};
+    do_old_sources(time, dt, apply_to_state);
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& old_source = get_old_data(Source_Type);
+
+    FArrayBox shk(The_Async_Arena());
+    FArrayBox q(The_Async_Arena()), qaux(The_Async_Arena());
+
+    for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const Box& obx = mfi.growntilebox(1);
+
+        shk.resize(bx, 1);
+#ifdef RADIATION
+        q.resize(obx, NQ);
+#else
+        q.resize(obx, NQTHERM);
+#endif
+        qaux.resize(obx, NQAUX);
+
+        Array4<Real> const shk_arr = shk.array();
+        Array4<Real> const q_arr = q.array();
+        Array4<Real> const qaux_arr = qaux.array();
+
+        Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
+        Array4<Real> const S_old_arr = S_old.array(mfi);
+        Array4<Real> const old_src_arr = old_source.array(mfi);
+
+        ctoprim(obx, time, Sborder_old_arr, q_arr, qaux_arr);
+
+        shock(bx, q_arr, old_src_arr, shk_arr);
+
+        // now store it in S_old -- we'll fillpatch into Sborder in a bit
+
+        // Note: we still compute the shock flag in the hydro for the
+        // hybrid-Riemann (for now) since that version will have seen the
+        // effect of the burning in the first dt), but that version is
+        // never stored in State_Type
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            S_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
+        });
+
+    }
+
+    // we only computed the shock flag on the interior, but the first
+    // burn needs ghost cells, so FillPatch just the shock flag
+
+    if (Sborder.nGrow() > 0) {
+      AmrLevel::FillPatch(*this, Sborder, Sborder.nGrow(), time, State_Type, USHK, 1, USHK);
+    }
+
+#endif
 
     // If we are Strang splitting the reactions, do the old-time contribution now.
 
@@ -541,11 +616,6 @@ Castro::pre_advance_operators (Real time, Real dt)
 #endif
 #endif
 
-    // If we are using gravity, solve for the potential and gravitational field.
-
-#ifdef GRAVITY
-    construct_old_gravity(time);
-#endif
 
     // Initialize the new-time data. This copy needs to come after all Strang-split operators.
 
@@ -560,7 +630,7 @@ Castro::pre_advance_operators (Real time, Real dt)
 // but before the hydro advance.
 
 advance_status
-Castro::pre_hydro_operators (Real time, Real dt)
+Castro::pre_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -585,7 +655,7 @@ Castro::pre_hydro_operators (Real time, Real dt)
 // but before the corrector sources.
 
 advance_status
-Castro::post_hydro_operators (Real time, Real dt)
+Castro::post_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
     amrex::ignore_unused(time);
     amrex::ignore_unused(dt);
@@ -602,8 +672,11 @@ Castro::post_hydro_operators (Real time, Real dt)
 // Perform all operations that occur after the corrector sources.
 
 advance_status
-Castro::post_advance_operators (Real time, Real dt)
+Castro::post_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
 {
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
     advance_status status {};
 
 #ifndef TRUE_SDC

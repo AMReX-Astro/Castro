@@ -135,13 +135,14 @@
 ///
 /// A multidimensional shock detection algorithm
 ///
-/// @param bx     the box to operate over
-/// @param q_arr  the primitive variable state
-/// @param shk    the shock flag (1 = shock, 0 = no shock)
+/// @param bx         the box to operate over
+/// @param q_arr      the primitive variable state
+/// @param U_scr_arr  the conservative state sources
+/// @param shk        the shock flag (1 = shock, 0 = no shock)
 ///
     void shock(const amrex::Box& bx,
                amrex::Array4<amrex::Real const> const& q_arr,
-               amrex::Array4<amrex::Real const> const& q_src_arr,
+               amrex::Array4<amrex::Real const> const& U_src_arr,
                amrex::Array4<amrex::Real> const& shk);
 
 ///
@@ -710,9 +711,6 @@
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
-#ifdef SHOCK_VAR
-                      amrex::Array4<amrex::Real const> const& shk,
-#endif
                       amrex::Array4<amrex::Real> const& U_new,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,
@@ -856,7 +854,7 @@
 /// @param source       MultiFab to save source to
 /// @param mult_factor
 ///
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
+    void fill_hybrid_hydro_source(amrex::MultiFab& source, const amrex::MultiFab& state, const amrex::Real mult_factor);
 
 
 ///

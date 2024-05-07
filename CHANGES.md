@@ -1,3 +1,53 @@
+# 24.05
+
+  * Changed how the shock flag is computed.  It is now computed once,
+    at the start of a timestep.  It also takes into account sources
+    such that the pressure jump is only the pressure that is available
+    to drive a shock.  (#2726, #2728)
+
+  * Fixed a boundary condition check in gravity (#2833)
+
+  * Some coverity and clang-tidy fixes (#2810, #2811, #2835, #2831,
+    #2832)
+
+  * Fix the wdmerger initialization when the two stars are overlapping
+    (#2829)
+
+  * Fixed the Castro retry mechanism when amr.subcycling_mode = None
+    (#2821, #2824, #2826)
+
+  * Added more amr parameters to the job_info file (#2828)
+
+  * Added OpenMP to the SDC burn loop (#2770)
+
+# 24.04
+
+  * Some clang-tidy fixes (#2779, #2780, #2781, #2784, #2786, #2787, #2790,
+    #2791, #2792, #2793, #2797, #2798, #2799, #2800, #2801, #2804)
+
+  * Fix species initialization in the Detonation problem (#2806)
+    and let it work with NSE (#2765)
+
+  * Sync up with AMReX changes (#2794)
+
+  * wdmerger now reports composition of initial stars (#2767)
+
+  * flame_wave now checks if the `atm_delta` is too small (#2782)
+    and stores X(ash) (#2773)
+
+  * a bounds issue in the true SDC integration was fixed (#2775)
+
+# 24.03
+
+  * Documentation updates (#2742, #2752, #2753)
+
+  * Fix some code warnings (#2737)
+
+  * Fixed the exact Riemann solver compilation (#2745)
+
+  * Fix an issue with large kernel sizes with ROCm in the reduction code
+    in the reactions (#2749)
+
 # 24.02
 
   * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,

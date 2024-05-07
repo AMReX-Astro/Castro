@@ -137,7 +137,7 @@ amr.refinement_indicators = density temperature
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e0
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8

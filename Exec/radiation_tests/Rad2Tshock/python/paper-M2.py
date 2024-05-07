@@ -11,7 +11,7 @@ v, x, t = read_gnu_file('../run-M2/vx_2000.gnu')
 Temp, x, t = read_gnu_file('../run-M2/Temp_2000.gnu')
 print t
 
-x += 10 
+x += 10
 
 fid = open('M2shock.p', 'rb')
 xa = pickle.load(fid)

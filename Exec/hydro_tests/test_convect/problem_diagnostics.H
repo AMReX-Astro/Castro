@@ -19,7 +19,7 @@ Castro::problem_diagnostics ()
         Castro& ca_lev = getLevel(lev);
 
         mass     += ca_lev.volWgtSum("density", time);
-        
+
         rho_E    += ca_lev.volWgtSum("rho_E", time);
 
         auto temp_mf = ca_lev.derive("Temp", time, 0);
@@ -38,7 +38,7 @@ Castro::problem_diagnostics ()
 
     }
 
- 
+
     if (verbose > 0 && ParallelDescriptor::IOProcessor())
     {
         std::cout << '\n';

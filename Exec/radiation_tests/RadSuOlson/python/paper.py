@@ -7,7 +7,7 @@ from pylab import *
 def main():
     kappa = 1.0
     eps = 0.1
-    Finc = 1.0 
+    Finc = 1.0
 
     xu001 = [0.1, 0.25, 0.5, 0.75, 1.0]
     u001 = [0.17979, 0.11006, 0.04104, 0.01214, 0.00268]
@@ -22,7 +22,7 @@ def main():
     Tfilea = '../run-paper/Temp_0035.gnu'
     Erfileb = '../run-paper/Er_1002.gnu'
     Tfileb = '../run-paper/Temp_1002.gnu'
-    
+
     def read_gnu_file(filenm):
         x = []
         y = []

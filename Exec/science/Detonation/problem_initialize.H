@@ -55,10 +55,15 @@ void problem_initialize ()
 
     if (problem::in14 >= 0) {
        problem::xn[problem::in14] = amrex::max(problem::nfrac, problem::smallx);
-       problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::nfrac - problem::ofrac - (NumSpec - 3) * problem::smallx;
+       problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
+                                           - problem::xn[problem::in14]
+                                           - problem::xn[problem::io16]
+                                           - (NumSpec - 4) * problem::smallx;
     }
     else {
-       problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::ofrac - (NumSpec - 2) * problem::smallx;
+       problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
+                                           - problem::xn[problem::io16]
+                                           - (NumSpec - 3) * problem::smallx;
     }
 
     // Set the ambient material

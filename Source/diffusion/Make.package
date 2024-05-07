@@ -8,5 +8,4 @@ CEXE_sources += diffusion_util.cpp
 
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
-CEXE_sources += diffusion_params.cpp
 CEXE_headers += Diffusion.H 
