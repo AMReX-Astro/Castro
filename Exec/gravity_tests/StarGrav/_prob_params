@@ -1,4 +1,4 @@
-model_name       character          ""          y
+model_name       string             ""          y
 
 m_0              real               1.e30_rt    y
 

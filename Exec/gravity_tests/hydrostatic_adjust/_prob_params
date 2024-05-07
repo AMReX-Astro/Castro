@@ -1,6 +1,6 @@
 prob_type          integer          1                   y
 
-model_name         character        ""                  y
+model_name         string        ""                  y
 
 hse_rho_top        real             0.0_rt
 
