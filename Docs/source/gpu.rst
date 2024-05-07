@@ -34,13 +34,17 @@ value in the GPU kernel, the GPU gets access to the pointer to the
 underlying data.
 
 
+Most AMReX functions will work on the data directly on the GPU (like
+``.setVal()``).
 
-Most AMReX functions will work on the data directly on the GPU (like ``.setVal()``).
+In rare instances where we might need to operate on the data on the
+host, we can force a copy to the host, do the work, and then copy
+back.  For an example, see the reduction done in  ``Gravity.cpp``.
 
-In rare instances where we might need to operate on the data on the host, we
-can force a copy to the host, do the work, and then copy back.
+.. note::
 
-
+   For a thorough discussion of how the AMReX GPU offloading works
+   see :ref:`amrex-ecp`.
 
 
 Runtime parameters
