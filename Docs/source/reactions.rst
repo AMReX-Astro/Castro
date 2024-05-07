@@ -100,7 +100,7 @@ conditions are true:
 
    \begin{align*}
    \nabla \cdot \ub &< 0 \\
-   \frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} > &f_\mathrm{shock}
+   \frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &> f_\mathrm{shock}
    \end{align*}
 
 This requires that there is compression and that the pressure jump (excluding

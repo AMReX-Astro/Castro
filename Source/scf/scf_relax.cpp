@@ -639,7 +639,7 @@ Castro::do_hscf_solve()
                 {
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
-                    auto problo = geomdata.ProbLo();
+                    const auto* problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
 
