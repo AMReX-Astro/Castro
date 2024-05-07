@@ -41,7 +41,7 @@ amr.max_grid_size   = 32
 
 amr.refinement_indicators = dengrad_rel
 
-amr.refine.dengrad_rel.max_level = 20
+amr.refine.dengrad_rel.max_level = 15
 amr.refine.dengrad_rel.relative_gradient = 0.25
 amr.refine.dengrad_rel.field_name = density
 

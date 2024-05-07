@@ -1,3 +1,6 @@
+#ifndef CASTRO_GRAVITY_H
+#define CASTRO_GRAVITY_H
+
 ///
 /// Construct gravitational field at old timestep
 ///
@@ -35,3 +38,4 @@
 ///
     void construct_new_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
+#endif

@@ -61,7 +61,7 @@ amr.derive_plot_vars  = ALL
 
 amr.refinement_indicators = denerr
 
-amr.refine.denerr.max_level = 20
+amr.refine.denerr.max_level = 15
 amr.refine.denerr.value_greater = 1.e6
 amr.refine.denerr.field_name = density
 
