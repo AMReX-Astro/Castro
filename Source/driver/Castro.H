@@ -819,11 +819,11 @@ public:
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
 ///
-    void add_magnetic_e (
-                         amrex::MultiFab& Bx,
-                         amrex::MultiFab& By,
-                         amrex::MultiFab& Bz,
-                         amrex::MultiFab& state);
+    static void add_magnetic_e (
+        amrex::MultiFab& Bx,
+        amrex::MultiFab& By,
+        amrex::MultiFab& Bz,
+        amrex::MultiFab& state);
 
 ///
 /// Check if divergence of B is zero at initialization
