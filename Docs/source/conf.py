@@ -218,6 +218,12 @@ man_pages = [
 ]
 
 
+# -- Options for linkcheck
+
+linkcheck_retries = 3
+linkcheck_timeout = 100
+
+
 # -- Options for Texinfo output -------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
