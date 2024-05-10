@@ -3,7 +3,7 @@ PROFILE          = FALSE
 DEBUG            = FALSE
 DIM              = 2
 
-COMP	         = cray
+COMP	         = gnu
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE
