@@ -107,41 +107,74 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
     if (idir == 0) {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qxm, qxp,
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                        qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                        dloga,
 #endif
-                vbx, dt);
+                        vbx, dt);
+
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                      qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                      dloga,
+#endif
+                      vbx, dt);
+        }
 
       enforce_reflect_states(bx, 0, qxm, qxp);
 
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qym, qyp,
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                        qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                        dloga,
 #endif
-                vbx, dt);
+                        vbx, dt);
 
-      enforce_reflect_states(bx, 1, qym, qyp);
+
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                      qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                      dloga,
+#endif
+                      vbx, dt);
+        }
+
+        enforce_reflect_states(bx, 1, qym, qyp);
 #endif
 
 
 #if AMREX_SPACEDIM == 3
     } else {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qzm, qzp,
-                vbx, dt);
+        if (ppm_temp_fix == 1) {
+            trace_ppm_T(bx,
+                        idir,
+                        U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                        qzm, qzp,
+                        vbx, dt);
+        } else {
+            trace_ppm(bx,
+                      idir,
+                      U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                      qzm, qzp,
+                      vbx, dt);
+        }
 
-      enforce_reflect_states(bx, 2, qzm, qzp);
+        enforce_reflect_states(bx, 2, qzm, qzp);
 #endif
     }
   }
