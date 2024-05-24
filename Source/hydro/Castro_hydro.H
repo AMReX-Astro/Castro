@@ -89,7 +89,7 @@
                      amrex::Array4<amrex::Real> const& srcQ);
 
 ///
-/// the actual work routine that does the conversion of conserved to primtiive
+/// the actual work routine that does the conversion of conserved to primitive
 /// variables.
 ///
 /// @param bx        the box to operate over
@@ -350,7 +350,7 @@
 /// @param idir        coordinate direction (0 = x, 1 = y, 2 = z)
 /// @param q_arr       the primitive variable state
 /// @param flatn_arr   flattening coefficient
-/// @param dq          slope of the primtiive variables
+/// @param dq          slope of the primitive variables
 /// @param qm          left interface state, e.g., q_{i-1/2,j,k,L}
 /// @param qp          right interface state, e.g., q_{i-1/2,j,k,R}
 ///
@@ -603,7 +603,7 @@
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
-/// Reconstruct the primtive state as parabola, integrate under them,
+/// Reconstruct the primitive state as parabola, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
 ///
@@ -634,7 +634,7 @@
                    const amrex::Real dt);
 
 ///
-/// Reconstruct the primtive state as pieceeise linear, integrate under them,
+/// Reconstruct the primitive state as pieceeise linear, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
 ///
@@ -665,7 +665,7 @@
                    const amrex::Real dt);
 
 ///
-/// Reconstruct the primtive state as parabola, integrate under them,
+/// Reconstruct the primitive state as parabola, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU radiation hydrodynamics scheme.
 ///
