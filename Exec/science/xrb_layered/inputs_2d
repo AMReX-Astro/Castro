@@ -79,6 +79,9 @@ problem.model_name =  "toy_atm_hot_3cm.hse"
 
 problem.apply_perturbation = 1
 
+problem.H_min = 1.e-5
+problem.He_min = 1.e-5
+
 problem.model_shift = 750.0
 
 # MICROPHYSICS

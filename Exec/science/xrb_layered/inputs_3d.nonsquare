@@ -74,7 +74,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = xrb_plt    # root name of plotfile
-amr.plot_per        = 0.001       # number of timesteps between plotfiles
+amr.plot_per        = 0.001      
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file       = xrb_smallplt    # root name of plotfile
@@ -99,7 +99,5 @@ integrator.jacobian = 1
 
 integrator.atol_spec = 1.e-6
 integrator.rtol_spec = 1.e-6
-
-integrator.linalg_do_pivoting = 0
 
 integrator.X_reject_buffer = 4.0
