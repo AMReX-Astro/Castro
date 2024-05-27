@@ -63,7 +63,7 @@ def doit(plotfile):
     cam.position = [2.5*ds.domain_right_edge[0],
                     2.5*ds.domain_right_edge[1],
                     center[2]+0.25*ds.domain_right_edge[2]]
-    
+
     # look toward the center -- we are dealing with an octant
     normal = (center - cam.position)
     normal /= np.sqrt(normal.dot(normal))
