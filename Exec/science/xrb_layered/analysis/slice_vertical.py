@@ -57,7 +57,7 @@ def doit(plotfiles):
             sp.set_zlim(f, 5.e5, 5.e8)
             sp.set_cmap(f, "magma_r")
         elif f == "enuc":
-            sp.set_zlim(f, 1.e10, 1.e17)
+            sp.set_zlim(f, 1.e14, 1.e17)
             sp.set_log(f, True)
             sp.set_cmap(f, "plasma_r")
         elif f == "density":
@@ -68,6 +68,9 @@ def doit(plotfiles):
             sp.set_cmap(f, "plasma_r")
         elif f == "magvort":
             sp.set_zlim(f, 2.0, 2.e5)
+            sp.set_log(f, True)
+        elif f.startswith(r"X("):
+            sp.set_zlim(f, 1.e-5, 1.0)
             sp.set_log(f, True)
 
         sp.set_axes_unit("cm")
