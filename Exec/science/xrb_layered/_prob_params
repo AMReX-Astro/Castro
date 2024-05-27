@@ -6,7 +6,7 @@ He_min                real           -1.0          y
 
 cutoff_density        real           50.0_rt       y
 
-model_name            character      ""            y
+model_name            string         ""            y
 
 apply_perturbation    integer        1             y
 

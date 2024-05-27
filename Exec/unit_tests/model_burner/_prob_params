@@ -1,4 +1,4 @@
-model_name   character    ""        y
+model_name   string       ""        y
 
 burn_dt      real         0.1_rt    y
 

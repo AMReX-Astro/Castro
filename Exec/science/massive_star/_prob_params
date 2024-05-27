@@ -1,4 +1,4 @@
-model_name      character       ""        y
+model_name      string         ""        y
 
 interpolate_pres   int          0         y
 
