@@ -15,7 +15,7 @@ INPUTS_TEMPLATE = "inputs-shock-burn.template"
 COMMON_FILES = ["helm_table.dat",
                 "Castro1d.gnu.MPI.SMPLSDC.ex"]
 
-shock_flag = "0"
+shock_flag = "1"
 shock_thresh = "0.6666"
 
 def doit():
@@ -29,7 +29,7 @@ def doit():
 
         # create output direct
         odir = f"res{label}"
-        if shock_flag == 1:
+        if shock_flag == "1":
             odir += "_noshockburn"
 
         os.mkdir(odir)
