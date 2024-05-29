@@ -7,7 +7,7 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
 geometry.prob_hi     = 5.89824e7  2500  2500
-amr.n_cell           = 48    16    16
+amr.n_cell           = @nx@    16    16
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -29,6 +29,9 @@ castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
 castro.time_integration_method = 3
+
+castro.disable_shock_burning = @shock_flag@
+castro.shock_detection_threshold = @shock_thresh@
 
 # castro.transverse_reset_density = 1
 
@@ -53,8 +56,8 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 0       # maximum level number allowed
-amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.max_level       = @nlevel@       # maximum level number allowed
+amr.ref_ratio       = 4 4 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 512
