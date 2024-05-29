@@ -2,7 +2,7 @@ H_min                 real           1.e-4_rt      y
 
 cutoff_density        real           50.0_rt       y
 
-model_name            character      ""            y
+model_name            string         ""            y
 
 apply_vel_field       integer        0             y
 
