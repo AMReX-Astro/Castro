@@ -9,6 +9,15 @@ AMREX_INLINE
 void problem_initialize ()
 {
 
+    const Geometry& dgeom = DefaultGeometry();
+
+    const Real* problo = dgeom.ProbLo();
+    const Real* probhi = dgeom.ProbHi();
+
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        problem::center[n] = 0.5_rt * (problo[n] + probhi[n]);
+    }
+
     // get the species indices
 
     problem::ihe4 = network_spec_index("helium-4");
@@ -65,36 +74,6 @@ void problem_initialize ()
                                            - problem::xn[problem::io16]
                                            - (NumSpec - 3) * problem::smallx;
     }
-
-    // Set the ambient material
-
-    problem::ambient_dens = problem::dens;
-    for (int n = 0; n < NumSpec; n++) {
-        problem::ambient_comp[n] = problem::xn[n];
-    }
-
-    eos_t eos_state;
-    eos_state.rho = problem::ambient_dens;
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n]  = problem::ambient_comp[n];
-    }
-
-#ifdef AUX_THERMO
-    // set the aux quantities -- we need to do this if we are using the NSE network
-    set_aux_comp_from_X(eos_state);
-#endif
-
-    eos_state.T = problem::T_l;
-
-    eos(eos_input_rt, eos_state);
-
-    problem::ambient_e_l = eos_state.e;
-
-    eos_state.T = problem::T_r;
-
-    eos(eos_input_rt, eos_state);
-
-    problem::ambient_e_r = eos_state.e;
 
 }
 
