@@ -15,18 +15,22 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* problo = geomdata.ProbLo();
     const Real* probhi = geomdata.ProbHi();
 
-    Real width = problem::w_T * (probhi[0] - problo[0]);
-    Real c_T = problem::center_T * (probhi[0] - problo[0]);
+    // semi-major axis
+    Real a = problem::a_T * (probhi[0] - problo[0]);
+
+    // semi-minor axis
+    Real b = a * std::sqrt(1.0 - problem::ecc_T * problem::ecc_T);
 
     // compute distance from the center
     Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
     Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 
-    Real r = std::sqrt(xx * xx + yy * yy);
+    Real r = std::sqrt((xx / a) * (xx / a) +
+                       (yy / b) * (yy / b));
 
     state(i,j,k,URHO) = problem::dens;
 
-    Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - r)/ width));
+    Real sigma = 1.0_rt / (1.0_rt + std::exp(-(1.0_rt - r)/ problem::w_T));
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
