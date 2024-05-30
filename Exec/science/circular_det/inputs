@@ -110,4 +110,12 @@ integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
 
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
 
+integrator.retry_rtol_spec = 1.e-5
+integrator.retry_atol_spec = 1.e-5
+integrator.retry_rtol_enuc = 1.e-5
+integrator.retry_atol_enuc = 1.e-5
+
+integrator.ode_max_steps = 10000
