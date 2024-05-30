@@ -25,7 +25,7 @@ castro.do_react = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 
 castro.disable_shock_burning = 0
 castro.shock_detection_threshold = 1
