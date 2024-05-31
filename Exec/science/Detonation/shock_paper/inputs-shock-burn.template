@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 200000
-stop_time =  0.02
+stop_time =  0.03
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 5.89824e7  2500  2500
+geometry.prob_hi     = 1.152e8  2500  2500
 amr.n_cell           = @nx@    16    16
 
 
@@ -69,7 +69,7 @@ amr.check_int       = 10000         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 2.e-3
+amr.plot_per = 2.5e-3
 amr.derive_plot_vars = ALL
 
 # problem initialization
