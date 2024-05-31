@@ -12,19 +12,22 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
 CEXE_sources += extern_parameters.cpp
 CEXE_headers += extern_parameters.H
+CEXE_headers += extern_type.H
 
 # for dependency resolution
 AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
+AUTO_BUILD_SOURCES += $(CASTRO_AUTO_SOURCE_DIR)/extern_type.H
 
 # this is for finding runtime parameters
 EXTERN_PARAMETERS := $(foreach dir, $(INCLUDE_LOCATIONS),$(realpath $(wildcard $(dir)/_parameters)))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
+$(CASTRO_AUTO_SOURCE_DIR)/extern_type.H: $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.H: $(EXTERN_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
-           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern --use_namespace \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
            --pa "$(EXTERN_PARAMETERS)"
 
 
