@@ -637,32 +637,10 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 <span id="soft-phys-bcs"></span><h3>Physical Boundaries<a class="headerlink" href="#physical-boundaries" title="Link to this heading"></a></h3>
 <p id="index-1">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> in
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
-parameters. The generally supported boundary conditions are, their
-corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in
-<a class="reference internal" href="#table-castro-bcs"><span class="std std-numref">Table 5</span></a>.</p>
-<p>The definition of the specific actions are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">INT_DIR</span></code>: data taken from other grids or interpolated</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">EXT_DIR</span></code>: data specified on EDGE (FACE) of bndry</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">HOEXTRAP</span></code>: higher order extrapolation to EDGE of bndry</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FOEXTRAP</span></code>: first order extrapolation from last cell in interior</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">REFLECT_EVEN</span></code>: <span class="math notranslate nohighlight">\(F(-n) = F(n)\)</span> true reflection from interior cells</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">REFLECT_ODD</span></code>: <span class="math notranslate nohighlight">\(F(-n) = -F(n)\)</span> true reflection from interior cells</p></li>
-</ul>
-<p>The actual registration of a boundary condition action to a particular
-variable is done in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>. At the top we define arrays
-such as <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>, <code class="docutils literal notranslate"><span class="pre">norm_vel_bc</span></code>, etc, which say which kind of
-bc to use on which kind of physical boundary.  Boundary conditions are
-set in functions like <code class="docutils literal notranslate"><span class="pre">set_scalar_bc</span></code>, which uses the <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>
-pre-defined arrays. We also specify the name of the routine
-that is responsible for filling the data there (e.g., <code class="docutils literal notranslate"><span class="pre">hypfill</span></code>).  These
-routines are discussed more below.</p>
-<p>If you want to specify a value at a function (like at an inflow
-boundary), then you choose an <em>inflow</em> boundary at that face of
-the domain. You then need to write the implementation code for this.
-There is a centralized hydrostatic boundary condition that is implemented
-this way—see <a class="reference internal" href="creating_a_problem.html#create-bcs"><span class="std std-ref">Boundary Conditions</span></a>.</p>
+parameters.  Table <a class="reference internal" href="#table-castro-bcs"><span class="std std-numref">Table 5</span></a> shows the correspondence
+between the integer key and the physical assumption, as well
+as the action each takes for the normal
+velocity, transverse velocity, and generic scalar.</p>
 <span id="table-castro-bcs"></span><table class="docutils align-default" id="id6">
 <caption><span class="caption-number">Table 5 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id6" title="Link to this table"></a></caption>
 <thead>
@@ -678,42 +656,64 @@ velocity</strong></p></th>
 <tbody>
 <tr class="row-even"><td><p>interior</p></td>
 <td><p>0</p></td>
-<td><p>INT_DIR</p></td>
-<td><p>INT_DIR</p></td>
-<td><p>INT_DIR</p></td>
+<td><p>BCType::int_dir</p></td>
+<td><p>BCType::int_dir</p></td>
+<td><p>BCType::int_dir</p></td>
 </tr>
 <tr class="row-odd"><td><p>inflow</p></td>
 <td><p>1</p></td>
-<td><p>EXT_DIR</p></td>
-<td><p>EXT_DIR</p></td>
-<td><p>EXT_DIR</p></td>
+<td><p>BCType::ext_dir</p></td>
+<td><p>BCType::ext_dir</p></td>
+<td><p>BCType::ext_dir</p></td>
 </tr>
 <tr class="row-even"><td><p>outflow</p></td>
 <td><p>2</p></td>
-<td><p>FOEXTRAP</p></td>
-<td><p>FOEXTRAP</p></td>
-<td><p>FOEXTRAP</p></td>
+<td><p>BCType::foextrap</p></td>
+<td><p>BCType::foextrap</p></td>
+<td><p>BCType::foextrap</p></td>
 </tr>
 <tr class="row-odd"><td><p>symmetry</p></td>
 <td><p>3</p></td>
-<td><p>REFLECT_ODD</p></td>
-<td><p>REFLECT_EVEN</p></td>
-<td><p>REFLECT_EVEN</p></td>
+<td><p>BCType::reflect_odd</p></td>
+<td><p>BCType::reflect_even</p></td>
+<td><p>BCType::reflect_even</p></td>
 </tr>
 <tr class="row-even"><td><p>slipwall</p></td>
 <td><p>4</p></td>
-<td><p>REFLECT_ODD</p></td>
-<td><p>REFLECT_EVEN</p></td>
-<td><p>REFLECT_EVEN</p></td>
+<td><p>BCType::reflect_odd</p></td>
+<td><p>BCType::reflect_even</p></td>
+<td><p>BCType::reflect_even</p></td>
 </tr>
 <tr class="row-odd"><td><p>noslipwall</p></td>
 <td><p>5</p></td>
-<td><p>REFLECT_ODD</p></td>
-<td><p>REFLECT_EVEN</p></td>
-<td><p>REFLECT_EVEN</p></td>
+<td><p>BCType::reflect_odd</p></td>
+<td><p>BCType::reflect_even</p></td>
+<td><p>BCType::reflect_even</p></td>
 </tr>
 </tbody>
 </table>
+<p>The definition of the specific actions are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::int_dir</span></code>: data taken from other grids or interpolated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::ext_dir</span></code>: data specified on EDGE (FACE) of boundary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::hoextrap</span></code>: higher order extrapolation to EDGE of boundary</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::foextrap</span></code>: first order extrapolation from last cell in interior</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::reflect_even</span></code>: <span class="math notranslate nohighlight">\(F(-n) = F(n)\)</span> true reflection from interior cells</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BCType::reflect_odd</span></code>: <span class="math notranslate nohighlight">\(F(-n) = -F(n)\)</span> true reflection from interior cells</p></li>
+</ul>
+<p>The actual registration of a boundary condition action to a particular
+variable is done in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>. At the top we define arrays
+such as <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>, <code class="docutils literal notranslate"><span class="pre">norm_vel_bc</span></code>, etc, which say which kind of
+bc to use on which kind of physical boundary.  Boundary conditions are
+set in functions like <code class="docutils literal notranslate"><span class="pre">set_scalar_bc</span></code>, which uses the <code class="docutils literal notranslate"><span class="pre">scalar_bc</span></code>
+pre-defined arrays. We also specify the name of the routine
+that is responsible for filling the data there (e.g., <code class="docutils literal notranslate"><span class="pre">hypfill</span></code>).  These
+routines are discussed more below.</p>
+<p>If you want to specify a value at a function (like at an inflow
+boundary), then you choose an <em>inflow</em> boundary at that face of
+the domain. You then need to write the implementation code for this.
+There is a centralized hydrostatic boundary condition that is implemented
+this way—see <a class="reference internal" href="creating_a_problem.html#create-bcs"><span class="std std-ref">Boundary Conditions</span></a>.</p>
 </section>
 <section id="fluxregister">
 <h3><code class="docutils literal notranslate"><span class="pre">FluxRegister</span></code><a class="headerlink" href="#fluxregister" title="Link to this heading"></a></h3>
@@ -780,7 +780,7 @@ compared to the actual code</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
