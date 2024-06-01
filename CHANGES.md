@@ -3,7 +3,7 @@
   * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
 
   * Sync problem and Castro runtime parameters to recent Microphysics
-    changes (#2838, #2845)
+    changes (#2838, #2845, #2861)
 
   * fix parsing in the `check_params.py` script (#2850)
 
