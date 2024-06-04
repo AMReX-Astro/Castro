@@ -239,7 +239,6 @@
     integrator.retry_atol_enuc = 1e-06
     integrator.do_species_clip = 1
     integrator.use_number_densities = 0
-    integrator.sdc_burn_tol_factor = 1
     integrator.scale_system = 0
     integrator.nse_iters = 3
     integrator.nse_deriv_dt_factor = 0.05

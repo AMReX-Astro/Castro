@@ -1,3 +1,14 @@
+# 24.06
+
+  * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
+
+  * Sync problem and Castro runtime parameters to recent Microphysics
+    changes (#2838, #2845, #2861)
+
+  * fix parsing in the `check_params.py` script (#2850)
+
+  * code cleaning (#2840, #2842, #2843)
+
 # 24.05
 
   * Changed how the shock flag is computed.  It is now computed once,
@@ -16,7 +27,7 @@
   * Fixed the Castro retry mechanism when amr.subcycling_mode = None
     (#2821, #2824, #2826)
 
-  * Added more amr parameters to the job_info file (#2828)
+  * Added more amr parameters to the `job_info` file (#2828)
 
   * Added OpenMP to the SDC burn loop (#2770)
 
