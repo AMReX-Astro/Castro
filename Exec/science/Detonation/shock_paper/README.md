@@ -6,18 +6,23 @@ This directory is meant to explore shock burning with detonation.  Compile as:
 make USE_SIMPLIFIED_SDC=TRUE USE_SHOCK_VAR=TRUE NETWORK_DIR=aprox13 -j 4
 ```
 
-Then setup a suite of simulations with the following resolutions (the
-`inputs-det-x.subch_base`) here is for the coarsest run:
+Then the script `setup_runs.py` will setup a suite of simulations with
+the following resolutions into separate directories (using the
+`inputs-shock-burn.template`):
 
 
 | resolution   |  base grid  |  levels (4x jumps)  |
 | ------------ | ----------- | ------------------- |
-|   12.288 km  |       48    |         1           |
-|    1.536 km  |      384    |         1           |
-|    0.192 km  |     3072    |         1           |
-|     2400 cm  |     6144    |         2           |
-|      300 cm  |    12288    |         3           |
+|       24 km  |       48    |         1           |
+|       12 km  |       96    |         1           |
+|        6 km  |      192    |         1           |
+|        3 km  |      384    |         1           |
+|      1.5 km  |      768    |         1           |
+|   0.1875 km  |     6144    |         1           |
+|  2343.74 cm  |    12288    |         2           |
 
+you can set the value of the shock detection threshold there
+and the directory names will reflect that setting.
 
 
 
