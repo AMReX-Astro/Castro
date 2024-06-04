@@ -6,8 +6,8 @@ stop_time =  0.024
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 1.572864e8  1.572864e8
-amr.n_cell           = 256         256
+geometry.prob_hi     = 1.536e8  1.536e8
+amr.n_cell           = 64       64
 
 
 
@@ -28,7 +28,7 @@ castro.ppm_temp_fix = 0
 
 castro.time_integration_method = 3
 
-castro.disable_shock_burning = 0
+castro.disable_shock_burning = 1
 castro.shock_detection_threshold = 1
 
 # castro.transverse_reset_density = 1
@@ -54,7 +54,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 1       # maximum level number allowed
+amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
@@ -62,11 +62,11 @@ amr.max_grid_size   = 64
 amr.n_error_buf     = 8 8 8 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = det_x_chk  # root name of checkpoint file
+amr.check_file      = det_x_24km_chk  # root name of checkpoint file
 amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = det_x_plt  # root name of plotfile
+amr.plot_file       = det_x_24km_plt  # root name of plotfile
 amr.plot_per = 2.e-3
 amr.derive_plot_vars = ALL
 
