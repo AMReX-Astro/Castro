@@ -233,10 +233,10 @@
     integrator.nonaka_file = nonaka_plot.dat
     integrator.use_burn_retry = 0
     integrator.retry_swap_jacobian = 1
-    integrator.retry_rtol_spec = 1e-12
-    integrator.retry_rtol_enuc = 1e-06
-    integrator.retry_atol_spec = 1e-08
-    integrator.retry_atol_enuc = 1e-06
+    integrator.retry_rtol_spec = -1
+    integrator.retry_rtol_enuc = -1
+    integrator.retry_atol_spec = -1
+    integrator.retry_atol_enuc = -1
     integrator.do_species_clip = 1
     integrator.use_number_densities = 0
     integrator.scale_system = 0
