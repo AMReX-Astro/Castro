@@ -8,15 +8,19 @@
 
 using namespace amrex::literals;
 
-const amrex::Real smallrho = 1.e-5_rt;
-const int max_iters = 100;
-const amrex::Real tol = 1.e-6_rt;
+namespace riemann_solver {
+    const int max_iters = 100;
+
+    const amrex::Real smallrho = 1.e-5_rt;
+    const amrex::Real tol = 1.e-6_rt;
+    const amrex::Real tol_p = 1.e-6_rt;
+}
 
 
 AMREX_INLINE
 void
 W_s_shock(const amrex::Real W_s, const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s, const amrex::Real* xn,
-          amrex::Real& rhostar_s, eos_t& eos_state, amrex::Real& f, amrex::Real& fprime) {
+          amrex::Real& rhostar_s, eos_rep_t& eos_state, amrex::Real& f, amrex::Real& fprime) {
 
     // we need rhostar -- get it from the R-H conditions
 
@@ -49,9 +53,11 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar, const amrex::Real rho_
 
 AMREX_INLINE
 void
-newton_shock(amrex::Real& W_s, const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s, const amrex::Real* xn,
+newton_shock(amrex::Real& W_s, const amrex::Real pstar,
+             const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s,
+             const amrex::Real* xn,
              amrex::Real* rhostar_hist, amrex::Real* Ws_hist,
-             eos_t& eos_state, bool& converged) {
+             eos_rep_t& eos_state, bool& converged) {
 
     // Newton iterations -- we are zeroing the energy R-H jump condition
     // W^2 [e] = 1/2 [p^2]
@@ -63,7 +69,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar, const amrex::Real rho_s,
     converged = false;
 
     int iter = 1;
-    while (! converged && iter < max_iters) {
+    while (! converged && iter < riemann_solver::max_iters) {
 
         amrex::Real rhostar_s, f, fprime;
 
@@ -72,7 +78,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar, const amrex::Real rho_s,
 
         amrex::Real dW = -f / fprime;
 
-        if (std::abs(dW) < tol * W_s) {
+        if (std::abs(dW) < riemann_solver::tol * W_s) {
             converged = true;
         }
 
@@ -89,14 +95,15 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar, const amrex::Real rho_s,
 
 AMREX_INLINE
 void
-shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s, const amrex::Real* xn,
+shock(const amrex::Real pstar,
+      const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s,
+      const amrex::Real* xn,
       const amrex::Real gammaE_bar, const amrex::Real gammaC_bar,
       amrex::Real& Z_s, amrex::Real& W_s) {
 
+    amrex::ignore_unused(u_s);
 
-    const amrex::Real tol_p = 1.e-6_rt;
-
-    amrex::Real rhostar_hist[max_iters], Ws_hist[max_iters];
+    amrex::Real rhostar_hist[riemann_solver::max_iters], Ws_hist[riemann_solver::max_iters];
 
     // compute the Z_s function for a shock following C&G Eq. 20 and
     // 23.  Here the "_s" variables are the state (L or R) that we are
@@ -107,7 +114,7 @@ shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, c
 
     // get the s-state energy, e_s
 
-    eos_t eos_state;
+    eos_rep_t eos_state;
     eos_state.rho = rho_s;
     eos_state.p = p_s;
     for (int n = 0; n < NumSpec; ++n) {
@@ -137,7 +144,7 @@ shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, c
     // just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
     // take W = sqrt(gamma p rho)
 
-    if (pstar - p_s < tol_p * p_s) {
+    if (pstar - p_s < riemann_solver::tol_p * p_s) {
         W_s = std::sqrt(eos_state.gam1 * p_s * rho_s);
     } else {
        W_s = std::sqrt((pstar - p_s) *
@@ -151,11 +158,9 @@ shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, c
     amrex::Real rhostar_s;
 
     if (taustar_s < 0.0_rt) {
-        rhostar_s = smallrho;
+        rhostar_s = riemann_solver::smallrho;
         W_s = std::sqrt((pstar - p_s) / (1.0_rt / rho_s - 1.0_rt / rhostar_s));
     }
-
-    amrex::Real W_s_guess = W_s;
 
     // newton
 
@@ -168,7 +173,7 @@ shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, c
     // now did we converge?
 
     if (! converged) {
-        for (int i = 0; i < max_iters; ++i) {
+        for (int i = 0; i < riemann_solver::max_iters; ++i) {
             std::cout << i << " " << rhostar_hist[i] << " " << Ws_hist[i] << std::endl;
         }
 
@@ -206,8 +211,11 @@ shock(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, c
 
 AMREX_INLINE
 void
-riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::Real u, const amrex::Real* xn, const int iwave,
+riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::Real u,
+                      const amrex::Real* xn, const int iwave,
                       amrex::Real& dtaudp, amrex::Real& dudp) {
+
+    amrex::ignore_unused(u);
 
     // here, p is out independent variable, and tau, u are the
     // dependent variables.  We return the derivatives of these
@@ -215,7 +223,7 @@ riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::R
 
     // get the thermodynamics
 
-    eos_t eos_state;
+    eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
     for (int n = 0; n < NumSpec; ++n) {
@@ -240,7 +248,8 @@ riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::R
 
 AMREX_INLINE
 void
-riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::Real p, const amrex::Real* xn, const int iwave,
+riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::Real p,
+                       const amrex::Real* xn, const int iwave,
                        amrex::Real& dtaudu, amrex::Real& dpdu) {
 
     // here, u is out independent variable, and tau, p are the
@@ -249,7 +258,9 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
 
     // get the thermodynamics
 
-    eos_t eos_state;
+    amrex::ignore_unused(u);
+
+    eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
     for (int n = 0; n < NumSpec; ++n) {
@@ -314,7 +325,7 @@ rarefaction(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real 
 
     // Z_s is just the Lagrangian sound speed
 
-    eos_t eos_state;
+    eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
     for (int n = 0; n < NumSpec; ++n) {
@@ -340,7 +351,8 @@ rarefaction(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real 
 
 AMREX_INLINE
 void
-rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s, const amrex::Real* xn, const int iwave, const amrex::Real xi,
+rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s,
+                 const amrex::Real* xn, const int iwave, const amrex::Real xi,
                  amrex::Real& rho, amrex::Real& p, amrex::Real& u) {
 
     const int npts = 1000;
@@ -348,16 +360,17 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
     // here we integrate the Riemann invariants for a rarefaction up to
     // some intermediate u (between u_s and ustar).  This accounts for
     // the fact that we are inside the rarefaction.
-
+    //
     // We reformulate the system of ODEs from C&G Eq. 13 to make u the
     // dependent variable.  Now we solve:
-
+    //
+    //   dp/du =  C; dtau/du = -1/C   for the 1-wave
+    //   dp/du = -C; dtau/du =  1/C   for the 3-wave
+    //
     // we actually don't know the stopping point.  For the 1-wave, we
     // stop at u = xi + c, for the 3-wave, we stop at u = xi - c, where
     // c is computed as we step.
 
-    // dp/du =  C; dtau/du = -1/C   for the 1-wave
-    // dp/du = -C; dtau/du =  1/C   for the 3-wave
 
     amrex::Real tau = 1.0_rt / rho_s;
     u = u_s;
@@ -366,7 +379,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
     // estimate
     // compute c
 
-    eos_t eos_state;
+    eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
     for (int n = 0; n < NumSpec; ++n) {
@@ -415,7 +428,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
         // compute c
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho = 1.0_rt/tau;
         eos_state.p = p;
         for (int n = 0; n < NumSpec; ++n) {
@@ -452,7 +465,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
             }
         }
 
-        if (std::abs(du) < tol * std::abs(u)) {
+        if (std::abs(du) < riemann_solver::tol * std::abs(u)) {
             finished = true;
         }
 
