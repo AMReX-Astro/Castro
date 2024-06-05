@@ -59,18 +59,9 @@ void problem_initialize_state_data (int i, int j, int k,
     set_aux_comp_from_X(burn_state);
 
     for (int n = 0; n < NumAux; n++) {
-        state(i,j,k,UFX+n) = burn_state.aux[n];
+        state(i,j,k,UFX+n) = state(i,j,k,URHO) * burn_state.aux[n];
     }
 #endif
-
-
-    // burn_t burn_state;
-
-    // burn_state.rho = state(i,j,k,URHO);
-    // burn_state.T = state(i,j,k,UTEMP);
-    // for (int n = 0; n < NumSpec; n++) {
-    //     burn_state.xn[n] = state(i,j,k,UFS+n);
-    // }
 
     eos(eos_input_rt, burn_state);
 
