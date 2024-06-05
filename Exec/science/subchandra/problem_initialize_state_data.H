@@ -52,7 +52,7 @@ void problem_initialize_state_data (int i, int j, int k,
         burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-#ifdef NSE_TABLE
+#ifdef AUX_THERMO
     // Set AUX variables
 
     set_aux_comp_from_X(burn_state);
