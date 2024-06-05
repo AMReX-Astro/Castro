@@ -13,17 +13,17 @@ p0           real          1.0_rt          n
 
 xn_zone      real          0.0_rt          n         nspec
 
-spec1_name              character         "helium-4"                y
+spec1_name              string            "helium-4"                y
 
-spec2_name              character         ""                        y
+spec2_name              string            ""                        y
 
-spec3_name              character         ""                        y
+spec3_name              string            ""                        y
 
-spec4_name              character         ""                        y
+spec4_name              string            ""                        y
 
-spec5_name              character         ""                        y
+spec5_name              string            ""                        y
 
-spec6_name              character         ""                        y
+spec6_name              string            ""                        y
 
 spec1_frac              real              1.0_rt                    y
 

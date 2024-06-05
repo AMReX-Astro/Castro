@@ -82,7 +82,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = 'Castro'
-copyright = '2018-2022, Castro development team'
+copyright = '2018-2024, Castro development team'
 author = 'Castro development team'
 
 html_logo = "castro_logo_hot_200.png"
@@ -216,6 +216,12 @@ man_pages = [
     (main_doc, 'Castro', 'Castro Documentation',
      [author], 1)
 ]
+
+
+# -- Options for linkcheck
+
+linkcheck_retries = 3
+linkcheck_timeout = 100
 
 
 # -- Options for Texinfo output -------------------------------------------
