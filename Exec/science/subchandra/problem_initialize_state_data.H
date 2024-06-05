@@ -52,6 +52,15 @@ void problem_initialize_state_data (int i, int j, int k,
         burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
+#ifdef AUX_THERMO
+    // Set AUX variables
+
+    set_aux_comp_from_X(burn_state);
+    for (int n = 0; n < NumAux; n++) {
+        state(i,j,k,UFX+n) = state(i,j,k,URHO) * burn_state.aux[n];
+    }
+#endif
+
     eos(eos_input_rt, burn_state);
 
     state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;

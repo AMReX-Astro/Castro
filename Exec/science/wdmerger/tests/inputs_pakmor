@@ -1,5 +1,5 @@
 ## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
-## with 50 km resolution
+## with 25 km resolution
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -70,10 +70,10 @@ castro.cfl = 0.5
 castro.fixed_dt = -1.0
 
 # Scale back initial timestep by this factor
-castro.init_shrink = 0.0001
+castro.init_shrink = 0.01
 
 # Factor by which dt is allowed to change each timestep
-castro.change_max = 1.05
+castro.change_max = 1.10
 
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
@@ -112,7 +112,7 @@ castro.max_subcycles = 16
 amr.max_level = 2
 
 # Refinement ratio
-amr.ref_ratio = 4 2
+amr.ref_ratio = 4 4
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -149,7 +149,7 @@ amr.refine.density.max_level = 1
 # Density2 refinement criterion
 amr.refine.density2.value_greater = 1.0e5
 amr.refine.density2.field_name = density
-amr.refine.density2.max_level = 15
+amr.refine.density2.max_level = 20
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8
@@ -403,9 +403,6 @@ castro.output_at_completion = 1
 # Do not write a plotfile or checkpoint on restart
 amr.plotfile_on_restart = 1
 amr.checkpoint_on_restart = 1
-
-# Restart from last run 
-#amr.restart = 
 
 # Control verbosity in Amr.cpp
 amr.v = 1
