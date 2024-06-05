@@ -44,11 +44,6 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) /= sumX;
     }
 
-#ifdef NSE_TABLE
-    // Set AUX variables
-
-    // state(i,j,k,UFX+AuxZero::iye) = interpolate(dist, model::iaux+AuxZero::iye);
-
     burn_t burn_state;
     burn_state.rho = state(i,j,k,URHO);
     burn_state.T = state(i,j,k,UTEMP);
@@ -56,8 +51,10 @@ void problem_initialize_state_data (int i, int j, int k,
         burn_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-    set_aux_comp_from_X(burn_state);
+#ifdef NSE_TABLE
+    // Set AUX variables
 
+    set_aux_comp_from_X(burn_state);
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * burn_state.aux[n];
     }
@@ -67,6 +64,8 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
+
+    // UFS is rho*Xn
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
