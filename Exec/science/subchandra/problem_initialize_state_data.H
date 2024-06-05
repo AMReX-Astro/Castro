@@ -45,6 +45,7 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     burn_t burn_state;
+
     burn_state.rho = state(i,j,k,URHO);
     burn_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
@@ -64,8 +65,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,UEINT) = state(i,j,k,URHO) * burn_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,URHO) * burn_state.e;
-
-    // UFS is rho*Xn
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
