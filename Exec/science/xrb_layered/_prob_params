@@ -1,4 +1,8 @@
-H_min                 real           1.e-4_rt      y
+# H mass fraction above which to refine
+H_min                 real           -1.0          y
+
+# He mass fraction above which to refine
+He_min                real           -1.0          y
 
 cutoff_density        real           50.0_rt       y
 
