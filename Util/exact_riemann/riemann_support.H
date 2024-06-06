@@ -213,6 +213,7 @@ AMREX_INLINE
 void
 riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::Real u,
                       const amrex::Real* xn, const int iwave,
+                      amrex::Real& T,
                       amrex::Real& dtaudp, amrex::Real& dudp) {
 
     amrex::ignore_unused(u);
@@ -220,6 +221,8 @@ riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::R
     // here, p is out independent variable, and tau, u are the
     // dependent variables.  We return the derivatives of these
     // wrt p for integration.
+
+    // T should be an iniital guess coming in
 
     // get the thermodynamics
 
@@ -229,9 +232,11 @@ riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::R
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = T;
 
     eos(eos_input_rp, eos_state);
+
+    T = eos_state.T;
 
     amrex::Real C = std::sqrt(eos_state.gam1 * p / tau);
 
@@ -250,11 +255,14 @@ AMREX_INLINE
 void
 riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::Real p,
                        const amrex::Real* xn, const int iwave,
+                       amrex::Real& T,
                        amrex::Real& dtaudu, amrex::Real& dpdu) {
 
     // here, u is out independent variable, and tau, p are the
     // dependent variables.  We return the derivatives of these
     // wrt u for integration.
+
+    // here T is an initial guess
 
     // get the thermodynamics
 
@@ -266,9 +274,11 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = T;
 
     eos(eos_input_rp, eos_state);
+
+    T = eos_state.T;
 
     amrex::Real C = std::sqrt(eos_state.gam1 * p / tau);
 
@@ -285,14 +295,16 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
 
 AMREX_INLINE
 void
-rarefaction(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s,
-            const amrex::Real* xn, const int iwave, amrex::Real& Z_s, amrex::Real& W_s, amrex::Real& rhostar) {
+rarefaction(const amrex::Real pstar,
+            const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s,
+            const amrex::Real* xn, const int iwave,
+            amrex::Real& Z_s, amrex::Real& W_s, amrex::Real& rhostar) {
 
     const int npts = 1000;
 
     // Compute Z_s = C for a rarefaction connecting the state to the star
     // region by integrating the Riemann invariant from p_s to pstar.
-    // This means solving a system of ODEs.  We use 4th-order R-K.
+    // This means solving a system of ODEs.  We use RK45.
 
     amrex::Real tau = 1.0_rt / rho_s;
     amrex::Real u = u_s;
@@ -301,21 +313,23 @@ rarefaction(const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real 
     amrex::Real dp = (pstar - p_s) / static_cast<amrex::Real>(npts);
     amrex::Real dp2 = 0.5_rt * dp;
 
+    amrex::Real T = problem::initial_temp_guess;
+
     for (int i = 1; i <= npts; ++i) {
 
         // do 4th-order RT
 
         amrex::Real dtaudp1, dudp1;
-        riemann_invariant_rhs(p, tau, u, xn, iwave, dtaudp1, dudp1);
+        riemann_invariant_rhs(p, tau, u, xn, iwave, T, dtaudp1, dudp1);
 
         amrex::Real dtaudp2, dudp2;
-        riemann_invariant_rhs(p+dp2, tau+dp2*dtaudp1, u+dp2*dudp1, xn, iwave, dtaudp2, dudp2);
+        riemann_invariant_rhs(p+dp2, tau+dp2*dtaudp1, u+dp2*dudp1, xn, iwave, T, dtaudp2, dudp2);
 
         amrex::Real dtaudp3, dudp3;
-        riemann_invariant_rhs(p+dp2, tau+dp2*dtaudp2, u+dp2*dudp2, xn, iwave, dtaudp3, dudp3);
+        riemann_invariant_rhs(p+dp2, tau+dp2*dtaudp2, u+dp2*dudp2, xn, iwave, T, dtaudp3, dudp3);
 
         amrex::Real dtaudp4, dudp4;
-        riemann_invariant_rhs(p+dp, tau+dp*dtaudp3, u+dp*dudp3, xn, iwave, dtaudp4, dudp4);
+        riemann_invariant_rhs(p+dp, tau+dp*dtaudp3, u+dp*dudp3, xn, iwave, T, dtaudp4, dudp4);
 
         p += dp;
         u += (1.0_rt/6.0_rt) * dp * (dudp1 + 2.0_rt * dudp2 + 2.0_rt * dudp3 + dudp4);
@@ -406,21 +420,23 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     amrex::Real du2 = 0.5_rt * du;
 
+    amrex::Real T = eos_state.T;
+
     while (! finished) {
 
         // do 4th-order RT
 
         amrex::Real dtaudu1, dpdu1;
-        riemann_invariant_rhs2(u, tau, p, xn, iwave, dtaudu1, dpdu1);
+        riemann_invariant_rhs2(u, tau, p, xn, iwave, T, dtaudu1, dpdu1);
 
         amrex::Real dtaudu2, dpdu2;
-        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu1, p+du2*dpdu1, xn, iwave, dtaudu2, dpdu2);
+        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu1, p+du2*dpdu1, xn, iwave, T, dtaudu2, dpdu2);
 
         amrex::Real dtaudu3, dpdu3;
-        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu2, p+du2*dpdu2, xn, iwave, dtaudu3, dpdu3);
+        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu2, p+du2*dpdu2, xn, iwave, T, dtaudu3, dpdu3);
 
         amrex::Real dtaudu4, dpdu4;
-        riemann_invariant_rhs2(u+du, tau+du*dtaudu3, p+du*dpdu3, xn, iwave, dtaudu4, dpdu4);
+        riemann_invariant_rhs2(u+du, tau+du*dtaudu3, p+du*dpdu3, xn, iwave, T, dtaudu4, dpdu4);
 
         u += du;
         p += (1.0_rt/6.0_rt) * du * (dpdu1 + 2.0_rt * dpdu2 + 2.0_rt * dpdu3 + dpdu4);
