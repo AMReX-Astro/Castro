@@ -4,6 +4,8 @@
 #include <AMReX_REAL.H>
 
 #include <riemann_support.H>
+#include <riemann_shock.H>
+#include <riemann_rarefaction.H>
 
 using namespace amrex::literals;
 
