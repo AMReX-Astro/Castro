@@ -222,7 +222,7 @@ riemann_invariant_rhs(const amrex::Real p, const amrex::Real tau, const amrex::R
     // dependent variables.  We return the derivatives of these
     // wrt p for integration.
 
-    // T should be an initital guess coming in
+    // T should be an initial guess coming in
 
     // get the thermodynamics
 
