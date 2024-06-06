@@ -11,5 +11,4 @@ namespace riemann_solver {
     const amrex::Real tol_p = 1.e-6_rt;
 }
 
-
 #endif
