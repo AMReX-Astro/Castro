@@ -36,7 +36,11 @@ void problem_initialize_state_data (int i, int j, int k,
     height += problem::model_shift;
 
     state(i,j,k,URHO) = interpolate(height, model::idens);
-    state(i,j,k,UTEMP) = interpolate(height, model::itemp);
+    state(i,j,k,UTEMP) = interpolate(height, model::itemp);  // this will be an initial guess
+    Real p_zone = interpolate(height, model::ipres);
+
+    // interpolate species as mass fractions and make sure they sum to
+    // 1.  Later we will convert to densities.
 
     Real sumX{0.0};
     for (int n = 0; n < NumSpec; ++n) {
@@ -44,7 +48,6 @@ void problem_initialize_state_data (int i, int j, int k,
         sumX += state(i,j,k,UFS+n);
     }
 
-    // make sure the species sum to 1
     for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) /= sumX;
     }
@@ -52,12 +55,15 @@ void problem_initialize_state_data (int i, int j, int k,
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
+    eos_state.p = p_zone;
+
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rp, eos_state);
 
+    state(i,j,k,UTEMP) = eos_state.T;
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,UEINT);
 
