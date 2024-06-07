@@ -68,6 +68,7 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
 
     amrex::ignore_unused(u);
 
+    std::cout << "in riemann_invariant_rhs2: " << u << " " << tau << " " << p << std::endl;
     eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
@@ -293,6 +294,11 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
     // stop at u = xi + c, for the 3-wave, we stop at u = xi - c, where
     // c is computed as we step.
 
+    const double S1{0.9};
+
+    constexpr amrex::Real tol = 1.e-8;
+
+    // initial conditions
 
     amrex::Real tau = 1.0_rt / rho_s;
     u = u_s;
@@ -314,7 +320,9 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     amrex::Real ustop = (iwave == 1) ? xi + c : xi - c;
 
-    amrex::Real du = (ustop - u_s) / static_cast<amrex::Real>(npts);
+    // initial guess at the step size -- we'll adapt below
+
+    amrex::Real du = (ustop - u_s) / static_cast<amrex::Real>(10);
 
     bool finished = false;
 
@@ -324,12 +332,57 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     amrex::Real T = eos_state.T;
 
+    amrex::Real du_new{du};
+
     while (! finished) {
 
-        // do 4th-order RT
+        amrex::Real p0{p};
+        amrex::Real tau0{tau};
 
-        std::tie(tau, p) = single_step_u(u, du, tau, p, xn, iwave, T);
+        amrex::Real p_new;
+        amrex::Real tau_new;
+
+        amrex::Real rel_error = std::numeric_limits<double>::max();
+
+        // take a step
+
+        while (rel_error > tol) {
+            du = du_new;
+
+            // take 2 half steps
+            amrex::Real p_tmp;
+            amrex::Real tau_tmp;
+            std::tie(tau_tmp, p_tmp) = single_step_u(u, 0.5*du, tau0, p0, xn, iwave, T);
+            std::tie(tau_new, p_new) = single_step_u(u + 0.5*du, 0.5*du, tau_tmp, p_tmp, xn, iwave, T);
+
+            // now take a single step to cover du
+            auto [tau_single, p_single] = single_step_u(u, du, tau0, p0, xn, iwave, T);
+
+            // estimate the relative error
+            amrex::Real p_err = std::abs((p_new - p_single) / p0);
+            amrex::Real tau_err = std::abs((tau_new - tau_single) / tau0);
+
+            rel_error = std::max(p_err, tau_err);
+
+            // adaptive step estimate
+
+            // if our original step was too small, the error might be zero, in which case,
+            // just bump up the step for next time
+
+            amrex::Real du_est{};
+            if (rel_error > 0) {
+                du_est = S1 * du * std::pow(std::abs(tol / rel_error), 0.2);
+            } else {
+                du_est = 10.0 * du;
+            }
+            du_new = du_est;
+
+        }
+
+        // success
         u += du;
+        p = p_new;
+        tau = tau_new;
 
         // compute c and re-estimate the endpoint of integration
 
@@ -350,24 +403,24 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
         // check the step size for the next step to ensure we don't
         // go past the stopping velocity, ustop
 
-        if (du * u > 0.0_rt) {
-            while (std::abs(u + du) > std::abs(ustop) && du != 0.0_rt) {
-                du = 0.5_rt * du;
+        if (du_new * u > 0.0_rt) {
+            while (std::abs(u + du_new) > std::abs(ustop) && du_new != 0.0_rt) {
+                du_new *= 0.5_rt;
             }
         } else {
             if (u > 0.0_rt) {
-                while (u + du < ustop && du != 0.0_rt) {
-                    du = 0.5_rt * du;
+                while (u + du_new < ustop && du_new != 0.0_rt) {
+                    du_new *= 0.5_rt;
                 }
 
             } else {
-                while (u + du > ustop && du != 0.0_rt) {
-                    du = 0.5_rt * du;
+                while (u + du_new > ustop && du_new != 0.0_rt) {
+                    du_new *= 0.5_rt;
                 }
             }
         }
 
-        if (std::abs(du) < riemann_solver::tol * std::abs(u)) {
+        if (std::abs(du_new) < riemann_solver::tol * std::abs(u) + riemann_solver::tol) {
             finished = true;
         }
 
