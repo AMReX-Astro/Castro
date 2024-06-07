@@ -131,9 +131,14 @@ rarefaction(const amrex::Real pstar,
     const double S1{0.9};
     const double S2{4.0};
 
-    // Compute Z_s = C for a rarefaction connecting the state to the star
-    // region by integrating the Riemann invariant from p_s to pstar.
-    // This means solving a system of ODEs.  We use RK4.
+    // Compute Z_s = C(p*, rho*) for a rarefaction connecting the
+    // state to the star region by integrating the Riemann invariant
+    // from p_s to pstar.
+    //
+    // The system is:
+    //
+    //    dtau/dp = -1/C**2
+    //    du/dp = +/- 1/C    (+ for 1-wave, - for 3-wave)
 
     constexpr amrex::Real tol = 1.e-5;
 

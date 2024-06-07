@@ -17,7 +17,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
     const amrex::Real tol = 1.e-10_rt;
     const amrex::Real smallp = 1.e-8_rt;
-    const amrex::Real SMALL = 1.e-13_rt;
+    const amrex::Real SMALL = 1.e-8_rt;
 
 
     // get the initial sound speeds
@@ -79,7 +79,9 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
     // find the exact pstar and ustar
 
-    std::cout << "solving for star state: " << rho_l << " " << u_l << " " << p_l << " " << rho_r << " " << u_r << " " << p_r << std::endl;
+    std::cout << "solving for star state: " << std::endl;
+    std::cout << rho_l << " " << u_l << " " << p_l << std::endl;
+    std::cout << rho_r << " " << u_r << " " << p_r << std::endl;
 
 
     // this procedure follows directly from Colella & Glaz 1985, section 1
@@ -116,6 +118,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
         amrex::Real Z_l, Z_r;
 
+        std::cout << "iteration: " << iter << " " << pstar << " " << p_l << " " << p_r << std::endl;
         // left wave
 
         if (pstar - p_l > SMALL * p_l) {
