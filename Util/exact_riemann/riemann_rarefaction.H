@@ -95,9 +95,12 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
 
 AMREX_INLINE
 std::pair<amrex::Real, amrex::Real>
-single_step(const amrex::Real pstar0, const amrex::Real dp,
-            const amrex::Real u0, const amrex::Real tau0,
-            const amrex::Real* xn, const int iwave, amrex::Real& T) {
+single_step_p(const amrex::Real pstar0, const amrex::Real dp,
+              const amrex::Real u0, const amrex::Real tau0,
+              const amrex::Real* xn, const int iwave, amrex::Real& T) {
+
+    // this takes a single step of the Riemann invariant system where
+    // p is the independent variable
 
     amrex::Real dtaudp1, dudp1;
     riemann_invariant_rhs(pstar0, tau0, u0, xn, iwave, T, dtaudp1, dudp1);
@@ -122,14 +125,42 @@ single_step(const amrex::Real pstar0, const amrex::Real dp,
 
 
 AMREX_INLINE
+std::pair<amrex::Real, amrex::Real>
+single_step_u(const amrex::Real u0, const amrex::Real du,
+              const amrex::Real tau0, const amrex::Real p0,
+              const amrex::Real* xn, const int iwave, amrex::Real& T) {
+
+    // this takes a single step of the Riemann invariant system where
+    // u is the independent variable
+
+    amrex::Real dtaudu1, dpdu1;
+    riemann_invariant_rhs2(u0, tau0, p0, xn, iwave, T, dtaudu1, dpdu1);
+
+    amrex::Real dtaudu2, dpdu2;
+    riemann_invariant_rhs2(u0+0.5*du, tau0+0.5*du*dtaudu1, p0+0.5*du*dpdu1,
+                           xn, iwave, T, dtaudu2, dpdu2);
+
+    amrex::Real dtaudu3, dpdu3;
+    riemann_invariant_rhs2(u0+0.5*du, tau0+0.5*du*dtaudu2, p0+0.5*du*dpdu2,
+                           xn, iwave, T, dtaudu3, dpdu3);
+
+    amrex::Real dtaudu4, dpdu4;
+    riemann_invariant_rhs2(u0+du, tau0+du*dtaudu3, p0+du*dpdu3,
+                           xn, iwave, T, dtaudu4, dpdu4);
+
+    amrex::Real p = p0 + (1.0_rt/6.0_rt) * du * (dpdu1 + 2.0_rt * dpdu2 + 2.0_rt * dpdu3 + dpdu4);
+    amrex::Real tau = tau0 + (1.0_rt/6.0_rt) * du * (dtaudu1 + 2.0_rt * dtaudu2 + 2.0_rt * dtaudu3 + dtaudu4);
+
+    return {tau, p};
+
+}
+
+AMREX_INLINE
 void
 rarefaction(const amrex::Real pstar,
             const amrex::Real rho_s, const amrex::Real u_s, const amrex::Real p_s,
             const amrex::Real* xn, const int iwave,
             amrex::Real& Z_s, amrex::Real& W_s, amrex::Real& rhostar) {
-
-    const double S1{0.9};
-    const double S2{4.0};
 
     // Compute Z_s = C(p*, rho*) for a rarefaction connecting the
     // state to the star region by integrating the Riemann invariant
@@ -140,7 +171,12 @@ rarefaction(const amrex::Real pstar,
     //    dtau/dp = -1/C**2
     //    du/dp = +/- 1/C    (+ for 1-wave, - for 3-wave)
 
+    const double S1{0.9};
+    const double S2{4.0};
+
     constexpr amrex::Real tol = 1.e-5;
+
+    // initial conditions
 
     amrex::Real tau = 1.0_rt / rho_s;
     amrex::Real u = u_s;
@@ -168,6 +204,8 @@ rarefaction(const amrex::Real pstar,
 
         amrex::Real rel_error = std::numeric_limits<double>::max();
 
+        // take a step
+
         while (rel_error > tol) {
             dp = dp_new;
             if (p + dp < pstar) {
@@ -177,11 +215,11 @@ rarefaction(const amrex::Real pstar,
             // take 2 half steps
             amrex::Real u_tmp;
             amrex::Real tau_tmp;
-            std::tie(u_tmp, tau_tmp) = single_step(p, 0.5*dp, u0, tau0, xn, iwave, T);
-            std::tie(u_new, tau_new) = single_step(p + 0.5*dp, 0.5*dp, u_tmp, tau_tmp, xn, iwave, T);
+            std::tie(u_tmp, tau_tmp) = single_step_p(p, 0.5*dp, u0, tau0, xn, iwave, T);
+            std::tie(u_new, tau_new) = single_step_p(p + 0.5*dp, 0.5*dp, u_tmp, tau_tmp, xn, iwave, T);
 
             // now take a single step to cover dp
-            auto [u_single, tau_single] = single_step(p, dp, u0, tau0, xn, iwave, T);
+            auto [u_single, tau_single] = single_step_p(p, dp, u0, tau0, xn, iwave, T);
 
             // estimate the relative error
             amrex::Real u_err = std::abs(u_new - u_single);
@@ -191,10 +229,6 @@ rarefaction(const amrex::Real pstar,
             amrex::Real tau_err = std::abs((tau_new - tau_single) / tau0);
 
             rel_error = std::max(u_err, tau_err);
-
-            //if (ntry > 10) {
-            //    std::exit(-1);
-            //}
 
             // adaptive step estimate
 
@@ -292,29 +326,14 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     std::cout << "integrating from u: " << u << " " << ustop << " " << xi << " " << c << std::endl;
 
-    amrex::Real du2 = 0.5_rt * du;
-
     amrex::Real T = eos_state.T;
 
     while (! finished) {
 
         // do 4th-order RT
 
-        amrex::Real dtaudu1, dpdu1;
-        riemann_invariant_rhs2(u, tau, p, xn, iwave, T, dtaudu1, dpdu1);
-
-        amrex::Real dtaudu2, dpdu2;
-        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu1, p+du2*dpdu1, xn, iwave, T, dtaudu2, dpdu2);
-
-        amrex::Real dtaudu3, dpdu3;
-        riemann_invariant_rhs2(u+du2, tau+du2*dtaudu2, p+du2*dpdu2, xn, iwave, T, dtaudu3, dpdu3);
-
-        amrex::Real dtaudu4, dpdu4;
-        riemann_invariant_rhs2(u+du, tau+du*dtaudu3, p+du*dpdu3, xn, iwave, T, dtaudu4, dpdu4);
-
+        std::tie(tau, p) = single_step_u(u, du, tau, p, xn, iwave, T);
         u += du;
-        p += (1.0_rt/6.0_rt) * du * (dpdu1 + 2.0_rt * dpdu2 + 2.0_rt * dpdu3 + dpdu4);
-        tau += (1.0_rt/6.0_rt) * du * (dtaudu1 + 2.0_rt * dtaudu2 + 2.0_rt * dtaudu3 + dtaudu4);
 
         // compute c
 
