@@ -298,8 +298,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
     u = u_s;
     p = p_s;
 
-    // estimate
-    // compute c
+    // compute c and estimate the velocity for the endpoint of integration
 
     eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
@@ -313,18 +312,15 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     amrex::Real c = std::sqrt(eos_state.gam1 * p * tau);
 
-    amrex::Real ustop;
-    if (iwave == 1) {
-        ustop = xi + c;
-    } else if (iwave == 3) {
-        ustop = xi - c;
-    }
+    amrex::Real ustop = (iwave == 1) ? xi + c : xi - c;
 
     amrex::Real du = (ustop - u_s) / static_cast<amrex::Real>(npts);
 
     bool finished = false;
 
     std::cout << "integrating from u: " << u << " " << ustop << " " << xi << " " << c << std::endl;
+
+    // this will be used as an initial guess to accelerate the EOS inversions
 
     amrex::Real T = eos_state.T;
 
@@ -335,7 +331,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
         std::tie(tau, p) = single_step_u(u, du, tau, p, xn, iwave, T);
         u += du;
 
-        // compute c
+        // compute c and re-estimate the endpoint of integration
 
         eos_rep_t eos_state;
         eos_state.rho = 1.0_rt/tau;
@@ -349,13 +345,10 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
         c = std::sqrt(eos_state.gam1 * p * tau);
 
-        // check the step size
+        ustop = (iwave == 1) ? xi + c : xi - c;
 
-        if (iwave == 1) {
-            ustop = xi + c;
-        } else if (iwave == 3) {
-            ustop = xi - c;
-        }
+        // check the step size for the next step to ensure we don't
+        // go past the stopping velocity, ustop
 
         if (du * u > 0.0_rt) {
             while (std::abs(u + du) > std::abs(ustop) && du != 0.0_rt) {
