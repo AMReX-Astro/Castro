@@ -177,8 +177,8 @@ rarefaction(const amrex::Real pstar,
             // take 2 half steps
             amrex::Real u_tmp;
             amrex::Real tau_tmp;
-            std::tie(u_tmp, tau_tmp) = single_step(p, 0.5 * dp, u0, tau0, xn, iwave, T);
-            std::tie(u_new, tau_new) = single_step(p, 0.5 * dp, u_tmp, tau_tmp, xn, iwave, T);
+            std::tie(u_tmp, tau_tmp) = single_step(p, 0.5*dp, u0, tau0, xn, iwave, T);
+            std::tie(u_new, tau_new) = single_step(p + 0.5*dp, 0.5*dp, u_tmp, tau_tmp, xn, iwave, T);
 
             // now take a single step to cover dp
             auto [u_single, tau_single] = single_step(p, dp, u0, tau0, xn, iwave, T);
