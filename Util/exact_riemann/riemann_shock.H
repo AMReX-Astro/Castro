@@ -9,7 +9,9 @@
 
 AMREX_INLINE
 void
-W_s_shock(const amrex::Real W_s, const amrex::Real pstar, const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s, const amrex::Real* xn,
+W_s_shock(const amrex::Real W_s, const amrex::Real pstar,
+          const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s,
+          const amrex::Real* xn,
           amrex::Real& rhostar_s, eos_rep_t& eos_state, amrex::Real& f, amrex::Real& fprime) {
 
     // we need rhostar -- get it from the R-H conditions
@@ -36,7 +38,8 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar, const amrex::Real rho_
 
     amrex::Real dedrho_p = eos_state.dedr - eos_state.dedT * eos_state.dpdr / eos_state.dpdT;
 
-    fprime = 2.0_rt * W_s * (eos_state.e - e_s) - 2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
+    fprime = 2.0_rt * W_s * (eos_state.e - e_s) -
+        2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
 
 }
 

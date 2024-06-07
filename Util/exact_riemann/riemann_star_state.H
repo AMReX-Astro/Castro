@@ -71,7 +71,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     if (W_l == W_r) {
         pstar = 0.5_rt * (p_l + p_r + W_l * (u_l - u_r));
     } else {
-        pstar = ((W_r*p_l + W_l*p_r) + W_l*W_r*(u_l - u_r))/(W_l + W_r);
+        pstar = ((W_r * p_l + W_l * p_r) + W_l * W_r * (u_l - u_r)) / (W_l + W_r);
     }
 
     pstar = amrex::max(pstar, smallp);
@@ -83,6 +83,27 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
 
     // this procedure follows directly from Colella & Glaz 1985, section 1
+    // the basic idea is that we want to find the pstar that satisfies:
+    //
+    //   ustar_l(pstar) - ustar_r(pstar) = 0
+    //
+    // where ustar_l connects the left state to the star state across
+    // the left wave.  this wave can be a shock or rarefaction, so we
+    // need to use either the Riemann invariants (rarefaction) or
+    // Rankine-Hugoniot jump conditions (shock).
+    //
+    // We use a Newton method.  It takes the form:
+    //
+    //  pstar <-- pstar - Z_l Z_r (ustar_r - ustar_l) / (Z_l + Z_r)
+    //
+    // where Z_s = | dpstar / dustar_s | is the derivative in the p-u plane
+    //
+    // and we get ustar via:
+    //
+    //  ustar_s = u_s +/- (pstar - p_s) / W_s
+    //
+    // where W_s is the wave speed (this also depends on shock or
+    // rarefaction)
 
     amrex::Real ustar_l, ustar_r;
     bool converged = false;
@@ -90,8 +111,8 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     int iter = 1;
     while (! converged && iter < problem::riemann_max_iter) {
 
-        // compute Z_l and Z_r -- the form of these depend on whether the
-        // wave is a shock or a rarefaction
+        // compute Z_l, W_l and Z_r, W_r -- the form of these depend
+        // on whether the wave is a shock or a rarefaction
 
         amrex::Real Z_l, Z_r;
 
