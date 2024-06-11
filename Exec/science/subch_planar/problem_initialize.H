@@ -28,28 +28,6 @@ void problem_initialize ()
         }
     }
 
-    // velocity perturbation stuff
-
-    Real offset = (probhi[0] - problo[0]) / problem::num_vortices;
-
-    for (int i = 0; i < problem::num_vortices; i++) {
-        problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
-    }
-
-    // Set up Castro data logs for this problem
-
-    if (castro::sum_interval > 0 && amrex::ParallelDescriptor::IOProcessor()) {
-
-        Castro::problem_data_logs.resize(1);
-
-        Castro::problem_data_logs[0].reset(new std::fstream);
-        Castro::problem_data_logs[0]->open("xrb_diag.out", std::ios::out | std::ios::app);
-        if (!Castro::problem_data_logs[0]->good()) {
-            amrex::FileOpenFailed("xrb_diag.out");
-        }
-
-    }
-
     // set the ambient state for the upper boundary condition
 
     ambient::ambient_state[URHO] = model::profile(0).state(model::npts-1, model::idens);

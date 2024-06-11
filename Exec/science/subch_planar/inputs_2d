@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 1000000
-stop_time =  1000.0
+stop_time =  1.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
-geometry.prob_hi     = 1.6e9   3.2e9
-amr.n_cell           = 1024    2048
+geometry.prob_hi     = 1.e8    1.e8
+amr.n_cell           = 1024    1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -62,7 +62,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = planar_chk    # root name of checkpoint file
-amr.check_int       = 100       # number of timesteps between checkpoints
+amr.check_int       = 50       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = planar_plt    # root name of plotfile
@@ -71,12 +71,6 @@ amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
 problem.model_name =  "toy_subch.hse.tanh.delta_50.00km.dx_73.24km"
-
-problem.apply_vel_field = 1
-problem.velpert_height_loc = 1475.0
-problem.velpert_scale = 1.e2
-problem.velpert_amplitude = 1.e5
-problem.num_vortices = 16
 
 # MICROPHYSICS
 integrator.jacobian = 1
