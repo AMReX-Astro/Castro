@@ -14,11 +14,7 @@ void problem_initialize ()
 
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
-
-    if (problem::num_vortices > problem::max_num_vortices) {
-        amrex::Error("num_vortices too large, please increase max_num_vortices and the size of xloc_vortices");
-    }
-
+    
     // Read initial model
     read_model_file(problem::model_name);
 
