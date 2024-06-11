@@ -6,16 +6,16 @@ stop_time =  1.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
-geometry.prob_hi     = 1.e8    1.e8
-amr.n_cell           = 1024    1024
+geometry.prob_hi     = 1.5e8    1.5e8
+amr.n_cell           = 512     512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   3
-castro.hi_bc       =  0   2
+castro.lo_bc       =  3   3
+castro.hi_bc       =  2   2
 
 castro.fill_ambient_bc = 1
 castro.ambient_fill_dir = 1
