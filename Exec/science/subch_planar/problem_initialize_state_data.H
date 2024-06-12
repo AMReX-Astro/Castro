@@ -54,6 +54,11 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
+    // normalize
+    for (int n = 0; n < NumSpec; ++n) {
+        state(i,j,k,UFS+n) /= sumX;
+    }
+
     burn_t burn_state;
 
     burn_state.rho = state(i,j,k,URHO);
