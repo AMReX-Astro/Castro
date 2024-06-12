@@ -50,8 +50,11 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,UEINT);
 
+    Real sumX{0.0_rt};
+
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
+        sumX += state(i,j,k,UFS+n);
     }
 
     // normalize
