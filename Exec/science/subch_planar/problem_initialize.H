@@ -15,6 +15,12 @@ void problem_initialize ()
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
     
+    problem::ihe4 = network_spec_index("helium-4");
+
+    if (problem::ihe4 < 0) {
+        amrex::Error("Error: no He4 in the network");
+    }
+
     // Read initial model
     read_model_file(problem::model_name);
 
@@ -51,6 +57,18 @@ void problem_initialize ()
     ambient::ambient_state[UEINT] = eos_state.rho * eos_state.e;
     ambient::ambient_state[UEDEN] = eos_state.rho * eos_state.e;
 
+// find the distance (starting from the center) where the He layer begins
+
+    problem::R_He_base = 0.0;
+
+    for (int n = 0; n < model::npts; n++) {
+        if (model::profile(0).state(n, model::ispec+problem::ihe4) > 0.5_rt) {
+            problem::R_He_base = model::profile(0).r(n);
+            break;
+        }
+    }
+
+    amrex::Print() << "base of He layer found at " << problem::R_He_base << std::endl;
 }
 #endif
 
