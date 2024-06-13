@@ -71,4 +71,3 @@ void problem_initialize ()
     amrex::Print() << "base of He layer found at " << problem::R_He_base << std::endl;
 }
 #endif
-
