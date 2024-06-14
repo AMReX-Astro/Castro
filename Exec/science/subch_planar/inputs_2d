@@ -6,7 +6,7 @@ stop_time =  1.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
-geometry.prob_hi     = 3.e8    3.e8
+geometry.prob_hi     = 3.072e8    3.072e8
 amr.n_cell           = 512     512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -20,7 +20,6 @@ castro.hi_bc       =  2   2
 castro.fill_ambient_bc = 1
 castro.ambient_fill_dir = 1
 castro.ambient_outflow_vel = 1
-
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -66,7 +65,8 @@ amr.check_int       = 50       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = planar_plt    # root name of plotfile
-amr.plot_int        = 50       # number of timesteps between plotfiles
+amr.plot_int        = -1       # number of timesteps between plotfiles
+amr.plot_per        = 0.0002   #simulation time (s) between plotfiles
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
@@ -78,6 +78,9 @@ problem.R_pert = 1.e7
 
 # MICROPHYSICS
 integrator.jacobian = 1
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
 
 integrator.atol_spec = 1.e-6
 integrator.rtol_spec = 1.e-6
