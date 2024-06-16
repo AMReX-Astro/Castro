@@ -15,12 +15,14 @@ USE_SHOCK_VAR = TRUE
 
 USE_MODEL_PARSER = TRUE
 
+USE_SIMPLIFIED_SDC = TRUE
+
 CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := subch_simple
 
 PROBLEM_DIR ?= ./
