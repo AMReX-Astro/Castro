@@ -21,7 +21,7 @@ MAX_NPTS_MODEL = 20000
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := nova2
 
 # Thi sets the conductivity EOS directory in $(MICROPHYSICS_HOME)/conductivity
