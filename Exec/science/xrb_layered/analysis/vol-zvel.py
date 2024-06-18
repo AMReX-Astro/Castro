@@ -62,8 +62,8 @@ def doit(plotfile):
 
     cam.position = [2.5*ds.domain_right_edge[0],
                     2.5*ds.domain_right_edge[1],
-                    center[2]+0.25*ds.domain_right_edge[2]]
-
+                    center[2]+0.5*ds.domain_right_edge[2]]
+    
     # look toward the center -- we are dealing with an octant
     normal = (center - cam.position)
     normal /= np.sqrt(normal.dot(normal))
@@ -71,6 +71,7 @@ def doit(plotfile):
     cam.switch_orientation(normal_vector=normal,
                            north_vector=[0., 0., 1.])
     cam.set_width(ds.domain_width)
+    cam.zoom(1.3)
 
     sc.camera = cam
 
@@ -81,10 +82,11 @@ def doit(plotfile):
     sc.save(f"{plotfile}_zvel_axes.png", sigma_clip=3.0)
 
     sc.save_annotated(f"{plotfile}_zvel_annotated.png",
-                      sigma_clip=4.0, label_fmt="%.2f",
+                      sigma_clip=4.0, #label_fmt="%6.2g",
+                      label_fontsize="16",
                       text_annotate=[[(0.05, 0.05),
-                                      f"t = {ds.current_time.d:7.5f} s",
-                                      dict(horizontalalignment="left")]])
+                                      f"t = {ds.current_time.d:6.4f} s",
+                                      dict(horizontalalignment="left", fontsize=16)]])
 
 
 if __name__ == "__main__":
