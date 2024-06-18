@@ -50,6 +50,7 @@ castro.sponge_timescale     = 1.0e-3
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
+castro.time_integration_method = 3 # uses SDC by default
 
 # REFINEMENT / REGRIDDING 
 amr.max_level       = 0       # maximum level number allowed
