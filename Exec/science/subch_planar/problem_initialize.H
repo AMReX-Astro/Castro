@@ -14,7 +14,7 @@ void problem_initialize ()
 
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
-    
+
     problem::ihe4 = network_spec_index("helium-4");
 
     if (problem::ihe4 < 0) {
