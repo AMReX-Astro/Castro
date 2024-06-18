@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spectral Deferred Corrections &mdash; Castro  documentation</title>
+  <title>GPU Programming Model &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -25,8 +25,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Adaptive Mesh Refinement" href="AMR.html" />
-    <link rel="prev" title="Tracer particles" href="Particles.html" /> 
+    <link rel="next" title="Distributed Problem Setups" href="problem_setups.html" />
+    <link rel="prev" title="Software Design" href="software.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,12 +50,12 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../sdc.html">main</a> | <a href="./sdc.html">development</a>
+        Branch: <a href="../gpu.html">main</a> | <a href="./gpu.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
@@ -64,7 +64,10 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GPU Programming Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -74,7 +77,7 @@
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
@@ -88,7 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
@@ -120,9 +123,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Spectral Deferred Corrections</li>
+      <li class="breadcrumb-item active">GPU Programming Model</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/sdc.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/gpu.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -130,55 +133,58 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="spectral-deferred-corrections">
-<span id="ch-sdc"></span><h1>Spectral Deferred Corrections<a class="headerlink" href="#spectral-deferred-corrections" title="Link to this heading"></a></h1>
-<p>The Castro SDC solver couples the hydrodynamics tightly together,
-iteratively improving the convergence of the solution.  This is the
-basis of the 4th order accurate Castro solver.  The algorithm is described
-in <span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p>
+  <section id="gpu-programming-model">
+<h1>GPU Programming Model<a class="headerlink" href="#gpu-programming-model" title="Link to this heading"></a></h1>
+<p>CPUs and GPUs have separate memory, which means that working on both
+the host and device may involve managing the transfer of data between
+the memory on the host and that on the GPU.</p>
+<p>In Castro, the core design when running on GPUs is that all of the compute
+should be done on the GPU.</p>
+<p>When we compile with <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code> or <code class="docutils literal notranslate"><span class="pre">USE_HIP=TRUE</span></code>, AMReX will allocate
+a pool of memory on the GPUs and all of the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> will be stored there.
+As long as we then do all of the computation on the GPUs, then we don’t need
+to manage any of the data movement manually.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Here we are referring to the full SDC time integration scheme
-(<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>), not the simplified-SDC solver.</p>
+<p>We can tell AMReX to allocate the data using managed-memory by
+setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amrex</span><span class="o">.</span><span class="n">the_arena_is_managed</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
 </div>
-<p>The options that describe the quadrature and iterations are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> : the desired spatial and temporal order.  2 and 4 are supported.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code> : the quadrature scheme used for the
-time-integration.  This determines the number and location of the
-temporal nodes.  Supported values are 0 for Gauss-Lobatto and 1 for
-Radau IIA.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_extra</span></code> : the number of extra iterations to take.  By
-default the number of iterations used is equal to the value of
-<code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</p></li>
-</ul>
-<p>The options that affect the nonlinear solve are:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
-the reaction system.  Values are:</p>
-<ul class="simple">
-<li><p>1 : pure Newton iteration (we subdivide the time interval if
-needed to get the Newton method to converge).</p></li>
-<li><p>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</p></li>
-<li><p>3 : use VODE for the first iteration and then Newton for the
-subsequent iterations.</p></li>
-</ul>
-<p>The tolerances for both the Newton and VODE solver are controlled by
-the usual Microphysics parameters: <code class="docutils literal notranslate"><span class="pre">integrator.rtol_spec</span></code>,
-<code class="docutils literal notranslate"><span class="pre">integrator.atol_spec</span></code>, <code class="docutils literal notranslate"><span class="pre">integrator.rtol_enuc</span></code>,
-<code class="docutils literal notranslate"><span class="pre">integrator.atol_enuc</span></code>.</p>
-<p>In all cases, the type of Jacobian (analytic or numerical) is determined by
-<code class="docutils literal notranslate"><span class="pre">integrator.jacobian</span></code>.</p>
-</li>
-</ul>
+<p>This is generally not needed.</p>
+</div>
+<p>The programming model used throughout Castro is C++-lambda-capturing
+by value.  We access the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> stored in the <code class="docutils literal notranslate"><span class="pre">StateData</span></code>
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> by creating an <code class="docutils literal notranslate"><span class="pre">Array4</span></code> object.  The <code class="docutils literal notranslate"><span class="pre">Array4</span></code> does
+not directly store a copy of the data, but instead has a pointer to
+the data in the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code>.  When we capture the <code class="docutils literal notranslate"><span class="pre">Array4</span></code> by
+value in the GPU kernel, the GPU gets access to the pointer to the
+underlying data.</p>
+<p>Most AMReX functions will work on the data directly on the GPU (like
+<code class="docutils literal notranslate"><span class="pre">.setVal()</span></code>).</p>
+<p>In rare instances where we might need to operate on the data on the
+host, we can force a copy to the host, do the work, and then copy
+back.  For an example, see the reduction done in  <code class="docutils literal notranslate"><span class="pre">Gravity.cpp</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a thorough discussion of how the AMReX GPU offloading works
+see <span id="id1">[<a class="reference internal" href="zreferences.html#id78" title="Andrew Myers, Weiqun Zhang, Ann Almgren, Thierry Antoun, John Bell, Axel Huebl, and Alexander Sinn. AMReX and pyAMReX: Looking Beyond ECP. arXiv e-prints, pages arXiv:2403.12179, March 2024. arXiv:2403.12179, doi:10.48550/arXiv.2403.12179.">57</a>]</span>.</p>
+</div>
+<section id="runtime-parameters">
+<h2>Runtime parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
+<p>The main exception for all data being on the GPUs all the time are the
+runtime parameters.  At the moment, these are allocated as managed
+memory and stored in global memory.  This is simply to make it easier
+to read them in and initialize them on the CPU at runtime.</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Particles.html" class="btn btn-neutral float-left" title="Tracer particles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="AMR.html" class="btn btn-neutral float-right" title="Adaptive Mesh Refinement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="software.html" class="btn btn-neutral float-left" title="Software Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="problem_setups.html" class="btn btn-neutral float-right" title="Distributed Problem Setups" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

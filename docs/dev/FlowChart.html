@@ -82,6 +82,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -179,7 +180,7 @@ to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
 Iterations allow each process to see one another and achieve
-high-order in time convergence.  This is described in <span id="id3">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">75</a>]</span>.</p></li>
+high-order in time convergence.  This is described in <span id="id3">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p></li>
 </ul>
 </li>
 </ul>
@@ -702,7 +703,7 @@ simulation.</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <span id="id8">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">75</a>]</span>.
+<p>The SDC solver follows the algorithm detailed in <span id="id8">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
