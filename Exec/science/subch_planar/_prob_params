@@ -1,0 +1,17 @@
+H_min                 real           1.e-4_rt      y
+
+model_name            string         ""            y
+
+# the distance from the base of the He layer star to put the perturbation
+R_pert                real           1.e7_rt       y
+
+# location of base of He layer
+R_He_base             real           0.0_rt
+
+# the amplitude of the temperature perturbation (above background)
+pert_temp_factor      real           10.0_rt       y
+
+# the physical scale of the perturbation
+pert_rad_factor       real            2.0_rt       y
+
+ihe4                  integer         -1
