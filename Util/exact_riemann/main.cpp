@@ -10,7 +10,7 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#include <castro_params.H>
+
 #include <exact_riemann.H>
 
 int main(int argc, char *argv[]) {

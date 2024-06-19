@@ -111,7 +111,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     bool converged = false;
 
     int iter = 1;
-    while (! converged && iter < problem::riemann_max_iter) {
+    while (! converged && iter < riemann_solver::max_iters) {
 
         // compute Z_l, W_l and Z_r, W_r -- the form of these depend
         // on whether the wave is a shock or a rarefaction
