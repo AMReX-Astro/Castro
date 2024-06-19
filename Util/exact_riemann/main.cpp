@@ -18,8 +18,6 @@ int main(int argc, char *argv[]) {
     amrex::Initialize(argc, argv);
 
     std::cout << "starting the exact Riemann solver..." << std::endl;
-    std::cout << argv[1] << std::endl;
-    std::cout << strlen(argv[1]) << std::endl;
 
     // initialize the external runtime parameters in C++
 
