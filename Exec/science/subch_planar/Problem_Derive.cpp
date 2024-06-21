@@ -7,7 +7,7 @@ using namespace amrex;
 
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
 
-void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
@@ -15,7 +15,6 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
   // derive the dynamic pressure
 
   const auto dx = geomdata.CellSizeArray();
-  const auto problo = geomdata.ProbLoArray();
   const int coord_type = geomdata.Coord();
 
   auto const dat = datfab.array();
@@ -49,11 +48,11 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
       eos_state.T = dat(i,j,k,UTEMP);
       eos_state.e = dat(i,j,k,UEINT) * rhoInv;
       for (int n = 0; n < NumSpec; n++) {
-          eos_state.xn[n] = dat(i,j,k,UFS+n) / dat(i,j,k,URHO);
+          eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-          eos_state.aux[n] = dat(i,j,k,UFX+n) / dat(i,j,k,URHO);
+          eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -103,17 +102,17 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
       Real p_ip1{};
       {
-          Real rhoInv = 1.0 / dat(i+1,j,k,URHO);
+          Real lrhoInv = 1.0 / dat(i+1,j,k,URHO);
 
           eos_state.rho = dat(i+1,j,k,URHO);
           eos_state.T = dat(i+1,j,k,UTEMP);
-          eos_state.e = dat(i+1,j,k,UEINT) * rhoInv;
+          eos_state.e = dat(i+1,j,k,UEINT) * lrhoInv;
           for (int n = 0; n < NumSpec; n++) {
-              eos_state.xn[n] = dat(i+1,j,k,UFS+n) * rhoInv;
+              eos_state.xn[n] = dat(i+1,j,k,UFS+n) * lrhoInv;
           }
 #if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
-              eos_state.aux[n] = dat(i+1,j,k,UFX+n) / rhoInv
+              eos_state.aux[n] = dat(i+1,j,k,UFX+n) * lrhoInv
           }
 #endif
 
@@ -127,17 +126,17 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
       Real p_im1{};
       {
-          Real rhoInv = 1.0 / dat(i-1,j,k,URHO);
+          Real lrhoInv = 1.0 / dat(i-1,j,k,URHO);
 
           eos_state.rho = dat(i-1,j,k,URHO);
           eos_state.T = dat(i-1,j,k,UTEMP);
-          eos_state.e = dat(i-1,j,k,UEINT) * rhoInv;
+          eos_state.e = dat(i-1,j,k,UEINT) * lrhoInv;
           for (int n = 0; n < NumSpec; n++) {
-              eos_state.xn[n] = dat(i-1,j,k,UFS+n) * rhoInv;
+              eos_state.xn[n] = dat(i-1,j,k,UFS+n) * lrhoInv;
           }
 #if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
-              eos_state.aux[n] = dat(i-1,j,k,UFX+n) / rhoInv
+              eos_state.aux[n] = dat(i-1,j,k,UFX+n) * lrhoInv
           }
 #endif
 
@@ -153,17 +152,17 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
       Real p_jp1{};
       {
-          Real rhoInv = 1.0 / dat(i,j+1,k,URHO);
+          Real lrhoInv = 1.0 / dat(i,j+1,k,URHO);
 
           eos_state.rho = dat(i,j+1,k,URHO);
           eos_state.T = dat(i,j+1,k,UTEMP);
-          eos_state.e = dat(i,j+1,k,UEINT) * rhoInv;
+          eos_state.e = dat(i,j+1,k,UEINT) * lrhoInv;
           for (int n = 0; n < NumSpec; n++) {
-              eos_state.xn[n] = dat(i,j+1,k,UFS+n) * rhoInv;
+              eos_state.xn[n] = dat(i,j+1,k,UFS+n) * lrhoInv;
           }
 #if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
-              eos_state.aux[n] = dat(i,j+1,k,UFX+n) / rhoInv
+              eos_state.aux[n] = dat(i,j+1,k,UFX+n) * lrhoInv
           }
 #endif
 
@@ -177,17 +176,17 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
       Real p_jm1{};
       {
-          Real rhoInv = 1.0 / dat(i,j-1,k,URHO);
+          Real lrhoInv = 1.0 / dat(i,j-1,k,URHO);
 
           eos_state.rho = dat(i,j-1,k,URHO);
           eos_state.T = dat(i,j-1,k,UTEMP);
-          eos_state.e = dat(i,j-1,k,UEINT) * rhoInv;
+          eos_state.e = dat(i,j-1,k,UEINT) * lrhoInv;
           for (int n = 0; n < NumSpec; n++) {
-              eos_state.xn[n] = dat(i,j-1,k,UFS+n) * rhoInv;
+              eos_state.xn[n] = dat(i,j-1,k,UFS+n) * lrhoInv;
           }
 #if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
-              eos_state.aux[n] = dat(i,j-1,k,UFX+n) / rhoInv
+              eos_state.aux[n] = dat(i,j-1,k,UFX+n) * lrhoInv
           }
 #endif
 
