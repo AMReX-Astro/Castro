@@ -1,5 +1,5 @@
 ## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
-## with 12 km resolution using default strang splitting
+## with 12 km resolution using default strang-splitting
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -147,12 +147,12 @@ amr.refine.density.field_name = density
 amr.refine.density.max_level = 1
 
 # Density2 refinement criterion
-amr.refine.density2.value_greater = 1.0e5
+amr.refine.density2.value_greater = 1.0e4
 amr.refine.density2.field_name = density
 amr.refine.density2.max_level = 20
 
 # Temperature refinement criterion
-amr.refine.temperature.value_greater = 5.0e8
+amr.refine.temperature.value_greater = 3.0e8
 amr.refine.temperature.field_name = Temp
 amr.refine.temperature.max_level = 3
 
