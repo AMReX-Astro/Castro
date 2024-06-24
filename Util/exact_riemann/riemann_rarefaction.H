@@ -68,7 +68,6 @@ riemann_invariant_rhs2(const amrex::Real u, const amrex::Real tau, const amrex::
 
     amrex::ignore_unused(u);
 
-    std::cout << "in riemann_invariant_rhs2: " << u << " " << tau << " " << p << std::endl;
     eos_rep_t eos_state;
     eos_state.rho = 1.0_rt / tau;
     eos_state.p = p;
@@ -325,8 +324,6 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
     amrex::Real du = (ustop - u_s) / static_cast<amrex::Real>(10);
 
     bool finished = false;
-
-    std::cout << "integrating from u: " << u << " " << ustop << " " << xi << " " << c << std::endl;
 
     // this will be used as an initial guess to accelerate the EOS inversions
 
