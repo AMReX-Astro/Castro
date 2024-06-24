@@ -16,7 +16,7 @@ CASTRO_HOME ?= ../../..
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 ifeq ($(USE_NSE_NET), TRUE)
 	NETWORK_DIR := subch_base
 	SCREEN_METHOD := chabrier1998

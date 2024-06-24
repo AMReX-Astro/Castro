@@ -19,7 +19,7 @@ CASTRO_HOME ?= ../../..
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := CNO_extras
 
 PROBLEM_DIR ?= ./
