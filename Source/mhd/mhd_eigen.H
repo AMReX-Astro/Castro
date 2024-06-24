@@ -86,21 +86,24 @@ evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
   Real alf;
   Real als;
 
-  if (std::abs(cfx-csx) <= 1e-14){
+  // if C_f = C_s, then we are degenerate, and set the alpha's accordingly.
+  // see Stone et a. 2008 comment just after Eql A17.
+
+  if (std::abs(cfx - csx) <= 1e-14){
     alf = 1.0_rt;
     als = 0.0_rt;
-  }
-
-  if (as - csx < 0.0) {
-    alf = 0.0_rt;
   } else {
-    alf = std::sqrt((as - csx)/(cfx - csx));
-  }
+      if (as - csx < 0.0) {
+          alf = 0.0_rt;
+      } else {
+          alf = std::sqrt((as - csx)/(cfx - csx));
+      }
 
-  if (cfx - as < 0.0) {
-    als = 0.0_rt;
-  } else {
-    als = std::sqrt((cfx - as)/(cfx - csx));
+      if (cfx - as < 0.0) {
+          als = 0.0_rt;
+      } else {
+          als = std::sqrt((cfx - as)/(cfx - csx));
+      }
   }
 
 
@@ -287,21 +290,24 @@ evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
   Real alf;
   Real als;
 
-  if (std::abs(cfy-csy) <= 1e-14){
+  // if C_f = C_s, then we are degenerate, and set the alpha's accordingly.
+  // see Stone et a. 2008 comment just after Eql A17.
+
+  if (std::abs(cfy - csy) <= 1e-14){
     alf = 1.0_rt;
     als = 0.0_rt;
-  }
-
-  if (as - csy < 0.0) {
-    alf = 0.0_rt;
   } else {
-    alf = std::sqrt((as - csy)/(cfy - csy));
-  }
+      if (as - csy < 0.0) {
+          alf = 0.0_rt;
+      } else {
+          alf = std::sqrt((as - csy)/(cfy - csy));
+      }
 
-  if (cfy - as < 0.0) {
-    als = 0.0_rt;
-  } else {
-    als = std::sqrt((cfy - as)/(cfy - csy));
+      if (cfy - as < 0.0) {
+          als = 0.0_rt;
+      } else {
+          als = std::sqrt((cfy - as)/(cfy - csy));
+      }
   }
 
   Real betx;
@@ -485,21 +491,24 @@ evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
   Real alf;
   Real als;
 
+  // if C_f = C_s, then we are degenerate, and set the alpha's accordingly.
+  // see Stone et a. 2008 comment just after Eql A17.
+
   if (std::abs(cfz-csz) <= 1e-14){
     alf = 1.0_rt;
     als = 0.0_rt;
-  }
-
-  if (as - csz < 0.0) {
-    alf = 0.0_rt;
   } else {
-    alf = std::sqrt((as - csz)/(cfz - csz));
-  }
+      if (as - csz < 0.0) {
+          alf = 0.0_rt;
+      } else {
+          alf = std::sqrt((as - csz)/(cfz - csz));
+      }
 
-  if (cfz - as < 0.0) {
-    als = 0.0_rt;
-  } else {
-    als = std::sqrt((cfz - as)/(cfz - csz));
+      if (cfz - as < 0.0) {
+          als = 0.0_rt;
+      } else {
+          als = std::sqrt((cfz - as)/(cfz - csz));
+      }
   }
 
   Real betx;

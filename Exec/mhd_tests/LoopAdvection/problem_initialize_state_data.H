@@ -10,6 +10,8 @@ void problem_initialize_state_data (int i, int j, int k,
                                     const GeometryData& geomdata)
 {
 
+    amrex::ignore_unused(geomdata);
+
     state(i,j,k,URHO) = problem::rho_0;
     state(i,j,k,UMX) = problem::rho_0 * problem::u_x;
     state(i,j,k,UMY) = problem::rho_0 * problem::u_y;
