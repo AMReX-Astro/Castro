@@ -21,7 +21,3 @@ npts                integer  128          y
 use_Tinit           integer  0            y
 
 initial_temp_guess  real     1.0d5        y
-
-riemann_max_iter    integer  10           y
-
-co_moving_frame     integer  0            y

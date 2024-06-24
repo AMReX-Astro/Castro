@@ -129,10 +129,6 @@ shock(const amrex::Real pstar,
         2.0_rt * (1.0_rt - gammaE_bar / gammaC_bar) * (gammaE_bar - 1.0_rt) *
         (pstar - p_s) / (pstar + p_s);
 
-    std::cout << "pstar, ps = " << pstar << " " << p_s << " " << gammaE_s << " " << gammaE_star << std::endl;
-    std::cout << (pstar/rho_s - (gammaE_star - 1.0_rt)/(gammaE_s - 1.0_rt) * p_s/rho_s);
-    std::cout << (pstar + 0.5_rt * (gammaE_star - 1.0_rt) * (pstar + p_s));
-
     // there is a pathological case that if p_s - pstar ~ 0, the root finding
     // just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
     // take W = sqrt(gamma p rho)
