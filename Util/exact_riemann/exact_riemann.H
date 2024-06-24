@@ -47,12 +47,6 @@ exact_riemann() {
 
     }
 
-    if (problem::co_moving_frame) {
-        amrex::Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-        problem::u_l -= W_avg;
-        problem::u_r -= W_avg;
-    }
-
     amrex::Real ustar, pstar, W_l, W_r;
 
     riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
@@ -85,12 +79,6 @@ exact_riemann() {
                        ustar, pstar, W_l, W_r,
                        x, problem::xjump, problem::t,
                        rho, u, p, xn_s);
-
-        if (problem::co_moving_frame) {
-            amrex::Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-            u += W_avg;
-            x += problem::t * W_avg;
-        }
 
         // get the thermodynamics for this state for output
 
