@@ -27,6 +27,7 @@ endif
 
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
+CEXE_headers += HLL_solvers.H
 CEXE_headers += riemann_solvers.H
 CEXE_headers += riemann_2shock_solvers.H
 CEXE_sources += riemann_util.cpp
