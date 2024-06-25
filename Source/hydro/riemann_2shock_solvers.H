@@ -5,7 +5,7 @@
 
 using namespace amrex::literals;
 
-#include <riemann.H>
+#include <riemann_type.H>
 #ifdef RADIATION
 #include <Radiation.H>
 #include <rad_util.H>
