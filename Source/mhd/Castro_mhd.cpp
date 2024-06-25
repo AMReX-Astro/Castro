@@ -385,6 +385,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         ux_right_arr, ux_left_arr,
                         flxy1D_arr, Ex_arr, Ez_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         0, 1, 2, dt);
 
           // Calculate Flux 2D eq. 40
@@ -400,6 +401,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         ux_right_arr, ux_left_arr,
                         flxz1D_arr, Ex_arr, Ey_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         0, 2, 1, dt);
 
           // F^{x|z}
@@ -420,6 +422,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         uy_right_arr, uy_left_arr,
                         flxx1D_arr, Ey_arr, Ez_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         1, 0, 2, dt);
 
           // F^{y|x}
@@ -435,6 +438,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         uy_right_arr, uy_left_arr,
                         flxz1D_arr, Ey_arr, Ex_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         1, 2, 0, dt);
 
           // F^{y|z}
@@ -454,6 +458,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         uz_right_arr, uz_left_arr,
                         flxx1D_arr, Ez_arr, Ey_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         2, 0, 1, dt);
 
           // F^{z|x}
@@ -469,6 +474,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                         qtmp_right_arr, qtmp_left_arr,
                         uz_right_arr, uz_left_arr,
                         flxy1D_arr, Ez_arr, Ex_arr,
+                        Ex_arr, Ey_arr, Ez_arr,
                         2, 1, 0, dt);
 
           // F^{z|y}
@@ -540,6 +546,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                     ux_right_arr, ux_left_arr,
                     flx_yz_arr, flx_zy_arr,
                     Ex_arr, Ey_arr, Ez_arr,
+                    Ex_arr, Ey_arr, Ez_arr,
                     0, 1, 2, dt);
 
           // Final Fluxes eq.47
@@ -557,6 +564,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                     uy_right_arr, uy_left_arr,
                     flx_xz_arr, flx_zx_arr,
                     Ey_arr, Ex_arr, Ez_arr,
+                    Ex_arr, Ey_arr, Ez_arr,
                     1, 0, 2, dt);
 
           hlld(nby1, qtmp_left_arr, qtmp_right_arr, flux[1].array(), 1);
@@ -569,6 +577,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                     uz_right_arr, uz_left_arr,
                     flx_xy_arr, flx_yx_arr,
                     Ez_arr, Ex_arr, Ey_arr,
+                    Ex_arr, Ey_arr, Ez_arr,
                     2, 0, 1, dt);
 
           hlld(nbz1, qtmp_left_arr, qtmp_right_arr, flux[2].array(), 2);
