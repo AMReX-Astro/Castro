@@ -8,6 +8,10 @@
 #include <Gravity.H>
 #endif
 
+#ifdef HYBRID_MOMENTUM
+#include <hybrid.H>
+#endif
+
 #include <ppm.H>
 #include <slope.H>
 
