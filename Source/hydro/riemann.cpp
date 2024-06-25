@@ -1,6 +1,7 @@
 #include <Castro.H>
 
 #include <riemann_solvers.H>
+#include <HLL_solvers.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -193,5 +194,3 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     });
 
 }
-
-
