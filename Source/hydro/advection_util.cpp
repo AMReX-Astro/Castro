@@ -82,97 +82,105 @@ Castro::shock(const Box& bx,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
-    Real div_u = 0.0_rt;
+      Real div_u = 0.0_rt;
+      Real du_x{};
+      Real dv_y{};
+      Real dw_z{};
 
-    // construct div{U}
-    if (coord_type == 0) {
+      // construct div{U}
+      if (coord_type == 0) {
 
-      // Cartesian
-      div_u += 0.5_rt * (q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
+          // Cartesian
+          du_x = 0.5_rt * (q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
 #if (AMREX_SPACEDIM >= 2)
-      div_u += 0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
+          dv_y = 0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
 #endif
 #if (AMREX_SPACEDIM == 3)
-      div_u += 0.5_rt * (q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW)) * dzinv;
+          dw_z = 0.5_rt * (q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW)) * dzinv;
 #endif
 
 #if AMREX_SPACEDIM <= 2
-   } else if (coord_type == 1) {
+      } else if (coord_type == 1) {
 
-     // r-z
-     Real rc = (i + 0.5_rt) * dx[0];
-     Real rm = (i - 1 + 0.5_rt) * dx[0];
-     Real rp = (i + 1 + 0.5_rt) * dx[0];
+          // r-z
+          Real rc = (i + 0.5_rt) * dx[0];
+          Real rm = (i - 1 + 0.5_rt) * dx[0];
+          Real rp = (i + 1 + 0.5_rt) * dx[0];
 
-#if (AMREX_SPACEDIM == 1)
-     div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]);
-#endif
+          du_x = 0.5_rt * (rp * q_arr(i+1,j,k,QU) -
+                           rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]);
 #if (AMREX_SPACEDIM == 2)
-     div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]) +
-              0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
+          dv_y = 0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
 #endif
 #endif
 
 #if AMREX_SPACEDIM == 1
-    } else if (coord_type == 2) {
+      } else if (coord_type == 2) {
 
-      // 1-d spherical
-      Real rc = (i + 0.5_rt) * dx[0];
-      Real rm = (i - 1 + 0.5_rt) * dx[0];
-      Real rp = (i + 1 + 0.5_rt) * dx[0];
+          // 1-d spherical
+          Real rc = (i + 0.5_rt) * dx[0];
+          Real rm = (i - 1 + 0.5_rt) * dx[0];
+          Real rp = (i + 1 + 0.5_rt) * dx[0];
 
-      div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
+          du_x = 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) -
+                           rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
 #endif
 
 #ifndef AMREX_USE_GPU
 
-    } else {
-      amrex::Error("ERROR: invalid coord_type in shock");
+      } else {
+          amrex::Error("ERROR: invalid coord_type in shock");
 #endif
-    }
+      }
 
+      div_u = du_x + dv_y + dw_z;
 
-    // now compute (grad P - rho g) . dx
-    // We subtract off the hydrostatic force, since the pressure that
-    // balances that is not available to make a shock.
-    // We'll use a centered diff for the pressure gradient.
-    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
-    if (shock_detection_include_sources == 1) {
-        dP_x += -0.25_rt * dx[0] * (U_src_arr(i+1,j,k,UMX) + 2.0_rt * U_src_arr(i,j,k,UMX) + U_src_arr(i-1,j,k,UMX));
+      // now compute (grad P - rho g) . dx
+      // We subtract off the hydrostatic force, since the pressure that
+      // balances that is not available to make a shock.
+      // We'll use a centered diff for the pressure gradient.
+      Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
+      if (shock_detection_include_sources == 1) {
+          dP_x += -0.25_rt * dx[0] * (U_src_arr(i+1,j,k,UMX) + 2.0_rt * U_src_arr(i,j,k,UMX) + U_src_arr(i-1,j,k,UMX));
     }
-    Real dP_y = 0.0_rt;
-    Real dP_z = 0.0_rt;
+      Real dP_y = 0.0_rt;
+      Real dP_z = 0.0_rt;
+
 #if AMREX_SPACEDIM >= 2
-    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
-    if (shock_detection_include_sources == 1) {
-        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
-    }
+      dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
+      if (shock_detection_include_sources == 1) {
+          dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
+      }
 #endif
+
 #if AMREX_SPACEDIM == 3
-    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
-    if (shock_detection_include_sources == 1) {
-        dP_z += -0.25_rt * dx[2] * (U_src_arr(i,j,k+1,UMZ) + 2.0_rt * U_src_arr(i,j,k,UMZ) + U_src_arr(i,j,k-1,UMZ));
+      dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
+      if (shock_detection_include_sources == 1) {
+          dP_z += -0.25_rt * dx[2] * (U_src_arr(i,j,k+1,UMZ) + 2.0_rt * U_src_arr(i,j,k,UMZ) + U_src_arr(i,j,k-1,UMZ));
     }
 #endif
 
-    //Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
-    Real vel = std::sqrt(q_arr(i,j,k,QU) * q_arr(i,j,k,QU) +
-                         q_arr(i,j,k,QV) * q_arr(i,j,k,QV) +
-                         q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
+      Real cdu_x = std::min(du_x, 0.0);
+      Real cdv_y = std::min(dv_y, 0.0);
+      Real cdw_z = std::min(dw_z, 0.0);
 
-    Real gradPdx_over_P{0.0_rt};
-    if (vel != 0.0) {
-        gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
-                                  dP_y * q_arr(i,j,k,QV) +
-                                  dP_z * q_arr(i,j,k,QW)) / vel;
-    }
-    gradPdx_over_P /= q_arr(i,j,k,QPRES);
+      Real divu_mag = std::sqrt(cdu_x * cdu_x +
+                                cdv_y * cdv_y +
+                                cdw_z * cdw_z);
 
-    if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
-      shk(i,j,k) = 1.0_rt;
-    } else {
-      shk(i,j,k) = 0.0_rt;
-    }
+      Real gradPdx_over_P{0.0_rt};
+      if (divu_mag != 0.0) {
+          gradPdx_over_P = std::abs(std::abs(dP_x) * cdu_x +
+                                    std::abs(dP_y) * cdv_y +
+                                    std::abs(dP_z) * cdw_z) / divu_mag;
+      }
+      gradPdx_over_P /= q_arr(i,j,k,QPRES);
+
+      if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
+          shk(i,j,k) = 1.0_rt;
+      } else {
+          shk(i,j,k) = 0.0_rt;
+      }
   });
 
 }
