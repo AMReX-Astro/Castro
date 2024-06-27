@@ -14,42 +14,10 @@
 #include <exact_riemann.H>
 
 #include <castro_params.H>
-#include <runtime_parameters.H>
 #include <params_type.H>
 
-// create a dummy Castro class just to hold the runtime parameters struct
-
-class Castro {
-
-    public:
-
-    static params_t params;
-
-    void doit() {
-
-        initialize_cpp_runparams();
-
-        // initialize the external runtime parameters in C++
-
-        init_prob_parameters();
-
-        init_extern_parameters();
-
-        // now initialize the C++ Microphysics
-#ifdef REACTIONS
-        network_init();
-#endif
-
-        amrex::Real small_temp = 1.e-200;
-        amrex::Real small_dens = 1.e-200;
-        eos_init(small_temp, small_dens);
-
-        exact_riemann();
-
-    }
-
-};
-
+// a global struct to hold the params
+#include <struct_params.H>
 
 int main(int argc, char *argv[]) {
 
@@ -59,6 +27,24 @@ int main(int argc, char *argv[]) {
 
     // initialize the Castro runtime parameters
 
-    Castro castro;
-    castro.doit();
+    amrex::ParmParse pp("castro");
+#include <castro_queries.H>
+
+    // initialize the external runtime parameters in C++
+
+    init_prob_parameters();
+
+    init_extern_parameters();
+
+    // now initialize the C++ Microphysics
+#ifdef REACTIONS
+    network_init();
+#endif
+
+    amrex::Real small_temp = 1.e-200;
+    amrex::Real small_dens = 1.e-200;
+    eos_init(small_temp, small_dens);
+
+    exact_riemann();
+
 }
