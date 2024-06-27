@@ -9,7 +9,6 @@
 
 #include <riemann_sample.H>
 #include <riemann_star_state.H>
-#include <riemann_support.H>
 
 using namespace amrex::literals;
 
