@@ -321,15 +321,13 @@ riemann_state(const int i, const int j, const int k, const int idir,
   if (riemann_solver == 0) {
       // Colella, Glaz, & Ferguson solver
 
-      riemannus(ql, qr, raux,
-                qint);
+      TwoShock::riemannus(ql, qr, raux, qint);
 
   } else if (riemann_solver == 1) {
       // Colella & Glaz solver
 
 #ifndef RADIATION
-      riemanncg(ql, qr, raux,
-                qint);
+      TwoShock::riemanncg(ql, qr, raux, qint);
 #endif
 
 #ifndef AMREX_USE_GPU
