@@ -14,8 +14,6 @@
 
 using namespace amrex;
 
-#include <riemann.H>
-
 void
 Castro::compute_flux_from_q(const Box& bx,
                             Array4<Real const> const& qint,
