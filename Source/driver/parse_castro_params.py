@@ -129,7 +129,7 @@ def read_param_file(infile):
 
     return params
 
-def write_headers_and_source(params, out_directory, struct_name):
+def write_headers_and_source(params, out_directory, struct_name, without_castro_class):
 
     # output
 
@@ -176,19 +176,23 @@ def write_headers_and_source(params, out_directory, struct_name):
 
         cq.write(CWARNING)
 
+        class_name = "Castro"
+        if without_castro_class:
+            class_name = None
+
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
                     cq.write(p.get_default_string())
                     cq.write(p.get_query_string())
-                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
+                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name=class_name))
                     cq.write("\n")
             else:
                 cq.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cq.write(p.get_default_string())
                     cq.write(p.get_query_string())
-                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name="Castro"))
+                    cq.write(p.get_query_struct_string(struct_name=struct_name, class_name=class_name))
                     cq.write("\n")
                 cq.write("#endif\n")
             cq.write("\n")
@@ -305,13 +309,14 @@ def main():
                         help="output directory for the generated files")
     parser.add_argument("-s", type=str, default="params",
                         help="name for the name struct that will hold the parameters")
+    parser.add_argument("--without-castro-class", action="store_true", help="don't include Castro:: in the struct namespace")
     parser.add_argument("input_file", type=str, nargs=1,
                         help="input file containing the list of parameters we will define")
 
     args = parser.parse_args()
 
     p = read_param_file(args.input_file[0])
-    write_headers_and_source(p, args.o, args.s)
+    write_headers_and_source(p, args.o, args.s, args.without_castro_class)
 
 if __name__ == "__main__":
     main()
