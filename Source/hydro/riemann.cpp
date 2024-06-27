@@ -1,6 +1,7 @@
 #include <Castro.H>
 
 #include <riemann_solvers.H>
+#include <HLL_solvers.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -121,14 +122,14 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         } else if (riemann_solver == 2) {
             // HLLC
-            HLLC(i, j, k, idir,
-                 qm, qp,
-                 qaux_arr,
-                 flx,
-                 qgdnv, store_full_state,
-                 geomdata,
-                 special_bnd_lo, special_bnd_hi,
-                 domlo, domhi);
+            HLL::HLLC(i, j, k, idir,
+                      qm, qp,
+                      qaux_arr,
+                      flx,
+                      qgdnv, store_full_state,
+                      geomdata,
+                      special_bnd_lo, special_bnd_hi,
+                      domlo, domhi);
 
 #ifndef AMREX_USE_GPU
         } else {
@@ -181,9 +182,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                     flx_zone[n] = flx(i,j,k,n);
                 }
 
-                HLL(ql_zone, qr_zone, cl, cr,
-                    idir, coord,
-                    flx_zone);
+                HLL::HLL(ql_zone, qr_zone, cl, cr,
+                         idir, coord,
+                         flx_zone);
 
                 for (int n = 0; n < NUM_STATE; n++) {
                     flx(i,j,k,n) = flx_zone[n];
@@ -193,5 +194,3 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     });
 
 }
-
-
