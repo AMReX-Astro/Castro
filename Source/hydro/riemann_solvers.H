@@ -2,7 +2,7 @@
 #define riemann_solvers_H
 
 #include <Castro_util.H>
-#include <riemann.H>
+#include <riemann_type.H>
 #include <riemann_2shock_solvers.H>
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
