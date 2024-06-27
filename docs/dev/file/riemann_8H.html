@@ -119,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HLL__solvers_8H.html">File HLL_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -263,21 +264,6 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
 <span class="target" id="riemann_8H_1ade82ea142bba30255d2730820b4fb9ee"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pstar_bisection</span> <span class="pre">(Real</span> <span class="pre">&amp;pstar_lo,</span> <span class="pre">Real</span> <span class="pre">&amp;pstar_hi,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">ul,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">pl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">taul,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gamel,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">clsql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">ur,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">pr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">taur,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gamer,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">clsqr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gdot,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">lcg_maxiter,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">lcg_tol,</span> <span class="pre">Real</span> <span class="pre">&amp;pstar,</span> <span class="pre">Real</span> <span class="pre">&amp;gamstar,</span> <span class="pre">bool</span> <span class="pre">&amp;converged,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">PSTAR_BISECT_FACTOR</span> <span class="pre">*HISTORY_SIZE</span> <span class="pre">&gt;</span> <span class="pre">&amp;pstar_hist_extra)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1a545d59614ee9dc49a587e7f81e43fd07"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">cons_state</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*qstate,</span> <span class="pre">Real</span> <span class="pre">*U)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1ae8742f1393d6541ac486ca554c5c78a9"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">HLLC_state</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">S_k,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">S_c,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qstate,</span> <span class="pre">Real</span> <span class="pre">*U)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1afdbd420989f445d9540659c92eadf13c"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_flux</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">bnd_fac,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*U,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">p,</span> <span class="pre">Real</span> <span class="pre">*F)</span></span></dt>
 <dd></dd></dl>
 
 </div>

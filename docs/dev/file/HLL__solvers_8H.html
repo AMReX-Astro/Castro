@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File castro_limits.H &mdash; Castro  documentation</title>
+  <title>File HLL_solvers.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,8 +25,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File diffusion_util.H" href="diffusion__util_8H.html" />
-    <link rel="prev" title="File blackbody.H" href="blackbody_8H.html" /> 
+    <link rel="next" title="File HypreABec.H" href="HypreABec_8H.html" />
+    <link rel="prev" title="File HABEC.H" href="HABEC_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,7 +50,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/castro__limits_8H.html">main</a> | <a href="../file/castro__limits_8H.html">development</a>
+        Branch: <a href="../../file/HLL__solvers_8H.html">main</a> | <a href="../file/HLL__solvers_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -119,7 +119,10 @@
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HLL__solvers_8H.html">File HLL_solvers.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File HLL_solvers.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43HLL"><code class="docutils literal notranslate"><span class="pre">HLL</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -139,10 +142,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="binary_8H.html">File binary.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File castro_limits.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv47MAX_LEV"><code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
@@ -203,9 +203,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File castro_limits.H</li>
+      <li class="breadcrumb-item active">File HLL_solvers.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/castro__limits_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/HLL__solvers_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -213,24 +213,78 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-castro-limits-h">
-<h1>File castro_limits.H<a class="headerlink" href="#file-castro-limits-h" title="Link to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv47MAX_LEV">
-<span id="_CPPv37MAX_LEV"></span><span id="_CPPv27MAX_LEV"></span><span id="MAX_LEV__i"></span><span class="target" id="castro__limits_8H_1a070cc0298b5601bc08cb25b67503cec7"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MAX_LEV</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">15</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv47MAX_LEV" title="Link to this definition"></a><br /></dt>
+  <section id="file-hll-solvers-h">
+<h1>File HLL_solvers.H<a class="headerlink" href="#file-hll-solvers-h" title="Link to this heading"></a></h1>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv43HLL">
+<span id="_CPPv33HLL"></span><span id="_CPPv23HLL"></span><span id="HLL"></span><span class="target" id="namespaceHLL"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HLL</span></span></span><a class="headerlink" href="#_CPPv43HLL" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHLL_1a7185f5099ab2e77254b2657f93198532"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">HLLC_state</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">S_k,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">S_c,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qstate,</span> <span class="pre">Real</span> <span class="pre">*U)</span></span></dt>
 <dd></dd></dl>
 
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHLL_1a239f81ab90c1be128c26de69de76e6dd"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_flux</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">bnd_fac,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*U,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">p,</span> <span class="pre">Real</span> <span class="pre">*F)</span></span></dt>
+<dd><p>given a conserved state, compute the flux in direction idir </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHLL_1a6044f86562ad7fb20ea978bde0ddf337"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">cons_state</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*qstate,</span> <span class="pre">Real</span> <span class="pre">*U)</span></span></dt>
+<dd><p>convert the primitive variable state to the conserved state </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHLL_1a3c0eb793e2ed3a07feb7376b50d937fb"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">HLL</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*ql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cr,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">Real</span> <span class="pre">*flux_hll)</span></span></dt>
+<dd><p>A simple <a class="reference internal" href="#namespaceHLL"><span class="std std-ref">HLL</span></a> Riemann solver for pure hydrodynamics. This takes just a single interface’s data and returns the <a class="reference internal" href="#namespaceHLL"><span class="std std-ref">HLL</span></a> flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>cl</strong> – sound speed on the left interface </p></li>
+<li><p><strong>cr</strong> – sound speed on the right interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+<li><p><strong>coord</strong> – geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
+<li><p><strong>f</strong> – the <a class="reference internal" href="#namespaceHLL"><span class="std std-ref">HLL</span></a> fluxes </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceHLL_1ade2dd8bc17ed78c5cac2c6f88c190dbf"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">HLLC</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;ql,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;uflx,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qgdnv,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">store_full_state,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geom,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_lo,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_hi,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domlo,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domhi)</span></span></dt>
+<dd><p>A HLLC Riemann solver for pure hydrodynamics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxiliary state </p></li>
+<li><p><strong>uflx</strong> – the flux through the interface </p></li>
+<li><p><strong>qint</strong> – an approximate Godunov state on the interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="blackbody_8H.html" class="btn btn-neutral float-left" title="File blackbody.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="diffusion__util_8H.html" class="btn btn-neutral float-right" title="File diffusion_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="HABEC_8H.html" class="btn btn-neutral float-left" title="File HABEC.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="HypreABec_8H.html" class="btn btn-neutral float-right" title="File HypreABec.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
