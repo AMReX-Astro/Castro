@@ -1,31 +1,33 @@
 #ifndef CASTRO_RIEMANN_H
 #define CASTRO_RIEMANN_H
 
-using namespace amrex;
+#include <AMReX_REAL.H>
+
+using namespace amrex::literals;
 
 namespace riemann_constants {
-    const Real smlp1 = 1.e-10_rt;
-    const Real small = 1.e-8_rt;
-    const Real smallu = 1.e-12_rt;
+    const amrex::Real smlp1 = 1.e-10_rt;
+    const amrex::Real small = 1.e-8_rt;
+    const amrex::Real smallu = 1.e-12_rt;
 }
 
 
 struct RiemannState
 {
-    Real rho;
-    Real p;
-    Real rhoe;
-    Real gamc;
-    Real un;
-    Real ut;
-    Real utt;
+    amrex::Real rho;
+    amrex::Real p;
+    amrex::Real rhoe;
+    amrex::Real gamc;
+    amrex::Real un;
+    amrex::Real ut;
+    amrex::Real utt;
 
 #ifdef RADIATION
-    Real lam[NGROUPS];
-    Real er[NGROUPS];
-    Real p_g;
-    Real rhoe_g;
-    Real gamcg;
+    amrex::Real lam[NGROUPS];
+    amrex::Real er[NGROUPS];
+    amrex::Real p_g;
+    amrex::Real rhoe_g;
+    amrex::Real gamcg;
 #endif
 
 };
@@ -33,9 +35,9 @@ struct RiemannState
 
 struct RiemannAux
 {
-    Real csmall;
-    Real cavg;
-    Real bnd_fac;
+    amrex::Real csmall;
+    amrex::Real cavg;
+    amrex::Real bnd_fac;
 };
 
 
@@ -66,12 +68,12 @@ std::ostream& operator<< (std::ostream& o, RiemannAux const& ra)
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 load_input_states(const int i, const int j, const int k, const int idir,
-                  Array4<Real const> const& qleft_arr,
-                  Array4<Real const> const& qright_arr,
-                  Array4<Real const> const& qaux_arr,
+                  amrex::Array4<amrex::Real const> const& qleft_arr,
+                  amrex::Array4<amrex::Real const> const& qright_arr,
+                  amrex::Array4<amrex::Real const> const& qaux_arr,
                   RiemannState& ql, RiemannState& qr, RiemannAux& raux) {
 
-    const Real small = 1.e-8_rt;
+    const amrex::Real small = 1.e-8_rt;
 
     // fill the states directly from inputs
 
@@ -245,134 +247,5 @@ load_input_states(const int i, const int j, const int k, const int idir,
 
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void
-wsqge(const Real p, const Real v,
-      const Real gam, const Real gdot, Real& gstar,
-      const Real gmin, const Real gmax, const Real csq,
-      const Real pstar, Real& wsq) {
-
-  // compute the lagrangian wave speeds -- this is the approximate
-  // version for the Colella & Glaz algorithm
-
-
-  // First predict a value of game across the shock
-
-  // CG Eq. 31
-  gstar = (pstar-p)*gdot/(pstar+p) + gam;
-  gstar = amrex::max(gmin, amrex::min(gmax, gstar));
-
-  // Now use that predicted value of game with the R-H jump conditions
-  // to compute the wave speed.
-
-  // this is CG Eq. 34
-  Real alpha = pstar - (gstar - 1.0_rt)*p/(gam - 1.0_rt);
-  if (alpha == 0.0_rt) {
-    alpha = riemann_constants::smlp1*(pstar + p);
-  }
-
-  Real beta = pstar + 0.5_rt*(gstar - 1.0_rt)*(pstar+p);
-
-  wsq = (pstar-p)*beta/(v*alpha);
-
-  if (std::abs(pstar - p) < riemann_constants::smlp1*(pstar + p)) {
-    wsq = csq;
-  }
-  wsq = amrex::max(wsq, (0.5_rt * (gam - 1.0_rt)/gam)*csq);
-}
-
-
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void
-pstar_bisection(Real& pstar_lo, Real& pstar_hi,
-                const Real ul, const Real pl, const Real taul,
-                const Real gamel, const Real clsql,
-                const Real ur, const Real pr, const Real taur,
-                const Real gamer, const Real clsqr,
-                const Real gdot, const Real gmin, const Real gmax,
-                const int lcg_maxiter, const Real lcg_tol,
-                Real& pstar, Real& gamstar,
-                bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
-
-  // we want to zero
-  // f(p*) = u*_l(p*) - u*_r(p*)
-  // we'll do bisection
-  //
-  // this version is for the approximate Colella & Glaz
-  // version
-
-
-  // lo bounds
-  Real wlsq = 0.0;
-  wsqge(pl, taul, gamel, gdot,
-         gamstar, gmin, gmax, clsql, pstar_lo, wlsq);
-
-  Real wrsq = 0.0;
-  wsqge(pr, taur, gamer, gdot,
-         gamstar, gmin, gmax, clsqr, pstar_lo, wrsq);
-
-  Real wl = 1.0_rt / std::sqrt(wlsq);
-  Real wr = 1.0_rt / std::sqrt(wrsq);
-
-  Real ustar_l = ul - (pstar_lo - pstar)*wl;
-  Real ustar_r = ur + (pstar_lo - pstar)*wr;
-
-  Real f_lo = ustar_l - ustar_r;
-
-  // hi bounds
-  wsqge(pl, taul, gamel, gdot,
-        gamstar, gmin, gmax, clsql, pstar_hi, wlsq);
-
-  wsqge(pr, taur, gamer, gdot,
-        gamstar, gmin, gmax, clsqr, pstar_hi, wrsq);
-
-  // wl = 1.0_rt / std::sqrt(wlsq);
-  // wr = 1.0_rt / std::sqrt(wrsq);
-
-  //ustar_l = ul - (pstar_hi - pstar)*wl;
-  //ustar_r = ur + (pstar_hi - pstar)*wr;
-
-  //Real f_hi = ustar_l - ustar_r;
-
-  // bisection
-  converged = false;
-  Real pstar_c = 0.0;
-
-  for (int iter = 0; iter < PSTAR_BISECT_FACTOR*lcg_maxiter; iter++) {
-
-    pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
-    pstar_hist_extra[iter] = pstar_c;
-
-    wsqge(pl, taul, gamel, gdot,
-          gamstar, gmin, gmax, clsql, pstar_c, wlsq);
-
-    wsqge(pr, taur, gamer, gdot,
-          gamstar, gmin, gmax, clsqr, pstar_c, wrsq);
-
-    wl = 1.0_rt / std::sqrt(wlsq);
-    wr = 1.0_rt / std::sqrt(wrsq);
-
-    ustar_l = ul - (pstar_c - pl)*wl;
-    ustar_r = ur - (pstar_c - pr)*wr;
-
-    Real f_c = ustar_l - ustar_r;
-
-    if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < lcg_tol * pstar_c ) {
-      converged = true;
-      break;
-    }
-
-    if (f_lo * f_c < 0.0_rt) {
-      // root is in the left half
-      pstar_hi = pstar_c;
-      //f_hi = f_c;
-    } else {
-      pstar_lo = pstar_c;
-      f_lo = f_c;
-    }
-  }
-
-  pstar = pstar_c;
-}
 
 #endif
