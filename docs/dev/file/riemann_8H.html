@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann_solvers.H" href="riemann__solvers_8H.html" />
+    <link rel="next" title="File riemann_2shock_solvers.H" href="riemann__2shock__solvers_8H.html" />
     <link rel="prev" title="File reconstruction.H" href="reconstruction_8H.html" /> 
 </head>
 
@@ -194,8 +194,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants6smalluE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smallu</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">literals</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
@@ -253,17 +255,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1a8a9460a4c443e917ae3ed4fc98fa1b97"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">load_input_states</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qleft_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qright_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1a425f7e7ebc681ec693c8a630357f4370"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">wsqge</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">p,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">v,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gam,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gdot,</span> <span class="pre">Real</span> <span class="pre">&amp;gstar,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">csq,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">pstar,</span> <span class="pre">Real</span> <span class="pre">&amp;wsq)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann_8H_1ade82ea142bba30255d2730820b4fb9ee"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pstar_bisection</span> <span class="pre">(Real</span> <span class="pre">&amp;pstar_lo,</span> <span class="pre">Real</span> <span class="pre">&amp;pstar_hi,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">ul,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">pl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">taul,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gamel,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">clsql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">ur,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">pr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">taur,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gamer,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">clsqr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gdot,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">lcg_maxiter,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">lcg_tol,</span> <span class="pre">Real</span> <span class="pre">&amp;pstar,</span> <span class="pre">Real</span> <span class="pre">&amp;gamstar,</span> <span class="pre">bool</span> <span class="pre">&amp;converged,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">PSTAR_BISECT_FACTOR</span> <span class="pre">*HISTORY_SIZE</span> <span class="pre">&gt;</span> <span class="pre">&amp;pstar_hist_extra)</span></span></dt>
+<span class="target" id="riemann_8H_1a44e625ce2b24980d17a7f8f9670f6e92"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">load_input_states</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">amrex::Array4&lt;</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qleft_arr,</span> <span class="pre">amrex::Array4&lt;</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qright_arr,</span> <span class="pre">amrex::Array4&lt;</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux)</span></span></dt>
 <dd></dd></dl>
 
 </div>
@@ -276,12 +268,12 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="structRiemannState_1adcbda35ef892b5795672574d49f5831f"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">lam</span> <span class="pre">(\NGROUPS\)</span></span></dt>
+<span class="target" id="structRiemannState_1a57f70255873a788f448a0c07d8542109"></span><span class="sig-name descname"><span class="pre">amrex::Real</span> <span class="pre">lam</span> <span class="pre">(\NGROUPS\)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="structRiemannState_1affa6345bdeb99fb82063e4b4419d8186"></span><span class="sig-name descname"><span class="pre">Real</span> <span class="pre">er</span> <span class="pre">(\NGROUPS\)</span></span></dt>
+<span class="target" id="structRiemannState_1ae60f51ddc52b065afb1716a69044725a"></span><span class="sig-name descname"><span class="pre">amrex::Real</span> <span class="pre">er</span> <span class="pre">(\NGROUPS\)</span></span></dt>
 <dd></dd></dl>
 
 </div>
@@ -289,52 +281,52 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState3rhoE">
-<span id="_CPPv3N12RiemannState3rhoE"></span><span id="_CPPv2N12RiemannState3rhoE"></span><span id="RiemannState::rho__Real"></span><span class="target" id="structRiemannState_1a9536b746660023e09fe61f388ca90fa3"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rho</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3rhoE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState3rhoE"></span><span id="_CPPv2N12RiemannState3rhoE"></span><span id="RiemannState::rho__amrex::Real"></span><span class="target" id="structRiemannState_1ab947b0905a5d18221071e9d4ba07326e"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rho</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3rhoE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState1pE">
-<span id="_CPPv3N12RiemannState1pE"></span><span id="_CPPv2N12RiemannState1pE"></span><span id="RiemannState::p__Real"></span><span class="target" id="structRiemannState_1af38356505a80f35870750e2a0377fe06"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">p</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState1pE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState1pE"></span><span id="_CPPv2N12RiemannState1pE"></span><span id="RiemannState::p__amrex::Real"></span><span class="target" id="structRiemannState_1a83966a9cf0cb91ba4efe49b57b8ae432"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">p</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState1pE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState4rhoeE">
-<span id="_CPPv3N12RiemannState4rhoeE"></span><span id="_CPPv2N12RiemannState4rhoeE"></span><span id="RiemannState::rhoe__Real"></span><span class="target" id="structRiemannState_1abc5254e536b3b23cc8ac7758bad9cb0d"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rhoe</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState4rhoeE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState4rhoeE"></span><span id="_CPPv2N12RiemannState4rhoeE"></span><span id="RiemannState::rhoe__amrex::Real"></span><span class="target" id="structRiemannState_1aad2873458cee7ba9cf51ca1c5a1800e4"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rhoe</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState4rhoeE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState4gamcE">
-<span id="_CPPv3N12RiemannState4gamcE"></span><span id="_CPPv2N12RiemannState4gamcE"></span><span id="RiemannState::gamc__Real"></span><span class="target" id="structRiemannState_1afd050e80f88b53b8ce36c8acc7f86cd5"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gamc</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState4gamcE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState4gamcE"></span><span id="_CPPv2N12RiemannState4gamcE"></span><span id="RiemannState::gamc__amrex::Real"></span><span class="target" id="structRiemannState_1a9be590cf14b16806711fb99a8361526a"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gamc</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState4gamcE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState2unE">
-<span id="_CPPv3N12RiemannState2unE"></span><span id="_CPPv2N12RiemannState2unE"></span><span id="RiemannState::un__Real"></span><span class="target" id="structRiemannState_1a09cc521b2a39d514aa9d28d4b3cfab39"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">un</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState2unE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState2unE"></span><span id="_CPPv2N12RiemannState2unE"></span><span id="RiemannState::un__amrex::Real"></span><span class="target" id="structRiemannState_1a5c350f9e1da3dee24aff2871560f214a"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">un</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState2unE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState2utE">
-<span id="_CPPv3N12RiemannState2utE"></span><span id="_CPPv2N12RiemannState2utE"></span><span id="RiemannState::ut__Real"></span><span class="target" id="structRiemannState_1ae3a4fdba3535817cf9ff1eb614d5a4b4"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ut</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState2utE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState2utE"></span><span id="_CPPv2N12RiemannState2utE"></span><span id="RiemannState::ut__amrex::Real"></span><span class="target" id="structRiemannState_1abe900cfa0f25ef0144e01707279e7f73"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ut</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState2utE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState3uttE">
-<span id="_CPPv3N12RiemannState3uttE"></span><span id="_CPPv2N12RiemannState3uttE"></span><span id="RiemannState::utt__Real"></span><span class="target" id="structRiemannState_1a8a16080c776ed023d6c70bb7d188cd31"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">utt</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3uttE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState3uttE"></span><span id="_CPPv2N12RiemannState3uttE"></span><span id="RiemannState::utt__amrex::Real"></span><span class="target" id="structRiemannState_1a9fda1b88911bd29013faf6fa4bf11740"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">utt</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3uttE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState3p_gE">
-<span id="_CPPv3N12RiemannState3p_gE"></span><span id="_CPPv2N12RiemannState3p_gE"></span><span id="RiemannState::p_g__Real"></span><span class="target" id="structRiemannState_1a9b50e5d3254ade990b5637983a8303cd"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">p_g</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3p_gE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState3p_gE"></span><span id="_CPPv2N12RiemannState3p_gE"></span><span id="RiemannState::p_g__amrex::Real"></span><span class="target" id="structRiemannState_1a085f8abb5bffc6a3bf681fde67e67af0"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">p_g</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState3p_gE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState6rhoe_gE">
-<span id="_CPPv3N12RiemannState6rhoe_gE"></span><span id="_CPPv2N12RiemannState6rhoe_gE"></span><span id="RiemannState::rhoe_g__Real"></span><span class="target" id="structRiemannState_1ae9d6be61867669bd95a90bb6422d92f8"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rhoe_g</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState6rhoe_gE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState6rhoe_gE"></span><span id="_CPPv2N12RiemannState6rhoe_gE"></span><span id="RiemannState::rhoe_g__amrex::Real"></span><span class="target" id="structRiemannState_1a8e4f8e104d757c2f4894c8dbddd1851a"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rhoe_g</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState6rhoe_gE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N12RiemannState5gamcgE">
-<span id="_CPPv3N12RiemannState5gamcgE"></span><span id="_CPPv2N12RiemannState5gamcgE"></span><span id="RiemannState::gamcg__Real"></span><span class="target" id="structRiemannState_1a68f4abb5fe9ec3defd4001ec0e33bab2"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gamcg</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState5gamcgE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N12RiemannState5gamcgE"></span><span id="_CPPv2N12RiemannState5gamcgE"></span><span id="RiemannState::gamcg__amrex::Real"></span><span class="target" id="structRiemannState_1a62e62b752b4ed114ca361b8ccce554c4"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gamcg</span></span></span><a class="headerlink" href="#_CPPv4N12RiemannState5gamcgE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -349,17 +341,17 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N10RiemannAux6csmallE">
-<span id="_CPPv3N10RiemannAux6csmallE"></span><span id="_CPPv2N10RiemannAux6csmallE"></span><span id="RiemannAux::csmall__Real"></span><span class="target" id="structRiemannAux_1ab4a5e5d48b0c1a7420744786ec4d36a1"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csmall</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux6csmallE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N10RiemannAux6csmallE"></span><span id="_CPPv2N10RiemannAux6csmallE"></span><span id="RiemannAux::csmall__amrex::Real"></span><span class="target" id="structRiemannAux_1a9514cefd4f3d7cf1fa74409bc1d39149"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csmall</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux6csmallE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N10RiemannAux4cavgE">
-<span id="_CPPv3N10RiemannAux4cavgE"></span><span id="_CPPv2N10RiemannAux4cavgE"></span><span id="RiemannAux::cavg__Real"></span><span class="target" id="structRiemannAux_1a73922a557e65573aac7964961c7620e5"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cavg</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux4cavgE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N10RiemannAux4cavgE"></span><span id="_CPPv2N10RiemannAux4cavgE"></span><span id="RiemannAux::cavg__amrex::Real"></span><span class="target" id="structRiemannAux_1a0563b125d642cbc0ccf1924a965d7654"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cavg</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux4cavgE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N10RiemannAux7bnd_facE">
-<span id="_CPPv3N10RiemannAux7bnd_facE"></span><span id="_CPPv2N10RiemannAux7bnd_facE"></span><span id="RiemannAux::bnd_fac__Real"></span><span class="target" id="structRiemannAux_1adcdacfaf032ae2a9b9ec84d1c6b11819"></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bnd_fac</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux7bnd_facE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N10RiemannAux7bnd_facE"></span><span id="_CPPv2N10RiemannAux7bnd_facE"></span><span id="RiemannAux::bnd_fac__amrex::Real"></span><span class="target" id="structRiemannAux_1a1aac346247bafe2676527b43127ce700"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bnd_fac</span></span></span><a class="headerlink" href="#_CPPv4N10RiemannAux7bnd_facE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -372,21 +364,26 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants5smlp1E">
-<span id="_CPPv3N17riemann_constants5smlp1E"></span><span id="_CPPv2N17riemann_constants5smlp1E"></span><span id="riemann_constants::smlp1__RealC"></span><span class="target" id="namespaceriemann__constants_1a439046008366826e123ece0adc3056ae"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smlp1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-10</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smlp1E" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N17riemann_constants5smlp1E"></span><span id="_CPPv2N17riemann_constants5smlp1E"></span><span id="riemann_constants::smlp1__amrex::RealC"></span><span class="target" id="namespaceriemann__constants_1a170e818be0aae17ba792770347d9ce22"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smlp1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-10</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smlp1E" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants5smallE">
-<span id="_CPPv3N17riemann_constants5smallE"></span><span id="_CPPv2N17riemann_constants5smallE"></span><span id="riemann_constants::small__RealC"></span><span class="target" id="namespaceriemann__constants_1a183a445b41574c75eb29adc6f472e94d"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">small</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-8</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smallE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N17riemann_constants5smallE"></span><span id="_CPPv2N17riemann_constants5smallE"></span><span id="riemann_constants::small__amrex::RealC"></span><span class="target" id="namespaceriemann__constants_1a888f6202a3b57596bed57abd52bcabd3"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">small</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-8</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smallE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants6smalluE">
-<span id="_CPPv3N17riemann_constants6smalluE"></span><span id="_CPPv2N17riemann_constants6smalluE"></span><span id="riemann_constants::smallu__RealC"></span><span class="target" id="namespaceriemann__constants_1a0924d5a21198a82db79f6716507bbcca"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smallu</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-12</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants6smalluE" title="Link to this definition"></a><br /></dt>
+<span id="_CPPv3N17riemann_constants6smalluE"></span><span id="_CPPv2N17riemann_constants6smalluE"></span><span id="riemann_constants::smallu__amrex::RealC"></span><span class="target" id="namespaceriemann__constants_1a812e8309861d1f27c61d690ea42e1fdd"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smallu</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-12</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants6smalluE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
 </dd></dl>
+
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N5amrex8literalsE">
+<span id="_CPPv3N5amrex8literalsE"></span><span id="_CPPv2N5amrex8literalsE"></span><span id="amrex::literals"></span><span class="target" id="namespaceamrex_1_1literals"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">literals</span></span></span><a class="headerlink" href="#_CPPv4N5amrex8literalsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
 
 </section>
 
@@ -395,7 +392,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="reconstruction_8H.html" class="btn btn-neutral float-left" title="File reconstruction.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="riemann__solvers_8H.html" class="btn btn-neutral float-right" title="File riemann_solvers.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="riemann__2shock__solvers_8H.html" class="btn btn-neutral float-right" title="File riemann_2shock_solvers.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

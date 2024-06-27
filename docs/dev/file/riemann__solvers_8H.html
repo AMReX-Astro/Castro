@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="File runtime_parameters.H" href="runtime__parameters_8H.html" />
-    <link rel="prev" title="File riemann.H" href="riemann_8H.html" /> 
+    <link rel="prev" title="File riemann_2shock_solvers.H" href="riemann__2shock__solvers_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -169,6 +169,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
@@ -221,42 +222,6 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="riemann__solvers_8H_1a8265f607ab28ab840cdce8620b4b637b"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemanncg</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint)</span></span></dt>
-<dd><p>The Colella-Glaz Riemann solver for pure hydrodynamics. This is a two shock approximate state Riemann solver.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bx</strong> – the box to operate over </p></li>
-<li><p><strong>ql</strong> – the left interface state </p></li>
-<li><p><strong>qr</strong> – the right interface state </p></li>
-<li><p><strong>qaux_arr</strong> – the auxiliary state </p></li>
-<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
-<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="riemann__solvers_8H_1abcdce4cc932c4a8d43f5339af2f5c749"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemannus</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint)</span></span></dt>
-<dd><p>The Colella-Glaz-Ferguson Riemann solver for hydrodynamics and radiation hydrodynamics. This is a two shock approximate state Riemann solver.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bx</strong> – the box to operate over </p></li>
-<li><p><strong>ql</strong> – the left interface state </p></li>
-<li><p><strong>qr</strong> – the right interface state </p></li>
-<li><p><strong>qaux_arr</strong> – the auxiliary state </p></li>
-<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
-<li><p><strong>lambda_int</strong> – the radiation flux limiter on the interface </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
 <span class="target" id="riemann__solvers_8H_1a3c1cf08ed2fffad6ef3be49413e3e11c"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemann_state</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qm,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qp,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_lo,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_hi,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domlo,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domhi)</span></span></dt>
 <dd></dd></dl>
 
@@ -267,7 +232,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="riemann_8H.html" class="btn btn-neutral float-left" title="File riemann.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="riemann__2shock__solvers_8H.html" class="btn btn-neutral float-left" title="File riemann_2shock_solvers.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="runtime__parameters_8H.html" class="btn btn-neutral float-right" title="File runtime_parameters.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

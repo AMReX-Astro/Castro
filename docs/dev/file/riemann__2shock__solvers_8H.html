@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File diffusion_util.H &mdash; Castro  documentation</title>
+  <title>File riemann_2shock_solvers.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,8 +25,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File ext_bc_types.H" href="ext__bc__types_8H.html" />
-    <link rel="prev" title="File castro_limits.H" href="castro__limits_8H.html" /> 
+    <link rel="next" title="File riemann_solvers.H" href="riemann__solvers_8H.html" />
+    <link rel="prev" title="File riemann.H" href="riemann_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,7 +50,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/diffusion__util_8H.html">main</a> | <a href="../file/diffusion__util_8H.html">development</a>
+        Branch: <a href="../../file/riemann__2shock__solvers_8H.html">main</a> | <a href="../file/riemann__2shock__solvers_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -140,11 +140,7 @@
 <li class="toctree-l2"><a class="reference internal" href="binary_8H.html">File binary.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File diffusion_util.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"><code class="docutils literal notranslate"><span class="pre">fill_temp_cond()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"><code class="docutils literal notranslate"><span class="pre">fill_temp_diff_coeff()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filter_8H.html">File filter.H</a></li>
@@ -173,7 +169,10 @@
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File riemann_2shock_solvers.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48TwoShock"><code class="docutils literal notranslate"><span class="pre">TwoShock</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
@@ -205,9 +204,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File diffusion_util.H</li>
+      <li class="breadcrumb-item active">File riemann_2shock_solvers.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/diffusion__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/riemann__2shock__solvers_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -215,29 +214,70 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-diffusion-util-h">
-<h1>File diffusion_util.H<a class="headerlink" href="#file-diffusion-util-h" title="Link to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
+  <section id="file-riemann-2shock-solvers-h">
+<h1>File riemann_2shock_solvers.H<a class="headerlink" href="#file-riemann-2shock-solvers-h" title="Link to this heading"></a></h1>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv48TwoShock">
+<span id="_CPPv38TwoShock"></span><span id="_CPPv28TwoShock"></span><span id="TwoShock"></span><span class="target" id="namespaceTwoShock"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TwoShock</span></span></span><a class="headerlink" href="#_CPPv48TwoShock" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">
-<span id="_CPPv314fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv214fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="fill_temp_cond__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR"></span><span class="target" id="diffusion__util_8H_1abbef9b2b142d252d9e00e9c7e0b6f3da"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fill_temp_cond</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Box</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bx</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">U_arr</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">coeff_arr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceTwoShock_1adfe1a5f24976eea9ac7c4b25b93f734a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">wsqge</span> <span class="pre">(const</span> <span class="pre">amrex::Real</span> <span class="pre">p,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">v,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gam,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gdot,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;gstar,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">csq,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pstar,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;wsq)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">
-<span id="_CPPv320fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv220fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="fill_temp_diff_coeff__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR"></span><span class="target" id="diffusion__util_8H_1ad6948871c69c2d521b5ddb9971ff371a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fill_temp_diff_coeff</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Box</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bx</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">U_arr</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Array4</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">coeff_arr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceTwoShock_1a52b87d3bfc9faf9e8d1706f68b311e06"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pstar_bisection</span> <span class="pre">(amrex::Real</span> <span class="pre">&amp;pstar_lo,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar_hi,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pl,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamel,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsql,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamer,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsqr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gdot,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">lcg_maxiter,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">lcg_tol,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;gamstar,</span> <span class="pre">bool</span> <span class="pre">&amp;converged,</span> <span class="pre">amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">PSTAR_BISECT_FACTOR</span> <span class="pre">*HISTORY_SIZE</span> <span class="pre">&gt;</span> <span class="pre">&amp;pstar_hist_extra)</span></span></dt>
 <dd></dd></dl>
 
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceTwoShock_1ae88bc86c9144dbe6aec2d0b10e95b50d"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemanncg</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint)</span></span></dt>
+<dd><p>The Colella-Glaz Riemann solver for pure hydrodynamics. This is a two shock approximate state Riemann solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxiliary state </p></li>
+<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespaceTwoShock_1aef0caae930c163bcba7ea3ff1e67aac1"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemannus</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint)</span></span></dt>
+<dd><p>The Colella-Glaz-Ferguson Riemann solver for hydrodynamics and radiation hydrodynamics. This is a two shock approximate state Riemann solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxiliary state </p></li>
+<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
+<li><p><strong>lambda_int</strong> – the radiation flux limiter on the interface </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="castro__limits_8H.html" class="btn btn-neutral float-left" title="File castro_limits.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="ext__bc__types_8H.html" class="btn btn-neutral float-right" title="File ext_bc_types.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="riemann_8H.html" class="btn btn-neutral float-left" title="File riemann.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="riemann__solvers_8H.html" class="btn btn-neutral float-right" title="File riemann_solvers.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
