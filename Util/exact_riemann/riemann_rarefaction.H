@@ -174,8 +174,6 @@ rarefaction(const amrex::Real pstar,
     const double S1{0.9};
     const double S2{4.0};
 
-    constexpr amrex::Real tol = 1.e-5;
-
     // initial conditions
 
     amrex::Real tau = 1.0_rt / rho_s;
@@ -206,7 +204,7 @@ rarefaction(const amrex::Real pstar,
 
         // take a step
 
-        while (rel_error > tol) {
+        while (rel_error > riemann_constants::riemann_integral_tol) {
             dp = dp_new;
             if (p + dp < pstar) {
                 dp = pstar - p;
@@ -232,7 +230,7 @@ rarefaction(const amrex::Real pstar,
 
             // adaptive step estimate
 
-            double dp_est = S1 * dp * std::pow(std::abs(tol/rel_error), 0.2);
+            double dp_est = S1 * dp * std::pow(std::abs(riemann_constants::riemann_integral_tol/rel_error), 0.2);
             dp_new = dp_est; //std::clamp(S1*dp_est, dp/S2, S2*dp);
 
         }
@@ -295,8 +293,6 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
     const double S1{0.9};
 
-    constexpr amrex::Real tol = 1.e-8;
-
     // initial conditions
 
     amrex::Real tau = 1.0_rt / rho_s;
@@ -343,7 +339,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
         // take a step
 
-        while (rel_error > tol) {
+        while (rel_error > riemann_constants::riemann_integral_tol) {
             du = du_new;
 
             // take 2 half steps
@@ -368,7 +364,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
 
             amrex::Real du_est{};
             if (rel_error > 0) {
-                du_est = S1 * du * std::pow(std::abs(tol / rel_error), 0.2);
+                du_est = S1 * du * std::pow(std::abs(riemann_constants::riemann_integral_tol / rel_error), 0.2);
             } else {
                 du_est = 10.0 * du;
             }
@@ -417,7 +413,7 @@ rarefaction_to_u(const amrex::Real rho_s, const amrex::Real u_s, const amrex::Re
             }
         }
 
-        if (std::abs(du_new) < riemann_solver::tol * std::abs(u) + riemann_solver::tol) {
+        if (std::abs(du_new) < riemann_constants::riemann_u_tol * std::abs(u) + riemann_constants::riemann_u_tol) {
             finished = true;
         }
 

@@ -15,3 +15,5 @@ problem.xjump = 0.5e5
 problem.t     = 0.00008
 
 problem.npts  = 128
+
+castro.riemann_shock_maxiter = 100

@@ -134,7 +134,7 @@ shock(const amrex::Real pstar,
     // just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
     // take W = sqrt(gamma p rho)
 
-    if (pstar - p_s < riemann_solver::tol_p * p_s) {
+    if (pstar - p_s < riemann_constants::riemann_p_tol * p_s) {
         W_s = std::sqrt(eos_state.gam1 * p_s * rho_s);
     } else {
        W_s = std::sqrt((pstar - p_s) *

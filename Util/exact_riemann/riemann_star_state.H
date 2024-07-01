@@ -3,7 +3,7 @@
 
 #include <AMReX_REAL.H>
 
-#include <riemann_support.H>
+#include <riemann_constants.H>
 #include <riemann_shock.H>
 #include <riemann_rarefaction.H>
 
@@ -108,7 +108,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     bool converged = false;
 
     int iter = 1;
-    while (! converged && iter < riemann_solver::max_iters) {
+    while (! converged && iter < castro::riemann_shock_maxiter) {
 
         // compute Z_l, W_l and Z_r, W_r -- the form of these depend
         // on whether the wave is a shock or a rarefaction
@@ -146,13 +146,14 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
         amrex::Real err1 = std::abs(ustar_r - ustar_l);
         amrex::Real err2 = pstar_new - pstar;
 
-        if (err1 < tol * amrex::max(std::abs(ustar_l), std::abs(ustar_r)) &&
-            err2 < tol * pstar) {
+        std::cout << "iter = " << iter << " " << err1 / std::max(std::abs(ustar_l), std::abs(ustar_r))  << " " << err2 / pstar << std::endl;
+
+        if (err2 < tol * pstar) {
             converged = true;
         }
 
         // get ready for the next iteration
-        pstar = pstar_new;
+        pstar = std::clamp(pstar_new, 0.5 * pstar, 2.0 * pstar);
 
         iter++;
     }
