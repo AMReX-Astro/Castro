@@ -18,3 +18,4 @@ problem.t     = 0.0008
 
 problem.npts  = 128
 
+castro.T_guess = 1.e5

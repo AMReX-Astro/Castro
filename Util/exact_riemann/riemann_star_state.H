@@ -28,7 +28,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_l[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -42,7 +42,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_r[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 

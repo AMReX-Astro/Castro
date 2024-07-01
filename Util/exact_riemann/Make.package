@@ -6,3 +6,6 @@ CEXE_headers += riemann_sample.H
 CEXE_headers += riemann_support.H
 CEXE_sources += extern_parameters.cpp
 CEXE_headers += extern_parameters.H
+
+# automatically generated in tmp_build_dir
+CEXE_sources += runtime_params.cpp

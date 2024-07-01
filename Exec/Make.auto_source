@@ -72,9 +72,15 @@ CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 
 $(CASTRO_AUTO_SOURCE_DIR)/runtime_params.cpp: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
 
+STRUCT_USE_CASTRO_CLASS ?= TRUE
+PARSE_ARGS :=
+ifneq ($(STRUCT_USE_CASTRO_CLASS), TRUE)
+   PARSE_ARGS += --without-castro-class
+endif
+
 $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H: $(CPP_PARAMETERS)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py $(PARSE_ARGS) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 # for debugging
 test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/castro_params.H
