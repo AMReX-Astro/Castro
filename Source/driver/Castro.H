@@ -16,10 +16,6 @@ using namespace castro;
 
 #include <fundamental_constants.H>
 
-constexpr int HISTORY_SIZE=40;
-constexpr int PSTAR_BISECT_FACTOR = 5;
-
-
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
@@ -49,6 +45,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 #include <iostream>
 
 #include <params_type.H>
+
+#include <riemann_type.H>
 
 using std::istream;
 using std::ostream;
