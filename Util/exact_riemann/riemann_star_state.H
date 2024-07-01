@@ -144,7 +144,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
         // estimate the error in the current star solution
         amrex::Real err1 = std::abs(ustar_r - ustar_l);
-        amrex::Real err2 = pstar_new - pstar;
+        amrex::Real err2 = std::abs(pstar_new - pstar);
 
         if (err1 < tol * amrex::max(std::abs(ustar_l), std::abs(ustar_r)) &&
             err2 < tol * pstar) {
