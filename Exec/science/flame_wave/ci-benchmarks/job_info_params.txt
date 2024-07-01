@@ -54,9 +54,9 @@
     castro.plm_limiter = 2
     castro.hybrid_riemann = 0
     castro.riemann_solver = 0
-    castro.cg_maxiter = 12
-    castro.cg_tol = 1e-05
-    castro.cg_blend = 2
+    castro.riemann_shock_maxiter = 12
+    castro.riemann_pstar_tol = 1e-05
+    castro.riemann_cg_blend = 2
     castro.use_flattening = 1
     castro.transverse_use_eos = 0
     castro.transverse_reset_density = 1
