@@ -26,7 +26,7 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar,
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -113,7 +113,7 @@ shock(const amrex::Real pstar,
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 
