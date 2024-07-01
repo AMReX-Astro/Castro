@@ -6,6 +6,7 @@
 #include <eos_type.H>
 #include <eos.H>
 
+#include <riemann_type.H>
 
 AMREX_INLINE
 void
@@ -62,7 +63,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
     converged = false;
 
     int iter = 1;
-    while (! converged && iter < riemann_solver::max_iters) {
+    while (! converged && iter < castro::riemann_shock_maxiter) {
 
         amrex::Real rhostar_s, f, fprime;
 
@@ -71,7 +72,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
 
         amrex::Real dW = -f / fprime;
 
-        if (std::abs(dW) < riemann_solver::tol * W_s) {
+        if (std::abs(dW) < castro::riemann_pstar_tol * W_s) {
             converged = true;
         }
 
@@ -147,7 +148,7 @@ shock(const amrex::Real pstar,
     amrex::Real rhostar_s;
 
     if (taustar_s < 0.0_rt) {
-        rhostar_s = riemann_solver::smallrho;
+        rhostar_s = riemann_constants::small;
         W_s = std::sqrt((pstar - p_s) / (1.0_rt / rho_s - 1.0_rt / rhostar_s));
     }
 
@@ -162,7 +163,7 @@ shock(const amrex::Real pstar,
     // now did we converge?
 
     if (! converged) {
-        for (int i = 0; i < riemann_solver::max_iters; ++i) {
+        for (int i = 0; i < castro::riemann_riemann_solver::max_iters; ++i) {
             std::cout << i << " " << rhostar_hist[i] << " " << Ws_hist[i] << std::endl;
         }
 
