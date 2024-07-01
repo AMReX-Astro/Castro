@@ -6,9 +6,13 @@
 using namespace amrex::literals;
 
 namespace riemann_constants {
-    const amrex::Real smlp1 = 1.e-10_rt;
-    const amrex::Real small = 1.e-8_rt;
-    const amrex::Real smallu = 1.e-12_rt;
+    constexpr amrex::Real smlp1 = 1.e-10_rt;
+    constexpr amrex::Real small = 1.e-8_rt;
+    constexpr amrex::Real smallu = 1.e-12_rt;
+    constexpr int HISTORY_SIZE=40;
+    constexpr int PSTAR_BISECT_FACTOR = 5;
+
+
 }
 
 
