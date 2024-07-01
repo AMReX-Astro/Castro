@@ -33,6 +33,6 @@ Blocs   := .
 
 # we explicitly want runtime_parameters.H so we have access to
 # Castro's runtime parameter system
-Blocs += $(CASTRO_HOME)/Source/driver
+Blocs += $(CASTRO_HOME)/Source/driver $(CASTRO_HOME)/Source/hydro
 
 include $(CASTRO_HOME)/Exec/Make.Castro

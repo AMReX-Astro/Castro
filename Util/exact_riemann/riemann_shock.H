@@ -6,7 +6,7 @@
 #include <eos_type.H>
 #include <eos.H>
 
-#include <riemann_type.H>
+#include <riemann_constants.H>
 
 AMREX_INLINE
 void
@@ -97,7 +97,7 @@ shock(const amrex::Real pstar,
 
     amrex::ignore_unused(u_s);
 
-    amrex::Real rhostar_hist[riemann_solver::max_iters], Ws_hist[riemann_solver::max_iters];
+    amrex::Real rhostar_hist[riemann_constants::HISTORY_SIZE], Ws_hist[riemann_constants::HISTORY_SIZE];
 
     // compute the Z_s function for a shock following C&G Eq. 20 and
     // 23.  Here the "_s" variables are the state (L or R) that we are
@@ -163,7 +163,7 @@ shock(const amrex::Real pstar,
     // now did we converge?
 
     if (! converged) {
-        for (int i = 0; i < castro::riemann_riemann_solver::max_iters; ++i) {
+        for (int i = 0; i < castro::riemann_shock_maxiter; ++i) {
             std::cout << i << " " << rhostar_hist[i] << " " << Ws_hist[i] << std::endl;
         }
 
