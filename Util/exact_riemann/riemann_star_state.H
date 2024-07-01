@@ -142,12 +142,11 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
         amrex::Real pstar_new = pstar - Z_l * Z_r * (ustar_r - ustar_l) / (Z_l + Z_r);
 
-        // estimate the error in the current star solution
-        amrex::Real err1 = std::abs(ustar_r - ustar_l);
-        amrex::Real err2 = std::abs(pstar_new - pstar);
+        // estimate the error in the current pstar solution
 
-        if (err1 < tol * amrex::max(std::abs(ustar_l), std::abs(ustar_r)) &&
-            err2 < tol * pstar) {
+        amrex::Real error = std::abs(pstar_new - pstar);
+
+        if (error < tol * pstar) {
             converged = true;
         }
 
