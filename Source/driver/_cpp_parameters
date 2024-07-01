@@ -114,20 +114,19 @@ hybrid_riemann               bool           0
 # 2: HLLC
 riemann_solver               int           0
 
-# for the Colella \& Glaz Riemann solver, the maximum number
-# of iterations to take when solving for the star state
-cg_maxiter                   int          12
+# maximum number of iterations to used in the Riemann solver
+# when solving for the star state
+riemann_shock_maxiter                   int          12
 
-# for the Colella \& Glaz Riemann solver, the tolerance to
-# demand in finding the star state
-cg_tol                       Real          1.0e-5
+# tolerance to use when finding the star stat
+riemann_pstar_tol                       Real          1.0e-5
 
 # for the Colella \& Glaz Riemann solver, what to do if
 # we do not converge to a solution for the star state.
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
-# 2 = do a bisection search for another 2 * cg_maxiter iterations.
-cg_blend                     int           2
+# 2 = do a bisection search for another 2 * riemann_shock_maxiter iterations.
+riemann_cg_blend                     int           2
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin

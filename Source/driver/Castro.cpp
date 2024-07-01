@@ -392,12 +392,12 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (cg_maxiter > HISTORY_SIZE) {
-            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        if (riemann_shock_maxiter > HISTORY_SIZE) {
+            amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
-        if (cg_blend == 2 && cg_maxiter < 5) {
-            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        if (riemann_cg_blend == 2 && riemann_shock_maxiter < 5) {
+            amrex::Error("Error: need riemann_shock_maxiter >= 5 to do a bisection search on secant iteration failure.");
         }
     }
 #endif
