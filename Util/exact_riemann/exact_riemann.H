@@ -5,9 +5,10 @@
 
 #include <fstream>
 
+#include <castro_params.H>
+
 #include <riemann_sample.H>
 #include <riemann_star_state.H>
-#include <riemann_support.H>
 
 using namespace amrex::literals;
 
@@ -88,7 +89,7 @@ exact_riemann() {
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn_s[n];
         }
-        eos_state.T = problem::initial_temp_guess;
+        eos_state.T = castro::T_guess;
 
         eos(eos_input_rp, eos_state);
 

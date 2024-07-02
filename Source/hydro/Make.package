@@ -27,9 +27,10 @@ endif
 
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
+CEXE_headers += HLL_solvers.H
 CEXE_headers += riemann_solvers.H
-CEXE_sources += riemann_util.cpp
-CEXE_headers += riemann.H
+CEXE_headers += riemann_2shock_solvers.H
+CEXE_headers += riemann_type.H
 CEXE_headers += slope.H
 CEXE_headers += reconstruction.H
 CEXE_sources += trace_plm.cpp
