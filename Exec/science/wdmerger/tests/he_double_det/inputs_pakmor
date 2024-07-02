@@ -200,7 +200,7 @@ castro.riemann_solver = 0
 
 # For the CG Riemann solver, we need to tell the solver not to quit when 
 # the iterations don't converge, but instead to do additional bisection iteration.
-castro.cg_blend = 2
+castro.riemann_cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1

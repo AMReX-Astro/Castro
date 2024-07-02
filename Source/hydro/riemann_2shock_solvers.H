@@ -58,7 +58,7 @@ namespace TwoShock {
                     const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
                     const amrex::Real gamer, const amrex::Real clsqr,
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
-                    const int lcg_maxiter, const amrex::Real lcg_tol,
+                    const int lriemann_shock_maxiter, const amrex::Real lriemann_pstar_tol,
                     amrex::Real& pstar, amrex::Real& gamstar,
                     bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
 
@@ -106,7 +106,7 @@ namespace TwoShock {
       converged = false;
       amrex::Real pstar_c = 0.0;
 
-      for (int iter = 0; iter < PSTAR_BISECT_FACTOR*lcg_maxiter; iter++) {
+      for (int iter = 0; iter < PSTAR_BISECT_FACTOR * lriemann_shock_maxiter; iter++) {
 
         pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
         pstar_hist_extra[iter] = pstar_c;
@@ -125,7 +125,7 @@ namespace TwoShock {
 
         amrex::Real f_c = ustar_l - ustar_r;
 
-        if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < lcg_tol * pstar_c ) {
+        if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < lriemann_pstar_tol * pstar_c ) {
           converged = true;
           break;
         }
@@ -239,7 +239,7 @@ namespace TwoShock {
       bool converged = false;
 
       int iter = 0;
-      while ((iter < cg_maxiter && !converged) || iter < 2) {
+      while ((iter < riemann_shock_maxiter && !converged) || iter < 2) {
 
           wsqge(ql.p, taul, gamel, gdot, gamstar,
                 gmin, gmax, clsql, pstar, wlsq);
@@ -281,7 +281,7 @@ namespace TwoShock {
           pstar = amrex::max(pstar, small_pres);
 
           amrex::Real err = std::abs(pstar - pstar_old);
-          if (err < cg_tol*pstar) {
+          if (err < riemann_pstar_tol * pstar) {
               converged = true;
           }
 
@@ -300,11 +300,11 @@ namespace TwoShock {
 
       if (!converged) {
 
-          if (cg_blend == 0) {
+          if (riemann_cg_blend == 0) {
 
     #ifndef AMREX_USE_GPU
               std::cout <<  "pstar history: " << std::endl;
-              for (int iter_l=0; iter_l < cg_maxiter; iter_l++) {
+              for (int iter_l=0; iter_l < riemann_shock_maxiter; iter_l++) {
                   std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
               }
 
@@ -316,11 +316,11 @@ namespace TwoShock {
               amrex::Error("ERROR: non-convergence in the Riemann solver");
     #endif
 
-          } else if (cg_blend == 1) {
+          } else if (riemann_cg_blend == 1) {
 
               pstar = ql.p + ( (qr.p - ql.p) - wr * (qr.un - ql.un) ) * wl / (wl + wr);
 
-          } else if (cg_blend == 2) {
+          } else if (riemann_cg_blend == 2) {
 
               // we don't store the history if we are in CUDA, so
               // we can't do this
@@ -328,7 +328,7 @@ namespace TwoShock {
               // first try to find a reasonable bounds
               amrex::Real pstarl = 1.e200;
               amrex::Real pstaru = -1.e200;
-              for (int n = cg_maxiter-6; n < cg_maxiter; n++) {
+              for (int n = riemann_shock_maxiter-6; n < riemann_shock_maxiter; n++) {
                   pstarl = amrex::min(pstarl, pstar_hist[n]);
                   pstaru = amrex::max(pstaru, pstar_hist[n]);
               }
@@ -342,17 +342,17 @@ namespace TwoShock {
                               ql.un, ql.p, taul, gamel, clsql,
                               qr.un, qr.p, taur, gamer, clsqr,
                               gdot, gmin, gmax,
-                              cg_maxiter, cg_tol,
+                              riemann_shock_maxiter, riemann_pstar_tol,
                               pstar, gamstar, converged, pstar_hist_extra);
 
               if (!converged) {
 
                   std::cout << "pstar history: " << std::endl;
-                  for (int iter_l = 0; iter_l < cg_maxiter; iter_l++) {
+                  for (int iter_l = 0; iter_l < riemann_shock_maxiter; iter_l++) {
                       std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
                   }
                   std::cout << "pstar extra history: " << std::endl;
-                  for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*cg_maxiter; iter_l++) {
+                  for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR * riemann_shock_maxiter; iter_l++) {
                       std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
                   }
 
@@ -368,7 +368,7 @@ namespace TwoShock {
           } else {
 
     #ifndef AMREX_USE_GPU
-              amrex::Error("ERROR: unrecognized cg_blend option.");
+              amrex::Error("ERROR: unrecognized riemann_cg_blend option.");
     #endif
           }
 
