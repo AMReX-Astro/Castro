@@ -1345,7 +1345,7 @@ protected:
 ///
 /// Flag for indicating that we want to save prev_state until the reflux.
 ///
-    bool keep_prev_state;
+    bool keep_prev_state{};
 
 
 #ifdef TRUE_SDC
