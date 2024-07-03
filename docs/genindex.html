@@ -61,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -208,10 +209,10 @@
 </li>
       <li><a href="io.html#index-1">amr.checkpoint_on_restart</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-6">amr.derive_plot_vars</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-4">amr.plot_file</a>
 </li>
       <li><a href="io.html#index-3">amr.plot_files_output</a>
@@ -239,6 +240,8 @@
       <li><a href="io.html#index-9">amr_diag.out</a>
 </li>
       <li><a href="file/Castro__util_8H.html#_CPPv45amrex">amrex (C++ type)</a>
+</li>
+      <li><a href="file/riemann__2shock__solvers_8H.html#_CPPv4N5amrex8literalsE">amrex::literals (C++ type)</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv48apply_avRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">apply_av (C++ function)</a>
 </li>
@@ -472,12 +475,6 @@
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.cfl</a>
 </li>
-      <li><a href="runtime_parameters.html#index-1">castro.cg_blend</a>
-</li>
-      <li><a href="runtime_parameters.html#index-1">castro.cg_maxiter</a>
-</li>
-      <li><a href="runtime_parameters.html#index-1">castro.cg_tol</a>
-</li>
       <li><a href="runtime_parameters.html#index-2">castro.change_max</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.check_dt_after_advance</a>
@@ -643,6 +640,12 @@
       <li><a href="runtime_parameters.html#index-2">castro.retry_small_density_cutoff</a>, <a href="timestepping.html#index-1">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.retry_subcycle_factor</a>
+</li>
+      <li><a href="runtime_parameters.html#index-1">castro.riemann_cg_blend</a>
+</li>
+      <li><a href="runtime_parameters.html#index-1">castro.riemann_pstar_tol</a>
+</li>
+      <li><a href="runtime_parameters.html#index-1">castro.riemann_shock_maxiter</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.riemann_solver</a>
 </li>
@@ -824,7 +827,7 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">Castro::check_div_B (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro13check_for_nanERN5amrex8MultiFabEi">Castro::check_for_nan (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13check_for_nanERN5amrex8MultiFabEi">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro13check_for_nanERKN5amrex8MultiFabEi">Castro::check_for_nan (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13check_for_nanERKN5amrex8MultiFabEi">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro26check_for_negative_densityEv">Castro::check_for_negative_density (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro26check_for_negative_densityEv">[1]</a>
 </li>
@@ -848,7 +851,7 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro9data_logsE">Castro::data_logs (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro9data_logsE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE">Castro::define_new_center (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro17define_new_centerERKN5amrex8MultiFabEN5amrex4RealE">Castro::define_new_center (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro17define_new_centerERKN5amrex8MultiFabEN5amrex4RealE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealERN5amrex8MultiFabEi">Castro::derive (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealEi">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealERN5amrex8MultiFabEi">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealEi">[3]</a>
 </li>
@@ -1633,6 +1636,8 @@
       <li><a href="file/Castro__mhd_8H.html#_CPPv49half_stepRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE">half_step (C++ function)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv412HISTORY_SIZE">HISTORY_SIZE (C++ member)</a>
+</li>
+      <li><a href="file/HLL__solvers_8H.html#_CPPv43HLL">HLL (C++ type)</a>
 </li>
       <li><a href="file/Castro__mhd_8H.html#_CPPv44hlldRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEKi">hlld (C++ function)</a>
 </li>
@@ -2518,43 +2523,43 @@
 </li>
       <li><a href="FlowChart.html#index-3">retry</a>, <a href="timestepping.html#index-0">[1]</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv417riemann_constants">riemann_constants (C++ type)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv417riemann_constants">riemann_constants (C++ type)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N17riemann_constants5smallE">riemann_constants::small (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N17riemann_constants5smallE">riemann_constants::small (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N17riemann_constants6smalluE">riemann_constants::smallu (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N17riemann_constants6smalluE">riemann_constants::smallu (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N17riemann_constants5smlp1E">riemann_constants::smlp1 (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N17riemann_constants5smlp1E">riemann_constants::smlp1 (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv410RiemannAux">RiemannAux (C++ struct)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv410RiemannAux">RiemannAux (C++ struct)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N10RiemannAux7bnd_facE">RiemannAux::bnd_fac (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N10RiemannAux7bnd_facE">RiemannAux::bnd_fac (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N10RiemannAux4cavgE">RiemannAux::cavg (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N10RiemannAux4cavgE">RiemannAux::cavg (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N10RiemannAux6csmallE">RiemannAux::csmall (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N10RiemannAux6csmallE">RiemannAux::csmall (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv412RiemannState">RiemannState (C++ struct)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv412RiemannState">RiemannState (C++ struct)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState4gamcE">RiemannState::gamc (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState4gamcE">RiemannState::gamc (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState5gamcgE">RiemannState::gamcg (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState5gamcgE">RiemannState::gamcg (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState1pE">RiemannState::p (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState1pE">RiemannState::p (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState3p_gE">RiemannState::p_g (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState3p_gE">RiemannState::p_g (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState3rhoE">RiemannState::rho (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState3rhoE">RiemannState::rho (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState4rhoeE">RiemannState::rhoe (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState4rhoeE">RiemannState::rhoe (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState6rhoe_gE">RiemannState::rhoe_g (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState6rhoe_gE">RiemannState::rhoe_g (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState2unE">RiemannState::un (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState2unE">RiemannState::un (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState2utE">RiemannState::ut (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState2utE">RiemannState::ut (C++ member)</a>
 </li>
-      <li><a href="file/riemann_8H.html#_CPPv4N12RiemannState3uttE">RiemannState::utt (C++ member)</a>
+      <li><a href="file/riemann__type_8H.html#_CPPv4N12RiemannState3uttE">RiemannState::utt (C++ member)</a>
 </li>
       <li><a href="file/RadHydro_8H.html#_CPPv48rk_order">rk_order (C++ member)</a>
 </li>
@@ -2648,13 +2653,15 @@
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv49trace_ppmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex3BoxEKN5amrex4RealE">trace_ppm (C++ function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Castro__hydro_8H.html#_CPPv413trace_ppm_radRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex3BoxEKN5amrex4RealE">trace_ppm_rad (C++ function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Castro__hydro_8H.html#_CPPv411trans_finalRKN5amrex3BoxEiiiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealEN5amrex4RealE">trans_final (C++ function)</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv412trans_singleRKN5amrex3BoxEiiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEN5amrex4RealEN5amrex4RealE">trans_single (C++ function)</a>
+</li>
+      <li><a href="file/riemann__2shock__solvers_8H.html#_CPPv48TwoShock">TwoShock (C++ type)</a>
 </li>
       <li><a href="file/RadHydro_8H.html#_CPPv49twothirds">twothirds (C++ member)</a>
 </li>

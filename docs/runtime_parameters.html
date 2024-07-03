@@ -78,6 +78,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -296,22 +297,21 @@ Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a two-
 shock solver) 2: HLLC</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></p></td>
-<td><p>for the Colella &amp; Glaz Riemann solver, the maximum number
-of iterations to take when solving for the star state</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_shock_maxiter</span></code></p></td>
+<td><p>maximum number of iterations to used in the Riemann solver
+when solving for the star state</p></td>
 <td><p>12</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></p></td>
-<td><p>for the Colella &amp; Glaz Riemann solver, the tolerance to
-demand in finding the star state</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_pstar_tol</span></code></p></td>
+<td><p>tolerance to use when finding the star stat</p></td>
 <td><p>1.0e-5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_cg_blend</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, what to do if we do
 not converge to a solution for the star state. 0 = do
 nothing; print iterations and exit 1 = revert to the
 original guess for p-star 2 = do a bisection search for
-another 2 * cg_maxiter iterations.</p></td>
+another 2 * riemann_shock_maxiter iterations.</p></td>
 <td><p>2</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></p></td>

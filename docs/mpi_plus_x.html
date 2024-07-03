@@ -73,6 +73,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -221,6 +222,17 @@ the default CUDA architecture.  This can be done by adding:</p>
 </pre></div>
 </div>
 <p>to the <code class="docutils literal notranslate"><span class="pre">make</span></code> line or <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>CUDA 11.2 and later can do link time optimization.  This can
+increase performance by 10-30% (depending on the application), but
+may greatly increase the compilation time.  This is disabled by
+default.  To enable link time optimization, add:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CUDA_LTO</span><span class="o">=</span><span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>to the <code class="docutils literal notranslate"><span class="pre">make</span></code> line of <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 </div>
 </section>
 <section id="amd-gpus">

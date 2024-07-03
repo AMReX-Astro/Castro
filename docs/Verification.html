@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -170,7 +171,7 @@ solver. For this problem, the exact solutions were computed with the
 exact Riemann solver from Toro <span id="id1">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 4.</p>
 <section id="sods-problem">
 <h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Link to this heading"></a></h4>
-<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">62</a>]</span> is a simple shock tube problem that
+<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">63</a>]</span> is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:</p>
 <div class="math notranslate nohighlight">
@@ -396,7 +397,7 @@ fextract named test3x.out, test3y.out, and test3z.out.</p>
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
-<span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">61</a>]</span>.</p>
+<span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">62</a>]</span>.</p>
 <p>A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
 be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
@@ -441,7 +442,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, <span class="math notranslate nohighlight">\(\rho_\mathrm{ambient}\)</span>, and pressure, <span class="math notranslate nohighlight">\(p_\mathrm{ambient}\)</span>.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">58</a>]</span>
+the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">59</a>]</span>
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
@@ -592,7 +593,7 @@ heat it. If the gas is too hot, then it will radiate and cool. In
 each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
-<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">65</a>]</span>.</p>
+<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>.</p>
 <figure class="align-center" id="id20">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
 <figcaption>
@@ -616,7 +617,7 @@ An analytic solution exists <span id="id10">[<a class="reference internal" href=
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">65</a>]</span>. The routine that computes
+follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
 <figure class="align-default" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>

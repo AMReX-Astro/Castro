@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -120,6 +121,7 @@
 <li class="toctree-l2"><a class="reference internal" href="file/Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/HLL__solvers_8H.html">File HLL_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -168,8 +170,9 @@
 <li class="toctree-l2"><a class="reference internal" href="file/problem__tagging_8H.html">File problem_tagging.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
@@ -353,7 +356,7 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro25sum_integrated_quantitiesEv"><code class="docutils literal notranslate"><span class="pre">Castro::sum_integrated_quantities()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro19problem_diagnosticsEv"><code class="docutils literal notranslate"><span class="pre">Castro::problem_diagnostics()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro10write_infoEv"><code class="docutils literal notranslate"><span class="pre">Castro::write_info()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Castro::define_new_center()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro17define_new_centerERKN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Castro::define_new_center()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro12write_centerEv"><code class="docutils literal notranslate"><span class="pre">Castro::write_center()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro16pointmass_updateEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">Castro::pointmass_update()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro15oversubscribingEv"><code class="docutils literal notranslate"><span class="pre">Castro::oversubscribing()</span></code></a></li>
@@ -364,7 +367,7 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro10ErrorSetUpEv"><code class="docutils literal notranslate"><span class="pre">Castro::ErrorSetUp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro15variableCleanUpEv"><code class="docutils literal notranslate"><span class="pre">Castro::variableCleanUp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro20read_particle_paramsEv"><code class="docutils literal notranslate"><span class="pre">Castro::read_particle_params()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro13check_for_nanERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">Castro::check_for_nan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro13check_for_nanERKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">Castro::check_for_nan()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"><code class="docutils literal notranslate"><span class="pre">Castro::problem_post_simulation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE"><code class="docutils literal notranslate"><span class="pre">Castro::reset_internal_energy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">Castro::add_magnetic_e()</span></code></a></li>
@@ -818,6 +821,10 @@
 <li class="toctree-l1"><a class="reference internal" href="file/Gravity__util_8H.html">File Gravity_util.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/HABEC_8H.html">File HABEC.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/HABEC_8H.html#_CPPv45HABEC"><code class="docutils literal notranslate"><span class="pre">HABEC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/HLL__solvers_8H.html">File HLL_solvers.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/HLL__solvers_8H.html#_CPPv43HLL"><code class="docutils literal notranslate"><span class="pre">HLL</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/HypreABec_8H.html">File HypreABec.H</a><ul>
@@ -1343,35 +1350,40 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="file/riemann_8H.html">File riemann.H</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/riemann_8H.html#_CPPv412RiemannState"><code class="docutils literal notranslate"><span class="pre">RiemannState</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState3rhoE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rho</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState1pE"><code class="docutils literal notranslate"><span class="pre">RiemannState::p</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState4rhoeE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rhoe</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState4gamcE"><code class="docutils literal notranslate"><span class="pre">RiemannState::gamc</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState2unE"><code class="docutils literal notranslate"><span class="pre">RiemannState::un</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState2utE"><code class="docutils literal notranslate"><span class="pre">RiemannState::ut</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState3uttE"><code class="docutils literal notranslate"><span class="pre">RiemannState::utt</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState3p_gE"><code class="docutils literal notranslate"><span class="pre">RiemannState::p_g</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState6rhoe_gE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rhoe_g</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N12RiemannState5gamcgE"><code class="docutils literal notranslate"><span class="pre">RiemannState::gamcg</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="file/riemann_8H.html#_CPPv410RiemannAux"><code class="docutils literal notranslate"><span class="pre">RiemannAux</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N10RiemannAux6csmallE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::csmall</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N10RiemannAux4cavgE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::cavg</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N10RiemannAux7bnd_facE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::bnd_fac</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="file/riemann_8H.html#_CPPv417riemann_constants"><code class="docutils literal notranslate"><span class="pre">riemann_constants</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N17riemann_constants5smlp1E"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smlp1</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N17riemann_constants5smallE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::small</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/riemann_8H.html#_CPPv4N17riemann_constants6smalluE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smallu</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="file/riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__2shock__solvers_8H.html#_CPPv48TwoShock"><code class="docutils literal notranslate"><span class="pre">TwoShock</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__2shock__solvers_8H.html#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">literals</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/riemann__type_8H.html">File riemann_type.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv412RiemannState"><code class="docutils literal notranslate"><span class="pre">RiemannState</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState3rhoE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rho</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState1pE"><code class="docutils literal notranslate"><span class="pre">RiemannState::p</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState4rhoeE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rhoe</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState4gamcE"><code class="docutils literal notranslate"><span class="pre">RiemannState::gamc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState2unE"><code class="docutils literal notranslate"><span class="pre">RiemannState::un</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState2utE"><code class="docutils literal notranslate"><span class="pre">RiemannState::ut</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState3uttE"><code class="docutils literal notranslate"><span class="pre">RiemannState::utt</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState3p_gE"><code class="docutils literal notranslate"><span class="pre">RiemannState::p_g</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState6rhoe_gE"><code class="docutils literal notranslate"><span class="pre">RiemannState::rhoe_g</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N12RiemannState5gamcgE"><code class="docutils literal notranslate"><span class="pre">RiemannState::gamcg</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv410RiemannAux"><code class="docutils literal notranslate"><span class="pre">RiemannAux</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N10RiemannAux6csmallE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::csmall</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N10RiemannAux4cavgE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::cavg</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N10RiemannAux7bnd_facE"><code class="docutils literal notranslate"><span class="pre">RiemannAux::bnd_fac</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv417riemann_constants"><code class="docutils literal notranslate"><span class="pre">riemann_constants</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N17riemann_constants5smlp1E"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smlp1</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N17riemann_constants5smallE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::small</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/riemann__type_8H.html#_CPPv4N17riemann_constants6smalluE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smallu</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="file/runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__newton__solve_8H.html">File sdc_newton_solve.H</a><ul>

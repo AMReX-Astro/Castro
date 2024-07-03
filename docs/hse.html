@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -204,7 +205,7 @@ pressure.</p>
 <h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Link to this heading"></a></h3>
 <p>The 4th order accurate true SDC solver does not appear to need any
 well-balancing.  It maintains HSE to very high precision, as shown in
-<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">75</a>]</span>.</p>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p>
 </section>
 </section>
 <section id="boundary-conditions">
@@ -221,7 +222,7 @@ error).  Only the normal velocity is treated specially.</p>
 <section id="hse">
 <h3>HSE<a class="headerlink" href="#hse" title="Link to this heading"></a></h3>
 <p id="index-1">For hydrostatic boundary conditions, we follow the method from
-<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">73</a>]</span>.  Essentially, this starts with the last
+<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">74</a>]</span>.  Essentially, this starts with the last
 zone inside of the boundary and integrates HSE into the ghost cells,
 keeping the density either constant or extrapolating it.  Together
 the discretized HSE equation and the EOS yield the density and pressure
