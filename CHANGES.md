@@ -1,3 +1,27 @@
+# 24.07
+
+  * Reorganizing of the existing 2-shock and HLL Riemann solvers
+    (#2887, #2888, #2889, #2890)
+
+  * Some clean-up, accuracy improvements, and optimization of the
+    exact Riemann solver in preparation for coupling it to simulations
+    (#2868, #2869, #2875)
+
+  * a new problem setup, `subch_planar`, for exploring He detonations
+    (#2870, #2873, #2881, #2883, #2886, #2877, #2878)
+
+  * clean-up the computation of the shock variable for hybrid Riemann
+    solves (#2865)
+
+  * code clean-ups (#2852, #2871, #2891)
+
+  * documentation improvements (#2843, #2879)
+
+  * add an EditorConfig (#2872)
+
+  * add the circular detonation problem to test multidimensional shock
+    algorithms (#2858)
+
 # 24.06
 
   * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
