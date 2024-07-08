@@ -10,8 +10,6 @@ USE_OMP = FALSE
 
 USE_REACT = FALSE
 
-USE_ACC = FALSE
-
 # programs to be compiled
 ALL: dustcollapse_$(DIM)d.ex
 
