@@ -1,0 +1,39 @@
+# new scaling numbers for the 3D XRB
+# using the same inputs.He.25cm.static.1000Hz as previously
+# modules:
+#
+#   module load PrgEnv-gnu
+#   module load cray-mpich/8.1.27
+#   module load craype-accel-amd-gfx90a
+#   module load amd-mixed/6.0.0
+#   module unload darshan-runtime
+#
+# build info:
+#
+# EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+# NETWORK: /ccs/home/zingale/Microphysics/networks/iso7
+# CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+# INTEGRATOR: VODE
+# SCREENING: screen5
+#
+# Castro       git describe: 24.07
+# AMReX        git describe: 24.07-3-g7dc2081a9
+# Microphysics git describe: 24.07-1-g0a96241b
+
+# nodes  rocm      mag_grid_size   avg time /   std dev
+#                          step
+  48      6.0          128           69.3646   0.286297
+  64      6.0          128           50.2029   0.681104
+ 128      6.0          128           28.4001   0.221368
+ 256      6.0          128           15.7771   0.133056
+ 384      6.0          128           12.8213   0.37406
+ 512      6.0          128            9.6077   0.331669
+1024      6.0          128            6.66329  0.103599
+#2048      6.0          128
+
+
+
+# in contrast to the previous run, we've disabled all inlining with
+# ROCm to get around some compiler bugs, so that might explain some
+# slight slowdown here.
+

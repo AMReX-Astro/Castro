@@ -9,13 +9,13 @@ plt.rcParams.update({'xtick.labelsize': 10,
 plt.rc("axes", linewidth=1.5)
 plt.rc("lines", markeredgewidth=1.5)
 
-frontier_data = np.loadtxt("frontier-scaling-2023-04-06.txt")
+frontier_data = np.loadtxt("frontier-scaling-2024-07-04.txt")
 
 frontier_nodes = frontier_data[:, 0]
 frontier_times = frontier_data[:, 3]
 frontier_std = frontier_data[:, 4]
 
-frontier_rkc_data = np.loadtxt("frontier-scaling-rkc-2023-05-31.txt")
+frontier_rkc_data = np.loadtxt("frontier-scaling-rkc-2024-07-04.txt")
 
 frontier_rkc_nodes = frontier_rkc_data[:, 0]
 frontier_rkc_times = frontier_rkc_data[:, 3]
@@ -41,7 +41,7 @@ fig, ax = plt.subplots(1)
 
 ax.errorbar(frontier_nodes, frontier_times, yerr=frontier_std, ls="None", marker="x", label="Frontier (ROCm 5.3)")
 ax.errorbar(frontier_rkc_nodes, frontier_rkc_times, yerr=frontier_rkc_std, ls="None", marker="x", label="Frontier (RKC integrator)")
-ax.errorbar(summit_nodes, summit_times, yerr=summit_std, ls="None", marker="x", label="Summit (CUDA 11.4)")
+ax.errorbar(summit_nodes, summit_times, yerr=summit_std, ls="None", marker="^", label="Summit (CUDA 11.4)")
 
 c, t = trend_line(frontier_nodes, frontier_times)
 ax.plot(c, t, alpha=0.5, linestyle=":")
