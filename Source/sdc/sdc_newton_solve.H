@@ -159,8 +159,7 @@ sdc_newton_solve(const Real dt_m,
 
         // solve the linear system: Jac dU = -f
 #ifdef NEW_NETWORK_IMPLEMENTATION
-        RHS::dgefa(Jac);
-        info = 0;
+        info = RHS::dgefa(Jac);
 #else
         IArray1D ipvt;
         dgefa<NumSpec+1>(Jac, ipvt, info);
