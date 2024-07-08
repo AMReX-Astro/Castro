@@ -7,7 +7,6 @@ COMP	         = gnu
 
 USE_MPI          = TRUE
 USE_OMP          = FALSE
-USE_ACC          = FALSE
 
 USE_DIFFUSION    = FALSE
 USE_GRAV         = FALSE
