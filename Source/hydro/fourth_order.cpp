@@ -257,10 +257,10 @@ Castro::states(const Box& bx,
             Real d3ap1 = d2acp1 - d2ac0;
             Real d3ap2 = d2acp2 - d2acp1;
 
-            Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
-            Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
+            Real d3a_min = std::min(d3am1, d3a0, d3ap1, d3ap2);
+            Real d3a_max = std::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
@@ -426,7 +426,7 @@ Castro::states(const Box& bx,
             Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
             Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
@@ -590,7 +590,7 @@ Castro::states(const Box& bx,
             Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
             Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
