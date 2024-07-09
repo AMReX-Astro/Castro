@@ -16,10 +16,6 @@ using namespace castro;
 
 #include <fundamental_constants.H>
 
-constexpr int HISTORY_SIZE=40;
-constexpr int PSTAR_BISECT_FACTOR = 5;
-
-
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
