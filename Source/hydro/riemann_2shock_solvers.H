@@ -5,6 +5,7 @@
 
 using namespace amrex::literals;
 
+#include <riemann_constants.H>
 #include <riemann_type.H>
 #ifdef RADIATION
 #include <Radiation.H>
@@ -60,7 +61,7 @@ namespace TwoShock {
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
                     const int lriemann_shock_maxiter, const amrex::Real lriemann_pstar_tol,
                     amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
+                    bool& converged, amrex::GpuArray<amrex::Real, riemann_constants::PSTAR_BISECT_FACTOR * riemann_constants::HISTORY_SIZE>& pstar_hist_extra) {
 
       // we want to zero
       // f(p*) = u*_l(p*) - u*_r(p*)
@@ -106,7 +107,7 @@ namespace TwoShock {
       converged = false;
       amrex::Real pstar_c = 0.0;
 
-      for (int iter = 0; iter < PSTAR_BISECT_FACTOR * lriemann_shock_maxiter; iter++) {
+      for (int iter = 0; iter < riemann_constants::PSTAR_BISECT_FACTOR * lriemann_shock_maxiter; iter++) {
 
         pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
         pstar_hist_extra[iter] = pstar_c;
@@ -167,7 +168,7 @@ namespace TwoShock {
       constexpr amrex::Real weakwv = 1.e-3_rt;
 
     #ifndef AMREX_USE_GPU
-      amrex::GpuArray<amrex::Real, HISTORY_SIZE> pstar_hist;
+      amrex::GpuArray<amrex::Real, riemann_constants::HISTORY_SIZE> pstar_hist;
     #endif
 
 
@@ -336,7 +337,7 @@ namespace TwoShock {
               pstarl = amrex::max(pstarl, small_pres);
               pstaru = amrex::max(pstaru, small_pres);
 
-              amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
+              amrex::GpuArray<amrex::Real, riemann_constants::PSTAR_BISECT_FACTOR * riemann_constants::HISTORY_SIZE> pstar_hist_extra;
 
               pstar_bisection(pstarl, pstaru,
                               ql.un, ql.p, taul, gamel, clsql,
@@ -352,7 +353,7 @@ namespace TwoShock {
                       std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
                   }
                   std::cout << "pstar extra history: " << std::endl;
-                  for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR * riemann_shock_maxiter; iter_l++) {
+                  for (int iter_l = 0; iter_l < riemann_constants::PSTAR_BISECT_FACTOR * riemann_shock_maxiter; iter_l++) {
                       std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
                   }
 
