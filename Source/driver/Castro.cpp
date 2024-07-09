@@ -58,6 +58,8 @@
 #include <ambient.H>
 #include <castro_limits.H>
 
+#include <riemann_constants.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;

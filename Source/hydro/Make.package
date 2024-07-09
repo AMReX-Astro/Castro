@@ -30,6 +30,7 @@ CEXE_sources += riemann.cpp
 CEXE_headers += HLL_solvers.H
 CEXE_headers += riemann_solvers.H
 CEXE_headers += riemann_2shock_solvers.H
+CEXE_headers += riemann_constants.H
 CEXE_headers += riemann_type.H
 CEXE_headers += slope.H
 CEXE_headers += reconstruction.H

@@ -46,8 +46,6 @@ using namespace castro;
 
 #include <params_type.H>
 
-#include <riemann_type.H>
-
 using std::istream;
 using std::ostream;
 
