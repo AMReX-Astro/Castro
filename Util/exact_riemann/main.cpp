@@ -41,9 +41,7 @@ int main(int argc, char *argv[]) {
     network_init();
 #endif
 
-    amrex::Real small_temp = 1.e-200;
-    amrex::Real small_dens = 1.e-200;
-    eos_init(small_temp, small_dens);
+    eos_init(castro::small_temp, castro::small_dens);
 
     exact_riemann();
 
