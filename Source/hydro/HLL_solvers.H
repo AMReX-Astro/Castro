@@ -391,7 +391,7 @@ namespace HLL {
         }
 
 
-        Real rl = std:max(ql(i,j,k,QRHO), small_dens);
+        Real rl = std::max(ql(i,j,k,QRHO), small_dens);
 
         // pick left velocities based on direction
         Real ul  = ql(i,j,k,iu);
@@ -407,7 +407,7 @@ namespace HLL {
 
         // now we essentially do the CGF solver to get p and u on the
         // interface, but we won't use these in any flux construction.
-        Real csmall = amrex::max(small, small * qaux_arr(i,j,k,QC), small * qaux_arr(i-sx,j-sy,k-sz,QC)));
+        Real csmall = amrex::max(small, small * qaux_arr(i,j,k,QC), small * qaux_arr(i-sx,j-sy,k-sz,QC));
         Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
         Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
