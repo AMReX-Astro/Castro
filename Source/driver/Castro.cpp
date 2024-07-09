@@ -58,6 +58,8 @@
 #include <ambient.H>
 #include <castro_limits.H>
 
+#include <riemann_constants.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -392,7 +394,7 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (riemann_shock_maxiter > HISTORY_SIZE) {
+        if (riemann_shock_maxiter > riemann_constants::HISTORY_SIZE) {
             amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
