@@ -74,7 +74,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
         pstar = ((W_r * p_l + W_l * p_r) + W_l * W_r * (u_l - u_r)) / (W_l + W_r);
     }
 
-    pstar = amrex::max(pstar, smallp);
+    pstar = std::max(pstar, smallp);
 
 
     // find the exact pstar and ustar

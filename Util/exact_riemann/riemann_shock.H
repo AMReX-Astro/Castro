@@ -40,7 +40,7 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar,
     amrex::Real dedrho_p = eos_state.dedr - eos_state.dedT * eos_state.dpdr / eos_state.dpdT;
 
     fprime = 2.0_rt * W_s * (eos_state.e - e_s) -
-        2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
+        2.0_rt * dedrho_p * (pstar - p_s) * amrex::Math::powi<2>(rhostar_s) / W_s;
 
 }
 
@@ -186,7 +186,7 @@ shock(const amrex::Real pstar,
     amrex::Real p_e = eos_state.dpdT / eos_state.dedT;
     amrex::Real p_rho = eos_state.dpdr - eos_state.dpdT * eos_state.dedr / eos_state.dedT;
 
-    amrex::Real p_tau = -std::pow(rhostar_s, 2) * p_rho;
+    amrex::Real p_tau = -amrex::Math::powi<2>(rhostar_s) * p_rho;
 
     amrex::Real dW2dpstar = (C*C - W_s*W_s) * W_s * W_s /
         ((0.5_rt * (pstar + p_s) * p_e - p_tau) * (pstar - p_s));
