@@ -46,12 +46,12 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar,
 
 
 AMREX_INLINE
-void
+bool
 newton_shock(amrex::Real& W_s, const amrex::Real pstar,
              const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s,
              const amrex::Real* xn,
              amrex::Real* rhostar_hist, amrex::Real* Ws_hist,
-             eos_rep_t& eos_state, bool& converged) {
+             eos_rep_t& eos_state) {
 
     // Newton iterations -- we are zeroing the energy R-H jump condition
     // W^2 [e] = 1/2 [p^2]
@@ -60,7 +60,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
     //
     // and then compute f'
 
-    converged = false;
+    bool converged = false;
 
     int iter = 1;
     while (! converged && iter < castro::riemann_shock_maxiter) {
@@ -76,7 +76,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
             converged = true;
         }
 
-        W_s = amrex::min(2.0_rt * W_s, amrex::max(0.5_rt * W_s, W_s + dW));
+        W_s = std::clamp(W_s + dW, 0.5_rt * W_s, 2.0_rt * W_s);
 
         // store some history
 
@@ -85,6 +85,8 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
 
         iter++;
     }
+
+    return converged;
 }
 
 AMREX_INLINE
@@ -154,10 +156,9 @@ shock(const amrex::Real pstar,
 
     // newton
 
-    bool converged;
-    newton_shock(W_s, pstar, rho_s, p_s, e_s, xn,
-                 rhostar_hist, Ws_hist,
-                 eos_state, converged);
+    auto converged = newton_shock(W_s, pstar, rho_s, p_s, e_s, xn,
+                                  rhostar_hist, Ws_hist,
+                                  eos_state);
 
 
     // now did we converge?

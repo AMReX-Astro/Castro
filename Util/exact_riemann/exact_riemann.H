@@ -50,10 +50,13 @@ exact_riemann() {
 
     amrex::Real ustar, pstar, W_l, W_r;
 
-    riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
-                       problem::rho_r, problem::u_r, problem::p_r, xn,
-                       ustar, pstar, W_l, W_r);
+    std::cout << "solving for star state: " << std::endl;
 
+    auto niter = riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
+                                    problem::rho_r, problem::u_r, problem::p_r, xn,
+                                    ustar, pstar, W_l, W_r);
+
+    std::cout << "found star state, niter = " << niter << "; pstar, ustar = " << pstar << " " << ustar << std::endl;
 
     // find the solution as a function of xi = x/t
     std::ofstream ofile;

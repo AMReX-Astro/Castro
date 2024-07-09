@@ -10,7 +10,7 @@
 using namespace amrex::literals;
 
 AMREX_INLINE
-void
+int
 riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real p_l, const amrex::Real* xn_l,
                    const amrex::Real rho_r, const amrex::Real u_r, const amrex::Real p_r, const amrex::Real* xn_r,
                    amrex::Real& ustar, amrex::Real& pstar, amrex::Real& W_l, amrex::Real& W_r) {
@@ -78,8 +78,6 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
 
     // find the exact pstar and ustar
-
-    std::cout << "solving for star state: " << std::endl;
 
     // this procedure follows directly from Colella & Glaz 1985, section 1
     // the basic idea is that we want to find the pstar that satisfies:
@@ -162,6 +160,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
     ustar = 0.5_rt * (ustar_l + ustar_r);
 
-    std::cout << "found pstar, ustar: " <<  pstar << " " << ustar << std::endl;
+    return iter;
+
 }
 #endif
