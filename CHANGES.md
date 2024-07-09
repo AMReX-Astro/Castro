@@ -1,3 +1,38 @@
+# 24.07
+
+  * Reorganizing of the existing 2-shock and HLL Riemann solvers
+    (#2887, #2888, #2889, #2890)
+
+  * Some clean-up, accuracy improvements, and optimization of the
+    exact Riemann solver in preparation for coupling it to simulations
+    (#2868, #2869, #2875)
+
+  * a new problem setup, `subch_planar`, for exploring He detonations
+    (#2870, #2873, #2881, #2883, #2886, #2877, #2878)
+
+  * clean-up the computation of the shock variable for hybrid Riemann
+    solves (#2865)
+
+  * code clean-ups (#2852, #2871, #2891)
+
+  * documentation improvements (#2843, #2879)
+
+  * add an EditorConfig (#2872)
+
+  * add the circular detonation problem to test multidimensional shock
+    algorithms (#2858)
+
+# 24.06
+
+  * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
+
+  * Sync problem and Castro runtime parameters to recent Microphysics
+    changes (#2838, #2845, #2861)
+
+  * fix parsing in the `check_params.py` script (#2850)
+
+  * code cleaning (#2840, #2842, #2843)
+
 # 24.05
 
   * Changed how the shock flag is computed.  It is now computed once,
@@ -16,7 +51,7 @@
   * Fixed the Castro retry mechanism when amr.subcycling_mode = None
     (#2821, #2824, #2826)
 
-  * Added more amr parameters to the job_info file (#2828)
+  * Added more amr parameters to the `job_info` file (#2828)
 
   * Added OpenMP to the SDC burn loop (#2770)
 

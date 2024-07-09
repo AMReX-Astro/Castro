@@ -522,7 +522,7 @@ public:
 /// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
-    static void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+    static void check_for_nan(const amrex::MultiFab& state, int check_ghost=0);
 
 
 #include <Castro_sources.H>
@@ -1138,7 +1138,7 @@ public:
 /// @param S        Current state
 /// @param time     current time
 ///
-    void define_new_center (amrex::MultiFab& S, amrex::Real time);
+    void define_new_center (const amrex::MultiFab& S, amrex::Real time);
     void write_center ();
 
 ///

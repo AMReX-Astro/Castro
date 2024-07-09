@@ -21,6 +21,7 @@ https://github.com/amrex-astro/Castro
    mpi_plus_x
    FlowChart
    software
+   gpu
    problem_setups
    timestepping
    creating_a_problem

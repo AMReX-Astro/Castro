@@ -5,9 +5,10 @@
 
 #include <fstream>
 
+#include <castro_params.H>
+
 #include <riemann_sample.H>
 #include <riemann_star_state.H>
-#include <riemann_support.H>
 
 using namespace amrex::literals;
 
@@ -47,12 +48,6 @@ exact_riemann() {
 
     }
 
-    if (problem::co_moving_frame) {
-        amrex::Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-        problem::u_l -= W_avg;
-        problem::u_r -= W_avg;
-    }
-
     amrex::Real ustar, pstar, W_l, W_r;
 
     riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
@@ -86,12 +81,6 @@ exact_riemann() {
                        x, problem::xjump, problem::t,
                        rho, u, p, xn_s);
 
-        if (problem::co_moving_frame) {
-            amrex::Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-            u += W_avg;
-            x += problem::t * W_avg;
-        }
-
         // get the thermodynamics for this state for output
 
         eos_t eos_state;
@@ -100,7 +89,7 @@ exact_riemann() {
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn_s[n];
         }
-        eos_state.T = problem::initial_temp_guess;
+        eos_state.T = castro::T_guess;
 
         eos(eos_input_rp, eos_state);
 

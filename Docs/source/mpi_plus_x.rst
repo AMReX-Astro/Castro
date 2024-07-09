@@ -106,6 +106,19 @@ To enable this, compile with::
 
    to the ``make`` line or ``GNUmakefile``.
 
+.. note::
+
+   CUDA 11.2 and later can do link time optimization.  This can
+   increase performance by 10-30% (depending on the application), but
+   may greatly increase the compilation time.  This is disabled by
+   default.  To enable link time optimization, add:
+
+   .. code::
+
+      CUDA_LTO=TRUE
+
+   to the ``make`` line of ``GNUmakefile``.
+
 AMD GPUs
 --------
 
@@ -123,4 +136,3 @@ Working at Supercomputing Centers
 Our best practices for running any of the AMReX Astrophysics codes
 at different supercomputing centers is produced in our workflow
 documentation: https://amrex-astro.github.io/workflow/
-

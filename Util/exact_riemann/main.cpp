@@ -10,16 +10,25 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#include <castro_params.H>
+
 #include <exact_riemann.H>
+
+#include <castro_params.H>
+#include <params_type.H>
+
+// a global struct to hold the params
+#include <struct_params.H>
 
 int main(int argc, char *argv[]) {
 
     amrex::Initialize(argc, argv);
 
     std::cout << "starting the exact Riemann solver..." << std::endl;
-    std::cout << argv[1] << std::endl;
-    std::cout << strlen(argv[1]) << std::endl;
+
+    // initialize the Castro runtime parameters
+
+    amrex::ParmParse pp("castro");
+#include <castro_queries.H>
 
     // initialize the external runtime parameters in C++
 

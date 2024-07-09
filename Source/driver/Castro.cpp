@@ -392,12 +392,12 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (cg_maxiter > HISTORY_SIZE) {
-            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        if (riemann_shock_maxiter > HISTORY_SIZE) {
+            amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
-        if (cg_blend == 2 && cg_maxiter < 5) {
-            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        if (riemann_cg_blend == 2 && riemann_shock_maxiter < 5) {
+            amrex::Error("Error: need riemann_shock_maxiter >= 5 to do a bisection search on secant iteration failure.");
         }
     }
 #endif
@@ -2782,8 +2782,8 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
             // Update the flux register now that we may have modified some of the flux corrections.
 
             for (OrientationIter fi; fi.isValid(); ++fi) {
-                FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
+                    FabSet& fs = (*reg)[fi()];
                     fs.copyFrom(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
                 }
             }
@@ -3551,7 +3551,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             {
                 bool outer_boundary_test[3] = {false};
 
-                int idx[3] = {i, j, k};
+                const int idx[3] = {i, j, k};
 
                 for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
 
@@ -4239,7 +4239,7 @@ Castro::get_numpts ()
 }
 
 void
-Castro::define_new_center(MultiFab& S, Real time)
+Castro::define_new_center(const MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
@@ -4428,7 +4428,7 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 
 
 void
-Castro::check_for_nan(MultiFab& state_in, int check_ghost)
+Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
 {
   BL_PROFILE("Castro::check_for_nan()");
 
