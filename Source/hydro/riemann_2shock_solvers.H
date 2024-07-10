@@ -479,6 +479,9 @@ namespace TwoShock {
           qint.utt = 0.5_rt * (ql.utt + qr.utt);
       }
 
+      // for the passives later
+      qint.ustar = ustar;
+
       // linearly interpolate between the star and normal state -- this covers the
       // case where we are inside the rarefaction fan.
       qint.rho = frac*rstar + (1.0_rt - frac)*ro;
@@ -578,7 +581,7 @@ namespace TwoShock {
       amrex::Real po = fp * ql.p + fm * qr.p;
       amrex::Real reo = fp * ql.rhoe + fm * qr.rhoe;
       amrex::Real gamco = fp * ql.gamc + fm * qr.gamc;
-    #ifdef RADIATION
+#ifdef RADIATION
       for (int g = 0; g < NGROUPS; g++) {
           qint.lam[g] = fp * ql.lam[g] + fm * qr.lam[g];
       }
@@ -599,7 +602,7 @@ namespace TwoShock {
       }
       amrex::Real reo_g = fp * ql.rhoe_g + fm * qr.rhoe_g;
       amrex::Real gamco_g = fp * ql.gamcg + fm * qr.gamcg;
-    #endif
+#endif
 
       ro = amrex::max(small_dens, ro);
 
@@ -615,13 +618,16 @@ namespace TwoShock {
       qint.ut = fp * ql.ut + fm * qr.ut;
       qint.utt = fp * ql.utt + fm * qr.utt;
 
+      // for the passives later
+      qint.ustar = ustar;
+
       // compute the rest of the star state
 
       amrex::Real drho = (pstar - po)*co2inv;
       amrex::Real rstar = ro + drho;
       rstar = amrex::max(small_dens, rstar);
 
-    #ifdef RADIATION
+#ifdef RADIATION
       amrex::Real estar_g = reo_g + drho*(reo_g + po_g)*roinv;
 
       amrex::Real co_g = std::sqrt(std::abs(gamco_g*po_g*roinv));
@@ -634,10 +640,10 @@ namespace TwoShock {
       for (int g = 0; g < NGROUPS; g++) {
           estar_r[g] = reo_r[g] + drho*(reo_r[g] + po_r[g])*roinv;
       }
-    #else
+#else
       amrex::Real entho = (reo + po)*roinv*co2inv;
       amrex::Real estar = reo + (pstar - po)*entho;
-    #endif
+#endif
 
       amrex::Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
       cstar = amrex::max(cstar, raux.csmall);
@@ -671,7 +677,7 @@ namespace TwoShock {
       qint.rho = frac*rstar + (1.0_rt - frac)*ro;
       qint.un = frac*ustar + (1.0_rt - frac)*uo;
 
-    #ifdef RADIATION
+#ifdef RADIATION
       amrex::Real pgdnv_t = frac*pstar + (1.0_rt - frac)*po;
       amrex::Real pgdnv_g = frac*pstar_g + (1.0_rt - frac)*po_g;
       amrex::Real regdnv_g = frac*estar_g + (1.0_rt - frac)*reo_g;
@@ -679,10 +685,10 @@ namespace TwoShock {
       for (int g = 0; g < NGROUPS; g++) {
           regdnv_r[g] = frac*estar_r[g] + (1.0_rt - frac)*reo_r[g];
       }
-    #else
+#else
       qint.p = frac*pstar + (1.0_rt - frac)*po;
       amrex::Real regdnv = frac*estar + (1.0_rt - frac)*reo;
-    #endif
+#endif
 
       // as it stands now, we set things assuming that the rarefaction
       // spans the interface.  We overwrite that here depending on the
@@ -694,37 +700,37 @@ namespace TwoShock {
           // the l or r state is on the interface
           qint.rho = ro;
           qint.un = uo;
-    #ifdef RADIATION
+#ifdef RADIATION
           pgdnv_t = po;
           pgdnv_g = po_g;
           regdnv_g = reo_g;
           for (int g = 0; g < NGROUPS; g++) {
               regdnv_r[g] = reo_r[g];
           }
-    #else
+#else
           qint.p = po;
           regdnv = reo;
-    #endif
+#endif
       }
 
       if (spin >= 0.0_rt) {
           // the star state is on the interface
           qint.rho = rstar;
           qint.un = ustar;
-    #ifdef RADIATION
+#ifdef RADIATION
           pgdnv_t = pstar;
           pgdnv_g = pstar_g;
           regdnv_g = estar_g;
           for (int g = 0; g < NGROUPS; g++) {
               regdnv_r[g] = estar_r[g];
           }
-    #else
+#else
           qint.p = pstar;
           regdnv = estar;
-    #endif
+#endif
         }
 
-    #ifdef RADIATION
+#ifdef RADIATION
       for (int g = 0; g < NGROUPS; g++) {
           qint.er[g] = amrex::max(regdnv_r[g], 0.0_rt);
       }
@@ -738,10 +744,10 @@ namespace TwoShock {
           qint.rhoe += regdnv_r[g];
       }
 
-    #else
+#else
       qint.p = amrex::max(qint.p, small_pres);
       qint.rhoe = regdnv;
-    #endif
+#endif
 
       // Enforce that fluxes through a symmetry plane or wall are hard zero.
       qint.un = qint.un * raux.bnd_fac;
