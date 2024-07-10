@@ -351,9 +351,9 @@ riemann_state(const int i, const int j, const int k, const int idir,
           xn_r[n] = qp(i,j,k,QFS+n);
       }
 
-      auto niter = riemann_star_state(ql.rho, ql.un, ql.p, xn_l,
-                                      qr.rho, qr.un, qr.p, xn_r,
-                                      ustar, pstar, W_l, W_r);
+      riemann_star_state(ql.rho, ql.un, ql.p, xn_l,
+                         qr.rho, qr.un, qr.p, xn_r,
+                         ustar, pstar, W_l, W_r);
 
       // sample the solution at xi = 0
 
