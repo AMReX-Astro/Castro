@@ -231,15 +231,15 @@ namespace HLL {
 
 
       // signal speeds (E91, eq. 4.5)
-      Real bl = amrex::min(a1, ql[ivel] - cl);
-      Real br = amrex::max(a4, qr[ivel] + cr);
+      Real bl = std::min(a1, ql[ivel] - cl);
+      Real br = std::max(a4, qr[ivel] + cr);
 
-      Real bm = amrex::min(0.0_rt, bl);
-      Real bp = amrex::max(0.0_rt, br);
+      Real bm = std::min(0.0_rt, bl);
+      Real bp = std::max(0.0_rt, br);
 
       Real bd = bp - bm;
 
-      if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) {
+      if (std::abs(bd) < small_hll * std::max(std::abs(bm), std::abs(bp))) {
           return;
       }
 
@@ -391,24 +391,23 @@ namespace HLL {
         }
 
 
-        Real rl = amrex::max(ql(i,j,k,QRHO), small_dens);
+        Real rl = std::max(ql(i,j,k,QRHO), small_dens);
 
         // pick left velocities based on direction
         Real ul  = ql(i,j,k,iu);
 
-        Real pl = amrex::max(ql(i,j,k,QPRES), small_pres);
+        Real pl = std::max(ql(i,j,k,QPRES), small_pres);
 
-        Real rr = amrex::max(qr(i,j,k,QRHO), small_dens);
+        Real rr = std::max(qr(i,j,k,QRHO), small_dens);
 
         // pick right velocities based on direction
         Real ur  = qr(i,j,k,iu);
 
-        Real pr = amrex::max(qr(i,j,k,QPRES), small_pres);
+        Real pr = std::max(qr(i,j,k,QPRES), small_pres);
 
         // now we essentially do the CGF solver to get p and u on the
         // interface, but we won't use these in any flux construction.
-        Real csmall = amrex::max(small, amrex::max(small * qaux_arr(i,j,k,QC),
-                                                    small * qaux_arr(i-sx,j-sy,k-sz,QC)));
+        Real csmall = amrex::max(small, small * qaux_arr(i,j,k,QC), small * qaux_arr(i-sx,j-sy,k-sz,QC));
         Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
         Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
@@ -422,14 +421,14 @@ namespace HLL {
     #endif
 
         Real wsmall = small_dens*csmall;
-        Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
-        Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
+        Real wl = std::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
+        Real wr = std::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
 
         Real wwinv = 1.0_rt/(wl + wr);
         Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
         Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
 
-        pstar = amrex::max(pstar, small_pres);
+        pstar = std::max(pstar, small_pres);
         // for symmetry preservation, if ustar is really small, then we
         // set it to zero
         if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
@@ -460,18 +459,18 @@ namespace HLL {
             gamco = 0.5_rt*(gamcl + gamcr);
         }
 
-        ro = amrex::max(small_dens, ro);
+        ro = std::max(small_dens, ro);
 
         Real roinv = 1.0_rt/ro;
         Real co = std::sqrt(std::abs(gamco*po*roinv));
-        co = amrex::max(csmall, co);
+        co = std::max(csmall, co);
         Real co2inv = 1.0_rt/(co*co);
 
         Real rstar = ro + (pstar - po)*co2inv;
-        rstar = amrex::max(small_dens, rstar);
+        rstar = std::max(small_dens, rstar);
 
         Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
-        cstar = max(cstar, csmall);
+        cstar = std::max(cstar, csmall);
 
         Real sgnm = std::copysign(1.0_rt, ustar);
         Real spout = co - sgnm*uo;
@@ -489,7 +488,7 @@ namespace HLL {
         }
 
         Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
-        frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
+        frac = std::clamp(frac, 0.0_rt, 1.0_rt);
 
         Real qint[NQ] = {0.0};
 
@@ -501,8 +500,8 @@ namespace HLL {
         // now we do the HLLC construction
 
         // use the simplest estimates of the wave speeds
-        Real S_l = amrex::min(ul - std::sqrt(gamcl*pl/rl), ur - std::sqrt(gamcr*pr/rr));
-        Real S_r = amrex::max(ul + std::sqrt(gamcl*pl/rl), ur + std::sqrt(gamcr*pr/rr));
+        Real S_l = std::min(ul - std::sqrt(gamcl*pl/rl), ur - std::sqrt(gamcr*pr/rr));
+        Real S_r = std::max(ul + std::sqrt(gamcl*pl/rl), ur + std::sqrt(gamcr*pr/rr));
 
         // estimate of the contact speed -- this is Toro Eq. 10.8
         Real S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/
