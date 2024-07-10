@@ -4,7 +4,7 @@
 #include <AMReX_REAL.H>
 
 #include <riemann_constants.H>
-#include <riemann_rarefaction.H>
+#include <exact_riemann_rarefaction.H>
 
 using namespace amrex::literals;
 

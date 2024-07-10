@@ -7,8 +7,8 @@
 
 #include <castro_params.H>
 
-#include <riemann_sample.H>
-#include <riemann_star_state.H>
+#include <exact_riemann_sample.H>
+#include <exact_riemann_star_state.H>
 
 using namespace amrex::literals;
 
