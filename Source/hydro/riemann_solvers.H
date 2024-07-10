@@ -330,6 +330,27 @@ riemann_state(const int i, const int j, const int k, const int idir,
       TwoShock::riemanncg(ql, qr, raux, qint);
 #endif
 
+  } else if (riemann_solver == riemann_constants::EXACT) {
+      // Exact Riemann solver
+
+      // solve for the star state
+
+      Real ustar{};
+      Real pstar{};
+      Real W_l{};
+      Real W_r{};
+
+      auto niter = riemann_star_state(ql.rho, ql.un, ql.p, xn_l,
+                                      qr.rho, qr.un, qr.p, xn_r,
+                                      ustar, pstar, W_l, W_r);
+
+      // sample the solution at xi = 0
+
+
+      // we need to manually do the transverse sampling based on the
+      // contact
+
+
 #ifndef AMREX_USE_GPU
   } else {
       amrex::Error("ERROR: invalid value of riemann_solver");

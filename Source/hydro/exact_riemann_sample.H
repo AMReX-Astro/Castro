@@ -14,7 +14,7 @@ riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real
                const amrex::Real rho_r, const amrex::Real u_r, const amrex::Real p_r, const amrex::Real* xn_r,
                const amrex::Real ustar, const amrex::Real pstar,
                const amrex::Real W_l, const amrex::Real W_r,
-               const amrex::Real x, const amrex::Real xjump, const amrex::Real time,
+               const amrex::Real xi,
                amrex::Real& rho, amrex::Real& u, amrex::Real& p, amrex::Real* xn) {
 
     // get the initial sound speeds
@@ -46,11 +46,6 @@ riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real
     // find the solution as a function of xi = x/t
 
     // This follows from the discussion around C&G Eq. 15
-
-    // compute xi = x/t -- this is the similarity variable for the
-    // solution
-
-    amrex::Real xi = (x - xjump) / time;
 
     // check which side of the contact we need to worry about
 

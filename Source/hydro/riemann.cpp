@@ -72,7 +72,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
 
         if (riemann_solver == riemann_constants::TWO_SHOCK_CGF ||
-            riemann_solver == riemann_constants::TWO_SHOCK_CG) {
+            riemann_solver == riemann_constants::TWO_SHOCK_CG ||
+            riemann_sovler == riemann_constants::EXACT) {
             // approximate state Riemann solvers
 
             // first find the interface state on the current interface
