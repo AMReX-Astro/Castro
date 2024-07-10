@@ -40,18 +40,18 @@ W_s_shock(const amrex::Real W_s, const amrex::Real pstar,
     amrex::Real dedrho_p = eos_state.dedr - eos_state.dedT * eos_state.dpdr / eos_state.dpdT;
 
     fprime = 2.0_rt * W_s * (eos_state.e - e_s) -
-        2.0_rt * dedrho_p * (pstar - p_s) * std::pow(rhostar_s, 2) / W_s;
+        2.0_rt * dedrho_p * (pstar - p_s) * amrex::Math::powi<2>(rhostar_s) / W_s;
 
 }
 
 
 AMREX_INLINE
-void
+bool
 newton_shock(amrex::Real& W_s, const amrex::Real pstar,
              const amrex::Real rho_s, const amrex::Real p_s, const amrex::Real e_s,
              const amrex::Real* xn,
              amrex::Real* rhostar_hist, amrex::Real* Ws_hist,
-             eos_rep_t& eos_state, bool& converged) {
+             eos_rep_t& eos_state) {
 
     // Newton iterations -- we are zeroing the energy R-H jump condition
     // W^2 [e] = 1/2 [p^2]
@@ -60,7 +60,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
     //
     // and then compute f'
 
-    converged = false;
+    bool converged = false;
 
     int iter = 1;
     while (! converged && iter < castro::riemann_shock_maxiter) {
@@ -76,7 +76,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
             converged = true;
         }
 
-        W_s = amrex::min(2.0_rt * W_s, amrex::max(0.5_rt * W_s, W_s + dW));
+        W_s = std::clamp(W_s + dW, 0.5_rt * W_s, 2.0_rt * W_s);
 
         // store some history
 
@@ -85,6 +85,8 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
 
         iter++;
     }
+
+    return converged;
 }
 
 AMREX_INLINE
@@ -134,7 +136,7 @@ shock(const amrex::Real pstar,
     // just doesn't work.  In this case, we use the ideas from CG, Eq. 35, and
     // take W = sqrt(gamma p rho)
 
-    if (pstar - p_s < riemann_solver::tol_p * p_s) {
+    if (pstar - p_s < riemann_constants::riemann_p_tol * p_s) {
         W_s = std::sqrt(eos_state.gam1 * p_s * rho_s);
     } else {
        W_s = std::sqrt((pstar - p_s) *
@@ -154,10 +156,9 @@ shock(const amrex::Real pstar,
 
     // newton
 
-    bool converged;
-    newton_shock(W_s, pstar, rho_s, p_s, e_s, xn,
-                 rhostar_hist, Ws_hist,
-                 eos_state, converged);
+    auto converged = newton_shock(W_s, pstar, rho_s, p_s, e_s, xn,
+                                  rhostar_hist, Ws_hist,
+                                  eos_state);
 
 
     // now did we converge?
@@ -185,7 +186,7 @@ shock(const amrex::Real pstar,
     amrex::Real p_e = eos_state.dpdT / eos_state.dedT;
     amrex::Real p_rho = eos_state.dpdr - eos_state.dpdT * eos_state.dedr / eos_state.dedT;
 
-    amrex::Real p_tau = -std::pow(rhostar_s, 2) * p_rho;
+    amrex::Real p_tau = -amrex::Math::powi<2>(rhostar_s) * p_rho;
 
     amrex::Real dW2dpstar = (C*C - W_s*W_s) * W_s * W_s /
         ((0.5_rt * (pstar + p_s) * p_e - p_tau) * (pstar - p_s));

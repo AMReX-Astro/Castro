@@ -1,6 +1,7 @@
 #include <Castro.H>
 
 #include <advection_util.H>
+#include <flatten.H>
 
 using namespace amrex;
 
@@ -196,10 +197,6 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           auto flatn_arr = flatn.array();
           auto elix_flatn = flatn.elixir();
 
-          flatg.resize(bxi, 1);
-          auto flatg_arr = flatg.array();
-          auto elix_flatg = flatg.elixir();
-
           if (use_flattening == 0) {
             amrex::ParallelFor(bxi,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -209,13 +206,11 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
           } else {
 
-            uflatten(bxi, q_arr, flatn_arr, QPRES);
-            uflatten(bxi, q_arr, flatg_arr, QPTOT);
-
             amrex::ParallelFor(bxi,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-              flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
+                flatn_arr(i,j,k) = hydro::flatten(i, j, k, q_arr, QPRES) *
+                                   hydro::flatten(i, j, k, q_arr, QPTOT);
             });
 
           }
