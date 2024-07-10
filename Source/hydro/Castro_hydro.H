@@ -118,19 +118,6 @@
                  amrex::Array4<amrex::Real> const& q_arr,
                  amrex::Array4<amrex::Real> const& qaux_arr);
 
-///
-/// compute the flattening coefficient.  This is 0 if we are in a shock and
-/// 1 if we are not applying any flattening
-///
-/// @param bx         the box to operate over
-/// @param q_arr      the primitive variable state
-/// @param flatn      the flattening coefficient
-/// @param pres_comp  index into q_arr of the pressure component
-///
-    static void uflatten(const amrex::Box& bx,
-                  amrex::Array4<amrex::Real const> const& q_arr,
-                  amrex::Array4<amrex::Real> const& flatn,
-                  const int pres_comp);
 
 ///
 /// A multidimensional shock detection algorithm
