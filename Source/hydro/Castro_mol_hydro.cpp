@@ -8,6 +8,7 @@
 #include <advection_util.H>
 
 #include <fourth_center_average.H>
+#include <flatten.H>
 
 using namespace amrex;
 
@@ -117,19 +118,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Array4<Real> const flatn_arr = flatn.array();
 
         if (first_order_hydro == 1) {
-          amrex::ParallelFor(obx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-          {
-            flatn_arr(i,j,k) = 0.0;
-          });
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                flatn_arr(i,j,k) = 0.0;
+            });
         } else if (use_flattening == 1) {
-          uflatten(obx, q_arr, flatn_arr, QPRES);
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                flatn_arr(i,j,k) = hydro::flatten(i, j, k, q_arr, QPRES);
+            });
         } else {
-          amrex::ParallelFor(obx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-          {
-            flatn_arr(i,j,k) = 1.0;
-          });
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                flatn_arr(i,j,k) = 1.0;
+            });
         }
 
 
