@@ -318,12 +318,12 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
 
   // Solve Riemann problem
-  if (riemann_solver == 0) {
+  if (riemann_solver == riemann_constants::TWO_SHOCK_CGF) {
       // Colella, Glaz, & Ferguson solver
 
       TwoShock::riemannus(ql, qr, raux, qint);
 
-  } else if (riemann_solver == 1) {
+  } else if (riemann_solver == riemann_constants::TWO_SHOCK_CG) {
       // Colella & Glaz solver
 
 #ifndef RADIATION
