@@ -4,6 +4,8 @@
 #include <Castro_util.H>
 #include <riemann_type.H>
 #include <riemann_2shock_solvers.H>
+#include <exact_riemann_star_state.H>
+#include <exact_riemann_sample.H>
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
 #endif
@@ -335,10 +337,19 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
       // solve for the star state
 
-      Real ustar{};
-      Real pstar{};
-      Real W_l{};
-      Real W_r{};
+      amrex::Real ustar{};
+      amrex::Real pstar{};
+      amrex::Real W_l{};
+      amrex::Real W_r{};
+
+      amrex::Real xn_l[NumSpec];
+      for (int n = 0; n < NumSpec; ++n) {
+          xn_l[n] = qm(i,j,k,QFS+n);
+      }
+      amrex::Real xn_r[NumSpec];
+      for (int n = 0; n < NumSpec; ++n) {
+          xn_r[n] = qp(i,j,k,QFS+n);
+      }
 
       auto niter = riemann_star_state(ql.rho, ql.un, ql.p, xn_l,
                                       qr.rho, qr.un, qr.p, xn_r,
@@ -346,10 +357,49 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
       // sample the solution at xi = 0
 
+      amrex::Real xi{};
+
+      amrex::Real rho{};
+      amrex::Real u{};
+      amrex::Real p{};
+      amrex::Real xn_s[NumSpec]{};
+
+      riemann_sample(ql.rho, ql.un, ql.p, xn_l,
+                     qr.rho, qr.un, qr.p, xn_r,
+                     ustar, pstar, W_l, W_r,
+                     xi,
+                     rho, u, p, xn_s);
+
+      // pack the RiemannState interface state
+
+      qint.rho = rho;
+      qint.un = u;
+      qint.p = p;
+
+      // get the energy
+      eos_rep_t eos_state;
+      eos_state.rho = qint.rho;
+      eos_state.T = castro::T_guess;
+      eos_state.p = qint.p;
+      for (int n = 0; n < NumSpec; ++n) {
+          eos_state.xn[n] = xn_s[n];
+      }
+
+      eos(eos_input_rp, eos_state);
+
+      qint.rhoe = qint.rho * eos_state.e;
+      qint.gamc = eos_state.gam1;
 
       // we need to manually do the transverse sampling based on the
       // contact
 
+      if (ustar > 0) {
+          qint.ut = ql.ut;
+          qint.utt = ql.utt;
+      } else {
+          qint.ut = qr.ut;
+          qint.utt = qr.utt;
+      }
 
 #ifndef AMREX_USE_GPU
   } else {
