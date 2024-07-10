@@ -26,12 +26,11 @@
   64      6.0          128           50.2029   0.681104
  128      6.0          128           28.4001   0.221368
  256      6.0          128           15.7771   0.133056
-# 384      6.0          128           12.8213   0.37406
  512      6.0          128            9.6077   0.331669
 1024      6.0          128            6.66329  0.103599
-#2048      6.0          128
+2048      6.0          128            5.15287  0.0542774
 
-
+# note that the 2048 run uses a blocking factor of 16)
 
 # in contrast to the previous run, we've disabled all inlining with
 # ROCm to get around some compiler bugs, so that might explain some
