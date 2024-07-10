@@ -1,3 +1,5 @@
+# Exact Riemann solver
+
 This is a driver for the exact Riemann solver for a general equation
 of state.  The main implementation is in Source/hydro.
 
