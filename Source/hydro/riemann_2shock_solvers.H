@@ -29,7 +29,7 @@ namespace TwoShock {
 
       // CG Eq. 31
       gstar = (pstar-p)*gdot/(pstar+p) + gam;
-      gstar = amrex::max(gmin, amrex::min(gmax, gstar));
+      gstar = std::clamp(gstar, gmin, gmax);
 
       // Now use that predicted value of game with the R-H jump conditions
       // to compute the wave speed.
@@ -190,8 +190,8 @@ namespace TwoShock {
 
       // these should consider a wider average of the cell-centered
       // gammas
-      amrex::Real gmin = amrex::min(amrex::min(gamel, gamer), 1.0_rt);
-      amrex::Real gmax = amrex::max(amrex::max(gamel, gamer), 2.0_rt);
+      amrex::Real gmin = amrex::min(gamel, gamer, 1.0_rt);
+      amrex::Real gmax = amrex::max(gamel, gamer, 2.0_rt);
 
       amrex::Real game_bar = 0.5_rt*(gamel + gamer);
       amrex::Real gamc_bar = 0.5_rt*(ql.gamc + qr.gamc);
@@ -330,8 +330,8 @@ namespace TwoShock {
               amrex::Real pstarl = 1.e200;
               amrex::Real pstaru = -1.e200;
               for (int n = riemann_shock_maxiter-6; n < riemann_shock_maxiter; n++) {
-                  pstarl = amrex::min(pstarl, pstar_hist[n]);
-                  pstaru = amrex::max(pstaru, pstar_hist[n]);
+                  pstarl = std::min(pstarl, pstar_hist[n]);
+                  pstaru = std::max(pstaru, pstar_hist[n]);
               }
 
               pstarl = amrex::max(pstarl, small_pres);
@@ -666,7 +666,7 @@ namespace TwoShock {
 
       // interpolate for the case that we are in a rarefaction
       amrex::Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
-      frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
+      frac = std::clamp(frac, 0.0_rt, 1.0_rt);
 
       qint.rho = frac*rstar + (1.0_rt - frac)*ro;
       qint.un = frac*ustar + (1.0_rt - frac)*uo;

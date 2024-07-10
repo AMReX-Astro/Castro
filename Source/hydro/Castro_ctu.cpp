@@ -360,8 +360,8 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
 
             if (n >= QFS && n <= QFS-1+NumSpec) {
                 // mass fractions should be in [0, 1]
-                qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
-                qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+                qleft(i,j,k,n) = std::clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
+                qright(i,j,k,n) = std::clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
             }
         }
 
