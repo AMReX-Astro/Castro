@@ -35,7 +35,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = amrex::max(interpolate(height, model::ispec+n), small_x);
+        state(i,j,k,UFS+n) = amrex::max(interpolate(height, model::ispec+n), network_rp::small_x);
     }
 
     // normalize
