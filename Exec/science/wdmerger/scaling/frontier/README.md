@@ -13,6 +13,9 @@ We consider 3 different gridding strategies:
 
 The inputs file here is setup for the 256^3 base.
 
+We report the total evolution time excluding initialization that is
+output by Castro at the end of the run.
+
 Some general observations:
 
 * We seem to do well with `max_grid_size` set to 64 or 128, but not 96
