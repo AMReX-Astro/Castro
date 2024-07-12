@@ -55,10 +55,10 @@ ax.errorbar(frontier_bignet_nodes, frontier_bignet_times, yerr=frontier_bignet_s
             ls="None", marker="o", label="Frontier (ROCm 6.0; big network)")
 
 c, t = trend_line(frontier_nodes, frontier_times)
-ax.plot(c, t, alpha=0.5, linestyle=":")
+ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
 c, t = trend_line(frontier_bignet_nodes, frontier_bignet_times)
-ax.plot(c, t, alpha=0.5, linestyle=":")
+ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
 
 ax.set_ylabel("wallclock time / step")
@@ -71,4 +71,5 @@ ax.legend()
 
 ax.set_title("3D XRB flame scaling")
 
+fig.tight_layout()
 fig.savefig("frontier_flame_wave_scaling.png")
