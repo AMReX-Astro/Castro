@@ -33,6 +33,7 @@ Some general observations:
 
 Note that for the 256^3 base grid, on 64 nodes, the grid structure is:
 
+```
 INITIAL GRIDS
   Level 0   512 grids  16777216 cells  100 % of domain
             smallest grid: 32 x 32 x 32  biggest grid: 32 x 32 x 32
@@ -42,5 +43,6 @@ INITIAL GRIDS
             smallest grid: 32 x 32 x 32  biggest grid: 64 x 32 x 32
   Level 3   7247 grids  1428029440 cells  0.03246963024 % of domain
             smallest grid: 32 x 32 x 32  biggest grid: 64 x 64 x 64
+```
 
 So only a small amount of the finest grid is refined in this problem.
