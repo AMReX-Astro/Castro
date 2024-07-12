@@ -38,7 +38,7 @@ ax.plot(frontier_512base_nodes, frontier_512base_times, ls="None", marker="x", l
 ax.plot(frontier_1024base_nodes, frontier_1024base_times, ls="None", marker="x", label="$1024^3$ coarse grid")
 
 c, t = trend_line(frontier_256base_nodes, frontier_256base_times)
-ax.plot(c, t, alpha=0.5, linestyle=":")
+ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
 ax.set_ylabel("wallclock time / step")
 ax.set_xlabel("number of nodes")
