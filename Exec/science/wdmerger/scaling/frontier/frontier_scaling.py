@@ -46,7 +46,7 @@ ax.set_xlabel("number of nodes")
 ax.set_xscale("log")
 ax.set_yscale("log")
 
-ax.set_title("3D wedmerger scaling (Frontier)")
+ax.set_title("3D wdmerger scaling (Frontier)")
 
 ax.legend()
 
