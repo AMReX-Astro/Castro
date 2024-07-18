@@ -40,7 +40,7 @@ ax.plot(frontier_1024base_nodes, frontier_1024base_times, ls="None", marker="x",
 c, t = trend_line(frontier_256base_nodes, frontier_256base_times)
 ax.plot(c, t, alpha=0.5, linestyle=":", color="k")
 
-ax.set_ylabel("wallclock time / step")
+ax.set_ylabel("wallclock time")
 ax.set_xlabel("number of nodes")
 
 ax.set_xscale("log")
