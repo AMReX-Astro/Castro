@@ -72,4 +72,4 @@ ax.legend()
 ax.set_title("3D XRB flame scaling")
 
 fig.tight_layout()
-fig.savefig("frontier_flame_wave_scaling.png")
+fig.savefig("frontier_flame_wave_scaling.pdf")
