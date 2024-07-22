@@ -3300,6 +3300,9 @@ Castro::check_for_negative_density ()
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
                                   << " with density = " << rho << "\n";
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g",
+                                            n, X, i, j, k, rho);
 #endif
                         X_check_failed = 1;
                     }

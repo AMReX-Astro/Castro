@@ -136,6 +136,10 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+ifeq ($(USE_GPU_PRINTF),TRUE)
+  DEFINES += -DALLOW_GPU_PRINTF
+endif
+
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
