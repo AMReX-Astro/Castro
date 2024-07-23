@@ -3313,6 +3313,10 @@ Castro::check_for_negative_density ()
             return {rho_check_failed, X_check_failed};
         });
 
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
+
     }
 
     ReduceTuple hv = reduce_data.value();
