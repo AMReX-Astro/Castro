@@ -130,6 +130,37 @@ To enable this, compile with::
   USE_HIP = TRUE
 
 
+Printing Warnings from GPU Kernels
+==================================
+
+.. index:: USE_GPU_PRINTF
+
+Castro will output warnings if several assumptions are violated (often
+triggering a retry in the process).  On GPUs, printing from a kernel
+(using ``printf()``) can increase the number of registers a kernel needs,
+causing performance problems.  As a result, warnings are disabled by
+wrapping them in ``#ifndef AMREX_USE_GPU``.
+
+However, for debugging GPU runs, sometimes we want to see these
+warnings.  The build option ``USE_GPU_PRINTF=TRUE`` will enable these
+(by setting the preprocessor flag ``ALLOW_GPU_PRINTF``).
+
+.. note::
+
+   Not every warning has been enabled for GPUs.
+
+.. tip::
+
+   On AMD architectures, it seems necessary to use unbuffered I/O.  This
+   can be accomplished in the job submission script (for SLURM) by doing
+
+   ::
+
+      srun -u ./Castro...
+
+
+
+
 Working at Supercomputing Centers
 =================================
 
