@@ -457,13 +457,15 @@ Gravity::solve_for_phi (int               level,
     if (gravity::verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
+        amrex::Real end = ParallelDescriptor::second() - strt;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        amrex::Print() << "Gravity::solve_for_phi() time = " << end << " on level " << level << std::endl << std::endl;
+        amrex::Print() << "Gravity::solve_for_phi() time = " << end << " on level "
+                       << llevel << std::endl << std::endl;
 #ifdef BL_LAZY
         });
 #endif
