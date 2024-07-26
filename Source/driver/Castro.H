@@ -1418,8 +1418,8 @@ protected:
 
 
 ///
-/// for keeping track of the amount of CPU time used -- this will persist
-///     after restarts
+/// for keeping track of the amount of CPU or GPU time used -- this will persist
+/// after restarts
 ///
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;
