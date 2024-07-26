@@ -18,7 +18,7 @@
 /*@Memo:
         An InterpBndryData object adds to a BndryData object the ability to
         manipulate and set the data stored in the boundary cells.
-*/      
+*/
 /*@Doc:
         The "Interpbndrydata" class is a virtual base class derived from
         BndryData.  It is intended to provide a more physical method for
@@ -38,9 +38,9 @@
         \item Fills with values interpolated from a coarser FAB that
         bounds the cells that do not meet the above two criteria
         \end{enumerate}
-        
+
         This class does NOT provide a copy constructor or assignment operator.
-        
+
 */
 
 class RadInterpBndryData : public RadBndryData
@@ -66,7 +66,7 @@ public:
 //@ManDoc: set bndry values at fine level, performing necessary interpolations
     void setBndryValues(amrex::BndryRegister& crse, int c_start,
                         const amrex::MultiFab& fine, int f_start,
-                        int bnd_start, int num_comp, amrex::IntVect& ratio, 
+                        int bnd_start, int num_comp, amrex::IntVect& ratio,
                         const amrex::BCRec& phys_bc);
 //@ManDoc: set bndry values to provided value
     void setBndryValues(amrex::Real bv);

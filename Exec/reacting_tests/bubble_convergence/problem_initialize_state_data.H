@@ -93,7 +93,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
         state(i,j,k,URHO) = eos_state.rho;
 
-        // correct the mass fractions and energy with the new density 
+        // correct the mass fractions and energy with the new density
 
         state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
         state(i,j,k,UEDEN) = state(i,j,k,UEINT);

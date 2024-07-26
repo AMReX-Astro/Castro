@@ -16,7 +16,7 @@ void problem_initialize ()
     problem::in14 = network_spec_index("nitrogen-14");
     problem::io16 = network_spec_index("oxygen-16");
 
-    if (problem::ihe4 < 0 || problem::ic12 < 0 || problem::in14 < 0 || problem::io16 < 0) {
+    if (problem::ihe4 < 0 || problem::ic12 < 0 || problem::io16 < 0) {
         amrex::Error("ERROR: species indices not found");
     }
 
@@ -51,9 +51,20 @@ void problem_initialize ()
     }
 
     problem::xn[problem::ic12] = amrex::max(problem::cfrac, problem::smallx);
-    problem::xn[problem::in14] = amrex::max(problem::nfrac, problem::smallx);
     problem::xn[problem::io16] = amrex::max(problem::ofrac, problem::smallx);
-    problem::xn[problem::ihe4] = 1.0_rt - problem::cfrac - problem::nfrac - problem::ofrac - (NumSpec - 3) * problem::smallx;
+
+    if (problem::in14 >= 0) {
+       problem::xn[problem::in14] = amrex::max(problem::nfrac, problem::smallx);
+       problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
+                                           - problem::xn[problem::in14]
+                                           - problem::xn[problem::io16]
+                                           - (NumSpec - 4) * problem::smallx;
+    }
+    else {
+       problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
+                                           - problem::xn[problem::io16]
+                                           - (NumSpec - 3) * problem::smallx;
+    }
 
     // Set the ambient material
 

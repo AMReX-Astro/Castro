@@ -5,7 +5,7 @@ jobs:
   Rad2Tshock-1d:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
           tar xfz v2.26.0.tar.gz
           cd hypre-2.26.0/src
           ./configure --with-cxxstandard=17
-          make -j 2
+          make -j 4
           make install
           cd ../../
 
@@ -47,7 +47,7 @@ jobs:
       - name: Build the fextrema tool
         run: |
           cd external/amrex/Tools/Plotfile
-          make programs=fextrema -j 2
+          make programs=fextrema -j 4
 
       - name: Check the extrema
         run: |

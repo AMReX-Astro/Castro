@@ -21,7 +21,7 @@ void problem_initialize ()
 
     // compute the internal energy (erg/cc) for the left and right state
 
-    Real xn[NumSpec] = {0.0_rt}; 
+    Real xn[NumSpec] = {0.0_rt};
     xn[0] = 1.0_rt;
 
     eos_t eos_state;

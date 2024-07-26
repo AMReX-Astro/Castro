@@ -83,17 +83,17 @@ if args.quiver is not None:
 if args.stream is not None:
 
     args.stream[2] = int(args.stream[2])
-    
+
 if args.contour is not None:
-    
+
     args.contour[1:] = list(map(float, args.contour[1:]))
-    
+
     if args.contour_opt is not None:
-        
+
         contour_opt = {'plot_args': {'colors': args.contour_opt[0], 'linewidths': int(args.contour_opt[1])}}
 
 else:
-    
+
     contour_opt = {}
 
 if args.flame_wave:
@@ -211,9 +211,9 @@ print("Generating...")
 
 # Loop and generate
 for ds in ts:
-    
+
     if ("gas", "transvel") not in ds.field_list:
-        
+
         try:
             ds.add_field(("gas", "transvel"), function=_transvel,
                     units="cm/s", sampling_type="cell")
@@ -237,9 +237,9 @@ for ds in ts:
     plot.set_log(field, args.log)
 
     if args.time:
-        
+
         time_format = 't = {{time:.{}f}}{{units}}'.format(args.time)
-        
+
         plot.annotate_timestamp(corner='upper_left', time_format=time_format,
                 time_unit='s', draw_inset_box=True, inset_box_args={'alpha': 0.0})
 
@@ -256,9 +256,9 @@ for ds in ts:
 
         plot.annotate_streamlines(args.stream[0], args.stream[1], factor=args.stream[2],
                 plot_args={'cmap': color_opt.cmap, 'arrowstyle': '->'}, **kw)
-    
+
     if args.grid is not None:
-                   
+
         opts = dict(zip(args.grid[::2], args.grid[1::2]))
         plot.annotate_grids(**opts)
 

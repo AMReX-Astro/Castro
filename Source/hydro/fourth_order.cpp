@@ -37,25 +37,25 @@ Castro::fourth_interfaces(const Box& bx,
       // interpolate to the edges -- this is a_{i-1/2}
       // note for non-periodic physical boundaries, we use a special stencil
 
-      if (i == domlo[0]+1 && lo_bc[0] == Symmetry) {
+      if (i == domlo[0]+1 && lo_bc[0] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i-1,j,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i+1,j,k,ncomp) + a(i+2,j,k,ncomp));
 
-      } else if (i == domlo[0] && lo_bc[0] == Symmetry) {
+      } else if (i == domlo[0] && lo_bc[0] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i+1,j,k,ncomp) +
                                          13.0_rt*a(i+2,j,k,ncomp) - 3.0_rt*a(i+3,j,k,ncomp));
 
-      } else if (i == domhi[0] && hi_bc[0] == Symmetry) {
+      } else if (i == domhi[0] && hi_bc[0] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i-1,j,k,ncomp) -
                                          5.0_rt*a(i-2,j,k,ncomp) + a(i-3,j,k,ncomp));
 
-      } else if (i == domhi[0]+1 && hi_bc[0] == Symmetry) {
+      } else if (i == domhi[0]+1 && hi_bc[0] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i-1,j,k,ncomp) - 23.0_rt*a(i-2,j,k,ncomp) +
@@ -78,25 +78,25 @@ Castro::fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (j == domlo[1]+1 && lo_bc[1] == Symmetry) {
+      if (j == domlo[1]+1 && lo_bc[1] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j-1,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j+1,k,ncomp) + a(i,j+2,k,ncomp));
 
-      } else if (j == domlo[1] && lo_bc[1] == Symmetry) {
+      } else if (j == domlo[1] && lo_bc[1] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j+1,k,ncomp) +
                                          13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp));
 
-      } else if (j == domhi[1] && hi_bc[1] == Symmetry) {
+      } else if (j == domhi[1] && hi_bc[1] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j-1,k,ncomp) -
                                          5.0_rt*a(i,j-2,k,ncomp) + a(i,j-3,k,ncomp));
 
-      } else if (j == domhi[1]+1 && hi_bc[1] == Symmetry) {
+      } else if (j == domhi[1]+1 && hi_bc[1] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j-1,k,ncomp) - 23.0_rt*a(i,j-2,k,ncomp) +
@@ -120,25 +120,25 @@ Castro::fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (k == domlo[2]+1 && lo_bc[2] == Symmetry) {
+      if (k == domlo[2]+1 && lo_bc[2] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k-1,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j,k+1,ncomp) + a(i,j,k+2,ncomp));
 
-      } else if (k == domlo[2] && lo_bc[2] == Symmetry) {
+      } else if (k == domlo[2] && lo_bc[2] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j,k+1,ncomp) +
                                          13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp));
 
-      } else if (k == domhi[2] && hi_bc[2] == Symmetry) {
+      } else if (k == domhi[2] && hi_bc[2] == amrex::PhysBCType::symmetry) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j,k-1,ncomp) -
                                          5.0_rt*a(i,j,k-2,ncomp) + a(i,j,k-3,ncomp));
 
-      } else if (k == domhi[2]+1 && hi_bc[2] == Symmetry) {
+      } else if (k == domhi[2]+1 && hi_bc[2] == amrex::PhysBCType::symmetry) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,ncomp) - 23.0_rt*a(i,j,k-2,ncomp) +
@@ -260,7 +260,7 @@ Castro::states(const Box& bx,
             Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
             Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
@@ -300,17 +300,17 @@ Castro::states(const Box& bx,
 
           // reset the left state at domlo[0] if needed -- it is outside the domain
 
-          if (lo_bc[0] == Outflow) {
+          if (lo_bc[0] == amrex::PhysBCType::outflow) {
             //al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
 
-          } else if (lo_bc[0] == Symmetry) {
+          } else if (lo_bc[0] == amrex::PhysBCType::symmetry) {
             if (ncomp == QU) {
               al(domlo[0],j,k,QU) = -ar(domlo[0],j,k,QU);
             } else {
               al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
             }
 
-          } else if (lo_bc[0] == Interior) {
+          } else if (lo_bc[0] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
@@ -324,17 +324,17 @@ Castro::states(const Box& bx,
 
           // reset the right state at domhi[0]+1 if needed -- it is outside the domain
 
-          if (hi_bc[0] == Outflow) {
+          if (hi_bc[0] == amrex::PhysBCType::outflow) {
             //ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
 
-          } else if (hi_bc[0] == Symmetry) {
+          } else if (hi_bc[0] == amrex::PhysBCType::symmetry) {
             if (ncomp == QU) {
               ar(domhi[0]+1,j,k,QU) = -al(domhi[0]+1,j,k,QU);
             } else {
               ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
             }
 
-          } else if (hi_bc[0] == Interior) {
+          } else if (hi_bc[0] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
@@ -426,7 +426,7 @@ Castro::states(const Box& bx,
             Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
             Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
@@ -465,17 +465,17 @@ Castro::states(const Box& bx,
 
           // reset the left state at domlo[1] if needed -- it is outside the domain
 
-          if (lo_bc[1] == Outflow) {
+          if (lo_bc[1] == amrex::PhysBCType::outflow) {
             //al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
 
-          } else if (lo_bc[1] == Symmetry) {
+          } else if (lo_bc[1] == amrex::PhysBCType::symmetry) {
             if (ncomp == QV) {
               al(i,domlo[1],k,QV) = -ar(i,domlo[1],k,QV);
             } else {
               al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
             }
 
-          } else if (lo_bc[1] == Interior) {
+          } else if (lo_bc[1] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
@@ -489,17 +489,17 @@ Castro::states(const Box& bx,
 
           // reset the right state at domhi[1]+1 if needed -- it is outside the domain
 
-          if (hi_bc[1] == Outflow) {
+          if (hi_bc[1] == amrex::PhysBCType::outflow) {
             //ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
 
-          } else if (hi_bc[1] == Symmetry) {
+          } else if (hi_bc[1] == amrex::PhysBCType::symmetry) {
             if (ncomp == QV) {
               ar(i,domhi[1]+1,k,QV) = -al(i,domhi[1]+1,k,QV);
             } else {
               ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
             }
 
-          } else if (hi_bc[1] == Interior) {
+          } else if (hi_bc[1] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
@@ -590,7 +590,7 @@ Castro::states(const Box& bx,
             Real d3a_min = amrex::min(d3am1, d3a0, d3ap1, d3ap2);
             Real d3a_max = amrex::max(d3am1, d3a0, d3ap1, d3ap2);
 
-            if (C3 * amrex::max(std::abs(d3a_min), std::abs(d3a_max)) <=
+            if (C3 * std::max(std::abs(d3a_min), std::abs(d3a_max)) <=
                 (d3a_max - d3a_min)) {
               // limit
               if (dafm*dafp < 0.0_rt) {
@@ -628,17 +628,17 @@ Castro::states(const Box& bx,
         if (k == domlo[2]) {
           // reset the left state at domlo[2] if needed -- it is outside the domain
 
-          if (lo_bc[2] == Outflow) {
+          if (lo_bc[2] == amrex::PhysBCType::outflow) {
             //al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
 
-          } else if (lo_bc[2] == Symmetry) {
+          } else if (lo_bc[2] == amrex::PhysBCType::symmetry) {
             if (ncomp == QW) {
               al(i,j,domlo[2],QW) = -ar(i,j,domlo[2],QW);
             } else {
               al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
             }
 
-          } else if (lo_bc[2] == Interior) {
+          } else if (lo_bc[2] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
@@ -651,17 +651,17 @@ Castro::states(const Box& bx,
         if (k == domhi[2]+1) {
           // reset the right state at domhi[2]+1 if needed -- it is outside the domain
 
-          if (hi_bc[2] == Outflow) {
+          if (hi_bc[2] == amrex::PhysBCType::outflow) {
             //ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
 
-          } else if (hi_bc[2] == Symmetry) {
+          } else if (hi_bc[2] == amrex::PhysBCType::symmetry) {
             if (ncomp == QW) {
               ar(i,j,domhi[2]+1,QW) = -al(i,j,domhi[2]+1,QW);
             } else {
               ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
             }
 
-          } else if (lo_bc[2] == Interior) {
+          } else if (lo_bc[2] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {

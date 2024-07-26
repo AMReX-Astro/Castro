@@ -32,16 +32,16 @@ def SOunits(eps, printmessg=0):
 
 if __name__ == "__main__":
     try:
-	opts, args = getopt.getopt(sys.argv[1:], "", ["eps="])
+        opts, args = getopt.getopt(sys.argv[1:], "", ["eps="])
     except getopt.GetoptError:
-	print '???'
-	sys.exit(1)
+        print '???'
+        sys.exit(1)
 
     eps = 1.0
 
     for o, a in opts:
         if o == "--eps":
             eps = float(a)
-    
+
     SOunits(eps, 1)
 

@@ -23,7 +23,7 @@ eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-qflux(Real* qflx, Real* flx, Real* q_zone) {
+qflux(Real* qflx, const Real* flx, const Real* q_zone) {
 
   // Calculate the C to P Jacobian applied to the fluxes
 
@@ -78,7 +78,7 @@ qflux(Real* qflx, Real* flx, Real* q_zone) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-electric(Real* q_zone, Real& E_zone, const int comp) {
+electric(const Real* q_zone, Real& E_zone, const int comp) {
 
   // this takes the cell-center primitive state, q_zone, and computes the cell-center
   // electric field, E_zone, using Faraday's law:
@@ -99,7 +99,7 @@ electric(Real* q_zone, Real& E_zone, const int comp) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ConsToPrim(Real* q_zone, Real* U_zone) {
+ConsToPrim(Real* q_zone, const Real* U_zone) {
 
   // calculate the primitive variables from the conserved
   // U has NUM_STATE+3 components

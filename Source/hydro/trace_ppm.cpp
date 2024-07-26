@@ -304,7 +304,7 @@ Castro::trace_ppm(const Box& bx,
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rho, Im_src_rho);
     }
 
-    // normal velcoity
+    // normal velocity
 
     Real Ip_src_un_0 = 0.0_rt;
     Real Im_src_un_0 = 0.0_rt;
@@ -418,8 +418,8 @@ Castro::trace_ppm(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-        int nc = upassmap(ipassive);
-        int n = qpassmap(ipassive);
+        const int nc = upassmap(ipassive);
+        const int n = qpassmap(ipassive);
 
         load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
         ppm_reconstruct(s, flat, sm, sp);

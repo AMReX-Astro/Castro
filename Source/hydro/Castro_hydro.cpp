@@ -12,7 +12,7 @@ Castro::cons_to_prim(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim()");
-    
+
 #ifdef RADIATION
     AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 
@@ -120,7 +120,7 @@ Castro::cons_to_prim_fourth(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim_fourth()");
-    
+
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
@@ -170,7 +170,7 @@ Castro::cons_to_prim_fourth(const Real time)
             auto qaux_bar_arr = qaux_bar.array(mfi);
 
             ctoprim(qbx,
-                    time, 
+                    time,
                     Sborder_arr,
                     q_bar_arr,
                     qaux_bar_arr);

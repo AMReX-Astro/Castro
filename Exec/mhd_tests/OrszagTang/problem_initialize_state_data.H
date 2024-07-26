@@ -9,14 +9,11 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    int coord_type = geomdata.Coord();
-
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
     Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
     Real y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
-    Real z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 
     state(i,j,k,URHO) = problem::rho_0;
     state(i,j,k,UMX) = -problem::rho_0 * problem::u_0 * std::sin(2.0_rt * M_PI * y);

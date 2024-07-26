@@ -106,7 +106,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
         auto cblo = crse_bx.loVect3d();
         auto cbhi = crse_bx.hiVect3d();
         int mxlen = crse_bx.longside() + 2;
-        if (pow(mxlen,(float)AMREX_SPACEDIM-1) > tmplen) {
+        if (std::pow(mxlen,(float)AMREX_SPACEDIM-1) > tmplen) {
             delete [] derives;
 #if (AMREX_SPACEDIM == 1)
             derives = new Real[1];

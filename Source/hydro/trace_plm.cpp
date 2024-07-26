@@ -37,8 +37,8 @@ Castro::trace_plm(const Box& bx, const int idir,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
@@ -327,8 +327,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nc = upassmap(ipassive);
-      int n = qpassmap(ipassive);
+      const int nc = upassmap(ipassive);
+      const int n = qpassmap(ipassive);
 
       // get the slope
 

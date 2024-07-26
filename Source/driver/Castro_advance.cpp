@@ -68,7 +68,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
-#ifndef MHD     
+#ifndef MHD
 #ifndef AMREX_USE_GPU
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
@@ -80,7 +80,7 @@ Castro::advance (Real time,
 
 #endif // TRUE_SDC
 #endif // AMREX_USE_GPU
-#endif //MHD    
+#endif //MHD
     }
 
     // If the user requests, indicate that we want a regrid at the end of the step.
@@ -158,7 +158,7 @@ Castro::initialize_do_advance (Real time, Real dt)
       FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
       FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
-#endif      
+#endif
       // for the CTU unsplit method, we always start with the old
       // state note: although clean_state has already been done on
       // the old state in initialize_advance, we still need to do
@@ -175,7 +175,7 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      // we'll handle the filling inside of do_advance_sdc 
+      // we'll handle the filling inside of do_advance_sdc
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
     } else {
@@ -467,7 +467,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                  get_old_data(Mag_Type_x),
                  get_old_data(Mag_Type_y),
                  get_old_data(Mag_Type_z),
-#endif      
+#endif
                   S_old, time, S_old.nGrow());
 
 

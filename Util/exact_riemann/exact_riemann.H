@@ -1,11 +1,16 @@
 #ifndef EXACT_RIEMANN_H
 #define EXACT_RIEMANN_H
 
+#include <AMReX_REAL.H>
+
 #include <fstream>
 
-#include <riemann_sample.H>
-#include <riemann_star_state.H>
-#include <riemann_support.H>
+#include <castro_params.H>
+
+#include <exact_riemann_sample.H>
+#include <exact_riemann_star_state.H>
+
+using namespace amrex::literals;
 
 AMREX_INLINE
 void
@@ -15,7 +20,7 @@ exact_riemann() {
     // exploring composition jumps here.  We'll take a constant
     // composition.
 
-    Real xn[NumSpec] = {0.0};
+    amrex::Real xn[NumSpec] = {0.0};
     xn[0] = 1.0_rt;
 
 
@@ -43,18 +48,15 @@ exact_riemann() {
 
     }
 
-    if (problem::co_moving_frame) {
-        Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-        problem::u_l -= W_avg;
-        problem::u_r -= W_avg;
-    }
+    amrex::Real ustar, pstar, W_l, W_r;
 
-    Real ustar, pstar, W_l, W_r;
+    std::cout << "solving for star state: " << std::endl;
 
-    riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
-                       problem::rho_r, problem::u_r, problem::p_r, xn,
-                       ustar, pstar, W_l, W_r);
+    auto niter = riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
+                                    problem::rho_r, problem::u_r, problem::p_r, xn,
+                                    ustar, pstar, W_l, W_r);
 
+    std::cout << "found star state, niter = " << niter << "; pstar, ustar = " << pstar << " " << ustar << std::endl;
 
     // find the solution as a function of xi = x/t
     std::ofstream ofile;
@@ -62,7 +64,7 @@ exact_riemann() {
 
     // This follows from the discussion around C&G Eq. 15
 
-    Real dx = (problem::xmax - problem::xmin) / static_cast<Real>(problem::npts);
+    amrex::Real dx = (problem::xmax - problem::xmin) / static_cast<amrex::Real>(problem::npts);
 
     // loop over xi space
 
@@ -72,21 +74,15 @@ exact_riemann() {
 
         // compute xi = x/t -- this is the similarity variable for the
         // solution
-        Real x  = problem::xmin + (static_cast<Real>(i) - 0.5_rt) * dx;
+        amrex::Real x  = problem::xmin + (static_cast<amrex::Real>(i) - 0.5_rt) * dx;
 
-        Real rho, u, p, xn_s[NumSpec];
+        amrex::Real rho, u, p, xn_s[NumSpec];
 
         riemann_sample(problem::rho_l, problem::u_l, problem::p_l, xn,
                        problem::rho_r, problem::u_r, problem::p_r, xn,
                        ustar, pstar, W_l, W_r,
                        x, problem::xjump, problem::t,
                        rho, u, p, xn_s);
-
-        if (problem::co_moving_frame) {
-            Real W_avg = 0.5_rt * (problem::u_l + problem::u_r);
-            u += W_avg;
-            x += problem::t * W_avg;
-        }
 
         // get the thermodynamics for this state for output
 
@@ -96,7 +92,7 @@ exact_riemann() {
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn_s[n];
         }
-        eos_state.T = problem::initial_temp_guess;
+        eos_state.T = castro::T_guess;
 
         eos(eos_input_rp, eos_state);
 

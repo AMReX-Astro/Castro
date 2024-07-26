@@ -1,3 +1,5 @@
+#ifndef CASTRO_MHD_H
+#define CASTRO_MHD_H
 
     advance_status construct_ctu_mhd_source(amrex::Real time, amrex::Real dt);
 
@@ -31,12 +33,12 @@
 
     void
     consup_mhd(const amrex::Box& bx, const Real dt,
-               amrex::Array4<amrex::Real> const& update,
+               amrex::Array4<amrex::Real> const& U_new,
                amrex::Array4<amrex::Real const> const& flux0,
                amrex::Array4<amrex::Real const> const& flux1,
                amrex::Array4<amrex::Real const> const& flux2);
 
-    void
+    static void
     PrimToCons(const amrex::Box& bx,
                amrex::Array4<amrex::Real const> const& q_arr,
                amrex::Array4<amrex::Real> const& u_arr);
@@ -51,21 +53,21 @@
               const amrex::Real dt);
 
 
-    void
+    static void
     electric_edge_x(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
                     amrex::Array4<amrex::Real const> const& flxy,
                     amrex::Array4<amrex::Real const> const& flxz);
 
-    void
+    static void
     electric_edge_y(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
                     amrex::Array4<amrex::Real const> const& flxx,
                     amrex::Array4<amrex::Real const> const& flxz);
 
-    void
+    static void
     electric_edge_z(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
                     amrex::Array4<amrex::Real> const& E,
@@ -97,7 +99,7 @@
               amrex::Array4<amrex::Real const> const& Ed2,
               const int d, const int d1, const int d2, const amrex::Real dt);
 
-    void
+    static void
     hlld(const amrex::Box& bx,
          amrex::Array4<amrex::Real const> const& qleft,
          amrex::Array4<amrex::Real const> const& qright,
@@ -105,3 +107,4 @@
          const int dir);
 
 
+#endif

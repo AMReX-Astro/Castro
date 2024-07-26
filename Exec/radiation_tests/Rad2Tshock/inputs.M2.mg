@@ -25,7 +25,7 @@ amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.refinement_indicators = tempgrad_rel
 
-amr.refine.tempgrad_rel.max_level = 20
+amr.refine.tempgrad_rel.max_level = 15
 amr.refine.tempgrad_rel.relative_gradient = 0.1
 amr.refine.tempgrad_rel.field_name = Temp
 

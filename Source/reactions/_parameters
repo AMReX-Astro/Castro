@@ -1,4 +1,4 @@
 @namespace: integrator
 
 # Do not subtract the initial energy in the integrator
-subtract_internal_energy     logical     .false.     100
+subtract_internal_energy     int     0     100

@@ -28,7 +28,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 
   if (!a2coefs[level]) {
     a2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -41,7 +41,7 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 
   MultiFab::Copy((*a2coefs[level])[dir], a2, 0, 0, ncomp, ngrow);
 }
- 
+
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
   BL_PROFILE("HypreExtMultiABec::cCoefficients");
@@ -53,7 +53,7 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
   if (!ccoefs[level]) {
     ccoefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -89,7 +89,7 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 
   MultiFab::Copy((*d1coefs[level])[dir], d1, 0, 0, ncomp, ngrow);
 }
- 
+
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
   BL_PROFILE("HypreExtMultiABec::d2Coefficients");
@@ -101,7 +101,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 
   if (!d2coefs[level]) {
     d2coefs[level].reset(new Array<MultiFab, AMREX_SPACEDIM>);
- 
+
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       BoxArray edge_boxes(grids[level]);
       edge_boxes.surroundingNodes(i);
@@ -115,7 +115,7 @@ void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
   MultiFab::Copy((*d2coefs[level])[dir], d2, 0, 0, ncomp, ngrow);
 }
 
-static void 
+static void
 FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
           const Mask& msk, const Box& reg,
           const IntVect& vin, int r, int bho, int flevel)
@@ -423,7 +423,7 @@ void HypreExtMultiABec::loadMatrix()
               if (reg[ori] == domain[ori] && bd[level]->mixedBndry(ori)) {
                 bct = (*(bd[level]->bndryTypes(ori)[i]))(v+vin);
               }
-              if (bct == LO_DIRICHLET) {
+              if (bct == AMREX_LO_DIRICHLET) {
                 if (bho == 1) {
                   evalue(ori,i)(v+vin).push(level, v,
                                             (bcl * th2) / (h * (bcl + h2)));
@@ -456,7 +456,7 @@ void HypreExtMultiABec::loadMatrix()
                   // If we're upwinding from the interior, just use that value.
                   // If we're upwinding from the exterior, interpolate
                   // (linearly) to the ghost cell center position.
-                  
+
                   Real fac = gamma * ofh;
                   int  i0  = ori.isLow();
                   int  i1  = ori.isHigh();
@@ -478,10 +478,10 @@ void HypreExtMultiABec::loadMatrix()
                   entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin), fac);
                 }
               }
-              else if (bct == LO_NEUMANN) {
+              else if (bct == AMREX_LO_NEUMANN) {
                 // no more action required here
               }
-              else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+              else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                 if (bho == 1) {
                   evalue(ori,i)(v+vin).push(level, v,      1.5);
                   evalue(ori,i)(v+vin).push(level, v-vin, -0.5);
@@ -937,7 +937,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
             if (reg[ori] == domain[ori] && bd[level]->mixedBndry(ori)) {
               bct = (*(bd[level]->bndryTypes(ori)[i]))(v+vin);
             }
-            if (bct == LO_DIRICHLET) {
+            if (bct == AMREX_LO_DIRICHLET) {
               Real dfac, vfac;
               if (bho == 1) {
                 dfac = 1.0 / ((bcl + h2) * (bcl + th2));
@@ -991,7 +991,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
                 HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
               }
             }
-            else if (bct == LO_NEUMANN) {
+            else if (bct == AMREX_LO_NEUMANN) {
               // cmult should be c for photons, 1 for neutrinos
               Real cmult = 1.0;
               Real xi = 0.0; // xi should be passed in through RadBndry?
@@ -1000,7 +1000,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
                      cmult * fs(v+vin,bdcomp));
               HYPRE_SStructVectorAddToValues(b, part, getV1(v), 0, &tmp);
             }
-            else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+            else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
               // cmult should be c for photons, 1 for neutrinos
               Real cmult = 1.0;
               Real xi = 0.0; // xi should be passed in through RadBndry?

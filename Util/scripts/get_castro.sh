@@ -46,7 +46,7 @@ if [ -f castro_exports.sh ]; then
     rm -f castro_exports.sh
 fi
 
-cat >> castro_exports.sh << EOF 
+cat >> castro_exports.sh << EOF
 export CASTRO_HOME="${pwd}/Castro"
 export MICROPHYSICS_HOME="${pwd}/Microphysics"
 export AMREX_HOME="${pwd}/amrex"

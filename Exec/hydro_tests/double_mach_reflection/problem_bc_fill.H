@@ -5,8 +5,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     const GeometryData& geomdata)
 {
     const int* domlo = geomdata.Domain().loVect();
     const int* domhi = geomdata.Domain().hiVect();
@@ -18,7 +18,7 @@ void problem_bc_fill(int i, int j, int k,
     // x boundaries
     //-------------------------------------------------------------------------
 
-    if ((bcs(URHO).lo(0) == EXT_DIR || bcs(URHO).lo(0) == FOEXTRAP) && i < domlo[0]) {
+    if ((bcs(URHO).lo(0) == amrex::BCType::ext_dir || bcs(URHO).lo(0) == amrex::BCType::foextrap) && i < domlo[0]) {
         state(i,j,k,URHO) = problem::rho_l;
         state(i,j,k,UMX) = problem::rho_l * problem::u_l;
         state(i,j,k,UMY) = problem::rho_l * problem::v_l;
@@ -43,7 +43,7 @@ void problem_bc_fill(int i, int j, int k,
     Real y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5e0_rt);
 
     // YLO
-    if ((bcs(URHO).lo(1) == EXT_DIR || bcs(URHO).lo(1) == FOEXTRAP) && j < domlo[1]) {
+    if ((bcs(URHO).lo(1) == amrex::BCType::ext_dir || bcs(URHO).lo(1) == amrex::BCType::foextrap) && j < domlo[1]) {
         if (x < 1.e0_rt / 6.e0_rt) {
             // ICs
             state(i,j,k,URHO) = problem::rho_l;
@@ -71,7 +71,7 @@ void problem_bc_fill(int i, int j, int k,
     }
 
     // YHI
-    if ((bcs(URHO).hi(2) == EXT_DIR || bcs(URHO).hi(2) == FOEXTRAP) && j > domhi[1]) {
+    if ((bcs(URHO).hi(2) == amrex::BCType::ext_dir || bcs(URHO).hi(2) == amrex::BCType::foextrap) && j > domhi[1]) {
         state(i,j,k,URHO ) = 0.e0_rt;
         state(i,j,k,UMX  ) = 0.e0_rt;
         state(i,j,k,UMY  ) = 0.e0_rt;
