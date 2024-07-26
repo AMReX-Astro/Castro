@@ -1,0 +1,1 @@
+We want to study the impact of shock detection and burning treatment in the context of a double detonation SNe Ia by simulating a lateral flame in the accreted He layer on the white dwarf.

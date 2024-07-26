@@ -259,16 +259,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       shk.resize(obx, 1);
       fab_size += shk.nBytes();
 
-      Array4<Real> const shk_arr = shk.array();
-
       // Multidimensional shock detection
-      // Used for the hybrid Riemann solver
 
-#ifdef SHOCK_VAR
-      bool compute_shock = true;
-#else
-      bool compute_shock = false;
-#endif
+      // this is a local shock variable used only for the Riemann
+      // solver -- this will never be used to update the value in the
+      // conserved state.
+
+      Array4<Real> const shk_arr = shk.array();
 
       // get the primitive variable hydro sources
 
@@ -285,7 +282,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
       });
 
-      if (hybrid_riemann == 1 || compute_shock) {
+      if (hybrid_riemann == 1) {
         shock(obx, q_arr, old_src_arr, shk_arr);
       }
       else {
@@ -1193,9 +1190,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 
       consup_hydro(bx,
-#ifdef SHOCK_VAR
-                   shk_arr,
-#endif
                    update_arr,
                    flx_arr, qx_arr,
 #if AMREX_SPACEDIM >= 2

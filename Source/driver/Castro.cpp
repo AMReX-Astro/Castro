@@ -56,6 +56,9 @@
 #include <problem_tagging.H>
 
 #include <ambient.H>
+#include <castro_limits.H>
+
+#include <riemann_constants.H>
 
 using namespace amrex;
 
@@ -391,31 +394,31 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (cg_maxiter > HISTORY_SIZE) {
-            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        if (riemann_shock_maxiter > riemann_constants::HISTORY_SIZE) {
+            amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
-        if (cg_blend == 2 && cg_maxiter < 5) {
-            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        if (riemann_cg_blend == 2 && riemann_shock_maxiter < 5) {
+            amrex::Error("Error: need riemann_shock_maxiter >= 5 to do a bisection search on secant iteration failure.");
         }
     }
 #endif
 
-    if (hybrid_riemann == 1 && AMREX_SPACEDIM == 1)
+    if (hybrid_riemann && AMREX_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
         amrex::Error();
       }
 
-    if (hybrid_riemann == 1 && (dgeom.IsSPHERICAL() || dgeom.IsRZ() ))
+    if (hybrid_riemann && (dgeom.IsSPHERICAL() || dgeom.IsRZ() ))
       {
         std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
         amrex::Error();
       }
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
-    if (do_hydro == 0) {
-      do_reflux = 0;
+    if (!do_hydro) {
+      do_reflux = false;
     }
 
     if (max_dt < fixed_dt)
@@ -590,7 +593,12 @@ Castro::read_params ()
         if (ppr.countval("max_level") > 0) {
             int max_level;
             ppr.get("max_level", max_level);
+            BL_ASSERT(max_level <= MAX_LEV);
             info.SetMaxLevel(max_level);
+        } else {
+            // the default max_level of AMRErrorTagInfo is 1000, but make sure
+            // that it is reasonable for Castro
+            info.SetMaxLevel(MAX_LEV);
         }
         if (ppr.countval("volume_weighting") > 0) {
             int volume_weighting;
@@ -2776,8 +2784,8 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
             // Update the flux register now that we may have modified some of the flux corrections.
 
             for (OrientationIter fi; fi.isValid(); ++fi) {
-                FabSet& fs = (*reg)[fi()];
                 if (fi().coordDir() == idir) {
+                    FabSet& fs = (*reg)[fi()];
                     fs.copyFrom(temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir].nComp());
                 }
             }
@@ -3292,6 +3300,9 @@ Castro::check_for_negative_density ()
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
                                   << " with density = " << rho << "\n";
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
+                                            n, X, i, j, k, rho);
 #endif
                         X_check_failed = 1;
                     }
@@ -3301,6 +3312,10 @@ Castro::check_for_negative_density ()
 
             return {rho_check_failed, X_check_failed};
         });
+
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
 
     }
 
@@ -3545,18 +3560,20 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             {
                 bool outer_boundary_test[3] = {false};
 
-                int idx[3] = {i, j, k};
+                const int idx[3] = {i, j, k};
 
                 for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
 
                     int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
 
-                    if ((physbc_lo[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
+                    if ((physbc_lo[dim] != amrex::PhysBCType::symmetry &&
+                         physbc_lo[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] <= domlo[dim] + boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
 
-                    if ((physbc_hi[dim] != amrex::PhysBCType::symmetry && physbc_lo[dim] != amrex::PhysBCType::interior) &&
+                    if ((physbc_hi[dim] != amrex::PhysBCType::symmetry &&
+                         physbc_hi[dim] != amrex::PhysBCType::interior) &&
                         (idx[dim] >= domhi[dim] - boundary_buf)) {
                         outer_boundary_test[dim] = true;
                     }
@@ -4231,7 +4248,7 @@ Castro::get_numpts ()
 }
 
 void
-Castro::define_new_center(MultiFab& S, Real time)
+Castro::define_new_center(const MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
@@ -4420,7 +4437,7 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 
 
 void
-Castro::check_for_nan(MultiFab& state_in, int check_ghost)
+Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
 {
   BL_PROFILE("Castro::check_for_nan()");
 

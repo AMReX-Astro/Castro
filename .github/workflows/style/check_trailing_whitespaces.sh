@@ -6,6 +6,7 @@ find . -type d \( -name .git \
                   -o -path ./paper \
                   -o -name build -o -name install \
                   -o -name tmp_build_dir -o -name tmp_install_dir \
+                  -o -name ci-benchmarks \
                   -o -path ./util/gcem \
                \) -prune -o \
        -type f \( \( -name "*.H" -o -name "*.h" -o -name "*.hh" -o -name "*.hpp" \

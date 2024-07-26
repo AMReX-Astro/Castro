@@ -136,6 +136,10 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+ifeq ($(USE_GPU_PRINTF),TRUE)
+  DEFINES += -DALLOW_GPU_PRINTF
+endif
+
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
@@ -149,12 +153,6 @@ build_status:
 
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
-
-# OpenACC support
-ifeq ($(USE_ACC), TRUE)
-  DEFINES += -DACC
-endif
-
 
 
 #------------------------------------------------------------------------------

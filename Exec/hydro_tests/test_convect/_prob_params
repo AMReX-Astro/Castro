@@ -1,4 +1,4 @@
-model_name           character          ""              y
+model_name           string          ""              y
 
 apply_vel_field      integer            0               y
 

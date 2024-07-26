@@ -89,7 +89,7 @@
                      amrex::Array4<amrex::Real> const& srcQ);
 
 ///
-/// the actual work routine that does the conversion of conserved to primtiive
+/// the actual work routine that does the conversion of conserved to primitive
 /// variables.
 ///
 /// @param bx        the box to operate over
@@ -118,19 +118,6 @@
                  amrex::Array4<amrex::Real> const& q_arr,
                  amrex::Array4<amrex::Real> const& qaux_arr);
 
-///
-/// compute the flattening coefficient.  This is 0 if we are in a shock and
-/// 1 if we are not applying any flattening
-///
-/// @param bx         the box to operate over
-/// @param q_arr      the primitive variable state
-/// @param flatn      the flattening coefficient
-/// @param pres_comp  index into q_arr of the pressure component
-///
-    static void uflatten(const amrex::Box& bx,
-                  amrex::Array4<amrex::Real const> const& q_arr,
-                  amrex::Array4<amrex::Real> const& flatn,
-                  const int pres_comp);
 
 ///
 /// A multidimensional shock detection algorithm
@@ -350,7 +337,7 @@
 /// @param idir        coordinate direction (0 = x, 1 = y, 2 = z)
 /// @param q_arr       the primitive variable state
 /// @param flatn_arr   flattening coefficient
-/// @param dq          slope of the primtiive variables
+/// @param dq          slope of the primitive variables
 /// @param qm          left interface state, e.g., q_{i-1/2,j,k,L}
 /// @param qp          right interface state, e.g., q_{i-1/2,j,k,R}
 ///
@@ -603,7 +590,7 @@
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
-/// Reconstruct the primtive state as parabola, integrate under them,
+/// Reconstruct the primitive state as parabola, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
 ///
@@ -634,7 +621,7 @@
                    const amrex::Real dt);
 
 ///
-/// Reconstruct the primtive state as pieceeise linear, integrate under them,
+/// Reconstruct the primitive state as pieceeise linear, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
 ///
@@ -665,7 +652,7 @@
                    const amrex::Real dt);
 
 ///
-/// Reconstruct the primtive state as parabola, integrate under them,
+/// Reconstruct the primitive state as parabola, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU radiation hydrodynamics scheme.
 ///
@@ -711,9 +698,6 @@
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
-#ifdef SHOCK_VAR
-                      amrex::Array4<amrex::Real const> const& shk,
-#endif
                       amrex::Array4<amrex::Real> const& U_new,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,

@@ -36,7 +36,7 @@ jobs:
       - name: Run flame_wave
         run: |
           cd Exec/science/flame_wave
-          ./Castro2d.gnu.DEBUG.ex inputs_2d.testsuite max_step=2 castro.sum_interval=1 amr.plot_files_output=0 amr.checkpoint_files_output=0
+          ./Castro2d.gnu.DEBUG.ex inputs_2d.testsuite max_step=2 castro.sum_interval=1 amr.plot_files_output=1 amr.checkpoint_files_output=0
 
       - name: Check grid_diag.out
         run: |
@@ -47,3 +47,10 @@ jobs:
         run: |
           cd Exec/science/flame_wave
           diff species_diag.out ci-benchmarks/species_diag.out
+
+      - name: Check job_info parameters
+        run: |
+          cd Exec/science/flame_wave
+          line_no=`grep -n "Inputs File Parameters" plt00000/job_info | cut -d ":" -f 1`
+          tail -n +$(($line_no -1)) plt00000/job_info > tmp.txt
+          diff tmp.txt ci-benchmarks/job_info_params.txt

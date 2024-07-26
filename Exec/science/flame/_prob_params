@@ -20,13 +20,13 @@ e_ash               real             0.0_rt
 
 xn_ash              real             0.0_rt       n       nspec
 
-fuel1_name          character        "helium-4"   y
+fuel1_name          string           "helium-4"   y
 
-fuel2_name          character        ""           y
+fuel2_name          string           ""           y
 
-fuel3_name          character        ""           y
+fuel3_name          string           ""           y
 
-fuel4_name          character        ""           y
+fuel4_name          string           ""           y
 
 X_fuel1             real             1.0_rt       y
 
@@ -36,13 +36,13 @@ X_fuel3             real             0.0_rt       y
 
 X_fuel4             real             0.0_rt       y
 
-ash1_name           character        "oxygen-16"  y
+ash1_name           string           "oxygen-16"  y
 
-ash2_name           character        ""           y
+ash2_name           string           ""           y
 
-ash3_name           character        ""           y
+ash3_name           string           ""           y
 
-ash4_name           character        ""           y
+ash4_name           string           ""           y
 
 X_ash1              real             1.0_rt       y
 
@@ -57,4 +57,3 @@ v_inflow            real             0.0_rt       y
 mass_flux           real             0.0_rt
 
 smallx_init         real             0.0_rt       y
- 

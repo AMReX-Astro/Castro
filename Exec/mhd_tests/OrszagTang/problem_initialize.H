@@ -9,7 +9,7 @@ void problem_initialize ()
 {
 
     // temporarily give B_0 value here
-    constexpr Real M_SQRT_PI = std::sqrt(M_PI);
+    const Real M_SQRT_PI = std::sqrt(M_PI);
     problem::B_0 = 1.0 / (2.0_rt * M_SQRT_PI);
 
     // compute the internal energy (erg/cc) for the left and right state

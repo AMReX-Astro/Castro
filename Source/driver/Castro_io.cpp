@@ -753,7 +753,38 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n";
 
+  jobInfoFile << "     amr.n_error_buf:      ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int errbuf = parent->nErrorBuf(lev-1);
+    jobInfoFile << errbuf << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.regrid_int:       ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int regridint = parent->regridInt(lev-1);
+    jobInfoFile << regridint << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.blocking_factor:  ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect bf = parent->blockingFactor(lev-1);
+    jobInfoFile << bf[0] << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.max_grid_size:    ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect mgs = parent->maxGridSize(lev-1);
+    jobInfoFile << mgs[0] << " ";
+  }
   jobInfoFile << "\n\n";
+
+  jobInfoFile << "     amr.subcycling_mode: " << parent->subcyclingMode();
+
+  jobInfoFile << "\n\n";
+
 
 
   // species info
@@ -811,8 +842,6 @@ void
 Castro::writeBuildInfo ()
 {
   std::string PrettyLine = std::string(78, '=') + "\n";
-  std::string OtherLine = std::string(78, '-') + "\n";
-  std::string SkipSpace = std::string(8, ' ');
 
   // build information
   std::cout << PrettyLine;

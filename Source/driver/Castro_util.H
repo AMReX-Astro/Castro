@@ -97,9 +97,9 @@ void position(int i, int j, int k,
     // Given 3D indices (i,j,k), return the cell-centered spatial position.
     // Optionally we can also be edge-centered in any of the directions.
 
-    int idx[3] = {i, j, k};
+    const int idx[3] = {i, j, k};
 
-    bool cc[3] = {ccx, ccy, ccz};
+    const bool cc[3] = {ccx, ccy, ccz};
 
     Real offset[AMREX_SPACEDIM];
 

@@ -10,8 +10,6 @@ USE_OMP = FALSE
 
 USE_REACT = FALSE
 
-USE_ACC = FALSE
-
 ALL: radhelp
 
 radhelp:

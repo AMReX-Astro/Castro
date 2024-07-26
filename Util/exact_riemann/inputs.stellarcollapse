@@ -8,8 +8,6 @@ problem.T_r   = 5.e10
 
 problem.use_Tinit = 1
 
-problem.initial_temp_guess = 1.e5
-
 problem.riemann_max_iter = 20
 
 problem.xmin  = 0.0
@@ -19,6 +17,8 @@ problem.xjump = 0.5e4
 problem.t     = 1.e-6
 
 problem.npts  = 128
+
+castro.T_guess = 1.e5
 
 eos.eos_file = LS220_240r_140t_50y_analmu_20120628_SVNr28.h5
 
