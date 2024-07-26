@@ -20,137 +20,153 @@
 using std::string;
 using namespace amrex;
 
-static Box the_same_box (const Box& b) { return b; }
-static Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
+using BndryFunc = StateDescriptor::BndryFunc;
 
-typedef StateDescriptor::BndryFunc BndryFunc;
+namespace {
 
-//
-// Components are:
-//  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
-//
-static int scalar_bc[] =
-  {
-    INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
-  };
+    Box the_same_box (const Box& b) { return b; }
+    Box grow_box_by_one (const Box& b) { return amrex::grow(b,1); }
 
-static int norm_vel_bc[] =
-  {
-    INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_ODD,  REFLECT_ODD,  REFLECT_ODD
-  };
+    //
+    // Components are:
+    //  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
+    //
+    int scalar_bc[] =
+    {
+        amrex::BCType::int_dir,
+        amrex::BCType::ext_dir,
+        amrex::BCType::foextrap,
+        amrex::BCType::reflect_even,
+        amrex::BCType::reflect_even,
+        amrex::BCType::reflect_even
+    };
 
-static int tang_vel_bc[] =
-  {
-    INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
-  };
+    int norm_vel_bc[] =
+    {
+        amrex::BCType::int_dir,
+        amrex::BCType::ext_dir,
+        amrex::BCType::foextrap,
+        amrex::BCType::reflect_odd,
+        amrex::BCType::reflect_odd,
+        amrex::BCType::reflect_odd
+    };
+
+    int tang_vel_bc[] =
+    {
+        amrex::BCType::int_dir,
+        amrex::BCType::ext_dir,
+        amrex::BCType::foextrap,
+        amrex::BCType::reflect_even,
+        amrex::BCType::reflect_even,
+        amrex::BCType::reflect_even
+    };
 
 #ifdef MHD
-static int mag_field_bc[] = 
-{
-  INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
-};
-#endif
-
-static
-void
-set_scalar_bc (BCRec& bc, const BCRec& phys_bc)
-{
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-  for (int i = 0; i < AMREX_SPACEDIM; i++)
+    int mag_field_bc[] =
     {
-      bc.setLo(i,scalar_bc[lo_bc[i]]);
-      bc.setHi(i,scalar_bc[hi_bc[i]]);
-    }
-}
+        amrex::BCType::int_dir,
+        amrex::BCType::ext_dir,
+        amrex::BCType::foextrap,
+        amrex::BCType::reflect_even,
+        amrex::BCType::foextrap,
+        amrex::BCType::hoextrap
+    };
+#endif
 
-static
-void
-set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
-{
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-  bc.setLo(0,norm_vel_bc[lo_bc[0]]);
-  bc.setHi(0,norm_vel_bc[hi_bc[0]]);
-#if (AMREX_SPACEDIM >= 2)
-  bc.setLo(1,tang_vel_bc[lo_bc[1]]);
-  bc.setHi(1,tang_vel_bc[hi_bc[1]]);
-#endif
-#if (AMREX_SPACEDIM == 3)
-  bc.setLo(2,tang_vel_bc[lo_bc[2]]);
-  bc.setHi(2,tang_vel_bc[hi_bc[2]]);
-#endif
-}
-
-static
-void
-set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
-{
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-  bc.setLo(0,tang_vel_bc[lo_bc[0]]);
-  bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (AMREX_SPACEDIM >= 2)
-  bc.setLo(1,norm_vel_bc[lo_bc[1]]);
-  bc.setHi(1,norm_vel_bc[hi_bc[1]]);
-#endif
-#if (AMREX_SPACEDIM == 3)
-  bc.setLo(2,tang_vel_bc[lo_bc[2]]);
-  bc.setHi(2,tang_vel_bc[hi_bc[2]]);
-#endif
-}
-
-static
-void
-set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
-{
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-  bc.setLo(0,tang_vel_bc[lo_bc[0]]);
-  bc.setHi(0,tang_vel_bc[hi_bc[0]]);
-#if (AMREX_SPACEDIM >= 2)
-  bc.setLo(1,tang_vel_bc[lo_bc[1]]);
-  bc.setHi(1,tang_vel_bc[hi_bc[1]]);
-#endif
-#if (AMREX_SPACEDIM == 3)
-  bc.setLo(2,norm_vel_bc[lo_bc[2]]);
-  bc.setHi(2,norm_vel_bc[hi_bc[2]]);
-#endif
-}
-
-
-#ifdef MHD
-static
-void
-set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
-{
-    const int* lo_bc = phys_bc.lo();
-    const int* hi_bc = phys_bc.hi();
-    for (int i = 0; i < AMREX_SPACEDIM; i++)
+    void
+    set_scalar_bc (BCRec& bc, const BCRec& phys_bc)
     {
-        bc.setLo(i, mag_field_bc[lo_bc[i]]);
-        bc.setHi(i, mag_field_bc[hi_bc[i]]);
-    }
-}
-#endif
-
-// In some cases we want to replace inflow boundaries with
-// first-order extrapolation boundaries. This is intended to
-// be used for state data that the user is not going to
-// provide inflow boundary conditions for, like gravity
-// and reactions, and it works in conjunction with the
-// generic_fill boundary routine.
-
-static
-void
-replace_inflow_bc (BCRec& bc)
-{
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        if (bc.lo(dir) == EXT_DIR) {
-            bc.setLo(dir, FOEXTRAP);
+        const int* lo_bc = phys_bc.lo();
+        const int* hi_bc = phys_bc.hi();
+        for (int i = 0; i < AMREX_SPACEDIM; i++)
+        {
+            bc.setLo(i,scalar_bc[lo_bc[i]]);
+            bc.setHi(i,scalar_bc[hi_bc[i]]);
         }
-        if (bc.hi(dir) == EXT_DIR) {
-            bc.setHi(dir, FOEXTRAP);
+    }
+
+    void
+    set_x_vel_bc(BCRec& bc, const BCRec& phys_bc)
+    {
+        const int* lo_bc = phys_bc.lo();
+        const int* hi_bc = phys_bc.hi();
+        bc.setLo(0,norm_vel_bc[lo_bc[0]]);
+        bc.setHi(0,norm_vel_bc[hi_bc[0]]);
+#if (AMREX_SPACEDIM >= 2)
+        bc.setLo(1,tang_vel_bc[lo_bc[1]]);
+        bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (AMREX_SPACEDIM == 3)
+        bc.setLo(2,tang_vel_bc[lo_bc[2]]);
+        bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
+    }
+
+    void
+    set_y_vel_bc(BCRec& bc, const BCRec& phys_bc)
+    {
+        const int* lo_bc = phys_bc.lo();
+        const int* hi_bc = phys_bc.hi();
+        bc.setLo(0,tang_vel_bc[lo_bc[0]]);
+        bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (AMREX_SPACEDIM >= 2)
+        bc.setLo(1,norm_vel_bc[lo_bc[1]]);
+        bc.setHi(1,norm_vel_bc[hi_bc[1]]);
+#endif
+#if (AMREX_SPACEDIM == 3)
+        bc.setLo(2,tang_vel_bc[lo_bc[2]]);
+        bc.setHi(2,tang_vel_bc[hi_bc[2]]);
+#endif
+    }
+
+    void
+    set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
+    {
+        const int* lo_bc = phys_bc.lo();
+        const int* hi_bc = phys_bc.hi();
+        bc.setLo(0,tang_vel_bc[lo_bc[0]]);
+        bc.setHi(0,tang_vel_bc[hi_bc[0]]);
+#if (AMREX_SPACEDIM >= 2)
+        bc.setLo(1,tang_vel_bc[lo_bc[1]]);
+        bc.setHi(1,tang_vel_bc[hi_bc[1]]);
+#endif
+#if (AMREX_SPACEDIM == 3)
+        bc.setLo(2,norm_vel_bc[lo_bc[2]]);
+        bc.setHi(2,norm_vel_bc[hi_bc[2]]);
+#endif
+    }
+
+#ifdef MHD
+    void
+    set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
+    {
+        const int* lo_bc = phys_bc.lo();
+        const int* hi_bc = phys_bc.hi();
+        for (int i = 0; i < AMREX_SPACEDIM; i++)
+        {
+            bc.setLo(i, mag_field_bc[lo_bc[i]]);
+            bc.setHi(i, mag_field_bc[hi_bc[i]]);
+        }
+    }
+#endif
+
+    // In some cases we want to replace inflow boundaries with
+    // first-order extrapolation boundaries. This is intended to
+    // be used for state data that the user is not going to
+    // provide inflow boundary conditions for, like gravity
+    // and reactions, and it works in conjunction with the
+    // generic_fill boundary routine.
+
+    void
+    replace_inflow_bc (BCRec& bc)
+    {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            if (bc.lo(dir) == amrex::BCType::ext_dir) {
+                bc.setLo(dir, amrex::BCType::foextrap);
+            }
+            if (bc.hi(dir) == amrex::BCType::ext_dir) {
+                bc.setHi(dir, amrex::BCType::foextrap);
+            }
         }
     }
 }
@@ -204,8 +220,7 @@ Castro::variableSetUp ()
   init_prob_parameters();
 
   // Initialize the runtime parameters for any of the external
-  // microphysics (these are the parameters that are in the &extern
-  // block of the probin file)
+  // microphysics
   extern_init();
 
   // set small positive values of the "small" quantities if they are
@@ -357,7 +372,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
   desc_lst.addDescriptor(Mag_Type_x, xface,
-                         StateDescriptor::Point, 0, 1, 
+                         StateDescriptor::Point, 0, 1,
                          interp, state_data_extrap,
                          store_in_checkpoint);
   IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
@@ -555,7 +570,7 @@ Castro::variableSetUp ()
   bcs[UMUN] = bc;
   name[UMUN] = "mu_n";
 #endif
-  
+
   BndryFunc stateBndryFunc(ca_statefill);
   stateBndryFunc.setRunOnGPU(true);
 
@@ -642,7 +657,7 @@ Castro::variableSetUp ()
   }
 #endif
   // names for the burn_weights that are manually added to the plotfile
-  
+
   if (store_burn_weights) {
 
 #ifdef STRANG
@@ -685,7 +700,7 @@ Castro::variableSetUp ()
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
   }
 
-  char rad_name[10];
+  std::string rad_name;
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
@@ -693,7 +708,7 @@ Castro::variableSetUp ()
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-        sprintf(rad_name, "rad%d", i);
+        rad_name = "rad" + std::to_string(i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
                         genericBndryFunc);
@@ -995,9 +1010,9 @@ Castro::variableSetUp ()
   derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_y, 0, 1);
-  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1); 
-  
-#endif 
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1);
+
+#endif
 
 
 #if NAUX_NET > 0

@@ -26,8 +26,8 @@ Castro::plm(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
@@ -154,8 +154,8 @@ Castro::plm(const Box& bx,
       smhd[IEIGN_BTT] = q_zone(QW);
 
       // cross-talk of normal magnetic field direction
-      for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (Bx(i+1,j,k) - Bx(i,j,k)) / dx[idir];
+      for (auto & source : smhd) {
+          source *= (Bx(i+1,j,k) - Bx(i,j,k)) / dx[idir];
       }
 
     } else if (idir == 1) {
@@ -163,8 +163,8 @@ Castro::plm(const Box& bx,
       smhd[IEIGN_BTT] = q_zone(QW);
 
       // cross-talk of normal magnetic field direction
-      for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (By(i,j+1,k) - By(i,j,k)) / dx[idir];
+      for (auto & source : smhd) {
+          source *= (By(i,j+1,k) - By(i,j,k)) / dx[idir];
       }
 
     } else {
@@ -172,8 +172,8 @@ Castro::plm(const Box& bx,
       smhd[IEIGN_BTT] = q_zone(QV);
 
       // cross-talk of normal magnetic field direction
-      for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (Bz(i,j,k+1) - Bz(i,j,k)) / dx[idir];
+      for (auto & source : smhd) {
+          source *= (Bz(i,j,k+1) - Bz(i,j,k)) / dx[idir];
       }
     }
 
@@ -441,4 +441,3 @@ Castro::plm(const Box& bx,
 
   });
 }
-

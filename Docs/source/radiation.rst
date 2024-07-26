@@ -204,7 +204,7 @@ The parameters describing the opacity include:
    singular, we must set some floors in practice to prevent
    numerical issues. We have one floor for the opacity, which is
    applied to both the Planck and Rosseland opacities, and we
-   also have a temperature floor. 
+   also have a temperature floor.
 
    -  ``opacity.kappa_floor = 1.d-50``
 

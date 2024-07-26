@@ -885,7 +885,7 @@ public:
                                 const amrex::Array<amrex::MultiFab,AMREX_SPACEDIM>& lambda,
                                 const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
-  amrex::Vector<amrex::Real> xnu, nugroup, dnugroup;
+  amrex::Vector<amrex::Real> xnu, nugroup, dnugroup, lognugroup, dlognugroup;
 
 protected:
 

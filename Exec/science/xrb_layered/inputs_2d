@@ -7,7 +7,7 @@ geometry.is_periodic = 1       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0     0.0
 geometry.prob_hi     = 3072    3072
-amr.n_cell           = 128     128
+amr.n_cell           = 256     256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -75,11 +75,14 @@ amr.plot_int        = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
-problem.model_name =  "toy_atm_hot_castro_3cm.hse"
+problem.model_name =  "toy_atm_hot_3cm.hse"
 
 problem.apply_perturbation = 1
 
-problem.model_shift = 300.0
+problem.H_min = 1.e-5
+problem.He_min = 1.e-5
+
+problem.model_shift = 750.0
 
 # MICROPHYSICS
 integrator.jacobian = 1

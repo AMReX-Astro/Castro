@@ -5,7 +5,6 @@ CEXE_sources += HypreExtMultiABec.cpp
 CEXE_sources += HypreMultiABec.cpp
 CEXE_sources += HypreABec.cpp
 CEXE_sources += Radiation.cpp
-CEXE_sources += radiation_params.cpp
 CEXE_sources += RadSolve.cpp
 CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
@@ -29,24 +28,12 @@ CEXE_headers += HABEC.H
 CEXE_headers += filter.H
 CEXE_headers += filt_prim.H
 
-FEXE_headers += RAD_F.H
-FEXE_headers += HABEC_F.H
-
-ca_F90EXE_sources += RAD_$(DIM)D.F90 
-ca_F90EXE_sources += HABEC_$(DIM)D.F90
-
 CEXE_sources += trace_ppm_rad.cpp
-ca_f90EXE_sources += CastroRad_$(DIM)d.f90
 
-ca_F90EXE_sources += rad_params.F90
-ca_F90EXE_sources += Rad_nd.F90
 CEXE_headers += fluxlimiter.H
 CEXE_headers += RadHydro.H
-ca_F90EXE_sources += fluxlimiter.F90
-ca_F90EXE_sources += filter.F90
+
 CEXE_sources += RadDerive.cpp
 CEXE_headers += RadDerive.H
 CEXE_headers += rad_util.H
 CEXE_headers += blackbody.H
-
-ca_F90EXE_sources += rad_source.F90

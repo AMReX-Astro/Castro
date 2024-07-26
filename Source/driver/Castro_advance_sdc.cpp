@@ -30,6 +30,9 @@ Castro::do_advance_sdc (Real time,
 
   // this is the new "formal" SDC integration routine.
 
+  amrex::ignore_unused(amr_iteration);
+  amrex::ignore_unused(amr_ncycle);
+
   // this does the entire update in time for 1 SDC iteration.
 
   BL_PROFILE("Castro::do_advance_sdc()");
@@ -94,55 +97,54 @@ Castro::do_advance_sdc (Real time,
 #endif
 
       if (apply_sources()) {
-        if (sdc_order == 4) {
-          // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
-          // we'll use Sburn for this memory buffer at the moment
+          if (sdc_order == 4) {
+              // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+              // we'll use Sburn for this memory buffer at the moment
 
-          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-            const Box& gbx = mfi.growntilebox(1);
+              for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+                  const Box& gbx = mfi.growntilebox(1);
 
-            make_cell_center(gbx, Sborder.array(mfi), Sburn.array(mfi), domain_lo, domain_hi);
+                  make_cell_center(gbx, Sborder.array(mfi), Sburn.array(mfi), domain_lo, domain_hi);
 
+              }
+
+              // we pass in the stage time here
+              do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state);
+
+              // fill the ghost cells for the sources -- note since we have
+              // not defined the new_source yet, we either need to copy this
+              // into new_source for the time-interpolation in the ghost
+              // fill to make sense, or so long as we are not multilevel,
+              // just use the old time (prev_time) in the fill instead of
+              // the node time (time)
+              AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+
+              // Now convert to cell averages.  This loop cannot be tiled.
+              FArrayBox tmp;
+
+              for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+                  const Box& bx = mfi.tilebox();
+
+                  tmp.resize(bx, 1, The_Async_Arena());
+                  auto tmp_arr = tmp.array();
+
+                  make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
+              }
+
+          } else {
+              // there is a ghost cell fill hidden in diffusion, so we need
+              // to pass in the time associate with Sborder
+              do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state);
           }
 
-          // we pass in the stage time here
-          do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state);
-
-          // fill the ghost cells for the sources -- note since we have
-          // not defined the new_source yet, we either need to copy this
-          // into new_source for the time-interpolation in the ghost
-          // fill to make sense, or so long as we are not multilevel,
-          // just use the old time (prev_time) in the fill instead of
-          // the node time (time)
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
-
-          // Now convert to cell averages.  This loop cannot be tiled.
-          FArrayBox tmp;
-
-          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-            const Box& bx = mfi.tilebox();
-
-            tmp.resize(bx, 1);
-            Elixir elix_tmp = tmp.elixir();
-            auto tmp_arr = tmp.array();
-
-            make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
+          // note: we don't need a FillPatch on the sources, since they
+          // are only used in the valid box in the conservative flux
+          // update construction.  The only exception is if we are doing
+          // the well-balanced method in the reconstruction of the
+          // pressure.
+          if (sdc_order == 2 && use_pslope == 1) {
+              AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
           }
-
-        } else {
-          // there is a ghost cell fill hidden in diffusion, so we need
-          // to pass in the time associate with Sborder
-          do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state);
-        }
-
-        // note: we don't need a FillPatch on the sources, since they
-        // are only used in the valid box in the conservative flux
-        // update construction.  The only exception is if we are doing
-        // the well-balanced method in the reconstruction of the
-        // pressure.
-        if (sdc_order == 2 && use_pslope == 1) {
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
-        }
       }
 
       // Now compute the advective term for the current node -- this
@@ -305,8 +307,7 @@ Castro::do_advance_sdc (Real time,
       // pass in the reaction source at centers (Sburn_arr), including
       // one ghost cell and derive everything that is needed including
       // 1 ghost cell
-      R_center.resize(obx, R_new.nComp());
-      Elixir elix_r_center = R_center.elixir();
+      R_center.resize(obx, R_new.nComp(), The_Async_Arena());
       auto const R_center_arr = R_center.array();
 
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
@@ -315,8 +316,7 @@ Castro::do_advance_sdc (Real time,
       ca_store_reaction_state(obx, Sburn_arr, R_center_arr);
 
       // convert R_new from centers to averages in place
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto const tmp_arr = tmp.array();
 
       make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);

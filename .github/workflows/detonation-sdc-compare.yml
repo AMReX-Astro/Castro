@@ -1,11 +1,16 @@
 name: detonation-sdc
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   detonation-sdc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -26,7 +31,7 @@ jobs:
       - name: Compile Detonation
         run: |
           cd Exec/science/Detonation
-          make DIM=1 USE_MPI=FALSE -j 2 USE_SIMPLIFIED_SDC=TRUE
+          make DIM=1 USE_MPI=FALSE -j 4 USE_SIMPLIFIED_SDC=TRUE
 
       - name: Run Detonation
         run: |
@@ -36,7 +41,7 @@ jobs:
       - name: Build the fextrema tool
         run: |
           cd external/amrex/Tools/Plotfile
-          make programs=fextrema -j 2
+          make programs=fextrema -j 4
 
       - name: Check the extrema
         run: |

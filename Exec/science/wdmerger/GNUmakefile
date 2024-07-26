@@ -50,7 +50,7 @@ endif
 
 # Location where the source files are coming from.
 
-PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/science/wdmerger
+PROBLEM_DIR ?= ./
 
 Blocs = $(PROBLEM_DIR)
 Bpack = $(PROBLEM_DIR)/Make.package

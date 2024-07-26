@@ -1,6 +1,7 @@
 #include <Castro.H>
 
 #include <riemann_solvers.H>
+#include <HLL_solvers.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -51,12 +52,12 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const int* hi_bc = phys_bc.hi();
 
     // do we want to force the flux to zero at the boundary?
-    const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                                 lo_bc[idir] == SlipWall ||
-                                 lo_bc[idir] == NoSlipWall);
-    const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                                 hi_bc[idir] == SlipWall ||
-                                 hi_bc[idir] == NoSlipWall);
+    const bool special_bnd_lo = (lo_bc[idir] == amrex::PhysBCType::symmetry ||
+                                 lo_bc[idir] == amrex::PhysBCType::slipwall ||
+                                 lo_bc[idir] == amrex::PhysBCType::noslipwall);
+    const bool special_bnd_hi = (hi_bc[idir] == amrex::PhysBCType::symmetry ||
+                                 hi_bc[idir] == amrex::PhysBCType::slipwall ||
+                                 hi_bc[idir] == amrex::PhysBCType::noslipwall);
 
     auto coord = geom.Coord();
 
@@ -138,14 +139,14 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         } else if (riemann_solver == 2) {
             // HLLC
-            HLLC(i, j, k, idir,
-                 qm, qp,
-                 qaux_arr,
-                 flx,
-                 qgdnv, store_full_state,
-                 geomdata,
-                 special_bnd_lo, special_bnd_hi,
-                 domlo, domhi);
+            HLL::HLLC(i, j, k, idir,
+                      qm, qp,
+                      qaux_arr,
+                      flx,
+                      qgdnv, store_full_state,
+                      geomdata,
+                      special_bnd_lo, special_bnd_hi,
+                      domlo, domhi);
 
 #ifndef AMREX_USE_GPU
         } else {
@@ -161,7 +162,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             if (idir == 0) {
                 is_shock = static_cast<int>(shk(i-1,j,k) + shk(i,j,k));
-            } else if (idir == 1) { 
+            } else if (idir == 1) {
                 is_shock = static_cast<int>(shk(i,j-1,k) + shk(i,j,k));
             } else {
                 is_shock = static_cast<int>(shk(i,j,k-1) + shk(i,j,k));
@@ -174,7 +175,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                 if (idir == 0) {
                     cl = qaux_arr(i-1,j,k,QC);
                     cr = qaux_arr(i,j,k,QC);
-                } else if (idir == 1) { 
+                } else if (idir == 1) {
                     cl = qaux_arr(i,j-1,k,QC);
                     cr = qaux_arr(i,j,k,QC);
                 } else {
@@ -198,9 +199,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                     flx_zone[n] = flx(i,j,k,n);
                 }
 
-                HLL(ql_zone, qr_zone, cl, cr,
-                    idir, coord,
-                    flx_zone);
+                HLL::HLL(ql_zone, qr_zone, cl, cr,
+                         idir, coord,
+                         flx_zone);
 
                 for (int n = 0; n < NUM_STATE; n++) {
                     flx(i,j,k,n) = flx_zone[n];
@@ -210,5 +211,3 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     });
 
 }
-
-

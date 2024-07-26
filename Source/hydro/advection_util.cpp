@@ -61,18 +61,12 @@ Castro::ctoprim(const Box& bx,
 void
 Castro::shock(const Box& bx,
               Array4<Real const> const& q_arr,
+              Array4<Real const> const& U_src_arr,
               Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
-  // This implementation follows Flash, which in turn follows
-  // AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-  //
-  // The spirit of this follows the shock detection in Colella &
-  // Woodward (1984)
-  //
-
-  constexpr Real small = 1.e-10_rt;
-  constexpr Real eps = 0.33e0_rt;
+  // we look for |grad P . dx| / P > 2/3 and div u < 0
+  // This is basically the method in Gronow et al. 2020
 
   const auto dx = geom.CellSizeArray();
   const int coord_type = geom.Coord();
@@ -137,81 +131,44 @@ Castro::shock(const Box& bx,
 #endif
     }
 
-    // find the pre- and post-shock pressures in each direction
-    Real px_pre;
-    Real px_post;
-    Real e_x;
 
-    if (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES) < 0.0_rt) {
-      px_pre = q_arr(i+1,j,k,QPRES);
-      px_post = q_arr(i-1,j,k,QPRES);
-    } else {
-      px_pre = q_arr(i-1,j,k,QPRES);
-      px_post = q_arr(i+1,j,k,QPRES);
+    // now compute (grad P - rho g) . dx
+    // We subtract off the hydrostatic force, since the pressure that
+    // balances that is not available to make a shock.
+    // We'll use a centered diff for the pressure gradient.
+    Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_x += -0.25_rt * dx[0] * (U_src_arr(i+1,j,k,UMX) + 2.0_rt * U_src_arr(i,j,k,UMX) + U_src_arr(i-1,j,k,UMX));
     }
-
-    // use compression to create unit vectors for the shock direction
-    e_x = std::pow(q_arr(i+1,j,k,QU) - q_arr(i-1,j,k,QU), 2);
-
-    Real py_pre;
-    Real py_post;
-    Real e_y;
-
-#if (AMREX_SPACEDIM >= 2)
-    if (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES) < 0.0_rt) {
-      py_pre = q_arr(i,j+1,k,QPRES);
-      py_post = q_arr(i,j-1,k,QPRES);
-    } else {
-      py_pre = q_arr(i,j-1,k,QPRES);
-      py_post = q_arr(i,j+1,k,QPRES);
+    Real dP_y = 0.0_rt;
+    Real dP_z = 0.0_rt;
+#if AMREX_SPACEDIM >= 2
+    dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
     }
-
-    e_y = std::pow(q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV), 2);
-
-#else
-    py_pre = 0.0_rt;
-    py_post = 0.0_rt;
-
-    e_y = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+    dP_z = 0.5_rt * (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES));
+    if (shock_detection_include_sources == 1) {
+        dP_z += -0.25_rt * dx[2] * (U_src_arr(i,j,k+1,UMZ) + 2.0_rt * U_src_arr(i,j,k,UMZ) + U_src_arr(i,j,k-1,UMZ));
+    }
 #endif
 
-    Real pz_pre;
-    Real pz_post;
-    Real e_z;
+    //Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / q_arr(i,j,k,QPRES);
+    Real vel = std::sqrt(q_arr(i,j,k,QU) * q_arr(i,j,k,QU) +
+                         q_arr(i,j,k,QV) * q_arr(i,j,k,QV) +
+                         q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
 
-#if (AMREX_SPACEDIM == 3)
-    if (q_arr(i,j,k+1,QPRES) - q_arr(i,j,k-1,QPRES) < 0.0_rt) {
-      pz_pre  = q_arr(i,j,k+1,QPRES);
-      pz_post = q_arr(i,j,k-1,QPRES);
-    } else {
-      pz_pre  = q_arr(i,j,k-1,QPRES);
-      pz_post = q_arr(i,j,k+1,QPRES);
+    Real gradPdx_over_P{0.0_rt};
+    if (vel != 0.0) {
+        gradPdx_over_P = std::abs(dP_x * q_arr(i,j,k,QU) +
+                                  dP_y * q_arr(i,j,k,QV) +
+                                  dP_z * q_arr(i,j,k,QW)) / vel;
     }
+    gradPdx_over_P /= q_arr(i,j,k,QPRES);
 
-    e_z = std::pow(q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW), 2);
-
-#else
-    pz_pre = 0.0_rt;
-    pz_post = 0.0_rt;
-
-    e_z = 0.0_rt;
-#endif
-
-    Real denom = 1.0_rt / (e_x + e_y + e_z + small);
-
-    e_x = e_x * denom;
-    e_y = e_y * denom;
-    e_z = e_z * denom;
-
-    // project the pressures onto the shock direction
-    Real p_pre  = e_x * px_pre + e_y * py_pre + e_z * pz_pre;
-    Real p_post = e_x * px_post + e_y * py_post + e_z * pz_post;
-
-    // test for compression + pressure jump to flag a shock
-    // this avoid U = 0, so e_x, ... = 0
-    Real pjump = p_pre == 0 ? 0.0_rt : eps - (p_post - p_pre) / p_pre;
-
-    if (pjump < 0.0 && div_u < 0.0_rt) {
+    if (gradPdx_over_P > castro::shock_detection_threshold && div_u < 0.0_rt) {
       shk(i,j,k) = 1.0_rt;
     } else {
       shk(i,j,k) = 0.0_rt;
@@ -631,13 +588,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
-                                   const int verbose) {
+                                   const int verbose_warnings) {
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
 
-  amrex::ignore_unused(verbose);
+  amrex::ignore_unused(verbose_warnings);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -646,8 +603,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
     if (state_arr(i,j,k,URHO) < small_dens) {
 
 #ifndef AMREX_USE_GPU
-      if (verbose > 1 ||
-          (verbose > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
+      if (verbose_warnings > 1 ||
+          (verbose_warnings > 0 && state_arr(i,j,k,URHO) > castro::retry_small_density_cutoff)) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
@@ -669,8 +626,8 @@ Castro::do_enforce_minimum_density(const Box& bx,
 #endif
 
       for (int ipassive = 0; ipassive < npassive; ipassive++) {
-        int n = upassmap(ipassive);
-        state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
+          const int n = upassmap(ipassive);
+          state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
       }
 
       eos_re_t eos_state;
@@ -737,8 +694,8 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
     const auto domlo = geom.Domain().loVect3d();
     const auto domhi = geom.Domain().hiVect3d();
 
-    bool lo_bc_test = lo_bc[idir] == Symmetry;
-    bool hi_bc_test = hi_bc[idir] == Symmetry;
+    bool lo_bc_test = lo_bc[idir] == amrex::PhysBCType::symmetry;
+    bool hi_bc_test = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
     // normal velocity
     const int QUN = QU + idir;

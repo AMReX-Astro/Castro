@@ -1,5 +1,5 @@
 ! Print out the radiation quantities at a specified distance from the
-! origin, for a 1-d CASTRO run.  This is geared toward the radiating 
+! origin, for a 1-d CASTRO run.  This is geared toward the radiating
 ! sphere problem.
 
 program fradsphere
@@ -155,7 +155,7 @@ program fradsphere
   ! completely refined, and allocate enough storage for that,
   ! although, we won't really need all of this
   !
-  ! note: sv(:,1) will be the coordinate information.  
+  ! note: sv(:,1) will be the coordinate information.
   ! the variables will be stored in sv(:,2:nvs+1)
   allocate(sv(max_points,nvs+1), isv(max_points))
 
@@ -188,10 +188,10 @@ program fradsphere
         do ii = lbound(p,dim=1), ubound(p,dim=1)
            if ( any(imask(ii*r1:(ii+1)*r1-1) ) ) then
               cnt = cnt + 1
-                    
+
               sv(cnt,1) = rmin + (ii + HALF)*dx(1)/rr
               sv(cnt,2:) = p(ii,1,1,:)
-                    
+
               imask(ii*r1:(ii+1)*r1-1) = .false.
            end if
         end do
@@ -251,9 +251,9 @@ program fradsphere
   write(*,1000) "group #", "group center energy", &
        "E_rad(nu)*dnu (erg/cm^3)", "E_rad(nu) (erg/cm^3/Hz)"
   do i = 1, ngroups
-     write (*,1001) pf%names(irad_begin-1+i)(4:), &               
-                    nu_groups(i), &  
-                    sv(isv(idx_obs),1+irad_begin-1+i), &      
+     write (*,1001) pf%names(irad_begin-1+i)(4:), &
+                    nu_groups(i), &
+                    sv(isv(idx_obs),1+irad_begin-1+i), &
                     sv(isv(idx_obs),1+irad_begin-1+i)/dnu_groups(i)
   enddo
 

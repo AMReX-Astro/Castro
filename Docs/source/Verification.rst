@@ -495,7 +495,7 @@ test problem. A hot sphere is centered at the origin in a spherical
 geometry. The spectrum from this sphere follows a Planck
 distribution. The ambient medium is at a much lower temperature. A
 frequency-dependent opacity makes the domain optically thin for high
-frequecies and optically thick for low frequency. At long times, the
+frequencies and optically thick for low frequency. At long times, the
 solution will be a combination of the blackbody radiation from the
 ambient medium plus the radiation that propagated from the hot sphere.
 An analytic solution exists :cite:`graziani:2008` which gives the

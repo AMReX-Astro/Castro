@@ -53,4 +53,4 @@ files_to_sort = sorted(glob.glob("./*.txt"))
 print("sorting files...")
 for f in files_to_sort:
     #sorts lines in files: -g = sort scientific notation, -k 3 = use third column (time), -o = specify output filename
-    subprocess.run(["sort","-g","-k 3",f,"-o",f], shell=False)                                                              
+    subprocess.run(["sort","-g","-k 3",f,"-o",f], shell=False)

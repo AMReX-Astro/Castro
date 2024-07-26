@@ -35,13 +35,7 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-else
-  BL_NO_FORT := TRUE
-endif
-
+BL_NO_FORT := TRUE
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -97,11 +91,19 @@ endif
 
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  USERSuffix = .SMPLSDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .SMPLSDC$(USERSuffix)
+  else
+    USERSuffix = .SMPLSDC
+  endif
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  USERSuffix = .TRUESDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .TRUESDC$(USERSuffix)
+  else
+    USERSuffix = .TRUESDC
+  endif
 endif
 
 USE_MLMG = FALSE
@@ -134,6 +136,10 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+ifeq ($(USE_GPU_PRINTF),TRUE)
+  DEFINES += -DALLOW_GPU_PRINTF
+endif
+
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
@@ -147,12 +153,6 @@ build_status:
 
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
-
-# OpenACC support
-ifeq ($(USE_ACC), TRUE)
-  DEFINES += -DACC
-endif
-
 
 
 #------------------------------------------------------------------------------
@@ -262,6 +262,10 @@ ifeq ($(USE_ROTATION), TRUE)
   DEFINES += -DROTATION
 endif
 
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DCONS_SPECIES_HAVE_SOURCES
+endif
+
 ifeq ($(USE_PARTICLES), TRUE)
   Bdirs += Source/particles
 endif
@@ -351,7 +355,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90 $(CASTRO_AUTO_SOURCE_DIR)/*.cpp
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
 # can get rid of explicitly removing them (this is for backwards compatibility)

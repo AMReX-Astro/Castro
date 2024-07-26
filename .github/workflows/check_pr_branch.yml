@@ -1,0 +1,20 @@
+name: check PR branch
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+
+jobs:
+  check-PR-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PRs should not target main
+        run: |
+          if [[ "${{ github.base_ref }}" == "main" ]]; then
+            echo 'Pull requests must not be made against main. Please target development instead.'
+            exit 1
+          fi

@@ -9,9 +9,6 @@ using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
-#ifdef SHOCK_VAR
-                     Array4<Real const> const& shk,
-#endif
                      Array4<Real> const& U_new,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
@@ -67,11 +64,6 @@ Castro::consup_hydro(const Box& bx,
       pdu = 0.5 * pdu * volinv;
 
       U_new(i,j,k,n) = U_new(i,j,k,n) - dt * pdu;
-
-#ifdef SHOCK_VAR
-    } else if (n == USHK) {
-      U_new(i,j,k,USHK) = shk(i,j,k);
-#endif
 
     } else if (n == UMX) {
       // Add gradp term to momentum equation -- only for axisymmetric
@@ -368,8 +360,8 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
 
             if (n >= QFS && n <= QFS-1+NumSpec) {
                 // mass fractions should be in [0, 1]
-                qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
-                qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+                qleft(i,j,k,n) = std::clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
+                qright(i,j,k,n) = std::clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
             }
         }
 

@@ -2,7 +2,6 @@
 # this is included if USE_GRAV = TRUE
 
 CEXE_sources += Gravity.cpp
-CEXE_sources += gravity_params.cpp
 CEXE_headers += Gravity.H
 CEXE_headers += Gravity_util.H
 CEXE_headers += Castro_gravity.H

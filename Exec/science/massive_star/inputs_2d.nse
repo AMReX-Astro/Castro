@@ -32,6 +32,7 @@ castro.do_sponge = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
@@ -58,11 +59,23 @@ amr.regrid_int      = 10000   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-amr.check_file      = chk     # root name of checkpoint file
+amr.check_file      = massive_star_chk     # root name of checkpoint file
 amr.check_int       = 50     # number of timesteps between checkpoints
-amr.plot_file       = plt     # root name of plot file
+
+amr.plot_file       = massive_star_plt     # root name of plot file
+amr.plot_per = 5.0
+amr.derive_plot_vars = ALL
+castro.store_burn_weights = 0
+
+amr.small_plot_file       = massive_star_smallplt     # root name of plot file
+amr.small_plot_per = 0.5
+amr.small_plot_vars = density Temp in_nse
+amr.derive_small_plot_vars = abar Ye enuc MachNumber magvel magvort
+
+fab.format = NATIVE_32
+
 castro.plot_per_is_exact = 0
-amr.plot_per = 0.2
+
 
 amr.max_grid_size   = 512       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -70,29 +83,28 @@ amr.blocking_factor = 32       # block factor in grid generation
 amr.v               = 1       # control verbosity in Amr.cpp
 castro.v            = 1       # control verbosity in Castro.cpp
 
-amr.derive_plot_vars = ALL
-
-castro.store_burn_weights = 1
 
 castro.small_dens   = 1.0
 castro.small_temp   = 1.e6
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 castro.use_retry = 1
 castro.max_subcycles = 16
 
 # problem initialization
 
-problem.model_name =  "15m_500_sec.aprox19.hse.20.0km"
+problem.model_name =  "15m_500_sec.aprox19.hse.5.00km"
 
 problem.perturb_model = 1
 problem.velpert_amplitude = 5.e6
 
+problem.interpolate_pres = 1
+
 # convection
 
 castro.drive_initial_convection = 1
-castro.drive_initial_convection_reinit_period = 1
-castro.drive_initial_convection_tmax = 10
+castro.drive_initial_convection_reinit_period = 2
+castro.drive_initial_convection_tmax = 100
 
 # refinement
 
@@ -114,6 +126,11 @@ integrator.jacobian = 1
 
 network.rho_nse = 1.e7
 network.T_nse = 3.e9
+network.Si_nse = 0.02
+network.C_nse = 1.0
+network.O_nse = 1.0
+
+integrator.ode_max_steps = 500000
 
 network.small_x = 1.e-10
 
@@ -124,3 +141,6 @@ network.nse_table_interp_linear = 0
 
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
+
+# do we include weak rate neutrino losses in the energy?
+integrator.nse_include_enu_weak = 0

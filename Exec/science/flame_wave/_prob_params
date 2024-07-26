@@ -17,8 +17,6 @@ cutoff_density          real              500.e0_rt                 y
 # used if we are refining based on height rather than density
 refine_height           real              3600                      y
 
-dx_model                real              10.0_rt                   y
-
 T_hi                    real              5.e8_rt                   y
 
 T_star                  real              1.e8_rt                   y
@@ -31,19 +29,19 @@ H_star                  real              500.e0_rt                 y
 
 atm_delta               real              25.e0_rt                  y
 
-fuel1_name              character         "helium-4"                y
+fuel1_name              string         "helium-4"                y
 
-fuel2_name              character         ""                        y
+fuel2_name              string         ""                        y
 
-fuel3_name              character         ""                        y
+fuel3_name              string         ""                        y
 
-fuel4_name              character         ""                        y
+fuel4_name              string         ""                        y
 
-ash1_name               character         "iron-56"                 y
+ash1_name               string         "iron-56"                 y
 
-ash2_name               character         ""                        y
+ash2_name               string         ""                        y
 
-ash3_name               character         ""                        y
+ash3_name               string         ""                        y
 
 fuel1_frac              real              1.0_rt                    y
 

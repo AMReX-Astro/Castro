@@ -1,0 +1,113 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 20000
+stop_time =  0.035
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0 0 0
+geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0     0     0
+geometry.prob_hi     = 4.e7  2500  2500
+amr.n_cell           = 256   16    16
+
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  2   4   4
+castro.hi_bc       =  2   4   4
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 1
+
+castro.react_rho_min = 1.0
+castro.react_T_min = 5.e7
+
+castro.ppm_type = 1
+castro.ppm_temp_fix = 0
+
+castro.time_integration_method = 3
+
+# castro.transverse_reset_density = 1
+
+castro.small_dens   = 1.e-5
+castro.small_temp     = 1.e7
+
+castro.use_flattening = 1
+
+castro.riemann_solver = 1
+
+# TIME STEP CONTROL
+castro.cfl            = 0.2     # cfl number for hyperbolic system
+castro.init_shrink    = 0.01     # scale back initial timestep
+castro.change_max     = 1.025    # scale back initial timestep
+
+castro.dtnuc_e = 0.1
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+#amr.grid_log        = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 2       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 16       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = det_x_chk  # root name of checkpoint file
+amr.check_int       = 1000         # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = det_x_plt  # root name of plotfile
+amr.plot_per = 2.5e-4
+amr.derive_plot_vars = ALL
+
+# problem initialization
+
+problem.T_l = 1.1e9
+problem.T_r = 1.75e8
+
+problem.dens = 1.1e6
+problem.cfrac = 0.0
+problem.nfrac = 0.01
+
+problem.smallx = 1.e-10
+
+problem.idir = 1
+
+problem.w_T = 1.e-3
+problem.center_T = 3.e-1
+
+# refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 5
+amr.refine.temperr.value_greater = 4.e9
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e8
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+
+network.small_x = 1.e-10
+integrator.SMALL_X_SAFE = 1.e-10
+
+integrator.rtol_spec = 1.e-5
+integrator.atol_spec = 1.e-5
+integrator.rtol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-8
+integrator.jacobian = 2
+
+integrator.X_reject_buffer = 4.0
+network.use_tables = 1
+

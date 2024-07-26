@@ -84,7 +84,7 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mult_factor)
+Castro::fill_hybrid_hydro_source(MultiFab& sources, const MultiFab& state_in, Real mult_factor)
 {
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
@@ -97,7 +97,7 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mul
     {
         const Box& bx = mfi.tilebox();
 
-        auto u = state_in.array(mfi);
+        const auto u = state_in.array(mfi);
         auto src = sources.array(mfi);
 
         amrex::ParallelFor(bx,

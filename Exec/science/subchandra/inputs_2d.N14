@@ -30,7 +30,7 @@ castro.do_grav  = 1
 castro.do_react = 1
 castro.do_sponge = 1
 
-castro.react_rho_min = 1.0
+castro.react_rho_min = 100.0
 castro.react_T_min = 5.e7
 
 castro.ppm_type = 1
