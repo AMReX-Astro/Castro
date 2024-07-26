@@ -21,11 +21,30 @@ void problem_initialize ()
     // Read initial model
     read_model_file(problem::model_name);
 
-    if (ParallelDescriptor::IOProcessor()) {
-        for (int i = 0; i < model::npts; i++) {
-            std::cout << i << " " << model::profile(0).r(i) << " " << model::profile(0).state(i,model::idens) << std::endl;
+    Real max_hse_error = std::numeric_limits<Real>::lowest();
+
+    for (int i = 0; i < model::npts-2; ++i) {
+        Real dpdr = (model::profile(0).state(i+1, model::ipres) -
+                     model::profile(0).state(i, model::ipres)) /
+            (model::profile(0).r(i+1) - model::profile(0).r(i));
+
+        Real rhog = 0.5_rt * (model::profile(0).state(i+1, model::idens) +
+                              model::profile(0).state(i, model::idens)) * gravity::const_grav;
+
+        // we'll check that dpdr in the next zone up is also negative, to ensure we are
+        // not hitting the part where we stopped integrating HSE
+        Real p_check = model::profile(0).state(i+2, model::ipres) -
+                       model::profile(0).state(i+1, model::ipres);
+
+        if (dpdr < 0 && p_check < 0) {
+            max_hse_error = amrex::max(std::abs(dpdr - rhog) / std::abs(dpdr),
+                                       max_hse_error);
         }
     }
+
+    amrex::Print() << Font::Bold << FGColor::Yellow
+                   << "HSE error in initial model = " << max_hse_error
+                   << ResetDisplay << std::endl;
 
     // set the ambient state for the upper boundary condition
 

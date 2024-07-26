@@ -1,0 +1,22 @@
+# Run with ROCm 6.0 and:
+#
+#  EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+#  NETWORK: /ccs/home/zingale/Microphysics/networks/subch_simple
+#  INTEGRATOR: VODE
+#  SCREENING: screen5
+#
+#  Castro       git describe: 24.06-16-g830d937a6
+#  AMReX        git describe: 24.06-21-g259db7cfb
+#  Microphysics git describe: 24.06-30-g134200e7
+#
+# this uses a coarse grid of 256^3 and:
+#   amr.max_level = 3
+#   amr.ref_ratio = 4 4 4
+#
+# nodes         mgs=64          mgs=96           mgs=128     mgs=64/footprint=3
+   16      3113.728109      1427.961211      1172.233403     1587.513124
+   32       669.0471158      848.7207989      698.5210431     626.5812503
+   64       404.6151035      583.2284754      433.2107803     377.6227032
+  128       272.9040553      491.2785887      338.5415379     246.6334284
+  256       210.2009386      442.7161572      327.9919688     182.2869616
+  512       198.9984347      442.3824775      190.1068867     152.5701047

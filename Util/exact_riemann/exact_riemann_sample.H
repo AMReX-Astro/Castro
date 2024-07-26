@@ -3,8 +3,8 @@
 
 #include <AMReX_REAL.H>
 
-#include <riemann_support.H>
-#include <riemann_rarefaction.H>
+#include <riemann_constants.H>
+#include <exact_riemann_rarefaction.H>
 
 using namespace amrex::literals;
 
@@ -25,7 +25,7 @@ riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_l[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -36,7 +36,7 @@ riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_r[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 
@@ -129,7 +129,7 @@ riemann_sample(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn[n];
     }
-    eos_state.T = problem::initial_temp_guess;
+    eos_state.T = castro::T_guess;
 
     eos(eos_input_rp, eos_state);
 

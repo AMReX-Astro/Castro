@@ -58,6 +58,8 @@
 #include <ambient.H>
 #include <castro_limits.H>
 
+#include <riemann_constants.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -392,12 +394,12 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (cg_maxiter > HISTORY_SIZE) {
-            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        if (riemann_shock_maxiter > riemann_constants::HISTORY_SIZE) {
+            amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
-        if (cg_blend == 2 && cg_maxiter < 5) {
-            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        if (riemann_cg_blend == 2 && riemann_shock_maxiter < 5) {
+            amrex::Error("Error: need riemann_shock_maxiter >= 5 to do a bisection search on secant iteration failure.");
         }
     }
 #endif
@@ -3298,6 +3300,9 @@ Castro::check_for_negative_density ()
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
                                   << " with density = " << rho << "\n";
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
+                                            n, X, i, j, k, rho);
 #endif
                         X_check_failed = 1;
                     }
@@ -3307,6 +3312,10 @@ Castro::check_for_negative_density ()
 
             return {rho_check_failed, X_check_failed};
         });
+
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
 
     }
 

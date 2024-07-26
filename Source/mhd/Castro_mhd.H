@@ -99,7 +99,7 @@
               amrex::Array4<amrex::Real const> const& Ed2,
               const int d, const int d1, const int d2, const amrex::Real dt);
 
-    void
+    static void
     hlld(const amrex::Box& bx,
          amrex::Array4<amrex::Real const> const& qleft,
          amrex::Array4<amrex::Real const> const& qright,

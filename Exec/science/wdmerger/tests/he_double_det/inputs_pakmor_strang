@@ -1,5 +1,5 @@
 ## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
-## with 100 km resolution using for scaling
+## with 12.5 km resolution using default strang-splitting
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -16,7 +16,7 @@ geometry.is_periodic = 0 0 0
   geometry.coord_sys = 0
 
   # Lower boundary limits in physical space
-  geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9
+  geometry.prob_lo = -1.024e10 -1.024e10 -1.024e10
 
 #elif AMREX_SPACEDIM == 2
 
@@ -29,7 +29,7 @@ geometry.is_periodic = 0 0 0
 #endif
 
 # Upper boundary limits in physical space
-geometry.prob_hi =  5.12e9  5.12e9  5.12e9
+geometry.prob_hi =  1.024e10  1.024e10  1.024e10
 
 ############################################################################################
 # Boundary conditions
@@ -53,7 +53,7 @@ geometry.prob_hi =  5.12e9  5.12e9  5.12e9
 # Boundary conditions on hi x, y, and z edges
 castro.hi_bc = 2 2 2
 
-############################################################################################ 
+############################################################################################
 # Timestepping
 ############################################################################################
 
@@ -61,7 +61,7 @@ castro.hi_bc = 2 2 2
 max_step = 10000000
 
 # Simulation end time
-stop_time = 0.1
+stop_time = 200.0
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5
@@ -73,7 +73,7 @@ castro.fixed_dt = -1.0
 castro.init_shrink = 0.01
 
 # Factor by which dt is allowed to change each timestep
-castro.change_max = 1.3
+castro.change_max = 1.10
 
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
@@ -92,7 +92,7 @@ castro.abundance_failure_rho_cutoff = 1.0e0
 castro.max_subcycles = 16
 
 
-############################################################################################ 
+############################################################################################
 # Resolution, gridding and AMR
 ############################################################################################
 
@@ -109,10 +109,10 @@ castro.max_subcycles = 16
 #endif
 
 # Maximum level number allowed
-amr.max_level = 1
+amr.max_level = 3
 
 # Refinement ratio
-amr.ref_ratio = 4 
+amr.ref_ratio = 4 4 4
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -124,7 +124,7 @@ castro.use_post_step_regrid = 0
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
 
 # Maximum grid size at each level
-amr.max_grid_size = 64 64 64 64 64 64 64 64
+amr.max_grid_size = 64
 
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 32
@@ -147,12 +147,12 @@ amr.refine.density.field_name = density
 amr.refine.density.max_level = 1
 
 # Density2 refinement criterion
-amr.refine.density2.value_greater = 1.0e5
+amr.refine.density2.value_greater = 1.0e4
 amr.refine.density2.field_name = density
-amr.refine.density2.max_level = 15
+amr.refine.density2.max_level = 20
 
 # Temperature refinement criterion
-amr.refine.temperature.value_greater = 5.0e8
+amr.refine.temperature.value_greater = 3.0e8
 amr.refine.temperature.field_name = Temp
 amr.refine.temperature.max_level = 3
 
@@ -161,6 +161,9 @@ castro.max_tagging_radius = 0.75e0
 
 # Whether or not to use AMR subcycling
 amr.subcycling_mode = None
+
+# GPU option
+castro.hydro_memory_footprint_ratio = 3
 
 ############################################################################################
 # Physics to include
@@ -201,9 +204,9 @@ castro.ppm_temp_fix = 0
 # 2 = HLL
 castro.riemann_solver = 0
 
-# For the CG Riemann solver, we need to tell the solver not to quit when 
+# For the CG Riemann solver, we need to tell the solver not to quit when
 # the iterations don't converge, but instead to do additional bisection iteration.
-castro.cg_blend = 2
+castro.riemann_cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
@@ -350,7 +353,7 @@ DistributionMapping.efficiency = 0.9
 ############################################################################################
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
-castro.sum_interval = 0
+castro.sum_interval = 1
 
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
@@ -362,10 +365,10 @@ castro.gw_dist = 10.0
 castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
-amr.plot_files_output = 0
+amr.plot_files_output = 1
 
 # Whether or not to output checkpoints
-amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 1
 
 # Root name of checkpoint files
 amr.check_file = chk
@@ -374,25 +377,25 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-amr.check_per = 0.1
+amr.check_per = 1.0
 
 # Number of timesteps between checkpoints
-amr.check_int = 20
+amr.check_int = -1
 
 # Root name of plot files
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = -1
+amr.plot_per = 1.0
 
 # Number of timesteps between plotfiles
-#amr.plot_int = -1
+amr.plot_int = -1
 
 # Root name of small plot files
 amr.small_plot_file = smallplt
 
 # Simulation time between small plotfiles
-amr.small_plot_per = -1
+amr.small_plot_per = 0.1
 
 # Number of timesteps between small plotfiles
 amr.small_plot_int = -1
@@ -400,7 +403,7 @@ amr.small_plot_int = -1
 # Do not write plotfiles when we dump checkpoints
 amr.write_plotfile_with_checkpoint = 0
 
-# Write final checkpoint/plotfile
+# Do not write final checkpoint/plotfile
 castro.output_at_completion = 1
 
 # Do not write a plotfile or checkpoint on restart
@@ -417,19 +420,19 @@ castro.v = 1
 gravity.v = 1
 
 # State variables to add to plot files
-amr.plot_vars = NONE
+amr.plot_vars = ALL
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = NONE
+amr.derive_plot_vars = pressure
 
 # State variables to add to small plot files
-amr.small_plot_vars = NONE
+amr.small_plot_vars = density Temp
 
 # Derived variables to add to small plot files
-amr.derive_small_plot_vars = NONE
+amr.derive_small_plot_vars = enuc X(He4) X(C12) X(O16)
 
 # Name of the diagnostic sum output files
-#amr.data_log = NONE
+amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
 
 ############################################################################################
 # Problem parameters

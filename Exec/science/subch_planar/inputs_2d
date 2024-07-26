@@ -36,7 +36,7 @@ castro.pslope_cutoff_density = 1.e4
 castro.react_rho_min = 100.0
 
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -1.466e9
+gravity.const_grav   = -1.1742e9
 
 # TIME STEP CONTROL
 castro.cfl            = 0.7     # cfl number for hyperbolic system
