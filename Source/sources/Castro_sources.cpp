@@ -80,7 +80,7 @@ Castro::source_flag(int src)
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-        if (castro::hybid_hydro) {
+        if (castro::hybrid_hydro) {
             return true;
         } else {
             return false;
