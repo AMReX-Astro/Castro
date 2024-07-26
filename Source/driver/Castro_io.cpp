@@ -564,8 +564,13 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
+#ifdef AMREX_USE_GPU
+  jobInfoFile << "GPU time used since start of simulation (GPU-hours): " <<
+    getCPUTime()/3600.0;
+#else
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
     getCPUTime()/3600.0;
+#endif
 
   jobInfoFile << "\n\n";
 
