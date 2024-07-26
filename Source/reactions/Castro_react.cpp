@@ -415,11 +415,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         });
 
 #if defined(AMREX_USE_HIP)
-       Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
+        Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
 
 #ifdef ALLOW_GPU_PRINTF
-       std::fflush(nullptr);
+        std::fflush(nullptr);
 #endif
 
     }
