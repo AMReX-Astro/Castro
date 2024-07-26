@@ -20,10 +20,10 @@ NUM_MODELS = 2
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
 
-# Turn on hybrid momentum, but note that it only is used in 3D at present.
+# Turn on hybrid momentum? but note that it only is used in 3D at present.
 
 ifeq ($(DIM), 3)
-  USE_HYBRID_MOMENTUM ?= TRUE
+  USE_HYBRID_MOMENTUM ?= FALSE
 endif
 
 # Set the default integrator for the burner.
