@@ -14,6 +14,10 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state_old, Real 
 
     BL_PROFILE("Castro::construct_old_hybrid_source()");
 
+    if (! castro::hybrid_hydro) {
+        return;
+    }
+
     const Real strt_time = ParallelDescriptor::second();
 
     Real mult_factor = 1.0;
@@ -48,6 +52,10 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
     amrex::ignore_unused(dt);
 
     BL_PROFILE("Castro::construct_new_hybrid_source()");
+
+    if (! castro::hybrid_hydro) {
+        return;
+    }
 
     const Real strt_time = ParallelDescriptor::second();
 

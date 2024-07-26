@@ -80,7 +80,11 @@ Castro::source_flag(int src)
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-        return true;
+        if (castro::hybid_hydro) {
+            return true;
+        } else {
+            return false;
+        }
 #endif
 
 #ifdef GRAVITY
