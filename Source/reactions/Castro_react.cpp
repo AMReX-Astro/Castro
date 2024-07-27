@@ -361,7 +361,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
                     if (store_burn_weights) {
 
-                        if (jacobian == 1) {
+                        if (integrator_rp::jacobian == 1) {
                             weights(i,j,k,strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                         } else {
                             // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
@@ -417,6 +417,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if defined(AMREX_USE_HIP)
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
+
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
+
     }
 
 #if defined(AMREX_USE_GPU)
@@ -752,7 +757,7 @@ Castro::react_state(Real time, Real dt)
 
                     if (store_burn_weights) {
 
-                         if (jacobian == 1) {
+                         if (integrator_rp::jacobian == 1) {
                              weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                          } else {
                              // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
@@ -812,6 +817,11 @@ Castro::react_state(Real time, Real dt)
 #if defined(AMREX_USE_HIP)
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
+
+#ifdef ALLOW_GPU_PRINTF
+       std::fflush(nullptr);
+#endif
+
     }
 
 #if defined(AMREX_USE_GPU)
