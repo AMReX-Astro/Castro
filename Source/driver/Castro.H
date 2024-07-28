@@ -16,10 +16,6 @@ using namespace castro;
 
 #include <fundamental_constants.H>
 
-constexpr int HISTORY_SIZE=40;
-constexpr int PSTAR_BISECT_FACTOR = 5;
-
-
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
@@ -1422,8 +1418,8 @@ protected:
 
 
 ///
-/// for keeping track of the amount of CPU time used -- this will persist
-///     after restarts
+/// for keeping track of the amount of CPU or GPU time used -- this will persist
+/// after restarts
 ///
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;

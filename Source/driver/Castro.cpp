@@ -58,6 +58,8 @@
 #include <ambient.H>
 #include <castro_limits.H>
 
+#include <riemann_constants.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -392,7 +394,7 @@ Castro::read_params ()
 #endif
 
     if (riemann_solver == 1) {
-        if (riemann_shock_maxiter > HISTORY_SIZE) {
+        if (riemann_shock_maxiter > riemann_constants::HISTORY_SIZE) {
             amrex::Error("riemann_shock_maxiter > HISTORY_SIZE");
         }
 
@@ -3046,14 +3048,16 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
     if (verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
+        amrex::Real end = ParallelDescriptor::second() - strt;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor()) {
-          std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+            std::cout << "Castro::reflux() at level " << llevel
+                      << " : time = " << end << std::endl;
         }
 #ifdef BL_LAZY
         });
@@ -3298,6 +3302,9 @@ Castro::check_for_negative_density ()
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
                                   << " with density = " << rho << "\n";
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
+                                            n, X, i, j, k, rho);
 #endif
                         X_check_failed = 1;
                     }
@@ -3307,6 +3314,10 @@ Castro::check_for_negative_density ()
 
             return {rho_check_failed, X_check_failed};
         });
+
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
 
     }
 

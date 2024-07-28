@@ -7,8 +7,8 @@
 
 #include <castro_params.H>
 
-#include <riemann_sample.H>
-#include <riemann_star_state.H>
+#include <exact_riemann_sample.H>
+#include <exact_riemann_star_state.H>
 
 using namespace amrex::literals;
 
@@ -50,10 +50,13 @@ exact_riemann() {
 
     amrex::Real ustar, pstar, W_l, W_r;
 
-    riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
-                       problem::rho_r, problem::u_r, problem::p_r, xn,
-                       ustar, pstar, W_l, W_r);
+    std::cout << "solving for star state: " << std::endl;
 
+    auto niter = riemann_star_state(problem::rho_l, problem::u_l, problem::p_l, xn,
+                                    problem::rho_r, problem::u_r, problem::p_r, xn,
+                                    ustar, pstar, W_l, W_r);
+
+    std::cout << "found star state, niter = " << niter << "; pstar, ustar = " << pstar << " " << ustar << std::endl;
 
     // find the solution as a function of xi = x/t
     std::ofstream ofile;
