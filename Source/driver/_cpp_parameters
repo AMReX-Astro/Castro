@@ -42,7 +42,7 @@ difmag                       Real          0.1
 # when applying the artificial viscosity, do we limit the magnitude of
 # the diffusion coefficient to ensure that the species fluxes all keep
 # the same sign?
-limit_avisc_on_species       bool          0
+limit_avisc_on_species       bool          1
 
 # the small density cutoff.  Densities below this value will be reset
 small_dens                   Real         -1.e200
