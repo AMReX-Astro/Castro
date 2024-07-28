@@ -302,49 +302,52 @@ Castro::apply_av(const Box& bx,
 
   Real diff_coeff = difmag;
 
-  amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    if (n == UTEMP) {
-        return;
-    }
+      Real div1;
+      if (idir == 0) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
+                            div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
+      } else if (idir == 1) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j,k+dg2) + div(i+1,j,k+dg2));
+      } else {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j+dg1,k) + div(i+1,j+dg1,k));
+      }
+
+      div1 = diff_coeff * std::min(0.0_rt, div1);
+
+      for (int n = 0; n < NUM_STATE; ++n) {
+
+          if (n == UTEMP) {
+              continue;
+          }
 #ifdef SHOCK_VAR
-    if (n == USHK) {
-        return;
-    }
+          if (n == USHK) {
+              continue;
+          }
 #endif
-
 #ifdef NSE_NET
-    if (n == UMUP || n == UMUN) {
-        return;
-    }
+          if (n == UMUP || n == UMUN) {
+              continue;
+          }
 #endif
-    Real div1;
-    if (idir == 0) {
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
-                        div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n));
+          Real div_var{};
 
-    } else if (idir == 1) {
+          if (idir == 0) {
+              div_var = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n));
+          } else if (idir == 1) {
+              div_var = div1 * (uin(i,j,k,n) - uin(i,j-dg1,k,n));
+          } else {
+              div_var = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
+          }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j,k+dg2) + div(i+1,j,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i,j-dg1,k,n));
-
-    } else {
-
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j+dg1,k) + div(i+1,j+dg1,k));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
-
-    }
-
-    flux(i,j,k,n) += dx[idir] * div1;
+          flux(i,j,k,n) += dx[idir] * div_var;
+      }
   });
 }
 
@@ -359,37 +362,42 @@ Castro::apply_av_rad(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  Real diff_coeff = difmag;
+  amrex::Real diff_coeff = difmag;
 
-  amrex::ParallelFor(bx, Radiation::nGroups,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  int ngroups = Radiation::nGroups;
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real div1;
-    if (idir == 0) {
+      Real div1;
+      if (idir == 0) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
+                            div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
+      } else if (idir == 1) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j,k+dg2) + div(i+1,j,k+dg2));
+      } else {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j+dg1,k) + div(i+1,j+dg1,k));
+      }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
-                        div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
+      div1 = diff_coeff * std::min(0.0_rt, div1);
 
-    } else if (idir == 1) {
+      for (int n = 0; n < ngroups; ++n) {
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j,k+dg2) + div(i+1,j,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-dg1,k,n));
+          Real div_var{};
 
-    } else {
+          if (idir == 0) {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
+          } else if (idir == 1) {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i,j-dg1,k,n));
+          } else {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg2,n));
+          }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j+dg1,k) + div(i+1,j+dg1,k));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg2,n));
-
-    }
-
-    radflux(i,j,k,n) += dx[idir] * div1;
+          radflux(i,j,k,n) += dx[idir] * div_var;
+      }
   });
 }
 #endif
