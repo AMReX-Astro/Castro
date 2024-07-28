@@ -320,7 +320,7 @@ Castro::apply_av(const Box& bx,
 
       div1 = diff_coeff * std::min(0.0_rt, div1);
 
-      for (int n = 0; n < NUM_STATE, ++n) {
+      for (int n = 0; n < NUM_STATE; ++n) {
 
           if (n == UTEMP) {
               continue;
