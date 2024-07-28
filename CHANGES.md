@@ -1,5 +1,8 @@
 # 24.08
 
+  * lazy QueueReduction has been enabled for the timing diagnostics
+    (#2926)
+
   * The `job_info` file output now correctly labels the compute time
     as GPU-hours instead of CPU-hours when running on GPUs (#2930)
 
@@ -7,7 +10,7 @@
     with `USE_GPU_PRINTF=TRUE`(#2923, #2928)
 
   * Code clean-ups / sync with Microphysics (#2900, #2905, #2906,
-    #2909, #2912, #2919, #2922, #2932)
+    #2909, #2912, #2919, #2922, #2932, #2933))
 
   * The area weighting in the diagnostics in `subch_planar` was fixed
     (#2885)
@@ -16,7 +19,7 @@
     problem was added (#2857)
 
   * science problem updates: `xrb_layered` (#2917), `nova` (#2913),
-    `wdmerger` (#2907, #2918), `Detonation` (#2902)
+    `wdmerger` (#2907, #2918, #2931), `Detonation` (#2902)
 
   * updated scaling results on Frontier (#2904, #2914, #2915)
 
