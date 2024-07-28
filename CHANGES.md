@@ -10,7 +10,7 @@
     with `USE_GPU_PRINTF=TRUE`(#2923, #2928)
 
   * Code clean-ups / sync with Microphysics (#2900, #2901, #2905,
-    #2906, #2909, #2912, #2919, #2922, #2932, #2933)
+    #2906, #2909, #2912, #2919, #2922, #2932, #2933, #2936)
 
   * The area weighting in the diagnostics in `subch_planar` was fixed
     (#2885)
