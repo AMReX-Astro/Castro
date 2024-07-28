@@ -39,7 +39,7 @@ allow_non_unit_aspect_zones  int           0
 # the coefficient of the artificial viscosity
 difmag                       Real          0.1
 
-# when applying the artifical viscosity, do we limit the magnitude of
+# when applying the artificial viscosity, do we limit the magnitude of
 # the diffusion coefficient to ensure that the species fluxes all keep
 # the same sign?
 limit_avisc_on_species       bool          0
