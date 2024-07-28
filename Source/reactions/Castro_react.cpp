@@ -449,14 +449,16 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     if (verbose > 0)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::react_state() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::react_state() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -852,15 +854,17 @@ Castro::react_state(Real time, Real dt)
 
         amrex::Print() << "... Leaving burner on level " << level << " after completing full timestep of burning." << std::endl << std::endl;
 
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time, IOProc);
 
-        amrex::Print() << "Castro::react_state() time = " << run_time << " on level " << level << std::endl << std::endl;
+        amrex::Print() << "Castro::react_state() time = " << run_time
+                       << " on level " << llevel << std::endl << std::endl;
 #ifdef BL_LAZY
         });
 #endif
