@@ -55,6 +55,9 @@ endif
 # Require C++17
 CXXSTD := c++17
 
+# Use Lazy QueueReduction for the timing outputs
+LAZY := TRUE
+
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
