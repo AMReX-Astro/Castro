@@ -362,7 +362,9 @@ Castro::apply_av_rad(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  Real diff_coeff = difmag;
+  amrex::Real diff_coeff = difmag;
+
+  int ngroups = Radiation::nGroups;
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -382,7 +384,7 @@ Castro::apply_av_rad(const Box& bx,
 
       div1 = diff_coeff * std::min(0.0_rt, div1);
 
-      for (int n = 0; n < Radiation::nGroups; ++n) {
+      for (int n = 0; n < ngroups; ++n) {
 
           Real div_var{};
 
