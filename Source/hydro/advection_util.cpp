@@ -320,6 +320,43 @@ Castro::apply_av(const Box& bx,
 
       div1 = diff_coeff * std::min(0.0_rt, div1);
 
+      if (div1 == 0.0_rt) {
+          return;
+      }
+
+      // we want to prevent the artificial viscosity from breaking
+      // species conservation (sum X_k = 1).  This can happen if the
+      // artificial viscosity flips the sign of some of the fluxes.
+      // Here we scale div1 to ensure that this is not an issue.
+
+      if (limit_avisc_on_species) {
+
+          amrex::Real limit_div1{div1};
+
+          for (int n = 0; n < NumSpec; ++n) {
+
+              Real du{};
+
+              if (idir == 0) {
+                  du = uin(i,j,k,UFS+n) - uin(i-1,j,k,UFS+n);
+              } else if (idir == 1) {
+                  du = uin(i,j,k,UFS+n) - uin(i,j-dg1,k,UFS+n);
+              } else {
+                  du = uin(i,j,k,UFS+n) - uin(i,j,k-dg2,UFS+n);
+              }
+
+              Real fnew = flux(i,j,k,UFS+n) + dx[idir] * div1 * du;
+              if (fnew * flux(i,j,k,UFS+n) < 0) {
+                  limit_div1 = std::min(limit_div1,
+                                        std::abs(flux(i,j,k,UFS+n) / (dx[idir] * du)));
+              }
+          }
+
+          div1 = limit_div1;
+
+      }
+
+
       for (int n = 0; n < NUM_STATE; ++n) {
 
           if (n == UTEMP) {
@@ -381,6 +418,10 @@ Castro::apply_av_rad(const Box& bx,
       }
 
       div1 = diff_coeff * std::min(0.0_rt, div1);
+
+      if (div1 == 0.0_rt) {
+          return;
+      }
 
       for (int n = 0; n < Radiation::nGroups; ++n) {
 
