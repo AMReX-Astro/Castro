@@ -33,8 +33,8 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 
   if (verbose > 1)
   {
-      const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-      Real      run_time = ParallelDescriptor::second() - strt_time;
+      const int IOProc = ParallelDescriptor::IOProcessorNumber();
+      amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {

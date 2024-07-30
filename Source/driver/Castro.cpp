@@ -3048,14 +3048,16 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
     if (verbose)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
+        amrex::Real end = ParallelDescriptor::second() - strt;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor()) {
-          std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+            std::cout << "Castro::reflux() at level " << llevel
+                      << " : time = " << end << std::endl;
         }
 #ifdef BL_LAZY
         });
