@@ -23,19 +23,19 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = problem::dens;
 
     Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen)/ width));
-    Real freq = 1.0_rt * 2.0 * 3.1415926535897932384
+    Real freq = 1.0_rt * 2.0 * 3.1415926535897932384;
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * (problem::xn_envelope[n] * std::sin(freq * i) + problem::xn_core[n] * (1.0 - std::sin(freq * i)));
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * (problem::xn_env[n] * std::sin(freq * i) + problem::xn_core[n] * (1.0 - std::sin(freq * i)));
     }
 
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = problem::xn_core[n] + xn_env[n];
+        eos_state.xn[n] = problem::xn_core[n] + problem::xn_env[n];
     }
 
     eos(eos_input_rt, eos_state);

@@ -10,6 +10,8 @@ cfrac_core           real          0.45_rt         y
 
 nfrac_env            real          0.0_rt         y
 
+nfrac_core            real         0.0_rt         y
+
 ofrac_env            real          0.0_rt         y
 
 ofrac_core           real          0.45_rt         y
