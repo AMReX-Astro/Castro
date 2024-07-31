@@ -4,17 +4,19 @@ T_r                  real          5.e7_rt        y
 
 dens                 real          1.e8_rt        y
 
-cfrac_env           real           0.00_rt         y
+frequency            real          0.0_rt         y
 
-cfrac_core           real          0.45_rt         y
+cfrac_env            real           0.00_rt       y
+
+cfrac_core           real          0.45_rt        y
 
 nfrac_env            real          0.0_rt         y
 
-nfrac_core            real         0.0_rt         y
+nfrac_core           real         0.0_rt          y
 
 ofrac_env            real          0.0_rt         y
 
-ofrac_core           real          0.45_rt         y
+ofrac_core           real          0.45_rt        y
 
 w_T                  real          5.e-4_rt       y
 

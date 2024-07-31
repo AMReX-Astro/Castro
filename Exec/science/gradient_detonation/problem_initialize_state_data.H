@@ -23,7 +23,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = problem::dens;
 
     Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen)/ width));
-    Real freq = 1.0_rt * 2.0 * 3.1415926535897932384;
+    Real freq = problem::frequency * 2.0 * 3.1415926535897932384;
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
