@@ -1,6 +1,6 @@
-# `Detonation`
+# `Gradient Detonation`
 
-This is a similar setup to Detonation, except that we want to study
+This is a similar setup to `Detonation`, except that we want to study
 the impact of composition gradient on shock detection by applying
 a sinusoidal function to the composition.
 
@@ -12,9 +12,9 @@ temperature (T_l) is placed in the left side of the domain, and an
 ambient temperature (T_r) is in the right.  The parameter center_T
 specifies where, as a fraction of the domain length, to put the
 interface, while width_T determines how wide the transition region is,
-as a fraction of the domain length. Finally, the parameter cfrac, nfrac,
-and ofrac, are the initial C12, N14, O16 fraction, and the remaining
-material is He4.
+as a fraction of the domain length. Finally, the parameter cfrac_core, nfrac_core,
+and ofrac_core, are the initial C12, N14, O16 fraction in the core, and the remaining
+material is He4. This is the same for cfrac_env...etc, which represents the material in the envelope.
 
 The left side and right side can optionally approach each other with a
 non-zero infall velocity, vel.
