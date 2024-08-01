@@ -41,7 +41,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // normalize eos_state.xn
     Real sum_xn = 0.0_rt;
     for (int n = 0; n < NumSpec; n++) {
-        sum_xn += eos_state.xn[n]
+        sum_xn += eos_state.xn[n];
     }
 
     for (int n = 0; n < NumSpec; n++) {
