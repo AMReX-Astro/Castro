@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann_solvers.H" href="riemann__solvers_8H.html" />
+    <link rel="next" title="File riemann_constants.H" href="riemann__constants_8H.html" />
     <link rel="prev" title="File reconstruction.H" href="reconstruction_8H.html" /> 
 </head>
 
@@ -173,6 +173,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">literals</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__constants_8H.html">File riemann_constants.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
@@ -229,7 +230,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="namespaceTwoShock_1ae3f6980d5d1210ef1ba4b6c076497a0a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pstar_bisection</span> <span class="pre">(amrex::Real</span> <span class="pre">&amp;pstar_lo,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar_hi,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pl,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamel,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsql,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamer,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsqr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gdot,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">lriemann_shock_maxiter,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">lriemann_pstar_tol,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;gamstar,</span> <span class="pre">bool</span> <span class="pre">&amp;converged,</span> <span class="pre">amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">PSTAR_BISECT_FACTOR</span> <span class="pre">*HISTORY_SIZE</span> <span class="pre">&gt;</span> <span class="pre">&amp;pstar_hist_extra)</span></span></dt>
+<span class="target" id="namespaceTwoShock_1a5fbcffdc229f78f684b0851712f9aad9"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pstar_bisection</span> <span class="pre">(amrex::Real</span> <span class="pre">&amp;pstar_lo,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar_hi,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pl,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taul,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamel,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsql,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">ur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">pr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">taur,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gamer,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">clsqr,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gdot,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmin,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">gmax,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">lriemann_shock_maxiter,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">lriemann_pstar_tol,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;pstar,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;gamstar,</span> <span class="pre">bool</span> <span class="pre">&amp;converged,</span> <span class="pre">amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">riemann_constants::PSTAR_BISECT_FACTOR</span> <span class="pre">*riemann_constants::HISTORY_SIZE</span> <span class="pre">&gt;</span> <span class="pre">&amp;pstar_hist_extra)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
@@ -283,7 +284,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="reconstruction_8H.html" class="btn btn-neutral float-left" title="File reconstruction.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="riemann__solvers_8H.html" class="btn btn-neutral float-right" title="File riemann_solvers.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="riemann__constants_8H.html" class="btn btn-neutral float-right" title="File riemann_constants.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

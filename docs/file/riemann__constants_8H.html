@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File castro_limits.H &mdash; Castro  documentation</title>
+  <title>File riemann_constants.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,8 +25,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File diffusion_util.H" href="diffusion__util_8H.html" />
-    <link rel="prev" title="File blackbody.H" href="blackbody_8H.html" /> 
+    <link rel="next" title="File riemann_solvers.H" href="riemann__solvers_8H.html" />
+    <link rel="prev" title="File riemann_2shock_solvers.H" href="riemann__2shock__solvers_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,7 +50,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../file/castro__limits_8H.html">main</a> | <a href="../dev/file/castro__limits_8H.html">development</a>
+        Branch: <a href="../file/riemann__constants_8H.html">main</a> | <a href="../dev/file/riemann__constants_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -139,10 +139,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="binary_8H.html">File binary.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File castro_limits.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv47MAX_LEV"><code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filt__prim_8H.html">File filt_prim.H</a></li>
@@ -172,7 +169,20 @@
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="riemann__constants_8H.html">File riemann_constants.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File riemann_constants.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv417riemann_constants"><code class="docutils literal notranslate"><span class="pre">riemann_constants</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants5smlp1E"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smlp1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants5smallE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::small</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants6smalluE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::smallu</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants20riemann_integral_tolE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::riemann_integral_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants13riemann_u_tolE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::riemann_u_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants13riemann_p_tolE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::riemann_p_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants12HISTORY_SIZEE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::HISTORY_SIZE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N17riemann_constants19PSTAR_BISECT_FACTORE"><code class="docutils literal notranslate"><span class="pre">riemann_constants::PSTAR_BISECT_FACTOR</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
@@ -205,9 +215,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File castro_limits.H</li>
+      <li class="breadcrumb-item active">File riemann_constants.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/castro__limits_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/riemann__constants_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -215,24 +225,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-castro-limits-h">
-<h1>File castro_limits.H<a class="headerlink" href="#file-castro-limits-h" title="Link to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
+  <section id="file-riemann-constants-h">
+<h1>File riemann_constants.H<a class="headerlink" href="#file-riemann-constants-h" title="Link to this heading"></a></h1>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv417riemann_constants">
+<span id="_CPPv317riemann_constants"></span><span id="_CPPv217riemann_constants"></span><span id="riemann_constants"></span><span class="target" id="namespaceriemann__constants"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">riemann_constants</span></span></span><a class="headerlink" href="#_CPPv417riemann_constants" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv47MAX_LEV">
-<span id="_CPPv37MAX_LEV"></span><span id="_CPPv27MAX_LEV"></span><span id="MAX_LEV__i"></span><span class="target" id="castro__limits_8H_1a070cc0298b5601bc08cb25b67503cec7"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MAX_LEV</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">15</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv47MAX_LEV" title="Link to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants5smlp1E">
+<span id="_CPPv3N17riemann_constants5smlp1E"></span><span id="_CPPv2N17riemann_constants5smlp1E"></span><span id="riemann_constants::smlp1__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1aa9d44ffa9909451784e7f348eb208671"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smlp1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-10</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smlp1E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants5smallE">
+<span id="_CPPv3N17riemann_constants5smallE"></span><span id="_CPPv2N17riemann_constants5smallE"></span><span id="riemann_constants::small__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1a954b42fe6c49b4775765924d3d9f3f95"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">small</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-8</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants5smallE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants6smalluE">
+<span id="_CPPv3N17riemann_constants6smalluE"></span><span id="_CPPv2N17riemann_constants6smalluE"></span><span id="riemann_constants::smallu__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1aa49b16891750d81cc56408a4b386df7a"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">smallu</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-12</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants6smalluE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants20riemann_integral_tolE">
+<span id="_CPPv3N17riemann_constants20riemann_integral_tolE"></span><span id="_CPPv2N17riemann_constants20riemann_integral_tolE"></span><span id="riemann_constants::riemann_integral_tol__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1abd85eacf8a874b4bd97e21dfdb649a1b"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">riemann_integral_tol</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-8</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants20riemann_integral_tolE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants13riemann_u_tolE">
+<span id="_CPPv3N17riemann_constants13riemann_u_tolE"></span><span id="_CPPv2N17riemann_constants13riemann_u_tolE"></span><span id="riemann_constants::riemann_u_tol__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1a2c7231779237680aed5a2ddfde9c0ff1"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">riemann_u_tol</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-6</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants13riemann_u_tolE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants13riemann_p_tolE">
+<span id="_CPPv3N17riemann_constants13riemann_p_tolE"></span><span id="_CPPv2N17riemann_constants13riemann_p_tolE"></span><span id="riemann_constants::riemann_p_tol__amrex::Real"></span><span class="target" id="namespaceriemann__constants_1af5fa02b4c135846adf21f6a20a891f89"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">riemann_p_tol</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-8</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants13riemann_p_tolE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants12HISTORY_SIZEE">
+<span id="_CPPv3N17riemann_constants12HISTORY_SIZEE"></span><span id="_CPPv2N17riemann_constants12HISTORY_SIZEE"></span><span id="riemann_constants::HISTORY_SIZE__i"></span><span class="target" id="namespaceriemann__constants_1abc70f76816544797abf2a71b4a12d605"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HISTORY_SIZE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">40</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants12HISTORY_SIZEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N17riemann_constants19PSTAR_BISECT_FACTORE">
+<span id="_CPPv3N17riemann_constants19PSTAR_BISECT_FACTORE"></span><span id="_CPPv2N17riemann_constants19PSTAR_BISECT_FACTORE"></span><span id="riemann_constants::PSTAR_BISECT_FACTOR__i"></span><span class="target" id="namespaceriemann__constants_1a785c667d6260fbba1b858bb16faf8843"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PSTAR_BISECT_FACTOR</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">5</span></span><a class="headerlink" href="#_CPPv4N17riemann_constants19PSTAR_BISECT_FACTORE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="blackbody_8H.html" class="btn btn-neutral float-left" title="File blackbody.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="diffusion__util_8H.html" class="btn btn-neutral float-right" title="File diffusion_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="riemann__2shock__solvers_8H.html" class="btn btn-neutral float-left" title="File riemann_2shock_solvers.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="riemann__solvers_8H.html" class="btn btn-neutral float-right" title="File riemann_solvers.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
