@@ -4,7 +4,7 @@ T_r                  real          5.e7_rt        y
 
 dens                 real          1.e8_rt        y
 
-frequency            real          0.0_rt         y
+frequency            real          1.0_rt         y
 
 cfrac_env            real           0.00_rt       y
 
