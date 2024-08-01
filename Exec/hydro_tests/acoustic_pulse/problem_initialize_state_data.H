@@ -60,8 +60,8 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMZ) = 0.0_rt;
 
     // we are isentropic, so p = (dens/rho0)**Gamma_1
-    Real p = std::pow(state(i,j,k,URHO) / problem::rho0, eos_gamma);
-    Real eint = p / (eos_gamma - 1.0_rt);
+    Real p = std::pow(state(i,j,k,URHO) / problem::rho0, eos_rp::eos_gamma);
+    Real eint = p / (eos_rp::eos_gamma - 1.0_rt);
 
     state(i,j,k,UEDEN) = eint;
     state(i,j,k,UEINT) = eint;
