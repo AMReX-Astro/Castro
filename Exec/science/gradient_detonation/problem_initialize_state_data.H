@@ -38,6 +38,16 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = problem::xn_core[n] + problem::xn_env[n];
     }
 
+    // normalize eos_state.xn
+    Real sum_xn = 0.0_rt;
+    for (int n = 0; n < NumSpec; n++) {
+        sum_xn += eos_state.xn[n]
+    }
+
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] /= sum_xn;
+    }
+
     eos(eos_input_rt, eos_state);
 
     state(i,j,k,UMX) = state(i,j,k,URHO) * (problem::vel - 2 * problem::vel * (1.0_rt - sigma));
