@@ -78,10 +78,15 @@ exact_riemann() {
 
         amrex::Real rho, u, p, xn_s[NumSpec];
 
+        // compute xi = x/t -- this is the similarity variable for the
+        // solution
+
+        amrex::Real xi = (x - problem::xjump) / problem::t;
+
         riemann_sample(problem::rho_l, problem::u_l, problem::p_l, xn,
                        problem::rho_r, problem::u_r, problem::p_r, xn,
                        ustar, pstar, W_l, W_r,
-                       x, problem::xjump, problem::t,
+                       xi,
                        rho, u, p, xn_s);
 
         // get the thermodynamics for this state for output
