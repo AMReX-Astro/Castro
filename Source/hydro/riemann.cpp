@@ -99,8 +99,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
             // the passives are always just upwinded, so we do that here
             // regardless of the solver
 
-            Real sgnm = std::copysign(1.0_rt, qint.un);
-            if (qint.un == 0.0_rt) {
+            Real sgnm = std::copysign(1.0_rt, qint.ustar);
+            if (qint.ustar == 0.0_rt) {
                 sgnm = 0.0_rt;
             }
 

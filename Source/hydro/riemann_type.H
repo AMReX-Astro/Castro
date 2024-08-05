@@ -14,6 +14,7 @@ struct RiemannState
     amrex::Real un;
     amrex::Real ut;
     amrex::Real utt;
+    amrex::Real ustar;
 
 #ifdef RADIATION
     amrex::Real lam[NGROUPS];
