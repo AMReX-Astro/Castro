@@ -566,7 +566,7 @@ Castro::read_params ()
     // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
     // override our overriding, they can do so.
 
-    Amr::setComputeNewDtOnRegrid(1);
+    Amr::setComputeNewDtOnRegrid(true);
 
     // Read in custom refinement scheme.
 
