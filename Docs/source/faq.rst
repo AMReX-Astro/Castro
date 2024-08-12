@@ -17,31 +17,46 @@ Compiling
    There are 2 things you can do to check what’s happening. First, inspect
    the directories in ``VPATH_LOCATIONS``. This can be done via:
 
-   ::
+   .. prompt:: bash
 
-       make print-VPATH_LOCATIONS
+      make print-VPATH_LOCATIONS
 
    Next, ask make to tell you where it is finding each of the source
    files. This is done through a script ``find_files_vpath.py``
    that is hooked into Castro’s build system. You can run this as:
 
-   ::
+   .. prompt:: bash
 
-       make file_locations
+      make file_locations
 
    At the end of the report, it will list any files it cannot find in
-   the vpath. Some of these are to be expected (like ``extern.f90``
-   and ``buildInfo.cpp``—these are written at compile-time. But any
-   other missing files need to be investigated.
+   the vpath. Some of these are to be expected (like
+   ``buildInfo.cpp``—these are written at compile-time). But any other
+   missing files need to be investigated.
+
+#. *I put a copy of one of the header files (e.g. ``problem_tagging.H``)
+   in my problem setup but it does not seem to recognized / used by
+   the build system.  Why doesn't my executable use my custom version
+   of the header?*
+
+   This is likely due to compiler caching / ccache.  You need to
+   clear the cache and the build:
+
+   .. prompt:: bash
+
+      ccache -C
+      make clean
+
+   Then rebuild and it should be recognized.
 
 #. *I’m still having trouble compiling. How can I find out what
    all of the make variables are set to?*
 
    Use:
 
-   ::
+   .. prompt:: bash
 
-       make help
+      make help
 
    This will tell you the value of all the compilers and their options.
 
@@ -104,7 +119,7 @@ Debugging
 
    Given a MultiFab ``mf``, you can dump out the state as:
 
-   ::
+   .. code:: c++
 
            print_state(mf, IntVect(AMREX_D_DECL(10, 20, 30)));
 
@@ -119,7 +134,7 @@ Debugging
    You can simply output a FAB to ``std::cout``. Imagine that you
    are in an MFIter loop, with a MultiFab ``mf``:
 
-   ::
+   .. code:: c++
 
            S = FArrayBox& mf[mfi];
            std::cout << S << std::endl;
@@ -143,9 +158,9 @@ Profiling
    When you run, a file named ``gmon.out`` will be produced. This can
    be processed with gprof by running:
 
-   ::
+   .. prompt:: bash
 
-         gprof exec-name
+      gprof exec-name
 
    where *exec-name* is the name of the executable. More detailed
    line-by-line information can be obtained by passing the -l
@@ -159,9 +174,9 @@ Managing Runs
 
    Create a file called ``dump_and_continue``, e.g., as:
 
-   ::
+   .. prompt:: bash
 
-       touch dump_and_continue
+      touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
    to restart. Other options are ``plot_and_continue`` to output
@@ -193,9 +208,9 @@ Managing Runs
 
    The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as
 
-   ::
+   .. prompt:: bash
 
-       ./Castro.exe --describe
+      ./Castro.exe --describe
 
 .. _ch:faq:vis:
 
