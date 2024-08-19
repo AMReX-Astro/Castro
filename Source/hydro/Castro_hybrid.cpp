@@ -22,8 +22,8 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state_old, Real 
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -65,8 +65,8 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {

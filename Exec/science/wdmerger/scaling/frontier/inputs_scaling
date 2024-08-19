@@ -1,0 +1,462 @@
+## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
+## with 100 km resolution using for scaling
+
+############################## CASTRO INPUTS ###############################################
+
+############################################################################################
+# Geometry
+############################################################################################
+
+# Non-periodic boundary conditions
+geometry.is_periodic = 0 0 0
+
+#if AMREX_SPACEDIM == 3
+
+  # Cartesian coordinate system
+  geometry.coord_sys = 0
+
+  # Lower boundary limits in physical space
+  geometry.prob_lo = -1.024e10 -1.024e10 -1.024e10
+
+#elif AMREX_SPACEDIM == 2
+
+  # Cartesian coordinate system
+  geometry.coord_sys = 1
+
+  # Lower boundary limits in physical space
+  geometry.prob_lo = 0.0e0 -5.12e9
+
+#endif
+
+# Upper boundary limits in physical space
+geometry.prob_hi = 1.024e10 1.024e10 1.024e10
+
+############################################################################################
+# Boundary conditions
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+############################################################################################
+
+#if AMREX_SPACEDIM == 3
+
+  # Boundary conditions on lo x, y, and z edges
+  castro.lo_bc = 2 2 2
+
+#elif AMREX_SPACEDIM == 2
+
+  # Boundary conditions on lo x, y, and z edges
+  castro.lo_bc = 3 2
+
+#endif
+
+# Boundary conditions on hi x, y, and z edges
+castro.hi_bc = 2 2 2
+
+############################################################################################ 
+# Timestepping
+############################################################################################
+
+# Maximum number of level 0 steps
+max_step = 10000000
+
+# Simulation end time
+stop_time = 0.2
+
+# CFL number for hyperbolic system
+castro.cfl = 0.5
+
+# Fixed level 0 timestep; unused if < 0
+castro.fixed_dt = -1.0
+
+# Scale back initial timestep by this factor
+castro.init_shrink = 1.0
+
+# Factor by which dt is allowed to change each timestep
+castro.change_max = 1.3
+
+# If we regrid on Level 0, compute a new timestep afterward
+amr.compute_new_dt_on_regrid = 1
+
+# Use a retry if an advance violated our stability criteria
+castro.use_retry = 1
+
+# Skip retries for small density if the starting density was less than this threshold
+castro.retry_small_density_cutoff = 1.0e0
+
+# Don't abort for invalid X if the zone density is less than this threshold
+castro.abundance_failure_rho_cutoff = 1.0e0
+
+# Maximum number of subcycles
+# Default is 10, 16 is recommended value
+castro.max_subcycles = 16
+
+
+############################################################################################ 
+# Resolution, gridding and AMR
+############################################################################################
+
+#if AMREX_SPACEDIM == 3
+
+  # Number of cells on the coarse grid
+  amr.n_cell = 256 256 256
+
+#elif AMREX_SPACEDIM == 2
+
+  # Number of cells on the coarse grid
+  amr.n_cell = 128 256
+
+#endif
+
+# Maximum level number allowed
+amr.max_level = 3
+
+# Refinement ratio
+amr.ref_ratio = 4 4 4 4 
+
+# How many coarse timesteps between regridding
+amr.regrid_int = 2
+
+# Allow special regrids based on stability criteria
+castro.use_post_step_regrid = 0
+
+# Number of buffer cells in error estimation
+amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
+
+# Maximum grid size at each level
+amr.max_grid_size = 64
+
+# Grid sizes must be a multiple of blocking factor
+amr.blocking_factor = 32
+
+# What constitutes an efficient grid
+amr.grid_eff = 0.9
+
+# Order of reconstruction for interpolation
+castro.state_interp_order = 0
+
+# Limiting on state data interpolation (preserve linear combinations)
+castro.lin_limit_state_interp = 1
+
+# Add refinement indicators
+amr.refinement_indicators = density density2 temperature
+
+# Density refinement criterion
+amr.refine.density.value_greater = 1.0e0
+amr.refine.density.field_name = density
+amr.refine.density.max_level = 1
+
+# Density2 refinement criterion
+amr.refine.density2.value_greater = 1.0e4
+amr.refine.density2.field_name = density
+amr.refine.density2.max_level = 20
+
+# Temperature refinement criterion
+amr.refine.temperature.value_greater = 3.0e8
+amr.refine.temperature.field_name = Temp
+amr.refine.temperature.max_level = 3
+
+# Avoid tagging near the domain boundary
+castro.max_tagging_radius = 0.75e0
+
+# Whether or not to use AMR subcycling
+amr.subcycling_mode = None
+
+# GPU option
+castro.hydro_memory_footprint_ratio = 3
+
+############################################################################################
+# Physics to include
+############################################################################################
+
+# Whether or not to do hydrodynamics
+castro.do_hydro = 1
+
+# Whether or not to do gravity
+castro.do_grav = 1
+
+# Whether or not to do reactions
+castro.do_react = 1
+
+# Whether or not to apply the sponge
+castro.do_sponge = 1
+
+# Whether or not to apply external source terms
+castro.add_ext_src = 1
+castro.ext_src_implicit = 1
+
+# Whether or not to include the rotation source term
+castro.do_rotation = 1
+
+############################################################################################
+# PPM/Hydro options
+############################################################################################
+
+# Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
+castro.ppm_type = 1
+
+# Use the EOS in calculation of the edge states going into the Riemann solver
+castro.ppm_temp_fix = 0
+
+# Which Riemann solver to use.
+# 0 = Colella, Glaz, and Ferguson (cheaper, less accurate)
+# 1 = Colella and Glaz 1985 (more expensive, more accurate)
+# 2 = HLL
+castro.riemann_solver = 0
+
+# For the CG Riemann solver, we need to tell the solver not to quit when 
+# the iterations don't converge, but instead to do additional bisection iteration.
+castro.riemann_cg_blend = 2
+
+# Use a lagged predictor estimate of the source terms in the hydro
+castro.source_term_predictor = 1
+
+# Whether to use the hybrid advection technique that conserves angular momentum
+castro.hybrid_hydro = 0
+
+# Reset (rho*e) if it goes negative in the transverse terms
+castro.transverse_reset_rhoe = 1
+
+# Reset rho if it goes negative in the transverse terms
+castro.transverse_reset_density = 1
+
+# Explicitly limit fluxes to avoid hitting a negative density
+castro.limit_fluxes_on_small_dens = 1
+
+# Set global simulation speed limit
+castro.speed_limit = 1.498962290e9 # 0.05c
+
+############################################################################################
+# Thermodynamics
+############################################################################################
+
+# Minimum allowable temperature (K)
+castro.small_temp = 1.e5
+
+# Minimum allowable density (g / cm**3)
+castro.small_dens = 1.e-5
+
+# Threshold for when to use the internal energy in calculating pressure
+castro.dual_energy_eta1 = 1.0e-3
+
+# Threshold for when to use (E - K) in updating internal energy
+castro.dual_energy_eta2 = 1.0e-4
+
+# Use Coulomb corrections in Helmholtz EOS
+eos.use_eos_coulomb = 1
+
+# Keep EOS inputs constant after EOS evaluation
+eos.eos_input_is_constant = 1
+
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
+# Clamp temperature in ambient zones to its initial value
+castro.clamp_ambient_temp = 1
+
+############################################################################################
+# Reactions/Network
+############################################################################################
+
+# Limit timestep based on nuclear burning considerations (changes in internal energy)
+castro.dtnuc_e = 1.e200
+
+#Limit timestep based on nuclear burning considerations (changes in species)
+castro.dtnuc_X = 1.e200
+
+# Minimum temperature for allowing nuclear burning
+castro.react_T_min = 1.0e8
+
+# Maximum temperature for allowing nuclear burning
+castro.react_T_max = 1.0e12
+
+# Minimum density for allowing nuclear burning
+castro.react_rho_min = 1.0e6
+
+# Maximum density for allowing nuclear burning
+castro.react_rho_max = 1.0e12
+
+# Smallest allowable mass fraction
+network.small_x = 1.0e-12
+
+# Evaluate the RHS during the burn
+integrator.call_eos_in_rhs = 1
+
+# Integration tolerances
+integrator.rtol_spec = 1.0e-6
+integrator.atol_spec = 1.0e-6
+
+integrator.rtol_enuc = 1.0e-6
+integrator.atol_enuc = 1.0e-6
+
+# Do not abort or retry on a failed burn (Castro will handle this)
+integrator.abort_on_failure = 0
+
+# Renormalize abundances during the burn
+integrator.renormalize_abundances = 1
+
+# Maximum temperature allowed in the burn
+integrator.MAX_TEMP = 1.0e10
+
+# Use tabular rate evaluation when available
+network.use_tables = 1
+
+############################################################################################
+# Gravity
+############################################################################################
+
+# Full self-gravity with the Poisson equation
+gravity.gravity_type = PoissonGrav
+
+# Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.max_multipole_order = 6
+
+# Tolerance for multigrid solver for phi solves
+gravity.abs_tol = 1.e-10
+
+# Use sync solve for gravity after refluxing
+gravity.no_sync = 0
+
+# Disable the use of the lagged composite correction for the potential
+gravity.do_composite_phi_correction = 0
+
+############################################################################################
+# Rotation
+############################################################################################
+
+# Rotational period of the rotating reference frame
+castro.rotational_period = 100.0
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e0
+castro.sponge_upper_density = 1.0e0
+castro.sponge_timescale     = 0.01e0
+
+############################################################################################
+# Load balancing
+############################################################################################
+
+# Choice of load balancing strategy to use
+DistributionMapping.strategy = KNAPSACK
+
+# Efficiency demanded from the knapsack algorithm
+DistributionMapping.efficiency = 0.9
+
+############################################################################################
+# Diagnostics and I/O
+############################################################################################
+
+# Timesteps between computing and printing volume averaged diagnostic quantities
+castro.sum_interval = 0
+
+# Simulation time between computing and printing volume averaged diagnostic quantities
+castro.sum_per = -1.0
+
+# Gravitational wave strain observation distance
+castro.gw_dist = 10.0
+
+# Name the job
+castro.job_name = wdmerger
+
+# Whether or not to output plotfiles
+amr.plot_files_output = 0
+
+# Whether or not to output checkpoints
+amr.checkpoint_files_output = 0
+
+# Root name of checkpoint files
+amr.check_file = chk
+
+# We want to store the 'old' state data in checkpoints
+castro.dump_old = 1
+
+# Simulation time between checkpoints
+amr.check_per = 0.1
+
+# Number of timesteps between checkpoints
+amr.check_int = 20
+
+# Root name of plot files
+amr.plot_file = plt
+
+# Simulation time between plotfiles
+amr.plot_per = -1
+
+# Number of timesteps between plotfiles
+#amr.plot_int = -1
+
+# Root name of small plot files
+amr.small_plot_file = smallplt
+
+# Simulation time between small plotfiles
+amr.small_plot_per = -1
+
+# Number of timesteps between small plotfiles
+amr.small_plot_int = -1
+
+# Do not write plotfiles when we dump checkpoints
+amr.write_plotfile_with_checkpoint = 0
+
+# Write final checkpoint/plotfile
+castro.output_at_completion = 1
+
+# Do not write a plotfile or checkpoint on restart
+amr.plotfile_on_restart = 1
+amr.checkpoint_on_restart = 1
+
+# Control verbosity in Amr.cpp
+amr.v = 1
+
+# Control verbosity in Castro.cpp
+castro.v = 1
+
+# Control verbosity in Gravity.cpp
+gravity.v = 1
+
+# State variables to add to plot files
+amr.plot_vars = NONE
+
+# Derived variables to add to plot files
+amr.derive_plot_vars = NONE
+
+# State variables to add to small plot files
+amr.small_plot_vars = NONE
+
+# Derived variables to add to small plot files
+amr.derive_small_plot_vars = NONE
+
+# Name of the diagnostic sum output files
+#amr.data_log = NONE
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 1.05
+problem.mass_S = 0.70
+
+problem.co_wd_c_frac = 0.5
+problem.co_wd_o_frac = 0.5
+problem.co_wd_he_shell_mass = 0.03
+
+problem.max_co_wd_mass = 1.50
+
+problem.nsub = 4
+
+problem.problem = 1
+
+problem.roche_radius_factor = 1.0e0
+
+problem.interp_temp = 1
+
+problem.relaxation_damping_factor = -1.0e-1
+problem.relaxation_density_cutoff = 1.0e3
+problem.relaxation_cutoff_time = -1.0e0
+
+problem.stellar_temp = 5.0e5

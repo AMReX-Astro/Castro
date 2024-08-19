@@ -29,7 +29,7 @@ void problem_bc_fill(int i, int j, int k,
 
     eos_t zone_state;
     zone_state.rho = rho_init * std::pow(1.0_rt + time / r, AMREX_SPACEDIM - 1);
-    zone_state.p   = pres_init * std::pow(zone_state.rho / rho_init, 1.0_rt + eos_gamma);
+    zone_state.p   = pres_init * std::pow(zone_state.rho / rho_init, 1.0_rt + eos_rp::eos_gamma);
     for (int n = 0; n < NumSpec; ++n) {
         zone_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
     }

@@ -3,14 +3,14 @@
 
 #include <AMReX_REAL.H>
 
-#include <riemann_support.H>
-#include <riemann_shock.H>
-#include <riemann_rarefaction.H>
+#include <riemann_constants.H>
+#include <exact_riemann_shock.H>
+#include <exact_riemann_rarefaction.H>
 
 using namespace amrex::literals;
 
 AMREX_INLINE
-void
+int
 riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::Real p_l, const amrex::Real* xn_l,
                    const amrex::Real rho_r, const amrex::Real u_r, const amrex::Real p_r, const amrex::Real* xn_r,
                    amrex::Real& ustar, amrex::Real& pstar, amrex::Real& W_l, amrex::Real& W_r) {
@@ -74,12 +74,10 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
         pstar = ((W_r * p_l + W_l * p_r) + W_l * W_r * (u_l - u_r)) / (W_l + W_r);
     }
 
-    pstar = amrex::max(pstar, smallp);
+    pstar = std::max(pstar, smallp);
 
 
     // find the exact pstar and ustar
-
-    std::cout << "solving for star state: " << std::endl;
 
     // this procedure follows directly from Colella & Glaz 1985, section 1
     // the basic idea is that we want to find the pstar that satisfies:
@@ -108,7 +106,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
     bool converged = false;
 
     int iter = 1;
-    while (! converged && iter < riemann_solver::max_iters) {
+    while (! converged && iter < castro::riemann_shock_maxiter) {
 
         // compute Z_l, W_l and Z_r, W_r -- the form of these depend
         // on whether the wave is a shock or a rarefaction
@@ -142,17 +140,16 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
         amrex::Real pstar_new = pstar - Z_l * Z_r * (ustar_r - ustar_l) / (Z_l + Z_r);
 
-        // estimate the error in the current star solution
-        amrex::Real err1 = std::abs(ustar_r - ustar_l);
-        amrex::Real err2 = pstar_new - pstar;
+        // estimate the error in the current pstar solution
 
-        if (err1 < tol * amrex::max(std::abs(ustar_l), std::abs(ustar_r)) &&
-            err2 < tol * pstar) {
+        amrex::Real error = std::abs(pstar_new - pstar);
+
+        if (error < tol * pstar) {
             converged = true;
         }
 
         // get ready for the next iteration
-        pstar = pstar_new;
+        pstar = std::clamp(pstar_new, 0.5 * pstar, 2.0 * pstar);
 
         iter++;
     }
@@ -163,6 +160,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
 
     ustar = 0.5_rt * (ustar_l + ustar_r);
 
-    std::cout << "found pstar, ustar: " <<  pstar << " " << ustar << std::endl;
+    return iter;
+
 }
 #endif
