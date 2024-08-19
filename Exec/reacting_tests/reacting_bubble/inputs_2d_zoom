@@ -1,14 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-castro.MAESTRO_plotfile = "MAESTRO_plt00000"
-castro.MAESTRO_modelfile = "./MAESTRO_plt00000/model_cc_00000"
-castro.MAESTRO_first_species = "X(C12)"
-castro.MAESTRO_npts_model = 128
-
-castro.MAESTRO_cutoff_density = 3.e6
-castro.MAESTRO_init_type = 2
-castro.MAESTRO_spherical = 0
-
 max_step = 100000
 stop_time =  0.8
 

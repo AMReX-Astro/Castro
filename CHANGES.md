@@ -1,3 +1,233 @@
+# 24.08
+
+  * lazy QueueReduction has been enabled for the timing diagnostics
+    (#2926)
+
+  * The `job_info` file output now correctly labels the compute time
+    as GPU-hours instead of CPU-hours when running on GPUs (#2930)
+
+  * We can now output warnings when running on GPUs if you build
+    with `USE_GPU_PRINTF=TRUE`(#2923, #2928)
+
+  * Code clean-ups / sync with Microphysics (#2900, #2901, #2905,
+    #2906, #2909, #2912, #2919, #2922, #2932, #2933, #2936, #2938,
+    #2940)
+
+  * The area weighting in the diagnostics in `subch_planar` was fixed
+    (#2885)
+
+  * A script to produce a resolution study for the `circular_det`
+    problem was added (#2857)
+
+  * science problem updates: `xrb_layered` (#2917), `nova` (#2913),
+    `wdmerger` (#2907, #2918, #2931), `Detonation` (#2902)
+
+  * updated scaling results on Frontier (#2904, #2914, #2915)
+
+  * more exact Riemann solver clean-up (#2896, #2897, #2898)
+    and clean-ups to the two shock solvers (#2895)
+
+  * fix issues with eigenvectors and clang-tidy in the MHD solver
+    (#2880)
+
+# 24.07
+
+  * Reorganizing of the existing 2-shock and HLL Riemann solvers
+    (#2887, #2888, #2889, #2890)
+
+  * Some clean-up, accuracy improvements, and optimization of the
+    exact Riemann solver in preparation for coupling it to simulations
+    (#2868, #2869, #2875)
+
+  * a new problem setup, `subch_planar`, for exploring He detonations
+    (#2870, #2873, #2881, #2883, #2886, #2877, #2878)
+
+  * clean-up the computation of the shock variable for hybrid Riemann
+    solves (#2865)
+
+  * code clean-ups (#2852, #2871, #2891)
+
+  * documentation improvements (#2843, #2879)
+
+  * add an EditorConfig (#2872)
+
+  * add the circular detonation problem to test multidimensional shock
+    algorithms (#2858)
+
+# 24.06
+
+  * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
+
+  * Sync problem and Castro runtime parameters to recent Microphysics
+    changes (#2838, #2845, #2861)
+
+  * fix parsing in the `check_params.py` script (#2850)
+
+  * code cleaning (#2840, #2842, #2843)
+
+# 24.05
+
+  * Changed how the shock flag is computed.  It is now computed once,
+    at the start of a timestep.  It also takes into account sources
+    such that the pressure jump is only the pressure that is available
+    to drive a shock.  (#2726, #2728)
+
+  * Fixed a boundary condition check in gravity (#2833)
+
+  * Some coverity and clang-tidy fixes (#2810, #2811, #2835, #2831,
+    #2832)
+
+  * Fix the wdmerger initialization when the two stars are overlapping
+    (#2829)
+
+  * Fixed the Castro retry mechanism when amr.subcycling_mode = None
+    (#2821, #2824, #2826)
+
+  * Added more amr parameters to the `job_info` file (#2828)
+
+  * Added OpenMP to the SDC burn loop (#2770)
+
+# 24.04
+
+  * Some clang-tidy fixes (#2779, #2780, #2781, #2784, #2786, #2787, #2790,
+    #2791, #2792, #2793, #2797, #2798, #2799, #2800, #2801, #2804)
+
+  * Fix species initialization in the Detonation problem (#2806)
+    and let it work with NSE (#2765)
+
+  * Sync up with AMReX changes (#2794)
+
+  * wdmerger now reports composition of initial stars (#2767)
+
+  * flame_wave now checks if the `atm_delta` is too small (#2782)
+    and stores X(ash) (#2773)
+
+  * a bounds issue in the true SDC integration was fixed (#2775)
+
+# 24.03
+
+  * Documentation updates (#2742, #2752, #2753)
+
+  * Fix some code warnings (#2737)
+
+  * Fixed the exact Riemann solver compilation (#2745)
+
+  * Fix an issue with large kernel sizes with ROCm in the reduction code
+    in the reactions (#2749)
+
+# 24.02
+
+  * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,
+    #2735, #2731, #2732, #2733)
+
+  * Fix the boundary condition logic at a wall for Detonation (#2722)
+
+  * Reimplement the shock detection algorithm to account for sources
+    and do a better job in multidimensions (#2711, #2710, #2709, #2704)
+
+  * Start the process of moving the runtime parameters to structs (#2688)
+
+# 24.01
+
+  * An option for unlimited PPM reconstruction was added (#2670)
+
+  * An option allowing for optional passive sources to the conserved
+    state was added (#2678)
+
+  * A script `diag_parser.py` was added to allow for easy parsing of
+    the global diagnostic files output at runtime (#2666, #2667)
+
+# 23.12
+
+  * The radiation solver port to C++ has been completed (#2638, #2648)
+
+# 23.11
+
+  * Problem GNUmakefiles have been standardized and now allow for the
+    problem to be compiled elsewhere (#2640, #2641, #2642, #2643)
+
+  * The true-SDC Newton solver has been made more robust and faster
+    (#2586, #2602, #2605, #2606)
+
+  * Several problems that required the initial model grid spacing to
+    be specified in the inputs file now automatically compute it as
+    needed, including `flame_wave` (#2610), `convective_flame`,
+    `bubble_convergence`, and `hse_convergence` (#2624), `double_bubble`,
+    `gamma_law_bubble`, and `hse_convergence_general` (#2612)
+
+  * Outflow boundary conditions for the 4th order solver have been changed
+    to no longer use the one-sided stencil (#2607)
+
+  * The ca_rad_source hook in Fortran has been removed. The existing
+    problem_rad_source() hook in C++ can be used instead. (#2626)
+
+  * The compile option USE_AUX_UPDATE has been removed. If you want to
+    manually update the auxiliary parameters, you can use an external
+    source term or you can use the problem post-timestep hook. (#2614)
+
+  * The pressure is now always included in the x-momentum flux in 1-d
+    Cartesian, and this fixes an issue at jumps in refinement with the
+    pressure gradient (#2468)
+
+  * A bug was fixed in the 4th order diffusion operator that was introduced
+    when it was originally converted to C++ (#2592)
+
+  * The 2nd order Radau integrator had the wrong quadrature weights
+    (#2594)
+
+# 23.10
+
+  * True-SDC no longer evolves density as part of the reaction system
+    and now uses the same ODE code path as simplified-SDC.  This means
+    we don't need our own custom VODE righthand side functions (#2559,
+    #2560, #2567, #2578, #2580, #2584)
+
+  * The true SDC runtime parameter `sdc_solve_for_rhoe` has been
+    removed. (#2572)
+
+  * The true SDC runtime parameters `sdc_solver_tol_spec`,
+    `sdc_solver_tol_ener`, `sdc_solver_atol` have been removed.
+    Instead the Microphysics integration tolerance parameters should
+    be used. (#2571)
+
+  * The true SDC runtime parameter `sdc_newton_use_analytic_jac` has
+    been removed.  Instead the Microphysics integrator `jacobian`
+    parameter should be used (#2573)
+
+# 23.08
+
+  * Time evolution without subcycling on the fine levels, which is enabled via
+    the runtime parameter amr.subcycling_mode = "None", has been significantly
+    rewritten to improve computational performance for certain cases. When the
+    fine levels do not subcycle, the evolution can be done by processing all
+    of the hydro updates on the fine level together and then immediately doing
+    the flux correction to sync the coarse and fine level fluxes at the
+    boundary between levels. This is how many AMR codes that do not subcycle
+    are written. Castro now does this when the user chooses not to subcycle.
+    The benefit of this approach is most evidence for problems with Poisson
+    gravity that use a multigrid solve, as we can significantly reduce the
+    number of Poisson solves per step, performing only a single composite
+    (multi-level) solve at the new-time simultaneously for all levels. (#2505)
+
+# 23.07
+
+  * The parameter castro.state_nghost, which allowed State_Type to have ghost
+    zones, has been removed. (#2502)
+
+  * The additional ghost zone in State_Type, used when radiation is enabled,
+    has been removed. The checkpoint version number has been updated to avoid
+    restarting from a checkpoint with the wrong number of ghost zones. (#2495)
+
+  * The parameter gravity.no_composite was removed (#2483)
+
+  * The parameter spherical_star was removed (#2482)
+
+# 23.06
+
+  * The job_info file now reports the integrator used (#2463)
+
+  * 1-d cylindrical geometry was fixed (#2465, #2470)
+
 # 23.05
 
   * fixed some radiation solver indexing for plotting lab/com frame

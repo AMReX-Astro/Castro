@@ -23,10 +23,6 @@ castro.yr_ext_bc_type = 1
 
 castro.hse_interp_temp = 1
 
-
-# this is here just for test suite coverage
-castro.state_nghost = 1
-
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1

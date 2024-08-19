@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <problem_source.H>
 
 using namespace amrex;
@@ -25,8 +24,8 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -96,8 +95,8 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -134,7 +133,7 @@ Castro::fill_ext_source (const Real time, const Real dt,
         Array4<Real> const src = ext_src.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             problem_source(i, j, k, geomdata, snew, src, dt, time);
         });

@@ -45,8 +45,9 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
     AMREX_ASSERT(coord == 2);
 
     r_zone = p[0] - center[0];
-    Real r_r = problo[0]+static_cast<Real>(i+1)*dx_level[0];
-    Real r_l = problo[0]+static_cast<Real>(i)*dx_level[0];
+
+    Real r_r = p[0] + 0.5_rt * dx_level[0];
+    Real r_l = p[0] - 0.5_rt * dx_level[0];
     vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
         (r_r*r_r + r_l*r_r + r_l*r_l);
 
@@ -147,7 +148,7 @@ int main(int argc, char* argv[])
 
 #else
     double x_maxdist = amrex::max(std::abs(probhi[0] - xctr),
-                                  std::fabs(problo[0] - xctr));
+                                  std::abs(problo[0] - xctr));
     double y_maxdist = amrex::max(std::abs(probhi[1] - yctr),
                                   std::abs(problo[1] - yctr));
     double z_maxdist = amrex::max(std::abs(probhi[2] - zctr),
@@ -303,7 +304,7 @@ int main(int argc, char* argv[])
                                 e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
 
                                 volcount[index] += vol;
-                                
+
                             }
                         }
                     }
@@ -341,10 +342,10 @@ int main(int argc, char* argv[])
     // write the data in columns
     const auto SMALL = 1.e-20;
     for (auto i = 0; i < nbins; i++) {
-        if (fabs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
-        if (fabs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
-        if (fabs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
-        if (fabs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
+        if (std::abs(dens_bin[i]) < SMALL) dens_bin[i] = 0.0;
+        if (std::abs( vel_bin[i]) < SMALL) vel_bin[i] = 0.0;
+        if (std::abs(pres_bin[i]) < SMALL) pres_bin[i] = 0.0;
+        if (std::abs(   e_bin[i]) < SMALL) e_bin[i] = 0.0;
 
         slicefile << std::setw(w) << r[i] << std::setw(w) << dens_bin[i] << std::setw(w) << vel_bin[i] << std::setw(w) << pres_bin[i] << std::setw(w) << e_bin[i] << std::endl;
     }

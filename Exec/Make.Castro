@@ -35,13 +35,7 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-else
-  BL_NO_FORT := TRUE
-endif
-
+BL_NO_FORT := TRUE
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -60,6 +54,9 @@ endif
 
 # Require C++17
 CXXSTD := c++17
+
+# Use Lazy QueueReduction for the timing outputs
+LAZY := TRUE
 
 # default integrator
 INTEGRATOR_DIR ?= VODE
@@ -89,13 +86,27 @@ ifeq ($(USE_SDC), TRUE)
   $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
 endif
 
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    $(error USE_SIMPLIFIED_SDC cannot be combined with USE_TRUE_SDC)
+  endif
+endif
+
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  USERSuffix = .SMPLSDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .SMPLSDC$(USERSuffix)
+  else
+    USERSuffix = .SMPLSDC
+  endif
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  USERSuffix = .TRUESDC
+  ifneq ($(USERSuffix),)
+    USERSuffix := .TRUESDC$(USERSuffix)
+  else
+    USERSuffix = .TRUESDC
+  endif
 endif
 
 USE_MLMG = FALSE
@@ -128,6 +139,10 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+ifeq ($(USE_GPU_PRINTF),TRUE)
+  DEFINES += -DALLOW_GPU_PRINTF
+endif
+
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
@@ -142,12 +157,6 @@ build_status:
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
 
-# OpenACC support
-ifeq ($(USE_ACC), TRUE)
-  DEFINES += -DACC
-endif
-
-
 
 #------------------------------------------------------------------------------
 # Castro directories
@@ -161,9 +170,13 @@ endif
 MAX_NPTS_MODEL ?= 10000
 NUM_MODELS ?= 1
 
-ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
-  Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+ifeq ($(USE_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser
+  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+endif
+
+ifeq ($(USE_RNG_STATE_INIT), TRUE)
+  DEFINES += -DRNG_STATE_INIT
 endif
 
 # add / define any special physics we need
@@ -186,18 +199,6 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-
-  ifeq ($(USE_TRUE_SDC), TRUE)
-    # we need the compositional derivatives for SDC
-    DEFINES += -DEXTRA_THERMO
-  endif
-
-  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-    # we need the compositional derivatives for SDC
-    DEFINES += -DEXTRA_THERMO
-    # we only implement this for C++ reactions
-  endif
-
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -238,10 +239,6 @@ ifeq ($(USE_SHOCK_VAR), TRUE)
   DEFINES += -DSHOCK_VAR
 endif
 
-ifeq ($(USE_AUX_UPDATE), TRUE)
-  DEFINES += -DAUX_UPDATE
-endif
-
 ifeq ($(USE_POST_SIM), TRUE)
   DEFINES += -DDO_PROBLEM_POST_SIMULATION
 endif
@@ -266,6 +263,10 @@ endif
 ifeq ($(USE_ROTATION), TRUE)
   Bdirs += Source/rotation
   DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DCONS_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)
@@ -309,8 +310,6 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # file (including the general_null network) to our temporary build
 # directory
 NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
-
-USE_CXX_EOS := TRUE
 
 include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
 
@@ -359,7 +358,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90 $(CASTRO_AUTO_SOURCE_DIR)/*.cpp
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
 # can get rid of explicitly removing them (this is for backwards compatibility)

@@ -86,8 +86,6 @@ problem.pert_width = 0.025e0
 
 problem.do_isentropic = 1
 
-problem.dx_model = 0.00390625
-
 # EOS
 eos.species_a_name = "A"
 eos.species_a_gamma = 1.666e0

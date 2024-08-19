@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -21,7 +20,8 @@ Castro::ca_sdc_update_advection_o2_lobatto(const Box& bx,
 
     // Gauss-Lobatto / trapezoid
 
-    AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+    amrex::ParallelFor(bx, k_n.nComp(),
+    [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
     {
         k_n(i,j,k,n) = k_m(i,j,k,n) + 0.5_rt * dt * (A_0_old(i,j,k,n) + A_1_old(i,j,k,n));
     });
@@ -49,7 +49,8 @@ Castro::ca_sdc_update_advection_o2_radau(const Box& bx,
 
     if (m_start == 0)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
@@ -58,7 +59,8 @@ Castro::ca_sdc_update_advection_o2_radau(const Box& bx,
     }
     else if (m_start == 1)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
@@ -87,7 +89,8 @@ Castro::ca_sdc_update_advection_o4_lobatto(const Box& bx,
 
     if (m_start == 0)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
@@ -96,7 +99,8 @@ Castro::ca_sdc_update_advection_o4_lobatto(const Box& bx,
     }
     else if (m_start == 1)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
@@ -130,7 +134,8 @@ Castro::ca_sdc_update_advection_o4_radau(const Box& bx,
 
     if (m_start == 0)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
@@ -141,7 +146,8 @@ Castro::ca_sdc_update_advection_o4_radau(const Box& bx,
     }
     else if (m_start == 1)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
@@ -152,7 +158,8 @@ Castro::ca_sdc_update_advection_o4_radau(const Box& bx,
     }
     else if (m_start == 2)
     {
-        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, k_n.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_2_old(i,j,k,n)) +
@@ -183,7 +190,8 @@ Castro::ca_sdc_compute_C2_lobatto(const Box& bx,
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 
-    AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+    amrex::ParallelFor(bx, C.nComp(),
+    [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
     {
         // construct the source term to the update for 2nd order
         // Lobatto, there is no advective correction, and we have
@@ -217,24 +225,26 @@ Castro::ca_sdc_compute_C2_radau(const Box& bx,
 
     if (m_start == 0)
     {
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             C(i,j,k,n) = -R_1_old(i,j,k,n) +
                 (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
                 (dt/dt_m) * (1.0_rt/12.0_rt) *
-                5.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
-                (A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+                (5.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
+                        (A_2_old(i,j,k,n) + R_2_old(i,j,k,n)));
         });
     }
     else if (m_start == 1)
     {
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             C(i,j,k,n) = -R_2_old(i,j,k,n) +
                 (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
                 (dt/dt_m) * (1.0_rt/3.0_rt) *
-                (A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                (A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+                ((A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (A_2_old(i,j,k,n) + R_2_old(i,j,k,n)));
         });
     }
 } // end ca_sdc_compute_C2_radau
@@ -261,7 +271,8 @@ Castro::ca_sdc_compute_C4_lobatto(const Box& bx,
     if (m_start == 0)
     {
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             Real integral = 1.0_rt/12.0_rt * (5.0_rt*(A_0_old(i,j,k,n) + R_0_old(i,j,k,n)) +
                                               8.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
@@ -273,7 +284,8 @@ Castro::ca_sdc_compute_C4_lobatto(const Box& bx,
     else if (m_start == 1)
     {
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             Real integral = 1.0_rt/12.0_rt * (-(A_0_old(i,j,k,n) + R_0_old(i,j,k,n)) +
                                               8.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
@@ -308,12 +320,13 @@ Castro::ca_sdc_compute_C4_radau(const Box& bx,
     // compute the 'C' term for the 4th-order solve with reactions
     // note: this 'C' is cell-averages
 
-    // Gauss-Lobatto (Simpsons)
+    // Radau
 
     if (m_start == 0)
     {
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             Real integral = (dt/dt_m) * (1.0_rt/1800.0_rt) *
                 ((-35.0_rt*std::sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
@@ -326,7 +339,8 @@ Castro::ca_sdc_compute_C4_radau(const Box& bx,
     else if (m_start == 1)
     {
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             Real integral = (dt/dt_m) * (1.0_rt/150.0_rt) *
                 ((-12.0_rt + 17.0_rt*std::sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
@@ -339,7 +353,8 @@ Castro::ca_sdc_compute_C4_radau(const Box& bx,
     else if (m_start == 2)
     {
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, C.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             Real integral = (dt/dt_m) * (1.0_rt/600.0_rt) *
                 ((168.0_rt - 73.0_rt*std::sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
@@ -365,7 +380,8 @@ Castro::ca_sdc_conservative_update(const Box& bx, Real const dt_m,
     // given <U>_old, <R>_new, and <C>, compute <U>_new
 
     // now consider the reacting system
-    AMREX_PARALLEL_FOR_4D(bx, U_new.nComp(), i, j, k, n,
+    amrex::ParallelFor(bx, U_new.nComp(),
+    [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
     {
         U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
     });
@@ -386,14 +402,16 @@ void Castro::ca_sdc_compute_initial_guess(const Box& bx,
 
     if (sdc_iteration == 0)
     {
-        AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, U_guess.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             U_guess(i,j,k,n) = U_old(i,j,k,n) + dt_m * A_old(i,j,k,n) + dt_m * R_old(i,j,k,n);
         });
     }
     else
     {
-        AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
+        amrex::ParallelFor(bx, U_guess.nComp(),
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             U_guess(i,j,k,n) = U_new(i,j,k,n);
         });
@@ -405,7 +423,6 @@ void Castro::ca_sdc_compute_initial_guess(const Box& bx,
 #ifdef REACTIONS
 void Castro::ca_store_reaction_state(const Box& bx,
                                      Array4<const Real> const& R_old,
-                                     Array4<const Real> const& state,
                                      Array4<Real> const& R_store)
 {
     // copy the data from the last node's reactive source to the state data
@@ -414,20 +431,23 @@ void Castro::ca_store_reaction_state(const Box& bx,
     // Reactions_Type
 
     if (store_omegadot) {
-        AMREX_PARALLEL_FOR_4D(bx, NumSpec, i, j, k, n,
+        amrex::ParallelFor(bx, NumSpec,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             R_store(i,j,k,1+n) = R_old(i,j,k,UFS+n);
         });
 
 #if NAUX_NET > 0
-        AMREX_PARALLEL_FOR_4D(bx, NumAux, i, j, k, n,
+        amrex::ParallelFor(bx, NumAux,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
             R_store(i,j,k,1+NumSpec+n) = R_old(i,j,k,UFX+n);
         });
 #endif
     }
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         R_store(i,j,k,0) = R_old(i,j,k,UEDEN);
     });

@@ -74,7 +74,7 @@ The variables will all be initialized for the GPU as well.
 Problem Initialization
 ----------------------
 
-Here we describe the main problem initialization routines. 
+Here we describe the main problem initialization routines.
 
 .. index:: initialize_problem
 
@@ -96,7 +96,7 @@ Here we describe the main problem initialization routines.
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  If you need coordinate information, it can be obtained 
+  If you need coordinate information, it can be obtained
   by constructing a ``Geometry`` object using ``DefaultGeometry()``
   and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
@@ -200,7 +200,9 @@ each of these in the main source tree.
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
--  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derives.cpp``
+   .. _problem_derives:
+
+-  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derive.cpp``
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. ``Problem_Derives.H``
@@ -234,7 +236,7 @@ Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The ``model_parser.H`` provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add::
 
-  USE_CXX_MODEL_PARSER = TRUE
+  USE_MODEL_PARSER = TRUE
 
 to the problem ``GNUmakefile``.  There are 2 other parameters that can
 be set in the makefile to control the initial model storage:

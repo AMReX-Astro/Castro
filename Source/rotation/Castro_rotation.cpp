@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 using namespace amrex;
@@ -35,14 +34,16 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
     if (verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_rotation_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -90,13 +91,13 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
-
+        Real llevel = level;
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_rotation_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_rotation_source() time = " << run_time << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

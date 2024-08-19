@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -7,6 +6,10 @@
 
 #ifdef GRAVITY
 #include <Gravity.H>
+#endif
+
+#ifdef HYBRID_MOMENTUM
+#include <hybrid.H>
 #endif
 
 #include <ppm.H>
@@ -30,15 +33,15 @@ Castro::mol_plm_reconstruct(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
   // piecewise linear slopes
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
@@ -63,7 +66,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   if (use_pslope == 1) {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
       Real s[nslp];
@@ -92,7 +95,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   }
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 
@@ -167,7 +170,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   bool is_axisymmetric = geom.Coord() == 1
 ;
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real s[nslp];
@@ -216,7 +219,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
 
 void
-Castro::mol_consup(const Box& bx,
+Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
 #ifdef SHOCK_VAR
                    Array4<Real const> const& shk,
 #endif
@@ -250,14 +253,11 @@ Castro::mol_consup(const Box& bx,
 
 #if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
-#endif
-
-#if AMREX_SPACEDIM == 2
   auto coord = geom.Coord();
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -273,22 +273,14 @@ Castro::mol_consup(const Box& bx,
                         flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1) ) / vol(i,j,k);
 #endif
 
-#if AMREX_SPACEDIM == 1
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
-      }
-    }
-#endif
+#if AMREX_SPACEDIM <= 2
+    if (n == UMX && do_hydro == 1) {
+        // Add gradp term to momentum equation -- only for axisymmetric
+        // coords (and only for the radial flux).
 
-#if AMREX_SPACEDIM == 2
-    if (do_hydro == 1) {
-      if (n == UMX) {
-        // add the pressure source term for axisymmetry
-        if (coord > 0) {
-          update(i,j,k,n) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
+        if (!mom_flux_has_p(0, 0, coord)) {
+            update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
         }
-      }
     }
 #endif
 
@@ -306,7 +298,7 @@ Castro::mol_consup(const Box& bx,
   // we'll be multiplying that for the update calculation.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     update(i,j,k,USHK) = shk(i,j,k) / dt;
   });
@@ -325,7 +317,7 @@ Castro::mol_diffusive_flux(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cond_int;
@@ -347,5 +339,145 @@ Castro::mol_diffusive_flux(const Box& bx,
     flux(i,j,k,UEINT) += diff_term;
     flux(i,j,k,UEDEN) += diff_term;
 
+  });
+}
+
+
+void
+Castro::compute_flux_from_q(const Box& bx,
+                            Array4<Real const> const& qint,
+                            Array4<Real> const& F,
+                            const int idir) {
+
+  // given a primitive state, compute the flux in direction idir
+  //
+
+  int iu, iv1, iv2;
+  int im1, im2, im3;
+
+  auto coord = geom.Coord();
+  auto mom_check = mom_flux_has_p(idir, idir, coord);
+
+  if (idir == 0) {
+    iu = QU;
+    iv1 = QV;
+    iv2 = QW;
+    im1 = UMX;
+    im2 = UMY;
+    im3 = UMZ;
+
+  } else if (idir == 1) {
+    iu = QV;
+    iv1 = QU;
+    iv2 = QW;
+    im1 = UMY;
+    im2 = UMX;
+    im3 = UMZ;
+
+  } else {
+    iu = QW;
+    iv1 = QU;
+    iv2 = QV;
+    im1 = UMZ;
+    im2 = UMX;
+    im3 = UMY;
+  }
+
+#ifdef HYBRID_MOMENTUM
+  GeometryData geomdata = geom.data();
+#endif
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real u_adv = qint(i,j,k,iu);
+    Real rhoeint = qint(i,j,k,QREINT);
+
+    // Compute fluxes, order as conserved state (not q)
+    F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
+
+    F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu);
+    if (mom_check) {
+      F(i,j,k,im1) += qint(i,j,k,QPRES);
+    }
+    F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
+    F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
+
+    Real rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
+      (qint(i,j,k,iu)*qint(i,j,k,iu) +
+       qint(i,j,k,iv1)*qint(i,j,k,iv1) +
+       qint(i,j,k,iv2)*qint(i,j,k,iv2));
+
+    F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES));
+    F(i,j,k,UEINT) = u_adv*rhoeint;
+
+    F(i,j,k,UTEMP) = 0.0;
+#ifdef SHOCK_VAR
+    F(i,j,k,USHK) = 0.0;
+#endif
+
+#ifdef NSE_NET
+    F(i,j,k,UMUP) = 0.0;
+    F(i,j,k,UMUN) = 0.0;
+#endif
+    // passively advected quantities
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+      int n  = upassmap(ipassive);
+      int nqp = qpassmap(ipassive);
+
+      F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
+    }
+
+#ifdef HYBRID_MOMENTUM
+    // the hybrid routine uses the Godunov indices, not the full NQ state
+    GpuArray<Real, NGDNV> qgdnv_zone;
+    qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
+    qgdnv_zone[GDU] = qint(i,j,k,QU);
+    qgdnv_zone[GDV] = qint(i,j,k,QV);
+    qgdnv_zone[GDW] = qint(i,j,k,QW);
+    qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
+    GpuArray<Real, NUM_STATE> F_zone;
+    for (int n = 0; n < NUM_STATE; n++) {
+        F_zone[n] = F(i,j,k,n);
+    }
+    compute_hybrid_flux(qgdnv_zone, geomdata, idir, i, j, k, F_zone);
+    for (int n = 0; n < NUM_STATE; n++) {
+        F(i,j,k,n) = F_zone[n];
+    }
+#endif
+  });
+}
+
+void
+Castro::store_godunov_state(const Box& bx,
+                            Array4<Real const> const& qint,
+#ifdef RADIATION
+                            Array4<Real const> const& lambda,
+#endif
+                            Array4<Real> const& qgdnv) {
+
+  // this copies the full interface state (NQ -- one for each primitive
+  // variable) over to a smaller subset of size NGDNV for use later in the
+  // hydro advancement.
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  {
+
+
+#ifdef HYBRID_MOMENTUM
+    qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO);
+#endif
+    qgdnv(i,j,k,GDU) = qint(i,j,k,QU);
+    qgdnv(i,j,k,GDV) = qint(i,j,k,QV);
+    qgdnv(i,j,k,GDW) = qint(i,j,k,QW);
+    qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES);
+#ifdef RADIATION
+    for (int g = 0; g < NGROUPS; g++) {
+      qgdnv(i,j,k,GDLAMS+g) = lambda(i,j,k,g);
+      qgdnv(i,j,k,GDERADS+g) = qint(i,j,k,QRAD+g);
+    }
+#endif
   });
 }

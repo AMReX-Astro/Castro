@@ -46,7 +46,7 @@ The 4th order MC limiter uses information in zones
 :math:`\{i-2,i-1,i,i+1,i+2\}`.  We pick zone ``i`` as the reference
 and integrate from ``i`` to the 4 other zone centers, and construct
 :math:`\{\tilde{p}_{i-2}, \tilde{p}_{i-1}, \tilde{p}_{i}, \tilde{p}_{i+1}, \tilde{p}_{i+2}\}`.  We then limit on this, giving us the change in the excess
-pressure over the zone, :math:`\Delta \tilde{p}_i`.  Finally, we 
+pressure over the zone, :math:`\Delta \tilde{p}_i`.  Finally, we
 construct the total slope (including the hydrostatic part) as:
 
 .. math::

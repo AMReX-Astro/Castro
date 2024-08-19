@@ -72,7 +72,7 @@ Castro works in CGS units unless otherwise specified.
 throughout the code documentation and papers.
 
 .. _table:units:
-  
+
 .. table:: Common quantities and units.
 
    +-----------------------+-----------------------+-----------------------+

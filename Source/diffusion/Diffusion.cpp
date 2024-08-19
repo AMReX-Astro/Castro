@@ -1,7 +1,6 @@
 #include <AMReX_ParmParse.H>
 #include <Diffusion.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
@@ -106,12 +105,12 @@ Diffusion::make_mg_bc ()
             mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
             mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
         } else {
-            if (phys_bc->lo(idim) == Inflow) {
+            if (phys_bc->lo(idim) == amrex::PhysBCType::inflow) {
                 mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
                 mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
             }
-            if (phys_bc->hi(idim) == Symmetry) {
+            if (phys_bc->hi(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
                 mlmg_hibc[idim] = MLLinOp::BCType::Neumann;

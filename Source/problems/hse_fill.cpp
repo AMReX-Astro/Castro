@@ -36,7 +36,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // XLO
 
-    if (bcr[URHO].lo(0) == EXT_DIR && lo[0] < domlo[0]) {
+    if (bcr[URHO].lo(0) == amrex::BCType::ext_dir && lo[0] < domlo[0]) {
 
         if (xl_ext_bc_type == EXT_HSE) {
 
@@ -44,11 +44,11 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
             // to domlo[0]-1, but we want that to be handled by a
             // single thread on the GPU
 
-            Box gbx(IntVect(D_DECL(domlo[0]-1, lo[1], lo[2])),
-                    IntVect(D_DECL(domlo[0]-1, hi[1], hi[2])));
+            Box gbx(IntVect(AMREX_D_DECL(domlo[0]-1, lo[1], lo[2])),
+                    IntVect(AMREX_D_DECL(domlo[0]-1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(i);
@@ -112,7 +112,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -236,15 +236,15 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // XHI
 
-    if (bcr[URHO].hi(0) == EXT_DIR && hi[0] > domhi[0]) {
+    if (bcr[URHO].hi(0) == amrex::BCType::ext_dir && hi[0] > domhi[0]) {
 
        if (xr_ext_bc_type == EXT_HSE) {
 
-            Box gbx(IntVect(D_DECL(domhi[0]+1, lo[1], lo[2])),
-                    IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
+            Box gbx(IntVect(AMREX_D_DECL(domhi[0]+1, lo[1], lo[2])),
+                    IntVect(AMREX_D_DECL(domhi[0]+1, hi[1], hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(i);
@@ -304,7 +304,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -432,15 +432,15 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // YLO
 
-    if (bcr[URHO].lo(1) == EXT_DIR && lo[1] < domlo[1]) {
+    if (bcr[URHO].lo(1) == amrex::BCType::ext_dir && lo[1] < domlo[1]) {
 
         if (yl_ext_bc_type == EXT_HSE) {
 
-            Box gbx(IntVect(D_DECL(lo[0], domlo[1]-1, lo[2])),
-                    IntVect(D_DECL(hi[0], domlo[1]-1, hi[2])));
+            Box gbx(IntVect(AMREX_D_DECL(lo[0], domlo[1]-1, lo[2])),
+                    IntVect(AMREX_D_DECL(hi[0], domlo[1]-1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(j);
@@ -501,7 +501,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -626,15 +626,15 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // YHI
 
-    if (bcr[URHO].hi(1) == EXT_DIR && hi[1] > domhi[1]) {
+    if (bcr[URHO].hi(1) == amrex::BCType::ext_dir && hi[1] > domhi[1]) {
 
         if (yr_ext_bc_type == EXT_HSE) {
 
-            Box gbx(IntVect(D_DECL(lo[0], domhi[1]+1, lo[2])),
-                    IntVect(D_DECL(hi[0], domhi[1]+1, hi[2])));
+            Box gbx(IntVect(AMREX_D_DECL(lo[0], domhi[1]+1, lo[2])),
+                    IntVect(AMREX_D_DECL(hi[0], domhi[1]+1, hi[2])));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(j);
@@ -694,7 +694,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -821,15 +821,15 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // ZLO
 
-    if (bcr[URHO].lo(2) == EXT_DIR && lo[2] < domlo[2]) {
+    if (bcr[URHO].lo(2) == amrex::BCType::ext_dir && lo[2] < domlo[2]) {
 
         if (zl_ext_bc_type == EXT_HSE) {
 
-            Box gbx(IntVect(D_DECL(lo[0], lo[1], domlo[2]-1)),
-                    IntVect(D_DECL(hi[0], hi[1], domlo[2]-1)));
+            Box gbx(IntVect(AMREX_D_DECL(lo[0], lo[1], domlo[2]-1)),
+                    IntVect(AMREX_D_DECL(hi[0], hi[1], domlo[2]-1)));
 
             amrex::ParallelFor(gbx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
 
                 amrex::ignore_unused(k);
@@ -890,7 +890,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         }
                     }
 
-                    bool converged_hse = false;
+                    [[maybe_unused]] bool converged_hse = false;
 
                     Real p_want;
                     Real drho;
@@ -1012,7 +1012,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     // ZHI
 
-    if (bcr[URHO].hi(2) == EXT_DIR && hi[2] > domhi[2]) {
+    if (bcr[URHO].hi(2) == amrex::BCType::ext_dir && hi[2] > domhi[2]) {
 
         if (zr_ext_bc_type == EXT_HSE) {
 #ifndef AMREX_USE_GPU

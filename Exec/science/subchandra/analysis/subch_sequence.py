@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 
-import matplotlib
-matplotlib.use('agg')
-
 import argparse
 import os
 import sys
-import yt
-import matplotlib.pyplot as plt
-import numpy as np
 from functools import reduce
 
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-# assume that our data is in CGS
-from yt.units import cm, amu
+import yt
+from yt.fields.derived_field import ValidateSpatial
 from yt.frontends.boxlib.api import CastroDataset
 from yt.funcs import just_one
-from yt.fields.derived_field import ValidateSpatial
+# assume that our data is in CGS
+from yt.units import amu, cm
+
+matplotlib.use('agg')
+
 
 #times = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35]
-times = [0.0, 0.1, 0.2, 0.4, 0.6, 0.75]
+times = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
 #times = [0.0, 0.15, 0.3, 0.45]
 
 clip_val = -35
@@ -75,7 +76,10 @@ def doit(field, add_contours, pfiles):
 
     fig = plt.figure()
 
-    if len(pfiles) > 4:
+    if len(pfiles) > 8:
+        nrows = 3
+        ncols = (len(pfiles) + 1)//3
+    elif len(pfiles) > 4:
         nrows = 2
         ncols = (len(pfiles) + 1)//2
     else:
@@ -83,7 +87,7 @@ def doit(field, add_contours, pfiles):
         ncols = len(pfiles)
 
     grid = ImageGrid(fig, 111, nrows_ncols=(nrows, ncols),
-                     axes_pad=0.75, cbar_pad=0.05, label_mode="L", cbar_mode="single")
+                     axes_pad=0.3, cbar_pad=0.05, label_mode="L", cbar_mode="single")
 
 
     for i in range(nrows * ncols):
@@ -99,10 +103,11 @@ def doit(field, add_contours, pfiles):
         if field == "lap_rho" or add_contours:
             ds.force_periodicity()
             ds.add_field(name=("gas", "lap_rho"), sampling_type="local",
+                         display_name=r"$\log_{10}(|\rho^{-1}\nabla^2\rho|)$",
                          function=_lap_rho, units="",
                          validators=[ValidateSpatial(1)])
 
-        domain_frac = 0.15
+        domain_frac = 0.2
 
         xmin = ds.domain_left_edge[0]
         xmax = domain_frac * ds.domain_right_edge[0]
@@ -117,13 +122,18 @@ def doit(field, add_contours, pfiles):
         ymax = yctr + 0.5 * domain_frac * L_y
         L_y = ymax - ymin
 
-        sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="12")
+        sp = yt.SlicePlot(ds, "theta", field, center=[xctr, yctr, 0.0*cm], width=[L_x, L_y, 0.0*cm], fontsize="14")
         sp.set_buff_size((2400,2400))
-        sp.annotate_text((0.05, 0.05), f"time = {float(ds.current_time):8.3f} s", coord_system="axis", text_args={"color": "black"})
+        if field == "Temp":
+            text_color = "white"
+        else:
+            text_color = "black"
+
+        sp.annotate_text((0.05, 0.05), f"time = {float(ds.current_time):8.3f} s", coord_system="axis", text_args={"color": text_color})
 
         if field == "Temp":
             sp.set_zlim(field, 5.e7, 4e9)
-            sp.set_cmap(field, "magma_r")
+            sp.set_cmap(field, "magma")
         elif field == "enuc":
             sp.set_log(field, True, linthresh=1.e15)
             sp.set_zlim(field, -1.e22, 1.e22)
@@ -151,9 +161,9 @@ def doit(field, add_contours, pfiles):
 
         sp._setup_plots()
 
-    fig.set_size_inches(19.2, 10.8)
+    fig.set_size_inches(11, 14)
     plt.tight_layout()
-    plt.savefig(f"subch_{field}_sequence.png")
+    plt.savefig(f"subch_{field}_sequence.pdf")
 
 if __name__ == "__main__":
 

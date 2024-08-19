@@ -61,6 +61,6 @@ http://yt-project.org/doc/index.html.
 Example notebook
 ^^^^^^^^^^^^^^^^
 
-Using the plotfiles generated in the example in the :doc:`getting_started` section, here we demonstrate how to use ``yt`` to load and visualize data. This section was generated from a Jupyter notebook which can be found in ``Docs/source/yt_example.ipynb`` in the Castro repo. 
+Using the plotfiles generated in the example in the :doc:`getting_started` section, here we demonstrate how to use ``yt`` to load and visualize data. This section was generated from a Jupyter notebook which can be found in ``Docs/source/yt_example.ipynb`` in the Castro repo.
 
 .. include:: yt_example.rst

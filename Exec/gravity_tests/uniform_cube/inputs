@@ -1,0 +1,63 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 0
+
+# PROBLEM SIZE & GEOMETRY
+geometry.coord_sys   =  0
+geometry.is_periodic =  0    0    0
+geometry.prob_lo     = -1.6 -1.6 -1.6
+geometry.prob_hi     =  1.6  1.6  1.6
+amr.n_cell           =  16   16   16
+
+amr.max_level        = 0
+amr.ref_ratio        = 2 2 2 2 2 2 2 2 2 2 2
+# we are not doing hydro, so there is no reflux and we don't need an error buffer
+amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
+amr.blocking_factor  = 8
+amr.max_grid_size    = 8
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.value_greater = 1.0e0
+amr.refine.denerr.field_name = density
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+
+castro.lo_bc       =  2   2   2
+castro.hi_bc       =  2   2   2
+
+# WHICH PHYSICS
+castro.do_hydro = 0
+castro.do_grav  = 1
+
+# GRAVITY
+gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
+gravity.max_multipole_order = 0    # Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.rel_tol = 1.e-12           # Relative tolerance for multigrid solver
+gravity.direct_sum_bcs = 1         # Calculate boundary conditions exactly
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing integrals
+amr.data_log          = grid_diag.out
+
+# CHECKPOINT FILES
+amr.checkpoint_files_output = 1
+amr.check_file        = chk      # root name of checkpoint file
+amr.check_int         = 1        # timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_files_output = 1
+amr.plot_file         = plt      # root name of plotfile
+amr.plot_per          = 1        # timesteps between plotfiles
+amr.derive_plot_vars  = ALL
+
+# PROBLEM PARAMETERS
+problem.density      = 1.0e3
+problem.diameter     = 2.0e0
+problem.ambient_dens = 1.0e-8
+
+# EOS
+eos.eos_assume_neutral = 1

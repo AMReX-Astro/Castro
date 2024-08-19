@@ -22,7 +22,7 @@ constexpr int dg2 = 1;
 #endif
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-int upassmap (int ipassive)
+constexpr int upassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
         // passive is one of the advected quantities
@@ -40,7 +40,7 @@ int upassmap (int ipassive)
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-int qpassmap (int ipassive)
+constexpr int qpassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
         // passive is one of the advected quantities
@@ -69,18 +69,14 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
     if (mom_dir == 0 && flux_dir == 0) {
 
-        if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && coord == CoordSys::RZ)) {
+        if (coord != CoordSys::cartesian) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
 
-    }
-    else {
-
+    } else {
         return (mom_dir == flux_dir);
-
     }
 
 #else // AMREX_SPACEDIM == 3; Cartesian
@@ -101,9 +97,9 @@ void position(int i, int j, int k,
     // Given 3D indices (i,j,k), return the cell-centered spatial position.
     // Optionally we can also be edge-centered in any of the directions.
 
-    int idx[3] = {i, j, k};
+    const int idx[3] = {i, j, k};
 
-    bool cc[3] = {ccx, ccy, ccz};
+    const bool cc[3] = {ccx, ccy, ccz};
 
     Real offset[AMREX_SPACEDIM];
 

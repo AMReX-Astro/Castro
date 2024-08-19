@@ -1,4 +1,4 @@
-# name   type   default   need in Fortran?   ifdef
+# name   type   default   ifdef
 #
 # note, name can have two values, as (a, b).  a will be the name used
 # in the inputs file, b is the variable name in the C++ class.
@@ -19,22 +19,17 @@ state_interp_order           int           1
 # 2: preserve linear combinations and prevent new extrema
 lin_limit_state_interp       int           0
 
-# Number of ghost zones for state data to have. Note that
-# if you are using radiation, choosing this to be zero will
-# be overridden since radiation needs at least one ghost zone.
-state_nghost                 int           0
-
 # do we do the hyperbolic reflux at coarse-fine interfaces?
-do_reflux                    int           1
+do_reflux                    bool          1
 
 # whether to re-compute new-time source terms after a reflux
 # Note: this only works for the CTU and simple-SDC time_integration_method
 # drivers
-update_sources_after_reflux  int           1
+update_sources_after_reflux  bool          1
 
 # Castro was originally written assuming dx = dy = dz.  This assumption is
 # enforced at runtime.  Setting allow_non_unit_aspect_zones = 1 opts out.
-allow_non_unit_aspect_zones  int           0
+allow_non_unit_aspect_zones  bool          0
 
 
 #-----------------------------------------------------------------------------
@@ -45,55 +40,57 @@ allow_non_unit_aspect_zones  int           0
 difmag                       Real          0.1
 
 # the small density cutoff.  Densities below this value will be reset
-small_dens                   Real         -1.e200             y
+small_dens                   Real         -1.e200
 
 # the small temperature cutoff.  Temperatures below this value will
 # be reset
-small_temp                   Real         -1.e200             y
+small_temp                   Real         -1.e200
 
 # the small pressure cutoff.  Pressures below this value will be reset
-small_pres                   Real         -1.e200             y
+small_pres                   Real         -1.e200
 
 # the small specific internal energy cutoff.  Internal energies below this
 # value will be reset
-small_ener                   Real         -1.e200             y
+small_ener                   Real         -1.e200
 
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1
+do_hydro                     bool          true
 
 # how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
 time_integration_method      int           0
 
 # do we use a limiter with the fourth-order accurate reconstruction?
-limit_fourth_order           int           1
+limit_fourth_order           bool           1
 
 # for fourth order, we usually assume that the initialization is done
 # to cell centers and we convert to cell-averages.  With this option,
 # we take the initialization as cell-averages (except for T, which we
 # compute to fourth-order through the EOS after initialization).
-initialization_is_cell_average  int        0
+initialization_is_cell_average  bool        0
 
 # should we use a reconstructed version of Gamma_1 in the Riemann
 # solver? or the default zone average (requires SDC
 # integration, since we do not trace)
-use_reconstructed_gamma1     int           0
+use_reconstructed_gamma1     bool          0
 
 # if true, define an additional source term
-add_ext_src                  int           0
+add_ext_src                  bool          0
 
 # whether to use the hybrid advection scheme that updates
 # z-angular momentum, cylindrical momentum, and azimuthal
 # momentum (3D only)
-hybrid_hydro                 int           0
+hybrid_hydro                 bool          0
 
 # reconstruction type:
 # 0: piecewise linear;
 # 1: classic Colella \& Woodward ppm;
-# 2: extrema-preserving ppm
 ppm_type                     int           1
 
+# do we limit the ppm parabola?
+ppm_do_limiting              bool           1
+
 # For MHD + PLM, do we limit on characteristic or primitive variables
-mhd_limit_characteristic     int           1
+mhd_limit_characteristic     bool           1
 
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
@@ -109,7 +106,7 @@ plm_limiter                  int           2
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
-hybrid_riemann               int           0
+hybrid_riemann               bool           0
 
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
@@ -117,38 +114,37 @@ hybrid_riemann               int           0
 # 2: HLLC
 riemann_solver               int           0
 
-# for the Colella \& Glaz Riemann solver, the maximum number
-# of iterations to take when solving for the star state
-cg_maxiter                   int          12
+# maximum number of iterations to used in the Riemann solver
+# when solving for the star state
+riemann_shock_maxiter                   int          12
 
-# for the Colella \& Glaz Riemann solver, the tolerance to
-# demand in finding the star state
-cg_tol                       Real          1.0e-5
+# tolerance to use when finding the star stat
+riemann_pstar_tol                       Real          1.0e-5
 
 # for the Colella \& Glaz Riemann solver, what to do if
 # we do not converge to a solution for the star state.
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
-# 2 = do a bisection search for another 2 * cg_maxiter iterations.
-cg_blend                     int           2
+# 2 = do a bisection search for another 2 * riemann_shock_maxiter iterations.
+riemann_cg_blend                     int           2
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
-use_flattening               int           1
+use_flattening               bool           1
 
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using :math:`e` and :math:`\rho`).
-transverse_use_eos           int           0
+transverse_use_eos           bool           0
 
 # if the transverse interface state correction, if the new density is
 # negative, then replace all of the interface quantities with their
 # values without the transverse correction.
-transverse_reset_density     int           1
+transverse_reset_density     bool           1
 
 # if the interface state for :math:`(\rho e)` is negative after we add the
 # transverse terms, then replace the interface value of :math:`(\rho e)`
 # with a value constructed from the :math:`(\rho e)` evolution equation
-transverse_reset_rhoe        int           0
+transverse_reset_rhoe        bool           0
 
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
 # pressure is derived from E - K; otherwise, we use the internal energy
@@ -163,35 +159,35 @@ dual_energy_eta2             Real          1.0e-4
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?  This is a well-balanced method that
 # does well with HSE
-use_pslope                   int           0
+use_pslope                   bool           0
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
 pslope_cutoff_density        Real          -1.e20
 
 # Should we limit the density fluxes so that we do not create small densities?
-limit_fluxes_on_small_dens   int           0
+limit_fluxes_on_small_dens   bool           0
 
 # Enforce the magnitude of the velocity to be no larger than this number (and
 # optionally limit the fluxes as well). Only applies if it is greater than 0.
 speed_limit                  Real          0.0
 
 # permits sponge to be turned on and off
-do_sponge                    int           0
+do_sponge                    bool           0
 
 # if we are using the sponge, whether to use the implicit solve for it
-sponge_implicit              int           1
+sponge_implicit              bool           1
 
 # if we are using user-defined source terms, are these solved implicitly?
-ext_src_implicit             int           0
+ext_src_implicit             bool           0
 
 # extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
-source_term_predictor        int           0
+source_term_predictor        bool           0
 
 # set the flattening parameter to zero to force the reconstructed profiles
 # to be flat, resulting in a first-order method
-first_order_hydro            int           0
+first_order_hydro            bool           0
 
 # if we are doing an external -x boundary condition, who do we interpret it?
 # 1 = HSE
@@ -218,11 +214,11 @@ zl_ext_bc_type               int          -1
 zr_ext_bc_type               int          -1
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
-hse_zero_vels                int           0
+hse_zero_vels                bool           0
 
 # if we are doing HSE boundary conditions, should we get the temperature
 # via interpolation (constant gradient) or hold it constant?
-hse_interp_temp              int           0
+hse_interp_temp              bool           0
 
 # if we are doing HSE boundary conditions and holding the temperature constant,
 # then set it to a fixed value at the boundaries (only if positive)
@@ -230,10 +226,10 @@ hse_fixed_temp               Real          -1.e200
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
-hse_reflect_vels             int           0
+hse_reflect_vels             bool           0
 
 # fills physical domain boundaries with the ambient state
-fill_ambient_bc              int           0
+fill_ambient_bc              bool           0
 
 # which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = y, 2 = z
 ambient_fill_dir             int           -1
@@ -243,7 +239,7 @@ ambient_fill_dir             int           -1
 ambient_outflow_vel          int           0
 
 # clamps the ambient material to the ambient temperature
-clamp_ambient_temp           int           0
+clamp_ambient_temp           bool           0
 
 # specifies the upper limit, as a multiple of the ambient density, for
 # operations that are applied to ambient material, such as clamping T.
@@ -272,38 +268,12 @@ sdc_extra                    int           0
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1
 
-# relative tolerance for the nonlinear solve on rho with SDC
-sdc_solver_tol_dens           Real          1.e-6
-
-# relative tolerance for the nonlinear solve on rho X_k with SDC
-sdc_solver_tol_spec           Real          1.e-6
-
-# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
-sdc_solver_tol_ener           Real          1.e-6
-
-# absolute tolerance for species with SDC (this will be multiplied by
-# the current rho in the zone to define the absolute tolerance on (rho
-# X)).
-sdc_solver_atol               Real          1.e-10
-
-# factor by which to reduce the SDC solver tol for each iteration before the last
-# (e.g., for iteration k out of kmax iterations, the tol is
-# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
-sdc_solver_relax_factor      Real          1.0
-
-# do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
-sdc_solve_for_rhoe           int           1
-
-# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
-# for the VODE solver, we use integrator.jacobian instead
-sdc_newton_use_analytic_jac         int           1
-
 # for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
-use_axisymmetric_geom_source int           1
+use_axisymmetric_geom_source bool           1
 
 # for simplified-SDC, do we add the reactive source prediction to the interface states
 # used in the advective source construction?
-add_sdc_react_source_to_advection  int     1
+add_sdc_react_source_to_advection  bool     1
 
 # In GPU builds, the hydro advance typically results in a large amount of extra
 # temporary memory allocated due to the large tile sizes that are used for computational
@@ -353,23 +323,23 @@ init_shrink                  Real          1.0
 change_max                   Real          1.1
 
 # whether to check that we will take a valid timestep before the advance
-check_dt_before_advance      int           1
+check_dt_before_advance      bool           1
 
 # whether to check that we took a valid timestep after the advance
-check_dt_after_advance       int           1
+check_dt_after_advance       bool           1
 
 # enforce that the AMR plot interval must be hit exactly
-plot_per_is_exact            int           0
+plot_per_is_exact            bool           0
 
 # enforce that the AMR small plot interval must be hit exactly
-small_plot_per_is_exact      int           0
+small_plot_per_is_exact      bool           0
 
 # Retry a timestep if it violated the timestep-limiting criteria or
 # other checks (negative density, burn failure) over the course of an
 # advance. The criteria will suggest a new timestep that satisfies the
 # criteria, and we will do subcycled timesteps on the same level until
 # we reach the original target time.
-use_retry                    int           1
+use_retry                    bool           1
 
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.
@@ -387,7 +357,7 @@ abundance_failure_tolerance  Real          1.e-2
 abundance_failure_rho_cutoff Real         -1.e200
 
 # Regrid after every timestep.
-use_post_step_regrid         int           0
+use_post_step_regrid         bool           0
 
 # Do not permit more subcycled timesteps than this parameter.
 # Set to a negative value to disable this criterion.
@@ -422,7 +392,7 @@ dtnuc_X                      Real          1.e200
 dtnuc_X_threshold            Real          1.e-3
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
-do_react                     int          -1
+do_react                     bool          true
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0
@@ -437,41 +407,48 @@ react_rho_min                Real          0.0
 react_rho_max                Real          1.e200
 
 # disable burning inside hydrodynamic shock regions
-disable_shock_burning        int           0
+# note: requires compiling with `USE_SHOCK_VAR=TRUE`
+disable_shock_burning        bool           0
+
+# shock detection threshold for grad{P} / P
+shock_detection_threshold    Real          0.6666666666666666666666_rt
+
+# do we subtract off the hydrostatic pressure when evaluating a shock?
+shock_detection_include_sources   bool      1
 
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
-T_guess                     Real           1.e8               y
+T_guess                     Real           1.e8
 
 # if set to 1, we interpolate from the initial model to get the temperature
 # used to call the burner.  This prevents reactions from going nonlinear
 # and running away in place before a convective field is established.
-drive_initial_convection     int           0                  y
+drive_initial_convection     bool           0
 
 # maximum time over which to do the drive_initial_convection procedure
-drive_initial_convection_tmax   Real       1.e200             y
+drive_initial_convection_tmax   Real       1.e200
 
 # frequency with which to re-initialize the thermodynamic data while preserving
 # the velocity field during drive_initial_convection
-drive_initial_convection_reinit_period   Real    1.e200      y
+drive_initial_convection_reinit_period   Real    1.e200
 
 #-----------------------------------------------------------------------------
 # category: diffusion
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  n     DIFFUSION
+diffuse_temp                 bool           0                  DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            n     DIFFUSION
+diffuse_cutoff_density       Real          -1.e200            DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            n     DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200            DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                n     DIFFUSION
+diffuse_cond_scale_fac       Real          1.0                DIFFUSION
 
 
 #-----------------------------------------------------------------------------
@@ -479,112 +456,109 @@ diffuse_cond_scale_fac       Real          1.0                n     DIFFUSION
 #-----------------------------------------------------------------------------
 
 # permits gravity calculation to be turned on and off
-do_grav                      int          -1
+do_grav                      bool          true
 
 # to we recompute the center used for the multipole gravity solve each step?
-moving_center                int           0
+moving_center                bool           0
 
 # determines how the gravitational source term is added to the momentum and
 # energy state variables.
 grav_source_type             int           4
 
 # permits rotation calculation to be turned on and off
-do_rotation                  int          -1
+do_rotation                  bool          true
 
 # the rotation period for the corotating frame
-rotational_period            Real         -1.e200             y        ROTATION
+rotational_period            Real         -1.e200             ROTATION
 
 # permits the centrifugal terms in the rotation to be turned on and off
-rotation_include_centrifugal int           1                  n        ROTATION
+rotation_include_centrifugal bool           1                  ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
-rotation_include_coriolis    int           1                  n        ROTATION
+rotation_include_coriolis    bool           1                  ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations
-rot_source_type              int           4                  n        ROTATION
+rot_source_type              int           4                  ROTATION
 
 # we can do a implicit solution of the rotation update to allow
 # for better coupling of the Coriolis terms
-implicit_rotation_update     int           1                  n        ROTATION
+implicit_rotation_update     bool           1                  ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  n        ROTATION
+rot_axis                     int           3                  ROTATION
 
 # include a central point mass
-use_point_mass               int           0                  n        GRAVITY
+use_point_mass               bool           0                  GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                n        GRAVITY
+point_mass                   Real          0.0                GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  n        GRAVITY
+point_mass_fix_solution      bool           0                  GRAVITY
 
 # Distance (in kpc) used for calculation of the gravitational wave amplitude
 # (this will be calculated along all three coordinate axes). Only relevant if
 # castro.sum_interval > 0 and if set to a positive number. A standard value
 # in the literature is 10.0 (kpc).
-gw_dist                      Real          0.0                n        GRAVITY
+gw_dist                      Real          0.0                GRAVITY
 
 # This integer is used to activate parallel plane 1/r**2 gravity.
-point_mass_offset_is_true    int           0                  n        GRAVITY
+point_mass_offset_is_true    bool           0                  GRAVITY
 
 # Distance, shifted from the origin, and used to compute the gravity on
-# plane parallel due to the action of an star with a radius given by this offset. 
+# plane parallel due to the action of an star with a radius given by this offset.
 
-point_mass_location_offset   Real          0.0                n        GRAVITY
+point_mass_location_offset   Real          0.0                GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: sponge
 #-----------------------------------------------------------------------------
 
 # Minimum simulation distance from center to start applying the sponge
-sponge_lower_radius          Real         -1.0                n        SPONGE
+sponge_lower_radius          Real         -1.0                SPONGE
 
 # Simulation distance from the center at which the sponge is fully applied
-sponge_upper_radius          Real         -1.0                n        SPONGE
+sponge_upper_radius          Real         -1.0                SPONGE
 
 # Minimum density at which to start applying the sponge
-sponge_lower_density         Real         -1.0                n        SPONGE
+sponge_lower_density         Real         -1.0                SPONGE
 
 # Density at which the sponge is fully applied
-sponge_upper_density         Real         -1.0                n        SPONGE
+sponge_upper_density         Real         -1.0                SPONGE
 
 # Minimum pressure at which to start applying the sponge
-sponge_lower_pressure        Real         -1.0                n        SPONGE
+sponge_lower_pressure        Real         -1.0                SPONGE
 
 # Pressure at which the sponge is fully applied
-sponge_upper_pressure        Real         -1.0                n        SPONGE
+sponge_upper_pressure        Real         -1.0                SPONGE
 
 # Scaling factor for the sponge below the low end
-sponge_lower_factor          Real          0.0                n        SPONGE
+sponge_lower_factor          Real          0.0                SPONGE
 
 # Scaling factor for the sponge above the high end
-sponge_upper_factor          Real          1.0                n        SPONGE
+sponge_upper_factor          Real          1.0                SPONGE
 
 # Target x-velocity for the sponge to drive to
-sponge_target_x_velocity     Real          0.0                n        SPONGE
+sponge_target_x_velocity     Real          0.0                SPONGE
 
 # Target y-velocity for the sponge to drive to
-sponge_target_y_velocity     Real          0.0                n        SPONGE
+sponge_target_y_velocity     Real          0.0                SPONGE
 
 # Target z-velocity for the sponge to drive to
-sponge_target_z_velocity     Real          0.0                n        SPONGE
+sponge_target_z_velocity     Real          0.0                SPONGE
 
 # Timescale on which the sponge operates
-sponge_timescale             Real         -1.0                n        SPONGE
+sponge_timescale             Real         -1.0                SPONGE
 
 
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------
 
-# determines whether we use accelerators for specific loops
-do_acc                       int          -1
-
-bndry_func_thread_safe       int           1
+bndry_func_thread_safe       bool           1
 
 
 #-----------------------------------------------------------------------------
@@ -592,10 +566,10 @@ bndry_func_thread_safe       int           1
 #-----------------------------------------------------------------------------
 
 # the factor by which to extend the domain upon restart for embiggening
-grown_factor                 int           1                  y
+grown_factor                 int           1
 
 # used with the embiggening routines to determine how to extend the domain
-star_at_center               int          -1
+star_at_center               bool          true
 
 
 #-----------------------------------------------------------------------------
@@ -603,7 +577,7 @@ star_at_center               int          -1
 #-----------------------------------------------------------------------------
 
 # Should we use SCF to construct the initial model?
-do_scf_initial_model         int           0
+do_scf_initial_model         bool           0
 
 # Maximum density on the domain when using SCF
 scf_maximum_density          Real          -1.e6
@@ -625,9 +599,7 @@ scf_max_iterations           int           30
 #-----------------------------------------------------------------------------
 
 
-do_special_tagging           int           0
-
-spherical_star               int           0
+do_special_tagging           bool           0
 
 # Maximum radius from the center (in units of the domain width)
 # where tagging is allowed. The default choice implies no restriction.
@@ -643,15 +615,15 @@ max_tagging_radius           real          10.0e0
 (v, verbose)                 int           0
 
 # do we dump the old state into the checkpoint files too?
-dump_old                     bool          false
+dump_old                     bool           0
 
 # do we assume the domain is plane parallel when computing some of the derived
 # quantities (e.g. radial velocity).  Note: this will always assume that the
 # last spatial dimension is vertical
-domain_is_plane_parallel     bool          false
+domain_is_plane_parallel     bool           0
 
 # display information about updates to the state (how much mass, momentum, energy added)
-print_update_diagnostics     int           (0, 1)
+print_update_diagnostics     bool           (0, 1)
 
 # how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
 sum_interval                 int           -1
@@ -664,7 +636,7 @@ sum_per                      Real          -1.0e0
 job_name                     string        "Castro"
 
 # write a final plotfile and checkpoint upon completion
-output_at_completion         int           1
+output_at_completion         bool           1
 
 # Do we want to reset the time in the checkpoint?
 # This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
@@ -680,23 +652,23 @@ reset_checkpoint_step        int           -1
 
 # Do we store the species creation rates in the plotfile?  Note, if this option is
 # enabled then more memory will be allocated to hold the results of the burn
-store_omegadot               int            0
+store_omegadot               bool            0
 
 # Do we store the burn weights as a diagnostic in the plotfile?    Note, if this option is
 # enabled then more memory will be allocated to hold the results of the burn
-store_burn_weights           int            0
+store_burn_weights           bool            0
 
 # Do we abort the run if the inputs file specifies a runtime parameter that we don't
 # know about?  Note: this will only take effect for those namespaces where 100%
 # of the runtime parameters are managed by the python scripts.
-abort_on_invalid_params      int            0
+abort_on_invalid_params      bool            0
 
 #-----------------------------------------------------------------------------
 # category: radiation-hydro
 #-----------------------------------------------------------------------------
 
 # do we enable radiation for a radiation-hydrodynamics run?
-do_radiation                 int           -1
+do_radiation                 bool           true
 
 
 
@@ -705,7 +677,7 @@ do_radiation                 int           -1
 #-----------------------------------------------------------------------------
 
 # permits tracer particle calculation to be turned on and off
-do_tracer_particles          int           0       n      AMREX_PARTICLES
+do_tracer_particles          bool           0       AMREX_PARTICLES
 
 
 @namespace: particles
@@ -720,7 +692,7 @@ particle_init_file           string        ""
 particle_restart_file        string        ""
 
 # to restart from a checkpoint that was written with ``USE_PARTICLES`` =FALSE
-restart_from_nonparticle_chkfile     int      0
+restart_from_nonparticle_chkfile     bool      0
 
 # the name of timestamp files.
 particle_output_file         string        ""
@@ -729,25 +701,25 @@ particle_output_file         string        ""
 timestamp_dir                 string        ""
 
 # whether the local densities at given positions of particles are stored in output files
-timestamp_density            int           1
+timestamp_density            bool           1
 
 # whether the local temperatures at given positions of particles are stored in output files
-timestamp_temperature        int           0
+timestamp_temperature        bool           0
 
 
 
 @namespace: gravity
 
 # what type
-gravity_type                 string        "fillme"           y
+gravity_type                 string        "fillme"
 
 
 # if doing constant gravity, what is the acceleration
-const_grav                   Real          0.0                y
+const_grav                   Real          0.0
 
 # Check if the user wants to compute the boundary conditions using the
 # brute force method.  Default is false, since this method is slow.
-direct_sum_bcs               int           0
+direct_sum_bcs               bool           0
 
 # ratio of dr for monopole gravity binning to grid resolution
 drdxfac                     int            1
@@ -761,16 +733,13 @@ drdxfac                     int            1
 (v, verbose)                int            0
 
 # do we perform the synchronization at coarse-fine interfaces?
-no_sync                     int            0
-
-# do we do a composite solve?
-no_composite                int            0
+no_sync                     bool            0
 
 # should we apply a lagged correction to the potential that
 # gets us closer to the composite solution? This makes the
 # resulting fine grid calculation slightly more accurate,
 # at the cost of an additional Poisson solve per timestep.
-do_composite_phi_correction int            1
+do_composite_phi_correction   bool            1
 
 # For all gravity types, we can choose a maximum level for explicitly
 # calculating the gravity and associated potential. Above that level,
@@ -780,17 +749,17 @@ max_solve_level              int           MAX_LEV-1
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
-get_g_from_phi              int            0
+get_g_from_phi               bool            0
 
 # how many FMG cycles?
 mlmg_max_fmg_iter            int           0
 
 # Do agglomeration?
-mlmg_agglomeration           int           1
-mlmg_consolidation           int           1
+mlmg_agglomeration           bool           1
+mlmg_consolidation           bool           1
 
 # Do N-Solve?
-mlmg_nsolve                  int           0
+mlmg_nsolve                  bool           0
 
 @namespace: diffusion
 
@@ -806,7 +775,7 @@ mlmg_maxorder                int           4
 # the linear solver option to use
 level_solver_flag            int           1
 
-use_hypre_nonsymmetric_terms int           0
+use_hypre_nonsymmetric_terms bool           0
 
 reltol                       Real          1.e-10
 
@@ -823,12 +792,12 @@ beta                         Real          1.0
 
 @namespace: radiation
 
-prop_temp_floor              Real          0.0                y
+prop_temp_floor              Real          0.0
 
 flatten_pp_threshold         Real          -1.0
 
 # are we in a comoving reference frame?
-comoving                     int           1
+comoving                     bool           1
 
 # which closure relation to use
 # 0: f = lambda
@@ -851,20 +820,19 @@ fspace_advection_type        int           2
 
 
 # do we plot the flux limiter lambda?
-plot_lambda                  int           0
+plot_lambda                  bool           0
 
 # do we plot the Planck mean opacity?
-plot_kappa_p                 int           0
+plot_kappa_p                 bool           0
 
 # do we plot the Rosseland mean opacity?
-plot_kappa_r                 int           0
+plot_kappa_r                 bool           0
 
 # do we plot the lab radiation energy?
-plot_lab_Er                  int           0
+plot_lab_Er                  bool           0
 
 # do we plot the lab radiation flux?
-plot_lab_flux                int           0
+plot_lab_flux                bool           0
 
 # do we plot the comoving frame radiation flux?
-plot_com_flux                int           0
-
+plot_com_flux                bool           0

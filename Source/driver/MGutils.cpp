@@ -17,10 +17,10 @@ apply_metric(const Box& bx,
     if (coord_type == 1) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
 
-            IntVect idx(D_DECL(i, j, k));
+            IntVect idx(AMREX_D_DECL(i, j, k));
 
             // at centers
             if (rbx.contains(idx)) {
@@ -62,7 +62,7 @@ do_weight_cc(const Box& bx,
 
         // At centers
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             Real r = (static_cast<Real>(i) + 0.5_rt) * dx[0];
             cc(i,j,k) *= r;
@@ -86,7 +86,7 @@ do_unweight_cc(const Box& bx,
 
         // At centers
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             Real r = (static_cast<Real>(i) + 0.5_rt) * dx[0];
             cc(i,j,k) /= r;
@@ -113,7 +113,7 @@ do_unweight_edges(const Box& bx,
 
             // On x-edges
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 if (i != 0) {
                     Real r = static_cast<Real>(i) * dx[0];
@@ -125,7 +125,7 @@ do_unweight_edges(const Box& bx,
 
             // On y-edges
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 Real r = (static_cast<Real>(i) + 0.5_rt) * dx[0];
                 ec(i,j,k) /= r;

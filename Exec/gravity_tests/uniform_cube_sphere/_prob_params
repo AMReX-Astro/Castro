@@ -1,7 +1,0 @@
-ambient_dens       real     1.e-8_rt     y
-
-density            real     1.0_rt       y
-
-diameter           real     1.0_rt       y
-
-problem            integer  1            y

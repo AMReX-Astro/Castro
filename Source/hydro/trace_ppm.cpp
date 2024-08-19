@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -62,8 +61,10 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+#ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
   auto hi = bx.hiVect3d();
+#endif
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -157,7 +158,7 @@ Castro::trace_ppm(const Box& bx,
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 
@@ -303,7 +304,7 @@ Castro::trace_ppm(const Box& bx,
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_rho, Im_src_rho);
     }
 
-    // normal velcoity
+    // normal velocity
 
     Real Ip_src_un_0 = 0.0_rt;
     Real Im_src_un_0 = 0.0_rt;
@@ -399,8 +400,8 @@ Castro::trace_ppm(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-        int nc = upassmap(ipassive);
-        int n = qpassmap(ipassive);
+        const int nc = upassmap(ipassive);
+        const int n = qpassmap(ipassive);
 
         load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
         ppm_reconstruct(s, i, j, k, idir, dx, lo_symm, hi_symm, is_axisymmetric, domlo, domhi, flat, sm, sp);

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #include <Gravity.H>
@@ -102,10 +101,10 @@ Castro::wd_update (Real time, Real dt)
         GpuArray<bool, 3> symm_bound_hi{false};
 
         for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-            if (phys_bc.lo()[n] == Symmetry) {
+            if (phys_bc.lo()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_lo[n] = true;
             }
-            if (phys_bc.hi()[n] == Symmetry) {
+            if (phys_bc.hi()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_hi[n] = true;
             }
         }
@@ -240,8 +239,8 @@ Castro::wd_update (Real time, Real dt)
                 Real m_S = dmSymmetric * secondary_factor;
 
                 return {com_P_x, com_P_y, com_P_z, com_S_x, com_S_y, com_S_z,
-                    vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
-                    m_P, m_S};
+                        vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
+                        m_P, m_S};
             });
 
         }
@@ -253,7 +252,7 @@ Castro::wd_update (Real time, Real dt)
     bool local_flag = true;
 
     for (int i = 0; i <= 6; ++i) {
-        Castro::volInBoundary(time, vol_P[i], vol_S[i], pow(10.0,i), local_flag);
+        Castro::volInBoundary(time, vol_P[i], vol_S[i], std::pow(10.0,i), local_flag);
     }
 
     // Do all of the reductions.
@@ -279,18 +278,18 @@ Castro::wd_update (Real time, Real dt)
     Real foo_sum[nfoo_sum] = { 0.0 };
 
     for (int i = 0; i <= 6; ++i) {
-      foo_sum[i  ] = vol_P[i];
-      foo_sum[i+7] = vol_S[i];
+        foo_sum[i  ] = vol_P[i];
+        foo_sum[i+7] = vol_S[i];
     }
 
     foo_sum[14] = mass_P;
     foo_sum[15] = mass_S;
 
     for (int i = 0; i <= 2; ++i) {
-      foo_sum[i+16] = com_P[i];
-      foo_sum[i+19] = com_S[i];
-      foo_sum[i+22] = vel_P[i];
-      foo_sum[i+25] = vel_S[i];
+        foo_sum[i+16] = com_P[i];
+        foo_sum[i+19] = com_S[i];
+        foo_sum[i+22] = vel_P[i];
+        foo_sum[i+25] = vel_S[i];
     }
 
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
@@ -356,17 +355,17 @@ Castro::wd_update (Real time, Real dt)
 
     if (mass_P > 0.0 && vol_P[2] > 0.0) {
         rho_avg_P = mass_P / vol_P[2];
-        t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
+        t_ff_P = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
     }
 
     if (mass_S > 0.0 && vol_S[2] > 0.0) {
         rho_avg_S = mass_S / vol_S[2];
-        t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
+        t_ff_S = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
-    // Send this updated information back to the Fortran module
+    // Compute updated roche Radii
 
-    set_star_data();
+    update_roche_radii();
 }
 
 
@@ -552,6 +551,10 @@ void Castro::problem_post_restart() {
 
   }
 
+  // Update Roche radii to ensure consistency of initial conditions
+
+  update_roche_radii();
+
 }
 
 
@@ -662,9 +665,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const int* lo_bc = phys_bc.lo();
 
-        const bool symm_lo_x = (lo_bc[0] == Symmetry);
-        const bool symm_lo_y = (lo_bc[1] == Symmetry);
-        const bool symm_lo_z = (lo_bc[2] == Symmetry);
+        const bool symm_lo_x = (lo_bc[0] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_y = (lo_bc[1] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_z = (lo_bc[2] == amrex::PhysBCType::symmetry);
 
         ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
         ReduceData<Real, Real, Real, Real, Real, Real> reduce_data(reduce_op);
@@ -935,10 +938,9 @@ Castro::update_relaxation(Real time, Real dt) {
                        << std::endl;
     }
 
-    if (relaxation_is_done > 0) {
-        relaxation_damping_factor = -1.0;
+    if (relaxation_is_done == 1 && radial_damping_velocity_factor > 0.0_rt && radial_damping_is_done != 1) {
+        amrex::Print() << "Radial damping force will now take effect." << std::endl;
     }
-
 }
 
 
@@ -1072,6 +1074,7 @@ Castro::problem_sums ()
 
                   header << std::setw(datwidth) << "              WD DISTANCE"; ++n;
                   header << std::setw(fixwidth) << "                 WD ANGLE"; ++n;
+                  header << std::setw(datwidth) << "                     ADOT"; ++n;
                   header << std::setw(datwidth) << "                     MDOT"; ++n;
 
                   header << std::endl;
@@ -1099,6 +1102,9 @@ Castro::problem_sums ()
 
               log << std::fixed;
               log << std::setw(fixwidth) << std::setprecision(dataprecision) << angle;
+
+              log << std::scientific;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad + vel_S_rad;
 
               log << std::scientific;
               log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot;
@@ -1151,6 +1157,7 @@ Castro::problem_sums ()
                   header << std::setw(datwidth) << "            PRIMARY Z VEL"; ++n;
 #endif
                   header << std::setw(datwidth) << "       PRIMARY T_FREEFALL"; ++n;
+                  header << std::setw(datwidth) << "     PRIMARY ROCHE RADIUS"; ++n;
                   for (int i = 0; i <= 6; ++i) {
                       header << "       PRIMARY 1E" << i << " RADIUS";          ++n;
                   }
@@ -1194,6 +1201,7 @@ Castro::problem_sums ()
               log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
               log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << roche_rad_P;
               for (int i = 0; i <= 6; ++i) {
                   log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
               }
@@ -1247,6 +1255,7 @@ Castro::problem_sums ()
                   header << std::setw(datwidth) << "          SECONDARY Z VEL"; ++n;
 #endif
                   header << std::setw(datwidth) << "     SECONDARY T_FREEFALL"; ++n;
+                  header << std::setw(datwidth) << "   SECONDARY ROCHE RADIUS"; ++n;
                   for (int i = 0; i <= 6; ++i) {
                       header << "     SECONDARY 1E" << i << " RADIUS";          ++n;
                   }
@@ -1290,6 +1299,7 @@ Castro::problem_sums ()
               log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
               log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
+              log << std::setw(datwidth) << std::setprecision(dataprecision) << roche_rad_S;
               for (int i = 0; i <= 6; ++i) {
                   log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
               }
@@ -1302,9 +1312,9 @@ Castro::problem_sums ()
 
       // Rotation period over time
 
-      if (parent->NumDataLogs() > 4) {
+      if (parent->NumDataLogs() > 3) {
 
-          std::ostream& log = parent->DataLog(4);
+          std::ostream& log = parent->DataLog(3);
 
           if (log.good()) {
 

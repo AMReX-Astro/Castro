@@ -66,8 +66,8 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
             density = model_params.dens_base *
                 std::pow(gravity::const_grav * model_params.dens_base *
-                 (eos_gamma - 1.0) * z /
-                 (eos_gamma * model_params.p_base) + 1.0_rt, 1.0_rt/(eos_gamma - 1.0_rt));
+                 (eos_rp::eos_gamma - 1.0) * z /
+                 (eos_rp::eos_gamma * model_params.p_base) + 1.0_rt, 1.0_rt/(eos_rp::eos_gamma - 1.0_rt));
 
         } else {
             Real z = xmin + (static_cast<Real>(i) + 0.5_rt) * dx;

@@ -7,8 +7,6 @@
 #include <Radiation.H>  // for access to static physical constants only
 #include <rad_util.H>
 #include <problem_rad_source.H>
-#include <RAD_F.H>
-#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 #include <iostream>
 
@@ -66,7 +64,7 @@ RadSolve::read_params ()
     }
 
     if (Radiation::SolverType == Radiation::SGFLDSolver
-        && Radiation::Er_Lorentz_term) { 
+        && Radiation::Er_Lorentz_term) {
 
         if (radsolve::level_solver_flag < 100) {
             amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
@@ -77,7 +75,7 @@ RadSolve::read_params ()
         }
     }
 
-    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+    if (Radiation::SolverType == Radiation::MGFLDSolver &&
         Radiation::accelerate == 2 && Radiation::nGroups > 1) {
 
         if (radsolve::level_solver_flag < 100) {
@@ -137,7 +135,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi) 
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
@@ -244,7 +242,7 @@ void RadSolve::levelACoeffs(int level,
   }
 }
 
-void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int igroup, 
+void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int igroup,
                          int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
@@ -258,23 +256,23 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
 #endif
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
-    
+
       spa[mfi].setVal<RunOn::Host>(1.e210,reg,0);
-    
+
       bool nexttoboundary=false;
       for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
-          if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (lo_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
               nexttoboundary=true;
               break;
           }
-          if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
+          if (hi_bc[idim] == AMREX_LO_SANCHEZ_POMRANING &&
               reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
               nexttoboundary=true;
               break;
           }
       }
-    
+
       if (nexttoboundary) {
           auto spa_arr = spa[mfi].array();
 
@@ -326,7 +324,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, AMREX_SPACEDIM>& lambda, int
     hd->SPalpha(spa);
   }
   else {
-    amrex::Abort("Should not be in RadSolve::levelSPas");    
+    amrex::Abort("Should not be in RadSolve::levelSPas");
   }
 }
 
@@ -646,7 +644,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, AMREX_SPAC
                                      MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
-    
+
     const Geometry& geom = parent->Geom(level);
     auto geomdata = geom.data();
 
@@ -787,7 +785,7 @@ void RadSolve::levelFluxReg(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
-  const Real volume = D_TERM(dx[0], * dx[1], * dx[2]);
+  const Real volume = AMREX_D_TERM(dx[0], * dx[1], * dx[2]);
 
   if (flux_in) {
     for (int n = 0; n < AMREX_SPACEDIM; n++) {
@@ -813,6 +811,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
   const Geometry& geom = parent->Geom(level);
+  const GeometryData& geomdata = geom.data();
   auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
@@ -863,77 +862,64 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   // Correct D terms at physical and coarse-fine boundaries.
   hem->boundaryDterm(level, &Dterm_face[0], Er, igroup);
 
+  // Correct for metric terms (only has an effect in non-Cartesian geometries).
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> rc, re, s;
-      
-      if (geom.IsSPHERICAL()) {
-          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-              int i = fi.index();
-              const Box &reg = grids[i];
-              parent->Geom(level).GetEdgeLoc(re, reg, 0);
-              parent->Geom(level).GetCellLoc(rc, reg, 0);
-              parent->Geom(level).GetCellLoc(s, reg, 0);
-              const Box &dbox = Dterm_face[0][fi].box();
-              sphe(re.dataPtr(), s.dataPtr(), 0,
-                   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx.data());
-              
-              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
-                               re.dataPtr(), rc.dataPtr());
-          }
-#ifdef _OPENMP
-#pragma omp barrier
-#endif
-      }
-      else if (geom.IsRZ()) {
-          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-              int i = fi.index();
-              const Box &reg = grids[i];
-              parent->Geom(level).GetEdgeLoc(re, reg, 0);
-              parent->Geom(level).GetCellLoc(rc, reg, 0);
-              
-              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
-                               re.dataPtr(), rc.dataPtr());
-          }
-#ifdef _OPENMP
-#pragma omp barrier
-#endif
-      }
+      for (MFIter mfi(Dterm_face[dir], true); mfi.isValid(); ++mfi) {
+          const Box& box = mfi.tilebox();
+          Array4<Real> const d = Dterm_face[dir][mfi].array();
 
-      for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
-          const Box& bx = fi.tilebox();
-
-          auto Dx = Dterm_face[0][fi].array();
-#if AMREX_SPACEDIM >= 2
-          auto Dy = Dterm_face[1][fi].array();
-#endif
-#if AMREX_SPACEDIM == 3
-          auto Dz = Dterm_face[2][fi].array();
-#endif
-
-          auto D = Dterm[fi].array();
-
-          amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
-#if AMREX_SPACEDIM == 1
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
-#elif AMREX_SPACEDIM == 2
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
-                          Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
-#else
-              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
-                          Dy(i,j,k) + Dy(i,j+1,k) +
-                          Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
-#endif
+              if (dir == 0 && (geomdata.Coord() == CoordSys::SPHERICAL || geomdata.Coord() == CoordSys::RZ)) {
+                  Real r, s;
+                  edge_center_metric(i, j, k, dir, geomdata, r, s);
+
+                  d(i,j,k) = d(i,j,k) / (r + 1.0e-50_rt);
+              }
+              else if (dir == 1 && geomdata.Coord() == CoordSys::RZ) {
+                  Real r, s;
+                  cell_center_metric(i, j, k, geomdata, r, s);
+
+                  d(i,j,k) = d(i,j,k) / r;
+              }
           });
       }
+  }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
+      const Box& bx = fi.tilebox();
+
+      auto Dx = Dterm_face[0][fi].array();
+#if AMREX_SPACEDIM >= 2
+      auto Dy = Dterm_face[1][fi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+      auto Dz = Dterm_face[2][fi].array();
+#endif
+
+      auto D = Dterm[fi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+#if AMREX_SPACEDIM == 1
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
+#elif AMREX_SPACEDIM == 2
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                      Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
+#else
+          D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                      Dy(i,j,k) + Dy(i,j+1,k) +
+                      Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
+#endif
+      });
   }
 }
 
@@ -1005,7 +991,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   }
 }
 
-void RadSolve::levelACoeffs(int level, MultiFab& kpp, 
+void RadSolve::levelACoeffs(int level, MultiFab& kpp,
                             Real delta_t, Real c, int igroup, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
@@ -1055,7 +1041,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 }
 
 
-void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg, 
+void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
                         const MultiFab& mugT,
                         const MultiFab& coupT,
                         const MultiFab& etaT,
@@ -1104,11 +1090,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
           problem_rad_source(i, j, k, rhs_arr, geomdata, time, delta_t, igroup);
       });
-
-      ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(rhs[ri]),
-                    AMREX_REAL_ANYD(dx), delta_t, time, igroup);
-
   }
 }
 
@@ -1128,11 +1109,11 @@ void RadSolve::restoreHypreMulti()
   if (hem) {
     hem-> cMultiplier() =  cMulti;
     hem->d1Multiplier() = d1Multi;
-    hem->d2Multiplier() = d2Multi;  
+    hem->d2Multiplier() = d2Multi;
   }
 }
 
-void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
+void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
                              Vector<Real>& r, Vector<Real>& s)
 {
     const Box& reg = amrex::enclosedCells(edgebox);
@@ -1160,8 +1141,31 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
         geom.GetEdgeLoc(s, reg, I);
       }
       const Real *dx = geom.CellSize();
-      sphe(r.dataPtr(), s.dataPtr(), idim,
-           ARLIM(edgebox.loVect()), ARLIM(edgebox.hiVect()), dx);
+
+      if (idim == 0) {
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] *= r[i];
+          }
+#if AMREX_SPACEDIM >= 2
+          Real h2 = 0.5e0_rt * dx[1];
+          Real d2 = 1.e0_rt / dx[1];
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = d2 * (std::cos(s[j] - h2) - std::cos(s[j] + h2));
+          }
+#endif
+      }
+      else {
+          Real h1 = 0.5e0_rt * dx[0];
+          Real d1 = 1.e0_rt / (3.e0_rt * dx[0]);
+          for (int i = edgebox.loVect()[0]; i <= edgebox.hiVect()[0]; ++i) {
+              r[i] = d1 * (std::pow(r[i] + h1, 3) - std::pow(r[i] - h1, 3));
+          }
+#if AMREX_SPACEDIM >= 2
+          for (int j = edgebox.loVect()[1]; j <= edgebox.hiVect()[1]; ++j) {
+              s[j] = std::sin(s[j]);
+          }
+#endif
+      }
     }
 }
 

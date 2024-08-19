@@ -1,0 +1,48 @@
+name: reacting-convergence-true-sdc
+
+on: [pull_request]
+jobs:
+  reacting-convergence-true-sdc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl g++>=9.3.0
+
+      - name: Compile reacting_convergence
+        run: |
+          cd Exec/reacting_tests/reacting_convergence
+          make DIM=2 USE_MPI=FALSE -j 4 USE_TRUE_SDC=TRUE
+
+      - name: Run reacting_convergence
+        run: |
+          cd Exec/reacting_tests/reacting_convergence
+          ./Castro2d.gnu.TRUESDC.ex inputs.128.testsuite max_step=10
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j 4
+
+      - name: Check the extrema
+        run: |
+          cd Exec/reacting_tests/reacting_convergence
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex react_converge_128_plt00010 > fextrema.out
+          # ignore angular momenta, since 0 and -0 don't compare
+          diff -I "^ angular_momentum" fextrema.out ci-benchmarks/react_converge_128_true_sdc.out
+
+

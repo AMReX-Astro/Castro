@@ -1,5 +1,5 @@
-#ifndef CASTRO_DIFFUSION_H
-#define CASTRO_DIFFUSION_H
+#ifndef DIFFUSION_H
+#define DIFFUSION_H
 
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
@@ -7,7 +7,7 @@
 #include <diffusion_params.H>
 
 ///
-/// @class Diffusion 
+/// @class Diffusion
 /// @brief
 ///
 class Diffusion {
@@ -36,7 +36,7 @@ public:
 ///
 /// @param jobInfoFile
 ///
-  void output_job_info_params(std::ostream& jobInfoFile);
+  static void output_job_info_params(std::ostream& jobInfoFile);
 
 
 ///

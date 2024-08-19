@@ -35,7 +35,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = amrex::max(interpolate(height, model::ispec+n), small_x);
+        state(i,j,k,UFS+n) = amrex::max(interpolate(height, model::ispec+n), network_rp::small_x);
     }
 
     // normalize
@@ -121,10 +121,10 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (problem::num_vortices % 2 == 0){
             temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
-                                    delta*exp(-pow(ydist / problem::width, 2));
+                                    delta*std::exp(-pow(ydist / problem::width, 2));
         } else {
             temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
-                                     delta*exp(-pow(ydist / problem::width, 2));
+                                     delta*std::exp(-pow(ydist / problem::width, 2));
         }
 
         state(i,j,k,UTEMP)  = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);

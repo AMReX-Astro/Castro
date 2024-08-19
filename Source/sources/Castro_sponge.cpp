@@ -1,6 +1,5 @@
 #ifdef SPONGE
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
@@ -84,7 +83,7 @@ Castro::apply_sponge(const Box& bx,
   auto problo = geom.ProbLoArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real src[NSRC] = {0.0};

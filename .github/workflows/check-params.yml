@@ -1,0 +1,37 @@
+name: check runtime params
+
+on:
+  push:
+    branches:
+      - development
+      - main
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  check-runtime-params:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run check-params
+        run: |
+          PYTHONPATH=external/Microphysics/util/build_scripts python .github/workflows/check_params.py .

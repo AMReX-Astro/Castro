@@ -1,7 +1,6 @@
 #include <Radiation.H>
-#include <Castro_F.H>
-#include <RAD_F.H>
 #include <rad_util.H>
+#include <filter.H>
 #include <blackbody.H>
 #include <opacity.H>
 #include <problem_emissivity.H>
@@ -15,7 +14,7 @@
 using namespace amrex;
 
 void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_er,
-                                     const MultiFab& Er_new, const MultiFab& Er_pi, 
+                                     const MultiFab& Er_new, const MultiFab& Er_pi,
                                      const MultiFab& kappa_p,
                                      const MultiFab& etaTz,
                                      const MultiFab& temp_new,
@@ -79,15 +78,15 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 }
 
 
-void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab& rhoe_star, 
-                                       const MultiFab& rhoe_step, const MultiFab& Er_new, 
-                                       const MultiFab& temp_new, const MultiFab& temp_star, 
+void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab& rhoe_star,
+                                       const MultiFab& rhoe_step, const MultiFab& Er_new,
+                                       const MultiFab& temp_new, const MultiFab& temp_star,
                                        const MultiFab& rho,
                                        const MultiFab& kappa_p, const MultiFab& jg,
                                        const MultiFab& dedT,
-                                       Real& rel_rhoe, Real& abs_rhoe, 
-                                       Real& rel_FT,   Real& abs_FT, 
-                                       Real& rel_T,    Real& abs_T, 
+                                       Real& rel_rhoe, Real& abs_rhoe,
+                                       Real& rel_FT,   Real& abs_FT,
+                                       Real& rel_T,    Real& abs_T,
                                        Real delta_t)
 {
   ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
@@ -153,7 +152,7 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
 
   ParallelDescriptor::ReduceRealMax(data, ndata);
 
-  rel_rhoe = data[0]; 
+  rel_rhoe = data[0];
   abs_rhoe = data[1];
   rel_FT   = data[2];
   abs_FT   = data[3];
@@ -192,7 +191,7 @@ void Radiation::compute_coupling(MultiFab& coupT,
 }
 
 
-void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz, 
+void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
                              MultiFab& eta1, MultiFab& djdT,
                              const MultiFab& dkdT, const MultiFab& dedT,
                              const MultiFab& Er_star, const MultiFab& rho,
@@ -243,10 +242,10 @@ void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
 }
 
 
-void Radiation::eos_opacity_emissivity(const MultiFab& S_new, 
+void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
                                        const MultiFab& temp_new,
                                        const MultiFab& temp_star,
-                                       MultiFab& kappa_p, MultiFab& kappa_r, MultiFab& jg, 
+                                       MultiFab& kappa_p, MultiFab& kappa_r, MultiFab& jg,
                                        MultiFab& djdT, MultiFab& dkdT, MultiFab& dedT,
                                        int level, int it, int ngrow)
 {
@@ -430,7 +429,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
                                  dkdT_arr(i,j,k,g), jg_arr(i,j,k,g), djdT_arr(i,j,k,g));
           }
       });
-  }    
+  }
 
   if (ngrow == 0 && !lag_opac) {
       kappa_r.FillBoundary(geom.periodicity());
@@ -438,13 +437,13 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 }
 
 
-void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi, 
+void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            MultiFab& kappa_p, MultiFab& kappa_r,
                            MultiFab& etaT, MultiFab& eta1,
                            MultiFab& mugT,
                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
-                           RadSolve* solver, MGRadBndry& mgbd, 
-                           const BoxArray& grids, int level, Real time, 
+                           RadSolve* solver, MGRadBndry& mgbd,
+                           const BoxArray& grids, int level, Real time,
                            Real delta_t, Real ptc_tau)
 {
   const Geometry& geom = parent->Geom(level);
@@ -468,7 +467,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif 
+#endif
   for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
@@ -540,7 +539,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
           acoefs_arr(i,j,k) = H1 * kbar * C::c_light + dt1;
       });
-  }  
+  }
 
   solver->cellCenteredApplyMetrics(level, acoefs);
   solver->setLevelACoeffs(level, acoefs);
@@ -593,7 +592,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                   bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j,k-1) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
               }
           });
-          
+
           if (nGroups > 1) {
               amrex::ParallelFor(bx,
               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -703,7 +702,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
 
 void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
-                            const MultiFab& kappa_p, 
+                            const MultiFab& kappa_p,
                             const MultiFab& etaT,
                             const MultiFab& mugT,
                             Real delta_t, Real ptc_tau)
@@ -746,8 +745,8 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 }
 
 
-void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe, 
-                                    const MultiFab& temp, 
+void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
+                                    const MultiFab& temp,
                                     const BoxArray& grids,
                                     Real& derat, Real& dT, int level)
 {
@@ -768,7 +767,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(msk); mfi.isValid(); ++mfi) 
+      for (MFIter mfi(msk); mfi.isValid(); ++mfi)
       {
           msk[mfi].setVal<RunOn::Device>(1.0);
 
@@ -778,7 +777,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
               for (int ii = 0; ii < isects.size(); ii++) {
                   msk[mfi].setVal<RunOn::Device>(0.0, isects[ii].second, 0);
               }
-          } 
+          }
       }
   }
 
@@ -789,7 +788,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(state,true); mfi.isValid(); ++mfi) 
+  for (MFIter mfi(state,true); mfi.isValid(); ++mfi)
   {
       const Box& reg  = mfi.tilebox();
 
@@ -827,16 +826,16 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 }
 
 
-void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
+void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                               const MultiFab& Er_new, const MultiFab& Er_pi,
                               const MultiFab& rhoe_star,
                               const MultiFab& rhoe_step,
                               const MultiFab& etaT, const MultiFab& etaTz,
                               const MultiFab& eta1,
                               const MultiFab& coupT,
-                              const MultiFab& kappa_p, const MultiFab& jg, 
+                              const MultiFab& kappa_p, const MultiFab& jg,
                               const MultiFab& mugT,
-                              const MultiFab& S_new, 
+                              const MultiFab& S_new,
                               int level, Real delta_t, Real ptc_tau,
                               int it, bool conservative_update)
 {
@@ -959,14 +958,14 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 re_n(i,j,k) = eos_state.rho * eos_state.e;
             });
         }
-    }  
+    }
 }
 
 // ========================================================================
 // for the hyperbolic solver
 
 void Radiation::compute_limiter(int level, const BoxArray& grids,
-                                const MultiFab &Sborder, 
+                                const MultiFab &Sborder,
                                 const MultiFab &Erborder,
                                 MultiFab &lamborder)
 { // it works for both single- and multi-group
@@ -984,33 +983,273 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
   }
   else {
 
-    MultiFab kpr(grids,dmap,Radiation::nGroups,ngrow);  
+    MultiFab kpr(grids,dmap,Radiation::nGroups,ngrow);
 
     if (do_multigroup) {
-        MGFLD_compute_rosseland(kpr, Sborder); 
+        MGFLD_compute_rosseland(kpr, Sborder);
     }
     else {
-      SGFLD_compute_rosseland(kpr, Sborder); 
+      SGFLD_compute_rosseland(kpr, Sborder);
     }
 
     MultiFab Er_wide(grids, dmap, nGroups, ngrow+1);
     Er_wide.setVal(-1.0);
     MultiFab::Copy(Er_wide, Erborder, 0, 0, nGroups, 0);
-    
+
     Er_wide.FillBoundary(parent->Geom(level).periodicity());
-    
+
     const Real* dx = parent->Geom(level).CellSize();
+
+    using namespace filter;
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
-      BL_FORT_PROC_CALL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
-        (BL_TO_FORTRAN(Er_wide[mfi]), 
-         BL_TO_FORTRAN(kpr[mfi]),
-         BL_TO_FORTRAN(lamborder[mfi]), 
-         dx, &ngrow, &radiation::limiter, &filter_lambda_T, &filter_lambda_S);
-    }
+        FArrayBox lamfilxfab;
+#if AMREX_SPACEDIM >= 2
+        FArrayBox lamfilyfab;
+#endif
+#if AMREX_SPACEDIM == 3
+        FArrayBox lamfilzfab;
+#endif
+
+        Box lambx = lamborder[mfi].box();
+        Box bx = grow(lambx, -ngrow);
+
+        if (filter_lambda_T > 0) {
+            lamfilxfab.resize(bx);
+#if AMREX_SPACEDIM >= 2
+            lamfilyfab.resize(bx);
+#endif
+#if AMREX_SPACEDIM == 3
+            lamfilzfab.resize(bx);
+#endif
+        }
+
+        Array4<Real> const lam = lamborder[mfi].array();
+        Array4<Real> const Er = Er_wide[mfi].array();
+        Array4<Real> const kap = kpr[mfi].array();
+        Array4<Real> const lamfilx = lamfilxfab.array();
+#if AMREX_SPACEDIM >= 2
+        Array4<Real> const lamfily = lamfilyfab.array();
+#endif
+#if AMREX_SPACEDIM == 3
+        Array4<Real> const lamfilz = lamfilzfab.array();
+#endif
+
+        for (int g = 0; g < Radiation::nGroups; ++g) {
+
+            amrex::Loop(lambx, [=] (int i, int j, int k) noexcept
+            {
+                lam(i,j,k,g) = -1.0e50_rt;
+
+                // The radiation energy Er being equal to -1 is our arbitrary
+                // convention that we're on a boundary zone. This is meaningless
+                // from the perspective of computing the limiter, so we skip this
+                // step on all boundary zones. On all zones adjacent to the boundary
+                // we use a one-sided difference.
+
+                if (Er(i,j,k,g) == -1.0_rt) {
+                    return;
+                }
+
+                Real r1 = 0.0;
+                Real r2 = 0.0;
+                Real r3 = 0.0;
+
+                if (Er(i-1,j,k,g) == -1.0_rt) {
+                    r1 = (Er(i+1,j,k,g) - Er(i,j,k,g)) / (dx[0]);
+                }
+                else if (Er(i+1,j,k,g) == -1.0_rt) {
+                    r1 = (Er(i,j,k,g) - Er(i-1,j,k,g)) / (dx[0]);
+                }
+                else {
+                    r1 = (Er(i+1,j,k,g) - Er(i-1,j,k,g)) / (2.e0_rt*dx[0]);
+                }
+
+#if AMREX_SPACEDIM >= 2
+                if (Er(i,j-1,k,g) == -1.0_rt) {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j,k,g)) / (dx[1]);
+                }
+                else if (Er(i,j+1,k,g) == -1.0_rt) {
+                    r2 = (Er(i,j,k,g) - Er(i,j-1,k,g)) / (dx[1]);
+                }
+                else {
+                    r2 = (Er(i,j+1,k,g) - Er(i,j-1,k,g)) / (2.e0_rt*dx[1]);
+                }
+#endif
+
+#if AMREX_SPACEDIM == 3
+                if (Er(i,j,k-1,g) == -1.0_rt) {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k,g)) / dx[2];
+                }
+                else if (Er(i,j,k+1,g) == -1.0_rt) {
+                    r3 = (Er(i,j,k,g) - Er(i,j,k-1,g)) / dx[2];
+                }
+                else {
+                    r3 = (Er(i,j,k+1,g) - Er(i,j,k-1,g)) / (2.e0_rt*dx[2]);
+                }
+#endif
+
+                Real r = std::sqrt(r1 * r1 + r2 * r2 + r3 * r3);
+                r = r / (kap(i,j,k,g) * std::max(Er(i,j,k,g), 1.e-50_rt));
+
+                lam(i,j,k,g) = FLDlambda(r);
+            });
+
+            // filter
+
+            int lam_ilo = lambx.loVect3d()[0];
+            int lam_ihi = lambx.hiVect3d()[0];
+            int lam_jlo = lambx.loVect3d()[1];
+            int lam_jhi = lambx.hiVect3d()[1];
+            int lam_klo = lambx.loVect3d()[2];
+            int lam_khi = lambx.hiVect3d()[2];
+
+            int reg_ilo = bx.loVect3d()[0];
+            int reg_ihi = bx.hiVect3d()[0];
+            int reg_jlo = bx.loVect3d()[1];
+            int reg_jhi = bx.hiVect3d()[1];
+            int reg_klo = bx.loVect3d()[2];
+            int reg_khi = bx.hiVect3d()[2];
+
+            if (filter_lambda_T > 0) {
+                // initialize
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    lamfilx(i,j,k) = -1.0e-50_rt;
+#if AMREX_SPACEDIM >= 2
+                    lamfily(i,j,k) = -1.0e-50_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+                    lamfilz(i,j,k) = -1.0e-50_rt;
+#endif
+                });
+
+                // filter in the x direction
+
+                int dir = 0;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfilx(i,j,k) = apply_filter<1>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfilx(i,j,k) = apply_filter<2>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfilx(i,j,k) = apply_filter<3>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfilx(i,j,k) = apply_filter<4>(Er, lam, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+
+                // filter in the y direction
+
+#if AMREX_SPACEDIM >= 2
+                dir = 1;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfily(i,j,k) = apply_filter<1>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfily(i,j,k) = apply_filter<2>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfily(i,j,k) = apply_filter<3>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfily(i,j,k) = apply_filter<4>(Er, lamfilx, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+#endif
+
+                // filter in the z direction
+
+#if AMREX_SPACEDIM == 3
+                dir = 2;
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+                    if (filter_lambda_T == 1) {
+                        lamfilz(i,j,k) = apply_filter<1>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 2) {
+                        lamfilz(i,j,k) = apply_filter<2>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 3) {
+                        lamfilz(i,j,k) = apply_filter<3>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                    else if (filter_lambda_T == 4) {
+                        lamfilz(i,j,k) = apply_filter<4>(Er, lamfily, dir, filter_lambda_S, i, j, k, g);
+                    }
+                });
+#endif
+
+                // store the final results
+
+                amrex::Loop(bx, [=] (int i, int j, int k) noexcept
+                {
+#if AMREX_SPACEDIM == 1
+                    lam(i,j,k,g) = lamfilx(i,j,k);
+#elif AMREX_SPACEDIM == 2
+                    lam(i,j,k,g) = lamfily(i,j,k);
+#else
+                    lam(i,j,k,g) = lamfilz(i,j,k);
+#endif
+                });
+            } // filter_lambda_T
+
+            // For all zones outside the valid region, do a piecewise constant copy
+            // from the nearest valid edge or corner.
+
+            amrex::Loop(lambx, [=] (int i, int j, int k) noexcept
+            {
+                // Only apply this step if we're outside the valid region.
+
+                if (Er(i,j,k,g) != -1.0_rt) {
+                    return;
+                }
+
+                // Assume in each dimension that we're copying from the same index,
+                // then shift to the nearest edge in that dimension if we're outside
+                // the box.
+
+                int ic = i;
+                int jc = j;
+                int kc = k;
+
+                if (i < reg_ilo) {
+                    ic = reg_ilo;
+                }
+                else if (i > reg_ihi) {
+                    ic = reg_ihi;
+                }
+
+                if (j < reg_jlo) {
+                    jc = reg_jlo;
+                }
+                else if (j > reg_jhi) {
+                    jc = reg_jhi;
+                }
+
+                if (k < reg_klo) {
+                    kc = reg_klo;
+                }
+                else if (k > reg_khi) {
+                    kc = reg_khi;
+                }
+
+                lam(i,j,k,g) = lam(ic,jc,kc,g);
+            });
+        } // nGroups
+    } // mfiter
 
     if (filter_lambda_T) {
         lamborder.FillBoundary(parent->Geom(level).periodicity());
@@ -1019,7 +1258,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 }
 
 
-void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
+void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
                                 FArrayBox& gPr, const Real*dx, const Box& box)
 {
     auto gPr_arr = gPr.array();
@@ -1593,8 +1832,8 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     Gpu::synchronize();
 }
 
-void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
-                              const MultiFab& rhoe_star, const MultiFab& temp_star, 
+void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
+                              const MultiFab& rhoe_star, const MultiFab& temp_star,
                               const MultiFab& S_new, const BoxArray& grids, int level)
 {
   temp_new.plus(temp_star, 0, 1, 0);
@@ -1642,7 +1881,7 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) 
+    for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri)
     {
         const Box& bx = ri.tilebox();
 

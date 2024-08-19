@@ -295,4 +295,73 @@ amrex::Real kavg(Real a, Real b, Real d, int opt)
     return k;
 }
 
+AMREX_INLINE
+void rfface (Array4<Real> const fine,
+             Array4<Real const> const crse,
+             int idim, const IntVect& irat)
+{
+    const Dim3 flo = amrex::lbound(fine);
+    const Dim3 fhi = amrex::ubound(fine);
+
+    const Dim3 clo = amrex::lbound(crse);
+    const Dim3 chi = amrex::ubound(crse);
+
+    Real ifac = 1.0_rt;
+    Real jfac = 1.0_rt;
+    Real kfac = 1.0_rt;
+    Real rfac = 1.0_rt;
+
+    if (idim == 0) {
+#if AMREX_SPACEDIM >= 2
+        jfac = irat[1];
+#endif
+#if AMREX_SPACEDIM == 3
+        kfac = irat[2];
+#endif
+
+        Real rfac = jfac * kfac;
+
+        int i = flo.x;
+        for (int k = flo.z; k <= fhi.z; ++k) {
+            for (int j = flo.y; j <= fhi.y; ++j) {
+                fine(i,j,k) = crse(clo.x, j / jfac, k / kfac) / rfac;
+            }
+        }
+    }
+    else if (idim == 1) {
+#if AMREX_SPACEDIM >= 2
+        ifac = irat[0];
+#endif
+#if AMREX_SPACEDIM == 3
+        kfac = irat[2];
+#endif
+
+        rfac = ifac * kfac;
+
+        int j = flo.y;
+        for (int k = flo.z; k <= fhi.z; ++k) {
+            for (int i = flo.x; i <= fhi.x; ++i) {
+                fine(i,j,k) = crse(i / ifac, clo.y, k / kfac) / rfac;
+            }
+        }
+    }
+    else {
+#if AMREX_SPACEDIM >= 2
+        ifac = irat[0];
+#endif
+#if AMREX_SPACEDIM == 3
+        jfac = irat[1];
+#endif
+
+        rfac = ifac * jfac;
+
+        int k = flo.z;
+        for (int j = flo.y; j <= fhi.y; ++j) {
+            for (int i = flo.x; i <= fhi.x; ++i) {
+                fine(i,j,k) = crse(i / ifac, j / jfac, clo.z) / rfac;
+            }
+        }
+    }
+}
+
 #endif

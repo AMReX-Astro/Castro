@@ -28,11 +28,6 @@ castro.time_integration_method = 2
 castro.sdc_order = 4
 
 castro.sdc_solver = 2
-castro.sdc_solver_tol_dens = 1.e-5
-castro.sdc_solver_tol_spec = 1.e-5
-castro.sdc_solver_tol_ener = 1.e-5
-castro.sdc_solver_atol = 1.e-10
-castro.sdc_newton_use_analytic_jac = 1
 
 castro.ppm_type = 0
 
@@ -102,3 +97,10 @@ amr.refine.tempgrad.field_name = Temp
 # Microphysics
 
 integrator.call_eos_in_rhs = 1
+
+integrator.rtol_spec = 1.e-5
+integrator.rtol_enuc = 1.e-5
+integrator.atol_spec = 1.e-10
+integrator.atol_enuc = 1.e-10
+
+integrator.jacobian = 1

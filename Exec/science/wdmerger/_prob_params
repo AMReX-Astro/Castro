@@ -98,7 +98,7 @@ onemg_wd_mg_frac                real                  0.05e0_rt                y
 # Parameters for interpolation from 1D model to 3D model
 
 # Default to interpolation that preserves temperature; otherwise, use pressure
-interp_temp                     logical               .true.                   y
+interp_temp                     bool                 true                      y
 
 # Number of sub-grid-scale zones to use
 nsub                            integer               1                        y
@@ -193,8 +193,9 @@ relaxation_is_done              integer               1                        n
 
 # Radial damping parameters
 
-radial_damping_factor           real                 -1.0e3_rt                 y
-initial_radial_velocity_factor  real                 -1.0e-3_rt                y
+radial_damping_velocity_factor  real                  0.0e0_rt                 y
+radial_damping_roche_factor     real                  1.0e0_rt                 y
+radial_damping_is_done          integer               1                        n
 
 
 

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -124,16 +123,15 @@ Castro::do_old_sources(
 
     source.setVal(0.0, source.nGrow());
 
+    if (!apply_sources()) {
+        return;
+    }
+
     for (int n = 0; n < num_src; ++n) {
         construct_old_source(n, source, state_old, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
@@ -142,11 +140,18 @@ Castro::do_old_sources(
                      state_new, time, 0);
     }
 
+    // Fill the ghost cells (but only for CTU; the time would not be correct for true SDC, so
+    // the FillPatch is handled separately in the SDC advance).
+
+    if (castro::time_integration_method == CornerTransportUpwind ||
+        castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NSRC);
+    }
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
 
-    if (print_update_diagnostics) {
+    if (apply_to_state && print_update_diagnostics) {
       bool is_new = false;
       print_all_source_changes(dt, is_new);
     }
@@ -154,19 +159,45 @@ Castro::do_old_sources(
     if (verbose > 0)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_old_sources() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
+}
 
+advance_status
+Castro::do_old_sources (Real time, Real dt, bool apply_to_state)
+{
+    advance_status status {};
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& old_source = get_old_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+#endif
+
+    do_old_sources(
+#ifdef MHD
+                   Bx_old, By_old, Bz_old,
+#endif
+                   old_source, Sborder, S_new, time, dt,
+                   apply_to_state);
+
+    return status;
 }
 
 void
@@ -183,18 +214,17 @@ Castro::do_new_sources(
 
     source.setVal(0.0, NUM_GROW_SRC);
 
+    if (!apply_sources()) {
+        return;
+    }
+
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
         construct_new_source(n, source, state_old, state_new, time, dt);
-
-        // We can either apply the sources to the state one by one, or we can
-        // group them all together at the end.
-
     }
 
     if (apply_to_state) {
-
         apply_source_to_state(state_new, source, dt, 0);
         clean_state(
 #ifdef MHD
@@ -214,20 +244,45 @@ Castro::do_new_sources(
 
     if (verbose > 0)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::do_new_sources() time = " << run_time << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
 
+}
+
+advance_status
+Castro::do_new_sources (Real time, Real dt)
+{
+    advance_status status {};
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab& new_source = get_new_data(Source_Type);
+
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif
+
+    do_new_sources(
+#ifdef MHD
+                   Bx_new, By_new, Bz_new,
+#endif
+                   new_source, Sborder, S_new, time, dt);
+
+    return status;
 }
 
 void
@@ -408,7 +463,7 @@ Castro::evaluate_source_change(const MultiFab& source, Real dt, bool local)
 // interested in printing changes to energy, mass, etc.
 
 void
-Castro::print_source_change(Vector<Real> update)
+Castro::print_source_change(const Vector<Real>& update)
 {
 
   if (ParallelDescriptor::IOProcessor()) {
@@ -465,4 +520,177 @@ Castro::print_all_source_changes(Real dt, bool is_new)
     std::string source_name = is_new? "new-time sources" : "old-time sources";
 
     evaluate_and_print_source_change(source, dt, source_name);
+}
+
+// Perform all operations that occur prior to computing the predictor sources
+// and the hydro advance.
+
+advance_status
+Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
+
+    // If we are using gravity, solve for the potential and
+    // gravitational field.  note: since reactions don't change
+    // density, we can do this before or after the burn.
+
+#ifdef GRAVITY
+    construct_old_gravity(time);
+#endif
+
+#ifdef SHOCK_VAR
+    // we want to compute the shock flag that will be used
+    // (optionally) in disabling reactions in shocks.  We compute this
+    // only once per timestep using the time-level n data.
+
+    // We need to compute the old sources -- note that we will
+    // recompute the old sources after the burn, so this is done here
+    // only for evaluating the shock flag.
+
+    const bool apply_to_state{false};
+    do_old_sources(time, dt, apply_to_state);
+
+    MultiFab& S_old = get_old_data(State_Type);
+    MultiFab& old_source = get_old_data(Source_Type);
+
+    FArrayBox shk(The_Async_Arena());
+    FArrayBox q(The_Async_Arena()), qaux(The_Async_Arena());
+
+    for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const Box& obx = mfi.growntilebox(1);
+
+        shk.resize(bx, 1);
+#ifdef RADIATION
+        q.resize(obx, NQ);
+#else
+        q.resize(obx, NQTHERM);
+#endif
+        qaux.resize(obx, NQAUX);
+
+        Array4<Real> const shk_arr = shk.array();
+        Array4<Real> const q_arr = q.array();
+        Array4<Real> const qaux_arr = qaux.array();
+
+        Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
+        Array4<Real> const S_old_arr = S_old.array(mfi);
+        Array4<Real> const old_src_arr = old_source.array(mfi);
+
+        ctoprim(obx, time, Sborder_old_arr, q_arr, qaux_arr);
+
+        shock(bx, q_arr, old_src_arr, shk_arr);
+
+        // now store it in S_old -- we'll fillpatch into Sborder in a bit
+
+        // Note: we still compute the shock flag in the hydro for the
+        // hybrid-Riemann (for now) since that version will have seen the
+        // effect of the burning in the first dt), but that version is
+        // never stored in State_Type
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            S_old_arr(i,j,k,USHK) = shk_arr(i,j,k);
+        });
+
+    }
+
+    // we only computed the shock flag on the interior, but the first
+    // burn needs ghost cells, so FillPatch just the shock flag
+
+    if (Sborder.nGrow() > 0) {
+      AmrLevel::FillPatch(*this, Sborder, Sborder.nGrow(), time, State_Type, USHK, 1, USHK);
+    }
+
+#endif
+
+    // If we are Strang splitting the reactions, do the old-time contribution now.
+
+#ifndef TRUE_SDC
+#ifdef REACTIONS
+    status = do_old_reactions(time, dt);
+
+    if (status.success == false) {
+        return status;
+    }
+#endif
+#endif
+
+
+    // Initialize the new-time data. This copy needs to come after all Strang-split operators.
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, S_new.nGrow());
+
+    return status;
+}
+
+// Perform all operations that occur after computing the predictor sources
+// but before the hydro advance.
+
+advance_status
+Castro::pre_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
+
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+    // The SDC reactive source ghost cells on coarse levels might not
+    // be in sync due to any average down done, so fill them here.
+
+    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time + dt, Simplified_SDC_React_Type, 0, react_src.nComp());
+#endif
+#endif
+
+    return status;
+}
+
+// Perform all operations that occur after the hydro source
+// but before the corrector sources.
+
+advance_status
+Castro::post_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
+
+#ifdef GRAVITY
+    construct_new_gravity(time);
+#endif
+
+    return status;
+}
+
+// Perform all operations that occur after the corrector sources.
+
+advance_status
+Castro::post_advance_operators (Real time, Real dt)  // NOLINT(readability-convert-member-functions-to-static)
+{
+    amrex::ignore_unused(time);
+    amrex::ignore_unused(dt);
+
+    advance_status status {};
+
+#ifndef TRUE_SDC
+#ifdef REACTIONS
+    status = do_new_reactions(time, dt);
+
+    if (status.success == false) {
+        return status;
+    }
+#endif
+#endif
+
+    return status;
 }

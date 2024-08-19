@@ -3,7 +3,7 @@
 #include <AMReX_LO_BCTYPES.H>
 
 #include <HypreABec.H>
-#include <HABEC_F.H>
+#include <HABEC.H>
 #include <rad_util.H>
 
 #include <iostream>
@@ -195,7 +195,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   int ngrow=0;
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
- 
+
   for (int i = 0; i < AMREX_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
@@ -226,7 +226,7 @@ void HypreABec::aCoefficients(const MultiFab &a)
   BL_ASSERT( a.boxArray() == acoefs->boxArray() );
   MultiFab::Copy(*acoefs, a, 0, 0, 1, 0);
 }
- 
+
 void HypreABec::bCoefficients(const MultiFab &b, int dir)
 {
   BL_ASSERT( b.ok() );
@@ -238,7 +238,7 @@ void HypreABec::SPalpha(const MultiFab& a)
 {
   BL_ASSERT( a.ok() );
   if (SPa == 0) {
-    const BoxArray& grids = a.boxArray(); 
+    const BoxArray& grids = a.boxArray();
     const DistributionMapping& dmap = a.DistributionMap();
     SPa.reset(new MultiFab(grids,dmap,1,0));
   }
@@ -249,19 +249,18 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                              BC_Mode inhom)
 {
     BL_PROFILE("HypreABec::boundaryFlux");
-    
+
     const BoxArray &grids = Soln.boxArray();
-    
+
     const NGBndry& bd = getBndry();
     const Box& domain = bd.getDomain();
-    
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
-        
+
         for (MFIter si(Soln); si.isValid(); ++si) {
             int i = si.index();
             const Box &reg = grids[i];
@@ -274,47 +273,43 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                 const Mask      &msk = bd.bndryMasks(oitr(),i);
 
                 if (reg[oitr()] == domain[oitr()]) {
-                    const int *tfp = NULL;
                     int bctype = bct;
+                    Array4<int const> tf_arr;
                     if (bd.mixedBndry(oitr())) {
                         const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
-                        tfp = tf.dataPtr();
+                        tf_arr = tf.array();
                         bctype = -1;
                     }
                     // In normal code operation only the fluxes at internal
                     // Dirichlet boundaries are used.  Some diagnostics use the
                     // fluxes computed at domain boundaries but these do not
                     // influence the evolution of the interior solution.
-                    Real* pSPa;
-                    Box SPabox; 
+                    Array4<Real const> sp_arr;
                     if (SPa != 0) {
-                        pSPa = (*SPa)[si].dataPtr();
-                        SPabox = (*SPa)[si].box();
+                        sp_arr = (*SPa)[si].array();
                     }
-                    else {
-                        pSPa = &foo;
-                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-                    }
-                    getFaceMetric(r, reg, oitr(), geom);
-                    hbflx3(BL_TO_FORTRAN(Flux[idim][si]),
-                           BL_TO_FORTRAN_N(Soln[si], icomp),
-                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                           cdir, bctype, tfp, bho, bcl,
-                           BL_TO_FORTRAN_N(fs, bdcomp),
-                           BL_TO_FORTRAN(msk),
-                           BL_TO_FORTRAN((*bcoefs[idim])[si]),
-                           beta, dx, flux_factor, r.dataPtr(), inhom,
-                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+                    HABEC::hbflx3(Flux[idim][si].array(),
+                                  Soln[si].array(icomp),
+                                  reg,
+                                  cdir, bctype,
+                                  tf_arr,
+                                  bho, bcl,
+                                  fs.array(bdcomp),
+                                  msk.array(),
+                                  (*bcoefs[idim])[si].array(),
+                                  beta, dx, flux_factor,
+                                  oitr(), geom.data(), inhom,
+                                  sp_arr);
                 }
                 else {
-                    hbflx(BL_TO_FORTRAN(Flux[idim][si]),
-                          BL_TO_FORTRAN_N(Soln[si], icomp),
-                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                          cdir, bct, bho, bcl,
-                          BL_TO_FORTRAN_N(fs, bdcomp),
-                          BL_TO_FORTRAN(msk),
-                          BL_TO_FORTRAN((*bcoefs[idim])[si]),
-                          beta, dx, inhom);
+                    HABEC::hbflx(Flux[idim][si].array(),
+                                 Soln[si].array(icomp),
+                                 reg,
+                                 cdir, bct, bho, bcl,
+                                 fs.array(bdcomp),
+                                 msk.array(),
+                                 (*bcoefs[idim])[si].array(),
+                                 beta, dx, inhom);
                 }
             }
         }
@@ -512,11 +507,11 @@ void HypreABec::hbmat (const Box& bx,
 
     Real bfv, bfm;
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
         bfv = fac * h / (0.5e0_rt * h + bcl);
         bfm = bfv - fac;
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
         bfv = beta / h;
         bfm = -fac;
     }
@@ -696,18 +691,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -734,18 +729,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i+1,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -753,7 +748,7 @@ void HypreABec::hbmat3 (const Box& bx,
                 else {
                     amrex::Error("hbmat3: unsupported boundary type");
                 }
-#endif                      
+#endif
 
                 mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i+1,j,k);
 
@@ -771,18 +766,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -809,18 +804,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j+1,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -847,18 +842,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -885,18 +880,18 @@ void HypreABec::hbmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     bfv = fac * h / (0.5e0_rt * h + bcl);
                     bfm = bfv * b(i,j,k+1);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfm = 0.e0_rt;
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = 0.25e0_rt * c * bfv;
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                     bfm = spa(i,j,k) * c * bfv;
                 }
@@ -1072,7 +1067,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       HYPRE_StructSMGSetNumPreRelax(precond, 1);
       HYPRE_StructSMGSetNumPostRelax(precond, 1);
       HYPRE_StructSMGSetLogging(precond, 0);
-      HYPRE_StructPCGSetPrecond(solver, 
+      HYPRE_StructPCGSetPrecond(solver,
                                 HYPRE_StructSMGSolve,
                                 HYPRE_StructSMGSetup,
                                 precond);
@@ -1080,7 +1075,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     HYPRE_StructPCGSetLogging(solver, 1);
     HYPRE_StructPCGSetup(solver, A, b, x);
-  }  
+  }
   else if (solver_flag == 5 || solver_flag == 6) {
     HYPRE_StructHybridCreate(MPI_COMM_WORLD, &solver);
     HYPRE_StructHybridSetDSCGMaxIter(solver, maxiter);
@@ -1280,7 +1275,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1292,10 +1287,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1320,7 +1315,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1332,10 +1327,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i+1,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1360,7 +1355,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1372,10 +1367,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1400,7 +1395,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1412,10 +1407,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j+1,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1440,7 +1435,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1452,10 +1447,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1480,7 +1475,7 @@ void HypreABec::hbvec3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
                         th2 = 3.e0_rt * h2;
@@ -1492,10 +1487,10 @@ void HypreABec::hbvec3 (const Box& bx,
 
                     bfv = bfv * b(i,j,k+1);
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
                     bfv = beta * r / h;
                 }
-                else if (bct == LO_MARSHAK || bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_MARSHAK || bct == AMREX_LO_SANCHEZ_POMRANING) {
                     bfv = 2.e0_rt * beta * r / h;
                 }
 #ifndef AMREX_USE_GPU
@@ -1596,7 +1591,7 @@ void HypreABec::hbvec (const Box& bx,
         }
     }
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
         if (bho >= 1) {
             h2 = 0.5e0_rt * h;
             th2 = 3.e0_rt * h2;
@@ -1606,7 +1601,7 @@ void HypreABec::hbvec (const Box& bx,
             bfv = (beta / h) / (0.5e0_rt * h + bcl);
         }
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
         bfv = beta / h;
     }
     else {
@@ -1784,7 +1779,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Real bnorm;
     bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                   (hypre_StructVector *) b);
-    bnorm = sqrt(bnorm);
+    bnorm = std::sqrt(bnorm);
 
     const BoxArray& grids = acoefs->boxArray();
     Real volume = 0.0;
@@ -1793,7 +1788,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     }
 
     Real reltol_new = (bnorm > 0.0
-                       ? abstol / bnorm * sqrt(volume)
+                       ? abstol / bnorm * std::sqrt(volume)
                        : reltol);
 
     if (reltol_new > reltol) {
@@ -1903,7 +1898,7 @@ Real HypreABec::getAbsoluteResidual()
   Real bnorm;
   bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
                                 (hypre_StructVector *) b);
-  bnorm = sqrt(bnorm);
+  bnorm = std::sqrt(bnorm);
 
   Real res;
   if (solver_flag == 0) {
@@ -1930,5 +1925,5 @@ Real HypreABec::getAbsoluteResidual()
     volume += grids[i].numPts();
   }
 
-  return bnorm * res / sqrt(volume);
+  return bnorm * res / std::sqrt(volume);
 }

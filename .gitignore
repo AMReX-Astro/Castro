@@ -72,6 +72,8 @@ Docs/source/namespacelist.rst
 Docs/source/runtime_parameters.rst
 Docs/source/*_files.rst
 Docs/source/preprocessed_files
+Docs/source/yt_example.rst
+Docs/source/yt_example_files/
 
 
 amr_diag.out

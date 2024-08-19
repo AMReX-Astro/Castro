@@ -1,0 +1,39 @@
+name: uniform_cube
+
+on: [pull_request]
+jobs:
+  uniform_cube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl g++>=9.3.0
+
+      - name: Compile uniform_cube
+        run: |
+          cd Exec/gravity_tests/uniform_cube
+          make USE_MPI=FALSE -j 4
+
+      - name: Run uniform_cube
+        run: |
+          cd Exec/gravity_tests/uniform_cube
+          ./convergence.sh &> cube_convergence.out
+
+      - name: Compare to the benchmark
+        run: |
+          cd Exec/gravity_tests/uniform_cube
+          diff cube_convergence.out ci-benchmarks/cube_convergence.out

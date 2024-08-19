@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -217,8 +216,8 @@ Castro::trace_ppm_rad(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ++ipassive) {
 
-      int n = qpassmap(ipassive);
-      int nc = upassmap(ipassive);
+      const int n = qpassmap(ipassive);
+      const int nc = upassmap(ipassive);
 
       load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
       ppm_reconstruct(s, flat, sm, sp);

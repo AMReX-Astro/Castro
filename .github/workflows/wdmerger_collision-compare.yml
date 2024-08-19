@@ -1,0 +1,52 @@
+name: wdmerger_collision
+
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  wdmerger_collision-2d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j4
+
+      - name: Compile wdmerger 2D
+        run: |
+          cd Exec/science/wdmerger
+          make USE_MPI=FALSE DIM=2 -j4
+
+      - name: Run wdmerger 2D
+        run: |
+          cd Exec/science/wdmerger
+          cp tests/wdmerger_collision/inputs_2d_collision.test .
+          cp tests/wdmerger_collision/inputs_2d_collision .
+          ./Castro2d.gnu.ex inputs_2d_collision.test amr.plot_files_output=1 castro.output_at_completion=1
+
+      - name: Check the extrema
+        run: |
+          cd Exec/science/wdmerger
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt00086 > fextrema.out
+          diff fextrema.out ci-benchmarks/wdmerger_collision_2D.out

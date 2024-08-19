@@ -1,4 +1,4 @@
-CASTRO_HOME := ../../..
+CASTRO_HOME ?= ../../..
 
 PRECISION  = DOUBLE
 PROFILE    = FALSE
@@ -13,8 +13,9 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
+USE_SHOCK_VAR = TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 
 USE_SIMPLIFIED_SDC=TRUE
 
@@ -22,11 +23,13 @@ USE_SIMPLIFIED_SDC=TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch_approx
+NETWORK_DIR := subch_simple
 
 INTEGRATOR_DIR := VODE
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -14,16 +14,16 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
 
-# Turn on hybrid momentum, but note that it only is used in 3D at present.
+# Turn on hybrid momentum? but note that it only is used in 3D at present.
 
 ifeq ($(DIM), 3)
-  USE_HYBRID_MOMENTUM ?= TRUE
+  USE_HYBRID_MOMENTUM ?= FALSE
 endif
 
 # Set the default integrator for the burner.
@@ -50,7 +50,7 @@ endif
 
 # Location where the source files are coming from.
 
-PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/science/wdmerger
+PROBLEM_DIR ?= ./
 
 Blocs = $(PROBLEM_DIR)
 Bpack = $(PROBLEM_DIR)/Make.package

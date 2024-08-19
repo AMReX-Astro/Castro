@@ -134,7 +134,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // call the EOS to get the remainder of the thermodynamics
 
-            eos_t eos_state;
             eos_state.T = T; // initial guess
             eos_state.rho = rho; // initial guess
             for (int n = 0; n < NumSpec; n++) {
@@ -183,7 +182,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
             Real pnew = p + (1.0_rt/6.0_rt) * h * (k1 + 2.0_rt*k2 + 2.0_rt*k3 + k4);
 
             //! call the EOS to get the remainder of the thermodynamics
-            eos_t eos_state;
             eos_state.T = T; // initial guess
             eos_state.rho = rho; // initial guess
             for (int n = 0; n < NumSpec; n++) {
@@ -220,7 +218,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 model::profile(0).state(i, model::ipres) =
                     p + 0.5_rt * dx * model_params.dens_base * gravity::const_grav;
 
-                eos_t eos_state;
                 eos_state.rho = model::profile(0).state(i, model::idens);
                 eos_state.T = model_params.dens_base;
                 eos_state.p = model::profile(0).state(i, model::ipres);
@@ -244,7 +241,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 bool converged_hse = false;
 
                 Real p_want;
-                eos_t eos_state;
 
                 for (int iter = 0; iter < MAX_ITER; iter++) {
 
@@ -300,7 +296,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
             bool converged_hse = false;
 
             Real p_want;
-            eos_t eos_state;
 
             for (int iter = 0; iter < MAX_ITER; iter++) {
 

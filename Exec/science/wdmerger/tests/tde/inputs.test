@@ -76,7 +76,7 @@ amr.refinement_indicators = density
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e4
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 ############################################################################################
 # Physics to include
@@ -209,7 +209,7 @@ amr.plot_per = 10.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
-_
+
 # State variables to add to plot files
 amr.plot_vars = ALL
 

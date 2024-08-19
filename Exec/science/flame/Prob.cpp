@@ -1,7 +1,6 @@
 /* Implementations of functions in Problem.H go here */
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -22,7 +21,7 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box  = mfi.tilebox();
@@ -63,25 +62,20 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
     BL_PROFILE("Castro::flame_speed_properties()");
 
     const auto dx = geom.CellSizeArray();
-  std::vector<std::string> spec_names;
-  for (int i = 0; i < NumSpec; i++) {
-    spec_names.push_back(short_spec_names_cxx[i]);
-  }
 
-  std::string name;
+    std::string name;
 
-  for (auto nm : spec_names) {
-    if (nm == "He4") {
-      name = "rho_omegadot_He4";
-      break;
+    for (const auto & nm : short_spec_names_cxx) {
+        if (nm == "He4") {
+            name = "rho_omegadot_He4";
+            break;
+        }
+
+        if (nm == "he4") {
+            name = "rho_omegadot_he4";
+            break;
+        }
     }
-
-    if (nm == "he4") {
-      name = "rho_omegadot_he4";
-      break;
-    }
-    
-  }
 
   auto mf = derive(name, time, 0);
   BL_ASSERT(mf != nullptr);
@@ -92,7 +86,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box  = mfi.tilebox();

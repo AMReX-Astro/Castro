@@ -137,7 +137,7 @@ amr.refinement_indicators = density temperature
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e0
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8
@@ -188,7 +188,7 @@ castro.riemann_solver = 0
 
 # For the CG Riemann solver, we need to tell the solver not to quit when 
 # the iterations don't converge, but instead to do additional bisection iteration.
-castro.cg_blend = 2
+castro.riemann_cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
@@ -438,9 +438,6 @@ problem.interp_temp = 1
 problem.relaxation_damping_factor = -1.0e-1
 problem.relaxation_density_cutoff = 1.0e3
 problem.relaxation_cutoff_time = -1.0e2
-
-problem.radial_damping_factor = -1.0e3
-problem.initial_radial_velocity_factor = -1.0e-3
 
 problem.stellar_temp = 1.0e7
 

@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_util.H>
-#include <Castro_F.H>
 
 #include <hybrid.H>
 
@@ -23,8 +22,8 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state_old, Real 
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -66,8 +65,8 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
@@ -85,7 +84,7 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mult_factor)
+Castro::fill_hybrid_hydro_source(MultiFab& sources, const MultiFab& state_in, Real mult_factor)
 {
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
@@ -98,11 +97,11 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state_in, Real mul
     {
         const Box& bx = mfi.tilebox();
 
-        auto u = state_in.array(mfi);
+        const auto u = state_in.array(mfi);
         auto src = sources.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 
@@ -145,7 +144,7 @@ Castro::linear_to_hybrid_momentum(MultiFab& state_in, int ng)
         // Convert linear momentum to hybrid momentum.
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 
@@ -191,7 +190,7 @@ Castro::hybrid_to_linear_momentum(MultiFab& state_in, int ng)
         // Convert hybrid momentum to linear momentum.
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
 

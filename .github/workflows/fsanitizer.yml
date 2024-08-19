@@ -1,0 +1,37 @@
+name: fsanitizer
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-fsanitizer
+  cancel-in-progress: true
+
+jobs:
+  fsanitizer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
+
+      - name: Compile subchandra
+        run: |
+          cd Exec/science/subchandra
+          make FSANITIZER=TRUE USE_MPI=FALSE -j 4
+
+      - name: Run subchandra
+        run: |
+          cd Exec/science/subchandra
+          ./Castro2d.gnu.SMPLSDC.ex inputs_2d.N14.coarse amr.max_level=1 max_step=1 amr.n_cell=320 640

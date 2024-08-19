@@ -10,7 +10,6 @@
 
 #include <AMReX_Utility.H>
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 
@@ -26,7 +25,7 @@
 #include <Diffusion.H>
 #endif
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #include <omp.h>
 #endif
 
@@ -55,11 +54,12 @@ using namespace amrex;
 // 9: Rotation_Type was removed from Castro
 // 10: Reactions_Type was removed from checkpoints
 // 11: PhiRot_Type was removed from Castro
+// 12: State_Type's additional ghost zone, used when radiation is enabled, has been removed
 
 namespace
 {
     int input_version = -1;
-    int current_version = 11;
+    int current_version = 12;
 }
 
 // I/O routines for Castro
@@ -80,7 +80,7 @@ Castro::restart (Amr&     papa,
             if (CastroHeaderFile.good()) {
                 char foo[256];
                 // first line: Checkpoint version: ?
-                CastroHeaderFile.getline(foo, 256, ':');  
+                CastroHeaderFile.getline(foo, 256, ':');
                 CastroHeaderFile >> input_version;
                 CastroHeaderFile.close();
             } else {
@@ -279,24 +279,28 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+#ifdef AMREX_USE_OMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
        {
+           const Box& bx = mfi.tilebox();
 
-           const Box& bx      = mfi.validbox();
-
-           if (! orig_domain.contains(bx)) {
-
+           if (!orig_domain.contains(bx)) {
                auto s = S_new[mfi].array();
                auto geomdata = geom.data();
 
+#ifdef RNG_STATE_INIT
+               amrex::Error("Error: random initialization not yet supported with grown factor");
+#else
                amrex::ParallelFor(bx,
-               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+               [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                {
                    // C++ problem initialization; has no effect if not implemented
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
-
+#endif
            }
        }
     }
@@ -306,15 +310,8 @@ Castro::restart (Amr&     papa,
     }
 
 #ifdef GRAVITY
-#if (AMREX_SPACEDIM > 1)
-    if ( (level == 0) && (spherical_star == 1) ) {
-       int is_new = 1;
-       make_radial_data(is_new);
-    }
-#endif
-
     if (do_grav && level == 0) {
-       BL_ASSERT(gravity == 0);
+       BL_ASSERT(gravity == nullptr);
        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
@@ -560,15 +557,20 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "inputs file: " << inputs_name << "\n\n";
 
   jobInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
   jobInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
 #endif
   jobInfoFile << "\n";
   jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
+#ifdef AMREX_USE_GPU
+  jobInfoFile << "GPU time used since start of simulation (GPU-hours): " <<
+    getCPUTime()/3600.0;
+#else
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
     getCPUTime()/3600.0;
+#endif
 
   jobInfoFile << "\n\n";
 
@@ -577,16 +579,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(nullptr);
+  const std::time_t now = time(nullptr);
+  jobInfoFile << "output date / time: "
+              << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
-  // Convert now to tm struct for local timezone
-  tm* localtm = localtime(&now);
-  jobInfoFile   << "output date / time: " << asctime(localtm);
-
-  char currentDir[FILENAME_MAX];
-  if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
-    jobInfoFile << "output dir:         " << currentDir << "\n";
-  }
+  jobInfoFile << "output dir:         " << amrex::FileSystem::CurrentPath() << "\n";
 
   jobInfoFile << "I/O time (s):       " << io_time << "\n";
 
@@ -761,7 +758,38 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n";
 
+  jobInfoFile << "     amr.n_error_buf:      ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int errbuf = parent->nErrorBuf(lev-1);
+    jobInfoFile << errbuf << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.regrid_int:       ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int regridint = parent->regridInt(lev-1);
+    jobInfoFile << regridint << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.blocking_factor:  ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect bf = parent->blockingFactor(lev-1);
+    jobInfoFile << bf[0] << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.max_grid_size:    ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect mgs = parent->maxGridSize(lev-1);
+    jobInfoFile << mgs[0] << " ";
+  }
   jobInfoFile << "\n\n";
+
+  jobInfoFile << "     amr.subcycling_mode: " << parent->subcyclingMode();
+
+  jobInfoFile << "\n\n";
+
 
 
   // species info
@@ -819,8 +847,6 @@ void
 Castro::writeBuildInfo ()
 {
   std::string PrettyLine = std::string(78, '=') + "\n";
-  std::string OtherLine = std::string(78, '-') + "\n";
-  std::string SkipSpace = std::string(8, ' ');
 
   // build information
   std::cout << PrettyLine;
@@ -932,7 +958,7 @@ Castro::plotFileOutput(const std::string& dir,
 
     for (const auto & dd : dlist) {
 
-        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
             (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
@@ -1142,7 +1168,7 @@ Castro::plotFileOutput(const std::string& dir,
     {
         for (const auto & dd : dlist) {
 
-            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
                 (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
                 auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);

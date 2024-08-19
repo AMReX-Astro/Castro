@@ -1,0 +1,91 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 1000000
+stop_time =  1000.0
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 1       0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0.0     0.0
+geometry.prob_hi     = 3072    3072
+amr.n_cell           = 256     256
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  0   3
+castro.hi_bc       =  0   2
+
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 1
+castro.add_ext_src   = 0
+castro.do_grav = 1
+castro.do_sponge = 1
+
+castro.ppm_type = 1
+castro.grav_source_type = 2
+castro.use_pslope = 1
+castro.pslope_cutoff_density = 1.e4
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav   = -1.29e14
+
+# burning
+castro.react_rho_min = 1.e2
+castro.react_T_min = 5.e6
+
+
+# TIME STEP CONTROL
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.1     # max time step growth
+
+# SPONGE
+castro.sponge_upper_density = 1.e3
+castro.sponge_lower_density = 1.e2
+castro.sponge_timescale     = 1.0e-7
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 1       # maximum level number allowed
+amr.ref_ratio       = 4 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 256
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = xrb_chk    # root name of checkpoint file
+amr.check_int       = 1000       # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = xrb_plt    # root name of plotfile
+amr.plot_int        = 1000       # number of timesteps between plotfiles
+amr.derive_plot_vars = ALL
+
+# PROBLEM PARAMETERS
+problem.model_name =  "toy_atm_hot_3cm.hse"
+
+problem.apply_perturbation = 1
+
+problem.H_min = 1.e-5
+problem.He_min = 1.e-5
+
+problem.model_shift = 750.0
+
+# MICROPHYSICS
+integrator.jacobian = 1
+
+integrator.atol_spec = 1.e-6
+integrator.rtol_spec = 1.e-6

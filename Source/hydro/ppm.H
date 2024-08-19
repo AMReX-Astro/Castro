@@ -60,218 +60,230 @@ ppm_reconstruct(const Real* s,
                 const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
                 const Real flatn, Real& sm, Real& sp) {
 
-  // first we compute s_{i-1/2} -- the left interface value for zone i
+    // first we compute s_{i-1/2} -- the left interface value for zone i
 
-  if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
-                     (idir == 1 && j == domlo[1]) ||
-                     (idir == 2 && k == domlo[2]))) {
+    if (ppm_do_limiting) {
 
-      // use a stencil for when the current zone is on the left physical
-      // boundary.  Then the left interface is on the physical boundary,
-      // MC Eq. 21
 
-      if (idir == 0 && is_axisymmetric) {
-          sm = (1.0_rt/144.0_rt)*(415.0_rt*s[i0] - 483.0_rt*s[ip1] + 275.0_rt*s[ip2] - 63.0_rt*s[ip3]);
-      } else {
+        if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
+                           (idir == 1 && j == domlo[1]) ||
+                           (idir == 2 && k == domlo[2]))) {
+
+            // use a stencil for when the current zone is on the left physical
+            // boundary.  Then the left interface is on the physical boundary,
+            // MC Eq. 21
+
+            if (idir == 0 && is_axisymmetric) {
+                sm = (1.0_rt/144.0_rt)*(415.0_rt*s[i0] - 483.0_rt*s[ip1] + 275.0_rt*s[ip2] - 63.0_rt*s[ip3]);
+            } else {
           // Cartesian
-          sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
-      }
+                sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+            }
 
-  } else if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
-                            (idir == 1 && j == domlo[1]+1) ||
-                            (idir == 2 && k == domlo[2]+1))) {
+        } else if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
+                                  (idir == 1 && j == domlo[1]+1) ||
+                                  (idir == 2 && k == domlo[2]+1))) {
 
-      // use a stencil for when the current zone is one zone away from
-      // the left physical boundary, and then the left interface is one
-      // zone away from the boundary, MC Eq. 22
+            // use a stencil for when the current zone is one zone away from
+            // the left physical boundary, and then the left interface is one
+            // zone away from the boundary, MC Eq. 22
 
-      if (idir == 0 && is_axisymmetric) {
-          sm  = (1.0_rt/96.0_rt)*(37.0_rt*s[im1] + 87.0_rt*s[i0] - 35.0_rt*s[ip1] + 7.0_rt*s[ip2]);
-      } else {
-          sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
-      }
+            if (idir == 0 && is_axisymmetric) {
+                sm  = (1.0_rt/96.0_rt)*(37.0_rt*s[im1] + 87.0_rt*s[i0] - 35.0_rt*s[ip1] + 7.0_rt*s[ip2]);
+            } else {
+                sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
+            }
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-      sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
-  } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
-                            (idir == 1 && j == domhi[1]) ||
-                            (idir == 2 && k == domhi[2]))) {
+        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
+                                  (idir == 1 && j == domhi[1]) ||
+                                  (idir == 2 && k == domhi[2]))) {
 
-      // use a stencil for when the current zone is on the right physical boundary
-      // then the left interface is one zone away from the physical boundary
-      sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
+            // use a stencil for when the current zone is on the right physical boundary
+            // then the left interface is one zone away from the physical boundary
+            sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-      sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
-  } else {
+        } else {
 
-      if (idir == 0 && is_axisymmetric) {
+            if (idir == 0 && is_axisymmetric) {
 
-          const Real dr = dx[0];
-          const Real r_m12 = (static_cast<int>(i) - 0.5_rt) * dr;
+                const Real dr = dx[0];
+                const Real r_m12 = (static_cast<int>(i) - 0.5_rt) * dr;
 
-          Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im2] + 60.0_rt * s[im1]  + 60.0_rt * s[i0] - 12.0_rt * s[ip1]);
-          Real dr3_term = r_m12 * std::pow(dr, 3) * (-s[im2]  - 27.0_rt * s[im1] + 27.0_rt * s[i0] + s[ip1]);
-          Real dr2_term = std::pow(r_m12, 2) * std::pow(dr, 2) * (30.0_rt * s[im2] - 210.0_rt * s[im1] - 210.0_rt * s[i0] + 30.0_rt * s[ip1]);
-          Real dr1_term = std::pow(r_m12, 3) * dr * (-s[im2] - 13.0_rt * s[im1] - 13.0_rt * s[i0] + s[ip1]);
-          Real dr0_term = std::pow(r_m12, 4) * (-10.0_rt * s[im2] + 70.0_rt * s[im1] + 70.0_rt * s[i0] - 10.0_rt * s[ip1]);
+                Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im2] + 60.0_rt * s[im1]  + 60.0_rt * s[i0] - 12.0_rt * s[ip1]);
+                Real dr3_term = r_m12 * std::pow(dr, 3) * (-s[im2]  - 27.0_rt * s[im1] + 27.0_rt * s[i0] + s[ip1]);
+                Real dr2_term = std::pow(r_m12, 2) * std::pow(dr, 2) * (30.0_rt * s[im2] - 210.0_rt * s[im1] - 210.0_rt * s[i0] + 30.0_rt * s[ip1]);
+                Real dr1_term = std::pow(r_m12, 3) * dr * (-s[im2] - 13.0_rt * s[im1] - 13.0_rt * s[i0] + s[ip1]);
+                Real dr0_term = std::pow(r_m12, 4) * (-10.0_rt * s[im2] + 70.0_rt * s[im1] + 70.0_rt * s[i0] - 10.0_rt * s[ip1]);
 
-          Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_m12, 2) + 5.0_rt * std::pow(r_m12, 4));
+                Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_m12, 2) + 5.0_rt * std::pow(r_m12, 4));
 
-          sm = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
+                sm = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
 
-      } else {
+            } else {
 
-          // Compute van Leer slopes
+                // Compute van Leer slopes
 
-          Real dsl = 2.0_rt * (s[im1] - s[im2]);
-          Real dsr = 2.0_rt * (s[i0] - s[im1]);
+                Real dsl = 2.0_rt * (s[im1] - s[im2]);
+                Real dsr = 2.0_rt * (s[i0] - s[im1]);
 
-          Real dsvl_l = 0.0_rt;
-          if (dsl*dsr > 0.0_rt) {
-              Real dsc = 0.5_rt * (s[i0] - s[im2]);
-              dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-          }
+                Real dsvl_l = 0.0_rt;
+                if (dsl*dsr > 0.0_rt) {
+                    Real dsc = 0.5_rt * (s[i0] - s[im2]);
+                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+                }
 
-          dsl = 2.0_rt * (s[i0] - s[im1]);
-          dsr = 2.0_rt * (s[ip1] - s[i0]);
+                dsl = 2.0_rt * (s[i0] - s[im1]);
+                dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-          Real dsvl_r = 0.0_rt;
-          if (dsl*dsr > 0.0_rt) {
-              Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-              dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-          }
+                Real dsvl_r = 0.0_rt;
+                if (dsl*dsr > 0.0_rt) {
+                    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+                }
 
-          // Interpolate s to edges
+                // Interpolate s to edges
 
-          sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+                sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
-      }
+            }
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-      sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
-  }
+            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+        }
 
-  // now we compute s_{i+1/2} -- the right interface value for zone i
+        // now we compute s_{i+1/2} -- the right interface value for zone i
 
-  if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
-                     (idir == 1 && j == domlo[1]) ||
-                     (idir == 2 && k == domlo[2]))) {
+        if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
+                           (idir == 1 && j == domlo[1]) ||
+                           (idir == 2 && k == domlo[2]))) {
 
-      // use a stencil for when the current zone is on the left physical
-      // boundary.  Then the right interface is one zone away from the
-      // physical boundary,
+            // use a stencil for when the current zone is on the left physical
+            // boundary.  Then the right interface is one zone away from the
+            // physical boundary,
 
-      if (idir == 0 && is_axisymmetric) {
-          sp = (1.0_rt/96.0_rt)*(37.0_rt*s[i0] + 87.0_rt*s[ip1] - 35.0_rt*s[ip2] + 7.0_rt*s[ip3]);
-      } else {
-          sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
-      }
+            if (idir == 0 && is_axisymmetric) {
+                sp = (1.0_rt/96.0_rt)*(37.0_rt*s[i0] + 87.0_rt*s[ip1] - 35.0_rt*s[ip2] + 7.0_rt*s[ip3]);
+            } else {
+                sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
+            }
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-      sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
 
-  } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
-                            (idir == 1 && j == domhi[1]) ||
-                            (idir == 2 && k == domhi[2]))) {
+        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
+                                  (idir == 1 && j == domhi[1]) ||
+                                  (idir == 2 && k == domhi[2]))) {
 
-      // use a stencil for when the current zone is on the right physical boundary
-      // then the right interface is on the physical boundary
-      sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] + 13.0_rt*s[im2] - 3.0_rt*s[im3]);
+            // use a stencil for when the current zone is on the right physical boundary
+            // then the right interface is on the physical boundary
+            sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] + 13.0_rt*s[im2] - 3.0_rt*s[im3]);
 
-  } else if (hi_bc_test && ((idir == 0 && i == domhi[0]-1) ||
-                            (idir == 1 && j == domhi[1]-1) ||
-                            (idir == 2 && k == domhi[2]-1))) {
+        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]-1) ||
+                                  (idir == 1 && j == domhi[1]-1) ||
+                                  (idir == 2 && k == domhi[2]-1))) {
 
-      // use a stencil for when the current zone is one zone away from
-      // the right physical boundary, and then the right interface is one
-      // zone away from the boundary
-      sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] - 5.0_rt*s[im1] + s[im2]);
+            // use a stencil for when the current zone is one zone away from
+            // the right physical boundary, and then the right interface is one
+            // zone away from the boundary
+            sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] - 5.0_rt*s[im1] + s[im2]);
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-      sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
 
-  } else {
+        } else {
 
-      if (idir == 0 && is_axisymmetric) {
+            if (idir == 0 && is_axisymmetric) {
 
-          const Real dr = dx[0];
-          const Real r_p12 = (static_cast<int>(i) + 0.5_rt) * dr;
+                const Real dr = dx[0];
+                const Real r_p12 = (static_cast<int>(i) + 0.5_rt) * dr;
 
-          Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im1] + 60.0_rt * s[i0]  + 60.0_rt * s[ip1] - 12.0_rt * s[ip2]);
-          Real dr3_term = r_p12 * std::pow(dr, 3) * (-s[im1]  - 27.0_rt * s[i0] + 27.0_rt * s[ip1] + s[ip2]);
-          Real dr2_term = std::pow(r_p12, 2) * std::pow(dr, 2) * (30.0_rt * s[im1] - 210.0_rt * s[i0] - 210.0_rt * s[ip1] + 30.0_rt * s[ip2]);
-          Real dr1_term = std::pow(r_p12, 3) * dr * (-s[im1] - 13.0_rt * s[i0] - 13.0_rt * s[ip1] + s[ip2]);
-          Real dr0_term = std::pow(r_p12, 4) * (-10.0_rt * s[im1] + 70.0_rt * s[i0] + 70.0_rt * s[ip1] - 10.0_rt * s[ip2]);
+                Real dr4_term = std::pow(dr, 4) * (-12.0_rt * s[im1] + 60.0_rt * s[i0]  + 60.0_rt * s[ip1] - 12.0_rt * s[ip2]);
+                Real dr3_term = r_p12 * std::pow(dr, 3) * (-s[im1]  - 27.0_rt * s[i0] + 27.0_rt * s[ip1] + s[ip2]);
+                Real dr2_term = std::pow(r_p12, 2) * std::pow(dr, 2) * (30.0_rt * s[im1] - 210.0_rt * s[i0] - 210.0_rt * s[ip1] + 30.0_rt * s[ip2]);
+                Real dr1_term = std::pow(r_p12, 3) * dr * (-s[im1] - 13.0_rt * s[i0] - 13.0_rt * s[ip1] + s[ip2]);
+                Real dr0_term = std::pow(r_p12, 4) * (-10.0_rt * s[im1] + 70.0_rt * s[i0] + 70.0_rt * s[ip1] - 10.0_rt * s[ip2]);
 
-          Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_p12, 2) + 5.0_rt * std::pow(r_p12, 4));
+                Real denom = 24.0_rt * (4.0_rt * std::pow(dr, 4) - 15.0_rt * std::pow(dr, 2) * std::pow(r_p12, 2) + 5.0_rt * std::pow(r_p12, 4));
 
-          sp = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
+                sp = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
 
-      } else {
+            } else {
 
-          // Compute van Leer slopes
+                // Compute van Leer slopes
 
-          Real dsl = 2.0_rt * (s[i0] - s[im1]);
-          Real dsr = 2.0_rt * (s[ip1] - s[i0]);
+                Real dsl = 2.0_rt * (s[i0] - s[im1]);
+                Real dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-          Real dsvl_l = 0.0_rt;
-          if (dsl*dsr > 0.0_rt) {
-            Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-            dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-          }
+                Real dsvl_l = 0.0_rt;
+                if (dsl*dsr > 0.0_rt) {
+                    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+                }
 
-          dsl = 2.0_rt * (s[ip1] - s[i0]);
-          dsr = 2.0_rt * (s[ip2] - s[ip1]);
+                dsl = 2.0_rt * (s[ip1] - s[i0]);
+                dsr = 2.0_rt * (s[ip2] - s[ip1]);
 
-          Real dsvl_r = 0.0_rt;
-          if (dsl*dsr > 0.0_rt) {
-            Real dsc = 0.5_rt * (s[ip2] - s[i0]);
-            dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-          }
+                Real dsvl_r = 0.0_rt;
+                if (dsl*dsr > 0.0_rt) {
+                    Real dsc = 0.5_rt * (s[ip2] - s[i0]);
+                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+                }
 
-          // Interpolate s to edges
+                // Interpolate s to edges
 
-          sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+                sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
-      }
+            }
 
-      // Make sure sedge lies in between adjacent cell-centered values
+            // Make sure sedge lies in between adjacent cell-centered values
 
-      sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-      sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
-  }
+            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+        }
 
-  // Flatten the parabola
+        // Flatten the parabola
 
-  sm = flatn * sm + (1.0_rt - flatn) * s[i0];
-  sp = flatn * sp + (1.0_rt - flatn) * s[i0];
+        sm = flatn * sm + (1.0_rt - flatn) * s[i0];
+        sp = flatn * sp + (1.0_rt - flatn) * s[i0];
 
-  // Modify using quadratic limiters -- note this version of the limiting comes
-  // from Colella and Sekora (2008), not the original PPM paper.
+        // Modify using quadratic limiters -- note this version of the limiting comes
+        // from Colella and Sekora (2008), not the original PPM paper.
 
-  if ((sp - s[i0]) * (s[i0] - sm) <= 0.0_rt) {
-    sp = s[i0];
-    sm = s[i0];
+        if ((sp - s[i0]) * (s[i0] - sm) <= 0.0_rt) {
+            sp = s[i0];
+            sm = s[i0];
 
-  } else if (std::abs(sp - s[i0]) >= 2.0_rt * std::abs(sm - s[i0])) {
-    sp = 3.0_rt * s[i0] - 2.0_rt * sm;
+        } else if (std::abs(sp - s[i0]) >= 2.0_rt * std::abs(sm - s[i0])) {
+            sp = 3.0_rt * s[i0] - 2.0_rt * sm;
 
-  } else if (std::abs(sm - s[i0]) >= 2.0_rt * std::abs(sp - s[i0])) {
-    sm = 3.0_rt * s[i0] - 2.0_rt * sp;
-  }
+        } else if (std::abs(sm - s[i0]) >= 2.0_rt * std::abs(sp - s[i0])) {
+            sm = 3.0_rt * s[i0] - 2.0_rt * sp;
+        }
+
+    } else {
+
+        // unlimited PPM reconstruction  (Eq. 1.9 in the PPM paper)
+
+        sm = (7.0_rt/12.0_rt) * (s[i0] + s[im1]) - (1.0_rt/12.0_rt) * (s[im2] + s[ip1]);
+        sp = (7.0_rt/12.0_rt) * (s[ip1] + s[i0]) - (1.0_rt/12.0_rt) * (s[im1] + s[ip2]);
+
+    }
 
 }
 

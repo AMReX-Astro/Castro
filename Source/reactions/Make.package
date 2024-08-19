@@ -2,6 +2,7 @@
 # this is included when USE_REACT = TRUE
 
 CEXE_headers += Castro_react.H
+CEXE_headers += sdc_const_to_burn.H
 
 CEXE_sources += Castro_react.cpp
 CEXE_headers += Castro_react_util.H

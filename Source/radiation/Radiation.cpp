@@ -4,10 +4,6 @@
 #include <RadSolve.H>
 #include <rad_util.H>
 #include <filt_prim.H>
-#include <Castro_F.H>
-
-#include <RAD_F.H>
-#include <AMReX_PROB_AMR_F.H>
 
 #include <opacity.H>
 
@@ -288,8 +284,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     aRad = 4.*C::sigma_SB / C::c_light;
 
-    ca_init_fort_constants(hPlanck, Avogadro);
-
     c        = clight;
     sigma    = C::sigma_SB;
 
@@ -333,8 +327,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   if (SolverType == MGFLDSolver && radiation::limiter == 1) {
     amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
-
-  ca_initfluxlimiter(&radiation::limiter, &radiation::closure);
 
   inner_update_limiter = 0;
   pp.query("inner_update_limiter", inner_update_limiter);
@@ -463,13 +455,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   if (do_multigroup) {
-
     get_groups(verbose);
-
   }
   else {
-    ca_initsinglegroup(nGroups);
-
     // xnu is a dummy for single group
     xnu.resize(2, 1.0);
     nugroup.resize(1, 1.0);
@@ -1212,21 +1200,54 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 
 void Radiation::extrapolateBorders(MultiFab& f, int indx)
 {
-  BL_PROFILE("Radiation::extrapolateBorders");
+    BL_PROFILE("Radiation::extrapolateBorders");
 
-  BL_ASSERT(f.nGrow() >= 1);
+    BL_ASSERT(f.nGrow() >= 1);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for(MFIter mfi(f); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
+    for (MFIter mfi(f); mfi.isValid(); ++mfi) {
+        // Note no tiling in the current implementation.
+        const Box& bx = mfi.validbox();
+        const Box& grownbx = amrex::grow(bx, 1);
 
-    const Box& reg  = f.box(i);
+        Array4<Real> const f_arr = f[mfi].array(indx);
 
-    bextrp(BL_TO_FORTRAN_N(f[mfi],indx),
-           ARLIM(reg.loVect()), ARLIM(reg.hiVect()));
-  }
+        amrex::LoopOnCpu(grownbx, [=] (int i, int j, int k) noexcept
+        {
+            // Note that the results on the corners will be the same
+            // regardless of which order we do the loop in.
+
+            if (i == bx.smallEnd(0)) {
+                f_arr(i-1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i+1,j,k);
+            }
+
+            if (i == bx.bigEnd(0)) {
+                f_arr(i+1,j,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i-1,j,k);
+            }
+
+#if AMREX_SPACEDIM >= 2
+            if (j == bx.smallEnd(1)) {
+                f_arr(i,j-1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j+1,k);
+            }
+
+            if (j == bx.bigEnd(1)) {
+                f_arr(i,j+1,k) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j-1,k);
+            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+            if (k == bx.smallEnd(2)) {
+                f_arr(i,j,k-1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k+1);
+            }
+
+            if (k == bx.bigEnd(2)) {
+                f_arr(i,j,k+1) = 2.0_rt * f_arr(i,j,k) - f_arr(i,j,k-1);
+            }
+#endif
+        });
+    }
 }
 
 
@@ -2070,17 +2091,17 @@ void Radiation::deferred_sync(int level, MultiFab& rhs, int indx)
           for (FabSetIter fsi(ref_sync_flux[lo_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[lo_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[lo_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[lo_face][fsi].array(),
+                   crse_sync_flux[lo_face][fsi].array(indx),
+                   dir, ref_rat);
           }
 
           for (FabSetIter fsi(ref_sync_flux[hi_face]);
                fsi.isValid(); ++fsi) {
 
-            rfface(BL_TO_FORTRAN(ref_sync_flux[hi_face][fsi]),
-                   BL_TO_FORTRAN_N(crse_sync_flux[hi_face][fsi], indx),
-                   dir, ref_rat.getVect());
+            rfface(ref_sync_flux[hi_face][fsi].array(),
+                   crse_sync_flux[hi_face][fsi].array(indx),
+                   dir, ref_rat);
           }
         }
 

@@ -17,31 +17,46 @@ Compiling
    There are 2 things you can do to check what’s happening. First, inspect
    the directories in ``VPATH_LOCATIONS``. This can be done via:
 
-   ::
+   .. prompt:: bash
 
-       make print-VPATH_LOCATIONS
+      make print-VPATH_LOCATIONS
 
    Next, ask make to tell you where it is finding each of the source
    files. This is done through a script ``find_files_vpath.py``
    that is hooked into Castro’s build system. You can run this as:
 
-   ::
+   .. prompt:: bash
 
-       make file_locations
+      make file_locations
 
    At the end of the report, it will list any files it cannot find in
-   the vpath. Some of these are to be expected (like ``extern.f90``
-   and ``buildInfo.cpp``—these are written at compile-time. But any
-   other missing files need to be investigated.
+   the vpath. Some of these are to be expected (like
+   ``buildInfo.cpp``—these are written at compile-time). But any other
+   missing files need to be investigated.
+
+#. *I put a copy of one of the header files (e.g. ``problem_tagging.H``)
+   in my problem setup but it does not seem to recognized / used by
+   the build system.  Why doesn't my executable use my custom version
+   of the header?*
+
+   This is likely due to compiler caching / ccache.  You need to
+   clear the cache and the build:
+
+   .. prompt:: bash
+
+      ccache -C
+      make clean
+
+   Then rebuild and it should be recognized.
 
 #. *I’m still having trouble compiling. How can I find out what
    all of the make variables are set to?*
 
    Use:
 
-   ::
+   .. prompt:: bash
 
-       make help
+      make help
 
    This will tell you the value of all the compilers and their options.
 
@@ -54,12 +69,12 @@ Debugging
    I get more information?*
 
    The best thing to do is to recompile the code with ``TEST=TRUE``
-   set in the ``GNUmakefile``. This will have AMReX catch the
-   signals raised in both C++ and Fortran functions. Behind the
+   set in the ``GNUmakefile``. This will have AMReX catch the
+   signals raised in C++ functions. Behind the
    scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
-   function to handle various signals raised in both C++ and Fortran
+   function to handle various signals raised in C++
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
    floating point exceptions (NaNs, divided by zero and overflow), and
@@ -77,7 +92,7 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, you can get 
+   For further capabilities, you can get
    more information than the backtrace of the call stack info by
    instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
@@ -104,12 +119,12 @@ Debugging
 
    Given a MultiFab ``mf``, you can dump out the state as:
 
-   ::
+   .. code:: c++
 
-           print_state(mf, IntVect(D_DECL(10, 20, 30)));
+           print_state(mf, IntVect(AMREX_D_DECL(10, 20, 30)));
 
    Here, the IntVect has the dimension that we were compiled with
-   (and this is handled through the preprocessor ``D_DECL``). In
+   (and this is handled through the preprocessor ``AMREX_D_DECL``). In
    this case, we are inspecting zone (10, 20, 30), in the global index
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.
@@ -119,7 +134,7 @@ Debugging
    You can simply output a FAB to ``std::cout``. Imagine that you
    are in an MFIter loop, with a MultiFab ``mf``:
 
-   ::
+   .. code:: c++
 
            S = FArrayBox& mf[mfi];
            std::cout << S << std::endl;
@@ -143,9 +158,9 @@ Profiling
    When you run, a file named ``gmon.out`` will be produced. This can
    be processed with gprof by running:
 
-   ::
+   .. prompt:: bash
 
-         gprof exec-name
+      gprof exec-name
 
    where *exec-name* is the name of the executable. More detailed
    line-by-line information can be obtained by passing the -l
@@ -159,9 +174,9 @@ Managing Runs
 
    Create a file called ``dump_and_continue``, e.g., as:
 
-   ::
+   .. prompt:: bash
 
-       touch dump_and_continue
+      touch dump_and_continue
 
    This will force the code to output a checkpoint file that can be used
    to restart. Other options are ``plot_and_continue`` to output
@@ -191,16 +206,19 @@ Managing Runs
 
 #. *How can I check the compilation parameters of a Castro executable?*
 
-   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as 
+   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as
 
-   ::
+   .. prompt:: bash
 
-       ./Castro.exe --describe
+      ./Castro.exe --describe
 
 .. _ch:faq:vis:
 
 Runtime Errors
 ==============
+
+.. index:: castro.limit_fluxes_on_small_dens, castro.state_interp_order,
+           castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff
 
 #. *When running with retries, Castro requests too many substeps
    and crashes.*
@@ -221,8 +239,9 @@ Runtime Errors
 
    If the error continues, try to increase the tolerance of determining
    specie abundance validity check by setting ``castro.abundance_failure_tolerance``
-   to a higher value. 
-   
+   to a higher value, or increasing the density floor below which this is
+   ignored by changing ``castro.abundance_failure_rho_cutoff``.
+
 Visualization
 =============
 

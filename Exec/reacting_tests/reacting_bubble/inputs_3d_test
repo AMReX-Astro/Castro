@@ -27,9 +27,6 @@ castro.fill_ambient_bc = 1
 castro.ambient_fill_dir = 2
 castro.ambient_outflow_vel = 1
 
-# this is here just for test suite coverage
-castro.state_nghost = 1
-
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1

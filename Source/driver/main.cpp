@@ -24,6 +24,8 @@
 #include <Castro.H>
 #include <Castro_io.H>
 
+#include <global.H>
+
 using namespace amrex;
 
 std::string inputs_name{};
@@ -142,6 +144,7 @@ main (int   argc,
     //
 
     Amr* amrptr = new Amr(getLevelBld());
+    global::the_amr_ptr = amrptr;
 
     amrptr->init(strt_time,stop_time);
 

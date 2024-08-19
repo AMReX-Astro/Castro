@@ -8,8 +8,8 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
                      Real time,
-                     Array1D<BCRec, 0, NUM_STATE-1> bcs,
-                     GeometryData geomdata)
+                     const Array1D<BCRec, 0, NUM_STATE-1>& bcs,
+                     const GeometryData& geomdata)
 {
     const Real pres_init = 1.0e-6_rt;
     const Real rho_init = 1.0e0_rt;
@@ -29,7 +29,7 @@ void problem_bc_fill(int i, int j, int k,
 
     eos_t zone_state;
     zone_state.rho = rho_init * std::pow(1.0_rt + time / r, AMREX_SPACEDIM - 1);
-    zone_state.p   = pres_init * std::pow(zone_state.rho / rho_init, 1.0_rt + eos_gamma);
+    zone_state.p   = pres_init * std::pow(zone_state.rho / rho_init, 1.0_rt + eos_rp::eos_gamma);
     for (int n = 0; n < NumSpec; ++n) {
         zone_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
     }

@@ -1,7 +1,7 @@
 # these are the files that should be needed for any Castro build
 
 CEXE_sources += Castro.cpp
-CEXE_sources += runparams_defaults.cpp
+CEXE_sources += runtime_params.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -22,16 +22,15 @@ CEXE_headers += runtime_parameters.H
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 
-FEXE_headers += Castro_F.H
-
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
 
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 
-CEXE_headers      += Castro_util.H
-CEXE_headers      += math.H
+CEXE_headers += Castro_util.H
+CEXE_headers += global.H
+CEXE_headers += math.H
 
 NEED_MGUTIL =
 

@@ -45,6 +45,13 @@ void problem_checkpoint (std::string checkpoint_dir)
     relaxation << std::setw(30) << problem::relaxation_is_done << std::endl;
 
     relaxation.close();
+
+    std::ofstream radial_damping;
+    radial_damping.open(checkpoint_dir + "/RadialDamping", std::ios::out);
+
+    radial_damping << std::setw(30) << problem::radial_damping_is_done << std::endl;
+
+    radial_damping.close();
 }
 
 #endif

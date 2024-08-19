@@ -2,11 +2,15 @@ name: cpp-linter
 
 on: [pull_request]
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   cpp-linter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -24,6 +28,16 @@ jobs:
           sudo apt-get update -y -qq
           sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
 
+      - name: Install hypre
+        run: |
+          wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.28.0.tar.gz
+          tar xfz v2.28.0.tar.gz
+          cd hypre-2.28.0/src
+          ./configure --with-cxxstandard=17 --without-MPI
+          make -j 4
+          make install
+          cd ../../
+
       - name: Get cpp linter repo
         run: |
           cd external
@@ -38,14 +52,15 @@ jobs:
 
       - name: Run cpp linter
         run: |
+          export AMREX_HYPRE_HOME=${PWD}/hypre-2.28.0/src/hypre
           python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
           -ignore-files="amrex|Microphysics" \
           -config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
-          -header-filter='/Source/|/Util/model_parser_cxx|^\./' \
+          -header-filter='/Source/|/Util/model_parser|^\./' \
           -run-linter
 
       - name: Archive clang tidy report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: clang-tidy-report
           path: clang-tidy-report.txt

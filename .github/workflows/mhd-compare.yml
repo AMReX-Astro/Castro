@@ -1,0 +1,45 @@
+name: OrszagTang
+
+on: [pull_request]
+jobs:
+  OrszagTang-3d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0 libopenmpi-dev openmpi-bin
+
+      - name: Compile OrszagTang
+        run: |
+          cd Exec/mhd_tests/OrszagTang
+          make USE_MPI=TRUE -j 4
+
+      - name: Run OrszagTang-3d
+        run: |
+          cd Exec/mhd_tests/OrszagTang
+          mpirun -np 2 ./Castro3d.gnu.MPI.ex inputs.test amr.plot_files_output=1
+
+      - name: Build the fextrema tool
+        run: |
+          cd external/amrex/Tools/Plotfile
+          make programs=fextrema -j 4
+
+      - name: Check the extrema
+        run: |
+          cd Exec/mhd_tests/OrszagTang
+          ../../../external/amrex/Tools/Plotfile/fextrema.gnu.ex plt00010 > fextrema.out
+          diff fextrema.out ci-benchmarks/OrszagTang-3d.out

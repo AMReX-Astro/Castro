@@ -12,8 +12,6 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-    const Real time = 0.0_rt;
-
     // Set the zone state depending on whether we are inside the primary
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
@@ -41,7 +39,10 @@ void problem_initialize_state_data (int i, int j, int k,
     // things right on the coarse levels. So we can still use the
     // interpolation scheme, because it handles this special case
     // for us by simply using the central zone of the model; we
-    // just need to make sure we catch it.
+    // just need to make sure we catch it.  Finally, sometimes
+    // the stars are so close that the interpolation will overlap.
+    // in this case, look at which model has the highest density
+    // at that location and use that model.
 
     const Real* dx = geomdata.CellSize();
 
@@ -55,37 +56,59 @@ void problem_initialize_state_data (int i, int j, int k,
 
     eos_t zone_state;
 
-    if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P ||
-                                     (problem::radius_P <= max_dx && dist_P < max_dx))) {
-        Real pos[3] = {loc[0] - problem::center_P_initial[0],
-                       loc[1] - problem::center_P_initial[1],
-                       loc[2] - problem::center_P_initial[2]};
+    bool P_star_test = problem::mass_P > 0.0_rt &&
+        (dist_P < problem::radius_P ||
+         (problem::radius_P <= max_dx && dist_P < max_dx));
 
-        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 0);
-        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 0);
-        for (int n = 0; n < NumSpec; ++n) {
-            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
+    bool S_star_test = problem::mass_S > 0.0_rt &&
+        (dist_S < problem::radius_S ||
+         (problem::radius_S <= max_dx && dist_S < max_dx));
+
+    double rho_P{0.0};
+    double rho_S{0.0};
+
+    if (P_star_test || S_star_test) {
+
+        Real pos_P[3] = {loc[0] - problem::center_P_initial[0],
+                         loc[1] - problem::center_P_initial[1],
+                         loc[2] - problem::center_P_initial[2]};
+
+        if (problem::mass_P > 0.0_rt) {
+            rho_P = interpolate_3d(pos_P, dx, model::idens, problem::nsub, 0);
         }
+
+        Real pos_S[3] = {loc[0] - problem::center_S_initial[0],
+                         loc[1] - problem::center_S_initial[1],
+                         loc[2] - problem::center_S_initial[2]};
+
+        if (problem::mass_S > 0.0_rt) {
+            rho_S = interpolate_3d(pos_S, dx, model::idens, problem::nsub, 1);
+        }
+
+        if (rho_P > rho_S) {
+            // use the primary star initialization
+            zone_state.rho = rho_P;
+            zone_state.T   = interpolate_3d(pos_P, dx, model::itemp, problem::nsub, 0);
+            for (int n = 0; n < NumSpec; ++n) {
+                zone_state.xn[n] = interpolate_3d(pos_P, dx, model::ispec + n, problem::nsub, 0);
+            }
+
+        } else {
+            // use the secondary star initialization
+            zone_state.rho = rho_S;
+            zone_state.T   = interpolate_3d(pos_S, dx, model::itemp, problem::nsub, 1);
+            for (int n = 0; n < NumSpec; ++n) {
+                zone_state.xn[n] = interpolate_3d(pos_S, dx, model::ispec + n, problem::nsub, 1);
+            }
+        }
+
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
         eos(eos_input_rt, zone_state);
 
-    }
-    else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
-                                          (problem::radius_S <= max_dx && dist_S < max_dx))) {
-        Real pos[3] = {loc[0] - problem::center_S_initial[0],
-                       loc[1] - problem::center_S_initial[1],
-                       loc[2] - problem::center_S_initial[2]};
-
-        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 1);
-        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 1);
-        for (int n = 0; n < NumSpec; ++n) {
-            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
-        }
-
-        eos(eos_input_rt, zone_state);
-
-    }
-    else {
+    } else {
 
         zone_state.rho = ambient::ambient_state[URHO];
         zone_state.T   = ambient::ambient_state[UTEMP];
@@ -93,6 +116,9 @@ void problem_initialize_state_data (int i, int j, int k,
         for (int n = 0; n < NumSpec; ++n) {
             zone_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
         }
+#ifdef AUX_THERMO
+        set_aux_comp_from_X(zone_state);
+#endif
 
     }
 
@@ -103,6 +129,11 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; ++n) {
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; ++n) {
+        state(i,j,k,UFX+n) = zone_state.rho * zone_state.aux[n];
+    }
+#endif
 
     // Set the velocities in each direction to zero by default.
 
@@ -119,17 +150,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::problem != 1) {
 
-        if (dist_P < problem::radius_P) {
-            state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
-            state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
-            state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
+        if (P_star_test || S_star_test) {
+            if (rho_P > rho_S && problem::mass_P > 0.0_rt && dist_P < problem::radius_P) {
+                state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
+                state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
+                state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
+            } else if (problem::mass_S > 0.0_rt && dist_S < problem::radius_S) {
+                state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
+                state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
+                state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
+            }
         }
-        else if (dist_S < problem::radius_S) {
-            state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
-            state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
-            state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
-        }
-
     }
 
     // If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
@@ -172,34 +203,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (AMREX_SPACEDIM == 2) {
             state(i,j,k,UMZ) = std::abs(state(i,j,k,UMZ));
-        }
-
-    }
-
-    // If we're doing the merger problem and want to add an initial radial velocity, do that here.
-    // We're only going to impart this velocity to the stars themselves, so that we prevent
-    // artificial infall in the ambient regions.
-
-    if (problem::problem == 1 && problem::initial_radial_velocity_factor > 0.0_rt) {
-
-        if (dist_P < problem::radius_P || dist_P < problem::radius_S) {
-
-            Real R_prp    = std::sqrt(std::pow(loc[problem::axis_1-1], 2) + std::pow(loc[problem::axis_2-1], 2));
-            Real cosTheta = loc[problem::axis_1-1] / R_prp;
-            Real sinTheta = loc[problem::axis_2-1] / R_prp;
-
-            GpuArray<Real, 3> vel = {state(i,j,k,UMX), state(i,j,k,UMY), state(i,j,k,UMZ)};
-            GpuArray<Real, 3> inertial_vel{vel};
-#ifdef ROTATION
-            rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
-#endif
-            Real mag_vel = std::sqrt(inertial_vel[0] * inertial_vel[0] +
-                                     inertial_vel[1] * inertial_vel[1] +
-                                     inertial_vel[2] * inertial_vel[2]);
-
-            state(i,j,k,UMX+problem::axis_1-1) -= problem::initial_radial_velocity_factor * cosTheta * mag_vel;
-            state(i,j,k,UMX+problem::axis_2-1) -= problem::initial_radial_velocity_factor * sinTheta * mag_vel;
-
         }
 
     }

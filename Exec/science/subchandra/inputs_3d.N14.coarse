@@ -1,0 +1,169 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
+amr.plot_files_output = 1
+amr.checkpoint_files_output = 1
+
+max_step = 100000
+stop_time = 10.0
+
+geometry.is_periodic = 0 0 0
+geometry.coord_sys = 0         # r-z coordinates
+
+geometry.prob_lo   =  0.        0.        0.
+geometry.prob_hi   =  8.192e9   8.192e9   8.192e9
+
+amr.n_cell         = 512 512 512
+
+amr.max_level      = 2       # maximum level number allowed
+
+amr.subcycling_mode = None
+
+castro.lo_bc       =  2 2 2
+castro.hi_bc       =  2 2 2
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+
+castro.do_hydro = 1
+castro.do_grav  = 1
+castro.do_react = 1
+castro.do_sponge = 1
+
+castro.react_rho_min = 100.0
+castro.react_T_min = 5.e7
+
+castro.ppm_type = 1
+castro.ppm_temp_fix = 0
+
+castro.use_flattening = 1
+
+castro.riemann_solver = 1
+
+# Full self-gravity with the Poisson equation
+gravity.gravity_type = PoissonGrav
+
+# Multipole expansion includes terms up to r**(-max_multipole_order)
+gravity.max_multipole_order = 6
+
+# Tolerance for multigrid solver for phi solves
+gravity.abs_tol = 1.e-10
+
+# Use sync solve for gravity after refluxing
+#gravity.no_sync = 0
+
+# Disable the use of the lagged composite correction for the potential
+gravity.do_composite_phi_correction = 0
+
+castro.sponge_upper_density = 1.e4
+castro.sponge_lower_density = 1.e2
+castro.sponge_timescale     = 1.e-3
+
+castro.cfl            = 0.2     # cfl number for hyperbolic system
+castro.init_shrink    = 0.05     # scale back initial timestep by this factor
+castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
+castro.sum_interval   = 5       # timesteps between computing and printing volume averages
+castro.update_sources_after_reflux = 0
+castro.time_integration_method = 3
+
+castro.use_retry = 1
+castro.retry_subcycle_factor = 0.5
+castro.max_subcycles = 32
+
+castro.abundance_failure_rho_cutoff = 1.0
+
+#castro.dtnuc_e = 0.25
+#castro.dtnuc_X = 0.25
+
+amr.ref_ratio       = 4 2 2 2 # refinement ratio
+amr.regrid_int      = 2   # how often to regrid
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.check_file      = subch_chk     # root name of checkpoint file
+amr.check_int       = 25     # number of timesteps between checkpoints
+amr.plot_file       = subch_plt     # root name of plot file
+amr.plot_int        = -1     # number of timesteps between plotfiles
+amr.plot_per        = 0.05
+
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
+amr.blocking_factor = 32       # block factor in grid generation
+
+amr.v               = 1       # control verbosity in Amr.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
+
+amr.derive_plot_vars = ALL
+castro.store_burn_weights = 1
+
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5
+
+
+amr.small_plot_file = subch_smallplt        # root name of plotfile
+amr.small_plot_per  = 2.e-3      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp
+
+amr.derive_small_plot_vars = abar magvel enuc
+
+fab.format = NATIVE_32
+
+
+# problem parameters
+
+problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.CO.N14.10.00km"
+
+problem.pert_temp_factor = 20.0
+problem.pert_rad_factor = 0.5
+problem.R_pert = 1.e7
+
+
+# tagging
+
+amr.refinement_indicators = tempgrad denerr dencore temperr dencutoff
+
+amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.relative_gradient = 2.0
+amr.refine.tempgrad.max_level = 2
+
+amr.refine.denerr.field_name = density
+amr.refine.denerr.value_greater = 1.0
+amr.refine.denerr.max_level = 2
+
+# this just refines the very center to capture the convergence of the
+# compression wave
+
+amr.refine.dencore.field_name = density
+amr.refine.dencore.value_greater = 7.5e7
+amr.refine.dencore.max_level = 3
+
+# now we want to refine regions where T > 2.e8 up to the maximum
+# level, but only if rho > 1.e3 -- otherwise, we don't care about
+# following things
+
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.value_greater = 1.e8
+amr.refine.temperr.max_level = 3
+
+amr.refine.dencutoff.derefine = 1
+amr.refine.dencutoff.field_name = density
+amr.refine.dencutoff.value_less = 1.e4
+
+# Microphysics
+
+network.small_x = 1.e-10
+integrator.SMALL_X_SAFE = 1.e-10
+
+integrator.rtol_spec = 1.e-5
+integrator.atol_spec = 1.e-5
+integrator.rtol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-5
+integrator.jacobian = 1
+
+integrator.X_reject_buffer = 4.0
+
+# disable jacobian caching in VODE
+integrator.use_jacobian_caching = 0
+
+integrator.ode_max_steps = 500000

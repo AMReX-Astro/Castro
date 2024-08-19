@@ -88,8 +88,6 @@ problem.do_isentropic = 1
 
 problem.single = 1
 
-problem.dx_model = 0.005859375
-
 # EOS
 eos.species_a_name = "A"
 eos.species_a_gamma = 1.666e0

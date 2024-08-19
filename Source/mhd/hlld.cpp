@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <mhd_util.H>
 
@@ -71,7 +70,7 @@ Castro::hlld(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // this is a loop over interfaces, so, e.g., for idir = 0 (x), we are seeing
@@ -240,7 +239,7 @@ Castro::hlld(const Box& bx,
 
     }
 
-    
+
     UsL(UMX) = UsL(UMX) * UsL(URHO);
     UsL(UMY) = UsL(UMY) * UsL(URHO);
     UsL(UMZ) = UsL(UMZ) * UsL(URHO);
@@ -260,11 +259,11 @@ Castro::hlld(const Box& bx,
     // Second Perpendicular dir (Eq. 47)
 
     Real denom_bpL = qL(QRHO) * (sL - qL(QVELN)) * (sL - sM) - qL(QMAGN) * qL(QMAGN);
-    Real denom_bpR = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN) * qR(QMAGN); 
+    Real denom_bpR = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN) * qR(QMAGN);
 
     if (std::abs(denom_bpL) < 1.e-14_rt) {
-      UsL(UMAGP1) = 0.0_rt; 
-      UsL(UMAGP2) = 0.0_rt; 
+      UsL(UMAGP1) = 0.0_rt;
+      UsL(UMAGP2) = 0.0_rt;
 
     } else {
       UsL(UMAGP1) = qL(QMAGP1) * (qL(QRHO) * (sL - qL(QVELN)) * (sL - qL(QVELN)) - qL(QMAGN) * qL(QMAGN)) /
@@ -276,7 +275,7 @@ Castro::hlld(const Box& bx,
 
     if (std::abs(denom_bpR) < 1.e-14_rt) {
       UsR(UMAGP1) = 0.0_rt;
-      UsR(UMAGP2) = 0.0_rt; 
+      UsR(UMAGP2) = 0.0_rt;
 
     } else {
       UsR(UMAGP1) = qR(QMAGP1) * (qR(QRHO) * (sR - qR(QVELN)) * (sR - qR(QVELN)) - qR(QMAGN) * qR(QMAGN)) /
@@ -286,7 +285,7 @@ Castro::hlld(const Box& bx,
 
     }
 
-    
+
     // Energy, eq.(48)
 
     UsL(UEDEN) = (sL - qL(QVELN)) * uL(UEDEN) - ptL * qL(QVELN) + pst * sM +
@@ -383,7 +382,7 @@ Castro::hlld(const Box& bx,
       ((UsL(UMX) * UsL(UMAGX) + UsL(UMY) * UsL(UMAGY) + UsL(UMZ) * UsL(UMAGZ)) / UsL(URHO) -
        (UssL(UMX) * UssL(UMAGX) + UssL(UMY) * UssL(UMAGY) + UssL(UMZ) * UssL(UMAGZ)) / UssL(URHO)) *
       std::copysign(1.0_rt, qL(QMAGN));
-    UssR(UEDEN) = UsR(UEDEN) + std::sqrt(UsR(QRHO)) * 
+    UssR(UEDEN) = UsR(UEDEN) + std::sqrt(UsR(QRHO)) *
       ((UsR(UMX) * UsR(UMAGX) + UsR(UMY) * UsR(UMAGY) + UsR(UMZ) * UsR(UMAGZ)) / UsR(URHO) -
        (UssR(UMX) * UssR(UMAGX) + UssR(UMY) * UssR(UMAGY) + UssR(UMZ) * UssR(UMAGZ)) / UssR(URHO)) *
       std::copysign(1.0_rt, qR(QMAGN));

@@ -73,7 +73,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
 // Given a WD mass, set its core and envelope composition.
 
-void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec], const std::string& star_type)
 {
     int iHe4 = network_spec_index("helium-4");
     int iC12 = network_spec_index("carbon-12");
@@ -98,6 +98,8 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
 
         core_comp[iHe4] = 1.0_rt;
 
+        amrex::Print() << "Created a pure He " << star_type << "." << std::endl;
+
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
         }
@@ -117,6 +119,10 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
 
         envelope_mass = problem::hybrid_wd_he_shell_mass;
 
+        amrex::Print()<< "Creating " << star_type << "with CO core with mass fractions C = "<< problem::hybrid_wd_c_frac << "and O = "
+           << problem::hybrid_wd_o_frac <<" and a He shell of solar mass =" << problem::hybrid_wd_he_shell_mass << "." << std::endl;
+
+
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
                 amrex::Error("Must have He4 in the nuclear network.");
@@ -128,7 +134,6 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
                 envelope_comp[n] = core_comp[n];
             }
         }
-
     }
     else if (mass >= problem::max_hybrid_wd_mass && mass < problem::max_co_wd_mass) {
 
@@ -143,6 +148,9 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16] = problem::co_wd_o_frac;
 
         envelope_mass = problem::co_wd_he_shell_mass;
+
+        amrex::Print()<<"Creating " << star_type << " with CO core with mass fractions C = "<<problem::co_wd_c_frac<<"and O = "
+            <<problem::co_wd_o_frac<<" and a He shell of solar mass ="<<problem::co_wd_he_shell_mass<< "." << std::endl;
 
         if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
@@ -172,6 +180,8 @@ void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec]
         core_comp[iO16]  = problem::onemg_wd_o_frac;
         core_comp[iNe20] = problem::onemg_wd_ne_frac;
         core_comp[iMg24] = problem::onemg_wd_mg_frac;
+
+        amrex::Print()<<"Creating an ONeMg " << star_type << "." <<std::endl;
 
         for (int n = 0; n < NumSpec; ++n) {
             envelope_comp[n] = core_comp[n];
@@ -316,6 +326,12 @@ void finalize_probdata ()
         problem::relaxation_is_done = 0;
     }
 
+    // As above, but for radial damping.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt) {
+        problem::radial_damping_is_done = 0;
+    }
+
     // TDE sanity checks
 
     if (problem::problem == 2) {
@@ -372,6 +388,9 @@ void set_small ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
+#endif
 
     eos(eos_input_rt, eos_state);
 
@@ -381,12 +400,11 @@ void set_small ()
 
 
 
-// Set the locations of the stellar centers of mass
+// Update the locations of the Roche radii
 
-void set_star_data ()
+void update_roche_radii ()
 {
     if (problem::mass_P > 0.0_rt && problem::mass_S > 0.0_rt) {
-
         Real r = std::sqrt(std::pow(problem::com_P[0] - problem::com_S[0], 2) +
                            std::pow(problem::com_P[1] - problem::com_S[1], 2) +
                            std::pow(problem::com_P[2] - problem::com_S[2], 2));
@@ -395,7 +413,7 @@ void set_star_data ()
 
         // Beyond a certain point, it doesn't make sense to track the stars separately
         // anymore. We'll set the secondary to a fixed constant and keep it there
-        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly 
+        // if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly
         // equal mass systems sometimes it is the primary that disrupts, perhaps
         // just due to numerical noise, so do the same check for the primary.
 
@@ -417,7 +435,28 @@ void set_star_data ()
             problem::roche_rad_P = 0.0_rt;
             problem::t_ff_P = 0.0_rt;
         }
+    }
 
+    // Determine when the radial damping force terminates.
+
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
+        // It does not make sense to do damping if there's only one star remaining.
+
+        if (problem::mass_S == 0.0_rt) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        // Only do radial damping until the stars get sufficiently close. The way we will measure this
+        // is when the secondary overflows the Roche lobe. At that point we terminate the damping and
+        // let Newtonian gravity do the rest of the work.
+
+        if (problem::roche_rad_S <= problem::radial_damping_roche_factor * problem::radius_S) {
+            problem::radial_damping_is_done = 1;
+        }
+
+        if (problem::radial_damping_is_done == 1) {
+            amrex::Print() << "\n\n  Terminating radial damping force since the secondary is about to overflow its Roche lobe.\n\n";
+        }
     }
 }
 
@@ -433,15 +472,15 @@ void binary_setup ()
     const Real* problo = DefaultGeometry().ProbLo();
     const Real* probhi = DefaultGeometry().ProbHi();
 
-    if (Castro::physbc().lo(0) == Symmetry && problem::center[0] != problo[0]) {
+    if (Castro::physbc().lo(0) == amrex::PhysBCType::symmetry && problem::center[0] != problo[0]) {
         amrex::Error("Symmetric lower x-boundary but the center is not on this boundary.");
     }
 
-    if (Castro::physbc().lo(1) == Symmetry && problem::center[1] != problo[1]) {
+    if (Castro::physbc().lo(1) == amrex::PhysBCType::symmetry && problem::center[1] != problo[1]) {
         amrex::Error("Symmetric lower y-boundary but the center is not on this boundary.");
     }
 
-    if (Castro::physbc().lo(2) == Symmetry && problem::center[2] != problo[2]) {
+    if (Castro::physbc().lo(2) == amrex::PhysBCType::symmetry && problem::center[2] != problo[2]) {
         amrex::Error("Symmetric lower z-boundary but the center is not on this boundary.");
     }
 
@@ -462,7 +501,7 @@ void binary_setup ()
     // Fill in the model's physical details.
     // If we're integrating to reach a desired mass, set the composition accordingly.
     // If instead we're fixing the central density, then first we'll assume the composition is
-    // that of a solar mass WD as a initial guess, and get the corresponding mass. 
+    // that of a solar mass WD as a initial guess, and get the corresponding mass.
     // Then we set the composition to match this preliminary mass, and we'll get a final mass later.
 
     if (problem::central_density_P > 0.0_rt) {
@@ -473,7 +512,7 @@ void binary_setup ()
         amrex::Error("Must specify either a positive primary mass or a positive primary central density.");
     }
 
-    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
+    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P, "primary");
 
 
 
@@ -487,7 +526,7 @@ void binary_setup ()
             amrex::Error("If we are doing a binary calculation, we must specify either a positive secondary mass or a positive secondary central density");
         }
 
-        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
+        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S, "secondary");
 
         for (int n = 0; n < NumSpec; ++n) {
             ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (problem::envelope_comp_P[n] + problem::envelope_comp_S[n]) / 2;
@@ -510,10 +549,8 @@ void binary_setup ()
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = ambient::ambient_state[UFS+n] / ambient::ambient_state[URHO];
     }
-#if NAUX_NET > 0
-    for (int n = 0; n < NumAux; ++n) {
-        eos_state.aux[n] = ambient::ambient_state[UFX+n] / ambient::ambient_state[URHO];
-    }
+#ifdef AUX_THERMO
+    set_aux_comp_from_X(eos_state);
 #endif
 
     eos(eos_input_rt, eos_state);
@@ -629,7 +666,7 @@ void binary_setup ()
 
             Real length;
 
-            if (Castro::physbc().lo(problem::axis_1-1) == Symmetry) {
+            if (Castro::physbc().lo(problem::axis_1-1) == amrex::PhysBCType::symmetry) {
 
                 // In this case we're only modelling the secondary.
                 length = problem::r_P_initial + problem::radius_P;
@@ -760,7 +797,7 @@ void binary_setup ()
 
     // Safety check: make sure the stars are actually inside the computational domain.
 
-    if (!(AMREX_SPACEDIM == 2 && Castro::physbc().lo(1) == Symmetry)) {
+    if (!(AMREX_SPACEDIM == 2 && Castro::physbc().lo(1) == amrex::PhysBCType::symmetry)) {
 
         if ((0.5_rt * (probhi[0] - problo[0]) < problem::radius_P) ||
             (0.5_rt * (probhi[1] - problo[1]) < problem::radius_P) ||

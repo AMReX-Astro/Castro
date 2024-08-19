@@ -1,5 +1,5 @@
 ! write out the group dependent boundary conditions
-! 
+!
 ! This routine takes as input the file "group_structures.dat" which is
 ! output by RadMultiGroup.cpp.  That file defines the group centers
 ! and weights (widths).
@@ -21,7 +21,7 @@ module constants_module
 
   ! physical parameters
   real(rt)        , parameter :: T_sphere = 1500.e0_rt*ev2erg/k_B ! sphere temp (K
-  
+
 
 end module constants_module
 
@@ -30,7 +30,7 @@ function planck(nu,T) result (B)
 
   ! the Planck function for a Blackbody (actually, energy density,
   ! B = (4 pi / c) I, where I is the normal Planck function
-  ! 
+  !
   ! nu = frequency (Hz)
   ! T  = temperature (K)
 
@@ -63,7 +63,7 @@ program bc
   integer :: ngroups
   real(rt)        , allocatable :: nu_groups(:), dnu_groups(:)
   real(rt)         :: planck
-  
+
   integer :: n
   character(len=256) :: header_line
   integer :: ipos
@@ -88,10 +88,10 @@ program bc
 
   do n = 1, ngroups
      print *, n, nu_groups(n), planck(nu_groups(n), T_sphere)*dnu_groups(n)
-  enddo     
+  enddo
 
   print *, "radiation.lo_bcval0 = ", &
        ((planck(nu_groups(n), T_sphere)*dnu_groups(n)), n=1,ngroups)
 
 end program bc
-  
+

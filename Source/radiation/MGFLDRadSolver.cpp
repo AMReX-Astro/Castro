@@ -5,10 +5,6 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 
-#include <Castro_F.H>
-
-#include <RAD_F.H>
-
 #include <iostream>
 #include <iomanip>
 
@@ -19,7 +15,7 @@
 using namespace amrex;
 
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
-{ 
+{
   BL_PROFILE("Radiation::MGFLD_implicit_update");
   if (verbose) {
       amrex::Print() << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
@@ -35,13 +31,14 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   const DistributionMapping& dmap = castro->DistributionMap();
   Real delta_t = parent->dtLevel(level);
 
-  int ngrow = 1; 
+  int ngrow = 1;
 
   Real time = castro->get_state_data(Rad_Type).curTime();
   Real oldtime = castro->get_state_data(Rad_Type).prevTime();
 
   MultiFab& S_new = castro->get_new_data(State_Type);
-  AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
+  FillPatchIterator fpi_new(*castro, S_new, ngrow, time, State_Type, 0, S_new.nComp());
+  MultiFab& S_new_border = fpi_new.get_mf();
 
   Array<MultiFab, AMREX_SPACEDIM> lambda;
   if (radiation::limiter > 0) {
@@ -54,14 +51,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Er_lag.setBndry(-1.0);
       Er_lag.FillBoundary(parent->Geom(level).periodicity());
 
-      MultiFab& S_lag = castro->get_old_data(State_Type);
-      for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
-                                 0,S_lag.nComp()); fpi.isValid(); ++fpi) {
-          S_lag[fpi].copy<RunOn::Device>(fpi());
-      }
+      MultiFab& S_old = castro->get_old_data(State_Type);
+      FillPatchIterator fpi_old(*castro, S_old, ngrow, oldtime, State_Type, 0, S_old.nComp());
+      MultiFab& S_lag = fpi_old.get_mf();
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
-      MGFLD_compute_rosseland(kpr_lag, S_lag); 
+      MGFLD_compute_rosseland(kpr_lag, S_lag);
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
         scaledGradient(level, lambda, kpr_lag, igroup, Er_lag, igroup, 1, igroup);
@@ -75,7 +70,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     for (int idim = 0; idim < AMREX_SPACEDIM; idim++) {
         lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
       lambda[idim].setVal(1./3.);
-    }    
+    }
   }
 
   // Er_new: work copy
@@ -111,30 +106,28 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
-
+  for (MFIter mfi(S_new_border, true); mfi.isValid(); ++mfi) {
       const Box &gbx = mfi.growntilebox(1);
       const Box &bx  = mfi.tilebox();
 
-      rho[mfi].copy<RunOn::Device>(S_new[mfi],gbx, URHO, gbx,0,1);
+      rho[mfi].copy<RunOn::Device>(S_new_border[mfi], gbx, URHO, gbx, 0, 1);
 
-      rhoe_new[mfi].copy<RunOn::Device>(S_new[mfi], bx, UEINT, bx,0,1);
+      rhoe_new[mfi].copy<RunOn::Device>(S_new_border[mfi], bx, UEINT, bx, 0, 1);
       rhoe_old[mfi].copy<RunOn::Device>(rhoe_new[mfi], bx);
 
-      temp_new[mfi].copy<RunOn::Device>(S_new[mfi],gbx, UTEMP, gbx,0,1);
-    
+      temp_new[mfi].copy<RunOn::Device>(S_new_border[mfi], gbx, UTEMP, gbx, 0, 1);
   }
 
-  // Planck mean and Rosseland 
+  // Planck mean and Rosseland
   MultiFab kappa_p(grids,dmap,nGroups,1);
-  MultiFab kappa_r(grids,dmap,nGroups,1); 
+  MultiFab kappa_r(grids,dmap,nGroups,1);
 
   // emissivity, j_g = \int j_nu dnu
   // j_nu = 4 pi /c * \eta_0^{th} = \kappa_0 * B_\nu (assuming LTE),
   // where B_\nu is the usual Planck function \times 4 pi / c
-  MultiFab jg(grids,dmap,nGroups,1);    
-  MultiFab djdT(grids,dmap,nGroups,1);  
-  MultiFab dkdT(grids,dmap,nGroups,1);  
+  MultiFab jg(grids,dmap,nGroups,1);
+  MultiFab djdT(grids,dmap,nGroups,1);
+  MultiFab dkdT(grids,dmap,nGroups,1);
   MultiFab etaT(grids,dmap,1,0);
   MultiFab etaTz(grids,dmap,1,0);
   MultiFab eta1(grids,dmap,1,0); // eta1 = 1 - etaT
@@ -154,8 +147,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   for (int idim=0; idim<AMREX_SPACEDIM; idim++) {
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
-    if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
-        hi_bc[idim] == LO_SANCHEZ_POMRANING) {
+    if (lo_bc[idim] == AMREX_LO_SANCHEZ_POMRANING ||
+        hi_bc[idim] == AMREX_LO_SANCHEZ_POMRANING) {
       have_Sanchez_Pomraning = true;
     }
   }
@@ -186,7 +179,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       flxsave.reset(new MultiFab(grids, dmap, nGroups*AMREX_SPACEDIM, 0));
       flxcc = flxsave.get();
       icomp_flux = 0;
-  } 
+  }
 
   // Er_step: starting state of the inner iteration (e.g., ^(2))
   // There used to be an extra velocity term update
@@ -194,7 +187,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab& rhoe_step = rhoe_old;
 
   Real reltol_in = relInTol;
-  Real ptc_tau = 0.0;  // not being used 
+  Real ptc_tau = 0.0;  // not being used
 
   // nonlinear loop for all groups
   int it = 0;
@@ -206,11 +199,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     it++;
 
     if (it == 1) {
-      eos_opacity_emissivity(S_new, temp_new,
+      eos_opacity_emissivity(S_new_border, temp_new,
                              temp_star, // input
-                             kappa_p, kappa_r, jg, 
+                             kappa_p, kappa_r, jg,
                              djdT, dkdT, dedT, // output
-                             level, it, 1); 
+                             level, it, 1);
       // It's OK that temp_star does not have a valid value for it==1
     }
 
@@ -228,12 +221,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
         // lambda now contains flux limiter
       }
     }
-    
+
     // djdT is both input and output
     compute_etat(etaT, etaTz,
-                 eta1, djdT, 
+                 eta1, djdT,
                  dkdT, dedT,
-                 Er_star, rho, 
+                 Er_star, rho,
                  delta_t, ptc_tau);
 
     // After this, djdT contains mugT.
@@ -248,10 +241,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       MultiFab::Copy(Er_pi, Er_new, 0, 0, nGroups, 0);
 
-      if (radiation::limiter>0 && inner_update_limiter>0) { 
+      if (radiation::limiter>0 && inner_update_limiter>0) {
         if (innerIteration <= inner_update_limiter) {
           Er_pi.FillBoundary(parent->Geom(level).periodicity());
-          
+
           for (int igroup=0; igroup<nGroups; ++igroup) {
             scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, 1, igroup);
             // lambda now contains scaled gradient
@@ -271,7 +264,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
         // set boundary condition
         solver->levelBndry(mgbd, igroup);
-        
+
         solver->levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
 
         int lamcomp = (radiation::limiter==0) ? 0 : igroup;
@@ -282,7 +275,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
         }
 
         { // src and rhd block
-                  
+
           MultiFab rhs(grids,dmap,1,0);
 
           solver->levelRhs(level, rhs, jg, mugT,
@@ -296,12 +289,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
         solver->levelFlux(level, Flux, Er_new, igroup);
         solver->levelFluxReg(level, flux_in, flux_out, Flux, igroup);
-          
-        if (icomp_flux >= 0) 
+
+        if (icomp_flux >= 0)
             solver->levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
 
       } // end loop over groups
-      
+
       // Check for convergence *before* acceleration step:
       check_convergence_er(relative_in, absolute_in, error_er, Er_new, Er_pi,
                            kappa_p, etaTz, temp_new, delta_t);
@@ -309,7 +302,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       if (verbose >= 2) {
         int oldprec = std::cout.precision(3);
         amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
-                       << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
+                       << ", inner err =  " << std::setw(8) << relative_in << " (rel),  "
                        << std::setw(8) << absolute_in << " (abs)" << std::endl;
         std::cout.precision(oldprec);
       }
@@ -320,7 +313,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       else if (innerIteration < minInIter) {
         inner_converged = false;
       }
-      else if ( (relative_in <= reltol_in || absolute_in <= absInTol) 
+      else if ( (relative_in <= reltol_in || absolute_in <= absInTol)
                 && error_er <= reltol ) {
         inner_converged = true;
       }
@@ -328,10 +321,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       if (!inner_converged) {
         Real accel_fac=1.+1.e-6;
         if (skipAccelAllowed &&
-            relative_in>accel_fac*relative_in_prev && 
+            relative_in>accel_fac*relative_in_prev &&
             absolute_in>accel_fac*absolute_in_prev) {
           accel_allowed = false;
-          if (relative_in>10.*relative_in_prev && 
+          if (relative_in>10.*relative_in_prev &&
               absolute_in>10.*absolute_in_prev) {
             MultiFab::Copy(Er_new, Er_star, 0, 0, nGroups, 0);
           }
@@ -343,21 +336,21 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
           if (accelerate == 1) {
             local_accel(Er_new, Er_pi, kappa_p, etaT,
                         mugT, delta_t, ptc_tau);
-          } 
+          }
           else if (accelerate == 2) {
-            gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
+            gray_accel(Er_new, Er_pi, kappa_p, kappa_r,
                        etaT, eta1, mugT,
                        lambda, solver, mgbd, grids, level, time, delta_t, ptc_tau);
-          } 
+          }
         }
       }
 
-    } while(!inner_converged && innerIteration < maxInIter); 
+    } while(!inner_converged && innerIteration < maxInIter);
 
     if (verbose == 1) {
       int oldprec = std::cout.precision(3);
       amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
-                     << ", inner tol =  " << std::setw(8) << relative_in << "  " 
+                     << ", inner tol =  " << std::setw(8) << relative_in << "  "
                      << std::setw(8) << absolute_in << std::endl;
       std::cout.precision(oldprec);
     }
@@ -404,16 +397,16 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
                   etaT, etaTz, eta1,
                   coupT,
                   kappa_p, jg, mugT,
-                  S_new, level, delta_t, ptc_tau, it, conservative_update);
+                  S_new_border, level, delta_t, ptc_tau, it, conservative_update);
 
-    eos_opacity_emissivity(S_new, temp_new,
+    eos_opacity_emissivity(S_new_border, temp_new,
                            temp_star, // input
-                           kappa_p, kappa_r, jg, 
+                           kappa_p, kappa_r, jg,
                            djdT, dkdT, dedT, // output
                            level, it+1, 0);
 
     check_convergence_matt(rhoe_new, rhoe_star, rhoe_step, Er_new,
-                           temp_new, temp_star, 
+                           temp_new, temp_star,
                            rho, kappa_p, jg, dedT,
                            rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T,
                            delta_t);
@@ -444,13 +437,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     if (verbose >= 2) {
       int oldprec = std::cout.precision(4);
-      amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+      amrex::Print() << "Update Errors for      rhoe,        FT,         T"
                      << std::endl;
-      amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-                     << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+      amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", "
+                     << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T
                      << std::endl;
-      amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-                     << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+      amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", "
+                     << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T
                      << std::endl;
       std::cout.precision(oldprec);
     }
@@ -458,7 +451,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     if (it < miniter) {
       converged = false;
     }
-    else if (relative_out <= reltol || absolute_out <= abstol) { 
+    else if (relative_out <= reltol || absolute_out <= abstol) {
       //      || rel_rhoe < 1.e-15) {
       converged = true;
     }
@@ -474,27 +467,27 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     if (!converged && it > n_bisect) {
       bisect_matter(rhoe_new, temp_new,
                     rhoe_star, temp_star,
-                    S_new, grids, level);
+                    S_new_border, grids, level);
 
-      eos_opacity_emissivity(S_new, temp_new,
+      eos_opacity_emissivity(S_new_border, temp_new,
                              temp_star, // input
-                             kappa_p, kappa_r, jg, 
+                             kappa_p, kappa_r, jg,
                              djdT, dkdT, dedT, // output
                              level, it+1, 0);
     }
-   
+
   } while ( ((!converged || !inner_converged) && it<maxiter)
             || !conservative_update);
 
   if (verbose == 1) {
     int oldprec = std::cout.precision(4);
-    amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+    amrex::Print() << "Update Errors for      rhoe,        FT,         T"
                    << std::endl;
-    amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-                   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+    amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", "
+                   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T
                    << std::endl;
-    amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-                   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+    amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", "
+                   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T
                    << std::endl;
     std::cout.precision(oldprec);
   }

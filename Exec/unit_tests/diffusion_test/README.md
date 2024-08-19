@@ -69,10 +69,10 @@ analytic solution, giving:
 A convergence test of the 4th-order SDC algorithm can be run as:
 
 ```
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=128
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
-./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=128
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
+./Castro1d.gnu.TRUESDC.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
 ```
 
 Note: this is Cartesian, not spherical (since we don't have spherical
@@ -138,14 +138,14 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
 \hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-rho_e&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-Temp&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-rho_X&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+density&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+rho_E&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
+rho_e&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
+Temp&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
+rho_X&         0.000000e+00 & ------------ &0.000000e+00 \\ 
 ```
 
 (some bits were edited out)
@@ -191,15 +191,15 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
 \hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-rho_e&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-Temp&    	 1.063477e-05 & 3.952987539 & 6.866892e-07 \\ 
-rho_X&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-pressure&    	 7.410837e-06 & 3.948910124 & 4.798736e-07 \\ 
+density&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+rho_E&         1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
+rho_e&         1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
+Temp&         1.063477e-05 & 3.952987539 & 6.866892e-07 \\ 
+rho_X&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+pressure&         7.410837e-06 & 3.948910124 & 4.798736e-07 \\ 
 ```
 
 e.g. we see fourth-order convergence in the temperature
@@ -242,13 +242,13 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
 \hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
-rho_e&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
-Temp&    	 1.770452e-06 & 3.966033724 & 1.132894e-07 \\ 
+density&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\ 
+rho_E&         1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+rho_e&         1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+Temp&         1.770452e-06 & 3.966033724 & 1.132894e-07 \\ 
 ```
 
 e.g. we see fourth-order convergence in the temperature

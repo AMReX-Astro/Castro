@@ -15,7 +15,7 @@ fill_temp_cond(const Box& bx,
                Array4<Real> const& coeff_arr) {
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     eos_t eos_state;
@@ -64,7 +64,7 @@ fill_temp_diff_coeff(const Box& bx,
                      Array4<Real> const& coeff_arr) {
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     eos_t eos_state;

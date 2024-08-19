@@ -1,7 +1,6 @@
 #include <iomanip>
 
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef GRAVITY
@@ -38,9 +37,9 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
@@ -101,15 +100,15 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
         auto const& vol = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         //
@@ -195,16 +194,16 @@ Castro::volProductSum (const MultiFab& mf1,
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab1 = mf1[mfi].array(comp1);
         auto const& fab2 = mf2[mfi].array(comp2);
         auto const& vol  = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
@@ -250,14 +249,14 @@ Castro::locSquaredSum (const std::string& name,
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
-#ifdef _OPENMP
+#ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = (*mf).array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
@@ -315,10 +314,10 @@ Castro::locSquaredSum (const std::string& name,
 #ifdef GRAVITY
 void
 Castro::gwstrain (Real time,
-		  Real& h_plus_1, Real& h_cross_1,
-		  Real& h_plus_2, Real& h_cross_2,
-		  Real& h_plus_3, Real& h_cross_3,
-		  bool local) {
+                  Real& h_plus_1, Real& h_cross_1,
+                  Real& h_plus_2, Real& h_cross_2,
+                  Real& h_plus_3, Real& h_cross_3,
+                  bool local) {
 
     amrex::ignore_unused(time);
 
@@ -518,7 +517,7 @@ Castro::gwstrain (Real time,
 
     // Standard Kronecker delta.
 
-    Real delta[3][3] = {0.0};
+    Real delta[3][3] = {{0.0}};
 
     for (int i = 0; i < 3; ++i) {
         delta[i][i] = 1.0;
@@ -540,7 +539,7 @@ Castro::gwstrain (Real time,
 
         // Projection operator onto the unit vector n.
 
-        Real proj[3][3][3][3] = {0.0};
+        Real proj[3][3][3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {
@@ -555,7 +554,7 @@ Castro::gwstrain (Real time,
 
         // Now we can calculate the strain tensor.
 
-        Real h[3][3] = {0.0};
+        Real h[3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {

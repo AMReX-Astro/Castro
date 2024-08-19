@@ -7,5 +7,7 @@ ifneq ($(USE_GPU), TRUE)
   CEXE_headers += Castro_sdc_util.H
 ifeq ($(USE_REACT), TRUE)
   CEXE_headers += vode_rhs_true_sdc.H
+  CEXE_headers += sdc_react_util.H
+  CEXE_headers += sdc_newton_solve.H
 endif
 endif

@@ -1,3 +1,6 @@
+#ifndef CASTRO_SOURCES_H
+#define CASTRO_SOURCES_H
+
 ///
 /// Returns true if flag corresponding to source type ``src`` is set.
 ///
@@ -44,7 +47,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct source terms at old time (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
@@ -80,7 +93,17 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state = true);
+
+
+///
+/// Construct new time sources (convenience wrapper for CTU advance)
+///
+/// @param time     the current simulation time
+/// @param dt       the timestep to advance (e.g., go from time to
+///                    time + dt)
+///
+    advance_status do_new_sources (amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -126,7 +149,7 @@
 ///
 /// @param update       Real Vector of changes
 ///
-    static void print_source_change(amrex::Vector<amrex::Real> update);
+    static void print_source_change(const amrex::Vector<amrex::Real>& update);
 
 
 ///
@@ -316,3 +339,47 @@
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
                           amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Perform all operations that occur prior to computing the predictor sources
+/// and the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_advance_operators (amrex::Real time, amrex::Real dt);
+
+///
+/// Perform all operations that occur after computing the predictor sources
+/// but before the hydro advance.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status pre_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the hydro source
+/// but before the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_hydro_operators (amrex::Real time, amrex::Real dt);
+
+
+///
+/// Perform all operations that occur after the corrector sources.
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+
+    advance_status post_advance_operators (amrex::Real time, amrex::Real dt);
+
+#endif

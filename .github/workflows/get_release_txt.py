@@ -26,9 +26,9 @@ if __name__ == "__main__":
                     txt = txt[m.end():].strip()
             else:
                 txt = ""
-                    
-            # we now need to substitute characters in the string so that 
-            # the action can deal with line breaks 
+
+            # we now need to substitute characters in the string so that
+            # the action can deal with line breaks
             txt = txt.replace('%', '%25')
             txt = txt.replace('\n', '%0A')
             txt = txt.replace('\r', '%0D')

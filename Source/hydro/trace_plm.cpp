@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -38,8 +37,8 @@ Castro::trace_plm(const Box& bx, const int idir,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
@@ -98,7 +97,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   // Compute left and right traced states
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
@@ -328,8 +327,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nc = upassmap(ipassive);
-      int n = qpassmap(ipassive);
+      const int nc = upassmap(ipassive);
+      const int n = qpassmap(ipassive);
 
       // get the slope
 

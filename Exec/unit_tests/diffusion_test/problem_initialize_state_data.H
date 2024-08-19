@@ -14,7 +14,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
-    int coord_type = geomdata.Coord(); 
+    int coord_type = geomdata.Coord();
 
     Real r[3] = {0.0_rt};
 

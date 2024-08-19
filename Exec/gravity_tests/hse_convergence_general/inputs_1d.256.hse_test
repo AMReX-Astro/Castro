@@ -75,8 +75,6 @@ amr.plot_per         = 1.e-5      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 # PROBLEM PARAMETERS
-problem.dx_model = 20.e0
-
 problem.dens_base = 3.43e6
 
 problem.T_star = 1.e8

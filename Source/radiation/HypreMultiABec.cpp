@@ -3,7 +3,7 @@
 #include <AMReX_ParmParse.H>
 
 #include <HypreMultiABec.H>
-#include <HABEC_F.H>
+#include <HABEC.H>
 #include <rad_util.H>
 #include <AMReX_LO_BCTYPES.H>
 
@@ -171,7 +171,7 @@ int BndryAuxVarBase::nextLocal(int i)
   return i;
 }
 
-BndryAuxVar::BndryAuxVar(const BoxArray& _grids, 
+BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
                          const DistributionMapping& _dmap,
                          Location loc)
     : BndryAuxVarBase(_dmap), grids(_grids)
@@ -785,9 +785,9 @@ void HypreMultiABec::addLevel(int             level,
 static void
 TransverseInterpolant(AuxVarBox& cintrp, const Mask& msk,
                       const Box& reg, const Box& creg,
-                      D_DECL(const IntVect& rat, const IntVect& vj1, const IntVect& vk1),
-                      D_DECL(const IntVect& ve,  const IntVect& vjr, const IntVect& vkr),
-                      D_DECL(int idir, int jdir, int kdir),
+                      AMREX_D_DECL(const IntVect& rat, const IntVect& vj1, const IntVect& vk1),
+                      AMREX_D_DECL(const IntVect& ve,  const IntVect& vjr, const IntVect& vkr),
+                      AMREX_D_DECL(int idir, int jdir, int kdir),
                       int clevel)
 {
   for (IntVect vc = creg.smallEnd(); vc <= creg.bigEnd(); creg.next(vc)) {
@@ -1070,9 +1070,9 @@ void HypreMultiABec::buildMatrixStructure()
         const Mask &msk = bd[level]->bndryMasks(ori,i);
 
         TransverseInterpolant((*cintrp[level])(ori,i), msk, reg, creg,
-                              D_DECL(rat,  vj1,  vk1),
-                              D_DECL(ve,   vjr,  vkr),
-                              D_DECL(idir, jdir, kdir),
+                              AMREX_D_DECL(rat,  vj1,  vk1),
+                              AMREX_D_DECL(ve,   vjr,  vkr),
+                              AMREX_D_DECL(idir, jdir, kdir),
                               level-1);
 
         NormalDerivative((*ederiv[level])(ori,i),
@@ -1192,9 +1192,9 @@ void HypreMultiABec::buildMatrixStructure()
            const Mask &msk = c_cintrp[level]->mask(ori,i,j); // fine mask
 
          TransverseInterpolant((*c_cintrp[level])(ori,i,j), msk, reg, creg,
-                                D_DECL(rat,  vj1,  vk1),
-                                D_DECL(ve,   vjr,  vkr),
-                                D_DECL(idir, jdir, kdir),
+                                AMREX_D_DECL(rat,  vj1,  vk1),
+                                AMREX_D_DECL(ve,   vjr,  vkr),
+                                AMREX_D_DECL(idir, jdir, kdir),
                                 level-1);
 
          NormalDerivative((*c_ederiv[level])(ori,i,j),
@@ -1502,7 +1502,7 @@ HypreMultiABec::hmmat (const Box& bx,
     Real bfm, bfv;
     Real bfm2, h2, th2;
 
-    if (bct == LO_DIRICHLET) {
+    if (bct == AMREX_LO_DIRICHLET) {
 
         if (bho >= 1) {
 
@@ -1520,7 +1520,7 @@ HypreMultiABec::hmmat (const Box& bx,
         }
 
     }
-    else if (bct == LO_NEUMANN) {
+    else if (bct == AMREX_LO_NEUMANN) {
 
         bfm = -fac;
         bfm2 = 0.e0_rt;
@@ -1739,7 +1739,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1753,13 +1753,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1772,7 +1772,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1813,7 +1813,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1827,13 +1827,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1846,7 +1846,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1887,7 +1887,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1901,13 +1901,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1920,7 +1920,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1961,7 +1961,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -1975,13 +1975,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -1994,7 +1994,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2035,7 +2035,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -2049,13 +2049,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2068,7 +2068,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2109,7 +2109,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     bct = bctype;
                 }
 
-                if (bct == LO_DIRICHLET) {
+                if (bct == AMREX_LO_DIRICHLET) {
 
                     if (bho >= 1) {
                         h2 = 0.5e0_rt * h;
@@ -2123,13 +2123,13 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_NEUMANN) {
+                else if (bct == AMREX_LO_NEUMANN) {
 
                     bfm  = 0.e0_rt;
                     bfm2 = 0.e0_rt;
 
                 }
-                else if (bct == LO_MARSHAK) {
+                else if (bct == AMREX_LO_MARSHAK) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2142,7 +2142,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
                     }
 
                 }
-                else if (bct == LO_SANCHEZ_POMRANING) {
+                else if (bct == AMREX_LO_SANCHEZ_POMRANING) {
 
                     bfv = 2.e0_rt * c * beta * r / h;
 
@@ -2286,7 +2286,7 @@ void HypreMultiABec::loadMatrix()
           // level in the current linear system.  Zero out the interior
           // stencil using Neumann BC:
 
-          const RadBoundCond bct_coarse = LO_NEUMANN;
+          const RadBoundCond bct_coarse = AMREX_LO_NEUMANN;
           hmmat(reg, matfab.array(), cdir, bct_coarse, bho, bcl,
                 msk.array(), (*bcoefs[level])[idim][mfi].array(),
                 beta, geom[level].CellSize());
@@ -3476,7 +3476,7 @@ void HypreMultiABec::solve()
     hypre_SStructInnerProd((hypre_SStructVector *) b,
                            (hypre_SStructVector *) b,
                            &bnorm);
-    bnorm = sqrt(bnorm);
+    bnorm = std::sqrt(bnorm);
 
     Real volume = 0.0;
     for (int level = crse_level; level <= fine_level; level++) {
@@ -3486,7 +3486,7 @@ void HypreMultiABec::solve()
     }
 
     Real reltol_new = (bnorm > 0.0
-                       ? abstol / bnorm * sqrt(volume)
+                       ? abstol / bnorm * std::sqrt(volume)
                        : reltol);
 
     if (reltol_new > reltol) {
@@ -3830,7 +3830,7 @@ Real HypreMultiABec::getAbsoluteResidual()
   hypre_SStructInnerProd((hypre_SStructVector *) b,
                          (hypre_SStructVector *) b,
                          &bnorm);
-  bnorm = sqrt(bnorm);
+  bnorm = std::sqrt(bnorm);
 
   Real res;
   if (solver_flag == 100) {
@@ -3891,7 +3891,7 @@ Real HypreMultiABec::getAbsoluteResidual()
     }
   }
 
-  return bnorm * res / sqrt(volume);
+  return bnorm * res / std::sqrt(volume);
 }
 
 void HypreMultiABec::boundaryFlux(int level,
@@ -3908,7 +3908,6 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-        Vector<Real> r;
         Real foo=1.e200;
 
         for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
@@ -3926,48 +3925,45 @@ void HypreMultiABec::boundaryFlux(int level,
                 const Box &msb  = msk.box();
                 const Box &bbox = (*bcoefs[level])[idim][mfi].box();
                 if (reg[oitr()] == domain[oitr()]) {
-                    const int *tfp = NULL;
                     int bctype = bct;
+                    Array4<int const> tf_arr;
                     if (bd[level]->mixedBndry(oitr())) {
                         const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-                        tfp = tf.dataPtr();
+                        tf_arr = tf.array();
                         bctype = -1;
                     }
                     // In normal code operation only the fluxes at internal
                     // Dirichlet boundaries are used.  Some diagnostics use the
                     // fluxes computed at domain boundaries but these do not
                     // influence the evolution of the interior solution.
-                    Real* pSPa;
-                    Box SPabox;
+                    Array4<Real const> sp_arr;
                     if (SPa[level]) {
-                        pSPa = (*SPa[level])[mfi].dataPtr();
-                        SPabox = (*SPa[level])[mfi].box();
+                        sp_arr = (*SPa[level])[mfi].array();
                     }
-                    else {
-                        pSPa = &foo;
-                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-                    }
-                    getFaceMetric(r, reg, oitr(), geom[level]);
-                    hbflx3(BL_TO_FORTRAN(Flux[idim][mfi]),
-                           BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                           cdir, bctype, tfp, bho, bcl,
-                           BL_TO_FORTRAN_N(fs, bdcomp),
-                           BL_TO_FORTRAN(msk),
-                           BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-                           beta, geom[level].CellSize(),
-                           flux_factor, r.dataPtr(), inhom,
-                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+
+                    HABEC::hbflx3(Flux[idim][mfi].array(),
+                                  Soln[mfi].array(icomp),
+                                  reg,
+                                  cdir, bctype,
+                                  tf_arr,
+                                  bho, bcl,
+                                  fs.array(bdcomp),
+                                  msk.array(),
+                                  (*bcoefs[level])[idim][mfi].array(),
+                                  beta, geom[level].CellSize(),
+                                  flux_factor, oitr(),
+                                  geom[level].data(), inhom,
+                                  sp_arr);
                 }
                 else {
-                    hbflx(BL_TO_FORTRAN(Flux[idim][mfi]),
-                          BL_TO_FORTRAN_N(Soln[mfi], icomp),
-                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-                          cdir, bct, bho, bcl,
-                          BL_TO_FORTRAN_N(fs, bdcomp),
-                          BL_TO_FORTRAN(msk),
-                          BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-                          beta, geom[level].CellSize(), inhom);
+                    HABEC::hbflx(Flux[idim][mfi].array(),
+                                 Soln[mfi].array(icomp),
+                                 reg,
+                                 cdir, bct, bho, bcl,
+                                 fs.array(bdcomp),
+                                 msk.array(),
+                                 (*bcoefs[level])[idim][mfi].array(),
+                                 beta, geom[level].CellSize(), inhom);
                 }
             }
         }

@@ -142,7 +142,7 @@ castro.riemann_solver = 0
 
 # For the CG Riemann solver, we need to tell the solver not to quit when 
 # the iterations don't converge, but instead to do additional bisection iteration.
-castro.cg_blend = 2
+castro.riemann_cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
@@ -187,9 +187,6 @@ castro.dtnuc_e = 1.e200
 
 # Limit timestep based on nuclear burning considerations (changes in species)
 castro.dtnuc_X = 1.e200
-
-# Which method to use for estimating de/dt and dX/dt
-castro.dtnuc_mode = 1
 
 # Minimum temperature for allowing nuclear burning
 castro.react_T_min = 1.0e7

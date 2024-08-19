@@ -1,0 +1,89 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 1000000
+stop_time =  1.0
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0       0
+geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0.0     0.0
+geometry.prob_hi     = 4.e8    4.e8
+amr.n_cell           = 400     400
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  3   3
+castro.hi_bc       =  2   2
+
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 1
+castro.add_ext_src   = 0
+castro.do_grav = 1
+castro.do_sponge = 1
+
+castro.ppm_type = 1
+castro.grav_source_type = 2
+castro.use_pslope = 1
+castro.pslope_cutoff_density = 1.e4
+
+castro.react_rho_min = 100.0
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav   = -1.1742e9
+
+# TIME STEP CONTROL
+castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.1     # max time step growth
+
+# SPONGE
+castro.sponge_upper_density = 5.0e4
+castro.sponge_lower_density = 8.0e1
+castro.sponge_timescale     = 1.0e-3
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+castro.time_integration_method = 3 # uses SDC by default
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 64 
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = planar_chk    # root name of checkpoint file
+amr.check_int       = 200       # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = planar_plt    # root name of plotfile
+amr.plot_int        = -1       # number of timesteps between plotfiles
+amr.plot_per        = 0.002   #simulation time (s) between plotfiles
+amr.derive_plot_vars = ALL
+
+# PROBLEM PARAMETERS
+problem.model_name =  "toy_subch.hse.tanh.delta_50.00km.dx_10.00km"
+
+problem.pert_temp_factor = 20.0
+problem.pert_rad_factor = 0.5
+problem.R_pert = 1.e7
+
+# MICROPHYSICS
+integrator.jacobian = 1
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
+
+integrator.atol_spec = 1.e-6
+integrator.rtol_spec = 1.e-6

@@ -1,5 +1,4 @@
 #include <Castro.H>
-#include <Castro_F.H>
 
 #include <Gravity.H>
 
@@ -11,13 +10,11 @@
 using namespace amrex;
 
 void
-Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
+Castro::construct_old_gravity (Real time)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     BL_PROFILE("Castro::construct_old_gravity()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -41,16 +38,24 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
     // difference between the multilevel and the single level solutions.
     // Note that we don't need to do this solve for single-level runs,
     // since the solution at the end of the last timestep won't have changed.
+    // Similarly, we can skip this if we aren't subcycling on this level
+    // or all levels above this level, since the new-time composite solve
+    // at the new time in the last step will still be valid.
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && parent->finestLevel() > 0)
+    bool do_old_solve = true;
+
+    if (parent->subcyclingMode() == "None" || parent->finestLevel() == 0) {
+        do_old_solve = false;
+    }
+
+    if (gravity->get_gravity_type() == "PoissonGrav" && do_old_solve)
     {
-
         // Create a copy of the current (composite) data on this level.
 
         MultiFab comp_phi;
         Vector<std::unique_ptr<MultiFab> > comp_gphi(AMREX_SPACEDIM);
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             comp_phi.define(phi_old.boxArray(), phi_old.DistributionMap(), phi_old.nComp(), phi_old.nGrow());
             MultiFab::Copy(comp_phi, phi_old, 0, 0, phi_old.nComp(), phi_old.nGrow());
@@ -77,7 +82,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
                                amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level)),
                                is_new);
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+        if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
 
             // Subtract the level solve from the composite solution.
 
@@ -108,23 +113,38 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
             gravity->test_level_grad_phi_prev(level);
 
         }
- 
+
     }
 
     // Define the old gravity vector.
 
     gravity->get_old_grav_vector(level, grav_old, time);
 
+    if (verbose > 0)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << " on level "
+                       << llevel << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
-Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
+Castro::construct_new_gravity (Real time)
 {
-
-    amrex::ignore_unused(amr_iteration);
-    amrex::ignore_unused(amr_ncycle);
-
     BL_PROFILE("Castro::construct_new_gravity()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& grav_new = get_new_data(Gravity_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -144,80 +164,96 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     }
 
-    // If we're doing Poisson gravity, do the new-time level solve here.
+    // If we're doing Poisson gravity, do the new-time level or composite solve here.
 
     if (gravity->get_gravity_type() == "PoissonGrav")
     {
+        if (level == 0 && parent->subcyclingMode() == "None") {
+            if (castro::verbose > 0) {
+                amrex::Print() << "\n... new-time composite Poisson gravity solve from level " << level << " to level " << parent->finestLevel() << std::endl << std::endl;
+            }
 
-        // Use the "old" phi from the current time step as a guess for this solve.
+            // Use the "old" phi from the current time step as a guess for this solve.
 
-        MultiFab& phi_old = get_old_data(PhiGrav_Type);
+            for (int lev = level; lev <= parent->finestLevel(); ++lev) {
+                MultiFab& lev_phi_old = getLevel(lev).get_old_data(PhiGrav_Type);
+                MultiFab& lev_phi_new = getLevel(lev).get_new_data(PhiGrav_Type);
 
-        MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
+                MultiFab::Copy(lev_phi_new, lev_phi_old, 0, 0, 1, lev_phi_new.nGrow());
+            }
 
-        // Subtract off the (composite - level) contribution for the purposes
-        // of the level solve. We'll add it back later.
-
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
-            phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+            gravity->multilevel_solve_for_new_phi(level, parent->finestLevel());
         }
+        else if (parent->subcyclingMode() != "None") {
+            // Use the "old" phi from the current time step as a guess for this solve.
 
-        if (castro::verbose && ParallelDescriptor::IOProcessor()) {
-            std::cout << "... new-time level Poisson gravity solve at level " << level << std::endl << std::endl;
-        }
+            MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
-        int is_new = 1;
+            MultiFab::Copy(phi_new, phi_old, 0, 0, 1, phi_new.nGrow());
 
-        gravity->solve_for_phi(level,
-                               phi_new,
-                               amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
-                               is_new);
+            // Subtract off the (composite - level) contribution for the purposes
+            // of the level solve. We'll add it back later.
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+            if (gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+                phi_new.minus(comp_minus_level_phi, 0, 1, 0);
+            }
 
-            if (gravity->test_results_of_solves() == 1) {
+            if (castro::verbose && ParallelDescriptor::IOProcessor()) {
+                std::cout << "... new-time level Poisson gravity solve at level " << level << std::endl << std::endl;
+            }
 
-                if (castro::verbose && ParallelDescriptor::IOProcessor()) {
-                    std::cout << " " << '\n';
-                    std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
+            int is_new = 1;
+
+            gravity->solve_for_phi(level,
+                                   phi_new,
+                                   amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level)),
+                                   is_new);
+
+            if (gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel() && level <= gravity->get_max_solve_level()) {
+
+                if (gravity->test_results_of_solves() == 1) {
+
+                    if (castro::verbose && ParallelDescriptor::IOProcessor()) {
+                        std::cout << " " << '\n';
+                        std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
+                    }
+
+                    gravity->test_level_grad_phi_curr(level);
+
                 }
 
-                gravity->test_level_grad_phi_curr(level);
+                // Add back the (composite - level) contribution. This ensures that
+                // if we are not doing a sync solve, then we still get the difference
+                // between the composite and level solves added to the force we
+                // calculate, so it is slightly more accurate than it would have been.
 
-            }
-
-            // Add back the (composite - level) contribution. This ensures that
-            // if we are not doing a sync solve, then we still get the difference
-            // between the composite and level solves added to the force we
-            // calculate, so it is slightly more accurate than it would have been.
-
-            phi_new.plus(comp_minus_level_phi, 0, 1, 0);
-            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                gravity->get_grad_phi_curr(level)[n]->plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
-            }
-
-            if (gravity->test_results_of_solves() == 1) {
-
-                if (castro::verbose && ParallelDescriptor::IOProcessor()) {
-                    std::cout << " " << '\n';
-                    std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
+                phi_new.plus(comp_minus_level_phi, 0, 1, 0);
+                for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                    gravity->get_grad_phi_curr(level)[n]->plus(*comp_minus_level_grad_phi[n], 0, 1, 0);
                 }
 
-                gravity->test_level_grad_phi_curr(level);
+                if (gravity->test_results_of_solves() == 1) {
+
+                    if (castro::verbose && ParallelDescriptor::IOProcessor()) {
+                        std::cout << " " << '\n';
+                        std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
+                    }
+
+                    gravity->test_level_grad_phi_curr(level);
+
+                }
 
             }
-
         }
-
     }
 
     // Define new gravity vector.
 
     gravity->get_new_grav_vector(level, grav_new, time);
 
-    if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level()) {
+    if (gravity->get_gravity_type() == "PoissonGrav" && level <= gravity->get_max_solve_level() && parent->subcyclingMode() != "None") {
 
-        if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
+        if (gravity->DoCompositeCorrection() == 1 && level < parent->finestLevel()) {
 
             // Now that we have calculated the force, if we are going to do a sync
             // solve then subtract off the (composite - level) contribution, as it
@@ -242,6 +278,23 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     }
 
+    if (verbose > 0)
+    {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
@@ -279,7 +332,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
         Array4<Real> const source_arr = source.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             // Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -337,9 +390,9 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
             }
 #endif
 
-            Real SrE;
+            Real SrE{};
 
-            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {
+            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {  // NOLINT(bugprone-branch-clone)
 
                 // Src = rho u dot g, evaluated with all quantities at t^n
 
@@ -382,19 +435,20 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
     if (castro::verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
-
 }
 
 void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
@@ -447,7 +501,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
             Array4<Real> const source_arr  = source.array(mfi);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 GpuArray<Real, NSRC> src{};
 
@@ -536,7 +590,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
                 // Correct energy
 
-                Real SrEcorr;
+                Real SrEcorr{};
 
                 if (castro::grav_source_type == 1) {
 
@@ -619,15 +673,17 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
     if (castro::verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

@@ -12,7 +12,7 @@ DIM ?= 3
 
 USE_GRAV ?= TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS = 1
 
 COMP ?= gnu
@@ -23,7 +23,7 @@ NETWORK_DIR ?= general_null
 
 NETWORK_INPUTS = ignition.net
 
-PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/gravity_tests/advecting_white_dwarf
+PROBLEM_DIR ?= ./
 
 Blocs = $(PROBLEM_DIR)
 Bpack = $(PROBLEM_DIR)/Make.package

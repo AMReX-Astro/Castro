@@ -1,7 +1,6 @@
 /* Implementations of functions in Problem.H go here */
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -21,8 +20,8 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     Castro& castro = dynamic_cast<Castro&>(*amr_level[n]);
     Real time = castro.get_state_data(State_Type).curTime();
 
-    const int* domain_lo = castro.geom.Domain().loVect();
-    const int* domain_hi = castro.geom.Domain().hiVect();
+    auto domain_lo = castro.geom.Domain().loVect3d();
+    auto domain_hi = castro.geom.Domain().hiVect3d();
 
     // the state data
     MultiFab& S = castro.get_new_data(State_Type);
@@ -33,12 +32,18 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 #ifdef TRUE_SDC
     // if we are fourth-order, we need to convert to averages
     if (sdc_order == 4) {
-      for (MFIter mfi(*analytic); mfi.isValid(); ++mfi) {
+        FArrayBox tmp;
 
-        const Box& gbx = mfi.growntilebox(1);
-        ca_make_fourth_in_place(AMREX_INT_ANYD(gbx.loVect()), AMREX_INT_ANYD(gbx.hiVect()),
-                                BL_TO_FORTRAN_FAB((*analytic)[mfi]),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+        for (MFIter mfi(*analytic); mfi.isValid(); ++mfi) {
+
+            const Box& bx = mfi.tilebox();
+            tmp.resize(bx, 1);
+            auto tmp_arr = tmp.array();
+
+            castro.make_fourth_in_place(bx,
+                                        analytic->array(mfi),
+                                        tmp_arr,
+                                        domain_lo, domain_hi);
 
       }
     }
@@ -48,7 +53,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     MultiFab::Subtract(*analytic, S, UTEMP, 0, 1, 0);
 
     err = std::max(err, analytic->norm0());
-    
+
 
   }
 

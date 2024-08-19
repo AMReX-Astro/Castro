@@ -3,6 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
+#include <global.H>
 #include <network.H>
 #include <model_parser.H>
 #include <initial_model.H>
@@ -145,8 +146,14 @@ void problem_initialize ()
     // lower boundary, we'll add 4 ghostcells to this, so we need to
     // compute dx
 
+    // we use the fine grid dx for the model resolution
+    auto fine_geom = global::the_amr_ptr->Geom(global::the_amr_ptr->maxLevel());
+
+    auto dx = fine_geom.CellSizeArray();
+    auto dx_model = dx[AMREX_SPACEDIM-1];
+
     int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] - problo[AMREX_SPACEDIM-1]) /
-                                    problem::dx_model);
+                                    dx_model);
 
     int ng = 4;
 
@@ -163,7 +170,7 @@ void problem_initialize ()
     model_params.low_density_cutoff = problem::low_density_cutoff;
 
     generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 0);
 
@@ -173,7 +180,7 @@ void problem_initialize ()
     model_params.T_hi = model_params.T_hi + problem::dtemp;
 
     generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 1);
 

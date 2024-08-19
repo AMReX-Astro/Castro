@@ -10,9 +10,7 @@ cutoff_density         real            1.e-8_rt                     y
 
 refine_cutoff_frac     real            0.5_rt                       y
 
-refine_cutoff_height   real            0.0_rt 
-
-nx_model               integer         128                          y
+refine_cutoff_height   real            0.0_rt
 
 T_hi                   real            5.e8_rt                      y
 
@@ -26,17 +24,17 @@ H_star                 real            500e0_rt                     y
 
 atm_delta              real            25.0e0_rt                    y
 
-fuel1_name             character       "fuel"                       y
+fuel1_name             string          "fuel"                       y
 
-fuel2_name             character       ""                           y
+fuel2_name             string          ""                           y
 
-fuel3_name             character       ""                           y
+fuel3_name             string          ""                           y
 
-ash1_name              character       "inert"                      y
+ash1_name              string          "inert"                      y
 
-ash2_name              character       ""                           y
+ash2_name              string          ""                           y
 
-ash3_name              character       ""                           y
+ash3_name              string          ""                           y
 
 fuel1_frac             real            1.0_rt                       y
 
@@ -53,4 +51,3 @@ ash3_frac              real            0.0_rt                       y
 low_density_cutoff     real            1.e-4_rt                     y
 
 smallx                 real            1.e-10_rt                    y
-

@@ -1,6 +1,5 @@
 
 #include <Castro.H>
-#include <Castro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -31,6 +30,9 @@ Castro::do_advance_sdc (Real time,
 
   // this is the new "formal" SDC integration routine.
 
+  amrex::ignore_unused(amr_iteration);
+  amrex::ignore_unused(amr_ncycle);
+
   // this does the entire update in time for 1 SDC iteration.
 
   BL_PROFILE("Castro::do_advance_sdc()");
@@ -44,13 +46,11 @@ Castro::do_advance_sdc (Real time,
   auto domain_lo = geom.Domain().loVect3d();
   auto domain_hi = geom.Domain().hiVect3d();
 
+  advance_status status {};
+
   // Perform initialization steps.
 
-  initialize_do_advance(time);
-
-  // Check for NaN's.
-
-  check_for_nan(S_old);
+  status = initialize_do_advance(time, dt);
 
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
@@ -93,62 +93,58 @@ Castro::do_advance_sdc (Real time,
 
       // TODO: this is not using the density at the current stage
 #ifdef GRAVITY
-      construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
+      construct_old_gravity(prev_time);
 #endif
 
       if (apply_sources()) {
-#ifndef AMREX_USE_GPU
-        if (sdc_order == 4) {
-          // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
-          // we'll use Sburn for this memory buffer at the moment
+          if (sdc_order == 4) {
+              // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+              // we'll use Sburn for this memory buffer at the moment
 
-          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-            const Box& gbx = mfi.growntilebox(1);
+              for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+                  const Box& gbx = mfi.growntilebox(1);
 
-            make_cell_center(gbx, Sborder.array(mfi), Sburn.array(mfi), domain_lo, domain_hi);
+                  make_cell_center(gbx, Sborder.array(mfi), Sburn.array(mfi), domain_lo, domain_hi);
 
+              }
+
+              // we pass in the stage time here
+              do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state);
+
+              // fill the ghost cells for the sources -- note since we have
+              // not defined the new_source yet, we either need to copy this
+              // into new_source for the time-interpolation in the ghost
+              // fill to make sense, or so long as we are not multilevel,
+              // just use the old time (prev_time) in the fill instead of
+              // the node time (time)
+              AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+
+              // Now convert to cell averages.  This loop cannot be tiled.
+              FArrayBox tmp;
+
+              for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+                  const Box& bx = mfi.tilebox();
+
+                  tmp.resize(bx, 1, The_Async_Arena());
+                  auto tmp_arr = tmp.array();
+
+                  make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
+              }
+
+          } else {
+              // there is a ghost cell fill hidden in diffusion, so we need
+              // to pass in the time associate with Sborder
+              do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state);
           }
 
-          // we pass in the stage time here
-          do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state);
-
-          // fill the ghost cells for the sources -- note since we have
-          // not defined the new_source yet, we either need to copy this
-          // into new_source for the time-interpolation in the ghost
-          // fill to make sense, or so long as we are not multilevel,
-          // just use the old time (prev_time) in the fill instead of
-          // the node time (time)
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
-
-          // Now convert to cell averages.  This loop cannot be tiled.
-          FArrayBox tmp;
-
-          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-            const Box& bx = mfi.tilebox();
-
-            tmp.resize(bx, 1);
-            Elixir elix_tmp = tmp.elixir();
-            auto tmp_arr = tmp.array();
-
-            make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
+          // note: we don't need a FillPatch on the sources, since they
+          // are only used in the valid box in the conservative flux
+          // update construction.  The only exception is if we are doing
+          // the well-balanced method in the reconstruction of the
+          // pressure.
+          if (sdc_order == 2 && use_pslope == 1) {
+              AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
           }
-
-        } else {
-          // there is a ghost cell fill hidden in diffusion, so we need
-          // to pass in the time associate with Sborder
-          do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state);
-        }
-
-        // note: we don't need a FillPatch on the sources, since they
-        // are only used in the valid box in the conservative flux
-        // update construction.  The only exception is if we are doing
-        // the well-balanced method in the reconstruction of the
-        // pressure.
-        if (sdc_order == 2 && use_pslope == 1) {
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
-        }
-#endif
-
       }
 
       // Now compute the advective term for the current node -- this
@@ -165,10 +161,6 @@ Castro::do_advance_sdc (Real time,
       if (do_hydro) {
         // Check for CFL violations.
         check_for_cfl_violation(S_old, dt);
-
-        // If we detect one, return immediately.
-        if (cfl_violation)
-          return dt;
       }
 
       // construct the update for the current stage -- this fills
@@ -277,7 +269,7 @@ Castro::do_advance_sdc (Real time,
     AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
-  finalize_do_advance();
+  status = finalize_do_advance(cur_time, dt);
 
 #ifdef REACTIONS
   // store the reaction information as well.  Note: this will be
@@ -312,27 +304,19 @@ Castro::do_advance_sdc (Real time,
 
     if (sdc_order == 4) {
 
-      // convert S_new to cell-centers
-      U_center.resize(obx, NUM_STATE);
-      Elixir elix_u_center = U_center.elixir();
-      auto const U_center_arr = U_center.array();
-
-      make_cell_center(obx, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
-
-      // pass in the reaction source and state at centers, including one ghost cell
-      // and derive everything that is needed including 1 ghost cell
-      R_center.resize(obx, R_new.nComp());
-      Elixir elix_r_center = R_center.elixir();
+      // pass in the reaction source at centers (Sburn_arr), including
+      // one ghost cell and derive everything that is needed including
+      // 1 ghost cell
+      R_center.resize(obx, R_new.nComp(), The_Async_Arena());
       auto const R_center_arr = R_center.array();
 
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
 
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(obx, Sburn_arr, U_center_arr, R_center_arr);
+      ca_store_reaction_state(obx, Sburn_arr, R_center_arr);
 
       // convert R_new from centers to averages in place
-      tmp.resize(bx, 1);
-      Elixir elix_tmp = tmp.elixir();
+      tmp.resize(bx, 1, The_Async_Arena());
       auto const tmp_arr = tmp.array();
 
       make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
@@ -343,13 +327,10 @@ Castro::do_advance_sdc (Real time,
     } else {
 
       Array4<const Real> const R_old_arr = R_old[SDC_NODES-1]->array(mfi);
-      Array4<const Real> const S_new_arr = S_new.array(mfi);
       Array4<Real> const R_new_arr = R_new.array(mfi);
+
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(bx,
-                              R_old_arr,
-                              S_new_arr,
-                              R_new_arr);
+      ca_store_reaction_state(bx, R_old_arr, R_new_arr);
     }
 
   }

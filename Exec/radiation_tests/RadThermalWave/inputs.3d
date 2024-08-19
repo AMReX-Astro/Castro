@@ -70,7 +70,7 @@ castro.change_max     = 1.05
 
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.do_reflux      = 1       # 1 => do refluxing
-castro.gravity        = 0
+castro.do_grav        = 0
 
 castro.do_hydro       = 0
 castro.do_react       = 0

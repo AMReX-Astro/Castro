@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('agg')
-
-import numpy as np
+# render Abar for the subchandra problem setup
 
 import sys
 
+import matplotlib
+import numpy as np
+
 import yt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-#from yt.visualization.volume_rendering.render_source import VolumeSource
-from yt.visualization.volume_rendering.api import create_volume_source, Scene
 from yt.units import cm
+#from yt.visualization.volume_rendering.render_source import VolumeSource
+from yt.visualization.volume_rendering.api import Scene, create_volume_source
 
-# this is for the wdconvect problem
+matplotlib.use('agg')
+
 
 def doit(plotfile):
 
@@ -25,13 +25,6 @@ def doit(plotfile):
     ds._get_field_info(field).take_log = False
 
     sc = Scene()
-
-
-    # add a volume: select a sphere
-    #center = (0, 0, 0)
-    #R = (5.e8, 'cm')
-
-    #dd = ds.sphere(center, R)
 
     vol = create_volume_source(ds.all_data(), field=field)
     sc.add_source(vol)
@@ -71,14 +64,16 @@ def doit(plotfile):
 
     cam.switch_orientation(normal_vector=normal, north_vector=[0., 0., 1.])
     cam.set_width(ds.domain_width)
-    #cam.zoom(3.0)
+    cam.zoom(3.0)
     sc.camera = cam
 
     sc.save_annotated("{}_abar_annotated.png".format(plotfile),
+                      label_fontsize="18", label_fmt="%.1f",
+                      sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
-                                      dict(horizontalalignment="left")],
-                                     [(0.5,0.95),
+                                      f"t = {ds.current_time.d:6.3f}",
+                                      dict(horizontalalignment="left", fontsize="18")],
+                                     [(0.5, 0.95),
                                       "Castro simulation of double detonation SN Ia",
                                       dict(color="y", fontsize="24",
                                            horizontalalignment="center")]])

@@ -77,80 +77,94 @@ void problem_source (int i, int j, int k,
         // Do the same thing for the kinetic energy update.
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UEDEN) += rhoInv * mom[dir] * Sr[dir];
-        }        
+        }
     }
 
-    // Now do the radial drift source terms.
+    // This is an inspiral driving force that is inspired by Pakmor et al. 2021
+    // (https://academic.oup.com/mnras/article-abstract/503/4/4734/6166776),
+    // where a constant drift velocity is applied (see Equation 1 and 2, and note that the
+    // denominator in Equation 2 is missing a factor of a). Their approach simplifies to
+    // dv/dt = -0.5 * v * (da/dt) / a, so we can achieve a similar effect by choosing as
+    // a parameter the ratio [(da/dt) / a], which should be relatively small. To match their
+    // method, we choose da/dt to be measured with respect to the initial velocity (relative to
+    // the center of mass) so that it is fixed, while the a in the denominator will be the
+    // current distance. We do not apply this force until the relaxation phase has completed.
 
-    if (problem::problem == 1 && radial_damping_factor > 0.0_rt) {
+    bool do_radial_damping = false;
 
-        // The logic for which dynamical timescale to use and
-        // how to do the implicit coupling follows the reasoning
-        // described above for the relaxation damping.
+    if (problem::problem == 1 && problem::radial_damping_velocity_factor > 0.0_rt && problem::radial_damping_is_done != 1) {
+        do_radial_damping = true;
+    }
 
-        const Real dynamical_timescale = amrex::max(t_ff_P, t_ff_S);
+    if (problem::problem == 1 && problem::relaxation_damping_factor > 0.0_rt && problem::relaxation_is_done != 1) {
+        do_radial_damping = false;
+    }
 
-        const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
+    if (do_radial_damping) {
+        GpuArray<Real, 3> acceleration = {0.0};
 
-        const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
+        // Calculate the current stellar distance.
 
-        GpuArray<Real, 3> loc;
-        GpuArray<Real, 3> vel;
-        GpuArray<Real, 3> mom;
+        Real a_curr = 0.0_rt;
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            a_curr += (problem::com_P[dir] - problem::com_S[dir]) * (problem::com_P[dir] - problem::com_S[dir]);
+        }
+        a_curr = std::sqrt(a_curr);
+
+        // Determine the initial orbital velocity of the reduced mass system.
+
+        Real v_init = 2.0_rt * M_PI * problem::a / castro::rotational_period;
+
+        if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), true) > 0.0_rt) {
+            GpuArray<Real, 3> v = {0.0_rt};
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v[dir] = problem::vel_P[dir];
+            }
+            if (castro::do_rotation == 1) {
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, v);
+            }
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                acceleration[dir] = -0.5_rt * (problem::radial_damping_velocity_factor * v_init / a_curr) * v[dir];
+            }
+        }
+        else if (stellar_mask(i, j, k, geomdata, state(i,j,k,URHO), false) > 0.0_rt) {
+            GpuArray<Real, 3> v = {0.0_rt};
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                v[dir] = problem::vel_S[dir];
+            }
+            if (castro::do_rotation == 1) {
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, v);
+            }
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                acceleration[dir] = -0.5_rt * (problem::radial_damping_velocity_factor * v_init / a_curr) * v[dir];
+            }
+        }
+
+        GpuArray<Real, 3> Sr = {0.0};
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            Sr[dir] = state(i,j,k,URHO) * acceleration[dir];
+        }
+
 #ifdef HYBRID_MOMENTUM
-        GpuArray<Real, 3> hybrid_mom;
-#endif
-        GpuArray<Real, 3> Sr;
-
-        auto rhoInv = 1.0_rt / state(i,j,k,URHO);
+        GpuArray<Real, 3> loc;
         position(i, j, k, geomdata, loc);
 
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            loc[dir] -= center[dir];
-            mom[dir] = state(i,j,k,UMX+dir);
-            vel[dir] = rhoInv * mom[dir];
-        }
-        auto R_prp = std::sqrt(loc[axis_1-1]*loc[axis_1-1] + loc[axis_2-1]*loc[axis_2-1]);
-        auto cosTheta = loc[axis_1-1] / R_prp;
-        auto sinTheta = loc[axis_2-1] / R_prp;
+        GpuArray<Real, 3> hybrid_Sr = {0.0};
+        linear_to_hybrid(loc, Sr, hybrid_Sr);
 
-        GpuArray<Real, 3> vel_i{vel};
-#ifdef ROTATION
-        rotational_to_inertial_velocity(i, j, k, geomdata, time, vel_i);
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            src(i,j,k,UMR+dir) += hybrid_Sr[dir];
+        }
 #endif
 
-        auto v_rad = cosTheta * vel_i[axis_1-1] + sinTheta * vel_i[axis_2-1];
-
-        // What we want to do is insert a negative radial drift acceleration. If continued
-        // for long enough, it will eventually drive coalescence of the binary. The
-        // restriction on how large the acceleration can be is guided by the dynamical
-        // properties of the system: it needs to be small enough that the WDs can be
-        // in approximate dynamical equilibrium at all times before significant mass
-        // transfer begins. So, if we write the force as
-        // d(v_rad) / dt = -|v_phi| / tau,
-        // where tau = radial_damping_factor * dynamical_timescale is the timescale
-        // and |v_phi| is the magnitude of the azimuthal velocity, then
-        // radial_damping_factor should be much greater than unity.
-
-        Sr[axis_1-1] = cosTheta * (state(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
-        Sr[axis_2-1] = sinTheta * (state(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
-        Sr[axis_3-1] = 0.0_rt;
+        Real rhoInv = 1.0_rt / state(i,j,k,URHO);
 
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UMX+dir) += Sr[dir];
+            src(i,j,k,UEDEN) += rhoInv * state(i,j,k,UMX+dir) * Sr[dir];
         }
-
-#ifdef HYBRID_MOMENTUM
-        linear_to_hybrid(loc, Sr, hybrid_mom);
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            src(i,j,k,UMR+dir) += hybrid_mom[dir];
-        }
-#endif
-
-        // The kinetic energy source term is v . Sr:
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            src(i,j,k,UEDEN) += rhoInv * mom[dir] * Sr[dir];
-        } 
     }
 }
 

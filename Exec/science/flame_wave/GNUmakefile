@@ -16,10 +16,10 @@ USE_ROTATION  = TRUE
 USE_DIFFUSION = TRUE
 
 # define the location of the CASTRO top directory
-CASTRO_HOME  := ../../..
+CASTRO_HOME  ?= ../../..
 
 USE_JACOBIAN_CACHING = TRUE
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 NUM_MODELS := 2
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
@@ -32,7 +32,9 @@ INTEGRATOR_DIR := VODE
 
 CONDUCTIVITY_DIR := stellar
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

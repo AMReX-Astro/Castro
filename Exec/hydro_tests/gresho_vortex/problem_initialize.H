@@ -1,4 +1,4 @@
-// This sets up the Gresho vortex problem as described in 
+// This sets up the Gresho vortex problem as described in
 // Miczek, Roeple, and Edelmann 2015
 //
 // By choosing the reference pressure, p0, we can specify the

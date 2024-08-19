@@ -29,11 +29,6 @@ castro.sdc_order=4
 castro.time_integration_method=2
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
-castro.sdc_solve_for_rhoe=1
-castro.sdc_solver_tol_spec=1.e-10
-castro.sdc_solver_tol_dens=1.e-10
-castro.sdc_solver_tol_ener=1.e-5
-castro.sdc_solver_atol=1.e-10
 castro.sdc_solver=1
 
 castro.grav_source_type = 2
@@ -76,8 +71,6 @@ problem.pert_width = 2.56e5
 problem.dens_base = 1.e7
 problem.temp_base = 1.0e8
 
-problem.nx_model = 512
-
 problem.do_pert = 1
 
 
@@ -97,7 +90,7 @@ amr.refine.tempgrad.field_name = Temp
 
 integrator.rtol_spec = 1.e-10
 integrator.atol_spec = 1.e-10
+integrator.rtol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-10
 
 network.small_x = 1.e-10
-
-integrator.rtol_enuc = 1.e-10

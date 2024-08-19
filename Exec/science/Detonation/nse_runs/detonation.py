@@ -27,11 +27,13 @@ class Profile:
         x_coord = np.array(ad['x'][srt])
         temp = np.array(ad['Temp'][srt])
         enuc = np.array(ad['enuc'][srt])
+        shock = np.array(ad['Shock'][srt])
 
         self.time = time
         self.x = x_coord
         self.T = temp
         self.enuc = enuc
+        self.shock = shock
 
     def find_x_for_T(self, T_0=1.e9):
         """ given a profile x(T), find the x_0 that corresponds to T_0 """

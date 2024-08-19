@@ -1,8 +1,11 @@
 #!/bin/bash
 
+# echo the commands
+set -x
+
 EXEC=./Castro2d.gnu.MPI.TRUESDC.ex
 
-CONV_TOOL=RichardsonConvergenceTest2d.gnu.ex 
+CONV_TOOL=RichardsonConvergenceTest2d.gnu.ex
 
 mpiexec -n 8 ${EXEC} inputs_2d.32 amr.plot_file=bubble_32_sdc4_plt >& 32.out
 mpiexec -n 8 ${EXEC} inputs_2d.64 amr.plot_file=bubble_64_sdc4_plt >& 64.out

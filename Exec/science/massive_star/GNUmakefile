@@ -1,4 +1,4 @@
-CASTRO_HOME := ../../..
+CASTRO_HOME ?= ../../..
 
 PRECISION  = DOUBLE
 PROFILE    = FALSE
@@ -13,11 +13,14 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
+
+USE_SIMPLIFIED_SDC = TRUE
+
 USE_NSE_TABLE    = TRUE
 
 BL_NO_FORT := TRUE
 
-USE_CXX_MODEL_PARSER = TRUE
+USE_MODEL_PARSER = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
@@ -27,9 +30,11 @@ NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
 
-MAX_NPTS_MODEL = 32768
+MAX_NPTS_MODEL = 65536
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

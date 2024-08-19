@@ -1,5 +1,5 @@
 
-# physical constants in cgs 
+# physical constants in cgs
 
 # Fundamental constants taken from NIST's 2010 CODATA recommended values
 
@@ -37,6 +37,6 @@ Rsun   = 6.955e11         # Solar radius
 Mbolsun = 4.7554          # Absolute Bolometric Magnitude of Sun
 
 # time
-year   = 3.1556926e7      # year in second 
+year   = 3.1556926e7      # year in second
 day    = 86400.0          # day in second
 

@@ -1,10 +1,8 @@
 #include "Castro.H"
-#include "Castro_F.H"
 #include "Castro_util.H"
 
 #include "Radiation.H"
 #include "RadHydro.H"
-#include "RAD_F.H"
 #include "fluxlimiter.H"
 
 using namespace amrex;
@@ -37,33 +35,28 @@ Castro::ctu_rad_consup(const Box& bx,
   const int coord_type = geom.Coord();
 
   GpuArray<Real, NGROUPS> Erscale = {0.0};
-
   GpuArray<Real, NGROUPS> dlognu = {0.0};
 
-  GpuArray<Real, NGROUPS> nugroup = {0.0};
-
-
-
   if (NGROUPS > 1) {
-    ca_get_nugroup(nugroup.begin());
-    ca_get_dlognu(dlognu.begin());
-
+    for (int g = 0; g < NGROUPS; ++g) {
+      dlognu[g] = radiation->dlognugroup[g];
+    }
     if (radiation::fspace_advection_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
       }
     } else {
       for (int g = 0; g < NGROUPS; g++) {
-        Erscale[g] = nugroup[g] * dlognu[g];
+        Erscale[g] = radiation->nugroup[g] * dlognu[g];
       }
     }
   }
 
 
-  // radiation energy update. 
+  // radiation energy update.
 
   amrex::ParallelFor(bx, NGROUPS,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int g) noexcept
   {
 
     Erout(i,j,k,g) = Erin(i,j,k,g) + dt *
@@ -81,7 +74,7 @@ Castro::ctu_rad_consup(const Box& bx,
   // directions
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // radiation contribution -- this is sum{lambda E_r}
@@ -169,7 +162,7 @@ Castro::ctu_rad_consup(const Box& bx,
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
     reduce_op.eval(bx, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real ux = 0.5_rt * (qx(i,j,k,GDU) + qx(i+1,j,k,GDU));
@@ -305,7 +298,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
       if (NGROUPS > 1) {
         Real ustar[NGROUPS];
-        for (int g = 0; g < NGROUPS; g++) { 
+        for (int g = 0; g < NGROUPS; g++) {
           ustar[g] = Erout(i,j,k,g) / Erscale[g];
         }
 

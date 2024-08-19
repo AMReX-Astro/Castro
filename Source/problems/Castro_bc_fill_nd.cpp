@@ -23,13 +23,13 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // valid data is always present.
 
     Vector<BCRec> bcr_noinflow{bcr};
-    for (int i = 0; i < bcr_noinflow.size(); ++i) {
+    for (auto & bc : bcr_noinflow) {
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            if (bcr_noinflow[i].lo(dir) == EXT_DIR) {
-                bcr_noinflow[i].setLo(dir, FOEXTRAP);
+            if (bc.lo(dir) == amrex::BCType::ext_dir) {
+                bc.setLo(dir, amrex::BCType::foextrap);
             }
-            if (bcr_noinflow[i].hi(dir) == EXT_DIR) {
-                bcr_noinflow[i].setHi(dir, FOEXTRAP);
+            if (bc.hi(dir) == amrex::BCType::ext_dir) {
+                bc.setHi(dir, amrex::BCType::foextrap);
             }
         }
     }
@@ -62,39 +62,39 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // corners.
 
 #if AMREX_SPACEDIM == 2
-    if ((bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
+    if ((bcr[URHO].lo(0) == amrex::BCType::ext_dir && bcr[URHO].lo(1) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].lo(0) == amrex::BCType::ext_dir && bcr[URHO].hi(1) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir && bcr[URHO].lo(1) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir && bcr[URHO].hi(1) == amrex::BCType::ext_dir)) {
         amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
 #if AMREX_SPACEDIM == 3
-    if ((bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zl corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zl corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zr corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zr corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zl corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zl corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zr corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
+    if ((bcr[URHO].lo(0) == amrex::BCType::ext_dir &&           // xl, yl, zl corner
+         (bcr[URHO].lo(1) == amrex::BCType::ext_dir || bcr[URHO].lo(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].lo(1) == amrex::BCType::ext_dir && bcr[URHO].lo(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].lo(0) == amrex::BCType::ext_dir &&           // xl, yr, zl corner
+         (bcr[URHO].hi(1) == amrex::BCType::ext_dir || bcr[URHO].lo(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].hi(1) == amrex::BCType::ext_dir && bcr[URHO].lo(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].lo(0) == amrex::BCType::ext_dir &&           // xl, yl, zr corner
+         (bcr[URHO].lo(1) == amrex::BCType::ext_dir || bcr[URHO].hi(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].lo(1) == amrex::BCType::ext_dir && bcr[URHO].hi(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].lo(0) == amrex::BCType::ext_dir &&           // xl, yr, zr corner
+         (bcr[URHO].hi(1) == amrex::BCType::ext_dir || bcr[URHO].hi(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].hi(1) == amrex::BCType::ext_dir && bcr[URHO].hi(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir &&           // xr, yl, zl corner
+         (bcr[URHO].lo(1) == amrex::BCType::ext_dir || bcr[URHO].lo(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].lo(1) == amrex::BCType::ext_dir && bcr[URHO].lo(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir &&           // xr, yr, zl corner
+         (bcr[URHO].hi(1) == amrex::BCType::ext_dir || bcr[URHO].lo(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].hi(1) == amrex::BCType::ext_dir && bcr[URHO].lo(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir &&           // xr, yl, zr corner
+         (bcr[URHO].lo(1) == amrex::BCType::ext_dir || bcr[URHO].hi(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].lo(1) == amrex::BCType::ext_dir && bcr[URHO].hi(2) == amrex::BCType::ext_dir) ||
+        (bcr[URHO].hi(0) == amrex::BCType::ext_dir &&           // xr, yr, zr corner
+         (bcr[URHO].hi(1) == amrex::BCType::ext_dir || bcr[URHO].hi(2) == amrex::BCType::ext_dir)) ||
+        (bcr[URHO].hi(1) == amrex::BCType::ext_dir && bcr[URHO].hi(2) == amrex::BCType::ext_dir)) {
         amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
@@ -117,7 +117,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         problem_bc_fill(i, j, k, state, time, bcs, geomdata);
     });

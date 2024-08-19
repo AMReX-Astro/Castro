@@ -64,7 +64,7 @@ Castro::trans_single(const Box& bx,
 
 
 void
-Castro::actual_trans_single(const Box& bx,
+Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                             int idir_t, int idir_n, int d,
                             Array4<Real const> const& q_arr,
                             Array4<Real> const& qo_arr,
@@ -108,7 +108,7 @@ Castro::actual_trans_single(const Box& bx,
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // We are handling the states at the interface of
@@ -165,8 +165,8 @@ Castro::actual_trans_single(const Box& bx,
         const Real volinv = 1.0_rt / vol(il,jl,kl);
 #endif
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
 #if AMREX_SPACEDIM == 2
             Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
@@ -521,7 +521,7 @@ Castro::trans_final(const Box& bx,
 
 
 void
-Castro::actual_trans_final(const Box& bx,
+Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                            int idir_n, int idir_t1, int idir_t2, int d,
                            Array4<Real const> const& q_arr,
                            Array4<Real> const& qo_arr,
@@ -544,7 +544,7 @@ Castro::actual_trans_final(const Box& bx,
     Real small_p = small_pres;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
         // the normal state
@@ -629,8 +629,8 @@ Castro::actual_trans_final(const Box& bx,
         // transverse terms and convert back to the primitive quantity.
 
         for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
             Real rrn = q_arr(i,j,k,QRHO);
             Real compn = rrn * q_arr(i,j,k,nqp);
