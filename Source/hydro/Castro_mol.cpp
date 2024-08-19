@@ -163,9 +163,9 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   const auto domhi = geom.Domain().hiVect3d();
 
   const auto dx = geom.CellSizeArray();
-  
-  bool lo_bc_test = lo_bc[idir] == Symmetry;
-  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+  bool lo_bc_test = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_bc_test = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   bool is_axisymmetric = geom.Coord() == 1
 ;

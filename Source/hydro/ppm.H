@@ -139,7 +139,7 @@ ppm_reconstruct(const Real* s,
                 Real dsvl_l = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
                     Real dsc = 0.5_rt * (s[i0] - s[im2]);
-                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 dsl = 2.0_rt * (s[i0] - s[im1]);
@@ -148,7 +148,7 @@ ppm_reconstruct(const Real* s,
                 Real dsvl_r = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
                     Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 // Interpolate s to edges
@@ -159,8 +159,8 @@ ppm_reconstruct(const Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+            sm = std::clamp(sm, std::min(s[i0], s[im1]), std::max(s[i0], s[im1]));
+
         }
 
         // now we compute s_{i+1/2} -- the right interface value for zone i
@@ -233,7 +233,7 @@ ppm_reconstruct(const Real* s,
                 Real dsvl_l = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
                     Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+                    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 dsl = 2.0_rt * (s[ip1] - s[i0]);
@@ -242,7 +242,7 @@ ppm_reconstruct(const Real* s,
                 Real dsvl_r = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
                     Real dsc = 0.5_rt * (s[ip2] - s[i0]);
-                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+                    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 // Interpolate s to edges
@@ -253,8 +253,8 @@ ppm_reconstruct(const Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+            sp = std::clamp(sp, std::min(s[ip1], s[i0]), std::max(s[ip1], s[i0]));
+
         }
 
         // Flatten the parabola

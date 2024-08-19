@@ -152,8 +152,8 @@ Castro::trace_ppm(const Box& bx,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
 
   // Trace to left and right edges using upwind PPM
@@ -651,5 +651,3 @@ Castro::trace_ppm(const Box& bx,
 
   });
 }
-
-
