@@ -22,20 +22,28 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = problem::dens;
 
-    Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen)/ width));
-    Real freq = problem::frequency * 2.0 * 3.1415926535897932384;
+    Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen) / width));
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
+    // linear interpolation factor
+    Real interp_factor = ((xcen - problo[0]) / (probhi[0] - problo[0])) / problem::trans_frac;
+
+    // clamp interp_factor between 0 and 1
+    interp_factor = std::min(std::max(interp_factor, 0.0_rt), 1.0_rt);
+
+    // create a smooth transition from xn_env (left side of domain)
+    // to xn_core (right side of domain)
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * (problem::xn_env[n] * std::sin(freq * i) + problem::xn_core[n] * (1.0 - std::sin(freq * i)));
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * ((1.0_rt - interp_factor) * problem::xn_env[n] +
+                                                  interp_factor * problem::xn_core[n]);
     }
 
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
     eos_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = problem::xn_core[n] + problem::xn_env[n];
+        eos_state.xn[n] = state(i,j,k,UFS+n) / state(i,j,k,URHO);
     }
 
     // normalize eos_state.xn

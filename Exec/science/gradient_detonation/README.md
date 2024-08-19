@@ -2,7 +2,7 @@
 
 This is a similar setup to `Detonation`, except that we want to study
 the impact of composition gradient on shock detection by applying
-a sinusoidal function to the composition.
+a linear interpolation function to the composition.
 
 A simple (carbon or helium) detonation.  The reaction network should
 be set through the GNUmakefile.
