@@ -3125,6 +3125,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                         X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                         std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("(i, j, k) = %d %d %d, X[%d] = %g  (density here is: %g)\n",
+                                            i, j, k, n, X, u(i,j,k,URHO));
 #endif
                     }
                 }
