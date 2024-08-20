@@ -27,7 +27,7 @@ To run this problem, use one of the convergence scripts:
     4. reflecting BCs with `use_pslope`
 
     These tests show that the best results (by far) come from
-    reflecting BCs wuth `use_pslope=1`, just like the PLM case.
+    reflecting BCs with `use_pslope=1`, just like the PLM case.
 
   * convergence_sdc.sh :
 
