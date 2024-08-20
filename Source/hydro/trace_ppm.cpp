@@ -225,7 +225,7 @@ Castro::trace_ppm(const Box& bx,
     amrex::Real p_m_hse{};
     amrex::Real p_p_hse{};
 
-    if (use_pslope) {
+    if (castro::use_pslope || castro::ppm_well_balanced) {
         Real trho[nslp];
         Real src[nslp];
 
