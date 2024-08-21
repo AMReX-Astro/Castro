@@ -29,12 +29,12 @@ void problem_initialize_state_data (int i, int j, int k,
     Real pres;
     if (r[AMREX_SPACEDIM-1] < problem::split[AMREX_SPACEDIM-1]) {
         pres = problem::p0_base - problem::rho_1 * r[AMREX_SPACEDIM-1];
-        state(i,j,k,UEDEN) = pres / (eos_gamma - 1.0_rt);
-        state(i,j,k,UEINT) = pres / (eos_gamma - 1.0_rt);
+        state(i,j,k,UEDEN) = pres / (eos_rp::eos_gamma - 1.0_rt);
+        state(i,j,k,UEINT) = pres / (eos_rp::eos_gamma - 1.0_rt);
     } else {
         pres = presmid - problem::rho_2 * (r[AMREX_SPACEDIM-1] - problem::split[AMREX_SPACEDIM-1]);
-        state(i,j,k,UEDEN) = pres / (eos_gamma - 1.0_rt);
-        state(i,j,k,UEINT) = pres / (eos_gamma - 1.0_rt);
+        state(i,j,k,UEDEN) = pres / (eos_rp::eos_gamma - 1.0_rt);
+        state(i,j,k,UEINT) = pres / (eos_rp::eos_gamma - 1.0_rt);
     }
 
     // doing it similar to 2d, will be something in x-z though
@@ -61,4 +61,3 @@ void problem_initialize_state_data (int i, int j, int k,
 
 }
 #endif
-

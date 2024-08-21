@@ -1341,7 +1341,7 @@ protected:
 ///
 /// Flag for indicating that we want to save prev_state until the reflux.
 ///
-    bool keep_prev_state;
+    bool keep_prev_state{};
 
 
 #ifdef TRUE_SDC
@@ -1418,8 +1418,8 @@ protected:
 
 
 ///
-/// for keeping track of the amount of CPU time used -- this will persist
-///     after restarts
+/// for keeping track of the amount of CPU or GPU time used -- this will persist
+/// after restarts
 ///
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;
