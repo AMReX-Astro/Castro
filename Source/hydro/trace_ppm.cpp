@@ -155,15 +155,8 @@ Castro::trace_ppm(const Box& bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-
     Real cc = qaux_arr(i,j,k,QC);
-
-#if AMREX_SPACEDIM < 3
-    Real csq = cc*cc;
-#endif
-
     Real un = q_arr(i,j,k,QUN);
-
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
@@ -640,5 +633,3 @@ Castro::trace_ppm(const Box& bx,
 
   });
 }
-
-
