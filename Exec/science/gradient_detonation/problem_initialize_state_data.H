@@ -24,8 +24,6 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen) / width));
 
-    state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
-
     // define the WD-accretion interface around the center of the domain
     Real delta = problem::delta;
     Real center = problo[0] + (probhi[0] - problo[0]) / 2; // center of domain
@@ -38,8 +36,16 @@ void problem_initialize_state_data (int i, int j, int k,
     // clamp interp_factor between 0 and 1
     interp_factor = std::min(std::max(interp_factor, 0.0_rt), 1.0_rt);
 
+    Real temperature = problem::T_l + (problem::T_r - problem::T_l) * interp_factor;
+
+    if (i < 2) {
+        temperature += problem::T_ign;
+    }
+    
     // create a smooth transition from xn_env (left side of domain)
     // to xn_core (right side of domain)
+    state(i,j,k,UTEMP) = temperature;
+
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * ((1.0_rt - interp_factor) * problem::xn_env[n] +
                                               interp_factor * problem::xn_core[n]);
