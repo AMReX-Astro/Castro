@@ -38,10 +38,10 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real temperature = problem::T_l + (problem::T_r - problem::T_l) * interp_factor;
 
-    if (i < 2) {
+    if (xcen < problem::hotspot_size) {
         temperature += problem::T_ign;
     }
-    
+
     // create a smooth transition from xn_env (left side of domain)
     // to xn_core (right side of domain)
     state(i,j,k,UTEMP) = temperature;

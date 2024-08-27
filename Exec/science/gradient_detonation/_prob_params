@@ -1,8 +1,10 @@
-T_l                  real          1.75e8_rt        y
+T_l                  real          1.75e8_rt      y
 
 T_r                  real          1.e7_rt        y
 
 T_ign                real          1.75e9_rt      y
+
+hotspot_size         real          40.e5_rt       y
 
 dens                 real          1.e8_rt        y
 
