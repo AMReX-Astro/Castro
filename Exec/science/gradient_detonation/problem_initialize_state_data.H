@@ -26,8 +26,14 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
+    // define the WD-accretion interface around the center of the domain
+    Real delta = problem::delta;
+    Real center = problo[0] + (probhi[0] - problo[0]) / 2; // center of domain
+    Real x_start = center - delta / 2.0_rt;
+    Real x_end = center + delta / 2.0_rt;
+
     // linear interpolation factor
-    Real interp_factor = ((xcen - problo[0]) / (probhi[0] - problo[0])) / problem::trans_frac;
+    Real interp_factor = (xcen - x_start) / (x_end - x_start);
 
     // clamp interp_factor between 0 and 1
     interp_factor = std::min(std::max(interp_factor, 0.0_rt), 1.0_rt);
@@ -36,7 +42,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // to xn_core (right side of domain)
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * ((1.0_rt - interp_factor) * problem::xn_env[n] +
-                                                  interp_factor * problem::xn_core[n]);
+                                              interp_factor * problem::xn_core[n]);
     }
 
     eos_t eos_state;

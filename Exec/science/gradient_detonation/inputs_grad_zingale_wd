@@ -9,7 +9,6 @@ geometry.prob_lo     = 0     0     0
 geometry.prob_hi     = 4.e7  2500  2500
 amr.n_cell           = 400   16    16
 
-
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
@@ -78,7 +77,7 @@ problem.smallx = 1.e-10
 problem.idir = 1
 
 problem.w_T = 1.e-3
-problem.center_T = 3.e-1
+problem.center_T = 0.05
 
 problem.nfrac_env = 0.01
 
