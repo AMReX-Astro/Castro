@@ -111,8 +111,6 @@ public:
 /// @param restart
 ///
   Radiation(amrex::Amr* Parent, class Castro* castro, int restart = 0);
-  ~Radiation() { }
-
 
 ///
 /// @param level

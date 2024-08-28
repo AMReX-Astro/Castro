@@ -21,38 +21,34 @@ class AuxVar {
 
   class Connex {
    public:
-    Connex() {
-      other = NULL;
-    }
+    Connex() :
+      other(nullptr)
+    {}
 
 ///
 /// @param p
 /// @param r
 ///
-    Connex(AuxVar* p, amrex::Real r) {
-      val   = r;
-      other = p;
-    }
+    Connex(AuxVar* p, amrex::Real r) :
+        val(r), other(p)
+    {}
 
 ///
 /// @param lev
 /// @param iv
 /// @param r
 ///
-    Connex(int lev, const amrex::IntVect& iv, amrex::Real r) {
-      val   = r;
-      index = iv;
-      level = lev;
-      other = NULL;
-    }
+    Connex(int lev, const amrex::IntVect& iv, amrex::Real r) :
+        val(r), index(iv), level(lev), other(nullptr)
+    {}
 
 ///
 /// @param c
 ///
-    bool same_target(const Connex& c) {
-      return ((other != NULL)
+    [[nodiscard]] bool same_target(const Connex& c) const {
+      return ((other != nullptr)
               ? (other == c.other)
-              : (c.other == NULL && level == c.level && index == c.index));
+              : (c.other == nullptr && level == c.level && index == c.index));
     }
 
     amrex::Real val;
@@ -63,8 +59,7 @@ class AuxVar {
 
  public:
 
-  AuxVar() : secondary_flag(0) {
-  }
+  AuxVar() = default;
 
 
 ///
@@ -72,7 +67,7 @@ class AuxVar {
 /// @param r
 ///
   void push(AuxVar* p, amrex::Real r) {
-    a.push_back(Connex(p,r));
+    a.emplace_back(p, r);
   }
 
 
@@ -82,7 +77,7 @@ class AuxVar {
 /// @param r
 ///
   void push(int lev, const amrex::IntVect& iv, amrex::Real r) {
-    a.push_back(Connex(lev,iv,r));
+    a.emplace_back(lev, iv, r);
   }
 
 
@@ -95,7 +90,7 @@ class AuxVar {
 /// @param p->secondary_flag
 ///
     if (p->secondary_flag == 0) { // don't count the same secondary twice
-      a.push_back(Connex(p,1.0));
+      a.emplace_back(p, 1.0);
       p->secondary_flag = 1;
     }
   }
@@ -104,7 +99,7 @@ class AuxVar {
     return a.empty();
   }
 
-  bool secondary() {
+  [[nodiscard]] bool secondary() const {
     return secondary_flag;
   }
 
@@ -128,7 +123,7 @@ class AuxVar {
  protected:
 
   std::list<Connex> a;
-  int secondary_flag;
+  int secondary_flag{};
 };
 
 ///
@@ -149,7 +144,7 @@ class AuxVarBox {
 /// @param bx
 ///
   AuxVarBox(const amrex::Box& bx) : domain(bx) {
-    int numpts = domain.numPts();
+    auto numpts = domain.numPts();
     dptr = new AuxVar[numpts];
   }
 
@@ -163,7 +158,7 @@ class AuxVarBox {
     return dptr[domain.index(p)];
   }
 
-  const amrex::Box& box() const {
+  [[nodiscard]] const amrex::Box& box() const {
     return domain;
   }
 
@@ -422,10 +417,10 @@ class HypreMultiABec {
                 const amrex::DistributionMapping& _dmap,
                 amrex::IntVect         _crse_ratio);
 
-  int crseLevel() {
+  [[nodiscard]] int crseLevel() const {
     return crse_level;
   }
-  int fineLevel() {
+  [[nodiscard]] int fineLevel() const {
     return fine_level;
   }
 
@@ -501,10 +496,10 @@ class HypreMultiABec {
 ///
   void setScalars(amrex::Real alpha, amrex::Real beta);
 
-  amrex::Real getAlpha() const {
+  [[nodiscard]] amrex::Real getAlpha() const {
     return alpha;
   }
-  amrex::Real getBeta() const {
+  [[nodiscard]] amrex::Real getBeta() const {
     return beta;
   }
 

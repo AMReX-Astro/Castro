@@ -23,12 +23,16 @@ class HypreExtMultiABec : public HypreMultiABec {
       a2coefs(fine_level+1),
       ccoefs( fine_level+1),
       d1coefs(fine_level+1),
-      d2coefs(fine_level+1),
-      alpha2(0.0), gamma(0.0), delta1(0.0), delta2(0.0)
-  {
-  }
+      d2coefs(fine_level+1)
+  {}
 
   ~HypreExtMultiABec();
+
+  HypreExtMultiABec(const HypreExtMultiABec& src) = delete;
+  HypreExtMultiABec(const HypreExtMultiABec&& src) = delete;
+
+  HypreExtMultiABec& operator= (const HypreExtMultiABec& src) = delete;
+  HypreExtMultiABec& operator= (const HypreExtMultiABec&& src) = delete;
 
   amrex::Real& a2Multiplier() {
     return alpha2;
@@ -134,7 +138,7 @@ class HypreExtMultiABec : public HypreMultiABec {
   amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > ccoefs;  ///< face-based, 2 component
   amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > d1coefs; ///< cell-based but directional
   amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, AMREX_SPACEDIM> > > d2coefs; ///< face-based
-  amrex::Real alpha2, gamma, delta1, delta2; ///< multipliers for the above
+  amrex::Real alpha2{}, gamma{}, delta1{}, delta2{}; ///< multipliers for the above
 };
 
 #endif

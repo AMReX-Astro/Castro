@@ -97,8 +97,7 @@ public:
 //@ManDoc: constructor specifying number of components and box of physical domain (cell-centered)
     RadBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                  int _ncomp, const ProxyGeometry& geom);
-//@ManDoc: destructor
-    virtual ~RadBndryData();
+
 //@ManDoc: allocate bndry fabs along given face
     void define(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                 int _ncomp, const ProxyGeometry& geom);
@@ -179,4 +178,3 @@ private:
 };
 
 #endif
-

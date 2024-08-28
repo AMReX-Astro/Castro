@@ -110,7 +110,7 @@ public:
 ///
   NGBndry* operator()(const amrex::BoxArray& _grids,
                       const amrex::DistributionMapping& _dmap,
-                      int _ncomp,
+                      int /* _ncomp */,
                       const amrex::Geometry& _geom) const {
       return new RadBndry(_grids, _dmap, _geom);
   }
