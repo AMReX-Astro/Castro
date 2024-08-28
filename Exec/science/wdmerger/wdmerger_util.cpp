@@ -658,7 +658,7 @@ void binary_setup ()
 
             Real v_P_r, v_S_r, v_P_phi, v_S_phi;
 
-            kepler_third_law(problem::radius_P, problem::mass_P, problem::radius_S, problem::mass_S,
+            kepler_third_law(problem::radius_P, problem::mass_P, problem::radius_S, problem::mass_S,  // NOLINT(readability-suspicious-call-argument)
                              castro::rotational_period, problem::orbital_eccentricity, problem::orbital_angle,
                              problem::a, problem::r_P_initial, problem::r_S_initial, v_P_r, v_S_r, v_P_phi, v_S_phi);
 
