@@ -152,6 +152,12 @@ class AuxVarBox {
     delete[] dptr;
   }
 
+  AuxVarBox(const AuxVarBox& src) = delete;
+  AuxVarBox(const AuxVarBox&& src) = delete;
+
+  AuxVarBox& operator= (const AuxVarBox& src) = delete;
+  AuxVarBox& operator= (const AuxVarBox&& src) = delete;
+
   AuxVar& operator()(const amrex::IntVect& p) {
     BL_ASSERT(!(dptr == 0));
     BL_ASSERT(domain.contains(p));

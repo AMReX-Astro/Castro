@@ -26,7 +26,7 @@ class HypreExtMultiABec : public HypreMultiABec {
       d2coefs(fine_level+1)
   {}
 
-  ~HypreExtMultiABec();
+  ~HypreExtMultiABec() override;
 
   HypreExtMultiABec(const HypreExtMultiABec& src) = delete;
   HypreExtMultiABec(const HypreExtMultiABec&& src) = delete;
@@ -113,12 +113,12 @@ class HypreExtMultiABec : public HypreMultiABec {
                         amrex::MultiFab& dest,
                         int icomp,
                         amrex::MultiFab& rhs, ///< will not be altered
-                        BC_Mode inhom);
+                        BC_Mode inhom) override;
   void loadLevelVectorB(int level,
                         amrex::MultiFab& rhs, ///< will not be altered
-                        BC_Mode inhom);
+                        BC_Mode inhom) override;
 
-  void loadMatrix();  ///< once all level coeffs and scalars have been set
+  void loadMatrix() override;  ///< once all level coeffs and scalars have been set
 
 
 ///

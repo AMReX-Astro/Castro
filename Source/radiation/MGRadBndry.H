@@ -27,23 +27,23 @@ public:
 /// @param geom
 /// @param ratio
 ///
-  virtual void setBndryConds(const amrex::BCRec& phys_bc,
-                             const amrex::Geometry& geom, amrex::IntVect& ratio);
+  void setBndryConds(const amrex::BCRec& phys_bc,
+                     const amrex::Geometry& geom, amrex::IntVect& ratio) override;
 
 
 ///
 /// @param bc
 /// @param phys_bc_mode
 ///
-  virtual void setBndryFluxConds(const amrex::BCRec& bc,
-                       const BC_Mode phys_bc_mode = Inhomogeneous_BC);
+  void setBndryFluxConds(const amrex::BCRec& bc,
+                         const BC_Mode phys_bc_mode = Inhomogeneous_BC) override;
 
 
 ///
 /// @param _face
 ///
-  virtual int mixedBndry(const amrex::Orientation& _face) const {
-    return (bcflag[_face] > 1) ? 1 : 0;
+   int mixedBndry(const amrex::Orientation& _face) const override {
+       return (bcflag[_face] > 1) ? 1 : 0;
   }
 
 
@@ -96,7 +96,7 @@ public:
   NGBndry* operator()(const amrex::BoxArray& _grids,
                       const amrex::DistributionMapping& _dmap,
                       int _ngroups,
-                      const amrex::Geometry& _geom) const {
+                      const amrex::Geometry& _geom) const override {
 
 ///
 /// @param _grids
