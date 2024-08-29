@@ -94,6 +94,21 @@ public:
 //@ManMemo: administrative functions
 //@ManDoc: default constructor
     RadBndryData() : amrex::BndryRegister() {};
+
+    ~RadBndryData() = default;
+
+    //
+    // Disabled!
+    //
+//@ManDoc: copy constructor
+    RadBndryData(const RadBndryData& src) = delete;
+//@ManDoc: copy operator
+    RadBndryData& operator = (const RadBndryData& src) = delete;
+//@ManDoc: move constructor
+    RadBndryData(const RadBndryData&& src) = delete;
+//@ManDoc: move operator
+    RadBndryData& operator = (const RadBndryData&& src) = delete;
+
 //@ManDoc: constructor specifying number of components and box of physical domain (cell-centered)
     RadBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                  int _ncomp, const ProxyGeometry& geom);
@@ -167,14 +182,6 @@ public:
     }
 
 
-private:
-    //
-    // Disabled!
-    //
-//@ManDoc: copy constructor
-    RadBndryData(const RadBndryData& src);
-//@ManDoc: copy operator
-    RadBndryData& operator = (const RadBndryData& src);
 };
 
 #endif

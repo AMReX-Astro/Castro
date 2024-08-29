@@ -341,7 +341,9 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 /// @param ori
 /// @param i
 ///
-  int size (const amrex::Orientation ori, int i) const { return aux[ori][i].size(); }
+  int size (const amrex::Orientation ori, int i) const {
+      return static_cast<int>(aux[ori][i].size());
+  }
 
   AuxVarBox& operator() (const amrex::Orientation ori, int i, int j) {
     return *aux[ori][i][j];
@@ -403,6 +405,11 @@ class HypreMultiABec {
 
   virtual ~HypreMultiABec();
 
+  HypreMultiABec(const HypreMultiABec& src) = delete;
+  HypreMultiABec(const HypreMultiABec&& src) = delete;
+
+  HypreMultiABec operator=(const HypreMultiABec& src) = delete;
+  HypreMultiABec operator=(const HypreMultiABec&& src) = delete;
 
 ///
 /// @param level

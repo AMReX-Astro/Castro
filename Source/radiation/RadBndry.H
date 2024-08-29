@@ -28,8 +28,6 @@ public:
   RadBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
            const amrex::Geometry& _geom, amrex::Real bv);
 
-  ~RadBndry();
-
 
 ///
 /// @param phys_bc

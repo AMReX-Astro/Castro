@@ -22,9 +22,6 @@ public:
              const int _ngroups,
              const amrex::Geometry& _geom);
 
-  ~MGRadBndry();
-
-
 ///
 /// @param phys_bc
 /// @param geom
