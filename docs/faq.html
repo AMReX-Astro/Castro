@@ -152,27 +152,35 @@ Castro directory hierarchy. make will look through the
 directories in the <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code> to find the files.</p>
 <p>There are 2 things you can do to check what’s happening. First, inspect
 the directories in <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code>. This can be done via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">print</span><span class="o">-</span><span class="n">VPATH_LOCATIONS</span>
-</pre></div>
-</div>
-<p>Next, ask make to tell you where it is finding each of the source
+<div class="highlight-default notranslate"><div class="highlight"><pre><style type="text/css">
+span.prompt1:before {
+  content: "$ ";
+}
+</style><span class="prompt1">make<span class="w"> </span>print-VPATH_LOCATIONS</span>
+</pre></div></div><p>Next, ask make to tell you where it is finding each of the source
 files. This is done through a script <code class="docutils literal notranslate"><span class="pre">find_files_vpath.py</span></code>
 that is hooked into Castro’s build system. You can run this as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">file_locations</span>
-</pre></div>
-</div>
-<p>At the end of the report, it will list any files it cannot find in
-the vpath. Some of these are to be expected (like <code class="docutils literal notranslate"><span class="pre">extern.f90</span></code>
-and <code class="docutils literal notranslate"><span class="pre">buildInfo.cpp</span></code>—these are written at compile-time. But any
-other missing files need to be investigated.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span>file_locations</span>
+</pre></div></div><p>At the end of the report, it will list any files it cannot find in
+the vpath. Some of these are to be expected (like
+<code class="docutils literal notranslate"><span class="pre">buildInfo.cpp</span></code>—these are written at compile-time). But any other
+missing files need to be investigated.</p>
+</li>
+<li><p><em>I put a copy of one of the header files (e.g. ``problem_tagging.H``)
+in my problem setup but it does not seem to recognized / used by
+the build system.  Why doesn’t my executable use my custom version
+of the header?</em></p>
+<p>This is likely due to compiler caching / ccache.  You need to
+clear the cache and the build:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">ccache<span class="w"> </span>-C</span>
+<span class="prompt1">make<span class="w"> </span>clean</span>
+</pre></div></div><p>Then rebuild and it should be recognized.</p>
 </li>
 <li><p><em>I’m still having trouble compiling. How can I find out what
 all of the make variables are set to?</em></p>
 <p>Use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">help</span>
-</pre></div>
-</div>
-<p>This will tell you the value of all the compilers and their options.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nb">help</span></span>
+</pre></div></div><p>This will tell you the value of all the compilers and their options.</p>
 </li>
 </ol>
 </section>
@@ -224,7 +232,7 @@ file (e.g. <code class="docutils literal notranslate"><span class="pre">BackTrac
 <li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
 <p>Given a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>, you can dump out the state as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">AMREX_D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span><span class="w"> </span><span class="n">IntVect</span><span class="p">(</span><span class="n">AMREX_D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">)));</span>
 </pre></div>
 </div>
 <p>Here, the IntVect has the dimension that we were compiled with
@@ -236,8 +244,8 @@ integer indices here refer to the global index space on that level.</p>
 <li><p><em>What if I want to see all the data in a FArrayBox?</em></p>
 <p>You can simply output a FAB to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code>. Imagine that you
 are in an MFIter loop, with a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S</span> <span class="o">=</span> <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
-<span class="n">std</span><span class="p">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">S</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="p">::</span><span class="n">endl</span><span class="p">;</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FArrayBox</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This will output the contents on the FAB, one zone per line.</p>
@@ -256,10 +264,8 @@ by compiling with</p>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>When you run, a file named <code class="docutils literal notranslate"><span class="pre">gmon.out</span></code> will be produced. This can
 be processed with gprof by running:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gprof</span> <span class="n">exec</span><span class="o">-</span><span class="n">name</span>
-</pre></div>
-</div>
-<p>where <em>exec-name</em> is the name of the executable. More detailed
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">gprof<span class="w"> </span>exec-name</span>
+</pre></div></div><p>where <em>exec-name</em> is the name of the executable. More detailed
 line-by-line information can be obtained by passing the -l
 argument to gprof.</p>
 </li>
@@ -271,10 +277,8 @@ argument to gprof.</p>
 <li><p><em>How can I force the running code to output, even it the plot or
 checkpoint interval parameters don’t require it?</em></p>
 <p>Create a file called <code class="docutils literal notranslate"><span class="pre">dump_and_continue</span></code>, e.g., as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">touch</span> <span class="n">dump_and_continue</span>
-</pre></div>
-</div>
-<p>This will force the code to output a checkpoint file that can be used
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">touch<span class="w"> </span>dump_and_continue</span>
+</pre></div></div><p>This will force the code to output a checkpoint file that can be used
 to restart. Other options are <code class="docutils literal notranslate"><span class="pre">plot_and_continue</span></code> to output
 a plotfile, <code class="docutils literal notranslate"><span class="pre">dump_and_stop</span></code> to output a checkpoint file
 and halt the code, and <code class="docutils literal notranslate"><span class="pre">stop_run</span></code> to simply stop the code.</p>
@@ -298,10 +302,8 @@ is overridden in the checkpoint code in AMReX).</p>
 </li>
 <li><p><em>How can I check the compilation parameters of a Castro executable?</em></p>
 <p>The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro</span><span class="o">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">describe</span>
-</pre></div>
-</div>
-</li>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">./Castro.exe<span class="w"> </span>--describe</span>
+</pre></div></div></li>
 </ol>
 </section>
 <section id="runtime-errors">
