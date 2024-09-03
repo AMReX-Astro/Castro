@@ -1,3 +1,52 @@
+# 24.09
+
+  * Code clean-ups / clang-tidy (#2942, #2949)
+
+  * update the `hse_convergence` readme to reflect current convergence
+    (#2946)
+
+  * update the `bubble_convergence` plotting script (#2947)
+
+  * new Frontier scaling numbers (#2948)
+
+  * more GPU error printing (@3944)
+
+  * science problem updates: `flame_wave` (#2943)
+
+  * documentation updates (#2939)
+
+# 24.08
+
+  * lazy QueueReduction has been enabled for the timing diagnostics
+    (#2926)
+
+  * The `job_info` file output now correctly labels the compute time
+    as GPU-hours instead of CPU-hours when running on GPUs (#2930)
+
+  * We can now output warnings when running on GPUs if you build
+    with `USE_GPU_PRINTF=TRUE`(#2923, #2928)
+
+  * Code clean-ups / sync with Microphysics (#2900, #2901, #2905,
+    #2906, #2909, #2912, #2919, #2922, #2932, #2933, #2936, #2938,
+    #2940)
+
+  * The area weighting in the diagnostics in `subch_planar` was fixed
+    (#2885)
+
+  * A script to produce a resolution study for the `circular_det`
+    problem was added (#2857)
+
+  * science problem updates: `xrb_layered` (#2917), `nova` (#2913),
+    `wdmerger` (#2907, #2918, #2931), `Detonation` (#2902)
+
+  * updated scaling results on Frontier (#2904, #2914, #2915)
+
+  * more exact Riemann solver clean-up (#2896, #2897, #2898)
+    and clean-ups to the two shock solvers (#2895)
+
+  * fix issues with eigenvectors and clang-tidy in the MHD solver
+    (#2880)
+
 # 24.07
 
   * Reorganizing of the existing 2-shock and HLL Riemann solvers
