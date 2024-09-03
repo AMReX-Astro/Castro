@@ -1,3 +1,20 @@
+# 24.09
+
+  * Code clean-ups / clang-tidy (#2942, #2949)
+
+  * update the `hse_convergence` readme to reflect current convergence
+    (#2946)
+
+  * update the `bubble_convergence` plotting script (#2947)
+
+  * new Frontier scaling numbers (#2948)
+
+  * more GPU error printing (@3944)
+
+  * science problem updates: `flame_wave` (#2943)
+
+  * documentation updates (#2939)
+
 # 24.08
 
   * lazy QueueReduction has been enabled for the timing diagnostics
