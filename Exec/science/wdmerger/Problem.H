@@ -27,11 +27,13 @@ void volInBoundary (amrex::Real time, amrex::Real& vol_p, amrex::Real& vol_s, am
 
 // Computes standard dot product of two three-vectors.
 
+static
 amrex::Real dot_product(const amrex::Real a[], const amrex::Real b[]);
 
 
 // Computes norm of a three vector.
 
+static
 amrex::Real norm(const amrex::Real a[]);
 
 // Problem post-initialization routine.
@@ -48,6 +50,7 @@ void problem_post_timestep();
 
 // Write out the git hashes for the various parts of the code.
 
+static
 void writeGitHashes(std::ostream& log);
 
 // Update relaxation process.
