@@ -27,7 +27,6 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
     return; // Skip for 1D
 #endif
 
-
     Real dxinv = 1.0_rt / dx[0];
     Real dyinv = 1.0_rt / dx[1];
 
