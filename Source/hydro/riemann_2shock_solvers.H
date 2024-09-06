@@ -5,6 +5,7 @@
 
 using namespace amrex::literals;
 
+#include <riemann_constants.H>
 #include <riemann_type.H>
 #ifdef RADIATION
 #include <Radiation.H>
@@ -28,7 +29,7 @@ namespace TwoShock {
 
       // CG Eq. 31
       gstar = (pstar-p)*gdot/(pstar+p) + gam;
-      gstar = amrex::max(gmin, amrex::min(gmax, gstar));
+      gstar = std::clamp(gstar, gmin, gmax);
 
       // Now use that predicted value of game with the R-H jump conditions
       // to compute the wave speed.
@@ -60,7 +61,7 @@ namespace TwoShock {
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
                     const int lriemann_shock_maxiter, const amrex::Real lriemann_pstar_tol,
                     amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
+                    bool& converged, amrex::GpuArray<amrex::Real, riemann_constants::PSTAR_BISECT_FACTOR * riemann_constants::HISTORY_SIZE>& pstar_hist_extra) {
 
       // we want to zero
       // f(p*) = u*_l(p*) - u*_r(p*)
@@ -106,7 +107,7 @@ namespace TwoShock {
       converged = false;
       amrex::Real pstar_c = 0.0;
 
-      for (int iter = 0; iter < PSTAR_BISECT_FACTOR * lriemann_shock_maxiter; iter++) {
+      for (int iter = 0; iter < riemann_constants::PSTAR_BISECT_FACTOR * lriemann_shock_maxiter; iter++) {
 
         pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
         pstar_hist_extra[iter] = pstar_c;
@@ -167,7 +168,7 @@ namespace TwoShock {
       constexpr amrex::Real weakwv = 1.e-3_rt;
 
     #ifndef AMREX_USE_GPU
-      amrex::GpuArray<amrex::Real, HISTORY_SIZE> pstar_hist;
+      amrex::GpuArray<amrex::Real, riemann_constants::HISTORY_SIZE> pstar_hist;
     #endif
 
 
@@ -189,8 +190,8 @@ namespace TwoShock {
 
       // these should consider a wider average of the cell-centered
       // gammas
-      amrex::Real gmin = amrex::min(amrex::min(gamel, gamer), 1.0_rt);
-      amrex::Real gmax = amrex::max(amrex::max(gamel, gamer), 2.0_rt);
+      amrex::Real gmin = amrex::min(gamel, gamer, 1.0_rt);
+      amrex::Real gmax = amrex::max(gamel, gamer, 2.0_rt);
 
       amrex::Real game_bar = 0.5_rt*(gamel + gamer);
       amrex::Real gamc_bar = 0.5_rt*(ql.gamc + qr.gamc);
@@ -329,14 +330,14 @@ namespace TwoShock {
               amrex::Real pstarl = 1.e200;
               amrex::Real pstaru = -1.e200;
               for (int n = riemann_shock_maxiter-6; n < riemann_shock_maxiter; n++) {
-                  pstarl = amrex::min(pstarl, pstar_hist[n]);
-                  pstaru = amrex::max(pstaru, pstar_hist[n]);
+                  pstarl = std::min(pstarl, pstar_hist[n]);
+                  pstaru = std::max(pstaru, pstar_hist[n]);
               }
 
               pstarl = amrex::max(pstarl, small_pres);
               pstaru = amrex::max(pstaru, small_pres);
 
-              amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
+              amrex::GpuArray<amrex::Real, riemann_constants::PSTAR_BISECT_FACTOR * riemann_constants::HISTORY_SIZE> pstar_hist_extra;
 
               pstar_bisection(pstarl, pstaru,
                               ql.un, ql.p, taul, gamel, clsql,
@@ -352,7 +353,7 @@ namespace TwoShock {
                       std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
                   }
                   std::cout << "pstar extra history: " << std::endl;
-                  for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR * riemann_shock_maxiter; iter_l++) {
+                  for (int iter_l = 0; iter_l < riemann_constants::PSTAR_BISECT_FACTOR * riemann_shock_maxiter; iter_l++) {
                       std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
                   }
 
@@ -665,7 +666,7 @@ namespace TwoShock {
 
       // interpolate for the case that we are in a rarefaction
       amrex::Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
-      frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
+      frac = std::clamp(frac, 0.0_rt, 1.0_rt);
 
       qint.rho = frac*rstar + (1.0_rt - frac)*ro;
       qint.un = frac*ustar + (1.0_rt - frac)*uo;

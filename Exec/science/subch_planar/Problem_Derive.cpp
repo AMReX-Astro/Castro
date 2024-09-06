@@ -271,12 +271,15 @@ void ca_dergradpoverp1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nc
         Real vm = dat(i,j-1,k,UMY) / dat(i,j-1,k,URHO);
         Real v0 = dat(i,j,k,UMY) / dat(i,j,k,URHO);
 
+        Real du_x{};
+        Real dv_y{};
+
         // construct div{U}
         if (coord_type == 0) {
 
             // Cartesian
-            div_u += 0.5_rt * (up - um) * dxinv;
-            div_u += 0.5_rt * (vp - vm) * dyinv;
+            du_x = 0.5_rt * (up - um) * dxinv;
+            dv_y = 0.5_rt * (vp - vm) * dyinv;
 
         } else if (coord_type == 1) {
 
@@ -285,14 +288,16 @@ void ca_dergradpoverp1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nc
             Real rm = (i - 1 + 0.5_rt) * dx[0];
             Real rp = (i + 1 + 0.5_rt) * dx[0];
 
-            div_u += 0.5_rt * (rp * up - rm * um) / (rc * dx[0]) +
-                0.5_rt * (vp - vm) * dyinv;
+            du_x = 0.5_rt * (rp * up - rm * um) / (rc * dx[0]);
+            dv_y = 0.5_rt * (vp - vm) * dyinv;
 
 #ifndef AMREX_USE_GPU
         } else {
             amrex::Error("ERROR: invalid coord_type in shock");
 #endif
         }
+
+        div_u = du_x + dv_y;
 
         // we need to compute p in the full stencil
 
@@ -397,12 +402,12 @@ void ca_dergradpoverp1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nc
         Real dP_y = 0.5_rt * (p_jp1 - p_jm1);
 
         //Real gradPdx_over_P = std::sqrt(dP_x * dP_x + dP_y * dP_y + dP_z * dP_z) / dat(i,j,k,QPRES);
-        Real du_x = std::min(up - um, 0.0);
-        Real dv_y = std::min(vp - vm, 0.0);
+        Real cdu_x = std::min(du_x, 0.0);
+        Real cdv_y = std::min(dv_y, 0.0);
 
-        Real divu_mag = std::sqrt(du_x * du_x + dv_y * dv_y + 1.e-30);
+        Real divu_mag = std::sqrt(cdu_x * cdu_x + cdv_y * cdv_y + 1.e-30);
 
-        Real gradPdx_over_P = std::abs(dP_x * du_x + dP_y * dv_y) / divu_mag;
+        Real gradPdx_over_P = std::abs(dP_x * cdu_x + dP_y * cdv_y) / divu_mag;
         gradPdx_over_P /= p_zone;
 
         der(i,j,k,0) = gradPdx_over_P;

@@ -13,11 +13,11 @@ void problem_initialize ()
 
     // Define rho_0
 
-    problem::rho_0 = std::pow(problem::p_ref, 1.0_rt/eos_gamma);
+    problem::rho_0 = std::pow(problem::p_ref, 1.0_rt/eos_rp::eos_gamma);
 
     // Define c_0
 
-    problem::c_0 = std::sqrt(eos_gamma * problem::p_ref / problem::rho_0);
+    problem::c_0 = std::sqrt(eos_rp::eos_gamma * problem::p_ref / problem::rho_0);
 
     // Define r_c, radius of each vortex
 
