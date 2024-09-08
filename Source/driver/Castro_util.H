@@ -333,7 +333,7 @@ Real area(const int& i, const int& j, const int& k,
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             Real theta = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
 
-            a = M_PI * std::sin(theta) * dx[0] * (2.0_rt * r + dx[0]);
+            a = 2.0_rt * M_PI * std::sin(theta) * dx[0] * r;
         }
 
     }
