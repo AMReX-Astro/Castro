@@ -566,7 +566,7 @@ Castro::read_params ()
     // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
     // override our overriding, they can do so.
 
-    Amr::setComputeNewDtOnRegrid(1);
+    Amr::setComputeNewDtOnRegrid(true);
 
     // Read in custom refinement scheme.
 
@@ -737,7 +737,7 @@ Castro::Castro (Amr&            papa,
       }
       radiation->regrid(level, grids, dmap);
 
-      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
+      rad_solver = std::make_unique<RadSolve>(parent, level, grids, dmap);
     }
 #endif
 
@@ -751,7 +751,7 @@ Castro::Castro (Amr&            papa,
 Castro::~Castro ()  // NOLINT(modernize-use-equals-default)
 {
 #ifdef RADIATION
-    if (radiation != 0) {
+    if (radiation != nullptr) {
       //radiation->cleanup(level);
       radiation->close(level);
     }
@@ -3125,6 +3125,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                         X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                         std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("(i, j, k) = %d %d %d, X[%d] = %g  (density here is: %g)\n",
+                                            i, j, k, n, X, u(i,j,k,URHO));
 #endif
                     }
                 }

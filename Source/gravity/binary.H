@@ -67,7 +67,7 @@ void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real
     const Real tolerance = 1.0e-8_rt;
     const int max_iters = 200;
 
-    Real rm, rp;
+    Real rm{}, rp{};
 
     if (r_min == 0.0_rt && r_max == 0.0_rt) {
         amrex::Abort("Lagrange point iteration must have at least one non-zero bound provided.");
