@@ -10,11 +10,13 @@ using namespace amrex;
 ///
 
 void
-Castro::construct_old_geom_source([[maybe_unused]]MultiFab& source,
-                                  [[maybe_unused]]MultiFab& state_in,
-                                  [[maybe_unused]]Real time,
-                                  [[maybe_unused]]Real dt)
+Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
+
+  amrex::ignore_unused(source);
+  amrex::ignore_unused(state_in);
+  amrex::ignore_unused(time);
+  amrex::ignore_unused(dt);
 
   if (geom.Coord() == 0) {
       return;
@@ -63,12 +65,15 @@ Castro::construct_old_geom_source([[maybe_unused]]MultiFab& source,
 
 
 void
-Castro::construct_new_geom_source([[maybe_unused]]MultiFab& source,
-                                  [[maybe_unused]]MultiFab& state_old,
-                                  [[maybe_unused]]MultiFab& state_new,
-                                  [[maybe_unused]]Real time,
-                                  [[maybe_unused]]Real dt)
+Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old,
+                                  MultiFab& state_new, Real time, Real dt)
 {
+
+  amrex::ignore_unused(source);
+  amrex::ignore_unused(state_old);
+  amrex::ignore_unused(state_new);
+  amrex::ignore_unused(time);
+  amrex::ignore_unused(dt);
 
   if (geom.Coord() == 0) {
       return;
@@ -134,13 +139,15 @@ Castro::construct_new_geom_source([[maybe_unused]]MultiFab& source,
 
 
 void
-Castro::fill_RZ_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
-                             MultiFab& cons_state, MultiFab& geom_src)
+Castro::fill_RZ_geom_source (Real time, Real dt, MultiFab& cons_state, MultiFab& geom_src)
 {
 
   // Compute the geometric source for axisymmetric coordinates (R-Z)
   // resulting from taking the divergence of (rho U U) in cylindrical
   // coordinates.  See the paper by Bernard-Champmartin
+
+  amrex::ignore_unused(time);
+  amrex::ignore_unused(dt);
 
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
@@ -176,12 +183,14 @@ Castro::fill_RZ_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real d
 
 
 void
-Castro::fill_RTheta_geom_source ([[maybe_unused]] Real time, [[maybe_unused]] Real dt,
-                                 MultiFab& cons_state, MultiFab& geom_src)
+Castro::fill_RTheta_geom_source (Real time, Real dt, MultiFab& cons_state, MultiFab& geom_src)
 {
 
   // Compute the geometric source resulting from taking the divergence of (rho U U)
   // in Spherical 2D (R-Theta) coordinate.
+
+  amrex::ignore_unused(time);
+  amrex::ignore_unused(dt);
 
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
