@@ -6,6 +6,9 @@
 #include <AMReX_BLassert.H>
 #include <cmath>
 
+using namespace amrex::literals;
+
+
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 cross_product(amrex::GpuArray<amrex::Real, 3> const& a,
