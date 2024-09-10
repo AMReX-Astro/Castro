@@ -881,6 +881,8 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab grav(grids[level], dmap[level], AMREX_SPACEDIM, ng);
     grav.setVal(0.0,ng);
 
+    const Geometry& geom = parent->Geom(level);
+
     if (gravity::gravity_type == "ConstantGrav") {
 
         if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
@@ -899,7 +901,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-       const Geometry& geom = parent->Geom(level);
        amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
@@ -956,6 +957,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level],dmap[level],AMREX_SPACEDIM,ng);
     grav.setVal(0.0,ng);
+    const Geometry& geom = parent->Geom(level);
 
     if (gravity::gravity_type == "ConstantGrav") {
 
@@ -976,7 +978,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-        const Geometry& geom = parent->Geom(level);
         amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
         grav.mult(-1.0, ng); // g = - grad(phi)
 
