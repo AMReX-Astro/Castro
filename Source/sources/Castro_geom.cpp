@@ -10,7 +10,10 @@ using namespace amrex;
 ///
 
 void
-Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_geom_source([[maybe_unused]]MultiFab& source,
+                                  [[maybe_unused]]MultiFab& state_in,
+                                  [[maybe_unused]]Real time,
+                                  [[maybe_unused]]Real dt)
 {
 
   if (geom.Coord() == 0) {
@@ -60,7 +63,11 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 
 
 void
-Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_geom_source([[maybe_unused]]MultiFab& source,
+                                  [[maybe_unused]]MultiFab& state_old,
+                                  [[maybe_unused]]MultiFab& state_new,
+                                  [[maybe_unused]]Real time,
+                                  [[maybe_unused]]Real dt)
 {
 
   if (geom.Coord() == 0) {
@@ -82,9 +89,9 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
   Real old_time = time - dt;
 
   if (geom.Coord() == 1) {
-      fill_RZ_geom_source(time, dt, state_in, geom_src);
+      fill_RZ_geom_source(old_time, dt, state_old, geom_src);
   } else {
-      fill_RTheta_geom_source(time, dt, state_in, geom_src);
+      fill_RTheta_geom_source(old_time, dt, state_old, geom_src);
   }
 
   Real mult_factor = -0.5;
@@ -98,9 +105,9 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
   mult_factor = 0.5;
 
   if (geom.Coord() == 1) {
-      fill_RZ_geom_source(time, dt, state_in, geom_src);
+      fill_RZ_geom_source(time, dt, state_new, geom_src);
   } else {
-      fill_RTheta_geom_source(time, dt, state_in, geom_src);
+      fill_RTheta_geom_source(time, dt, state_new, geom_src);
   }
 
   MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);   // NOLINT(readability-suspicious-call-argument)
