@@ -268,8 +268,9 @@ sdc_extra                    int           0
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1
 
-# for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
-use_axisymmetric_geom_source bool           1
+# Do we include geometry source terms due to local unit vectors in non-Cartesian Coord?
+# We currently support R-Z cylinderical 2D (Bernand-Champmartin) and R-THETA spherical 2D
+use_geom_source              bool          1
 
 # for simplified-SDC, do we add the reactive source prediction to the interface states
 # used in the advective source construction?
