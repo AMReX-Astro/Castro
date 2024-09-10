@@ -883,9 +883,13 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
-
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -955,8 +959,13 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
