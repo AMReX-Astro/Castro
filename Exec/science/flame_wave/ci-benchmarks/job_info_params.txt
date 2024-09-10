@@ -94,7 +94,7 @@
     castro.sdc_quadrature = 0
     castro.sdc_extra = 0
     castro.sdc_solver = 1
-    castro.use_axisymmetric_geom_source = 1
+    castro.use_geom_source = 1
     castro.add_sdc_react_source_to_advection = 1
     castro.hydro_memory_footprint_ratio = -1
     castro.fixed_dt = -1
@@ -116,7 +116,7 @@
     castro.use_post_step_regrid = 0
     castro.max_subcycles = 10
     castro.sdc_iters = 2
-    castro.stopping_criterion_field = 
+    castro.stopping_criterion_field =
     castro.stopping_criterion_value = 1e+200
     castro.dtnuc_e = 1e+200
     castro.dtnuc_X = 1e+200
@@ -192,12 +192,12 @@
 [*] problem.H_star = 2000
 [*] problem.atm_delta = 100
     problem.fuel1_name = helium-4
-    problem.fuel2_name = 
-    problem.fuel3_name = 
-    problem.fuel4_name = 
+    problem.fuel2_name =
+    problem.fuel3_name =
+    problem.fuel4_name =
 [*] problem.ash1_name = nickel-56
-    problem.ash2_name = 
-    problem.ash3_name = 
+    problem.ash2_name =
+    problem.ash3_name =
     problem.fuel1_frac = 1
     problem.fuel2_frac = 0
     problem.fuel3_frac = 0

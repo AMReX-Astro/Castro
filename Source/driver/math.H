@@ -3,6 +3,8 @@
 
 #include <AMReX_REAL.H>
 #include <AMReX_Array.H>
+#include <AMReX_BLassert.H>
+#include <cmath>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
@@ -16,4 +18,11 @@ cross_product(amrex::GpuArray<amrex::Real, 3> const& a,
 
 }
 
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+amrex::Real cot(amrex::Real x) {
+
+    AMREX_ASSERT(x != 0.0_rt || x != M_PI);
+    return std::cos(x) / std::sin(x);
+}
 #endif
