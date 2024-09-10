@@ -4,7 +4,7 @@
 using namespace amrex;
 
 ///
-/// this adds the geomtric source terms for non-Cartesian Coordinates
+/// this adds the geometric source terms for non-Cartesian Coordinates
 /// This includes 2D Cylindrical (R-Z) coordinate as described in Bernand-Champmartin
 /// and 2D Spherical (R-THETA) coordinate.
 ///
@@ -63,13 +63,13 @@ void
 Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
 
-    if (geom.Coord() == 0) {
-        return;
-    }
+  if (geom.Coord() == 0) {
+      return;
+  }
 
-    if (use_geom_source == 0) {
-        return;
-    }
+  if (use_geom_source == 0) {
+      return;
+  }
 
 #if AMREX_SPACEDIM == 2
   const Real strt_time = ParallelDescriptor::second();
