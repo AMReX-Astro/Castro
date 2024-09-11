@@ -270,7 +270,7 @@ Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-function
         } else if (n == UMY && !mom_flux_has_p(1, 1, coord)) {
             // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
 
-            Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt)*dx[0];
+            Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             update(i,j,k,UMY) -= (q1(i,j+1,k,GDPRES) - q1(i,j,k,GDPRES)) / (r * dx[1]);
         }
     }

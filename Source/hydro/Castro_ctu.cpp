@@ -74,8 +74,8 @@ Castro::consup_hydro(const Box& bx,
     } else if (n == UMY && !mom_flux_has_p(1, 1, geomdata.Coord())) {
         // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
 
-        Real r = geomdata.ProbLoArray()[0] + (static_cast<Real>(i) + 0.5_rt) * geomdata.Coord()[0];
-        U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize()[0]);
+        Real r = geomdata.ProbLoArray()[0] + (static_cast<Real>(i) + 0.5_rt) * geomdata.Cellsize()[0];
+        U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize()[1]);
 
     }
   });
