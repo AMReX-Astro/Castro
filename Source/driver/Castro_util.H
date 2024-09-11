@@ -75,6 +75,14 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
             return true;
         }
 
+    } else if (mom_dir == 1 && flux_dir == 1) {
+
+        if (coord == CoordSys::spherical) {
+            return false;
+        } else {
+            return true
+        }
+
     } else {
         return (mom_dir == flux_dir);
     }
