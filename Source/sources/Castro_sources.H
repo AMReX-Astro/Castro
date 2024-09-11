@@ -330,15 +330,27 @@
 
 
 ///
-/// Fill ``ext_src`` with axisymmetric geometry sources
+/// Fill ``ext_src`` with 2D cylindrical R-Z geometry sources
 ///
 /// @param time     current time
 /// @param dt       timestep
 /// @param S        state
 /// @param ext_src  MultiFab to fill with sources
 ///
-    void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+    void fill_RZ_geom_source(amrex::Real time, amrex::Real dt,
+                             amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Fill ``ext_src`` with 2D spherical R-Theta geometry sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S        state
+/// @param ext_src  MultiFab to fill with sources
+///
+    void fill_RTheta_geom_source(amrex::Real time, amrex::Real dt,
+                                 amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
 
 
 ///
