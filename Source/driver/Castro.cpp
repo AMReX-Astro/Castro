@@ -858,6 +858,12 @@ Castro::initMFs()
     }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      P_theta.define(getEdgeBoxArray(1), dmap, 1, 0);
+    }
+#endif
+
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
