@@ -69,7 +69,7 @@ Castro::consup_hydro(const Box& bx,
         // Add gradp term to momentum equation -- only for axisymmetric
         // coords (and only for the radial flux).
 
-        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize(1);
+        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize(0);
 
 #if AMREX_SPACEDIM >= 2
     } else if (n == UMY && !mom_flux_has_p(1, 1, geomdata.Coord())) {
