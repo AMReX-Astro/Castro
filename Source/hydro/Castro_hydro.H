@@ -387,6 +387,7 @@
 /// @param area1   area of y faces
 /// @param area2   area of z faces
 /// @param q0      Godunuv state on x faces
+/// @param q1      Godunuv state on y faces
 /// @param vol     cell volume
 ///
     void mol_consup(const amrex::Box& bx,
@@ -412,6 +413,7 @@
 #endif
 #if AMREX_SPACEDIM <= 2
                     amrex::Array4<amrex::Real const> const& q0,
+                    amrex::Array4<amrex::Real const> const& q1,
 #endif
                     amrex::Array4<amrex::Real const> const& vol);
 
