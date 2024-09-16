@@ -42,7 +42,7 @@ Castro::consup_hydro(const Box& bx,
 #endif
         ) * volinv;
 
-   // Add the p div(u) source term to (rho e).
+    // Add the p div(u) source term to (rho e).
     if (n == UEINT) {
 
       Real pdu = (qx(i+1,j,k,GDPRES) + qx(i,j,k,GDPRES)) *
@@ -65,13 +65,19 @@ Castro::consup_hydro(const Box& bx,
 
       U_new(i,j,k,n) = U_new(i,j,k,n) - dt * pdu;
 
-    } else if (n == UMX) {
-      // Add gradp term to momentum equation -- only for axisymmetric
-      // coords (and only for the radial flux).
+    } else if (n == UMX && !mom_flux_has_p(0, 0, geomdata.Coord())) {
+        // Add gradp term to momentum equation -- only for axisymmetric
+        // coords (and only for the radial flux).
 
-      if (!mom_flux_has_p(0, 0, geomdata.Coord())) {
-        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize()[0];
-      }
+        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize(0);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (n == UMY && !mom_flux_has_p(1, 1, geomdata.Coord())) {
+        // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
+
+        Real r = geomdata.ProbLo(0) + (static_cast<Real>(i) + 0.5_rt) * geomdata.CellSize(0);
+        U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize(1));
+#endif
     }
   });
 }

@@ -65,10 +65,6 @@ RadBndry::RadBndry(const BoxArray& _grids, const DistributionMapping& _dmap,
   setBndryValues(bv);
 }
 
-RadBndry::~RadBndry()
-{
-}
-
 void RadBndry::init()
 {
   // obsolete implementation of the Marshak boundary condition requires

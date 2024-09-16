@@ -881,11 +881,17 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab grav(grids[level], dmap[level], AMREX_SPACEDIM, ng);
     grav.setVal(0.0,ng);
 
+    const Geometry& geom = parent->Geom(level);
+
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
-
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -895,7 +901,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-       const Geometry& geom = parent->Geom(level);
        amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
@@ -952,11 +957,17 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level],dmap[level],AMREX_SPACEDIM,ng);
     grav.setVal(0.0,ng);
+    const Geometry& geom = parent->Geom(level);
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -967,7 +978,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-        const Geometry& geom = parent->Geom(level);
         amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
         grav.mult(-1.0, ng); // g = - grad(phi)
 
@@ -2777,12 +2787,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     BL_ASSERT(nPtsXZ <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsYZ <= std::numeric_limits<int>::max());
 
-    ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
-    ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), nPtsXY);
-    ParallelDescriptor::ReduceRealSum(bcXZLo.dataPtr(), nPtsXZ);
-    ParallelDescriptor::ReduceRealSum(bcXZHi.dataPtr(), nPtsXZ);
-    ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), nPtsYZ);
-    ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), nPtsYZ);
+    ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), static_cast<int>(nPtsXY));
+    ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), static_cast<int>(nPtsXY));
+    ParallelDescriptor::ReduceRealSum(bcXZLo.dataPtr(), static_cast<int>(nPtsXZ));
+    ParallelDescriptor::ReduceRealSum(bcXZHi.dataPtr(), static_cast<int>(nPtsXZ));
+    ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), static_cast<int>(nPtsYZ));
+    ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), static_cast<int>(nPtsYZ));
 
 #ifdef _OPENMP
 #pragma omp parallel

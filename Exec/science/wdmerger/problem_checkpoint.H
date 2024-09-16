@@ -7,7 +7,7 @@
 #include <prob_parameters.H>
 
 AMREX_INLINE
-void problem_checkpoint (std::string checkpoint_dir)
+void problem_checkpoint (const std::string& checkpoint_dir)
 {
     std::ofstream com;
     com.open(checkpoint_dir + "/COM", std::ios::out);

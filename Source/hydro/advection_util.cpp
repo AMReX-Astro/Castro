@@ -205,30 +205,30 @@ Castro::divu(const Box& bx,
 
 #if AMREX_SPACEDIM == 1
     if (coord_type == 0) {
-      div(i,j,k) = (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
+        div(i,j,k) = (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
 
     } else if (coord_type == 1) {
-      // axisymmetric
-      if (i == 0) {
-        div(i,j,k) = 0.0_rt;
-      } else {
-        Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-        Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-        Real rc = (i) * dx[0] + problo[0];
+        // axisymmetric
+        if (i == 0) {
+            div(i,j,k) = 0.0_rt;
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
 
-        div(i,j,k) = (rr * q_arr(i,j,k,QU) - rl * q_arr(i-1,j,k,QU)) * dxinv / rc;
-      }
+            div(i,j,k) = (rr * q_arr(i,j,k,QU) - rl * q_arr(i-1,j,k,QU)) * dxinv / rc;
+        }
     } else {
-      // spherical
-      if (i == 0) {
-        div(i,j,k) = 0.0_rt;
-      } else {
-        Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-        Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-        Real rc = (i) * dx[0] + problo[0];
+        // spherical
+        if (i == 0) {
+            div(i,j,k) = 0.0_rt;
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
 
-        div(i,j,k) = (rr * rr * q_arr(i,j,k,QU) - rl * rl * q_arr(i-1,j,k,QU)) * dxinv / (rc * rc);
-      }
+            div(i,j,k) = (rr * rr * q_arr(i,j,k,QU) - rl * rl * q_arr(i-1,j,k,QU)) * dxinv / (rc * rc);
+        }
     }
 #endif
 
@@ -237,31 +237,64 @@ Castro::divu(const Box& bx,
     Real vy = 0.0_rt;
 
     if (coord_type == 0) {
-      ux = 0.5_rt * (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QU) - q_arr(i-1,j-1,k,QU)) * dxinv;
-      vy = 0.5_rt * (q_arr(i,j,k,QV) - q_arr(i,j-1,k,QV) + q_arr(i-1,j,k,QV) - q_arr(i-1,j-1,k,QV)) * dyinv;
+
+        // Cartesian
+
+        ux = 0.5_rt * (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QU) - q_arr(i-1,j-1,k,QU)) * dxinv;
+        vy = 0.5_rt * (q_arr(i,j,k,QV) - q_arr(i,j-1,k,QV) + q_arr(i-1,j,k,QV) - q_arr(i-1,j-1,k,QV)) * dyinv;
+
+    } else if (coord_type == 1) {
+
+        // Cylindrical R-Z
+
+        if (i == 0) {
+            ux = 0.0_rt;
+            vy = 0.0_rt;  // is this part correct?
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
+
+            // These are transverse averages in the y-direction
+            Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));
+            Real ur = 0.5_rt * (q_arr(i,j,k,QU) + q_arr(i,j-1,k,QU));
+
+            // Take 1/r d/dr(r*u)
+            ux = (rr * ur - rl * ul) * dxinv / rc;
+
+            // These are transverse averages in the x-direction
+            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+
+            vy = (vt - vb) * dyinv;
+        }
 
     } else {
-      if (i == 0) {
-        ux = 0.0_rt;
-        vy = 0.0_rt;  // is this part correct?
-      } else {
+
+        // Spherical R-Theta
+
         Real rl = (i - 0.5_rt) * dx[0] + problo[0];
         Real rr = (i + 0.5_rt) * dx[0] + problo[0];
         Real rc = (i) * dx[0] + problo[0];
+
+        // cell-centered sin(theta) of top, bot cell and face-centered
+        Real sint = std::sin((j + 0.5_rt) * dx[1] + problo[1]);
+        Real sinb = std::sin((j - 0.5_rt) * dx[1] + problo[1]);
+        Real sinc = std::sin(j  * dx[1] + problo[1]);
 
         // These are transverse averages in the y-direction
         Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));
         Real ur = 0.5_rt * (q_arr(i,j,k,QU) + q_arr(i,j-1,k,QU));
 
-        // Take 1/r d/dr(r*u)
-        ux = (rr * ur - rl * ul) * dxinv / rc;
+        // Finite difference to get divergence. ux = 1/r^2 d/dr(r^2 * u)
+        ux = (ur * rr * rr - ul * rl * rl) * dxinv / (rc * rc);
 
         // These are transverse averages in the x-direction
         Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
         Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
 
-        vy = (vt - vb) * dyinv;
-      }
+        // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
+        vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
     }
 
     div(i,j,k) = ux + vy;
