@@ -95,7 +95,7 @@
     castro.sdc_quadrature = 0
     castro.sdc_extra = 0
     castro.sdc_solver = 1
-    castro.use_axisymmetric_geom_source = 1
+    castro.use_geom_source = 1
     castro.add_sdc_react_source_to_advection = 1
     castro.hydro_memory_footprint_ratio = -1
     castro.fixed_dt = -1

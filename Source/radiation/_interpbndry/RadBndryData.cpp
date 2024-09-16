@@ -32,10 +32,6 @@ RadBndryData::RadBndryData(const BoxArray& _grids, const DistributionMapping& _d
 //     (*this) = src;
 // }
 
-RadBndryData::~RadBndryData()
-{
-}
-
 std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 {
     const BoxArray& grds = mgb.boxes();
@@ -129,4 +125,3 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
         }
     }
 }
-

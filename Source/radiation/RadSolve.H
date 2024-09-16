@@ -29,7 +29,6 @@ class RadSolve {
   RadSolve (amrex::Amr* Parent, int level,
             const amrex::BoxArray& grids,
             const amrex::DistributionMapping& dmap);
-  ~RadSolve () {}
 
 ///
 /// query runtime parameters

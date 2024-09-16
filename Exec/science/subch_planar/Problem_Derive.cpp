@@ -23,9 +23,8 @@ void ca_dergradpoverp(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
 
 #if AMREX_SPACEDIM == 3
     amrex::Error("3D not supported");
-#endif
-#if AMREX_SPACEDIM == 1
-    amrex::Error("1D not supported");
+#elif AMREX_SPACEDIM == 1
+    return; // Skip for 1D
 #endif
 
     Real dxinv = 1.0_rt / dx[0];
@@ -226,9 +225,8 @@ void ca_dergradpoverp1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nc
 
 #if AMREX_SPACEDIM == 3
     amrex::Error("3D not supported");
-#endif
-#if AMREX_SPACEDIM == 1
-    amrex::Error("1D not supported");
+#elif AMREX_SPACEDIM == 1
+    return; // Skip for 1D
 #endif
 
     Real dxinv = 1.0_rt / dx[0];
@@ -434,9 +432,8 @@ void ca_dergradpx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 
 #if AMREX_SPACEDIM == 3
     amrex::Error("3D not supported");
-#endif
-#if AMREX_SPACEDIM == 1
-    amrex::Error("1D not supported");
+#elif AMREX_SPACEDIM == 1
+    return; // Skip for 1D
 #endif
 
     Real dxinv = 1.0_rt / dx[0];
@@ -545,9 +542,8 @@ void ca_dergradpy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 
 #if AMREX_SPACEDIM == 3
     amrex::Error("3D not supported");
-#endif
-#if AMREX_SPACEDIM == 1
-    amrex::Error("1D not supported");
+#elif AMREX_SPACEDIM == 1
+    return; // Skip for 1D
 #endif
 
     Real dxinv = 1.0_rt / dx[0];
@@ -658,9 +654,8 @@ void ca_dergradrhooverrho(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /
 
 #if AMREX_SPACEDIM == 3
     amrex::Error("3D not supported");
-#endif
-#if AMREX_SPACEDIM == 1
-    amrex::Error("1D not supported");
+#elif AMREX_SPACEDIM == 1
+    return; // Skip for 1D
 #endif
 
     Real dxinv = 1.0_rt / dx[0];

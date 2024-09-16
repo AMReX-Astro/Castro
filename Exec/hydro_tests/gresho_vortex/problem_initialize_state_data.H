@@ -73,7 +73,7 @@ void problem_initialize_state_data (int i, int j, int k,
                 }
 
                 u_tot += u_phi;
-                reint += p/(gamma_const - 1.0_rt);
+                reint += p/(eos_rp::eos_gamma - 1.0_rt);
             }
         }
     }
