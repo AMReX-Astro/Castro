@@ -71,9 +71,15 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
         if (coord != CoordSys::cartesian) {
             return false;
-        } else {
-            return true;
         }
+        return true;
+
+    } else if (mom_dir == 1 && flux_dir == 1) {
+
+        if (coord == CoordSys::SPHERICAL) {
+            return false;
+        }
+        return true;
 
     } else {
         return (mom_dir == flux_dir);
