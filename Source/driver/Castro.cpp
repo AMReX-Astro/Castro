@@ -2884,8 +2884,8 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            MultiFab dtheta(crse_lev.grids, crse_lev.dmap, 1, 0);
-            dtheta.setVal(crse_lev.geom.CellSize(1));
+            MultiFab rdtheta(crse_lev.grids, crse_lev.dmap, 1, 0);
+            rdtheta.setVal(crse_lev.geom.CellSize(1));
 
             // Need to multiply by r for rdtheta
 
@@ -2904,12 +2904,12 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
                 for (OrientationIter fi; fi.isValid(); ++fi)
                 {
                     const FabSet& fs = (*reg)[fi()];
-                    if (fi().coordDir() == 0) {
+                    if (fi().coordDir() == 1) {
                         fs.copyTo(tmp_fluxes, 0, 0, 0, tmp_fluxes.nComp());
                     }
                 }
 
-                MultiFab::Add(crse_lev.P_theta, tmp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
+                MultiFab::Add(crse_lev.P_theta, tmp_fluxes, 0, 0, crse_lev.P_theta.nComp(), 0);
 
             }
 
