@@ -2886,13 +2886,13 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             MultiFab rdtheta(crse_lev.grids, crse_lev.dmap, 1, 0);
 
-            auto problo = Geom().ProbLo();
+            const auto* problo = Geom().ProbLo();
             auto dr = crse_lev.geom.CellSize(0);
             auto dtheta = crse_lev.geom.CellSize(1);
 
             auto const& ma = rdtheta.arrays();
 
-            amrex:ParallelFor(rdtheta,
+            amrex::ParallelFor(rdtheta,
             [=] AMREX_GPU_DEVICE (int b, int i, int j, int k) noexcept
             {
                 Real r = problo[0] + static_cast<Real>(i + 0.5_rt) * dr;
