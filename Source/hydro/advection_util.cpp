@@ -144,7 +144,7 @@ Castro::shock(const Box& bx,
     // We subtract off the hydrostatic force, since the pressure that
     // balances that is not available to make a shock.  We compute this
     // as:
-    // P'_{i+1} = P_{i+1} - [ P_i - \int_{x_i}^{x_{i+1}} rho g dx
+    // P'_{i+1} = P_{i+1} - [ P_i - \int_{x_i}^{x_{i+1}} rho g dx ]
     //
     // We'll use a centered diff for the pressure gradient.
     Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
