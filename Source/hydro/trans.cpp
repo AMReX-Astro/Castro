@@ -312,7 +312,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMY)) * volinv;
         if (idir_t == 1 && !mom_flux_has_p(1, idir_t, coord)) {
             Real r = geom.ProbLo(0) + static_cast<Real>(il + 0.5_rt) * geom.CellSize(0);
-            rvnewn = rvnewn - cdtdy / r * (pgp - pgm);
+            rvnewn = rvnewn - cdtdx / r * (pgp - pgm);
         }
         Real rwnewn = rwn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMZ) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMZ)) * volinv;
