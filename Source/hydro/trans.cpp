@@ -101,6 +101,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
 #if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 #endif
 
     bool reset_density = transverse_reset_density;
@@ -292,9 +294,17 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         //
         // in cylindrical coords -- note that the p term is not
         // in a divergence for UMX in the x-direction, so there
-        // are no area factors.  For this geometry, we do not
+        // are no area factors.
+        //
+        // Similarly for Spherical2D geometry, we have:
+        // d(rho u)/dt + d(rho u v)/(rdtheta) = -1/r^2 d(r^2 rho u u)/dr - dp/dr
+        // d(rho v)/dt + d(rho u v)/dr = -1/(r sin(theta)) d(sin(theta) rho v v)/dtheta - 1/r dp/dtheta
+        //
+        // For these non-cartesian geometries, we do not
         // include p in our definition of the flux in the
-        // x-direction, for we need to fix this now.
+        // x-direction for Cylindrical2D or both x- and y-direction for spherical 2D
+        // So we need to fix this now.
+
         Real runewn = run - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMX) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMX)) * volinv;
         if (idir_t == 0 && !mom_flux_has_p(0, idir_t, coord)) {
@@ -302,6 +312,10 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         }
         Real rvnewn = rvn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMY) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMY)) * volinv;
+        if (idir_t == 1 && !mom_flux_has_p(1, idir_t, coord)) {
+            Real r = problo[0] + static_cast<Real>(il + 0.5_rt) * dx[0];
+            rvnewn = rvnewn - cdtdx / r * (pgp - pgm);
+        }
         Real rwnewn = rwn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMZ) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMZ)) * volinv;
         Real renewn = ren - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEDEN) -
