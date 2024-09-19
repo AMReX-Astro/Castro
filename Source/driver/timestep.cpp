@@ -82,7 +82,7 @@ Castro::estdt_cfl (int is_new)
       Real dt2;
 #if AMREX_SPACEDIM >= 2
       dt2 = dx[1]/(c + std::abs(uy));
-      if (geom.IsSPHERICAL) {
+      if (geom.IsSPHERICAL()) {
           // dx[1] in Spherical2D is just dtheta, need rdtheta for physical length
           // so just multiply by the smallest r
           dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
@@ -211,7 +211,7 @@ Castro::estdt_mhd (int is_new)
       Real dt2;
 #if AMREX_SPACEDIM >= 2
       dt2 = dx[1]/(cy + std::abs(uy));
-      if (geom.IsSPHERICAL) {
+      if (geom.IsSPHERICAL()) {
           dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
       }
 #else
@@ -295,7 +295,7 @@ Castro::estdt_temp_diffusion (int is_new)
           Real dt2;
 #if AMREX_SPACEDIM >= 2
           dt2 = 0.5_rt * dx[1]*dx[1] / D;
-          if (geom.IsSPHERICAL) {
+          if (geom.IsSPHERICAL()) {
               Real r = geom.ProbLo(0) + 0.5_rt * dx[0];
               dt2 *= r * r;
           }
@@ -382,7 +382,7 @@ Castro::estdt_burning (int is_new)
 #else
         Real r = 1.0_rt;
 #if AMREX_SPACEDIM >= 2
-        if (geom.IsSPHERICAL) {
+        if (geom.IsSPHERICAL()) {
             r = geom.ProbLo(0) + 0.5_rt * dx[0];
         }
 #endif
@@ -541,7 +541,7 @@ Castro::estdt_rad (int is_new)
             Real dt1 = dx[0] / (c + std::abs(ux));
 #if AMREX_SPACEDIM >= 2
             Real dt2 = dx[1] / (c + std::abs(uy));
-            if (geom.IsSPHERICAL) {
+            if (geom.IsSPHERICAL()) {
                 dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
             }
 #else
