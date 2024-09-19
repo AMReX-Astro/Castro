@@ -35,6 +35,7 @@ Castro::estdt_cfl (int is_new)
   // Courant-condition limited timestep
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
 
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -85,7 +86,7 @@ Castro::estdt_cfl (int is_new)
       if (geom.IsSPHERICAL()) {
           // dx[1] in Spherical2D is just dtheta, need rdtheta for physical length
           // so just multiply by the smallest r
-          dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
+          dt2 *= problo[0] + 0.5_rt * dx[0];
       }
 #else
       dt2 = dt1;
@@ -132,6 +133,7 @@ Castro::estdt_mhd (int is_new)
 
   // MHD timestep limiter
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
 
   const MultiFab& U_state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -212,7 +214,7 @@ Castro::estdt_mhd (int is_new)
 #if AMREX_SPACEDIM >= 2
       dt2 = dx[1]/(cy + std::abs(uy));
       if (geom.IsSPHERICAL()) {
-          dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
+          dt2 *= problo[0] + 0.5_rt * dx[0];
       }
 #else
       dt2 = dt1;
@@ -246,6 +248,7 @@ Castro::estdt_temp_diffusion (int is_new)
   // where D = k/(rho c_v), and k is the conductivity
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
 
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -296,7 +299,7 @@ Castro::estdt_temp_diffusion (int is_new)
 #if AMREX_SPACEDIM >= 2
           dt2 = 0.5_rt * dx[1]*dx[1] / D;
           if (geom.IsSPHERICAL()) {
-              Real r = geom.ProbLo(0) + 0.5_rt * dx[0];
+              Real r = problo[0] + 0.5_rt * dx[0];
               dt2 *= r * r;
           }
 #else
@@ -332,6 +335,7 @@ Castro::estdt_burning (int is_new)
     }
 
     const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -383,7 +387,7 @@ Castro::estdt_burning (int is_new)
         Real r = 1.0_rt;
 #if AMREX_SPACEDIM >= 2
         if (geom.IsSPHERICAL()) {
-            r = geom.ProbLo(0) + 0.5_rt * dx[0];
+            r = problo[0] + 0.5_rt * dx[0];
         }
 #endif
         burn_state.dx = amrex::min(AMREX_D_DECL(dx[0], r * dx[1], dx[2]));
@@ -482,6 +486,7 @@ Real
 Castro::estdt_rad (int is_new)
 {
     auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
     const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
@@ -542,7 +547,7 @@ Castro::estdt_rad (int is_new)
 #if AMREX_SPACEDIM >= 2
             Real dt2 = dx[1] / (c + std::abs(uy));
             if (geom.IsSPHERICAL()) {
-                dt2 *= geom.ProbLo(0) + 0.5_rt * dx[0];
+                dt2 *= problo[0] + 0.5_rt * dx[0];
             }
 #else
             Real dt2 = std::numeric_limits<Real>::max();
