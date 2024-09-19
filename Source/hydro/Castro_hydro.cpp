@@ -237,12 +237,20 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
     int cfl_violation = 0;
 
     auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    amrex::ignore_unused(problo, coord);
 
     Real dtdx = dt / dx[0];
 
     Real dtdy = 0.0_rt;
     if (AMREX_SPACEDIM >= 2) {
       dtdy = dt / dx[1];
+      if (coord == 2) {
+          // dx[1] in Spherical2D is just rdtheta, need rdtheta for physical length
+          // Just choose to divide by the smallest r
+          dtdy /= problo[0] + 0.5_rt * dx[0];
+      }
     }
 
     Real dtdz = 0.0_rt;
