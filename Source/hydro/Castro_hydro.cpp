@@ -237,6 +237,8 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
     int cfl_violation = 0;
 
     auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    amrex::ignore_unused(problo);
 
     Real dtdx = dt / dx[0];
 
@@ -246,7 +248,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
       if (geom.IsSPHERICAL()) {
           // dx[1] in Spherical2D is just rdtheta, need rdtheta for physical length
           // Just choose to divide by the smallest r
-          dtdy /= geom.ProbLoArray()[0] + 0.5_rt * dx[0];
+          dtdy /= problo[0] + 0.5_rt * dx[0];
       }
     }
 
