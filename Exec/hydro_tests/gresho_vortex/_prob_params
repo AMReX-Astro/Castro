@@ -1,11 +1,15 @@
-p0      real     1.0_rt       y
+# initial Mach number
+M0      real     0.1_rt       y
 
+# ambient density
 rho0    real     1.0_rt       y
 
+# reference pressure -- this is set automatically
+p0      real     -1.0_rt
+
+# reference timescale
 t_r     real     1.0_rt       y
 
 x_r     real     0.0_rt
 
 q_r     real     0.0_rt
-
-nsub    integer   4           y
