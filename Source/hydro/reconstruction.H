@@ -160,11 +160,6 @@ add_geometric_p_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
-    // this takes the form: -alpha Gamma1 p u / r
-    // where alpha = 1 for cylindrical and 2 for spherical
-
-    // note: this is assumed to be working only in the x-direction
-
     s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QPRES) * qaux_arr(i-2,j,k,QGAMC) * q_arr(i-2,j,k,ncomp);
     s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QPRES) * qaux_arr(i-1,j,k,QGAMC) * q_arr(i-1,j,k,ncomp);
     s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
