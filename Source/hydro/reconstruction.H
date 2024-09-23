@@ -87,7 +87,7 @@ void
 add_geometric_rho_source(amrex::Array4<amrex::Real const> const& q_arr,
                          amrex::Array4<amrex::Real const> const& dloga,
                          const int i, const int j, const int k,
-                         const int ncomp , amrex::Real* s) {
+                         const int ncomp, amrex::Real* s) {
 
     using namespace reconstruction;
 
@@ -144,7 +144,7 @@ add_geometric_p_source(amrex::Array4<amrex::Real const> const& q_arr,
                        amrex::Array4<amrex::Real const> const& qaux_arr,
                        amrex::Array4<amrex::Real const> const& dloga,
                        const int i, const int j, const int k,
-                       const int ncomp amrex::Real* s) {
+                       const int ncomp, amrex::Real* s) {
 
     using namespace reconstruction;
 
