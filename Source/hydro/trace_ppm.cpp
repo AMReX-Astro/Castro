@@ -59,8 +59,6 @@ Castro::trace_ppm(const Box& bx,
   const int coord = geom.Coord();
 
   Real hdt = 0.5_rt * dt;
-  Real dtdL = dt / dx[idir];
-  Real dL = dx[idir];
 
 #ifndef AMREX_USE_GPU
   auto lo = bx.loVect3d();
@@ -157,6 +155,9 @@ Castro::trace_ppm(const Box& bx,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
+    Real dtdL = dt / dx[idir];
+    Real dL = dx[idir];
+
     // Want dt/(rdtheta) instead of dt/dtheta for 2d Spherical
     if (coord == 2 && idir == 1) {
         Real r = problo[0] + static_cast<Real>(i + 0.5_rt) * dx[0];
