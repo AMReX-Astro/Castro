@@ -24,7 +24,7 @@ void problem_initialize ()
 
     // Figure out R_0, the maximum pressure radius.
 
-    problem::density_maximum_radius = std::pow(C::Gconst * point_mass / omega, 1.0_rt/3.0_rt);
+    problem::density_maximum_radius = std::pow(C::Gconst * point_mass / (omega * omega), 1.0_rt/3.0_rt);
 
     // Maximum and minimum vertical extent of the torus is the same as the radial extent
 
