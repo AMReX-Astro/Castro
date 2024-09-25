@@ -244,7 +244,6 @@ Castro::do_hscf_solve()
                 {
                     const auto *dx = geomdata.CellSize();
                     const auto *problo = geomdata.ProbLo();
-                    const auto coord = geomdata.Coord();
 
                     // The below assumes we are rotating on the z-axis.
 
@@ -378,6 +377,7 @@ Castro::do_hscf_solve()
                 {
                     const auto *dx = geomdata.CellSize();
                     const auto *problo = geomdata.ProbLo();
+                    const auto coord = geomdata.Coord();
 
                     // The below assumes we are rotating on the z-axis.
 
