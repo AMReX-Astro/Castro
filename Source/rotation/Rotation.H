@@ -63,8 +63,8 @@ GpuArray<Real, 3> get_omega_vec(const int j)
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                        GpuArray<Real, 3>& omega,
+rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
+                        const GpuArray<Real, 3>& omega,
                         const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -90,12 +90,22 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
   bool c2 = (castro::rotation_include_coriolis == 1 && coriolis) ? true : false;
 
+  const auto coord = geom.Coord();
+  auto r_vec = r;
+
   GpuArray<Real, 3> omega_cross_v;
   cross_product(omega, v, omega_cross_v);
 
   if (c1) {
+      // For Spherical coordinate, the physical position vector is just r rhat,
+      // but the input r will be in the format of (r,theta,0). So change it to (r,0,0)
+
+      if (coord == 2) {
+          r_vec[1] = 0.0_rt;
+          r_vec[2] = 0.0_rt;
+      }
       GpuArray<Real, 3> omega_cross_r;
-      cross_product(omega, r, omega_cross_r);
+      cross_product(omega, r_vec, omega_cross_r);
 
       GpuArray<Real, 3> omega_cross_omega_cross_r;
       cross_product(omega, omega_cross_r, omega_cross_omega_cross_r);
@@ -115,12 +125,20 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
-rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3>& omega) {
+rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega) {
 
   // Construct rotational potential, phi_R = -1/2 | omega x r |**2
   //
 
   Real phi = 0.0_rt;
+
+  const auto coord = geom.Coord();
+  auto r_vec = r;
+
+  if (coord == 2) {
+      r_vec[1] = 0.0_rt;
+      r_vec[2] = 0.0_rt;
+  }
 
   if (rotation_include_centrifugal == 1) {
 
