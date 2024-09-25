@@ -45,8 +45,8 @@ Castro::fill_rotational_psi(const Box& bx,
 #endif
 
     if (denom != 0.0) {
-        auto omega = get_omega_vec(geomdata, j);
-        psi(i,j,k) = rotational_potential(r, omega, coord) / denom;
+        auto omega_vec = get_omega_vec(geomdata, j);
+        psi(i,j,k) = rotational_potential(r, omega_vec, coord) / denom;
     }
     else {
         psi(i,j,k) = 0.0;
