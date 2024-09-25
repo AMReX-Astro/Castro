@@ -261,4 +261,51 @@ GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec,
     return vec_i;
 }
 
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void fill_dt_omega_matrix(const Real dt, const GpuArray<Real, 3>& omega,
+                          Array2D<Real, 0, 2, 0, 2>& dt_omega_matrix)
+{
+    // Fill in dt_omega_matrix. This is used in function corrrsrc
+
+    Real dt_omega[3];
+
+    // Don't do anything here if we've got the Coriolis force disabled.
+
+    if (castro::rotation_include_coriolis == 1) {
+
+        for (int idir = 0; idir < 3; idir++) {
+          dt_omega[idir] = dt * omega[idir];
+        }
+
+    } else {
+
+      for (auto& e : dt_omega) {
+        e = 0.0_rt;
+      }
+
+    }
+
+    dt_omega_matrix(0, 0) = 1.0_rt + dt_omega[0] * dt_omega[0];
+    dt_omega_matrix(0, 1) = dt_omega[0] * dt_omega[1] + dt_omega[2];
+    dt_omega_matrix(0, 2) = dt_omega[0] * dt_omega[2] - dt_omega[1];
+
+    dt_omega_matrix(1, 0) = dt_omega[1] * dt_omega[0] - dt_omega[2];
+    dt_omega_matrix(1, 1) = 1.0_rt + dt_omega[1] * dt_omega[1];
+    dt_omega_matrix(1, 2) = dt_omega[1] * dt_omega[2] + dt_omega[0];
+
+    dt_omega_matrix(2, 0) = dt_omega[2] * dt_omega[0] + dt_omega[1];
+    dt_omega_matrix(2, 1) = dt_omega[2] * dt_omega[1] - dt_omega[0];
+    dt_omega_matrix(2, 2) = 1.0_rt + dt_omega[2] * dt_omega[2];
+
+    for (int l = 0; l < 3; l++) {
+      for (int m = 0; m < 3; m++) {
+        dt_omega_matrix(l, m) /= (1.0_rt + dt_omega[0] * dt_omega[0] +
+                                           dt_omega[1] * dt_omega[1] +
+                                           dt_omega[2] * dt_omega[2]);
+      }
+    }
+
+}
+
 #endif

@@ -31,6 +31,8 @@ Castro::rsrc(const Box& bx,
       loc[dir] -= problem::center[dir];
     }
 
+    auto omega = get_omega_vec(j);
+
     Real rho = uold(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
@@ -46,7 +48,6 @@ Castro::rsrc(const Box& bx,
     v[1] = uold(i,j,k,UMY) * rhoInv;
     v[2] = uold(i,j,k,UMZ) * rhoInv;
 
-    auto omega = get_omega_vec(j);
     bool coriolis = true;
     rotational_acceleration(loc, v, omega, coriolis, Sr);
 
@@ -179,53 +180,6 @@ Castro::corrrsrc(const Box& bx,
       dx[i] = 0.0_rt;
   }
 
-  auto omega = get_omega();
-
-  Real dt_omega[3];
-
-  Array2D<Real, 0, 2, 0, 2> dt_omega_matrix = {};
-
-  if (implicit_rotation_update == 1) {
-
-    // Don't do anything here if we've got the Coriolis force disabled.
-
-    if (rotation_include_coriolis == 1) {
-
-        for (int idir = 0; idir < 3; idir++) {
-          dt_omega[idir] = dt * omega[idir];
-        }
-
-    } else {
-
-      for (auto& e : dt_omega) {
-        e = 0.0_rt;
-      }
-
-    }
-
-
-    dt_omega_matrix(0, 0) = 1.0_rt + dt_omega[0] * dt_omega[0];
-    dt_omega_matrix(0, 1) = dt_omega[0] * dt_omega[1] + dt_omega[2];
-    dt_omega_matrix(0, 2) = dt_omega[0] * dt_omega[2] - dt_omega[1];
-
-    dt_omega_matrix(1, 0) = dt_omega[1] * dt_omega[0] - dt_omega[2];
-    dt_omega_matrix(1, 1) = 1.0_rt + dt_omega[1] * dt_omega[1];
-    dt_omega_matrix(1, 2) = dt_omega[1] * dt_omega[2] + dt_omega[0];
-
-    dt_omega_matrix(2, 0) = dt_omega[2] * dt_omega[0] + dt_omega[1];
-    dt_omega_matrix(2, 1) = dt_omega[2] * dt_omega[1] - dt_omega[0];
-    dt_omega_matrix(2, 2) = 1.0_rt + dt_omega[2] * dt_omega[2];
-
-    for (int l = 0; l < 3; l++) {
-      for (int m = 0; m < 3; m++) {
-        dt_omega_matrix(l, m) /= (1.0_rt + dt_omega[0] * dt_omega[0] +
-                                           dt_omega[1] * dt_omega[1] +
-                                           dt_omega[2] * dt_omega[2]);
-      }
-    }
-
-  }
-
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
@@ -245,6 +199,8 @@ Castro::corrrsrc(const Box& bx,
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       loc[dir] -= problem::center[dir];
     }
+
+    auto omega = get_omega_vec(j);
 
     Real rhoo = uold(i,j,k,URHO);
     Real rhooinv = 1.0_rt / uold(i,j,k,URHO);
@@ -267,7 +223,6 @@ Castro::corrrsrc(const Box& bx,
     vold[1] = uold(i,j,k,UMY) * rhooinv;
     vold[2] = uold(i,j,k,UMZ) * rhooinv;
 
-    auto omega = get_omega_vec(j);
     bool coriolis = true;
     rotational_acceleration(loc, vold, omega, coriolis, Sr_old);
 
@@ -286,7 +241,6 @@ Castro::corrrsrc(const Box& bx,
     vnew[1] = unew(i,j,k,UMY) * rhoninv;
     vnew[2] = unew(i,j,k,UMZ) * rhoninv;
 
-    auto omega = get_omega_vec(j);
     rotational_acceleration(loc, vnew, omega, coriolis, Sr_new);
 
     for (auto& e : Sr_new) {
@@ -330,6 +284,9 @@ Castro::corrrsrc(const Box& bx,
       // measured in the rotating frame or not; we handled that in the construction
       // of the dt_omega_matrix. It also has the correct form if we have disabled
       // the Coriolis force entirely; at that point it reduces to the identity matrix.
+
+      Array2D<Real, 0, 2, 0, 2> dt_omega_matrix = {};
+      fill_dt_omega_matrix(dt, omega, dt_omega_matrix);
 
       Real new_mom[3] = {};
 
