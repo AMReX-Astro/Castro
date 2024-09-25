@@ -833,7 +833,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
                 // Compute the effective potential.
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega = get_omega_vec(j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega);
 
                 for (int n = 0; n < 3; ++n) {
                     r[n] -= L1[n];
@@ -901,7 +902,8 @@ Castro::update_relaxation(Real time, Real dt) {
                 GpuArray<Real, 3> r;
                 position(i, j, k, geomdata, r);
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega = get_omega_vec(j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega);
 
                 Real done = 0.0_rt;
 

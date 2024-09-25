@@ -19,7 +19,7 @@ Castro::fill_rotational_psi(const Box& bx,
   // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
 
   auto omega = get_omega();
-  Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
+  Real denom = omega * omega;
 
   auto problo = geom.ProbLoArray();
 
@@ -44,7 +44,8 @@ Castro::fill_rotational_psi(const Box& bx,
 #endif
 
     if (denom != 0.0) {
-        psi(i,j,k) = rotational_potential(r) / denom;
+        auto omega = get_omega_vec(j);
+        psi(i,j,k) = rotational_potential(r, omega) / denom;
     }
     else {
         psi(i,j,k) = 0.0;

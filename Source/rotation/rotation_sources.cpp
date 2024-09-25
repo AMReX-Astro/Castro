@@ -46,8 +46,9 @@ Castro::rsrc(const Box& bx,
     v[1] = uold(i,j,k,UMY) * rhoInv;
     v[2] = uold(i,j,k,UMZ) * rhoInv;
 
+    auto omega_vec = get_omega_vec(j);
     bool coriolis = true;
-    rotational_acceleration(loc, v, coriolis, Sr);
+    rotational_acceleration(loc, v, omega_vec, coriolis, Sr);
 
     for (auto& e : Sr) {
         e *= rho;
@@ -266,8 +267,9 @@ Castro::corrrsrc(const Box& bx,
     vold[1] = uold(i,j,k,UMY) * rhooinv;
     vold[2] = uold(i,j,k,UMZ) * rhooinv;
 
+    auto omega_vec = get_omega_vec(j);
     bool coriolis = true;
-    rotational_acceleration(loc, vold, coriolis, Sr_old);
+    rotational_acceleration(loc, vold, omega_vec, coriolis, Sr_old);
 
     for (auto& e : Sr_old) {
         e *= rhoo;
@@ -284,7 +286,8 @@ Castro::corrrsrc(const Box& bx,
     vnew[1] = unew(i,j,k,UMY) * rhoninv;
     vnew[2] = unew(i,j,k,UMZ) * rhoninv;
 
-    rotational_acceleration(loc, vnew, coriolis, Sr_new);
+    auto omega_vec = get_omega_vec(j);
+    rotational_acceleration(loc, vnew, omega_vec, coriolis, Sr_new);
 
     for (auto& e : Sr_new) {
         e *= rhon;
@@ -309,7 +312,7 @@ Castro::corrrsrc(const Box& bx,
 
       Real acc[3];
       coriolis = false;
-      rotational_acceleration(loc, vnew, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega_vec, coriolis, acc);
 
       Real new_mom_tmp[3];
       for (int n = 0; n < 3; n++) {
@@ -398,7 +401,7 @@ Castro::corrrsrc(const Box& bx,
 
       Real acc[3];
       coriolis = true;
-      rotational_acceleration(loc, vnew, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega_vec, coriolis, acc);
 
       Sr_new[0] = rhon * acc[0];
       Sr_new[1] = rhon * acc[1];
@@ -456,7 +459,7 @@ Castro::corrrsrc(const Box& bx,
               Real temp_Sr[3];
 
               coriolis = false;
-              rotational_acceleration(loc, temp_vel, coriolis, temp_Sr);
+              rotational_acceleration(loc, temp_vel, omega_vec, coriolis, temp_Sr);
 
               edge_Sr[dir][edge] = temp_Sr[dir];
 
@@ -487,4 +490,3 @@ Castro::corrrsrc(const Box& bx,
   });
 
 }
-

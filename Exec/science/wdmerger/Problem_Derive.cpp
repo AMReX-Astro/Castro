@@ -438,8 +438,9 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 #else
         loc[2] = 0.0_rt;
 #endif
+        auto omega = get_omega_vec(j);
 
-        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc);
+        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc, omega);
     });
 }
 
@@ -492,7 +493,9 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
             loc[iloc] -= problem::center[iloc];
         }
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc);
+        auto omega = get_omega_vec(j);
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc, omega);
     });
 }
 
@@ -542,7 +545,9 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
             loc[iloc] -= problem::center[iloc];
         }
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc);
+        auto omega = get_omega_vec(j);
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc, omega);
     });
 }
 
@@ -592,7 +597,9 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncom
         loc[2] = 0.0_rt;
 #endif
 
-        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc);
+        auto omega = get_omega_vec(j);
+
+        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc, omega);
     });
 }
 

@@ -6,22 +6,50 @@
 #include <Castro.H>
 #include <Castro_util.H>
 
+
 ///
-/// Return the omega vector corresponding to the current rotational period
+/// Return the magnitude of omega along the rotating axis.
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> get_omega()
+Real get_omega()
 {
-    GpuArray<Real, 3> omega = {0.0_rt};
+    Real omega = 0.0_rt;
 
     // If rotational_period is less than zero, that means rotation is disabled, and so we should effectively
     // shut off the source term by setting omega = 0.
 
     if (castro::rotational_period > 0.0_rt) {
-        omega[castro::rot_axis - 1] = 2.0_rt * M_PI / castro::rotational_period;
+        omega = 2.0_rt * M_PI / castro::rotational_period;
     }
 
     return omega;
+}
+
+///
+/// Return the omega vector corresponding to the current rotational period
+///
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+GpuArray<Real, 3> get_omega_vec(const int j)
+{
+    GpuArray<Real, 3> omega_vec = {0.0_rt};
+
+    const auto coord = geom.Coord();
+    const auto problo = geom.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+
+    auto omega = get_omega();
+
+    // If coord == 2, i.e. Spherical2D, then it is assumed that rotational axis is in z-axis
+    // then we convert back to r and theta direction.
+    if (coord == 2) {
+        Real theta = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+        omega_vec[0] = std::cos(theta) * omega;
+        omega_vec[1] = -std::sin(theta) * omega;
+    } else {
+        omega_vec[castro::rot_axis - 1] = omega;
+    }
+
+    return omega_vec;
 }
 
 ///
@@ -36,6 +64,7 @@ GpuArray<Real, 3> get_omega()
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
+                        GpuArray<Real, 3>& omega,
                         const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -47,8 +76,6 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
   Sr[0] = 0.0;
   Sr[1] = 0.0;
   Sr[2] = 0.0;
-
-  auto omega = get_omega();
 
   // Allow the various terms to be turned off.  This is often used
   // for diagnostic purposes, but there are genuine science cases
@@ -88,14 +115,12 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
-rotational_potential(GpuArray<Real, 3>& r) {
+rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3>& omega) {
 
   // Construct rotational potential, phi_R = -1/2 | omega x r |**2
   //
 
   Real phi = 0.0_rt;
-
-  auto omega = get_omega();
 
   if (rotation_include_centrifugal == 1) {
 
@@ -133,7 +158,7 @@ inertial_to_rotational_velocity (const int i, const int j, const int k,
     loc[dir] -= problem::center[dir];
   }
 
-  auto omega = get_omega();
+  auto omega = get_omega_vec(j);
 
   // do the cross product Omega x loc
   v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
@@ -163,7 +188,7 @@ rotational_to_inertial_velocity (const int i, const int j, const int k,
     loc[dir] -= problem::center[dir];
   }
 
-  auto omega = get_omega();
+  auto omega = get_omega_vec(j);
 
   // do the cross product Omega x loc
   v[0] += (omega[1]*loc[2] - omega[2]*loc[1]);
@@ -177,14 +202,13 @@ rotational_to_inertial_velocity (const int i, const int j, const int k,
 // since the beginning of the simulation.
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec, Real time)
+GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec,
+                                    const GpuArray<Real, 3>& omega, Real time)
 {
     GpuArray<Real, 3> vec_i{};
 
     Array1D<Real, 0, 2> theta{};
     Array2D<Real, 0, 2, 0, 2> rot_matrix{};
-
-    auto omega = get_omega();
 
     if (castro::do_rotation == 1) {
         for (int n = 0; n < 3; ++n) {

@@ -413,7 +413,8 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r));
+                    auto omega = get_omega_vec(j);
+                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r, omega));
 
                     return {bernoulli_zone};
                 });
@@ -468,7 +469,8 @@ Castro::do_hscf_solve()
                     r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r);
+                    auto omega = get_omega_vec(j);
+                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r, omega);
                 });
 
             }
@@ -655,7 +657,8 @@ Castro::do_hscf_solve()
                     {
                         dM = state_arr(i,j,k,URHO) * dV;
 
-                        dK = rotational_potential(r) * dM;
+                        auto omega = get_omega_vec(j);
+                        dK = rotational_potential(r, omega) * dM;
 
                         dU = 0.5_rt * phi_arr(i,j,k) * dM;
 

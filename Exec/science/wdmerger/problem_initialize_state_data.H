@@ -16,7 +16,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
 
-    auto omega = get_omega();
+    auto omega_vec = get_omega_vec(j);
 
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
@@ -191,7 +191,7 @@ void problem_initialize_state_data (int i, int j, int k,
         }
 
         GpuArray<Real, 3> vel;
-        cross_product(omega, rot_loc, vel);
+        cross_product(omega_vec, rot_loc, vel);
 
         state(i,j,k,UMX) += state(i,j,k,URHO) * vel[0];
         state(i,j,k,UMY) += state(i,j,k,URHO) * vel[1];
