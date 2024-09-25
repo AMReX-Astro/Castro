@@ -17,7 +17,7 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* probhi = geomdata.ProbHi();
 
 #ifdef ROTATION
-    auto omega = get_omega_vec(j);
+    auto omega = get_omega_vec(geomdata, j);
 #else
     // Provide a dummy value so that we can compile without rotation.
     Real omega[3] = {0.0_rt, 0.0_rt, 2.0_rt * M_PI};

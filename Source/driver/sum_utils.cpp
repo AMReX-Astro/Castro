@@ -400,7 +400,7 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> pos{r};
 #ifdef ROTATION
-            auto omega = get_omega_vec(j);
+            auto omega = get_omega_vec(geomdata, j);
             pos = inertial_rotation(r, omega, time);
 #endif
 
@@ -432,7 +432,6 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> inertial_g{g};
 #ifdef ROTATION
-            auto omega = get_omega_vec(j);
             inertial_g = inertial_rotation(g, omega, time);
 #endif
 

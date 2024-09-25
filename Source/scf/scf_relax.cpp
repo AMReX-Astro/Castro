@@ -244,6 +244,7 @@ Castro::do_hscf_solve()
                 {
                     const auto *dx = geomdata.CellSize();
                     const auto *problo = geomdata.ProbLo();
+                    const auto coord = geomdata.Coord();
 
                     // The below assumes we are rotating on the z-axis.
 
@@ -413,8 +414,8 @@ Castro::do_hscf_solve()
                         scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
                     }
 
-                    auto omega = get_omega_vec(j);
-                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r, omega));
+                    auto omega = get_omega_vec(geomdata, j);
+                    Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r, omega, coord));
 
                     return {bernoulli_zone};
                 });
@@ -458,6 +459,7 @@ Castro::do_hscf_solve()
 
                     const auto *dx = geomdata.CellSize();
                     const auto *problo = geomdata.ProbLo();
+                    const auto coord = geomdata.Coord();
 
                     GpuArray<Real, 3> r = {0.0};
 
@@ -469,8 +471,8 @@ Castro::do_hscf_solve()
                     r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-                    auto omega = get_omega_vec(j);
-                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r, omega);
+                    auto omega = get_omega_vec(geomdata, j);
+                    enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r, omega, coord);
                 });
 
             }
@@ -642,6 +644,7 @@ Castro::do_hscf_solve()
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
                     const auto* problo = geomdata.ProbLo();
+                    const auto coord = geomdata.Coord();
 
                     GpuArray<Real, 3> r = {0.0};
 
@@ -657,8 +660,8 @@ Castro::do_hscf_solve()
                     {
                         dM = state_arr(i,j,k,URHO) * dV;
 
-                        auto omega = get_omega_vec(j);
-                        dK = rotational_potential(r, omega) * dM;
+                        auto omega = get_omega_vec(geomdata, j);
+                        dK = rotational_potential(r, omega, coord) * dM;
 
                         dU = 0.5_rt * phi_arr(i,j,k) * dM;
 

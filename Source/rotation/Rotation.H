@@ -29,20 +29,21 @@ Real get_omega()
 /// Return the omega vector corresponding to the current rotational period
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> get_omega_vec(const int j)
+GpuArray<Real, 3> get_omega_vec(const GeometryData& geomdata,
+                                const int j)
 {
     GpuArray<Real, 3> omega_vec = {0.0_rt};
 
-    const auto coord = geom.Coord();
-    const auto problo = geom.ProbLoArray();
-    const auto dx = geom.CellSizeArray();
+    const auto coord = geomdata.Coord();
+    const auto problo = geomdata.ProbLo(1);
+    const auto dtheta = geomdata.CellSize(1);
 
     auto omega = get_omega();
 
     // If coord == 2, i.e. Spherical2D, then it is assumed that rotational axis is in z-axis
     // then we convert back to r and theta direction.
     if (coord == 2) {
-        Real theta = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+        Real theta = problo + (static_cast<Real>(j) + 0.5_rt) * dtheta;
         omega_vec[0] = std::cos(theta) * omega;
         omega_vec[1] = -std::sin(theta) * omega;
     } else {
@@ -58,13 +59,15 @@ GpuArray<Real, 3> get_omega_vec(const int j)
 ///
 /// @param r         distance from origin of rotation vector
 /// @param v         velocity
+/// @param omega     angular velocity vector array
+/// @param coord     coordinate system
 /// @param coriolis  do we include the Coriolis force
 /// @param Sr        rotational acceleration
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
-                        const GpuArray<Real, 3>& omega,
+                        const GpuArray<Real, 3>& omega, const int coord,
                         const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -90,7 +93,6 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
 
   bool c2 = (castro::rotation_include_coriolis == 1 && coriolis) ? true : false;
 
-  const auto coord = geom.Coord();
   auto r_vec = r;
 
   GpuArray<Real, 3> omega_cross_v;
@@ -125,14 +127,13 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
-rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega) {
+rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega,
+                     const int coord) {
 
   // Construct rotational potential, phi_R = -1/2 | omega x r |**2
   //
 
   Real phi = 0.0_rt;
-
-  const auto coord = geom.Coord();
   auto r_vec = r;
 
   if (coord == 2) {
@@ -176,7 +177,12 @@ inertial_to_rotational_velocity (const int i, const int j, const int k,
     loc[dir] -= problem::center[dir];
   }
 
-  auto omega = get_omega_vec(j);
+  if (geomdata.Coord() == 2) {
+      loc[1] = 0.0_rt;
+      loc[2] = 0.0_rt;
+  }
+
+  auto omega = get_omega_vec(geomdata, j);
 
   // do the cross product Omega x loc
   v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
@@ -206,7 +212,12 @@ rotational_to_inertial_velocity (const int i, const int j, const int k,
     loc[dir] -= problem::center[dir];
   }
 
-  auto omega = get_omega_vec(j);
+  if (geomdata.Coord() == 2) {
+      loc[1] = 0.0_rt;
+      loc[2] = 0.0_rt;
+  }
+
+  auto omega = get_omega_vec(geomdata, j);
 
   // do the cross product Omega x loc
   v[0] += (omega[1]*loc[2] - omega[2]*loc[1]);
