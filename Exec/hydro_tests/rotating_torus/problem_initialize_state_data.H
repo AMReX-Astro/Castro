@@ -17,10 +17,10 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* probhi = geomdata.ProbHi();
 
 #ifdef ROTATION
-    auto omega_vec = get_omega_vec(j);
+    auto omega = get_omega_vec(j);
 #else
     // Provide a dummy value so that we can compile without rotation.
-    Real omega_vec[3] = {0.0_rt, 0.0_rt, 2.0_rt * M_PI};
+    Real omega[3] = {0.0_rt, 0.0_rt, 2.0_rt * M_PI};
 #endif
 
     // Rotating torus of Papaloizou and Pringle (1984), MNRAS, 208, 721.
@@ -79,7 +79,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     GpuArray<Real, 3> vel = {0.0};
     if (rho > problem::ambient_density && do_rotation == 0) {
-        cross_product(omega_vec, loc, vel);
+        cross_product(omega, loc, vel);
     }
 
     eos_t eos_state;
