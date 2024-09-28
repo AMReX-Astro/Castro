@@ -159,11 +159,11 @@ sdc_newton_solve(const Real dt_m,
 
         // solve the linear system: Jac dU = -f
 #ifdef NEW_NETWORK_IMPLEMENTATION
-        RHS::dgefa(Jac);
-        info = 0;
+        info = RHS::dgefa(Jac);
 #else
         IArray1D ipvt;
-        dgefa<NumSpec+1>(Jac, ipvt, info);
+        constexpr bool allow_pivot{true};
+        dgefa<NumSpec+1, allow_pivot>(Jac, ipvt, info);
 #endif
         if (info != 0) {
             ierr = newton::SINGULAR_MATRIX;
@@ -173,7 +173,7 @@ sdc_newton_solve(const Real dt_m,
 #ifdef NEW_NETWORK_IMPLEMENTATION
         RHS::dgesl(Jac, f);
 #else
-        dgesl<NumSpec+1>(Jac, ipvt, f);
+        dgesl<NumSpec+1, allow_pivot>(Jac, ipvt, f);
 #endif
 
         // on output, f is the solution (dU)

@@ -548,24 +548,45 @@ Physical Boundaries
 
 Physical boundary conditions are specified by an integer index [2]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
-parameters. The generally supported boundary conditions are, their
-corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in
-:numref:`table:castro:bcs`.
+parameters.  Table :numref:`table:castro:bcs` shows the correspondence
+between the integer key and the physical assumption, as well
+as the action each takes for the normal
+velocity, transverse velocity, and generic scalar.
+
+.. _table:castro:bcs:
+.. table:: Physical boundary conditions supported in Castro.
+
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | **name**    | **integer** | **normal            | **transverse         | **scalars**          |
+   |             |             | velocity**          | velocity**           |                      |
+   +=============+=============+=====================+======================+======================+
+   | interior    | 0           | BCType::int_dir     | BCType::int_dir      | BCType::int_dir      |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | inflow      | 1           | BCType::ext_dir     | BCType::ext_dir      | BCType::ext_dir      |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | outflow     | 2           | BCType::foextrap    | BCType::foextrap     | BCType::foextrap     |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | symmetry    | 3           | BCType::reflect_odd | BCType::reflect_even | BCType::reflect_even |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | slipwall    | 4           | BCType::reflect_odd | BCType::reflect_even | BCType::reflect_even |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+   | noslipwall  | 5           | BCType::reflect_odd | BCType::reflect_even | BCType::reflect_even |
+   +-------------+-------------+---------------------+----------------------+----------------------+
+
 
 The definition of the specific actions are:
 
--  ``INT_DIR``: data taken from other grids or interpolated
+-  ``BCType::int_dir``: data taken from other grids or interpolated
 
--  ``EXT_DIR``: data specified on EDGE (FACE) of bndry
+-  ``BCType::ext_dir``: data specified on EDGE (FACE) of boundary
 
--  ``HOEXTRAP``: higher order extrapolation to EDGE of bndry
+-  ``BCType::hoextrap``: higher order extrapolation to EDGE of boundary
 
--  ``FOEXTRAP``: first order extrapolation from last cell in interior
+-  ``BCType::foextrap``: first order extrapolation from last cell in interior
 
--  ``REFLECT_EVEN``: :math:`F(-n) = F(n)` true reflection from interior cells
+-  ``BCType::reflect_even``: :math:`F(-n) = F(n)` true reflection from interior cells
 
--  ``REFLECT_ODD``: :math:`F(-n) = -F(n)` true reflection from interior cells
+-  ``BCType::reflect_odd``: :math:`F(-n) = -F(n)` true reflection from interior cells
 
 The actual registration of a boundary condition action to a particular
 variable is done in ``Castro_setup.cpp``. At the top we define arrays
@@ -582,25 +603,6 @@ the domain. You then need to write the implementation code for this.
 There is a centralized hydrostatic boundary condition that is implemented
 this way—see :ref:`create:bcs`.
 
-.. _table:castro:bcs:
-.. table:: Physical boundary conditions supported in Castro.
-
-   +-------------+-------------+-------------+--------------+--------------+
-   | **name**    | **integer** | **normal    | **transverse | **scalars**  |
-   |             |             | velocity**  | velocity**   |              |
-   +=============+=============+=============+==============+==============+
-   | interior    | 0           | INT_DIR     | INT_DIR      | INT_DIR      |
-   +-------------+-------------+-------------+--------------+--------------+
-   | inflow      | 1           | EXT_DIR     | EXT_DIR      | EXT_DIR      |
-   +-------------+-------------+-------------+--------------+--------------+
-   | outflow     | 2           | FOEXTRAP    | FOEXTRAP     | FOEXTRAP     |
-   +-------------+-------------+-------------+--------------+--------------+
-   | symmetry    | 3           | REFLECT_ODD | REFLECT_EVEN | REFLECT_EVEN |
-   +-------------+-------------+-------------+--------------+--------------+
-   | slipwall    | 4           | REFLECT_ODD | REFLECT_EVEN | REFLECT_EVEN |
-   +-------------+-------------+-------------+--------------+--------------+
-   | noslipwall  | 5           | REFLECT_ODD | REFLECT_EVEN | REFLECT_EVEN |
-   +-------------+-------------+-------------+--------------+--------------+
 
 ``FluxRegister``
 ----------------

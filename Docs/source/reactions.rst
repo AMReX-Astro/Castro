@@ -11,10 +11,17 @@ and it evolves those components through a nuclear burning step.  All
 of the reaction networks that Castro uses are provided by the
 `Microphysics repository <https://github.com/amrex-astro/Microphysics>`_.
 
+.. index:: USE_REACT
+
 .. note::
 
-   An arbitrary reaction network can be created for Castro via the
-   `pynucastro library <https://pynucastro.github.io/pynucastro/>`_.
+   To enable reactions in a simulation, you must compile with
+
+   ::
+
+      USE_REACT=TRUE
+
+   This can be set in your ``GNUmakefile``.
 
 Microphysics comes with a ``general_null``
 network. This is a bare interface for a
@@ -23,6 +30,16 @@ are accepted.  It contains several sets of isotopes; for example,
 ``Microphysics/networks/general_null/triple_alpha_plus_o.net`` would describe the
 isotopes needed to represent the triple-\ :math:`\alpha` reaction converting
 helium into carbon, as well as oxygen and iron.
+
+Other reaction networks can be found in ``Microphysics/networks``.  To select
+a network, you set the make variable ``NETWORK_DIR`` to the name of the network
+directory.
+
+.. note::
+
+   An arbitrary reaction network can be created for Castro via the
+   `pynucastro library <https://pynucastro.github.io/pynucastro/>`_.
+
 
 The main interface for burning is in ``Microphysics/interfaces/burner.H``:
 
@@ -46,7 +63,7 @@ details.
 Controlling burning
 ===================
 
-.. index:: castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max
+.. index:: castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.do_react
 
 There are a number of reactions-related parameters that can be set at runtime
 in the inputs file. Reactions are enabled by setting::
@@ -63,7 +80,11 @@ reactions to occur in a zone using the parameters:
 
 * ``castro.react_rho_min`` and ``castro.react_rho_max`` for density
 
-.. index:: castro.disable_shock_burning, USE_SHOCK_VAR
+
+Burning in Shocks
+-----------------
+
+.. index:: USE_SHOCK_VAR, castro.diable_shock_burning, castro.shock_detection_threshold, castro.shock_detection_include_sources
 
 Burning can also be disabled inside shocks.  This requires that the code be
 compiled with::
@@ -72,12 +93,27 @@ compiled with::
 
 in the ``GNUmakefile``.  This will allocate storage for a shock flag in the conserved
 state array.  This flag is computed via a multidimensional shock detection algorithm
-that looks for compression (:math:`\nabla \cdot \ub < 0`) along with a pressure jump
-in the direction of compression.  The runtime parameter::
+described in :cite:`doubledet2024`.  A zone is tagged as a shock if the following
+conditions are true:
+
+.. math::
+
+   \begin{align*}
+   \nabla \cdot \ub &< 0 \\
+   \frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &> f_\mathrm{shock}
+   \end{align*}
+
+This requires that there is compression and that the pressure jump (excluding
+the part of the pressure that balances gravity) is large.  The runtime parameter
+
+::
 
    castro.disable_shock_burning = 1
 
-will skip reactions in a zone where we've detected a shock.
+will skip reactions in a zone where we've detected a shock.  The runtime parameters
+``castro.shock_detection_threshold`` and ``castro.shock_detection_include_sources``
+will set the value of $f_\mathrm{shock}$ and whether to subtract $\rho {\bf g}$
+from the pressure gradient.
 
 .. note::
 

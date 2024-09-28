@@ -16,10 +16,6 @@ using namespace castro;
 
 #include <fundamental_constants.H>
 
-constexpr int HISTORY_SIZE=40;
-constexpr int PSTAR_BISECT_FACTOR = 5;
-
-
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
@@ -522,7 +518,7 @@ public:
 /// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
-    static void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+    static void check_for_nan(const amrex::MultiFab& state, int check_ghost=0);
 
 
 #include <Castro_sources.H>
@@ -819,11 +815,11 @@ public:
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
 ///
-    void add_magnetic_e (
-                         amrex::MultiFab& Bx,
-                         amrex::MultiFab& By,
-                         amrex::MultiFab& Bz,
-                         amrex::MultiFab& state);
+    static void add_magnetic_e (
+        amrex::MultiFab& Bx,
+        amrex::MultiFab& By,
+        amrex::MultiFab& Bz,
+        amrex::MultiFab& state);
 
 ///
 /// Check if divergence of B is zero at initialization
@@ -1138,7 +1134,7 @@ public:
 /// @param S        Current state
 /// @param time     current time
 ///
-    void define_new_center (amrex::MultiFab& S, amrex::Real time);
+    void define_new_center (const amrex::MultiFab& S, amrex::Real time);
     void write_center ();
 
 ///
@@ -1345,7 +1341,7 @@ protected:
 ///
 /// Flag for indicating that we want to save prev_state until the reflux.
 ///
-    bool keep_prev_state;
+    bool keep_prev_state{};
 
 
 #ifdef TRUE_SDC
@@ -1422,8 +1418,8 @@ protected:
 
 
 ///
-/// for keeping track of the amount of CPU time used -- this will persist
-///     after restarts
+/// for keeping track of the amount of CPU or GPU time used -- this will persist
+/// after restarts
 ///
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;

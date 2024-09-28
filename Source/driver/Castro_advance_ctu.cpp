@@ -157,11 +157,18 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
     if (do_retry) {
 
-        if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
-            dt_subcycle = status.suggested_dt;
+        int max_level_to_advance = level;
+
+        if (parent->subcyclingMode() == "None" && level == 0) {
+            max_level_to_advance = parent->finestLevel();
         }
-        else {
-            dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            if (status.suggested_dt > 0.0_rt && status.suggested_dt < dt) {
+                getLevel(lev).dt_subcycle = status.suggested_dt;
+            } else {
+                getLevel(lev).dt_subcycle = std::min(dt, getLevel(lev).dt_subcycle) * retry_subcycle_factor;
+            }
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -178,51 +185,56 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
         // be useful to us at the end of the timestep when we need
         // to restore the original old data.
 
-        save_data_for_retry();
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            getLevel(lev).save_data_for_retry();
 
-        // Clear the contribution to the fluxes from this step.
+            // Clear the contribution to the fluxes from this step.
 
-        for (int dir = 0; dir < 3; ++dir) {
-          fluxes[dir]->setVal(0.0);
-        }
+            for (int dir = 0; dir < 3; ++dir) {
+                getLevel(lev).fluxes[dir]->setVal(0.0);
+            }
 
-        for (int dir = 0; dir < 3; ++dir) {
-          mass_fluxes[dir]->setVal(0.0);
-        }
+            for (int dir = 0; dir < 3; ++dir) {
+                getLevel(lev).mass_fluxes[dir]->setVal(0.0);
+            }
 
 #if (AMREX_SPACEDIM <= 2)
-        if (!Geom().IsCartesian()) {
-          P_radial.setVal(0.0);
-        }
+            if (!Geom().IsCartesian()) {
+                getLevel(lev).P_radial.setVal(0.0);
+            }
 #endif
 
 #ifdef RADIATION
-        if (Radiation::rad_hydro_combined) {
-          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            rad_fluxes[dir]->setVal(0.0);
-          }
-        }
+            if (Radiation::rad_hydro_combined) {
+                for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                    getLevel(lev).rad_fluxes[dir]->setVal(0.0);
+                }
+            }
 #endif
 
 #ifdef REACTIONS
-        burn_weights.setVal(0.0);
+            if (castro::store_burn_weights) {
+                getLevel(lev).burn_weights.setVal(0.0);
+            }
 #endif
 
-        // For simplified SDC, we'll have garbage data if we
-        // attempt to use the lagged source terms (both reacting
-        // and non-reacting) from the last timestep, since that
-        // advance failed and we don't know if we can trust it.
-        // So we zero out both source term correctors.
+            // For simplified SDC, we'll have garbage data if we
+            // attempt to use the lagged source terms (both reacting
+            // and non-reacting) from the last timestep, since that
+            // advance failed and we don't know if we can trust it.
+            // So we zero out both source term correctors.
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            source_corrector.setVal(0.0, source_corrector.nGrow());
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                getLevel(lev).source_corrector.setVal(0.0, getLevel(lev).source_corrector.nGrow());
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+                MultiFab& SDC_react_new = getLevel(lev).get_new_data(Simplified_SDC_React_Type);
+                SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
 #endif
 #endif
+            }
+
         }
 
     }
@@ -309,7 +321,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (num_subcycles_remaining > max_subcycles) {
             amrex::Print() << std::endl
-                           << "  The subcycle mechanism requested " << num_subcycles_remaining << " subcycled timesteps, which is larger than the maximum of " << max_subcycles << "." << std::endl
+                           << "  The subcycle mechanism requested " << num_subcycles_remaining
+                           << " subcycled timesteps, which is larger than the maximum of "
+                           << max_subcycles << "." << std::endl
                            << "  If you would like to override this, increase the parameter castro.max_subcycles." << std::endl;
             amrex::Abort("Error: too many subcycles.");
         }
@@ -318,9 +332,12 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << Font::Bold << FGColor::Green << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
+            std::cout << Font::Bold << FGColor::Green
+                      << "  Beginning subcycle " << sub_iteration + 1
+                      << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << ResetDisplay << std::endl;
-            std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
+            std::cout << "  Estimated number of subcycles remaining: "
+                      << num_subcycles_remaining << std::endl << std::endl;
         }
 
         // Swap the time levels. Only do this after the first iteration;
@@ -329,25 +346,26 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (do_swap) {
 
-            swap_state_time_levels(0.0);
+            for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                getLevel(lev).swap_state_time_levels(0.0);
 
 #ifdef GRAVITY
-            if (do_grav) {
-                gravity->swapTimeLevels(level);
-            }
+                if (do_grav) {
+                    getLevel(lev).gravity->swapTimeLevels(lev);
+                }
 #endif
+            }
 
-        }
-        else {
-
+        }  else {
             do_swap = true;
-
         }
 
         // Set the relevant time levels.
 
-        for (int k = 0; k < num_state_type; k++) {
-          state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            for (int k = 0; k < num_state_type; k++) {
+                getLevel(lev).state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+            }
         }
 
         // Do the advance and construct the relevant source terms. For CTU this
@@ -458,7 +476,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     // Record the number of subcycles we took for diagnostic purposes.
 
-    num_subcycles_taken = sub_iteration;
+    for (int lev = level; lev <= max_level_to_advance; ++lev) {
+        getLevel(lev).num_subcycles_taken = sub_iteration;
+    }
 
     if (sub_iteration > 1) {
 
@@ -468,14 +488,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // we still have the last iteration's old data if we need
         // it later.
 
-        for (int k = 0; k < num_state_type; k++) {
-
-            if (prev_state[k]->hasOldData()) {
-                state[k].replaceOldData(*prev_state[k]);
+        for (int lev = level; lev <= max_level_to_advance; ++lev) {
+            for (int k = 0; k < num_state_type; k++) {
+                if (getLevel(lev).prev_state[k]->hasOldData()) {
+                    getLevel(lev).state[k].replaceOldData(*getLevel(lev).prev_state[k]);
+                }
+                getLevel(lev).state[k].setTimeLevel(time + dt, dt, 0.0);
+                getLevel(lev).prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
             }
-            state[k].setTimeLevel(time + dt, dt, 0.0);
-            prev_state[k]->setTimeLevel(time + dt, dt_subcycle, 0.0);
-
         }
 
         // If we took more than one step and are going to do a reflux,
@@ -487,8 +507,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // reflux immediately following this, skip this if we're on the
             // finest level and this is not the last iteration.
 
-            if (!(amr_iteration < amr_ncycle && level == parent->finestLevel())) {
-              keep_prev_state = true;
+            for (int lev = level; lev <= max_level_to_advance; ++lev) {
+                if (!(amr_iteration < amr_ncycle && lev == parent->finestLevel())) {
+                    getLevel(lev).keep_prev_state = true;
+                }
             }
 
         }

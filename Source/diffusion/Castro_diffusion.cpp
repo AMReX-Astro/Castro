@@ -22,15 +22,16 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real tim
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
-
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_diff_source() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_diff_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -59,15 +60,17 @@ Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFa
 
     if (verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_diff_source() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_diff_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -88,8 +91,8 @@ Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& state_in, Mul
     }
 
     if (diffuse_temp == 1) {
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEDEN,1,0);
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEINT,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEDEN,1,0);  // NOLINT(readability-suspicious-call-argument)
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEINT,1,0);  // NOLINT(readability-suspicious-call-argument)
     }
 }
 

@@ -609,7 +609,7 @@ behavior:
 Compute Primitive Variables
 ---------------------------
 
-We compute the primtive variables from the conserved variables.
+We compute the primitive variables from the conserved variables.
 
 -  :math:`\rho, \rho e`: directly copy these from the conserved state
    vector

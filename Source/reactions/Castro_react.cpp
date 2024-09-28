@@ -203,7 +203,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
-        const auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
+        Array4<Real> empty_arr{};
+        const auto& mask = mask_covered_zones ? mask_mf.array(mfi) : empty_arr;
 
         const auto dx = geom.CellSizeArray();
 #ifdef MODEL_PARSER
@@ -360,7 +361,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
                     if (store_burn_weights) {
 
-                        if (jacobian == 1) {
+                        if (integrator_rp::jacobian == 1) {
                             weights(i,j,k,strang_half) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                         } else {
                             // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
@@ -416,6 +417,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #if defined(AMREX_USE_HIP)
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
+
+#ifdef ALLOW_GPU_PRINTF
+        std::fflush(nullptr);
+#endif
+
     }
 
 #if defined(AMREX_USE_GPU)
@@ -443,14 +449,16 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     if (verbose > 0)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::react_state() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::react_state() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -533,7 +541,9 @@ Castro::react_state(Real time, Real dt)
 #endif
     int num_failed = 0;
 
-    // why no omp here?
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:num_failed)
+#endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
@@ -548,7 +558,8 @@ Castro::react_state(Real time, Real dt)
         auto I     = SDC_react.array(mfi);
         auto react_src = reactions.array(mfi);
         auto weights = store_burn_weights ? burn_weights.array(mfi) : Array4<Real>{};
-        const auto mask = mask_covered_zones ? mask_mf.array(mfi) : Array4<Real>{};
+        Array4<Real> empty_arr{};
+        const auto& mask = mask_covered_zones ? mask_mf.array(mfi) : empty_arr;
 
         int lsdc_iteration = sdc_iteration;
 
@@ -748,7 +759,7 @@ Castro::react_state(Real time, Real dt)
 
                     if (store_burn_weights) {
 
-                         if (jacobian == 1) {
+                         if (integrator_rp::jacobian == 1) {
                              weights(i,j,k,lsdc_iteration) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                          } else {
                              // the RHS evals for the numerical differencing in the Jacobian are already accounted for in n_rhs
@@ -808,6 +819,11 @@ Castro::react_state(Real time, Real dt)
 #if defined(AMREX_USE_HIP)
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
+
+#ifdef ALLOW_GPU_PRINTF
+       std::fflush(nullptr);
+#endif
+
     }
 
 #if defined(AMREX_USE_GPU)
@@ -838,15 +854,17 @@ Castro::react_state(Real time, Real dt)
 
         amrex::Print() << "... Leaving burner on level " << level << " after completing full timestep of burning." << std::endl << std::endl;
 
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time, IOProc);
 
-        amrex::Print() << "Castro::react_state() time = " << run_time << " on level " << level << std::endl << std::endl;
+        amrex::Print() << "Castro::react_state() time = " << run_time
+                       << " on level " << llevel << std::endl << std::endl;
 #ifdef BL_LAZY
         });
 #endif

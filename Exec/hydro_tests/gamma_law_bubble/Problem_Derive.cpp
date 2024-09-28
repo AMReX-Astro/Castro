@@ -52,11 +52,11 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     eos_state.T = dat(i,j,k,UTEMP);
     eos_state.e = dat(i,j,k,UEINT) * rhoInv;
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = dat(i,j,k,UFS+n) / dat(i,j,k,URHO);
+      eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = dat(i,j,k,UFX+n) / dat(i,j,k,URHO);
+      eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
     }
 #endif
 
@@ -177,8 +177,8 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      if (problem::do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
        density[j] = problem::dens_base *
-         std::pow((gravity::const_grav * problem::dens_base * (eos_gamma - 1.0_rt) * z/
-                   (eos_gamma * problem::pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
+         std::pow((gravity::const_grav * problem::dens_base * (eos_rp::eos_gamma - 1.0_rt) * z/
+                   (eos_rp::eos_gamma * problem::pres_base) + 1.0_rt), 1.0_rt/(eos_rp::eos_gamma - 1.0_rt));
      } else {
        Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM-1];
        density[j] = problem::dens_base * std::exp(-z/H);

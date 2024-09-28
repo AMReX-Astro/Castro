@@ -604,7 +604,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const Real ldt = new_time - old_time;
 
-        force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        force[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0);
         force[lev]->setVal(0.0);
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);

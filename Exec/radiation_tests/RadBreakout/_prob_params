@@ -7,7 +7,7 @@ rbasefac            real        0.99e0_rt      y
 filter_rhomax       real        -1.e20_rt      y
 filter_timemax      real        -1.e20_rt      y
 
-model_file          character   "model.input"  y
+model_file          string      "model.input"  y
 
 iye                 int         -1             n
 iinvmu              int         -1             n

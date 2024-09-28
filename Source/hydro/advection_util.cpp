@@ -113,7 +113,6 @@ Castro::shock(const Box& bx,
 #endif
 #endif
 
-#if AMREX_SPACEDIM == 1
     } else if (coord_type == 2) {
 
       // 1-d spherical
@@ -122,6 +121,15 @@ Castro::shock(const Box& bx,
       Real rp = (i + 1 + 0.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
+#if AMREX_SPACEDIM == 2
+
+      Real thetac = (j + 0.5_rt) * dx[1];
+      Real thetam = (j - 1 + 0.5_rt) * dx[1];
+      Real thetap = (j + 1 + 0.5_rt) * dx[1];
+
+      div_u += 0.5_rt * (std::sin(thetap) * q_arr(i,j+1,k,QV) -
+                         std::sin(thetam) * q_arr(i,j-1,k,QV)) /
+          (rc * sin(thetac) * dx[1]);
 #endif
 
 #ifndef AMREX_USE_GPU
@@ -134,7 +142,14 @@ Castro::shock(const Box& bx,
 
     // now compute (grad P - rho g) . dx
     // We subtract off the hydrostatic force, since the pressure that
-    // balances that is not available to make a shock.
+    // balances that is not available to make a shock.  We compute this
+    // as:
+    //
+    // P'_{i+1} = P_{i+1} - [ P_i + \int_{x_i}^{x_{i+1}} rho g dx ]
+    //
+    // where the term in the [ ] is the hydrostatic pressure in i+1
+    // computed by integrating from x_i to x_{i+1}
+    //
     // We'll use a centered diff for the pressure gradient.
     Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
     if (shock_detection_include_sources == 1) {
@@ -145,7 +160,13 @@ Castro::shock(const Box& bx,
 #if AMREX_SPACEDIM >= 2
     dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
     if (shock_detection_include_sources == 1) {
-        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
+        Real dy{dx[1]};
+        if (coord_type == 2) {
+            // dx[1] is just dtheta
+            Real rc = (i + 0.5_rt) * dx[0];
+            dy *= rc;
+        }
+        dP_y += -0.25_rt * dy * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
     }
 #endif
 #if AMREX_SPACEDIM == 3
@@ -205,30 +226,30 @@ Castro::divu(const Box& bx,
 
 #if AMREX_SPACEDIM == 1
     if (coord_type == 0) {
-      div(i,j,k) = (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
+        div(i,j,k) = (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU)) * dxinv;
 
     } else if (coord_type == 1) {
-      // axisymmetric
-      if (i == 0) {
-        div(i,j,k) = 0.0_rt;
-      } else {
-        Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-        Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-        Real rc = (i) * dx[0] + problo[0];
+        // axisymmetric
+        if (i == 0) {
+            div(i,j,k) = 0.0_rt;
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
 
-        div(i,j,k) = (rr * q_arr(i,j,k,QU) - rl * q_arr(i-1,j,k,QU)) * dxinv / rc;
-      }
+            div(i,j,k) = (rr * q_arr(i,j,k,QU) - rl * q_arr(i-1,j,k,QU)) * dxinv / rc;
+        }
     } else {
-      // spherical
-      if (i == 0) {
-        div(i,j,k) = 0.0_rt;
-      } else {
-        Real rl = (i - 0.5_rt) * dx[0] + problo[0];
-        Real rr = (i + 0.5_rt) * dx[0] + problo[0];
-        Real rc = (i) * dx[0] + problo[0];
+        // spherical
+        if (i == 0) {
+            div(i,j,k) = 0.0_rt;
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
 
-        div(i,j,k) = (rr * rr * q_arr(i,j,k,QU) - rl * rl * q_arr(i-1,j,k,QU)) * dxinv / (rc * rc);
-      }
+            div(i,j,k) = (rr * rr * q_arr(i,j,k,QU) - rl * rl * q_arr(i-1,j,k,QU)) * dxinv / (rc * rc);
+        }
     }
 #endif
 
@@ -237,31 +258,64 @@ Castro::divu(const Box& bx,
     Real vy = 0.0_rt;
 
     if (coord_type == 0) {
-      ux = 0.5_rt * (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QU) - q_arr(i-1,j-1,k,QU)) * dxinv;
-      vy = 0.5_rt * (q_arr(i,j,k,QV) - q_arr(i,j-1,k,QV) + q_arr(i-1,j,k,QV) - q_arr(i-1,j-1,k,QV)) * dyinv;
+
+        // Cartesian
+
+        ux = 0.5_rt * (q_arr(i,j,k,QU) - q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QU) - q_arr(i-1,j-1,k,QU)) * dxinv;
+        vy = 0.5_rt * (q_arr(i,j,k,QV) - q_arr(i,j-1,k,QV) + q_arr(i-1,j,k,QV) - q_arr(i-1,j-1,k,QV)) * dyinv;
+
+    } else if (coord_type == 1) {
+
+        // Cylindrical R-Z
+
+        if (i == 0) {
+            ux = 0.0_rt;
+            vy = 0.0_rt;  // is this part correct?
+        } else {
+            Real rl = (i - 0.5_rt) * dx[0] + problo[0];
+            Real rr = (i + 0.5_rt) * dx[0] + problo[0];
+            Real rc = (i) * dx[0] + problo[0];
+
+            // These are transverse averages in the y-direction
+            Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));
+            Real ur = 0.5_rt * (q_arr(i,j,k,QU) + q_arr(i,j-1,k,QU));
+
+            // Take 1/r d/dr(r*u)
+            ux = (rr * ur - rl * ul) * dxinv / rc;
+
+            // These are transverse averages in the x-direction
+            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+
+            vy = (vt - vb) * dyinv;
+        }
 
     } else {
-      if (i == 0) {
-        ux = 0.0_rt;
-        vy = 0.0_rt;  // is this part correct?
-      } else {
+
+        // Spherical R-Theta
+
         Real rl = (i - 0.5_rt) * dx[0] + problo[0];
         Real rr = (i + 0.5_rt) * dx[0] + problo[0];
         Real rc = (i) * dx[0] + problo[0];
+
+        // cell-centered sin(theta) of top, bot cell and face-centered
+        Real sint = std::sin((j + 0.5_rt) * dx[1] + problo[1]);
+        Real sinb = std::sin((j - 0.5_rt) * dx[1] + problo[1]);
+        Real sinc = std::sin(j  * dx[1] + problo[1]);
 
         // These are transverse averages in the y-direction
         Real ul = 0.5_rt * (q_arr(i-1,j,k,QU) + q_arr(i-1,j-1,k,QU));
         Real ur = 0.5_rt * (q_arr(i,j,k,QU) + q_arr(i,j-1,k,QU));
 
-        // Take 1/r d/dr(r*u)
-        ux = (rr * ur - rl * ul) * dxinv / rc;
+        // Finite difference to get divergence. ux = 1/r^2 d/dr(r^2 * u)
+        ux = (ur * rr * rr - ul * rl * rl) * dxinv / (rc * rc);
 
         // These are transverse averages in the x-direction
         Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
         Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
 
-        vy = (vt - vb) * dyinv;
-      }
+        // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
+        vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
     }
 
     div(i,j,k) = ux + vy;
@@ -302,49 +356,52 @@ Castro::apply_av(const Box& bx,
 
   Real diff_coeff = difmag;
 
-  amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    if (n == UTEMP) {
-        return;
-    }
+      Real div1;
+      if (idir == 0) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
+                            div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
+      } else if (idir == 1) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j,k+dg2) + div(i+1,j,k+dg2));
+      } else {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j+dg1,k) + div(i+1,j+dg1,k));
+      }
+
+      div1 = diff_coeff * std::min(0.0_rt, div1);
+
+      for (int n = 0; n < NUM_STATE; ++n) {
+
+          if (n == UTEMP) {
+              continue;
+          }
 #ifdef SHOCK_VAR
-    if (n == USHK) {
-        return;
-    }
+          if (n == USHK) {
+              continue;
+          }
 #endif
-
 #ifdef NSE_NET
-    if (n == UMUP || n == UMUN) {
-        return;
-    }
+          if (n == UMUP || n == UMUN) {
+              continue;
+          }
 #endif
-    Real div1;
-    if (idir == 0) {
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
-                        div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n));
+          Real div_var{};
 
-    } else if (idir == 1) {
+          if (idir == 0) {
+              div_var = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n));
+          } else if (idir == 1) {
+              div_var = div1 * (uin(i,j,k,n) - uin(i,j-dg1,k,n));
+          } else {
+              div_var = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
+          }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j,k+dg2) + div(i+1,j,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i,j-dg1,k,n));
-
-    } else {
-
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j+dg1,k) + div(i+1,j+dg1,k));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
-
-    }
-
-    flux(i,j,k,n) += dx[idir] * div1;
+          flux(i,j,k,n) += dx[idir] * div_var;
+      }
   });
 }
 
@@ -359,37 +416,42 @@ Castro::apply_av_rad(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  Real diff_coeff = difmag;
+  amrex::Real diff_coeff = difmag;
 
-  amrex::ParallelFor(bx, Radiation::nGroups,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  int ngroups = Radiation::nGroups;
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real div1;
-    if (idir == 0) {
+      Real div1;
+      if (idir == 0) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
+                            div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
+      } else if (idir == 1) {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j,k+dg2) + div(i+1,j,k+dg2));
+      } else {
+          div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
+                            div(i,j+dg1,k) + div(i+1,j+dg1,k));
+      }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i,j+dg1,k) +
-                        div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
+      div1 = diff_coeff * std::min(0.0_rt, div1);
 
-    } else if (idir == 1) {
+      for (int n = 0; n < ngroups; ++n) {
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j,k+dg2) + div(i+1,j,k+dg2));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-dg1,k,n));
+          Real div_var{};
 
-    } else {
+          if (idir == 0) {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
+          } else if (idir == 1) {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i,j-dg1,k,n));
+          } else {
+              div_var = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg2,n));
+          }
 
-      div1 = 0.25_rt * (div(i,j,k) + div(i+1,j,k) +
-                        div(i,j+dg1,k) + div(i+1,j+dg1,k));
-      div1 = diff_coeff * amrex::min(0.0_rt, div1);
-      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg2,n));
-
-    }
-
-    radflux(i,j,k,n) += dx[idir] * div1;
+          radflux(i,j,k,n) += dx[idir] * div_var;
+      }
   });
 }
 #endif

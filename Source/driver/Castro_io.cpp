@@ -7,7 +7,6 @@
 #include <iostream>
 #include <string>
 #include <ctime>
-#include <filesystem>
 
 #include <AMReX_Utility.H>
 #include <Castro.H>
@@ -565,8 +564,13 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
+#ifdef AMREX_USE_GPU
+  jobInfoFile << "GPU time used since start of simulation (GPU-hours): " <<
+    getCPUTime()/3600.0;
+#else
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
     getCPUTime()/3600.0;
+#endif
 
   jobInfoFile << "\n\n";
 
@@ -579,7 +583,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "output date / time: "
               << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
-  jobInfoFile << "output dir:         " << std::filesystem::current_path() << "\n";
+  jobInfoFile << "output dir:         " << amrex::FileSystem::CurrentPath() << "\n";
 
   jobInfoFile << "I/O time (s):       " << io_time << "\n";
 
@@ -754,7 +758,38 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n";
 
+  jobInfoFile << "     amr.n_error_buf:      ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int errbuf = parent->nErrorBuf(lev-1);
+    jobInfoFile << errbuf << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.regrid_int:       ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int regridint = parent->regridInt(lev-1);
+    jobInfoFile << regridint << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.blocking_factor:  ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect bf = parent->blockingFactor(lev-1);
+    jobInfoFile << bf[0] << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.max_grid_size:    ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect mgs = parent->maxGridSize(lev-1);
+    jobInfoFile << mgs[0] << " ";
+  }
   jobInfoFile << "\n\n";
+
+  jobInfoFile << "     amr.subcycling_mode: " << parent->subcyclingMode();
+
+  jobInfoFile << "\n\n";
+
 
 
   // species info
@@ -812,8 +847,6 @@ void
 Castro::writeBuildInfo ()
 {
   std::string PrettyLine = std::string(78, '=') + "\n";
-  std::string OtherLine = std::string(78, '-') + "\n";
-  std::string SkipSpace = std::string(8, ' ');
 
   // build information
   std::cout << PrettyLine;
