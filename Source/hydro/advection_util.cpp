@@ -113,7 +113,6 @@ Castro::shock(const Box& bx,
 #endif
 #endif
 
-#if AMREX_SPACEDIM == 1
     } else if (coord_type == 2) {
 
       // 1-d spherical
@@ -122,6 +121,15 @@ Castro::shock(const Box& bx,
       Real rp = (i + 1 + 0.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
+#if AMREX_SPACEDIM == 2
+
+      Real thetac = (j + 0.5_rt) * dx[1];
+      Real thetam = (j - 1 + 0.5_rt) * dx[1];
+      Real thetap = (j + 1 + 0.5_rt) * dx[1];
+
+      div_u += 0.5_rt * (std::sin(thetap) * q_arr(i,j+1,k,QV) -
+                         std::sin(thetam) * q_arr(i,j-1,k,QV)) /
+          (rc * sin(thetac) * dx[1]);
 #endif
 
 #ifndef AMREX_USE_GPU
@@ -134,7 +142,14 @@ Castro::shock(const Box& bx,
 
     // now compute (grad P - rho g) . dx
     // We subtract off the hydrostatic force, since the pressure that
-    // balances that is not available to make a shock.
+    // balances that is not available to make a shock.  We compute this
+    // as:
+    //
+    // P'_{i+1} = P_{i+1} - [ P_i + \int_{x_i}^{x_{i+1}} rho g dx ]
+    //
+    // where the term in the [ ] is the hydrostatic pressure in i+1
+    // computed by integrating from x_i to x_{i+1}
+    //
     // We'll use a centered diff for the pressure gradient.
     Real dP_x = 0.5_rt * (q_arr(i+1,j,k,QPRES) - q_arr(i-1,j,k,QPRES));
     if (shock_detection_include_sources == 1) {
@@ -145,7 +160,13 @@ Castro::shock(const Box& bx,
 #if AMREX_SPACEDIM >= 2
     dP_y = 0.5_rt * (q_arr(i,j+1,k,QPRES) - q_arr(i,j-1,k,QPRES));
     if (shock_detection_include_sources == 1) {
-        dP_y += -0.25_rt * dx[1] * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
+        Real dy{dx[1]};
+        if (coord_type == 2) {
+            // dx[1] is just dtheta
+            Real rc = (i + 0.5_rt) * dx[0];
+            dy *= rc;
+        }
+        dP_y += -0.25_rt * dy * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
     }
 #endif
 #if AMREX_SPACEDIM == 3
