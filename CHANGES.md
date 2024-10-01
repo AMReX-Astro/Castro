@@ -26,7 +26,7 @@
 
   * new Frontier scaling numbers (#2948)
 
-  * more GPU error printing (@3944)
+  * more GPU error printing (#2944)
 
   * science problem updates: `flame_wave` (#2943)
 
