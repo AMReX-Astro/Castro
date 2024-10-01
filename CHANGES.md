@@ -1,5 +1,7 @@
 # 24.10
 
+  * ``massive_star`` plot tweaks (#2968)
+
   * start of work on 2D spherical geometry (#2953, #2954, #2955,
     #2957, #2958, #2959, #2961, #2962, #2964, #2965)
 
