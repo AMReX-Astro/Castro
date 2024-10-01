@@ -1,3 +1,20 @@
+# 24.10
+
+  * start of work on 2D spherical geometry (#2953, #2954, #2955,
+    #2957, #2958, #2959, #2961, #2962, #2964, #2965)
+
+  * the gresho problem now takes Mach number instead of p0 as input
+    (#2951m #2963)
+
+  * the PPM geometric source terms in the normal predictor are now
+    traced to the interfaces (#2473)
+
+  * `subch_planar` now works in 1D (#2952)
+
+  * remove old `get_const_grav()` function (#2956)
+
+  * clang-tidy fixes to radiation (#2950)
+
 # 24.09
 
   * Code clean-ups / clang-tidy (#2942, #2949)
