@@ -16,7 +16,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // or secondary (in which case interpolate from the respective model)
     // or if we are in an ambient zone.
 
-    auto omega = get_omega();
+    auto omega = get_omega_vec(geomdata, j);
 
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
