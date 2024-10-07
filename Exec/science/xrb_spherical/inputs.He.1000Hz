@@ -5,9 +5,9 @@ stop_time =  3.0
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 2                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0             0
-geometry.prob_hi     = 3.072e4       3.14159
-amr.n_cell           = 192           1152
+geometry.prob_lo     = 1.1e6           0
+geometry.prob_hi     = 1.13072e6       3.14159
+amr.n_cell           = 192             1152
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -17,11 +17,14 @@ amr.n_cell           = 192           1152
 castro.lo_bc       =  1   3   # Inflow in lower R and Symmetry across Theta
 castro.hi_bc       =  2   2   # Outflow in upper boundaries
 
+# Allow non-square zones
+castro.allow_non_unit_aspect_zones = 1
+
 # Hydrostatic condition along R-direction
-castro.yl_ext_bc_type = 0
+castro.xl_ext_bc_type = 1
 castro.hse_interp_temp = 0
 castro.hse_fixed_temp = 1.e8   # this should match problem.T_star
-castro.hse_reflect_vels = 0
+castro.hse_reflect_vels = 1
 
 # Fill ambient states with outflow velocity in R-direction
 castro.fill_ambient_bc = 1
@@ -49,6 +52,7 @@ gravity.const_grav   = -1.5e14
 # 1000Hz Spinning Frequency
 # Might want to use a more realistic spinning frequency like 500Hz
 castro.rotational_period = 0.001
+
 # Centrifugal is not important since NS would simply deform to accomondate for it
 castro.rotation_include_centrifugal = 0
 
@@ -136,7 +140,7 @@ problem.max_base_tagging_level = 2
 
 problem.X_min = 1.e-2
 
-problem.x_refine_distance = 9.216e4
+problem.r_refine_distance = 9.216e4
 
 
 # Microphysics
