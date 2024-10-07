@@ -306,12 +306,12 @@ Castro::read_params ()
 #elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
-        if ( (dgeom.ProbLo(1) >= 0.0_rt) && (dgeom.ProbHi(1) <= 3.14159265359_rt) )
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > 3.14159265359_rt) )
         {
           amrex::Abort("Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
 
-        if ( dgeom.ProbLo(0) > static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
+        if ( dgeom.ProbLo(0) < static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
         {
           amrex::Abort("R-min must be large enough so ghost cells doesn't extend to negative R");
         }
