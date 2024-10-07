@@ -31,7 +31,7 @@ void problem_tagging(int i, int j, int k,
 
             Real dist = std::abs(loc[0]);
 
-            if (level < problem::max_hse_tagging_level && dist < problem::r_refine_distance) {
+            if (level < problem::max_hse_tagging_level && dist < geomdata.ProbLo(0) + problem::r_refine_distance) {
                 tag(i,j,k) = TagBox::SET;
             }
         }
@@ -45,7 +45,7 @@ void problem_tagging(int i, int j, int k,
     } else {
 
         // tag everything below a certain height
-        if (loc[0] < problem::refine_height) {
+        if (loc[0] < geomdata.ProbLo(0) + problem::refine_height) {
             if (level < problem::max_base_tagging_level) {
                 tag(i,j,k) = TagBox::SET;
             }
