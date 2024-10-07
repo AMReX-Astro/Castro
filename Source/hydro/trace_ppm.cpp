@@ -248,17 +248,17 @@ Castro::trace_ppm(const Box& bx,
 
         if (in_hse && castro::ppm_well_balanced) {
             // we are working with the perturbational pressure
-            ppm_int_profile(sm, sp, 0.0_rt, un, cc, dtdx, Ip_p, Im_p);
+            ppm_int_profile(sm, sp, 0.0_rt, un, cc, dtdL, Ip_p, Im_p);
             p_m_hse = s[i0] - 0.5_rt * dx[idir] * trho[i0] * src[i0];
             p_p_hse = s[i0] + 0.5_rt * dx[idir] * trho[i0] * src[i0];
 
         } else {
-            ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
+            ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
         }
 
     } else {
         ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
+        ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
     }
 
     // reconstruct rho e
