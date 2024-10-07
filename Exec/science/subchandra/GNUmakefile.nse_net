@@ -7,7 +7,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 
@@ -15,6 +15,7 @@ USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
 USE_NSE_NET = TRUE
+USE_SIMPLIFIED_SDC = TRUE
 
 USE_MODEL_PARSER = TRUE
 
@@ -22,7 +23,7 @@ USE_MODEL_PARSER = TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := ase
+NETWORK_DIR := subch_base
 SCREEN_METHOD = chabrier1998
 
 INTEGRATOR_DIR := VODE
