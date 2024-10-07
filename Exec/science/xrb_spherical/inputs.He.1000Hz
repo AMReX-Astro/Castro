@@ -113,7 +113,7 @@ amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
 
 # problem initialization
 
-problem.dtemp = 1.2e9
+problem.dtemp =  0.0      #1.2e9
 problem.theta_half_max = 1.745e-2
 problem.theta_half_width = 4.9e-3
 
