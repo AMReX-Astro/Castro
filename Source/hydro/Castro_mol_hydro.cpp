@@ -85,6 +85,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial(The_Async_Arena());
 #endif
+#if AMREX_SPACEDIM == 2
+    FArrayBox ptheta(The_Async_Arena());
+#endif
     FArrayBox avis(The_Async_Arena());
 
     MultiFab& old_source = get_old_data(Source_Type);
@@ -657,6 +660,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Array4<Real> pradial_fab = pradial.array();
 #endif
+
+#if AMREX_SPACEDIM == 2
+        if (Geom().IsSPHERICAL()) {
+          ptheta.resize(ybx, 1);
+        }
+
+        Array4<Real> ptheta_fab = ptheta.array();
+#endif
+
 #if AMREX_SPACEDIM == 1
         Array4<Real> const qex_arr = qe[0].array();
 #endif
@@ -674,23 +686,34 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
                      flux_arr, area_arr, dt);
 
-
-          if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
-            Array4<Real> const qex_fab = qe[idir].array();
-            const int prescomp = GDPRES;
-
-
 #if AMREX_SPACEDIM <= 2
-            if (!mom_flux_has_p(0, 0, coord)) {
-              amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-              {
-                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-              });
-            }
-#endif
+          if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+            // get the scaled radial pressure -- we need to treat this specially
+
+            Array4<Real> const qex_fab = qe[idir].array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+              pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
+            });
           }
+#endif
+
+#if AMREX_SPACEDIM == 2
+          if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+            // get the scaled pressure in the theta direction
+
+            Array4<Real> const qey_fab = qe[idir].array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+              ptheta_fab(i,j,k) = qey_fab(i,j,k,GDPRES) * dt;
+            });
+          }
+#endif
+
         }
 
 
@@ -725,6 +748,20 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
             {
                 P_radial_fab(i,j,k,0) += scale * pradial_fab(i,j,k,0);
+            });
+
+          }
+#endif
+
+#if AMREX_SPACEDIM == 2
+          if (Geom().IsSPHERICAL()) {
+
+            Array4<Real> P_theta_fab = P_theta.array(mfi);
+            const Real scale = stage_weight;
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+            {
+                P_theta_fab(i,j,k,0) += scale * ptheta_fab(i,j,k,0);
             });
 
           }
