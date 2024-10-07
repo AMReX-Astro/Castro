@@ -306,7 +306,7 @@ Castro::read_params ()
 #elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
-        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > 3.14159265359_rt) )
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
         {
           amrex::Abort("Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
