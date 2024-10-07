@@ -311,7 +311,7 @@ Castro::read_params ()
           amrex::Abort("Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
 
-        if ( dgeom.ProbLo(0) > static_cast<Real>(NUM_GROW)*dgeom.CellSize(0) )
+        if ( dgeom.ProbLo(0) > static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
         {
           amrex::Abort("R-min must be large enough so ghost cells doesn't extend to negative R");
         }
