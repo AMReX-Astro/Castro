@@ -10,10 +10,10 @@ COMP       = gnu
 USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
-USE_REACT  = TRUE
+USE_REACT  = FALSE
 
-USE_ROTATION  = TRUE
-USE_DIFFUSION = TRUE
+USE_ROTATION  = FALSE
+USE_DIFFUSION = FALSE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
