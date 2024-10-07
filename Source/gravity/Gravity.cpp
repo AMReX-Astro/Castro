@@ -121,13 +121,6 @@ Gravity::read_params ()
                 amrex::Abort("Options are ConstantGrav, PoissonGrav, or MonopoleGrav");
              }
 
-        if (  gravity::gravity_type == "ConstantGrav")
-        {
-          if ( dgeom.IsSPHERICAL() ) {
-              amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
-          }
-        }
-
 #if (AMREX_SPACEDIM == 1)
         if (gravity::gravity_type == "PoissonGrav")
         {
