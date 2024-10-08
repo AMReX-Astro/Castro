@@ -124,7 +124,7 @@ problem.T_hi = 2.e8
 problem.T_lo   = 8.e6
 
 problem.H_star = 2000.e0
-problem.atm_delta  = 50.0
+problem.atm_delta  = 400.0     #50.0
 
 problem.fuel1_name = "helium-4"
 problem.fuel1_frac = 1.0e0
