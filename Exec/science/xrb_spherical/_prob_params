@@ -1,0 +1,68 @@
+
+dtemp                   real              3.81e8_rt                 y
+
+theta_half_max          real              1.745e-2_rt               y
+
+theta_half_width        real              4.9e-3_rt                 y
+
+# cutoff mass fraction of the first species for refinement
+X_min                   real              1.e-4_rt                  y
+
+# do we dynamically refine based on density? or based on height?
+tag_by_density          integer           1                         y
+
+# used for tagging if tag_by_density = 1
+cutoff_density          real              500.e0_rt                 y
+
+# used if we are refining based on height rather than density
+refine_height           real              3600                      y
+
+T_hi                    real              5.e8_rt                   y
+
+T_star                  real              1.e8_rt                   y
+
+T_lo                    real              5.e7_rt                   y
+
+dens_base               real              2.e6_rt                   y
+
+H_star                  real              500.e0_rt                 y
+
+atm_delta               real              25.e0_rt                  y
+
+fuel1_name              string         "helium-4"                y
+
+fuel2_name              string         ""                        y
+
+fuel3_name              string         ""                        y
+
+fuel4_name              string         ""                        y
+
+ash1_name               string         "iron-56"                 y
+
+ash2_name               string         ""                        y
+
+ash3_name               string         ""                        y
+
+fuel1_frac              real              1.0_rt                    y
+
+fuel2_frac              real              0.0_rt                    y
+
+fuel3_frac              real              0.0_rt                    y
+
+fuel4_frac              real              0.0_rt                    y
+
+ash1_frac               real              1.0_rt                    y
+
+ash2_frac               real              0.0_rt                    y
+
+ash3_frac               real              0.0_rt                    y
+
+low_density_cutoff      real              1.e-4_rt                  y
+
+smallx                  real              1.e-10_rt                 y
+
+r_refine_distance       real              1.e30_rt                  y
+
+max_hse_tagging_level   integer           2                         y
+
+max_base_tagging_level  integer           1                         y
