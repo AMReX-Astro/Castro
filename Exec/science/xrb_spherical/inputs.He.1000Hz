@@ -15,7 +15,7 @@ amr.n_cell           = 192             1152
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  1   3   # Inflow in lower R and Symmetry across Theta
-castro.hi_bc       =  2   2   # Outflow in upper boundaries
+castro.hi_bc       =  2   3   # Outflow in upper boundaries
 
 # Allow non-square zones
 castro.allow_non_unit_aspect_zones = 1
@@ -43,6 +43,8 @@ castro.small_dens = 1.e-5
 
 castro.ppm_type = 1
 castro.grav_source_type = 2
+castro.use_pslope = 1
+castro.pslope_cutoff_density = 1.e4
 
 gravity.gravity_type = ConstantGrav
 
