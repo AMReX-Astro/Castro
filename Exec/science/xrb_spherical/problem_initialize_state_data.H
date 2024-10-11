@@ -24,14 +24,14 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real f;
 
-    if (r < problem::theta_half_max) {
+    if (theta < problem::theta_half_max) {
         f = 1.0_rt;
 
-    } else if (r > problem::theta_half_max + problem::theta_half_width) {
+    } else if (theta > problem::theta_half_max + problem::theta_half_width) {
         f = 0.0_rt;
 
     } else {
-        f = -(r - problem::theta_half_max) / problem::theta_half_width + 1.0_rt;
+        f = -(theta - problem::theta_half_max) / problem::theta_half_width + 1.0_rt;
     }
 
     state(i,j,k,URHO) = f * interpolate(r, model::idens, 1) +
