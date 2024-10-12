@@ -67,8 +67,11 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 3:
         raise Exception("Please enter parameters in order of: fname field_name loc[optional]")
+
     fname = sys.argv[1]
     field = sys.argv[2]
+    loc = "top"
+
     if len(sys.argv) > 3:
         loc = sys.argv[3]
 
