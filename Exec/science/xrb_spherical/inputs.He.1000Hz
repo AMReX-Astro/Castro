@@ -5,8 +5,8 @@ stop_time =  3.0
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 2                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 1.1e6           0.392699  #0.0
-geometry.prob_hi     = 1.13072e6       2.748893   #3.14159
+geometry.prob_lo     = 1.1e6           0
+geometry.prob_hi     = 1.13072e6       3.1415926
 amr.n_cell           = 192             1152
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<

@@ -5,7 +5,7 @@ import os
 import yt
 import numpy as np
 import matplotlib.pyplot as plt
-from yt.units import cm
+from yt.frontends.boxlib.api import CastroDataset
 
 """
 Given a plot file and field name, it gives slice plots at the top,
@@ -23,7 +23,7 @@ def slice(fname:str, field:str, loc:str="top") -> None:
     loc: location on the domain. {top, mid, bot}
     """
 
-    ds = yt.load(fname, hint="castro")
+    ds = CastroDataset(fname)
     currentTime = ds.current_time.in_units("s")
     print(f"Current time of this plot file is {currentTime} s")
 
@@ -39,7 +39,7 @@ def slice(fname:str, field:str, loc:str="top") -> None:
     theta_center = 0.5 * (thetar + thetal)
 
     # Domain width of the slice plot
-    width = (2.0*dr, 2.0*dr)
+    width = (3.0*dr, 3.0*dr)
 
     loc = loc.lower()
     loc_options = ["top", "mid", "bot"]
@@ -48,9 +48,9 @@ def slice(fname:str, field:str, loc:str="top") -> None:
         raise Exception("loc parameter must be top, mid or bot")
 
     # Centers for the Top, Mid and Bot panels
-    centers = {"top":(r_center*np.sin(thetal)+0.8*dr, r_center*np.cos(thetal)),
+    centers = {"top":(r_center*np.sin(thetal)+1.48*dr, r_center*np.cos(thetal)),
                "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
-               "bot":(r_center*np.sin(thetar)+0.8*dr, r_center*np.cos(thetar))}
+               "bot":(r_center*np.sin(thetar)+1.48*dr, r_center*np.cos(thetar))}
 
     sp = yt.SlicePlot(ds, 'phi', field, width=width)
 
