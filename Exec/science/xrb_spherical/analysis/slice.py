@@ -61,6 +61,13 @@ def slice(fname:str, field:str,
     sp.set_cmap(field, "viridis")
     if field in ["x_velocity", "y_velocity", "z_velocity"]:
         sp.set_cmap(field, "coolwarm")
+    elif field == "Temp":
+        sp.set_zlim(f, 5.e7, 2.5e9)
+        sp.set_cmap(f, "magma_r")
+    elif field == "enuc":
+        sp.set_zlim(f, 1.e18, 1.e20)
+    elif field == "density":
+        sp.set_zlim(f, 1.e-3, 5.e8)
 
     # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
     sp.save(f"{ds}_{loc}")
