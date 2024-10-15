@@ -55,7 +55,7 @@ gravity.const_grav   = -1.5e14
 # Might want to use a more realistic spinning frequency like 500Hz
 castro.rotational_period = 0.001
 
-# Centrifugal is not important since NS would simply deform to accomondate for it
+# Centrifugal is not important since NS would simply deform to accommodate for it
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
@@ -115,7 +115,7 @@ amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
 
 # problem initialization
 
-problem.dtemp =  0.0      #1.2e9
+problem.dtemp = 1.2e9
 problem.theta_half_max = 1.745e-2
 problem.theta_half_width = 5.279e-3
 
