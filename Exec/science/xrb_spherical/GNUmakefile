@@ -10,7 +10,7 @@ COMP       = gnu
 USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
-USE_REACT  = FALSE
+USE_REACT  = TRUE
 
 USE_ROTATION  = FALSE
 USE_DIFFUSION = FALSE
@@ -26,7 +26,7 @@ NUM_MODELS := 2
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox13
+NETWORK_DIR := subch_base
 
 INTEGRATOR_DIR := VODE
 

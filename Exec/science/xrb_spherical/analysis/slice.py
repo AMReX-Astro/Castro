@@ -12,7 +12,8 @@ Given a plot file and field name, it gives slice plots at the top,
 middle, and bottom of the domain (shell).
 """
 
-def slice(fname:str, field:str, loc:str="top") -> None:
+def slice(fname:str, field:str,
+          loc: str = "top", width_factor: float = 3.0) -> None:
     """
     A slice plot of the dataset for Spherical2D geometry.
 
@@ -39,7 +40,8 @@ def slice(fname:str, field:str, loc:str="top") -> None:
     theta_center = 0.5 * (thetar + thetal)
 
     # Domain width of the slice plot
-    width = (3.0*dr, 3.0*dr)
+    width = width_factor * dr
+    box_widths = (width, width)
 
     loc = loc.lower()
     loc_options = ["top", "mid", "bot"]
@@ -48,11 +50,11 @@ def slice(fname:str, field:str, loc:str="top") -> None:
         raise Exception("loc parameter must be top, mid or bot")
 
     # Centers for the Top, Mid and Bot panels
-    centers = {"top":(r_center*np.sin(thetal)+1.48*dr, r_center*np.cos(thetal)),
+    centers = {"top":(r_center*np.sin(thetal)+0.5*width, r_center*np.cos(thetal)),
                "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
-               "bot":(r_center*np.sin(thetar)+1.48*dr, r_center*np.cos(thetar))}
+               "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
 
-    sp = yt.SlicePlot(ds, 'phi', field, width=width)
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths)
 
     sp.set_center(centers[loc])
 
@@ -71,8 +73,11 @@ if __name__ == "__main__":
     fname = sys.argv[1]
     field = sys.argv[2]
     loc = "top"
+    width_factor = 3.0
 
-    if len(sys.argv) > 3:
+    if len(sys.argv) == 4:
         loc = sys.argv[3]
+    elif len(sys.argv) > 4:
+        width_factor = float(sys.argv[4])
 
-    slice(fname, field, loc=loc)
+    slice(fname, field, loc=loc, width_factor=width_factor)
