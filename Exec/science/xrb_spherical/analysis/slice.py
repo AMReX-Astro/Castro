@@ -75,7 +75,7 @@ def slice(fname:str, field:str,
 if __name__ == "__main__":
 
     if len(sys.argv) < 3:
-        raise Exception("Please enter parameters in order of: fname field_name loc[optional]")
+        raise Exception("Please enter parameters in order of: fname field_name width_factor[optional] loc[optional]")
 
     fname = sys.argv[1]
     field = sys.argv[2]
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     width_factor = 3.0
 
     if len(sys.argv) == 4:
-        loc = sys.argv[3]
+        width_factor = float(sys.argv[3])
     elif len(sys.argv) > 4:
-        width_factor = float(sys.argv[4])
+        loc = sys.argv[4]
 
     slice(fname, field, loc=loc, width_factor=width_factor)
