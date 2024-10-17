@@ -367,6 +367,14 @@ Castro::read_params ()
     }
 #endif
 
+#ifdef TRUE_SDC
+    int max_level;
+    ppa.query("max_level", max_level);
+    if (max_level > 0) {
+        amrex::Error("True SDC does not work with AMR.");
+    }
+#endif
+
 #ifndef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
         amrex::Error("True SDC currently requires USE_TRUE_SDC=TRUE when compiling.");
