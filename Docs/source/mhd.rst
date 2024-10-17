@@ -17,6 +17,9 @@ supported by MHD.
 
 .. note::
 
+   The MHD solver is still under development and should not be used
+   for science simulations.  See the issues in the github repo.
+
    The MHD solver supports 3-d only.
 
    Currently the MHD solver is single-level only.  AMR support is forthcoming.
