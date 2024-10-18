@@ -31,10 +31,13 @@ To run this problem, use one of the convergence scripts:
 
   * convergence_sdc.sh :
 
-    this uses the TRUE_SDC integration, first with SDC-2 + PLM and
-    reflecting BCs, the SDC-2 + PPM and reflecting BCs, then the same
-    but HSE BCs, and finally SDC-4 + reflect
+    this uses the `TRUE_SDC` integration, with the following variations:
+    1. SDC-2 + PLM and reflecting BCs
+    2. SDC-2 + PPM and reflecting BCs
+    3. SDC-2 + PLM with HSE BCs
+    4. SDC-2 + PPM with HSE BCs
+    5. SDC-4 + reflect
 
     These tests show that the PLM + reflect (which uses the
-    well-balanced use_pslope) and the SDC-4 + reflect give the lowest
+    well-balanced `use_pslope`) and the SDC-4 + reflect give the lowest
     errors and expected (or better) convergence.
