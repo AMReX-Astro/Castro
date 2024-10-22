@@ -39,7 +39,7 @@ def doit(plotfile):
 
 
     # transfer function
-    vals = [-1.e7, -5.e6, -2.5e6, 2.5e6, 5.e6, 1.e7]
+    vals = [-2.e7, -1.e7, -5.e6, -2.5e6, 2.5e6, 5.e6, 1.e7, 2.e7]
     sigma = 5.e5
 
     tf =  yt.ColorTransferFunction((min(vals), max(vals)))
@@ -60,9 +60,9 @@ def doit(plotfile):
 
     center = 0.5*(ds.domain_left_edge + ds.domain_right_edge)
 
-    cam.position = [2.5*ds.domain_right_edge[0],
-                    2.5*ds.domain_right_edge[1],
-                    center[2]+0.5*ds.domain_right_edge[2]]
+    cam.position = [4*ds.domain_right_edge[0],
+                    4*ds.domain_right_edge[1],
+                    center[2]+ds.domain_right_edge[2]]
 
     # look toward the center -- we are dealing with an octant
     normal = (center - cam.position)
@@ -70,8 +70,8 @@ def doit(plotfile):
 
     cam.switch_orientation(normal_vector=normal,
                            north_vector=[0., 0., 1.])
-    cam.set_width(ds.domain_width)
-    cam.zoom(1.3)
+    cam.set_width(2*ds.domain_width)
+    #cam.zoom(0.5)
 
     sc.camera = cam
 
@@ -79,7 +79,7 @@ def doit(plotfile):
 
     sc.annotate_axes(alpha=0.005, thickness=6)
     sc.annotate_domain(ds, color=np.array([0.05, 0.05, 0.05, 0.05]))
-    sc.save(f"{plotfile}_zvel_axes.png", sigma_clip=3.0)
+    #sc.save(f"{plotfile}_zvel_axes.png", sigma_clip=3.0)
 
     sc.save_annotated(f"{plotfile}_zvel_annotated.png",
                       sigma_clip=4.0, #label_fmt="%6.2g",
