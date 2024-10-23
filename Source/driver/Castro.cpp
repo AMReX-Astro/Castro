@@ -306,14 +306,26 @@ Castro::read_params ()
 #elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
+        if ( (lo_bc[1] != amrex::PhysBCType::symmetry) && (dgeom.ProbLo(1) == 0.0) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=0 boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
         if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
         {
-          amrex::Abort("Theta must be within [0, Pi] for spherical coordinate system in 2D");
+          amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
 
         if ( dgeom.ProbLo(0) < static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
         {
-          amrex::Abort("R-min must be large enough so ghost cells doesn't extend to negative R");
+          amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
         }
       }
 #elif (AMREX_SPACEDIM == 3)
