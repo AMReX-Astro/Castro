@@ -258,11 +258,11 @@ ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc
                 const amrex::Real u, const amrex::Real c, const amrex::Real dtdx,
                 amrex::Real* Ip, amrex::Real* Im) {
 
-    // Integrate the parabolic profile to the edge of the cell.
+  // Integrate the parabolic profile to the edge of the cell.
 
-    // compute x-component of Ip and Im
+  // compute x-component of Ip and Im
 
-    Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
 
   // Ip/m is the integral under the parabola for the extent
   // that a wave can travel over a timestep
