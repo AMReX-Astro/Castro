@@ -190,6 +190,10 @@ void problem_initialize ()
         problem::center[d] = 0.5_rt * (problo[d] + probhi[d]);
     }
 
+#if AMREX_SPACEDIM == 1
+    problem::center[0] = 0.0_rt;
+#endif
+
 #if AMREX_SPACEDIM == 2
     // for axisymmetry, put the x-center on the x-axis
     // and the y-center at 0, so the height computation is okay

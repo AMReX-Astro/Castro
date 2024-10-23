@@ -15,7 +15,7 @@ from yt.units import cm
 
 matplotlib.use('agg')
 
-times = [50, 100, 150, 200, 250]
+times = [50, 100, 150, 200, 250, 300]
 
 def find_files(plist):
 
@@ -60,8 +60,8 @@ def make_plot(field, pfiles, *,
     t_drive = 0.0
     if "[*] castro.drive_initial_convection_tmax" in ds.parameters:
         t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
-    elif "castro.drive_initial_convection_tmax" in ds.parameters:
-        t_drive = ds.parameters["castro.drive_initial_convection_tmax"]
+    elif "[*] castro.drive_initial_convection_tmax" in ds.parameters:
+        t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
     print(t_drive)
 
     xmin = ds.domain_left_edge[0]
@@ -127,11 +127,10 @@ def make_plot(field, pfiles, *,
             sp.set_cmap(f, "magma")
             sp.set_zlim(f, 1.e-2, 5)
 
-        if f == "enuc":
-            # now do a contour of NSE
-            if ("boxlib", "in_nse") in ds.derived_field_list:
-                sp.annotate_contour("in_nse", levels=1, clim=(0.5, 0.5), take_log=False,
-                                    plot_args={"colors": "k", "linewidths": 2})
+        # now do a contour of NSE
+        if ("boxlib", "in_nse") in ds.derived_field_list:
+            sp.annotate_contour("in_nse", levels=1, clim=(0.5, 0.5), take_log=False,
+                                plot_args={"colors": "k", "linewidths": 2})
 
         sp.set_axes_unit("cm")
 
@@ -168,7 +167,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     if args.vertical:
-        size = (7.5, 8.5)
+        size = (7.0, 8.0)
     else:
         size = (19.2, 8.5)
 
