@@ -71,7 +71,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     {
 
 
-        if (riemann_solver == 0 || riemann_solver == 1) {
+        if (riemann_solver == riemann_constants::TWO_SHOCK_CGF ||
+            riemann_solver == riemann_constants::TWO_SHOCK_CG ||
+            riemann_solver == riemann_constants::EXACT) {
             // approximate state Riemann solvers
 
             // first find the interface state on the current interface
@@ -120,7 +122,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                 }
             }
 
-        } else if (riemann_solver == 2) {
+        } else if (riemann_solver == riemann_constants::HLLC) {
             // HLLC
             HLL::HLLC(i, j, k, idir,
                       qm, qp,
