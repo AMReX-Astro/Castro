@@ -45,8 +45,8 @@ iye = names.index("Ye")
 fig = plt.figure()
 ax = fig.add_subplot(211)
 
-l1 = ax.plot(data[:,0], data[:,idens], label="density")
-l2 = ax.plot(data[:,0], data[:,itemp], label="temperature")
+l1 = ax.plot(data[:,0], data[:,idens], label=r"$\rho$")
+l2 = ax.plot(data[:,0], data[:,itemp], label="$T$")
 
 # show where the refinement kicks in
 rho_refine = 2.e4
@@ -72,12 +72,12 @@ ax2 = ax.twinx()
 
 ax2.set_ylabel(r"$Y_e$")
 
-l3 = ax2.plot(data[:,0], data[:,iye], color="C2", label="Ye")
+l3 = ax2.plot(data[:,0], data[:,iye], color="C2", label="$Y_e$")
 
 lns = l1 + l2 + l3
 labs = [l.get_label() for l in lns]
 
-ax.legend(lns, labs, frameon=False, loc=6)
+ax.legend(lns, labs, frameon=False, loc=6, fontsize="small")
 
 # species plot
 
@@ -119,11 +119,10 @@ ax.set_ylim(1.e-6, None)
 
 ax.grid(color="b", alpha=0.5, ls=":")
 
-ax.legend(frameon=True, edgecolor="w", ncol=1, framealpha=0.5)
+ax.legend(frameon=True, edgecolor="w", ncol=1, framealpha=0.5, fontsize="small")
 
-fig.set_size_inches((8, 12))
+fig.set_size_inches((6, 9))
 
 fig.tight_layout()
 
 fig.savefig("initial_model.pdf")
-

@@ -306,7 +306,27 @@ Castro::read_params ()
 #elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
-        amrex::Abort("We don't support spherical coordinate systems in 2D");
+        if ( (lo_bc[1] != amrex::PhysBCType::symmetry) && (dgeom.ProbLo(1) == 0.0) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=0 boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
+        {
+          amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
+        }
+
+        if ( dgeom.ProbLo(0) < static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
+        {
+          amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
+        }
       }
 #elif (AMREX_SPACEDIM == 3)
     if ( dgeom.IsRZ() )
@@ -356,6 +376,14 @@ Castro::read_params ()
 #else
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
         amrex::Error("When building with USE_SIMPLIFIED_SDC=TRUE, only simplified SDC can be used.");
+    }
+#endif
+
+#ifdef TRUE_SDC
+    int max_level;
+    ppa.query("max_level", max_level);
+    if (max_level > 0) {
+        amrex::Error("True SDC does not work with AMR.");
     }
 #endif
 
@@ -737,7 +765,7 @@ Castro::Castro (Amr&            papa,
       }
       radiation->regrid(level, grids, dmap);
 
-      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
+      rad_solver = std::make_unique<RadSolve>(parent, level, grids, dmap);
     }
 #endif
 
@@ -751,7 +779,7 @@ Castro::Castro (Amr&            papa,
 Castro::~Castro ()  // NOLINT(modernize-use-equals-default)
 {
 #ifdef RADIATION
-    if (radiation != 0) {
+    if (radiation != nullptr) {
       //radiation->cleanup(level);
       radiation->close(level);
     }
@@ -3125,6 +3153,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                         X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                         std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("(i, j, k) = %d %d %d, X[%d] = %g  (density here is: %g)\n",
+                                            i, j, k, n, X, u(i,j,k,URHO));
 #endif
                     }
                 }

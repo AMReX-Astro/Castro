@@ -25,7 +25,9 @@ void problem_initialize_state_data (int i, int j, int k,
     Real z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM == 1
+    Real height = x;
+#elif AMREX_SPACEDIM == 2
     Real height = y;
 #else
     Real height = z;
