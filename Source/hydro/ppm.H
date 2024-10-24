@@ -1,16 +1,18 @@
 
 #include <cmath>
+
+#include <AMReX_REAL.H>
 #include <reconstruction.H>
 
 #ifndef PPM_H
 #define PPM_H
 
-using namespace amrex;
+using namespace amrex::literals;
 using namespace reconstruction;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int
-check_trace_source(Array4<Real const> const& srcQ, const int idir,
+check_trace_source(amrex::Array4<amrex::Real const> const& srcQ, const int idir,
                    const int i, const int j, const int k, const int ncomp) {
 
     int do_trace = 0;
@@ -53,17 +55,16 @@ check_trace_source(Array4<Real const> const& srcQ, const int idir,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_reconstruct(const Real* s,
+ppm_reconstruct(const amrex::Real* s,
                 const int i, const int j, const int k, const int idir,
-                const Real dx,
+                const amrex::Real dx,
                 const bool lo_bc_test, const bool hi_bc_test, const bool is_axisymmetric,
-                const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
-                const Real flatn, Real& sm, Real& sp) {
+                const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
+                const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp) {
 
     // first we compute s_{i-1/2} -- the left interface value for zone i
 
     if (ppm_do_limiting) {
-
 
         if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
                            (idir == 1 && j == domlo[1]) ||
@@ -76,7 +77,7 @@ ppm_reconstruct(const Real* s,
             if (idir == 0 && is_axisymmetric) {
                 sm = (1.0_rt/144.0_rt)*(415.0_rt*s[i0] - 483.0_rt*s[ip1] + 275.0_rt*s[ip2] - 63.0_rt*s[ip3]);
             } else {
-          // Cartesian
+                // Cartesian
                 sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
             }
 
@@ -116,15 +117,15 @@ ppm_reconstruct(const Real* s,
 
             if (idir == 0 && is_axisymmetric) {
 
-                const Real r_m12 = (static_cast<int>(i) - 0.5_rt) * dx;
+                const amrex::Real r_m12 = (static_cast<int>(i) - 0.5_rt) * dx;
 
-                Real dr4_term = std::pow(dx, 4) * (-12.0_rt * s[im2] + 60.0_rt * s[im1]  + 60.0_rt * s[i0] - 12.0_rt * s[ip1]);
-                Real dr3_term = r_m12 * std::pow(dx, 3) * (-s[im2]  - 27.0_rt * s[im1] + 27.0_rt * s[i0] + s[ip1]);
-                Real dr2_term = std::pow(r_m12, 2) * std::pow(dx, 2) * (30.0_rt * s[im2] - 210.0_rt * s[im1] - 210.0_rt * s[i0] + 30.0_rt * s[ip1]);
-                Real dr1_term = std::pow(r_m12, 3) * dx * (-s[im2] - 13.0_rt * s[im1] - 13.0_rt * s[i0] + s[ip1]);
-                Real dr0_term = std::pow(r_m12, 4) * (-10.0_rt * s[im2] + 70.0_rt * s[im1] + 70.0_rt * s[i0] - 10.0_rt * s[ip1]);
+                amrex::Real dr4_term = std::pow(dx, 4) * (-12.0_rt * s[im2] + 60.0_rt * s[im1]  + 60.0_rt * s[i0] - 12.0_rt * s[ip1]);
+                amrex::Real dr3_term = r_m12 * std::pow(dx, 3) * (-s[im2]  - 27.0_rt * s[im1] + 27.0_rt * s[i0] + s[ip1]);
+                amrex::Real dr2_term = std::pow(r_m12, 2) * std::pow(dx, 2) * (30.0_rt * s[im2] - 210.0_rt * s[im1] - 210.0_rt * s[i0] + 30.0_rt * s[ip1]);
+                amrex::Real dr1_term = std::pow(r_m12, 3) * dx * (-s[im2] - 13.0_rt * s[im1] - 13.0_rt * s[i0] + s[ip1]);
+                amrex::Real dr0_term = std::pow(r_m12, 4) * (-10.0_rt * s[im2] + 70.0_rt * s[im1] + 70.0_rt * s[i0] - 10.0_rt * s[ip1]);
 
-                Real denom = 24.0_rt * (4.0_rt * std::pow(dx, 4) - 15.0_rt * std::pow(dx, 2) * std::pow(r_m12, 2) + 5.0_rt * std::pow(r_m12, 4));
+                amrex::Real denom = 24.0_rt * (4.0_rt * std::pow(dx, 4) - 15.0_rt * std::pow(dx, 2) * std::pow(r_m12, 2) + 5.0_rt * std::pow(r_m12, 4));
 
                 sm = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
 
@@ -132,21 +133,21 @@ ppm_reconstruct(const Real* s,
 
                 // Compute van Leer slopes
 
-                Real dsl = 2.0_rt * (s[im1] - s[im2]);
-                Real dsr = 2.0_rt * (s[i0] - s[im1]);
+                amrex::Real dsl = 2.0_rt * (s[im1] - s[im2]);
+                amrex::Real dsr = 2.0_rt * (s[i0] - s[im1]);
 
-                Real dsvl_l = 0.0_rt;
+                amrex::Real dsvl_l = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
-                    Real dsc = 0.5_rt * (s[i0] - s[im2]);
+                    amrex::Real dsc = 0.5_rt * (s[i0] - s[im2]);
                     dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 dsl = 2.0_rt * (s[i0] - s[im1]);
                 dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-                Real dsvl_r = 0.0_rt;
+                amrex::Real dsvl_r = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
-                    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                    amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
                     dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
@@ -209,15 +210,15 @@ ppm_reconstruct(const Real* s,
 
             if (idir == 0 && is_axisymmetric) {
 
-                const Real r_p12 = (static_cast<int>(i) + 0.5_rt) * dx;
+                const amrex::Real r_p12 = (static_cast<int>(i) + 0.5_rt) * dx;
 
-                Real dr4_term = std::pow(dx, 4) * (-12.0_rt * s[im1] + 60.0_rt * s[i0]  + 60.0_rt * s[ip1] - 12.0_rt * s[ip2]);
-                Real dr3_term = r_p12 * std::pow(dx, 3) * (-s[im1]  - 27.0_rt * s[i0] + 27.0_rt * s[ip1] + s[ip2]);
-                Real dr2_term = std::pow(r_p12, 2) * std::pow(dx, 2) * (30.0_rt * s[im1] - 210.0_rt * s[i0] - 210.0_rt * s[ip1] + 30.0_rt * s[ip2]);
-                Real dr1_term = std::pow(r_p12, 3) * dx * (-s[im1] - 13.0_rt * s[i0] - 13.0_rt * s[ip1] + s[ip2]);
-                Real dr0_term = std::pow(r_p12, 4) * (-10.0_rt * s[im1] + 70.0_rt * s[i0] + 70.0_rt * s[ip1] - 10.0_rt * s[ip2]);
+                amrex::Real dr4_term = std::pow(dx, 4) * (-12.0_rt * s[im1] + 60.0_rt * s[i0]  + 60.0_rt * s[ip1] - 12.0_rt * s[ip2]);
+                amrex::Real dr3_term = r_p12 * std::pow(dx, 3) * (-s[im1]  - 27.0_rt * s[i0] + 27.0_rt * s[ip1] + s[ip2]);
+                amrex::Real dr2_term = std::pow(r_p12, 2) * std::pow(dx, 2) * (30.0_rt * s[im1] - 210.0_rt * s[i0] - 210.0_rt * s[ip1] + 30.0_rt * s[ip2]);
+                amrex::Real dr1_term = std::pow(r_p12, 3) * dx * (-s[im1] - 13.0_rt * s[i0] - 13.0_rt * s[ip1] + s[ip2]);
+                amrex::Real dr0_term = std::pow(r_p12, 4) * (-10.0_rt * s[im1] + 70.0_rt * s[i0] + 70.0_rt * s[ip1] - 10.0_rt * s[ip2]);
 
-                Real denom = 24.0_rt * (4.0_rt * std::pow(dx, 4) - 15.0_rt * std::pow(dx, 2) * std::pow(r_p12, 2) + 5.0_rt * std::pow(r_p12, 4));
+                amrex::Real denom = 24.0_rt * (4.0_rt * std::pow(dx, 4) - 15.0_rt * std::pow(dx, 2) * std::pow(r_p12, 2) + 5.0_rt * std::pow(r_p12, 4));
 
                 sp = (dr4_term + dr3_term + dr2_term + dr1_term + dr0_term) / denom;
 
@@ -225,21 +226,21 @@ ppm_reconstruct(const Real* s,
 
                 // Compute van Leer slopes
 
-                Real dsl = 2.0_rt * (s[i0] - s[im1]);
-                Real dsr = 2.0_rt * (s[ip1] - s[i0]);
+                amrex::Real dsl = 2.0_rt * (s[i0] - s[im1]);
+                amrex::Real dsr = 2.0_rt * (s[ip1] - s[i0]);
 
-                Real dsvl_l = 0.0_rt;
+                amrex::Real dsvl_l = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
-                    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                    amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
                     dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
                 dsl = 2.0_rt * (s[ip1] - s[i0]);
                 dsr = 2.0_rt * (s[ip2] - s[ip1]);
 
-                Real dsvl_r = 0.0_rt;
+                amrex::Real dsvl_r = 0.0_rt;
                 if (dsl*dsr > 0.0_rt) {
-                    Real dsc = 0.5_rt * (s[ip2] - s[i0]);
+                    amrex::Real dsc = 0.5_rt * (s[ip2] - s[i0]);
                     dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
                 }
 
@@ -292,7 +293,7 @@ ppm_reconstruct(const Real* s,
 /// the gravitational force by only limiting on the wave-generating pressure.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
 ///
-/// @param rho          Real[nslp] giving the density in zones i-2, i-1, i, i+1, i+2
+/// @param rho         Real[nslp] giving the density in zones i-2, i-1, i, i+1, i+2
 /// @param p           Real[nslp] giving the pressure in zones i-2, i-1, i, i+1, i+2
 /// @param src         Real[nslp] the source in the velocity equation (e.g. g) in zones
 ///                    i-2, i-1, i, i+2, i+2
@@ -303,29 +304,31 @@ ppm_reconstruct(const Real* s,
 /// @param sm     The value of the parabola on the left edge of the zone
 /// @param sp     The value of the parabola on the right edge of the zone
 ///
+/// @return a bool indicating whether HSE correction was done
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void
-ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
-                       const Real dx,
+bool
+ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src,
+                       const amrex::Real dx,
                        const int i, const int j, const int k, const int idir,
                        bool lo_bc_test, bool hi_bc_test, const bool is_axisymmetric,
-                       const GpuArray<int, 3>& domlo, const GpuArray<int, 3>& domhi,
-                       const Real flatn,
-                       Real& sm, Real& sp) {
+                       const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
+                       const amrex::Real flatn,
+                       amrex::Real& sm, amrex::Real& sp) {
 
-    Real tp[nslp];
+    amrex::Real tp[nslp];
 
     // compute the hydrostatic pressure in each zone center starting with i0
 
-    Real p0_hse = p[i0];
+    amrex::Real p0_hse = p[i0];
 
-    Real pp1_hse = p0_hse + 0.5_rt * dx * (rho[i0] * src[i0] + rho[ip1] * src[ip1]);
-    Real pp2_hse = pp1_hse + 0.5_rt * dx * (rho[ip1] * src[ip1] + rho[ip2] * src[ip2]);
-    Real pp3_hse = pp2_hse + 0.5_rt * dx * (rho[ip2] * src[ip2] + rho[ip3] * src[ip3]);
+    amrex::Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
+    amrex::Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
+    amrex::Real pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
 
-    Real pm1_hse = p0_hse - 0.5_rt * dx * (rho[i0] * src[i0] + rho[im1] * src[im1]);
-    Real pm2_hse = pm1_hse - 0.5_rt * dx * (rho[im1] * src[im1] + rho[im2] * src[im2]);
-    Real pm3_hse = pm2_hse - 0.5_rt * dx * (rho[im2] * src[im2] + rho[im3] * src[im3]);
+    amrex::Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
+    amrex::Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
+    amrex::Real pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
@@ -337,7 +340,9 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
                  pm3_hse < 0.0;
 
 
-    if (!ptest && rho[i0] >= pslope_cutoff_density) {
+    bool do_hse = !ptest && rho[i0] >= pslope_cutoff_density;
+
+    if (do_hse) {
 
         // subtract off the hydrostatic pressure
 
@@ -369,11 +374,15 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 
     // now correct sm and sp to be back to the full pressure by
     // adding in the hydrostatic pressure at the interface
+    // if we are doing the full well-balanced method, then we
+    // don't do this until after the characteristic tracing
 
-    if (!ptest && rho[i0] >= pslope_cutoff_density) {
-        sp += p[i0] + 0.5_rt * dx * rho[i0] * src[i0];
-        sm += p[i0] - 0.5_rt * dx * rho[i0] * src[i0];
+    if (do_hse && !castro::ppm_well_balanced) {
+        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
+        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
     }
+
+    return do_hse;
 
 }
 
@@ -395,14 +404,15 @@ ppm_reconstruct_pslope(const Real* rho, const Real* p, const Real* src,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_int_profile(const Real sm, const Real sp, const Real sc,
-                const Real u, const Real c, const Real dtdx,
-                Real* Ip, Real* Im) {
+ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,
+                const amrex::Real u, const amrex::Real c, const amrex::Real dtdx,
+                amrex::Real* Ip, amrex::Real* Im) {
 
   // Integrate the parabolic profile to the edge of the cell.
 
   // compute x-component of Ip and Im
-  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+
+  amrex::Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
 
   // Ip/m is the integral under the parabola for the extent
   // that a wave can travel over a timestep
@@ -411,8 +421,8 @@ ppm_int_profile(const Real sm, const Real sp, const Real sc,
   // Im integrates to the left edge of a cell
 
   // u-c wave
-  Real speed = u - c;
-  Real sigma = std::abs(speed) * dtdx;
+  amrex::Real speed = u - c;
+  amrex::Real sigma = std::abs(speed) * dtdx;
 
   // if speed == ZERO, then either branch is the same
   if (speed <= 0.0_rt) {
@@ -463,15 +473,15 @@ ppm_int_profile(const Real sm, const Real sp, const Real sc,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
-                       const Real lam, const Real dtdx,
-                       Real& Ip, Real& Im) {
+ppm_int_profile_single(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,
+                       const amrex::Real lam, const amrex::Real dtdx,
+                       amrex::Real& Ip, amrex::Real& Im) {
 
   // Integrate the parabolic profile to the edge of the cell.
   // This is the MHD version.  We come in already with the eigenvalues.
 
   // compute x-component of Ip and Im
-  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+  amrex::Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
 
   // Ip/m is the integral under the parabola for the extent
   // that a wave can travel over a timestep
@@ -479,7 +489,7 @@ ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
   // Ip integrates to the right edge of a cell
   // Im integrates to the left edge of a cell
 
-  Real sigma = std::abs(lam) * dtdx;
+  amrex::Real sigma = std::abs(lam) * dtdx;
 
   if (lam <= 0.0_rt) {
     Ip = sp;
