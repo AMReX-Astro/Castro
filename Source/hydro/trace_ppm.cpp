@@ -244,13 +244,13 @@ Castro::trace_ppm(const Box& bx,
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);
 
-        in_hse = ppm_reconstruct_pslope(trho, s, src, flat, dx[idir], sm, sp);
+        in_hse = ppm_reconstruct_pslope(trho, s, src, flat, dL, sm, sp);
 
         if (in_hse && castro::ppm_well_balanced) {
             // we are working with the perturbational pressure
             ppm_int_profile(sm, sp, 0.0_rt, un, cc, dtdL, Ip_p, Im_p);
-            p_m_hse = s[i0] - 0.5_rt * dx[idir] * trho[i0] * src[i0];
-            p_p_hse = s[i0] + 0.5_rt * dx[idir] * trho[i0] * src[i0];
+            p_m_hse = s[i0] - 0.5_rt * dL * trho[i0] * src[i0];
+            p_p_hse = s[i0] + 0.5_rt * dL * trho[i0] * src[i0];
 
         } else {
             ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
