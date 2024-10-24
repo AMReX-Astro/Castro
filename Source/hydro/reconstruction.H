@@ -5,11 +5,13 @@
 
 namespace reconstruction {
    enum slope_indices {
-       im2 = 0,
+       im3 = 0,
+       im2,
        im1,
        i0,
        ip1,
        ip2,
+       ip3,
        nslp
    };
 }
@@ -23,25 +25,31 @@ load_stencil(amrex::Array4<amrex::Real const> const& q_arr, const int idir,
     using namespace reconstruction;
 
     if (idir == 0) {
+        s[im3] = q_arr(i-3,j,k,ncomp);
         s[im2] = q_arr(i-2,j,k,ncomp);
         s[im1] = q_arr(i-1,j,k,ncomp);
         s[i0]  = q_arr(i,j,k,ncomp);
         s[ip1] = q_arr(i+1,j,k,ncomp);
         s[ip2] = q_arr(i+2,j,k,ncomp);
+        s[ip3] = q_arr(i+3,j,k,ncomp);
 
       } else if (idir == 1) {
+        s[im3] = q_arr(i,j-3,k,ncomp);
         s[im2] = q_arr(i,j-2,k,ncomp);
         s[im1] = q_arr(i,j-1,k,ncomp);
         s[i0]  = q_arr(i,j,k,ncomp);
         s[ip1] = q_arr(i,j+1,k,ncomp);
         s[ip2] = q_arr(i,j+2,k,ncomp);
+        s[ip3] = q_arr(i,j+3,k,ncomp);
 
       } else {
+        s[im3] = q_arr(i,j,k-3,ncomp);
         s[im2] = q_arr(i,j,k-2,ncomp);
         s[im1] = q_arr(i,j,k-1,ncomp);
         s[i0]  = q_arr(i,j,k,ncomp);
         s[ip1] = q_arr(i,j,k+1,ncomp);
         s[ip2] = q_arr(i,j,k+2,ncomp);
+        s[ip3] = q_arr(i,j,k+3,ncomp);
 
       }
 
@@ -58,25 +66,31 @@ load_passive_stencil(amrex::Array4<amrex::Real const> const& U_arr,
     using namespace reconstruction;
 
     if (idir == 0) {
+        s[im3] = U_arr(i-3,j,k,ncomp) * rho_inv_arr(i-3,j,k);
         s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
         s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
         s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
         s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
         s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
+        s[ip3] = U_arr(i+3,j,k,ncomp) * rho_inv_arr(i+3,j,k);
 
       } else if (idir == 1) {
+        s[im3] = U_arr(i,j-3,k,ncomp) * rho_inv_arr(i,j-3,k);
         s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
         s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
         s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
         s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
         s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
+        s[ip3] = U_arr(i,j+3,k,ncomp) * rho_inv_arr(i,j+3,k);
 
       } else {
+        s[im3] = U_arr(i,j,k-3,ncomp) * rho_inv_arr(i,j,k-3);
         s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
         s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
         s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
         s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
         s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
+        s[ip3] = U_arr(i,j,k+3,ncomp) * rho_inv_arr(i,j,k+3);
 
       }
 
