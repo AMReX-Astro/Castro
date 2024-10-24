@@ -179,7 +179,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sp;
 
     load_stencil(q_arr, idir, i, j, k, n, s);
-    ppm_reconstruct(s, i, j, k, idir, dx,
+    ppm_reconstruct(s, i, j, k, idir, dx[idir],
                     lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi,
                     flat, sm, sp);
 
