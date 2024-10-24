@@ -270,7 +270,6 @@ Castro::divu(const Box& bx,
 
         if (i == 0) {
             ux = 0.0_rt;
-            vy = 0.0_rt;  // is this part correct?
         } else {
             Real rl = (i - 0.5_rt) * dx[0] + problo[0];
             Real rr = (i + 0.5_rt) * dx[0] + problo[0];
@@ -282,13 +281,13 @@ Castro::divu(const Box& bx,
 
             // Take 1/r d/dr(r*u)
             ux = (rr * ur - rl * ul) * dxinv / rc;
-
-            // These are transverse averages in the x-direction
-            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
-            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
-
-            vy = (vt - vb) * dyinv;
         }
+
+        // These are transverse averages in the x-direction
+        Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+        Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+
+        vy = (vt - vb) * dyinv;
 
     } else {
 
@@ -310,12 +309,18 @@ Castro::divu(const Box& bx,
         // Finite difference to get divergence. ux = 1/r^2 d/dr(r^2 * u)
         ux = (ur * rr * rr - ul * rl * rl) * dxinv / (rc * rc);
 
-        // These are transverse averages in the x-direction
-        Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
-        Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+        // If sinc == 0, then vy goes inf.
+        // But due to Phi-symmetry, vt*sint = vb*sinb, so set to 0.
+        if (sinc == 0.0_rt) {
+            vy = 0.0_rt;
+        } else {
+            // These are transverse averages in the x-direction
+            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
 
-        // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
-        vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
+            // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
+            vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
+        }
     }
 
     div(i,j,k) = ux + vy;
