@@ -40,14 +40,14 @@ for i, f in enumerate(fields):
         ray = ds.ray((rmin*np.sin(theta), rmin*np.cos(theta), 0*cm),
                      (rmax*np.sin(theta), rmax*np.cos(theta), 0*cm))
         isrt = np.argsort(ray["t"])
-        axes[i].plot(ray['r'][isrt], ray[f][isrt], label="theta = {}".format(theta))
+        axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(theta))
 
     axes[i].set_xlabel(r"$r$ (cm)")
     axes[i].set_ylabel(nice_names[i])
     axes[i].set_yscale("symlog")
 
     if i == 0:
-        axes[0].legend(frameon=False)
+        axes[0].legend(frameon=False, loc="lower left")
 
 #fig.set_size_inches(10.0, 9.0)
 plt.tight_layout()
