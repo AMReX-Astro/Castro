@@ -18,12 +18,13 @@ Castro::fill_rotational_psi(const Box& bx,
   // routine uniquely determines the rotation law. For the other
   // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
 
-  auto omega = get_omega();
-  Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
+  const auto omega = get_omega();
+  Real denom = omega * omega;
 
-  auto problo = geom.ProbLoArray();
-
-  auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
+  const auto dx = geom.CellSizeArray();
+  const auto coord = geom.Coord();
+  const auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -44,7 +45,8 @@ Castro::fill_rotational_psi(const Box& bx,
 #endif
 
     if (denom != 0.0) {
-        psi(i,j,k) = rotational_potential(r) / denom;
+        auto omega_vec = get_omega_vec(geomdata, j);
+        psi(i,j,k) = rotational_potential(r, omega_vec, coord) / denom;
     }
     else {
         psi(i,j,k) = 0.0;
