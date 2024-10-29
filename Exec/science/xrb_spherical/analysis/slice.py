@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from yt.frontends.boxlib.api import CastroDataset
 
+from yt.units import cm
+
 """
 Given a plot file and field name, it gives slice plots at the top,
 middle, and bottom of the domain (shell).
@@ -54,8 +56,10 @@ def slice(fname:str, field:str,
                "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
                "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
 
-    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths)
+    # Note we can also set center during SlicePlot, however then we would enter in [r_center, theta_center, 0]
+    # rather than the physical R-Z coordinate if we do it via sp.set_center
 
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths)
     sp.set_center(centers[loc])
 
     sp.set_cmap(field, "viridis")
