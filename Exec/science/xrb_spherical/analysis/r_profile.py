@@ -21,7 +21,7 @@ ds = CastroDataset(plotfile)
 rmin = ds.domain_left_edge[0]
 rmax = rmin + 5000.0*cm
 #rmax = ds.domain_right_edge[0]
-
+print(ds.domain_left_edge[1])
 fig, _ax = plt.subplots(2,2)
 
 axes = list(itertools.chain(*_ax))
@@ -32,13 +32,14 @@ fields = ["Temp", "density", "x_velocity", "y_velocity"]
 nice_names = [r"$T$ (K)", r"$\rho$ (g/${cm}^3$)", r"$u$ (cm/s)", r"$v$ (cm/s)"]
 
 # 4 rays at different theta values
-thetas = [0, 0.125*np.pi, 0.25*np.pi, 0.5*np.pi]
+thetas = [0, 0.0155625*np.pi, 0.03125*np.pi]
 
 for i, f in enumerate(fields):
 
     for theta in thetas:
-        ray = ds.ray((rmin*np.sin(theta), rmin*np.cos(theta), 0*cm),
-                     (rmax*np.sin(theta), rmax*np.cos(theta), 0*cm))
+        # simply go from (rmin, theta) -> (rmax, theta). Doesn't need to convert to physical R-Z
+        ray = ds.ray((rmin, theta*cm, 0*cm),
+                     (rmax, theta*cm, 0*cm))
         isrt = np.argsort(ray["t"])
         axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(theta))
 
