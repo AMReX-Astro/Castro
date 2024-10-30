@@ -204,6 +204,12 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
             }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+            if (Geom().IsSPHERICAL()) {
+                P_theta.setVal(0.0);
+            }
+#endif
+
 #ifdef RADIATION
             if (Radiation::rad_hydro_combined) {
                 for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {

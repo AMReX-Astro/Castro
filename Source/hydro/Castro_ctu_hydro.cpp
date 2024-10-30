@@ -179,6 +179,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial(The_Async_Arena());
 #endif
+#if AMREX_SPACEDIM == 2
+    FArrayBox ptheta(The_Async_Arena());
+#endif
 #if AMREX_SPACEDIM == 3
     FArrayBox qmyx(The_Async_Arena()), qpyx(The_Async_Arena());
     FArrayBox qmzx(The_Async_Arena()), qpzx(The_Async_Arena());
@@ -442,6 +445,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
           pradial.resize(xbx, 1);
       }
       fab_size += pradial.nBytes();
+#endif
+
+#if AMREX_SPACEDIM == 2
+      if (Geom().IsSPHERICAL()) {
+          ptheta.resize(ybx, 1);
+      }
+      fab_size += ptheta.nBytes();
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -1270,23 +1280,33 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
 #endif
 
-        if (idir == 0) {
 #if AMREX_SPACEDIM <= 2
+        // get the scaled radial pressure -- we need to treat this specially
+
+        if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
             Array4<Real> pradial_fab = pradial.array();
-#endif
 
-            // get the scaled radial pressure -- we need to treat this specially
-#if AMREX_SPACEDIM <= 2
-            if (!mom_flux_has_p(0, 0, coord)) {
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
-
-#endif
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+            });
         }
+#endif
+
+#if AMREX_SPACEDIM == 2
+        // get the scaled pressure in the theta direction
+
+        if (idir ==1 && !mom_flux_has_p(1, 1, coord)) {
+            Array4<Real> ptheta_fab = ptheta.array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ptheta_fab(i,j,k) = qey_arr(i,j,k,GDPRES) * dt;
+            });
+        }
+#endif
 
         // Store the fluxes from this advance. For simplified SDC integration we
         // only need to do this on the last iteration.
@@ -1331,7 +1351,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
             }
+#endif
 
+#if AMREX_SPACEDIM == 2
+            if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+                Array4<Real> ptheta_fab = ptheta.array();
+                Array4<Real> P_theta_fab = P_theta.array(mfi);
+
+                amrex::ParallelFor(mfi.nodaltilebox(0),
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                {
+                    P_theta_fab(i,j,k,0) += ptheta_fab(i,j,k,0);
+                });
+            }
 #endif
 
         } // add_fluxes
