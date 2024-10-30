@@ -64,7 +64,6 @@
     castro.dual_energy_eta1 = 1
     castro.dual_energy_eta2 = 0.0001
     castro.use_pslope = 0
-    castro.ppm_well_balanced = 0
     castro.pslope_cutoff_density = -1e+20
     castro.limit_fluxes_on_small_dens = 0
     castro.speed_limit = 0

@@ -74,12 +74,6 @@ then done on the parabola, again working with :math:`\tilde{p}`.
 Finally, the parabola values are updated to include the hydrostatic
 pressure.
 
-.. index:: castro.ppm_well_balanced
-
-We can do better with PPM, and only use the perturbational pressure,
-$\tilde{p}$, in the characteristic tracing and then add back the
-hydrostatic pressure to the interface afterwards.  This is done via
-``castro.ppm_well_balanced=1``.
 
 Fully fourth-order method
 -------------------------
@@ -171,3 +165,5 @@ test the different HSE approaches.  This sets up a 1-d X-ray burst
 atmosphere (based on the ``flame_wave`` setup).  Richardson
 extrapolation can be used to measure the convergence rate (or just
 look at how the peak velocity changes).
+
+

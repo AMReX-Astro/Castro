@@ -229,37 +229,19 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, QPRES, s);
 
-    bool in_hse{};
-
-    // HSE pressure on interfaces -- needed if we are dealing with
-    // perturbation pressure as the parabolic reconstruction
-
-    amrex::Real p_m_hse{};
-    amrex::Real p_p_hse{};
-
-    if (castro::use_pslope || castro::ppm_well_balanced) {
+    if (use_pslope) {
         Real trho[nslp];
         Real src[nslp];
 
         load_stencil(q_arr, idir, i, j, k, QRHO, trho);
         load_stencil(srcQ, idir, i, j, k, QUN, src);
 
-        in_hse = ppm_reconstruct_pslope(trho, s, src, flat, dL, sm, sp);
-
-        if (in_hse && castro::ppm_well_balanced) {
-            // we are working with the perturbational pressure
-            ppm_int_profile(sm, sp, 0.0_rt, un, cc, dtdL, Ip_p, Im_p);
-            p_m_hse = s[i0] - 0.5_rt * dL * trho[i0] * src[i0];
-            p_p_hse = s[i0] + 0.5_rt * dL * trho[i0] * src[i0];
-
-        } else {
-            ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
-        }
+        ppm_reconstruct_pslope(trho, s, src, flat, dL, sm, sp);
 
     } else {
         ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
     }
+    ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
 
     // reconstruct rho e
 
@@ -477,10 +459,6 @@ Castro::trace_ppm(const Box& bx,
     }
 
 
-    // for well-balanced, the velocity sources should not be added
-
-    amrex::Real fac = (castro::ppm_well_balanced && in_hse) ? 0.0_rt : 1.0_rt;
-
     // plus state on face i
 
     if ((idir == 0 && i >= vlo[0]) ||
@@ -498,23 +476,23 @@ Castro::trace_ppm(const Box& bx,
       // the dt * g term will be the only non-zero contribution).
       // We ignore the effect of the source term for gamma.
       Real rho_ref = Im_rho[0] + hdt * Im_src_rho[0];
-      Real un_ref = Im_un_0 + fac * hdt * Im_src_un_0;
+      Real un_ref = Im_un_0 + hdt * Im_src_un_0;
 
       Real p_ref = Im_p[0] + hdt * Im_src_p[0];
       Real rhoe_g_ref = Im_rhoe[0] + hdt * Im_src_rhoe[0];
 
       Real gam_g_ref = Im_gc_0;
 
-      rho_ref = std::max(rho_ref, lsmall_dens);
+      rho_ref = amrex::max(rho_ref, lsmall_dens);
 
       Real rho_ref_inv = 1.0_rt/rho_ref;
-      p_ref = std::max(p_ref, lsmall_pres);
+      p_ref = amrex::max(p_ref, lsmall_pres);
 
       // For tracing
-      Real csq_ref = gam_g_ref * (p_m_hse + p_ref) * rho_ref_inv;
+      Real csq_ref = gam_g_ref*p_ref*rho_ref_inv;
       Real cc_ref = std::sqrt(csq_ref);
       Real cc_ref_inv = 1.0_rt/cc_ref;
-      Real h_g_ref = ((p_m_hse + p_ref) + rhoe_g_ref) * rho_ref_inv;
+      Real h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv;
 
       // *m are the jumps carried by un-c
       // *p are the jumps carried by un+c
@@ -524,16 +502,15 @@ Castro::trace_ppm(const Box& bx,
 
 
       // we also add the sources here so they participate in the tracing
+      Real dum = un_ref - Im_un_0 - hdt*Im_src_un_0;
+      Real dptotm = p_ref - Im_p[0] - hdt*Im_src_p[0];
 
-      Real dum = un_ref - Im_un_0 - fac * hdt * Im_src_un_0;
-      Real dptotm = p_ref - Im_p[0] - hdt * Im_src_p[0];
+      Real drho = rho_ref - Im_rho[1] - hdt*Im_src_rho[1];
+      Real dptot = p_ref - Im_p[1] - hdt*Im_src_p[1];
+      Real drhoe_g = rhoe_g_ref - Im_rhoe[1] - hdt*Im_src_rhoe[1];
 
-      Real drho = rho_ref - Im_rho[1] - hdt * Im_src_rho[1];
-      Real dptot = p_ref - Im_p[1] - hdt * Im_src_p[1];
-      Real drhoe_g = rhoe_g_ref - Im_rhoe[1] - hdt * Im_src_rhoe[1];
-
-      Real dup = un_ref - Im_un_2 - fac * hdt * Im_src_un_2;
-      Real dptotp = p_ref - Im_p[2] - hdt * Im_src_p[2];
+      Real dup = un_ref - Im_un_2 - hdt*Im_src_un_2;
+      Real dptotp = p_ref - Im_p[2] - hdt*Im_src_p[2];
 
       // {rho, u, p, (rho e)} eigensystem
 
@@ -554,11 +531,11 @@ Castro::trace_ppm(const Box& bx,
       // The final interface states are just
       // q_s = q_ref - sum(l . dq) r
       // note that the a{mpz}right as defined above have the minus already
-      qp(i,j,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
+      qp(i,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
       qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-      qp(i,j,k,QREINT) = std::max(castro::small_dens * castro::small_ener,
+      qp(i,j,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
                                     rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
-      qp(i,j,k,QPRES) = std::max(lsmall_pres, p_m_hse + p_ref + (alphap + alpham)*csq_ref);
+      qp(i,j,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
       // Transverse velocities -- there's no projection here, so we
       // don't need a reference state.  We only care about the state
@@ -567,8 +544,8 @@ Castro::trace_ppm(const Box& bx,
       // Recall that I already takes the limit of the parabola
       // in the event that the wave is not moving toward the
       // interface
-      qp(i,j,k,QUT) = Im_ut_1 + hdt * Im_src_ut_1;
-      qp(i,j,k,QUTT) = Im_utt_1 + hdt * Im_src_utt_1;
+      qp(i,j,k,QUT) = Im_ut_1 + hdt*Im_src_ut_1;
+      qp(i,j,k,QUTT) = Im_utt_1 + hdt*Im_src_utt_1;
 
     }
 
@@ -581,35 +558,35 @@ Castro::trace_ppm(const Box& bx,
       // Set the reference state
       // This will be the fastest moving state to the right
       Real rho_ref = Ip_rho[2] + hdt * Ip_src_rho[2];
-      Real un_ref = Ip_un_2 + fac * hdt * Ip_src_un_2;
+      Real un_ref = Ip_un_2 + hdt * Ip_src_un_2;
 
       Real p_ref = Ip_p[2] + hdt * Ip_src_p[2];
       Real rhoe_g_ref = Ip_rhoe[2] + hdt * Ip_src_rhoe[2];
 
       Real gam_g_ref = Ip_gc_2;
 
-      rho_ref = std::max(rho_ref, lsmall_dens);
+      rho_ref = amrex::max(rho_ref, lsmall_dens);
       Real rho_ref_inv = 1.0_rt/rho_ref;
-      p_ref = std::max(p_ref, lsmall_pres);
+      p_ref = amrex::max(p_ref, lsmall_pres);
 
       // For tracing
-      Real csq_ref = gam_g_ref * (p_p_hse + p_ref) * rho_ref_inv;
+      Real csq_ref = gam_g_ref*p_ref*rho_ref_inv;
       Real cc_ref = std::sqrt(csq_ref);
       Real cc_ref_inv = 1.0_rt/cc_ref;
-      Real h_g_ref = ((p_p_hse + p_ref) + rhoe_g_ref) * rho_ref_inv;
+      Real h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv;
 
       // *m are the jumps carried by u-c
       // *p are the jumps carried by u+c
 
-      Real dum = un_ref - Ip_un_0 - fac * hdt * Ip_src_un_0;
-      Real dptotm  = p_ref - Ip_p[0] - hdt * Ip_src_p[0];
+      Real dum = un_ref - Ip_un_0 - hdt*Ip_src_un_0;
+      Real dptotm  = p_ref - Ip_p[0] - hdt*Ip_src_p[0];
 
-      Real drho = rho_ref - Ip_rho[1] - hdt * Ip_src_rho[1];
-      Real dptot = p_ref - Ip_p[1] - hdt * Ip_src_p[1];
-      Real drhoe_g = rhoe_g_ref - Ip_rhoe[1] - hdt * Ip_src_rhoe[1];
+      Real drho = rho_ref - Ip_rho[1] - hdt*Ip_src_rho[1];
+      Real dptot = p_ref - Ip_p[1] - hdt*Ip_src_p[1];
+      Real drhoe_g = rhoe_g_ref - Ip_rhoe[1] - hdt*Ip_src_rhoe[1];
 
-      Real dup = un_ref - Ip_un_2 - fac * hdt * Ip_src_un_2;
-      Real dptotp = p_ref - Ip_p[2] - hdt * Ip_src_p[2];
+      Real dup = un_ref - Ip_un_2 - hdt*Ip_src_un_2;
+      Real dptotp = p_ref - Ip_p[2] - hdt*Ip_src_p[2];
 
       // {rho, u, p, (rho e)} eigensystem
 
@@ -631,33 +608,33 @@ Castro::trace_ppm(const Box& bx,
       // q_s = q_ref - sum (l . dq) r
       // note that the a{mpz}left as defined above have the minus already
       if (idir == 0) {
-        qm(i+1,j,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i+1,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i+1,j,k,QREINT) = std::max(castro::small_dens * castro::small_ener,
+        qm(i+1,j,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
                                         rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
-        qm(i+1,j,k,QPRES) = std::max(lsmall_pres, p_p_hse + p_ref + (alphap + alpham)*csq_ref);
+        qm(i+1,j,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i+1,j,k,QUT) = Ip_ut_1 + hdt*Ip_src_ut_1;
         qm(i+1,j,k,QUTT) = Ip_utt_1 + hdt*Ip_src_utt_1;
 
       } else if (idir == 1) {
-        qm(i,j+1,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i,j+1,k,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i,j+1,k,QREINT) = std::max(castro::small_dens * castro::small_ener,
-                                      rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
-        qm(i,j+1,k,QPRES) = std::max(lsmall_pres, p_p_hse + p_ref + (alphap + alpham)*csq_ref);
+        qm(i,j+1,k,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
+                                        rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
+        qm(i,j+1,k,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i,j+1,k,QUT) = Ip_ut_1 + hdt*Ip_src_ut_1;
         qm(i,j+1,k,QUTT) = Ip_utt_1 + hdt*Ip_src_utt_1;
 
       } else if (idir == 2) {
-        qm(i,j,k+1,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i,j,k+1,QRHO) = amrex::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
-        qm(i,j,k+1,QREINT) = std::max(castro::small_dens * castro::small_ener,
+        qm(i,j,k+1,QREINT) = amrex::max(castro::small_dens * castro::small_ener,
                                         rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g);
-        qm(i,j,k+1,QPRES) = std::max(lsmall_pres, p_p_hse + p_ref + (alphap + alpham)*csq_ref);
+        qm(i,j,k+1,QPRES) = amrex::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i,j,k+1,QUT) = Ip_ut_1 + hdt*Ip_src_ut_1;

@@ -161,10 +161,6 @@ dual_energy_eta2             Real          1.0e-4
 # does well with HSE
 use_pslope                   bool           0
 
-# for PPM, do we only use the perturbational pressure in the characteristic
-# tracing?  This is more indepth than the simple `use_pslope` approach.
-ppm_well_balanced            bool           0
-
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
 pslope_cutoff_density        Real          -1.e20
