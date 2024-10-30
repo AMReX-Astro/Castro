@@ -32,16 +32,17 @@ fields = ["Temp", "density", "x_velocity", "y_velocity"]
 nice_names = [r"$T$ (K)", r"$\rho$ (g/${cm}^3$)", r"$u$ (cm/s)", r"$v$ (cm/s)"]
 
 # 4 rays at different theta values
-thetas = [0, 0.0155625*np.pi, 0.03125*np.pi]
+thetal = ds.domain_left_edge[1]
+thetar = ds.domain_right_edge[1]
+thetas = [thetal, 0.25*thetar, 0.5*thetar, 0.75*thetar]
 
 for i, f in enumerate(fields):
 
     for theta in thetas:
         # simply go from (rmin, theta) -> (rmax, theta). Doesn't need to convert to physical R-Z
-        ray = ds.ray((rmin, theta*cm, 0*cm),
-                     (rmax, theta*cm, 0*cm))
+        ray = ds.ray((rmin, theta, 0*cm), (rmax, theta, 0*cm))
         isrt = np.argsort(ray["t"])
-        axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(theta))
+        axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(float(theta)))
 
     axes[i].set_xlabel(r"$r$ (cm)")
     axes[i].set_ylabel(nice_names[i])
