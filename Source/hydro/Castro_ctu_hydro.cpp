@@ -1297,7 +1297,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM == 2
         // get the scaled pressure in the theta direction
 
-        if (idir ==1 && !mom_flux_has_p(1, 1, coord)) {
+        if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
             Array4<Real> ptheta_fab = ptheta.array();
 
             amrex::ParallelFor(nbx,
