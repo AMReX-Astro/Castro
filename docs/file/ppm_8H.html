@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,22 +8,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File ppm.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
-        <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -218,12 +216,12 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="ppm_8H_1abdc5109e4e7de94d385e8238ef9df420"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">check_trace_source</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;srcQ,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">ncomp)</span></span></dt>
+<span class="target" id="ppm_8H_1a2de35390c1cd2fbefc84988a03e7ca15"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">check_trace_source</span> <span class="pre">(amrex::Array4&lt;</span> <span class="pre">amrex::Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;srcQ,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">ncomp)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*s,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">Real</span> <span class="pre">&amp;sm,</span> <span class="pre">Real</span> <span class="pre">&amp;sp)</span></span></dt>
+<span class="target" id="ppm_8H_1a828b2fb21083bd6235c72abfa2bf12ec"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct</span> <span class="pre">(const</span> <span class="pre">amrex::Real</span> <span class="pre">*s,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">flatn,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;sm,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;sp)</span></span></dt>
 <dd><p>Compute the coefficients of a parabolic reconstruction of the data in a zone. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -239,7 +237,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="ppm_8H_1a409e66f582f2cfece990a473ddb13a18"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct_pslope</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*rho,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*p,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*src,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dx,</span> <span class="pre">Real</span> <span class="pre">&amp;sm,</span> <span class="pre">Real</span> <span class="pre">&amp;sp)</span></span></dt>
+<span class="target" id="ppm_8H_1ae7c770798f3a7ff1597b6159fa448f25"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">bool</span> <span class="pre">ppm_reconstruct_pslope</span> <span class="pre">(const</span> <span class="pre">amrex::Real</span> <span class="pre">*rho,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">*p,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">*src,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">flatn,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">dx,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;sm,</span> <span class="pre">amrex::Real</span> <span class="pre">&amp;sp)</span></span></dt>
 <dd><p>Compute the coefficients of a parabolic reconstruction of the pressure by first subtracting off the hydrostatic pressure. This should better balance the gravitational force by only limiting on the wave-generating pressure. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -251,15 +249,18 @@
 <li><p><strong>lo_bc_test</strong> – true if a physical boundary is just to the left of this zone </p></li>
 <li><p><strong>hi_bc_test</strong> – true if a physical boundary is just to the right of this zone</p></li>
 <li><p><strong>sm</strong> – The value of the parabola on the left edge of the zone </p></li>
-<li><p><strong>sp</strong> – The value of the parabola on the right edge of the zone </p></li>
+<li><p><strong>sp</strong> – The value of the parabola on the right edge of the zone</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a bool indicating whether HSE correction was done </p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_int_profile</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">sm,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sp,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sc,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">u,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">c,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dtdx,</span> <span class="pre">Real</span> <span class="pre">*Ip,</span> <span class="pre">Real</span> <span class="pre">*Im)</span></span></dt>
+<span class="target" id="ppm_8H_1a7e888a8baac507860eb88c59387f7239"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_int_profile</span> <span class="pre">(const</span> <span class="pre">amrex::Real</span> <span class="pre">sm,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">sp,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">sc,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">u,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">c,</span> <span class="pre">const</span> <span class="pre">amrex::Real</span> <span class="pre">dtdx,</span> <span class="pre">amrex::Real</span> <span class="pre">*Ip,</span> <span class="pre">amrex::Real</span> <span class="pre">*Im)</span></span></dt>
 <dd><p>Integrate under the parabola using from the left and right edges with the wave speeds u-c, u, u+c</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
