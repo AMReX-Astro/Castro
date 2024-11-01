@@ -5,7 +5,7 @@
     and then adds back in the hydrostatic pressure. It can be enabled
     via `castro.ppm_well_balanced` (#2945)
 
-  * fixed a bug in the div{U} calculation for artifical viscosity on
+  * fixed a bug in the div{U} calculation for artificial viscosity on
     symmetry boundaries (#2983)
 
   * more development on 2D spherical geometry (#2973, #2975, #2981)
