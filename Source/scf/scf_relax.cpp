@@ -243,11 +243,10 @@ Castro::do_hscf_solve()
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
-                    GpuArray<Real, 3>r;
+                    GpuArray<Real, 3>r = {0.0};
                     position(i, j, k, geomdata, r);
 
                     // Do a trilinear interpolation to find the contribution from
@@ -369,7 +368,6 @@ Castro::do_hscf_solve()
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
@@ -440,9 +438,6 @@ Castro::do_hscf_solve()
                     // The Bernoulli equation says that energy is conserved:
                     // enthalpy + gravitational potential + rotational potential = const
                     // We already have the constant, so our goal is to construct the enthalpy field.
-
-                    const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
                     position(i, j, k, geomdata, r);
@@ -617,8 +612,6 @@ Castro::do_hscf_solve()
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
-
-                    const auto* problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
                     position(i, j, k, geomdata, r);

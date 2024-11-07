@@ -208,9 +208,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
         const auto dx = geom.CellSizeArray();
 #ifdef MODEL_PARSER
-        const auto problo = geom.ProbLoArray();
-#endif
         const auto geomdata = geom.data();
+#endif
 
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
