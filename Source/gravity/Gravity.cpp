@@ -1333,7 +1333,6 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     const auto dx = geom.CellSizeArray();
     const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
-    const auto problo = geom.ProbLoArray();
     const auto geomdata = geom.data();
 
 #ifdef _OPENMP
