@@ -577,8 +577,6 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geom.CellSizeArray();
-      auto problo = geom.ProbLoArray();
       auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
@@ -623,8 +621,6 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geom.CellSizeArray();
-      auto problo = geom.ProbLoArray();
       auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
@@ -694,8 +690,6 @@ extern "C"
   {
 
     int idir = 0;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
     auto geomdata = geom.data();
 
     auto const dat = datfab.array();
@@ -728,8 +722,6 @@ extern "C"
   {
 
     int idir = 1;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
     auto geomdata = geom.data();
 
     auto const dat = datfab.array();
@@ -761,8 +753,6 @@ extern "C"
   {
 
     int idir = 2;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
     auto geomdata = geom.data();
 
     auto const dat = datfab.array();

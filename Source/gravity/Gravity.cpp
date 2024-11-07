@@ -1334,6 +1334,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
     const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1443,6 +1444,7 @@ Gravity::compute_radial_mass(const Box& bx,
     Real drinv = 1.0_rt / dr;
 
     const int coord_type = geom.Coord();
+    const auto geomdata = geom.data();
 
     AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
 
