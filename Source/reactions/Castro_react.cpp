@@ -557,7 +557,7 @@ Castro::react_state(Real time, Real dt)
         int lsdc_iteration = sdc_iteration;
 
         const auto dx = geom.CellSizeArray();
-        const auto problo = geom.ProbLoArray();
+        const geomdata = geom.data();
 
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
