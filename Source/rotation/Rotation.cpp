@@ -21,9 +21,7 @@ Castro::fill_rotational_psi(const Box& bx,
   auto omega = get_omega();
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
-  auto problo = geom.ProbLoArray();
-
-  auto dx = geom.CellSizeArray();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept

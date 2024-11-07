@@ -79,9 +79,7 @@ Castro::apply_sponge(const Box& bx,
     alpha = 0.0_rt;
   }
 
-  auto dx = geom.CellSizeArray();
-  auto problo = geom.ProbLoArray();
-  const auto geomdata = geom.data();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
