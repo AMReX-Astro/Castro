@@ -384,10 +384,6 @@ Castro::gwstrain (Real time,
             GpuArray<Real, 3> r;
             position(i, j, k, geomdata, r);
 
-            for (int n = 0; n < 3; ++n) {
-                r[n] -= problem::center[n];
-            }
-
             Real rhoInv;
             if (rho(i,j,k) * maskFactor > 0.0_rt) {
                 rhoInv = 1.0_rt / rho(i,j,k);

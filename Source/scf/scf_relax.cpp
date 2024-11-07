@@ -247,15 +247,8 @@ Castro::do_hscf_solve()
 
                     // The below assumes we are rotating on the z-axis.
 
-                    Real r[3] = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    GpuArray<Real, 3>r;
+                    position(i, j, k, geomdata, r);
 
                     // Do a trilinear interpolation to find the contribution from
                     // this grid point. Limit so that only the nearest zone centers
@@ -381,14 +374,7 @@ Castro::do_hscf_solve()
                     // The below assumes we are rotating on the z-axis.
 
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     // Do a trilinear interpolation to find the contribution from
                     // this grid point. Limit so that only the nearest zone centers
@@ -459,14 +445,7 @@ Castro::do_hscf_solve()
                     const auto *problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r);
                 });
@@ -642,14 +621,7 @@ Castro::do_hscf_solve()
                     const auto* problo = geomdata.ProbLo();
 
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     if (state_arr(i,j,k,URHO) > 0.0)
                     {

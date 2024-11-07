@@ -30,18 +30,7 @@ Castro::fill_rotational_psi(const Box& bx,
   {
 
     GpuArray<Real, 3> r;
-
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
-#else
-    r[1] = 0.0_rt;
-#endif
-#if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
-#else
-    r[2] = 0.0_rt;
-#endif
+    position(i, j, k, geomdata, r);
 
     if (denom != 0.0) {
         psi(i,j,k) = rotational_potential(r) / denom;

@@ -210,6 +210,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #ifdef MODEL_PARSER
         const auto problo = geom.ProbLoArray();
 #endif
+        const auto geomdata = goem.data();
 
 #if defined(AMREX_USE_GPU)
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
@@ -270,22 +271,15 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
 #ifdef MODEL_PARSER
             if (drive_initial_convection) {
-                Real rr[3] = {0.0_rt};
-
-                rr[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                rr[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                rr[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
-#endif
+                GpuArray<Real, 3> rr;
+                position(i, j, k, geomdata, rr);
 
                 Real dist;
 
                 if (domain_is_plane_parallel) {
                     dist = rr[AMREX_SPACEDIM-1];
                 } else {
-                    dist = std::sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2]);
+                    dist = distance(geomdata, rr);
                 }
 
                 burn_state.T_fixed = interpolate(dist, model::itemp);
@@ -618,22 +612,15 @@ Castro::react_state(Real time, Real dt)
 
 #ifdef MODEL_PARSER
             if (drive_initial_convection) {
-                Real rr[3] = {0.0_rt};
-
-                rr[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                rr[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                rr[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
-#endif
+                GpuArray<Real, 3> rr;
+                position(i, j, k, geomdata, rr);
 
                 Real dist;
 
                 if (domain_is_plane_parallel) {
                     dist = rr[AMREX_SPACEDIM-1];
                 } else {
-                    dist = std::sqrt(rr[0] * rr[0] + rr[1] * rr[1] + rr[2] * rr[2]);
+                    dist = distance(geomdata, rr);
                 }
 
                 burn_state.T_fixed = interpolate(dist, model::itemp);

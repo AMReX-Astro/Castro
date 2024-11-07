@@ -375,10 +375,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 #ifdef HYBRID_MOMENTUM
             GpuArray<Real, 3> loc;
-            for (int n = 0; n < 3; ++n) {
-                position(i, j, k, geomdata, loc);
-                loc[n] -= problem::center[n];
-            }
+            position(i, j, k, geomdata, loc);
 
             GpuArray<Real, 3> hybrid_src;
 
@@ -574,9 +571,6 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #ifdef HYBRID_MOMENTUM
                 GpuArray<Real, 3> loc;
                 position(i, j, k, geomdata, loc);
-                for (int n = 0; n < 3; ++n) {
-                    loc[n] -= problem::center[n];
-                }
 
                 GpuArray<Real, 3> hybrid_src;
 

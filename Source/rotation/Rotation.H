@@ -129,10 +129,6 @@ inertial_to_rotational_velocity (const int i, const int j, const int k,
 
   position(i, j, k, geomdata, loc);
 
-  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    loc[dir] -= problem::center[dir];
-  }
-
   auto omega = get_omega();
 
   // do the cross product Omega x loc
@@ -158,10 +154,6 @@ rotational_to_inertial_velocity (const int i, const int j, const int k,
   GpuArray<Real, 3> loc;
 
   position(i, j, k, geomdata, loc);
-
-  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    loc[dir] -= problem::center[dir];
-  }
 
   auto omega = get_omega();
 
