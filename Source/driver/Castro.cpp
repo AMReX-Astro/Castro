@@ -3639,10 +3639,9 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
         {
             const Real* problo = geomdata.ProbLo();
             const Real* probhi = geomdata.ProbHi();
-            const Real* dx = geomdata.CellSize();
 
             GpuArray<Real, 3> loc;
-
+            position(i, j, k, geomdata, loc);
             Real r = distance(geomdata, loc);
 
             Real max_dist_lo = 0.0;
