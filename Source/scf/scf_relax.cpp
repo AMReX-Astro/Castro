@@ -243,19 +243,11 @@ Castro::do_hscf_solve()
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
-                    Real r[3] = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    GpuArray<Real, 3>r = {0.0};
+                    position(i, j, k, geomdata, r);
 
                     // Do a trilinear interpolation to find the contribution from
                     // this grid point. Limit so that only the nearest zone centers
@@ -376,19 +368,11 @@ Castro::do_hscf_solve()
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
 
                     // The below assumes we are rotating on the z-axis.
 
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     // Do a trilinear interpolation to find the contribution from
                     // this grid point. Limit so that only the nearest zone centers
@@ -455,18 +439,8 @@ Castro::do_hscf_solve()
                     // enthalpy + gravitational potential + rotational potential = const
                     // We already have the constant, so our goal is to construct the enthalpy field.
 
-                    const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
-
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r);
                 });
@@ -639,17 +613,8 @@ Castro::do_hscf_solve()
                 {
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
-                    const auto* problo = geomdata.ProbLo();
-
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
 
                     if (state_arr(i,j,k,URHO) > 0.0)
                     {

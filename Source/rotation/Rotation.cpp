@@ -21,27 +21,14 @@ Castro::fill_rotational_psi(const Box& bx,
   auto omega = get_omega();
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
-  auto problo = geom.ProbLoArray();
-
-  auto dx = geom.CellSizeArray();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     GpuArray<Real, 3> r;
-
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
-#else
-    r[1] = 0.0_rt;
-#endif
-#if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
-#else
-    r[2] = 0.0_rt;
-#endif
+    position(i, j, k, geomdata, r);
 
     if (denom != 0.0) {
         psi(i,j,k) = rotational_potential(r) / denom;

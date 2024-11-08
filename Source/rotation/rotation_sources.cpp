@@ -27,10 +27,6 @@ Castro::rsrc(const Box& bx,
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
 
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= problem::center[dir];
-    }
-
     Real rho = uold(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
@@ -241,10 +237,6 @@ Castro::corrrsrc(const Box& bx,
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
 
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= problem::center[dir];
-    }
-
     Real rhoo = uold(i,j,k,URHO);
     Real rhooinv = 1.0_rt / uold(i,j,k,URHO);
 
@@ -448,10 +440,6 @@ Castro::corrrsrc(const Box& bx,
 
               position(ie, je, ke, geomdata, loc, ccx, ccy, ccz);
 
-              for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-                  loc[n] -= problem::center[n];
-              }
-
               GpuArray<Real, 3> temp_vel{};
               Real temp_Sr[3];
 
@@ -487,4 +475,3 @@ Castro::corrrsrc(const Box& bx,
   });
 
 }
-

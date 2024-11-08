@@ -636,9 +636,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           position(i, j, k, geomdata, loc);
 
-          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-            loc[dir] -= problem::center[dir];
-
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
                               std::numeric_limits<Real>::min());
           Real RInv = 1.0_rt / R;

@@ -1333,7 +1333,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     const auto dx = geom.CellSizeArray();
     const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
-    const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1352,22 +1352,8 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
             GpuArray<Real, 3> loc;
-
-            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-
-#if AMREX_SPACEDIM >= 2
-            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#else
-            loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#else
-            loc[2] = 0.0_rt;
-#endif
-
-            Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
+            position(i, j, k, geomdata, loc);
+            Real r = distance(geomdata, loc);
 
             int index = static_cast<int>(r / dr);
 
@@ -1457,6 +1443,7 @@ Gravity::compute_radial_mass(const Box& bx,
     Real drinv = 1.0_rt / dr;
 
     const int coord_type = geom.Coord();
+    const auto geomdata = geom.data();
 
     AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
 
@@ -1497,16 +1484,14 @@ Gravity::compute_radial_mass(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
         Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - problem::center[0];
-
-        Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
         Real lo_j = problo[1] + static_cast<Real>(j) * dx[1] - problem::center[1];
-
-        Real zc = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
         Real lo_k = problo[2] + static_cast<Real>(k) * dx[2] - problem::center[2];
 
-        Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
+        GpuArray<Real ,3> loc;
+        position(i, j, k, geomdata, loc);
+        Real r = distance(geomdata, loc);
+
         int index = static_cast<int>(r * drinv);
 
         // We may be coming in here with a masked out zone (in a zone on a coarse

@@ -577,24 +577,13 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geom.CellSizeArray();
-      auto problo = geom.ProbLoArray();
+      auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
-
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#else
-        Real y = 0.0_rt;
-#endif
-#if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#else
-        Real z = 0.0_rt;
-#endif
+        GpuArray<Real, 3> loc;
+        position(i, j, k, geomdata, loc);
 
         if (domain_is_plane_parallel) {
 #if AMREX_SPACEDIM == 2
@@ -607,15 +596,15 @@ extern "C"
           // where e_r and e_phi are the cylindrical unit vectors
 
           // we need the distance in the x-y plane from the origin
-          Real r = std::sqrt(x*x + y*y);
-          der(i,j,k,0) = (dat(i,j,k,1)*x + dat(i,j,k,2)*y) / (dat(i,j,k,0)*r);
+          Real r = std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+          der(i,j,k,0) = (dat(i,j,k,1)*loc[0] + dat(i,j,k,2)*loc[1]) / (dat(i,j,k,0)*r);
 #endif
         } else {
-          Real r = std::sqrt(x*x + y*y + z*z);
+          Real r = distance(geomdata, loc);
 
-          der(i,j,k,0) = (dat(i,j,k,1)*x +
-                          dat(i,j,k,2)*y +
-                          dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+          der(i,j,k,0) = (dat(i,j,k,1)*loc[0] +
+                          dat(i,j,k,2)*loc[1] +
+                          dat(i,j,k,3)*loc[2]) / ( dat(i,j,k,0)*r );
         }
 
       });
@@ -632,24 +621,13 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geom.CellSizeArray();
-      auto problo = geom.ProbLoArray();
+      auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
-
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#else
-        Real y = 0.0_rt;
-#endif
-#if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#else
-        Real z = 0.0_rt;
-#endif
+        GpuArray<Real, 3> loc;
+        position(i, j, k, geomdata, loc);
 
         if (domain_is_plane_parallel) {
 #if AMREX_SPACEDIM == 2
@@ -662,11 +640,11 @@ extern "C"
           // where e_r and e_phi are the cylindrical unit vectors
 
           // we need the distance in the x-y plane from the origin
-          Real r = std::sqrt(x*x + y*y);
-          der(i,j,k,0) = (-dat(i,j,k,1)*y + dat(i,j,k,2)*x) / (dat(i,j,k,0)*r);
+          Real r = std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+          der(i,j,k,0) = (-dat(i,j,k,1)*loc[1] + dat(i,j,k,2)*loc[0]) / (dat(i,j,k,0)*r);
 #endif
         } else {
-          Real r = std::sqrt(x*x + y*y + z*z);
+          Real r = distance(geomdata, loc);
 
           // we really mean just the velocity component that is
           // perpendicular to radial, and in general 3-d (e.g. a
@@ -676,9 +654,9 @@ extern "C"
                         dat(i,j,k,2)*dat(i,j,k,2) +
                         dat(i,j,k,3)*dat(i,j,k,3))/(dat(i,j,k,0)*dat(i,j,k,0));
 
-          Real vr = (dat(i,j,k,1)*x +
-                     dat(i,j,k,2)*y +
-                     dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+          Real vr = (dat(i,j,k,1)*loc[0] +
+                     dat(i,j,k,2)*loc[1] +
+                     dat(i,j,k,3)*loc[2]) / ( dat(i,j,k,0)*r );
 
           der(i,j,k,0) = std::sqrt(amrex::max(vtot2 - vr*vr, 0.0_rt));
         }
@@ -712,8 +690,7 @@ extern "C"
   {
 
     int idir = 0;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
+    auto geomdata = geom.data();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -721,27 +698,8 @@ extern "C"
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                        {
-                         Real loc[3];
-
-                         //loc calculated like sum_utils.cpp
-                         //This might be equivalent and more modular: position(i, j, k, geom, loc);
-                         loc[0] = problo[0] + (0.5_rt + i) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-                         loc[1] = problo[1] + (0.5_rt + j) * dx[1];
-#else
-                         loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-                         loc[2] = problo[2] + (0.5_rt + k) * dx[2];
-#else
-                         loc[2] = 0.0_rt;
-#endif
-
-                         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= problem::center[dir];
-                         }
+                         GpuArray<Real, 3> loc;
+                         position(i, j, k, geomdata, loc);
 
                          // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
@@ -764,8 +722,7 @@ extern "C"
   {
 
     int idir = 1;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
+    auto geomdata = geom.data();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -773,24 +730,8 @@ extern "C"
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                        {
-                         Real loc[3];
-
-                         loc[0] = problo[0] + (0.5_rt + i) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-                         loc[1] = problo[1] + (0.5_rt + j) * dx[1];
-#else
-                         loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-                         loc[2] = problo[2] + (0.5_rt + k) * dx[2];
-#else
-                         loc[2] = 0.0_rt;
-#endif
-                         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= problem::center[dir];
-                         }
+                         GpuArray<Real, 3> loc;
+                         position(i, j, k, geomdata, loc);
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
                            L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
@@ -812,8 +753,7 @@ extern "C"
   {
 
     int idir = 2;
-    auto dx     = geom.CellSizeArray();
-    auto problo = geom.ProbLoArray();
+    auto geomdata = geom.data();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -821,25 +761,8 @@ extern "C"
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                        {
-                         Real loc[3];
-
-                         loc[0] = problo[0] + (0.5_rt + i) * dx[0];
-
-#if AMREX_SPACEDIM >= 2
-                         loc[1] = problo[1] + (0.5_rt + j) * dx[1];
-#else
-                         loc[1] = 0.0_rt;
-#endif
-
-#if AMREX_SPACEDIM == 3
-                         loc[2] = problo[2] + (0.5_rt + k) * dx[2];
-#else
-                         loc[2] = 0.0_rt;
-#endif
-
-                         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= problem::center[dir];
-                         }
+                         GpuArray<Real, 3> loc;
+                         position(i, j, k, geomdata, loc);
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
                            L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);

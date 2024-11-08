@@ -107,9 +107,6 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, const MultiFab& state_in, Re
 
             position(i, j, k, geomdata, loc);
 
-            loc[0] -= problem::center[0];
-            loc[1] -= problem::center[1];
-
             Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]),
                                 std::numeric_limits<Real>::min());
 
@@ -150,21 +147,19 @@ Castro::linear_to_hybrid_momentum(MultiFab& state_in, int ng)
 
             position(i, j, k, geomdata, loc);
 
-            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-                loc[dir] -= problem::center[dir];
-
             GpuArray<Real, 3> linear_mom;
 
-            for (int dir = 0; dir < 3; ++dir)
+            for (int dir = 0; dir < 3; ++dir) {
                 linear_mom[dir] = u(i,j,k,UMX+dir);
+            }
 
             GpuArray<Real, 3> hybrid_mom;
 
             linear_to_hybrid(loc, linear_mom, hybrid_mom);
 
-            for (int dir = 0; dir < 3; ++dir)
+            for (int dir = 0; dir < 3; ++dir) {
                 u(i,j,k,UMR+dir) = hybrid_mom[dir];
-
+            }
         });
     }
 }
@@ -196,21 +191,19 @@ Castro::hybrid_to_linear_momentum(MultiFab& state_in, int ng)
 
             position(i, j, k, geomdata, loc);
 
-            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-                loc[dir] -= problem::center[dir];
-
             GpuArray<Real, 3> hybrid_mom;
 
-            for (int dir = 0; dir < 3; ++dir)
+            for (int dir = 0; dir < 3; ++dir) {
                 hybrid_mom[dir] = u(i,j,k,UMR+dir);
+            }
 
             GpuArray<Real, 3> linear_mom;
 
             hybrid_to_linear(loc, hybrid_mom, linear_mom);
 
-            for (int dir = 0; dir < 3; ++dir)
+            for (int dir = 0; dir < 3; ++dir) {
                 u(i,j,k,UMX+dir) = linear_mom[dir];
-
+            }
         });
     }
 }

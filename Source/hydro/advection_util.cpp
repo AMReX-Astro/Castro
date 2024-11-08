@@ -726,10 +726,6 @@ Castro::do_enforce_minimum_density(const Box& bx,
 
       position(i, j, k, geomdata, loc);
 
-      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        loc[dir] -= problem::center[dir];
-      }
-
       GpuArray<Real, 3> linear_mom;
 
       for (int dir = 0; dir < 3; ++dir) {
