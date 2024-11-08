@@ -3641,7 +3641,7 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             const Real* probhi = geomdata.ProbHi();
             const Real* dx = geomdata.CellSize();
 
-            Real loc[3] = {0.0};
+            GpuArray<Real, 3> loc = {0.0};
 
             loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
