@@ -1259,35 +1259,26 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         Array4<Real> const flux_arr = (flux[idir]).array();
         Array4<Real const> const area_arr = (area[idir]).array(mfi);
 
-        scale_flux(nbx,
-#if AMREX_SPACEDIM == 1
-                   qex_arr,
-#endif
-                   flux_arr, area_arr, dt);
+        scale_flux(nbx, flux_arr, area_arr, dt);
 
 #ifdef RADIATION
         Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
         scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
 #endif
 
-        if (idir == 0) {
 #if AMREX_SPACEDIM <= 2
+        // get the scaled radial pressure -- we need to treat this specially
+
+        if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
             Array4<Real> pradial_fab = pradial.array();
-#endif
 
-            // get the scaled radial pressure -- we need to treat this specially
-#if AMREX_SPACEDIM <= 2
-            if (!mom_flux_has_p(0, 0, coord)) {
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
-
-#endif
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+            });
         }
-
+#endif
         // Store the fluxes from this advance. For simplified SDC integration we
         // only need to do this on the last iteration.
 
