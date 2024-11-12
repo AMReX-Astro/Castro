@@ -2875,12 +2875,9 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            MultiFab dr(crse_lev.grids, crse_lev.dmap, 1, 0);
-            dr.setVal(crse_lev.geom.CellSize(0));
-
             reg->ClearInternalBorders(crse_lev.geom);
 
-            reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
+            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMX, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 
@@ -2912,24 +2909,9 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            MultiFab rdtheta(crse_lev.grids, crse_lev.dmap, 1, 0);
-
-            const auto* problo = Geom().ProbLo();
-            auto dr = crse_lev.geom.CellSize(0);
-            auto dtheta = crse_lev.geom.CellSize(1);
-
-            auto const& ma = rdtheta.arrays();
-
-            amrex::ParallelFor(rdtheta,
-            [=] AMREX_GPU_DEVICE (int b, int i, int j, int k) noexcept
-            {
-                Real r = problo[0] + static_cast<Real>(i + 0.5_rt) * dr;
-                ma[b](i,j,k) = r * dtheta;
-            });
-
             reg->ClearInternalBorders(crse_lev.geom);
 
-            reg->Reflux(crse_state, rdtheta, 1.0, 0, UMY, 1, crse_lev.geom);
+            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMY, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 

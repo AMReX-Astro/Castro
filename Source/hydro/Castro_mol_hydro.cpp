@@ -695,7 +695,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-              pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
+              pradial_fab(i,j,k) = area_arr(i,j,k) * qex_fab(i,j,k,GDPRES) * dt;
             });
           }
 #endif
@@ -709,7 +709,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-              ptheta_fab(i,j,k) = qey_fab(i,j,k,GDPRES) * dt;
+              ptheta_fab(i,j,k) = area_arr(i,j,k) * qey_fab(i,j,k,GDPRES) * dt;
             });
           }
 #endif
