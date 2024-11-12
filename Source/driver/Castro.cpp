@@ -886,6 +886,12 @@ Castro::initMFs()
     }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      P_theta.define(getEdgeBoxArray(1), dmap, 1, 0);
+    }
+#endif
+
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
@@ -2590,6 +2596,12 @@ Castro::FluxRegCrseInit() {
     }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      fine_level.pres_reg.CrseInit(P_theta, 1, 0, 0, 1, pres_crse_scale);
+    }
+#endif
+
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
       for (int i = 0; i < AMREX_SPACEDIM; ++i) {
@@ -2617,6 +2629,12 @@ Castro::FluxRegFineAdd() {
 #if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
       getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    }
+#endif
+
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      getLevel(level).pres_reg.FineAdd(P_theta, 1, 0, 0, 1, pres_fine_scale);
     }
 #endif
 
@@ -2857,12 +2875,9 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            MultiFab dr(crse_lev.grids, crse_lev.dmap, 1, 0);
-            dr.setVal(crse_lev.geom.CellSize(0));
-
             reg->ClearInternalBorders(crse_lev.geom);
 
-            reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
+            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMX, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 
@@ -2881,6 +2896,40 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
                 }
 
                 MultiFab::Add(crse_lev.P_radial, tmp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
+
+            }
+
+            reg->setVal(0.0);
+
+        }
+#endif
+
+#if (AMREX_SPACEDIM == 2)
+        if (Geom().IsSPHERICAL()) {
+
+            reg = &getLevel(lev).pres_reg;
+
+            reg->ClearInternalBorders(crse_lev.geom);
+
+            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMY, 1, crse_lev.geom);
+
+            if (update_sources_after_reflux || !in_post_timestep) {
+
+                MultiFab tmp_fluxes(crse_lev.P_theta.boxArray(),
+                                    crse_lev.P_theta.DistributionMap(),
+                                    crse_lev.P_theta.nComp(), crse_lev.P_theta.nGrow());
+
+                tmp_fluxes.setVal(0.0);
+
+                for (OrientationIter fi; fi.isValid(); ++fi)
+                {
+                    const FabSet& fs = (*reg)[fi()];
+                    if (fi().coordDir() == 1) {
+                        fs.copyTo(tmp_fluxes, 0, 0, 0, tmp_fluxes.nComp());
+                    }
+                }
+
+                MultiFab::Add(crse_lev.P_theta, tmp_fluxes, 0, 0, crse_lev.P_theta.nComp(), 0);
 
             }
 
