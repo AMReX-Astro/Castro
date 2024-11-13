@@ -61,10 +61,10 @@ Castro::source_flag(int src)
 #endif
 
     case geom_src:
-        if (geom.Coord() == 1) {
-          return true;
-        } else {
+        if (geom.Coord() == 0) {
           return false;
+        } else {
+          return true;
         }
 
 #ifdef DIFFUSION
