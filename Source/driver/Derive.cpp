@@ -661,7 +661,7 @@ extern "C"
           der(i,j,k,0) = (-dat(i,j,k,1)*loc[1] + dat(i,j,k,2)*loc[0]) / (dat(i,j,k,0)*r);
 #endif
         } else {
-            Real r = distance(geomdata, loc);
+          Real r = distance(geomdata, loc);
 
           // we really mean just the velocity component that is
           // perpendicular to radial, and in general 3-d (e.g. a

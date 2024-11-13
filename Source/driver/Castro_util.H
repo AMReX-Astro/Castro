@@ -174,7 +174,7 @@ Real distance(GeometryData const& geomdata, GpuArray<Real, 3>& loc)
         return std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
     }
 
-    return loc[0];
+    return std::abs(loc[0]);
 }
 
 
