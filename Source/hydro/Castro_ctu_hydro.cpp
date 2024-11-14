@@ -243,6 +243,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogAreaX_arr = (dLogArea[0]).array(mfi);
+#endif
+#if AMREX_SPACEDIM == 2
       Array4<Real const> const dLogAreaY_arr = (dLogArea[1]).array(mfi);
 #endif
 
