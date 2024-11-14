@@ -81,6 +81,7 @@ Castro::apply_sponge(const Box& bx,
 
   auto dx = geom.CellSizeArray();
   auto problo = geom.ProbLoArray();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -124,7 +125,7 @@ Castro::apply_sponge(const Box& bx,
     Real sponge_factor = 0.0_rt;
 
     if (sponge_lower_radius >= 0.0_rt && sponge_upper_radius > sponge_lower_radius) {
-      Real rad = std::sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+      Real rad = distance(geomdata, r);
 
       if (rad < sponge_lower_radius) {
         sponge_factor = sponge_lower_factor;
