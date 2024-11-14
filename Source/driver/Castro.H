@@ -1381,7 +1381,7 @@ protected:
 ///
     amrex::MultiFab             volume;
     amrex::Array<amrex::MultiFab,3> area;
-    amrex::MultiFab             dLogArea;
+    amrex::Array<amrex::MultiFab,2> dLogArea;
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
 
