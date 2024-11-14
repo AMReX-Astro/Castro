@@ -102,6 +102,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 #endif
 #if AMREX_SPACEDIM < 3
                        Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
                        Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
@@ -175,6 +177,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 #endif
 #if AMREX_SPACEDIM < 3
                            Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
                            Array4<Real const> const& dlogaY,
 #endif
                            const Real dt) {
@@ -246,6 +250,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #endif
 #if AMREX_SPACEDIM < 3
                        Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
                        Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {

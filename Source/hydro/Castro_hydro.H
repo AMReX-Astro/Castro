@@ -240,6 +240,8 @@
 #endif
 #if AMREX_SPACEDIM < 3
                         amrex::Array4<amrex::Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
                         amrex::Array4<amrex::Real const> const& dlogaY,
 #endif
                         const amrex::Real dt);
@@ -283,6 +285,8 @@
 #endif
 #if AMREX_SPACEDIM < 3
                         amrex::Array4<amrex::Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
                         amrex::Array4<amrex::Real const> const& dlogaY,
 #endif
                         const amrex::Real dt);
@@ -326,8 +330,10 @@
                             amrex::Array4<amrex::Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                            amrex::Array4<amrex::Real const> const& dlogaX,
-                            amrex::Array4<amrex::Real const> const& dlogaY,
+                        amrex::Array4<amrex::Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                        amrex::Array4<amrex::Real const> const& dlogaY,
 #endif
                             const amrex::Real dt);
 #endif
