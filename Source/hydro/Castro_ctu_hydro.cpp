@@ -343,8 +343,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM == 3
                        qzm_arr, qzp_arr,
 #endif
-#if (AMREX_SPACEDIM < 3)
+#if AMREX_SPACEDIM < 3
                        dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
                        dLogAreaY_arr,
 #endif
                        dt);
@@ -364,6 +366,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 #if AMREX_SPACEDIM < 3
                            dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
                            dLogAreaY_arr,
 #endif
                            dt);
@@ -380,8 +384,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                        qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                       dLogAreaX_arr,
-                       dLogAreaY_arr,
+                           dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                           dLogAreaY_arr,
 #endif
                        dt);
 #endif
