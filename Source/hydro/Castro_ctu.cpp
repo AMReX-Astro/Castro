@@ -101,7 +101,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -118,7 +119,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaX,
 #endif
                 vbx, dt);
 
@@ -131,7 +132,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaY,
 #endif
                 vbx, dt);
 
@@ -173,7 +174,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                            Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                           Array4<Real const> const& dloga,
+                           Array4<Real const> const& dlogaX,
+                           Array4<Real const> const& dlogaY,
 #endif
                            const Real dt) {
 
@@ -187,7 +189,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaX,
 #endif
                     vbx, dt);
 
@@ -200,7 +202,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaY,
 #endif
                     vbx, dt);
 
@@ -243,7 +245,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -273,7 +276,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaX,
 #endif
                 srcQ, vbx, dt);
 
@@ -285,7 +288,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaY,
 #endif
                 srcQ, vbx, dt);
 
