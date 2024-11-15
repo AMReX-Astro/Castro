@@ -218,8 +218,8 @@
 /// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
 /// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
 /// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
-/// @param dlogaX    the geometric factor d(log area) in x (r) dir
-/// @param dlogaY    the geometric factor d(log area) in y (theta) dir
+/// @param dlogaX   the geometric factor d(log area) in x (r) dir
+/// @param dlogaY   the geometric factor d(log area) in y (theta) dir
 /// @param dt       timestep
 ///
     void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
@@ -263,8 +263,8 @@
 /// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
 /// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
 /// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
-/// @param dlogaX    the geometric factor d(log area) in x (r) dir
-/// @param dlogaY    the geometric factor d(log area) in y (theta) dir
+/// @param dlogaX   the geometric factor d(log area) in x (r) dir
+/// @param dlogaY   the geometric factor d(log area) in y (theta) dir
 /// @param dt       timestep
 ///
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
@@ -309,8 +309,8 @@
 /// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
 /// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
 /// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
-/// @param dlogaX    the geometric factor d(log area) in x (r) dir
-/// @param dlogaY    the geometric factor d(log area) in y (theta) dir
+/// @param dlogaX   the geometric factor d(log area) in x (r) dir
+/// @param dlogaY   the geometric factor d(log area) in y (theta) dir
 /// @param dt       timestep
 ///
     void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
@@ -330,10 +330,10 @@
                             amrex::Array4<amrex::Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                        amrex::Array4<amrex::Real const> const& dlogaX,
+                            amrex::Array4<amrex::Real const> const& dlogaX,
 #endif
 #if AMREX_SPACEDIM == 2
-                        amrex::Array4<amrex::Real const> const& dlogaY,
+                            amrex::Array4<amrex::Real const> const& dlogaY,
 #endif
                             const amrex::Real dt);
 #endif
