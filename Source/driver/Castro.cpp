@@ -2875,7 +2875,7 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            Reg->ClearInternalBorders(crse_lev.geom);
+            reg->ClearInternalBorders(crse_lev.geom);
 
             reg->Reflux(crse_state, crse_lev.volume, 0, 1.0, 0, UMX, 1, crse_lev.geom);
 
