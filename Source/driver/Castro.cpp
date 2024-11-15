@@ -2875,9 +2875,9 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             reg = &getLevel(lev).pres_reg;
 
-            reg->ClearInternalBorders(crse_lev.geom);
+            Reg->ClearInternalBorders(crse_lev.geom);
 
-            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMX, 1, crse_lev.geom);
+            reg->Reflux(crse_state, crse_lev.volume, 0, 1.0, 0, UMX, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 
@@ -2899,19 +2899,10 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             }
 
-            reg->setVal(0.0);
-
-        }
-#endif
-
 #if (AMREX_SPACEDIM == 2)
         if (Geom().IsSPHERICAL()) {
 
-            reg = &getLevel(lev).pres_reg;
-
-            reg->ClearInternalBorders(crse_lev.geom);
-
-            reg->Reflux(crse_state, crse_lev.volume, 1.0, 0, UMY, 1, crse_lev.geom);
+            reg->Reflux(crse_state, crse_lev.volume, 1, 1.0, 0, UMY, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 
@@ -2933,10 +2924,14 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 
             }
 
+        }
+#endif
+
             reg->setVal(0.0);
 
         }
 #endif
+
 
 #ifdef RADIATION
 
