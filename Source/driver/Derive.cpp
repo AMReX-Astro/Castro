@@ -21,7 +21,7 @@ extern "C"
     // need to explicitly synchronize after GPU kernels.
 
     void ca_derpres(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                    const FArrayBox& datfab, const Geometry& /*geom*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -54,7 +54,7 @@ extern "C"
     }
 
     void ca_dereint1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -76,7 +76,7 @@ extern "C"
     }
 
     void ca_dereint2(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -92,7 +92,7 @@ extern "C"
     }
 
     void ca_derlogden(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                      const FArrayBox& datfab, const Geometry& /*geom*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -107,7 +107,7 @@ extern "C"
     }
 
     void ca_deruplusc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                      const FArrayBox& datfab, const Geometry& /*geom*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -142,7 +142,7 @@ extern "C"
     }
 
     void ca_deruminusc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                       const FArrayBox& datfab, const Geometry& /*geom*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -177,7 +177,7 @@ extern "C"
     }
 
     void ca_dersoundspeed(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                          const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                          const FArrayBox& datfab, const Geometry& /*geom*/,
                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -213,7 +213,7 @@ extern "C"
 
 
     void ca_dergamma1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                      const FArrayBox& datfab, const Geometry& /*geom*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -248,7 +248,7 @@ extern "C"
     }
 
     void ca_dermachnumber(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                          const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                          const FArrayBox& datfab, const Geometry& /*geom*/,
                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -286,7 +286,7 @@ extern "C"
     }
 
     void ca_derentropy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                       const FArrayBox& datfab, const Geometry& /*geom*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -321,7 +321,7 @@ extern "C"
 
 #ifdef DIFFUSION
     void ca_dercond(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                    const FArrayBox& datfab, const Geometry& /*geom*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -333,7 +333,7 @@ extern "C"
     }
 
     void ca_derdiffcoeff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                    const FArrayBox& datfab, const Geometry& /*geom*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -345,7 +345,7 @@ extern "C"
     }
 
     void ca_derdiffterm(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                        const FArrayBox& datfab, const Geometry& geomdata,
+                        const FArrayBox& datfab, const Geometry& geom,
                         Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -360,9 +360,9 @@ extern "C"
 
       fill_temp_cond(obx, dat, coeff_arr);
 
-      auto dx = geomdata.CellSizeArray();
-      auto problo = geomdata.ProbLoArray();
-      const int coord_type = geomdata.Coord();
+      auto dx = geom.CellSizeArray();
+      auto problo = geom.ProbLoArray();
+      const int coord_type = geom.Coord();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -432,14 +432,14 @@ extern "C"
 
 #ifdef REACTIONS
     void ca_derenuctimescale(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                             const FArrayBox& datfab, const Geometry& geomdata,
+                             const FArrayBox& datfab, const Geometry& geom,
                              Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geomdata.CellSizeArray();
+      auto dx = geom.CellSizeArray();
 
       Real dd = 0.0_rt;
 #if AMREX_SPACEDIM == 1
@@ -494,7 +494,7 @@ extern "C"
     }
 
     void ca_derenuc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                    const FArrayBox& datfab, const Geometry& /*geom*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
       auto const dat = datfab.array();
@@ -512,7 +512,7 @@ extern "C"
 #endif
 
     void ca_dervel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                   const FArrayBox& datfab, const Geometry& /*geom*/,
                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -528,7 +528,7 @@ extern "C"
 
 
     void ca_dermagvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                      const FArrayBox& datfab, const Geometry& /*geom*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -549,7 +549,7 @@ extern "C"
 
 
     void ca_dermaggrav(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                       const FArrayBox& datfab, const Geometry& /*geom*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -568,7 +568,7 @@ extern "C"
     }
 
     void ca_derradialvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                         const FArrayBox& datfab, const Geometry& geomdata,
+                         const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -577,23 +577,20 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geomdata.CellSizeArray();
-      auto problo = geomdata.ProbLoArray();
+      auto dx = geom.CellSizeArray();
+      auto problo = geom.ProbLoArray();
+      auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
-
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+        GpuArray<Real, 3> loc = {0.0};
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#else
-        Real y = 0.0_rt;
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#else
-        Real z = 0.0_rt;
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
         if (domain_is_plane_parallel) {
@@ -607,15 +604,15 @@ extern "C"
           // where e_r and e_phi are the cylindrical unit vectors
 
           // we need the distance in the x-y plane from the origin
-          Real r = std::sqrt(x*x + y*y);
-          der(i,j,k,0) = (dat(i,j,k,1)*x + dat(i,j,k,2)*y) / (dat(i,j,k,0)*r);
+          Real r = std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+          der(i,j,k,0) = (dat(i,j,k,1)*loc[0] + dat(i,j,k,2)*loc[1]) / (dat(i,j,k,0)*r);
 #endif
         } else {
-          Real r = std::sqrt(x*x + y*y + z*z);
+          Real r = distance(geomdata, loc);
 
-          der(i,j,k,0) = (dat(i,j,k,1)*x +
-                          dat(i,j,k,2)*y +
-                          dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+          der(i,j,k,0) = (dat(i,j,k,1)*loc[0] +
+                          dat(i,j,k,2)*loc[1] +
+                          dat(i,j,k,3)*loc[2]) / ( dat(i,j,k,0)*r );
         }
 
       });
@@ -623,7 +620,7 @@ extern "C"
 
 
     void ca_dercircvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& geomdata,
+                       const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -632,23 +629,21 @@ extern "C"
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geomdata.CellSizeArray();
-      auto problo = geomdata.ProbLoArray();
+      auto dx = geom.CellSizeArray();
+      auto problo = geom.ProbLoArray();
+      auto geomdata = geom.data();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+        GpuArray<Real, 3> loc = {0.0};
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#else
-        Real y = 0.0_rt;
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#else
-        Real z = 0.0_rt;
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
         if (domain_is_plane_parallel) {
@@ -662,11 +657,11 @@ extern "C"
           // where e_r and e_phi are the cylindrical unit vectors
 
           // we need the distance in the x-y plane from the origin
-          Real r = std::sqrt(x*x + y*y);
-          der(i,j,k,0) = (-dat(i,j,k,1)*y + dat(i,j,k,2)*x) / (dat(i,j,k,0)*r);
+          Real r = std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+          der(i,j,k,0) = (-dat(i,j,k,1)*loc[1] + dat(i,j,k,2)*loc[0]) / (dat(i,j,k,0)*r);
 #endif
         } else {
-          Real r = std::sqrt(x*x + y*y + z*z);
+          Real r = distance(geomdata, loc);
 
           // we really mean just the velocity component that is
           // perpendicular to radial, and in general 3-d (e.g. a
@@ -676,9 +671,9 @@ extern "C"
                         dat(i,j,k,2)*dat(i,j,k,2) +
                         dat(i,j,k,3)*dat(i,j,k,3))/(dat(i,j,k,0)*dat(i,j,k,0));
 
-          Real vr = (dat(i,j,k,1)*x +
-                     dat(i,j,k,2)*y +
-                     dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+          Real vr = (dat(i,j,k,1)*loc[0] +
+                     dat(i,j,k,2)*loc[1] +
+                     dat(i,j,k,3)*loc[2]) / ( dat(i,j,k,0)*r );
 
           der(i,j,k,0) = std::sqrt(amrex::max(vtot2 - vr*vr, 0.0_rt));
         }
@@ -688,7 +683,7 @@ extern "C"
 
 
   void ca_dermagmom(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                    const FArrayBox& datfab, const Geometry& /*geom*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -707,13 +702,13 @@ extern "C"
   }
 
   void ca_derangmomx (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     int idir = 0;
-    auto dx     = geomdata.CellSizeArray();
-    auto problo = geomdata.ProbLoArray();
+    auto dx     = geom.CellSizeArray();
+    auto problo = geom.ProbLoArray();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -724,7 +719,7 @@ extern "C"
                          Real loc[3];
 
                          //loc calculated like sum_utils.cpp
-                         //This might be equivalent and more modular: position(i, j, k, geomdata, loc);
+                         //This might be equivalent and more modular: position(i, j, k, geom, loc);
                          loc[0] = problo[0] + (0.5_rt + i) * dx[0];
 
 #if AMREX_SPACEDIM >= 2
@@ -759,13 +754,13 @@ extern "C"
   }
 
   void ca_derangmomy (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     int idir = 1;
-    auto dx     = geomdata.CellSizeArray();
-    auto problo = geomdata.ProbLoArray();
+    auto dx     = geom.CellSizeArray();
+    auto problo = geom.ProbLoArray();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -807,13 +802,13 @@ extern "C"
   }
 
   void ca_derangmomz (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     int idir = 2;
-    auto dx     = geomdata.CellSizeArray();
-    auto problo = geomdata.ProbLoArray();
+    auto dx     = geom.CellSizeArray();
+    auto problo = geom.ProbLoArray();
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -856,7 +851,7 @@ extern "C"
   }
 
   void ca_derkineng (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -887,7 +882,7 @@ extern "C"
   }
 
   void ca_derspec(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  const FArrayBox& datfab, const Geometry& /*geom*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -903,7 +898,7 @@ extern "C"
 
 
   void ca_derye(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                const FArrayBox& datfab, const Geometry& /*geom*/,
                 Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -925,7 +920,7 @@ extern "C"
     }
 
   void ca_derabar(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  const FArrayBox& datfab, const Geometry& /*geom*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -947,19 +942,19 @@ extern "C"
     }
 
   void ca_dermagvort(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+                     const FArrayBox& datfab, const Geometry& geom,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geomdata.CellSizeArray();
+      auto dx = geom.CellSizeArray();
 
-      const int coord_type = geomdata.Coord();
+      const int coord_type = geom.Coord();
 
 #if AMREX_SPACEDIM == 2
-      auto problo = geomdata.ProbLoArray();
+      auto problo = geom.ProbLoArray();
 #endif
 
       amrex::ParallelFor(bx,
@@ -1046,18 +1041,18 @@ extern "C"
     }
 
   void ca_derdivu(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                         const FArrayBox& datfab, const Geometry& geomdata,
+                         const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
-      auto dx = geomdata.CellSizeArray();
+      auto dx = geom.CellSizeArray();
 
-      auto problo = geomdata.ProbLoArray();
+      auto problo = geom.ProbLoArray();
 
-      const int coord_type = geomdata.Coord();
+      const int coord_type = geom.Coord();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -1112,7 +1107,7 @@ extern "C"
   }
 
   void ca_derstate(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                   const FArrayBox& datfab, const Geometry& /*geom*/,
                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1138,7 +1133,7 @@ extern "C"
 
 #ifdef MHD
   void ca_dermagcenx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1154,7 +1149,7 @@ extern "C"
   }
 
   void ca_dermagceny(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1170,7 +1165,7 @@ extern "C"
   }
 
   void ca_dermagcenz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                     const FArrayBox& datfab, const Geometry& /*geom*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1186,14 +1181,14 @@ extern "C"
   }
 
   void ca_derdivb(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& geomdata,
+                  const FArrayBox& datfab, const Geometry& geom,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    auto dx = geomdata.CellSizeArray();
+    auto dx = geom.CellSizeArray();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept

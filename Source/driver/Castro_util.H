@@ -156,6 +156,28 @@ void position(int i, int j, int k,
 
 }
 
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+Real distance(GeometryData const& geomdata, GpuArray<Real, 3>& loc)
+{
+    // Returns the distance from the center provided with loc, the position.
+    // loc is the form of [x, y, z,] in Cartesian, [r, z, phi] in cylindrical
+    // and [r, theta, phi] in spherical
+
+    const auto coord = geomdata.Coord();
+
+    if (coord == CoordSys::cartesian) {
+        return std::sqrt(loc[0]*loc[0] + loc[1]*loc[1] + loc[2]*loc[2]);
+    }
+
+    if (coord == CoordSys::RZ) {
+        return std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+    }
+
+    return std::abs(loc[0]);
+}
+
+
 namespace geometry_util
 {
 
