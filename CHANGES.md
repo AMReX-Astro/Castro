@@ -1,3 +1,24 @@
+# 24.11
+
+  * a new well-balanced method was added to the CTU PPM solver.  This
+    does the characteristic projection only on the perturbed pressure
+    and then adds back in the hydrostatic pressure. It can be enabled
+    via `castro.ppm_well_balanced` (#2945)
+
+  * fixed a bug in the div{U} calculation for artificial viscosity on
+    symmetry boundaries (#2983)
+
+  * more development on 2D spherical geometry (#2973, #2975, #2981)
+
+  * updates to the massive star plotting scripts (#2979)
+
+  * add some new checks to prevent running unsupported combinations
+    of solvers (#2978)
+
+  * documentation updates (#2977)
+
+  * `flame_wave` can now be run in 1D (#2976)
+
 # 24.10
 
   * update initial model for `subchandra` when doing ASE NSE (#2970)
