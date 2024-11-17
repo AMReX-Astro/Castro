@@ -845,9 +845,18 @@ Castro::buildMetrics ()
         area[dir].setVal(0.0);
     }
 
-    dLogArea[0].clear();
 #if (AMREX_SPACEDIM <= 2)
-    geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
+    {
+        dLogArea[dir].clear();
+        geom.GetDLogA(dLogArea[dir],grids,dmap,dir,NUM_GROW);
+    }
+    for (int dir = AMREX_SPACEDIM; dir < 2; dir++)
+    {
+        dLogArea[dir].clear();
+        dLogArea[dir].define(grids, dmap, 1, 0);
+        dLogArea[dir].setVal(0.0);
+    }
 #endif
 
     wall_time_start = 0.0;

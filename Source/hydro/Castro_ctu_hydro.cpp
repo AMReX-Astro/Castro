@@ -242,7 +242,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 
 #if AMREX_SPACEDIM < 3
-      Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
+      Array4<Real const> const dLogAreaX_arr = (dLogArea[0]).array(mfi);
+#endif
+#if AMREX_SPACEDIM == 2
+      Array4<Real const> const dLogAreaY_arr = (dLogArea[1]).array(mfi);
 #endif
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
@@ -342,8 +345,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM == 3
                        qzm_arr, qzp_arr,
 #endif
-#if (AMREX_SPACEDIM < 3)
-                       dLogArea_arr,
+#if AMREX_SPACEDIM < 3
+                       dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                       dLogAreaY_arr,
 #endif
                        dt);
 
@@ -361,7 +367,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                            qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                           dLogArea_arr,
+                           dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                           dLogAreaY_arr,
 #endif
                            dt);
 #else
@@ -377,7 +386,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                        qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                       dLogArea_arr,
+                       dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                       dLogAreaY_arr,
 #endif
                        dt);
 #endif
