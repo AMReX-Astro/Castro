@@ -503,28 +503,14 @@ Castro::normalize_species_fluxes(const Box& bx,
 
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::scale_flux(const Box& bx,
-#if AMREX_SPACEDIM == 1
-                   Array4<Real const> const& qint,
-#endif
                    Array4<Real> const& flux,
                    Array4<Real const> const& area_arr,
                    const Real dt) {
 
-#if AMREX_SPACEDIM == 1
-  const int coord_type = geom.Coord();
-#endif
-
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
-
     flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
-#if AMREX_SPACEDIM == 1
-    // Correct the momentum flux with the grad p part.
-    if (coord_type == 0 && n == UMX) {
-      flux(i,j,k,n) += dt * area_arr(i,j,k) * qint(i,j,k,GDPRES);
-    }
-#endif
   });
 }
 
