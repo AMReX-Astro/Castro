@@ -1384,9 +1384,10 @@ protected:
 ///
     amrex::MultiFab             volume;
     amrex::Array<amrex::MultiFab,3> area;
-    amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
-
+#if AMREX_SPACEDIM <= 2
+    amrex::Array<amrex::MultiFab,2> dLogArea;
+#endif
 
 ///
 /// For initialization of the C++ values of the runtime parameters

@@ -669,10 +669,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Array4<Real> ptheta_fab = ptheta.array();
 #endif
 
-#if AMREX_SPACEDIM == 1
-        Array4<Real> const qex_arr = qe[0].array();
-#endif
-
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
           const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -680,17 +676,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           Array4<Real> const flux_arr = (flux[idir]).array();
           Array4<Real const> const area_arr = (area[idir]).array(mfi);
 
-          scale_flux(nbx,
-#if AMREX_SPACEDIM == 1
-                     qex_arr,
-#endif
-                     flux_arr, area_arr, dt);
+          scale_flux(nbx, flux_arr, area_arr, dt);
 
 #if AMREX_SPACEDIM <= 2
-          if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
-            // get the scaled radial pressure -- we need to treat this specially
+          // get the scaled radial pressure -- we need to treat this specially
 
-            Array4<Real> const qex_fab = qe[idir].array();
+          if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+            Array4<Real> const qex_arr = qe[idir].array();
 
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept

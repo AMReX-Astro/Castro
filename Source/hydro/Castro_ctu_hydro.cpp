@@ -245,7 +245,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 
 #if AMREX_SPACEDIM < 3
-      Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
+      Array4<Real const> const dLogAreaX_arr = (dLogArea[0]).array(mfi);
+#endif
+#if AMREX_SPACEDIM == 2
+      Array4<Real const> const dLogAreaY_arr = (dLogArea[1]).array(mfi);
 #endif
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
@@ -345,8 +348,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM == 3
                        qzm_arr, qzp_arr,
 #endif
-#if (AMREX_SPACEDIM < 3)
-                       dLogArea_arr,
+#if AMREX_SPACEDIM < 3
+                       dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                       dLogAreaY_arr,
 #endif
                        dt);
 
@@ -364,7 +370,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                            qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                           dLogArea_arr,
+                           dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                           dLogAreaY_arr,
 #endif
                            dt);
 #else
@@ -380,7 +389,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                        qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                       dLogArea_arr,
+                       dLogAreaX_arr,
+#endif
+#if AMREX_SPACEDIM == 2
+                       dLogAreaY_arr,
 #endif
                        dt);
 #endif
@@ -1269,11 +1281,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
         Array4<Real> const flux_arr = (flux[idir]).array();
         Array4<Real const> const area_arr = (area[idir]).array(mfi);
 
-        scale_flux(nbx,
-#if AMREX_SPACEDIM == 1
-                   qex_arr,
-#endif
-                   flux_arr, area_arr, dt);
+        scale_flux(nbx, flux_arr, area_arr, dt);
 
 #ifdef RADIATION
         Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();

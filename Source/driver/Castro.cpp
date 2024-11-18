@@ -845,9 +845,18 @@ Castro::buildMetrics ()
         area[dir].setVal(0.0);
     }
 
-    dLogArea[0].clear();
 #if (AMREX_SPACEDIM <= 2)
-    geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
+    {
+        dLogArea[dir].clear();
+        geom.GetDLogA(dLogArea[dir],grids,dmap,dir,NUM_GROW);
+    }
+    for (int dir = AMREX_SPACEDIM; dir < 2; dir++)
+    {
+        dLogArea[dir].clear();
+        dLogArea[dir].define(grids, dmap, 1, 0);
+        dLogArea[dir].setVal(0.0);
+    }
 #endif
 
     wall_time_start = 0.0;
@@ -3685,19 +3694,17 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             const Real* probhi = geomdata.ProbHi();
             const Real* dx = geomdata.CellSize();
 
-            Real loc[3] = {0.0};
+            GpuArray<Real, 3> loc = {0.0};
 
-            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-            Real r = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
-                               (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]) +
-                               (loc[2] - problem::center[2]) * (loc[2] - problem::center[2]));
+            Real r = distance(geomdata, loc);
 
             Real max_dist_lo = 0.0;
             Real max_dist_hi = 0.0;
@@ -4401,9 +4408,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&problem::center[0], AMREX_SPACEDIM, owner);
 
-    // Make sure if R-Z that center stays exactly on axis
+    // Make sure if R-Z and SPHERICAL that center stays exactly on axis
     if ( Geom().IsRZ() ) {
       problem::center[0] = 0;
+    } else if ( Geom().IsSPHERICAL() ) {
+        problem::center[0] = 0;
+        problem::center[1] = 0;
     }
 
 }
