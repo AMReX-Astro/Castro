@@ -657,16 +657,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         if (!Geom().IsCartesian()) {
           pradial.resize(xbx, 1);
         }
-
-        Array4<Real> pradial_fab = pradial.array();
 #endif
 
 #if AMREX_SPACEDIM == 2
         if (Geom().IsSPHERICAL()) {
           ptheta.resize(ybx, 1);
         }
-
-        Array4<Real> ptheta_fab = ptheta.array();
 #endif
 
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
@@ -682,26 +678,28 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // get the scaled radial pressure -- we need to treat this specially
 
           if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+            Array4<Real> pradial_fab = pradial.array();
             Array4<Real> const qex_arr = qe[idir].array();
 
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-              pradial_fab(i,j,k) = area_arr(i,j,k) * qex_fab(i,j,k,GDPRES) * dt;
+              pradial_fab(i,j,k) = area_arr(i,j,k) * qex_arr(i,j,k,GDPRES) * dt;
             });
           }
 #endif
 
 #if AMREX_SPACEDIM == 2
-          if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
-            // get the scaled pressure in the theta direction
+          // get the scaled pressure in the theta direction
 
-            Array4<Real> const qey_fab = qe[idir].array();
+          if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+            Array4<Real> ptheta_fab = ptheta.array();
+            Array4<Real> const qey_arr = qe[idir].array();
 
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-              ptheta_fab(i,j,k) = area_arr(i,j,k) * qey_fab(i,j,k,GDPRES) * dt;
+              ptheta_fab(i,j,k) = area_arr(i,j,k) * qey_arr(i,j,k,GDPRES) * dt;
             });
           }
 #endif
@@ -734,6 +732,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
           if (!Geom().IsCartesian()) {
 
+            Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);
             const Real scale = stage_weight;
 
@@ -748,6 +747,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 2
           if (Geom().IsSPHERICAL()) {
 
+            Array4<Real> ptheta_fab = ptheta.array();
             Array4<Real> P_theta_fab = P_theta.array(mfi);
             const Real scale = stage_weight;
 
