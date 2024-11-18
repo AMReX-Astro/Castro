@@ -103,11 +103,24 @@ add_geometric_rho_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
-    s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QRHO) * q_arr(i-2,j,k,ncomp);
-    s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QRHO) * q_arr(i-1,j,k,ncomp);
-    s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,ncomp);
-    s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QRHO) * q_arr(i+1,j,k,ncomp);
-    s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QRHO) * q_arr(i+2,j,k,ncomp);
+    if (ncomp == QU) {
+
+        s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QRHO) * q_arr(i-2,j,k,ncomp);
+        s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QRHO) * q_arr(i-1,j,k,ncomp);
+        s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QRHO) * q_arr(i+1,j,k,ncomp);
+        s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QRHO) * q_arr(i+2,j,k,ncomp);
+
+    } else if (ncomp == QV) {
+
+        s[im2] += -dloga(i,j-2,k) * q_arr(i,j-2,k,QRHO) * q_arr(i,j-2,k,ncomp);
+        s[im1] += -dloga(i,j-1,k) * q_arr(i,j-1,k,QRHO) * q_arr(i-1-1,j,k,ncomp);
+        s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i,j+1,k) * q_arr(i,j+1,k,QRHO) * q_arr(i,j+1,k,ncomp);
+        s[ip2] += -dloga(i,j+2,k) * q_arr(i,j+2,k,QRHO) * q_arr(i,j+2,k,ncomp);
+
+    }
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -131,11 +144,24 @@ add_geometric_rhoe_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
-    s[im2] += -dloga(i-2,j,k) * (q_arr(i-2,j,k,QREINT) + q_arr(i-2,j,k,QPRES)) * q_arr(i-2,j,k,ncomp);
-    s[im1] += -dloga(i-1,j,k) * (q_arr(i-1,j,k,QREINT) + q_arr(i-1,j,k,QPRES)) * q_arr(i-1,j,k,ncomp);
-    s[i0] += -dloga(i,j,k) * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) * q_arr(i,j,k,ncomp);
-    s[ip1] += -dloga(i+1,j,k) * (q_arr(i+1,j,k,QREINT) + q_arr(i+1,j,k,QPRES)) * q_arr(i+1,j,k,ncomp);
-    s[ip2] += -dloga(i+2,j,k) * (q_arr(i+2,j,k,QREINT) + q_arr(i+2,j,k,QPRES)) * q_arr(i+2,j,k,ncomp);
+    if (ncomp == QU) {
+
+        s[im2] += -dloga(i-2,j,k) * (q_arr(i-2,j,k,QREINT) + q_arr(i-2,j,k,QPRES)) * q_arr(i-2,j,k,ncomp);
+        s[im1] += -dloga(i-1,j,k) * (q_arr(i-1,j,k,QREINT) + q_arr(i-1,j,k,QPRES)) * q_arr(i-1,j,k,ncomp);
+        s[i0] += -dloga(i,j,k) * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i+1,j,k) * (q_arr(i+1,j,k,QREINT) + q_arr(i+1,j,k,QPRES)) * q_arr(i+1,j,k,ncomp);
+        s[ip2] += -dloga(i+2,j,k) * (q_arr(i+2,j,k,QREINT) + q_arr(i+2,j,k,QPRES)) * q_arr(i+2,j,k,ncomp);
+
+    } else if (ncomp == QV) {
+
+        s[im2] += -dloga(i,j-2,k) * (q_arr(i,j-2,k,QREINT) + q_arr(i,j-2,k,QPRES)) * q_arr(i,j-2,k,ncomp);
+        s[im1] += -dloga(i,j-1,k) * (q_arr(i,j-1,k,QREINT) + q_arr(i,j-1,k,QPRES)) * q_arr(i,j-1,k,ncomp);
+        s[i0] += -dloga(i,j,k) * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i,j+1,k) * (q_arr(i,j+1,k,QREINT) + q_arr(i,j+1,k,QPRES)) * q_arr(i,j+1,k,ncomp);
+        s[ip2] += -dloga(i,j+2,k) * (q_arr(i,j+2,k,QREINT) + q_arr(i,j+2,k,QPRES)) * q_arr(i,j+2,k,ncomp);
+
+    }
+
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -160,11 +186,24 @@ add_geometric_p_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
-    s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QPRES) * qaux_arr(i-2,j,k,QGAMC) * q_arr(i-2,j,k,ncomp);
-    s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QPRES) * qaux_arr(i-1,j,k,QGAMC) * q_arr(i-1,j,k,ncomp);
-    s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
-    s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QPRES) * qaux_arr(i+1,j,k,QGAMC) * q_arr(i+1,j,k,ncomp);
-    s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QPRES) * qaux_arr(i+2,j,k,QGAMC) * q_arr(i+2,j,k,ncomp);
+
+    if (ncomp == QU) {
+
+        s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QPRES) * qaux_arr(i-2,j,k,QGAMC) * q_arr(i-2,j,k,ncomp);
+        s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QPRES) * qaux_arr(i-1,j,k,QGAMC) * q_arr(i-1,j,k,ncomp);
+        s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QPRES) * qaux_arr(i+1,j,k,QGAMC) * q_arr(i+1,j,k,ncomp);
+        s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QPRES) * qaux_arr(i+2,j,k,QGAMC) * q_arr(i+2,j,k,ncomp);
+
+    } else if (ncomp == QV) {
+
+        s[im2] += -dloga(i,j-2,k) * q_arr(i,j-2,k,QPRES) * qaux_arr(i,j-2,k,QGAMC) * q_arr(i,j-2,k,ncomp);
+        s[im1] += -dloga(i,j-1,k) * q_arr(i,j-1,k,QPRES) * qaux_arr(i,j-1,k,QGAMC) * q_arr(i,j-1,k,ncomp);
+        s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
+        s[ip1] += -dloga(i,j+1,k) * q_arr(i,j+1,k,QPRES) * qaux_arr(i,j+1,k,QGAMC) * q_arr(i,j+1,k,ncomp);
+        s[ip2] += -dloga(i,j+2,k) * q_arr(i,j+2,k,QPRES) * qaux_arr(i,j+2,k,QGAMC) * q_arr(i,j+2,k,ncomp);
+    }
+
 }
 
 
