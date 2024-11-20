@@ -323,36 +323,26 @@ Castro::trace_plm(const Box& bx, const int idir,
       Real sourcp = sourcr*csq;
       Real source = sourcp*enth;
 
-      if (idir == 0) {
-        if (i <= vhi[0]) {
-          qm(i+1,j,k,QRHO) += sourcr;
-          qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-          qm(i+1,j,k,QPRES) += sourcp;
-          qm(i+1,j,k,QREINT) += source;
-        }
-
-        if (i >= vlo[0]) {
-          qp(i,j,k,QRHO) += sourcr;
-          qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-          qp(i,j,k,QPRES) += sourcp;
-          qp(i,j,k,QREINT) += source;
-        }
+      if (idir == 0 && i <= vhi[0]) {
+        qm(i+1,j,k,QRHO) += sourcr;
+        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
+        qm(i+1,j,k,QPRES) += sourcp;
+        qm(i+1,j,k,QREINT) += source;
       }
 
-      if (idir == 1) {
-        if (j <= vhi[1]) {
-          qm(i,j+1,k,QRHO) += sourcr;
-          qm(i,j+1,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-          qm(i,j+1,k,QPRES) += sourcp;
-          qm(i,j+1,k,QREINT) += source;
-        }
+      if (idir == 1 && j <= vhi[1]) {
+        qm(i,j+1,k,QRHO) += sourcr;
+        qm(i,j+1,k,QRHO) = amrex::max(qm(i,j+1,k,QRHO), lsmall_dens);
+        qm(i,j+1,k,QPRES) += sourcp;
+        qm(i,j+1,k,QREINT) += source;
+      }
 
-        if (j >= vlo[1]) {
-          qp(i,j,k,QRHO) += sourcr;
-          qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-          qp(i,j,k,QPRES) += sourcp;
-          qp(i,j,k,QREINT) += source;
-        }
+      if ((idir == 0 && i >= vlo[0]) ||
+          (idir == 1 && j >= vlo[1])) {
+        qp(i,j,k,QRHO) += sourcr;
+        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
+        qp(i,j,k,QPRES) += sourcp;
+        qp(i,j,k,QREINT) += source;
       }
 
     }
