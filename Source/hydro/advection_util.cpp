@@ -358,12 +358,19 @@ Castro::apply_av(const Box& bx,
                  Array4<Real> const& flux) {
 
   const auto dx = geom.CellSizeArray();
+  const auto coord = geom.Coord();
+  const auto problo = geom.ProbLoArray();
 
   Real diff_coeff = difmag;
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
+      Real dL = dx[idir];
+      if (coord == 2 && idir == 1) {
+          Real r = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+          dL *= r;
+      }
 
       Real div1;
       if (idir == 0) {
@@ -405,7 +412,7 @@ Castro::apply_av(const Box& bx,
               div_var = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
           }
 
-          flux(i,j,k,n) += dx[idir] * div_var;
+          flux(i,j,k,n) += dL * div_var;
       }
   });
 }
