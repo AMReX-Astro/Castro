@@ -66,7 +66,7 @@ def slice(fname:str, field:str,
     if field in ["x_velocity", "y_velocity", "z_velocity"]:
         sp.set_cmap(field, "coolwarm")
     elif field == "Temp":
-        sp.set_zlim(field. 5.e7, 2.5e9)
+        sp.set_zlim(field, 5.e7, 2.5e9)
         sp.set_cmap(field, "magma_r")
     elif field == "enuc":
         sp.set_zlim(field, 1.e18, 1.e20)
