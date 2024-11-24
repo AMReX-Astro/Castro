@@ -69,6 +69,7 @@ Castro::shock(const Box& bx,
   // This is basically the method in Gronow et al. 2020
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
   const int coord_type = geom.Coord();
 
   Real dxinv = 1.0_rt / dx[0];
@@ -100,9 +101,9 @@ Castro::shock(const Box& bx,
    } else if (coord_type == 1) {
 
      // r-z
-     Real rc = (i + 0.5_rt) * dx[0];
-     Real rm = (i - 1 + 0.5_rt) * dx[0];
-     Real rp = (i + 1 + 0.5_rt) * dx[0];
+     Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+     Real rm = problo[0] + (static_cast<Real>(i) - 0.5_rt) * dx[0];
+     Real rp = problo[0] + (static_cast<Real>(i) + 1.5_rt) * dx[0];
 
 #if (AMREX_SPACEDIM == 1)
      div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]);
@@ -116,20 +117,20 @@ Castro::shock(const Box& bx,
     } else if (coord_type == 2) {
 
       // 1-d spherical
-      Real rc = (i + 0.5_rt) * dx[0];
-      Real rm = (i - 1 + 0.5_rt) * dx[0];
-      Real rp = (i + 1 + 0.5_rt) * dx[0];
+      Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+      Real rm = problo[0] + (static_cast<Real>(i) - 0.5_rt) * dx[0];
+      Real rp = problo[0] + (static_cast<Real>(i) + 1.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
 #if AMREX_SPACEDIM == 2
 
-      Real thetac = (j + 0.5_rt) * dx[1];
-      Real thetam = (j - 1 + 0.5_rt) * dx[1];
-      Real thetap = (j + 1 + 0.5_rt) * dx[1];
+      Real thetac = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+      Real thetam = problo[1] + (static_cast<Real>(j) - 0.5_rt) * dx[1];
+      Real thetap = problo[1] + (static_cast<Real>(j) + 1.5_rt) * dx[1];
 
       div_u += 0.5_rt * (std::sin(thetap) * q_arr(i,j+1,k,QV) -
                          std::sin(thetam) * q_arr(i,j-1,k,QV)) /
-          (rc * sin(thetac) * dx[1]);
+          (rc * std::sin(thetac) * dx[1]);
 #endif
 
 #ifndef AMREX_USE_GPU
