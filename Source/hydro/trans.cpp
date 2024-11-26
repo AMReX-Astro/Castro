@@ -451,7 +451,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 }
 #ifdef NAUX_NET > 0
                 for (int n = 0; n < NumAux; n++) {
-                    eos_state.aux[n] = qo_arr(QFX+n);
+                    eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
                 }
 #endif
                 eos(eos_input_re, eos_state);
