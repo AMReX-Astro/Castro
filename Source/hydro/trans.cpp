@@ -437,11 +437,12 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            // Pretend QREINT has been fixed
+            // We can get pressure update via eos or using p-evolution equation
 
             if (transverse_use_eos) {
 
+                // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
@@ -459,6 +460,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
 
             } else {
+
                 // Add the transverse term to the p evolution eq here.
 #if AMREX_SPACEDIM == 2
                 // the divergences here, dup and du, already have area factors
