@@ -441,6 +441,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             // If we are wrong, we will fix it later.
 
             if (transverse_use_eos) {
+
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
@@ -449,6 +450,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 }
                 eos(eos_input_re, eos_state);
                 Real pnewn = eos_state.p;
+                qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
+
             } else {
                 // Add the transverse term to the p evolution eq here.
 #if AMREX_SPACEDIM == 2
@@ -457,9 +460,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 #else
                 Real pnewn = q_arr(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
 #endif
+                qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
             }
-
-            qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
