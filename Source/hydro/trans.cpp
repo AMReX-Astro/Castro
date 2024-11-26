@@ -448,7 +448,13 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
                 }
+#ifdef NAUX_NET > 0
+                for (int n = 0; n < NumAux; n++) {
+                    eos_state.aux[n] = qo_arr(QFX+n);
+                }
+#endif
                 eos(eos_input_re, eos_state);
+
                 Real pnewn = eos_state.p;
                 qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
 
