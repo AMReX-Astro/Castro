@@ -1,3 +1,29 @@
+# 24.12
+
+  * update clang-tidy CI (#2992, #3002)
+
+  * fix `problo` != 0 in non-Cartesian coords (#3001)
+
+  * fix `apply_av` in spherical (#3000)
+
+  * update `xrb_spherical` analysis (#2999)
+
+  * add spherical support to plm (#2996, #2997)
+
+  * fix coverity issue (#2998)
+
+  * fix geometric source term in ppm tracing for spherical (#2995)
+
+  * fix dloga for non-radial direction in tracing (#2994)
+
+  * fix `scale_flux` in 1d for Cartesian (#2991)
+
+  * add the `xrb_spherical` problem setup (#2972)
+
+  * add a new distance function that works for all geometries (#2990)
+
+  * fix confusing geom name in derive (#2989)
+
 # 24.11
 
   * a new well-balanced method was added to the CTU PPM solver.  This
