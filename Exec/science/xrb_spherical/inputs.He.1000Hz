@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 2                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 1.1e6           0
-geometry.prob_hi     = 1.13072e6       0.5235987755982988
-amr.n_cell           = 96            144  #192             1152
+geometry.prob_hi     = 1.13072e6       3.1415926
+amr.n_cell           = 768            2304  #192             1152
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -27,10 +27,10 @@ castro.ambient_outflow_vel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
-castro.do_react = 0
-castro.do_rotation = 0
+castro.do_react = 1
+castro.do_rotation = 1
 castro.do_grav = 1
-castro.do_sponge = 0
+castro.do_sponge = 1
 
 castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
@@ -39,11 +39,7 @@ castro.ppm_type = 1
 castro.grav_source_type = 2
 castro.use_pslope = 1
 castro.ppm_well_balanced = 1
-castro.pslope_cutoff_density = 1.e1
-
-castro.difmag = 0.0
-castro.use_flattening = 0
-castro.use_geom_source = 0
+castro.pslope_cutoff_density = 1.e4
 
 gravity.gravity_type = ConstantGrav
 
@@ -52,7 +48,7 @@ gravity.const_grav   = -1.5e14
 
 # 1000Hz Spinning Frequency
 # Might want to use a more realistic spinning frequency like 500Hz
-castro.rotational_period = 0.0
+castro.rotational_period = 0.001
 
 # Centrifugal is not important since NS would simply deform to accommodate for it
 castro.rotation_include_centrifugal = 0
@@ -95,7 +91,7 @@ amr.max_level       = 0 #2       # maximum level number allowed
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 16       # block factor in grid generation
-amr.max_grid_size   = 256
+amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -104,8 +100,7 @@ amr.check_int       = 250        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = flame_wave_1000Hz_plt        # root name of plotfile
-#amr.plot_per         = 5.e-3      # number of seconds between plotfiles
-amr.plot_int = 1
+amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_1000Hz_smallplt        # root name of plotfile
@@ -115,7 +110,7 @@ amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
 
 # problem initialization
 
-problem.dtemp = 0
+problem.dtemp = 1.2e9
 problem.theta_half_max = 1.745e-2
 problem.theta_half_width = 5.279e-3
 

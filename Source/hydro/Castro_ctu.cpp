@@ -29,10 +29,6 @@ Castro::consup_hydro(const Box& bx,
   {
     Real volinv = 1.0 / geometry_util::volume(i, j, k, geomdata);
 
-    if (n == UMY && i == 4 && j == 0) {
-        std::cout << "original velocities = " << U_new(i,j,k,UMX) << " " << U_new(i,j,k,UMY) << std::endl;
-    }
-
     U_new(i,j,k,n) = U_new(i,j,k,n) + dt *
         ( flux0(i,  j,k,n) * geometry_util::area(i,   j, k, 0, geomdata)
         - flux0(i+1,j,k,n) * geometry_util::area(i+1, j, k, 0, geomdata)
@@ -80,18 +76,9 @@ Castro::consup_hydro(const Box& bx,
         // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
 
         Real r = geomdata.ProbLo(0) + (static_cast<Real>(i) + 0.5_rt) * geomdata.CellSize(0);
-        //U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize(1));
+        U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize(1));
 #endif
     }
-
-    if (n == UMY && i == 4 && j == 0) {
-        std::cout << "new velocities = " << U_new(i,j,k,UMX) << " " << U_new(i,j,k,UMY) << std::endl;
-        std::cout << "x fluxes: " << flux0(i, j, k, UMY) << " " << flux1(i+1, j, k, UMY) << std::endl;
-        std::cout << "y fluxes: " << flux1(i, j, k, UMY) << " " << flux1(i, j+1, k, UMY) << std::endl;
-        std::cout << "y pressures: " << qy(i,j,k,GDPRES) << " " << qy(i,j+1,k,GDPRES) << std::endl;
-        //amrex::Error("stop");
-    }
-
   });
 }
 

@@ -83,7 +83,6 @@ Castro::trace_ppm(const Box& bx,
   for (int n = 0; n < NQSRC; n++) {
     do_source_trace[n] = 0;
 
-#if 0
     // geometric source terms in r-direction for nonCartesian coordinate
     // or theta-direction in spherical coordinate need tracing
 
@@ -109,7 +108,6 @@ Castro::trace_ppm(const Box& bx,
           break;
       }
     }
-#endif
   }
 #endif
 
