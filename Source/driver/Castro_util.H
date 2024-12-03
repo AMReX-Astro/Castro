@@ -217,7 +217,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = M_PI * dx[0] * (rr + rl);
+        vol = std::abs(M_PI * dx[0] * (rr + rl));
 
    } else {
 
@@ -226,7 +226,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr);
+        vol = std::abs((4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr));
 
     }
 
@@ -247,7 +247,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
 
-        vol = M_PI * (r_l + r_r) * dx[0] * dx[1];
+        vol = std::abs(M_PI * (r_l + r_r) * dx[0] * dx[1]);
 
     } else {
 
@@ -260,8 +260,8 @@ Real volume(const int& i, const int& j, const int& k,
         Real theta_l = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
         Real theta_r = geomdata.ProbLo()[1] + static_cast<Real>(j+1) * dx[1];
 
-        vol = twoThirdsPi * (std::cos(theta_l) - std::cos(theta_r)) * dx[0] *
-            (r_r * r_r + r_r * r_l + r_l * r_l);
+        vol = std::abs(twoThirdsPi * (std::cos(theta_l) - std::cos(theta_r)) * dx[0] *
+                       (r_r * r_r + r_r * r_l + r_l * r_l));
 
     }
 
@@ -306,7 +306,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = 2.0_rt * M_PI * r;
+        a = std::abs(2.0_rt * M_PI * r);
 
     } else {
 
@@ -339,11 +339,11 @@ Real area(const int& i, const int& j, const int& k,
 
         if (idir == 0) {
             Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
-            a = 2.0_rt * M_PI * r * dx[1];
+            a = std::abs(2.0_rt * M_PI * r * dx[1]);
         }
         else {
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-            a = 2.0_rt * M_PI * r * dx[0];
+            a = std::abs(2.0_rt * M_PI * r * dx[0]);
         }
 
     } else {
@@ -355,13 +355,13 @@ Real area(const int& i, const int& j, const int& k,
             Real theta_l = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
             Real theta_r = geomdata.ProbLo()[1] + static_cast<Real>(j+1) * dx[1];
 
-            a = 2.0_rt * M_PI * r * r * (std::cos(theta_l) - std::cos(theta_r));
+            a = std::abs(2.0_rt * M_PI * r * r * (std::cos(theta_l) - std::cos(theta_r)));
         }
         else {
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             Real theta = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
 
-            a = 2.0_rt * M_PI * std::sin(theta) * r * dx[0];
+            a = std::abs(2.0_rt * M_PI * std::sin(theta) * r * dx[0]);
         }
 
     }
