@@ -314,7 +314,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = 4.0_rt * M_PI * r * r;
+        a = std::abs(4.0_rt * M_PI * r * r);
 
     }
 
