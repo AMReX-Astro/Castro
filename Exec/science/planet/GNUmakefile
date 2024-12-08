@@ -33,7 +33,7 @@ NETWORK_DIR := general_null
 NETWORK_INPUTS := ./taeho.net
 
 # power-law opacity
-Opacity_dir := rad_power_law
+OPACITY_DIR := rad_power_law
 
 PROBLEM_DIR ?= ./
 

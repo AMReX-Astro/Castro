@@ -126,7 +126,7 @@ frequency, and :math:`m`, :math:`n` and :math:`p` are constants. For the gray so
 
 ::
 
-    Opacity_dir := rad_power_law
+    OPACITY_DIR := rad_power_law
 
 in your GNUmakefile. See § \ `3.3.1 <#sec:opacpars>`__ for instructions on how
 to configure the parameters used for this opacity setup. If you would prefer a different
