@@ -490,7 +490,12 @@ rot_source_type              int           4                  ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     bool           1                  ROTATION
 
-# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
+# the coordinate axis for the rotation vector
+# For Cartesian: (:math:`x=1`, :math:`y=2`, :math:`z=3`)
+# For non-Cartesian coordinates, this parameter doesn't do anything because:
+# For RZ (Cylindrical 2D), it is automatically set to z-axis (rot_axis = 2)
+# For Spherical2D, it is also assumed to be in the z-axis
+# i.e. cos(theta) r_hat - sin(theta) theta_hat in Spherical coordinate.
 rot_axis                     int           3                  ROTATION
 
 # include a central point mass
