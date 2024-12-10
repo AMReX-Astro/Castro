@@ -35,6 +35,7 @@ sudo apt-get install -y \
     cuda-minimal-build-$VERSION_DASHED      \
     cuda-nvml-dev-$VERSION_DASHED           \
     cuda-nvtx-$VERSION_DASHED               \
+    libcublas-dev-$VERSION_DASHED           \
     libcufft-dev-$VERSION_DASHED            \
     libcurand-dev-$VERSION_DASHED           \
     libcusparse-dev-$VERSION_DASHED
