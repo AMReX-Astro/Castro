@@ -17,7 +17,7 @@ EOS_DIR     := rad_power_law
 NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
-Opacity_dir := rad_power_law
+OPACITY_DIR := rad_power_law
 
 # number of radiation groups -  this needs to correspond to radiation.nGroups in
 # the inputs file

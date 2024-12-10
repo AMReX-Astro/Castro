@@ -18,7 +18,7 @@ CASTRO_HOME ?= ../../..
 EOS_DIR     = breakout
 NETWORK_DIR := general_null
 NETWORK_INPUTS = breakout.net
-Opacity_dir = breakout
+OPACITY_DIR = breakout
 
 PROBLEM_DIR ?= ./
 
