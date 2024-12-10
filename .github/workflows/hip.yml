@@ -24,7 +24,7 @@ jobs:
           cd ../..
 
       - name: Dependencies
-        run: .github/workflows/dependencies_hip.sh
+        run: .github/workflows/dependencies/dependencies_hip.sh
 
       - name: compile flame_wave
         run: |

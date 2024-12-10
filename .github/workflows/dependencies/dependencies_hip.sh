@@ -40,6 +40,7 @@ echo 'export PATH=/opt/rocm/llvm/bin:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/r
 
 # we should not need to export HIP_PATH=/opt/rocm/hip with those installs
 
+sudo apt-get clean
 sudo apt-get update
 
 # Ref.: https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html#installing-development-packages-for-cross-compilation
@@ -56,7 +57,9 @@ sudo apt-get install -y --no-install-recommends \
     roctracer-dev   \
     rocprofiler-dev \
     rocrand-dev     \
-    rocprim-dev
+    rocfft-dev      \
+    rocprim-dev     \
+    rocsparse-dev
 
 # hiprand-dev is a new package that does not exist in old versions
 sudo apt-get install -y --no-install-recommends hiprand-dev || true
