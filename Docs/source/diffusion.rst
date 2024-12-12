@@ -20,7 +20,7 @@ where :math:`\kth` is the thermal conductivity, with units
 
      USE_DIFFUSION=TRUE
 
-Thermal Diffusion related source codes are contained in the ``diffusion`` direction.
+Thermal Diffusion related source codes are contained in the ``diffusion`` directory.
 Thermal Diffusion is treated explicitly, by constructing the contribution to the
 evolution as a source term. This is time-centered to achieve second-order accuracy
 in time.
@@ -34,7 +34,7 @@ The main function that computes the diffusion term is ``getTempDiffusionTerm()``
 Within ``getTempDiffusionTerm()``, it first calculates the cell centered
 thermal conductivity, :math:`\kth` contained in the variable ``coeff_cc``
 using the function ``fill_temp_cond()`` located in ``diffusion_util.cpp``.
-``fill_temp_cond()`` fills an ``eos_state()`` using the
+``fill_temp_cond()`` fills an ``eos_state`` using the
 input conserved variables, which is used to calculate :math:`\kth` via
 ``conductivity(eos_state)``. ``conductivity()`` routine is supplied via
 the ``Microphysics`` package. See :ref:`sec:conductivities` to see the
@@ -61,9 +61,9 @@ a runtime parameter controlled by the user.
 After obtaining cell-centered :math:`\kth`, we do an average along
 i, j, and k depending on the direction to obtain face-centered MultiFabs.
 This is stored in ``coeffs``, a vector of MultiFabs, and the number of
-MultiFabs depends to ``AMREX_SPACEDIM``, since a :math:`\nabla` operator
+MultiFabs corresponds to geometry dimension, since a :math:`\nabla` operator
 will be applied to it later.
-It has 1 ghost cells due to the nature of MLMG solvers.
+These Multifabs have 1 ghost cells due to the nature of MLMG solvers.
 
 .. _sec:thermal_diffusion:
 
@@ -72,7 +72,7 @@ Computing Thermal Diffusion
 We are now ready to compute :math:`\nabla \cdot \kth \nabla T`
 after obtaining :math:`\kth`. This is done in the ``applyop_mlmg()`` function
 in ``Diffusion.cpp``. It defines ``mlabec`` an instance of class
-``MLABecLaplacian`` which is in the form of
+``MLABecLaplacian`` which defines the Laplacian of the form:
 
 .. math::
    (A\alpha - B\nabla \cdot \beta \nabla) \phi = f
