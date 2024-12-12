@@ -95,7 +95,7 @@ https://amrex-codes.github.io/amrex/docs_html/LinearSolvers.html
 Timestep Limiter
 ================
 
-Castro integrates diffusion explicitly in time;this means that
+Castro integrates diffusion explicitly in time; this means that
 there is a diffusion timestep limiter.
 
 To see the similarity to the thermal diffusion equation, consider the
