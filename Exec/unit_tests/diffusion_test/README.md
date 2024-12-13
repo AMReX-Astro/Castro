@@ -40,17 +40,17 @@ analyic solution) at the end of the simulation.  This can be used
 for convergence testing.
 
 
-## 2-d cylindrical with AMR
+## 2-d axisymmetric with AMR
 
 This uses the 2nd order accurate predictor-corrector formulation of
 diffusion that is used with the CTU hydrodynamics solver.  A test of
-the diffusion in 2-d cylindrical coordinates, with 2 levels of
-refinement can be run as:
+the diffusion in 2-d cylindrical axisymmetric coordinates,
+with 2 levels of refinement can be run as:
 
 ```
-./Castro2d.gnu.ex inputs.2d.cyl amr.n_cell=64  128
-./Castro2d.gnu.ex inputs.2d.cyl amr.n_cell=128 256
-./Castro2d.gnu.ex inputs.2d.cyl amr.n_cell=256 512
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=64  128
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=128 256
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=256 512
 ```
 
 At the end, each run will report the norm of the error against the
