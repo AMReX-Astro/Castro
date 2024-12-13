@@ -17,7 +17,7 @@ Real analytic(const Real* r, const Real time, const int coord_type) {
 
     Real dist2 = 0.0;
     if (coord_type == 2) {
-        dist2 = std::abs(r[0]);
+        dist2 = r[0]*r[0];
     } else {
         for (int d = 0; d < AMREX_SPACEDIM; d++) {
             dist2 += r[d] * r[d];
