@@ -908,12 +908,33 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
                 qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            // Pretend QREINT has been fixed
+            // We can get pressure update via eos or using p-evolution equation
 
-            // add the transverse term to the p evolution eq here
-            Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
-            qo_arr(i,j,k,QPRES) = pnewn;
+            if (transverse_use_eos) {
+
+                // With the EOS route:
+                eos_rep_t eos_state;
+                eos_state.rho = rrnewn;
+                eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
+                for (int n = 0; n < NumSpec; n++) {
+                    eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; n++) {
+                    eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
+                }
+#endif
+                eos(eos_input_re, eos_state);
+                qo_arr(i,j,k,QPRES) = eos_state.p;
+
+            } else {
+
+                // add the transverse term to the p evolution eq here
+                Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
+                qo_arr(i,j,k,QPRES) = pnewn;
+            }
+
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
