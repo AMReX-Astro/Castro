@@ -1,9 +1,12 @@
-This is an exact Riemann solver for a general equation of state.  It
-follows the outline for Colella & Glaz 1985, section 1.  This is too
-slow to use in an actual hydro run, but instead is intended to
-generate exact solutions to the Riemann problem for comparison with
-Castro shocktube output.  Several inputs files for Helmholtz EOS-based
-shocktubes are provided.
+# Exact Riemann solver
+
+This is a driver for the exact Riemann solver for a general equation
+of state.  The main implementation is in Source/hydro.
+
+The exact Riemann solver follows the outline for Colella & Glaz 1985,
+section 1 and this driver is intended to generate exact solutions to
+the Riemann problem for comparison with Castro shocktube output.
+Several inputs files for Helmholtz EOS-based shocktubes are provided.
 
 This solver is used in Zingale & Katz (2015):
 

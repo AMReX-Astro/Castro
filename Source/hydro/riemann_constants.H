@@ -6,6 +6,14 @@
 using namespace amrex::literals;
 
 namespace riemann_constants {
+
+    enum RiemannSolver : std::uint8_t {
+        TWO_SHOCK_CGF=0,
+        TWO_SHOCK_CG,
+        HLLC,
+        EXACT
+    };
+
     constexpr amrex::Real smlp1 = 1.e-10_rt;
     constexpr amrex::Real small = 1.e-8_rt;
     constexpr amrex::Real smallu = 1.e-12_rt;
