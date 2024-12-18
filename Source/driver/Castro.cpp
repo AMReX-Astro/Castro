@@ -416,9 +416,11 @@ Castro::read_params ()
 #endif
 
 #ifndef SHOCK_VAR
+#ifdef REACTIONS
    if (disable_shock_burning != 0) {
        amrex::Error("ERROR: disable_shock_burning requires compiling with USE_SHOCK_VAR=TRUE");
    }
+#endif
 #endif
 
     if (riemann_solver == 1) {
