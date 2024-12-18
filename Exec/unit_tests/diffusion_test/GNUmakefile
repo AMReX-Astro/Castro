@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE

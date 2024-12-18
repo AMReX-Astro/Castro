@@ -25,7 +25,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          .github/workflows/dependencies_clang-tidy-apt-llvm.sh 19
+          .github/workflows/dependencies/dependencies_clang-tidy-apt-llvm.sh 19
 
       - name: Compile flame_wave
         run: |

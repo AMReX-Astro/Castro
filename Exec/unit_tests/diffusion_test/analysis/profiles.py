@@ -12,6 +12,8 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 import yt
+from yt.frontends.boxlib.api import CastroDataset
+
 
 ## Define RGBA to HEX
 def rgba_to_hex(rgba):
@@ -22,15 +24,22 @@ def rgba_to_hex(rgba):
 
 def get_T_profile(plotfile):
 
-    ds = yt.load(plotfile)
+    ds = CastroDataset(plotfile)
 
     time = float(ds.current_time)
     ad = ds.all_data()
 
     # Sort the ray values by 'x' so there are no discontinuities
     # in the line plot
-    srt = np.argsort(ad['x'])
-    x_coord = np.array(ad['x'][srt])
+
+    coords = {"cartesian":"x",
+              "cylindrical":"z",
+              "spherical":"r"}
+
+    coord = coords[ds.geometry]
+
+    srt = np.argsort(ad[coord])
+    x_coord = np.array(ad[coord][srt])
     temp = np.array(ad['Temp'][srt])
 
     return time, x_coord, temp
