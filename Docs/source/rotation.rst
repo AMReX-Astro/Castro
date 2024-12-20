@@ -41,7 +41,7 @@ The "vertical direction" is defined as follows:
   * ``coord_sys = 1``, (r,z): along the z-axis
 
   * ``coord_sys = 2``, (r, :math:`\theta`): along the z-axis after converting
-    to the spherical coordiante, i.e.
+    to the spherical coordinate, i.e.
     :math:`\hat{z} = \cos{\theta} \hat{r} = \sin{\theta} \hat{\theta}`.
 
 * 3D
