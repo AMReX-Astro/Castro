@@ -81,7 +81,7 @@ The main parameters that affect rotation are:
 
 -  ``castro.rot_axis`` : rotation axis (default: 3
    (Cartesian); 2 (cylindrical)). This parameter doesn't affect
-   Spherical Coordinate since rotation axis is automatically set
+   spherical coordinate since rotation axis is automatically set
    to z-axis.
 
 For completeness, we show below a derivation of the source terms that
