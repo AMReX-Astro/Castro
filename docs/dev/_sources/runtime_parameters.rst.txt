@@ -461,8 +461,13 @@ namespace: ``castro``
 | ``implicit_rotation_update``               | we can do a implicit solution of the rotation update to     | 1                           |
 |                                            | allow for better coupling of the Coriolis terms             |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
-| ``rot_axis``                               | the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) | 3                           |
-|                                            | for the rotation vector                                     |                             |
+| ``rot_axis``                               | the coordinate axis for the rotation vector For Cartesian:  | 3                           |
+|                                            | (:math:`x=1`, :math:`y=2`, :math:`z=3`) For non-Cartesian   |                             |
+|                                            | coordinates, this parameter doesn't do anything because:    |                             |
+|                                            | For RZ (Cylindrical 2D), it is automatically set to z-axis  |                             |
+|                                            | (rot_axis = 2) For Spherical2D, it is also assumed to be in |                             |
+|                                            | the z-axis i.e. cos(theta) r_hat - sin(theta) theta_hat in  |                             |
+|                                            | Spherical coordinate.                                       |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``use_point_mass``                         | include a central point mass                                | 0                           |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+

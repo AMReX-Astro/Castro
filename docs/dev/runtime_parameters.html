@@ -843,8 +843,13 @@ allow for better coupling of the Coriolis terms</p></td>
 <td><p>1</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rot_axis</span></code></p></td>
-<td><p>the coordinate axis (<span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(y=2\)</span>, <span class="math notranslate nohighlight">\(z=3\)</span>)
-for the rotation vector</p></td>
+<td><p>the coordinate axis for the rotation vector For Cartesian:
+(<span class="math notranslate nohighlight">\(x=1\)</span>, <span class="math notranslate nohighlight">\(y=2\)</span>, <span class="math notranslate nohighlight">\(z=3\)</span>) For non-Cartesian
+coordinates, this parameter doesn’t do anything because:
+For RZ (Cylindrical 2D), it is automatically set to z-axis
+(rot_axis = 2) For Spherical2D, it is also assumed to be in
+the z-axis i.e. cos(theta) r_hat - sin(theta) theta_hat in
+Spherical coordinate.</p></td>
 <td><p>3</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_point_mass</span></code></p></td>

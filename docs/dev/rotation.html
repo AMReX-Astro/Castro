@@ -172,6 +172,9 @@ setting it in the <code class="docutils literal notranslate"><span class="pre">p
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">1</span></code>, (r,z): along the z-axis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">2</span></code>, (r, <span class="math notranslate nohighlight">\(\theta\)</span>): along the z-axis after converting
+to the spherical coordinate, i.e.
+<span class="math notranslate nohighlight">\(\hat{z} = \cos{\theta} \hat{r} = \sin{\theta} \hat{\theta}\)</span>.</p></li>
 </ul>
 </li>
 <li><p>3D</p>
@@ -203,7 +206,9 @@ energy during a rotation update (default: 4)</p></li>
 term, which mixes momenta in the source term, whether we should
 solve for the update implicitly (default: 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_axis</span></code> : rotation axis (default: 3
-(Cartesian); 2 (cylindrical))</p></li>
+(Cartesian); 2 (cylindrical)). This parameter doesn’t affect
+spherical coordinate since rotation axis is automatically set
+to z-axis.</p></li>
 </ul>
 <p>For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
