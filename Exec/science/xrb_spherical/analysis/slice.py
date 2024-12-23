@@ -133,11 +133,11 @@ def slice(fnames:List[str], fields:List[str],
         #          horizontalalignment='right', verticalalignment='center',
         #          color="black", transform=fig.transFigure)
 
-        outName = f"xrb_spherical_{float(refTimeStamp):.2f}_{timeUnit}_slice.pdf"
+        outName = f"{ts[0]}_slice.pdf"
 
     fig.set_size_inches(16, 9)
     fig.tight_layout()
-    fig.savefig(outName, format="pdf", bbox_inches="tight")
+    fig.savefig(outName, format="png", bbox_inches="tight")
 
 
 if __name__ == "__main__":
