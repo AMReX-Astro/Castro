@@ -49,7 +49,7 @@ def slice(fnames:List[str], fields:List[str],
                      cbar_mode="each", cbar_size="2.5%", cbar_pad="0%")
 
     # Output plot file name
-    outName = "xrb_spherical_slice.pdf"
+    outName = "xrb_spherical_slice.png"
 
     # Determine the appropriate time unit
     refTimeStamp = ts[0].current_time
@@ -109,6 +109,9 @@ def slice(fnames:List[str], fields:List[str],
             sp.set_cmap(field, "viridis")
             if field in ["x_velocity", "y_velocity", "z_velocity"]:
                 sp.set_cmap(field, "coolwarm")
+                if field == "z_velocity":
+                    sp.set_zlim(field, -2.e8, 2.e8)
+                    sp.set_log(field, False)
             elif field == "Temp":
                 sp.set_zlim(field, 5.e7, 2.5e9)
                 sp.set_cmap(field, "magma_r")
@@ -133,7 +136,7 @@ def slice(fnames:List[str], fields:List[str],
         #          horizontalalignment='right', verticalalignment='center',
         #          color="black", transform=fig.transFigure)
 
-        outName = f"{ts[0]}_slice.pdf"
+        outName = f"{ts[0]}_slice.png"
 
     fig.set_size_inches(16, 9)
     fig.tight_layout()
