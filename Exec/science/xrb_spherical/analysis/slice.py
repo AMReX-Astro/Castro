@@ -4,34 +4,20 @@ import sys
 import os
 import yt
 import argparse
+import math
 from typing import List, Optional
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
-
 from yt.units import cm
 
-SMALL_SIZE = 28
-MEDIUM_SIZE = 30
-BIGGER_SIZE = 32
-
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
-plt.rc('xtick.major', size=7, width=2)
-plt.rc('xtick.minor', size=5, width=1)
-plt.rc('ytick.major', size=7, width=2)
-plt.rc('ytick.minor', size=5, width=1)
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 4.0,
-          coord: Optional[List[float, float]] = None) -> None:
+          theta: Optional[float] = None) -> None:
     """
-    A slice plot of the dataset for Spherical2D geometry.
+    A slice plot of the datasets for different field parameters for Spherical2D geometry.
 
     Parameters
     ==================================================================================
@@ -47,28 +33,42 @@ def slice(fnames:List[str], fields:List[str],
 
     widthScale: scaling for the domain width of the slice plot
 
-    coord:  user defined center of the slice in the format [r_center, theta_center]
+    theta:  user defined theta center of the slice plot
     """
 
-    ts = CastroDataset(fnames)
-    fig = plt.figures(figsize=(16, 9))
-    grid = ImageGrid(fig, 111, nrows_ncols=(len(fields)*len(ts), 1),
-                     axes_pad=0.25, label_mode="L", cbar_location="right",
+    ts = [CastroDataset(fname) for fname in fnames]
+
+    fig = plt.figure(figsize=(16, 9))
+
+    num = len(fields)*len(fnames)
+    ny = math.ceil(np.sqrt(num))
+    nx = math.ceil(num/ny)
+
+    grid = ImageGrid(fig, 111, nrows_ncols=(nx, ny),
+                     axes_pad=1, label_mode="L", cbar_location="right",
                      cbar_mode="each", cbar_size="2.5%", cbar_pad="0%")
+
+    # Output plot file name
+    outName = "xrb_spherical_slice.pdf"
+
+    # Determine the appropriate time unit
+    refTimeStamp = ts[0].current_time
+    timeUnit = "ms"
+    if float(refTimeStamp) < 1e-4:
+        timeUnit = "us"
+
+    refTimeStamp = ts[0].current_time.in_units(timeUnit)
 
     # We will check if all files have the same timestamp later.
     # This matters on how we annotate timestamp for the slice plots.
-    if len(fnames) == 1:
-        sameTime = True
-    else:
-        refTimeStamp = ts[0].current_time.in_units("ms")
-        sameTime = all(refTimeStamp == ds.current_time.in_units("ms") for ds in ts)
+    sameTime = True
+    if len(fnames) > 1:
+        sameTime = all(refTimeStamp == ds.current_time.in_units(timeUnit) for ds in ts)
 
     for j, ds in enumerate(ts):
         # Process information for each dataset
 
-        currentTime = ds.current_time.in_units("ms")
-        print(f"Current time of this plot file is {currentTime}")
+        currentTime = ds.current_time.in_units(timeUnit)
 
         # Some geometry properties
         rr = ds.domain_right_edge[0].in_units("km")
@@ -86,31 +86,25 @@ def slice(fnames:List[str], fields:List[str],
         box_widths = (width, width)
 
         # Preset centers for the Top, Mid and Bot panels
+        # Centers will be physical coordinates in Cylindrical, i.e. R-Z
         centers = {"top":(r_center*np.sin(thetal)+0.5*width, r_center*np.cos(thetal)),
                    "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
                    "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
 
-        if coord is None:
-            # Set center vis sp.set_center.
-            #This will be physical coordinates in Cartesian
+        if theta is None:
             center = centers[loc]
         else:
-            # Set center during SlicePlot call.
-            # This will be in Spherical coordinate: [r_center, theta_center, 0]
-            # coord will be in [r_center, theta_center], so append 0 here.
-            center = coord.append(0)
+            R = r_center*np.sin(theta)
+            Z = r_center*np.cos(theta)
+            if R < 0.5*width:
+                R = 0.5*width
+            center = [R, Z]
 
         for i, field in enumerate(fields):
             # Plot each field parameter
 
-            # Note we can also set center during SlicePlot, however then we would enter in [r_center, theta_center, 0]
-            # rather than the physical R-Z coordinate if we do it via sp.set_center
-
-            if coord is None:
-                sp = yt.SlicePlot(ds, 'phi', field, width=box_widths)
-                sp.set_center(center)
-            else:
-                sp = yt.SlicePlot(ds, 'phi', field, center=center, width=box_widths)
+            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=14)
+            sp.set_center(center)
 
             sp.set_cmap(field, "viridis")
             if field in ["x_velocity", "y_velocity", "z_velocity"]:
@@ -123,6 +117,7 @@ def slice(fnames:List[str], fields:List[str],
             elif field == "density":
                 sp.set_zlim(field, 1.e-3, 5.e8)
 
+            sp.set_buff_size((2400,2400))
             sp.set_axes_unit("km")
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
@@ -131,28 +126,26 @@ def slice(fnames:List[str], fields:List[str],
             plot.axes = grid[i+j*len(fields)].axes
             plot.cax = grid.cbar_axes[i+j*len(fields)]
 
-            if i+j*len(fields) < len(fnames)+len(fields)-1:
-                    grid[i].axes.xaxis.offsetText.set_visible(False)
-
             sp._setup_plots()
 
     if sameTime:
-        fig.text(0.8, 0.05, f"t = {ds.current_time}",
-                 horizontalalignment='right', verticalalignment='center',
-                 color="black", transform=fig.transFigure)
+        # fig.text(0.8, 0.05, f"t = {refTimeStamp:.2f}",
+        #          horizontalalignment='right', verticalalignment='center',
+        #          color="black", transform=fig.transFigure)
 
-    fig.set_size_inches(24, 13.5)
+        outName = f"xrb_spherical_{float(refTimeStamp):.2f}_{timeUnit}_slice.pdf"
+
+    fig.set_size_inches(16, 9)
     fig.tight_layout()
-    fig.savefig(f"{ds}",format="pdf",bbox_inches="tight")
+    fig.savefig(outName, format="pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description="""
+    parser = argparse.ArgumentParser(description="""
         A slice plot script for xrb_spherical problem.
-        Given a plot file and field name, it gives slice plots at the top,
-        middle, and bottom of the domain (shell).
+        Given a list of plotfiles or a list of field parameters,
+        it plots multiple slice plots.
         """)
 
     parser.add_argument('--fnames', nargs='+', type=str,
@@ -166,12 +159,12 @@ if __name__ == "__main__":
                         field parameters will be plotted for a given fname.
                         Note that either fnames or fields must be single valued.
                         """)
-    parser.add_argument('-l', '--loc', default='top', type=str,
+    parser.add_argument('-l', '--loc', default='top', type=str, metavar="{top, mid, bot}",
                         help="""preset center location of the plot domain.
                         Enter one of the three choices: {top, mid, bot}""")
-    parser.add_argument('-c', '--coord', nargs=2, type=float,
-                        help="""user defined center location of the plot domain.
-                        Enter two numbers in the format of [r_center, theta_center]""")
+    parser.add_argument('-t', '--theta', type=float,
+                        help="""user defined theta center location of the plot domain.
+                        Alternative way of defining plotting center""")
     parser.add_argument('-w', '--width', default=4.0, type=float,
                         help="scaling for the domain width of the slice plot")
 
@@ -188,4 +181,4 @@ if __name__ == "__main__":
         parser.error("loc must be one of the three: {top, mid, bot}")
 
     slice(args.fnames, args.fields,
-          loc=loc, coord=args.coord, width_factor=args.width)
+          loc=loc, theta=args.theta, widthScale=args.width)
