@@ -51,24 +51,8 @@ def slice(fnames:List[str], fields:List[str],
     # Output plot file name
     outName = "xrb_spherical_slice.png"
 
-    # Determine the appropriate time unit
-    refTimeStamp = ts[0].current_time
-    timeUnit = "ms"
-    if float(refTimeStamp) < 1e-4:
-        timeUnit = "us"
-
-    refTimeStamp = ts[0].current_time.in_units(timeUnit)
-
-    # We will check if all files have the same timestamp later.
-    # This matters on how we annotate timestamp for the slice plots.
-    sameTime = True
-    if len(fnames) > 1:
-        sameTime = all(refTimeStamp == ds.current_time.in_units(timeUnit) for ds in ts)
-
     for j, ds in enumerate(ts):
         # Process information for each dataset
-
-        currentTime = ds.current_time.in_units(timeUnit)
 
         # Some geometry properties
         rr = ds.domain_right_edge[0].in_units("km")
@@ -103,7 +87,7 @@ def slice(fnames:List[str], fields:List[str],
         for i, field in enumerate(fields):
             # Plot each field parameter
 
-            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=14)
+            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=16)
             sp.set_center(center)
 
             sp.set_cmap(field, "viridis")
@@ -131,10 +115,23 @@ def slice(fnames:List[str], fields:List[str],
 
             sp._setup_plots()
 
-    if sameTime:
-        # fig.text(0.8, 0.05, f"t = {refTimeStamp:.2f}",
-        #          horizontalalignment='right', verticalalignment='center',
-        #          color="black", transform=fig.transFigure)
+    if len(fnames) == 1:
+        time = ts[0].current_time.in_units("ms")
+        if float(time) < 1e-1:
+            time = ts[0].current_time.in_units("us")
+
+        # Determine position of the text on grid
+        xyPositions = {(1, 1): (0.78, 0.02),
+                       (1, 2): (0.95, 0.075),
+                       (2, 2): (0.78, 0.02),
+                       (2, 3): (0.9, 0.02),
+                       (3, 3): (0.78, 0.02)
+                       }
+        xPosition, yPosition = xyPositions.get((nx, ny), (0.78, 0.02))
+
+        fig.text(xPosition, yPosition, f"t = {time:.3f}", fontsize=16,
+                 horizontalalignment='right', verticalalignment='bottom',
+                 color="black", transform=fig.transFigure)
 
         outName = f"{ts[0]}_slice.png"
 
