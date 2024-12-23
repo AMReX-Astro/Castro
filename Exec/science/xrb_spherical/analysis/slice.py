@@ -14,7 +14,7 @@ from yt.units import cm
 
 
 def slice(fnames:List[str], fields:List[str],
-          loc: str = "top", widthScale: float = 4.0,
+          loc: str = "top", widthScale: float = 3.0,
           theta: Optional[float] = None) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
