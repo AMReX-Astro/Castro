@@ -1,3 +1,23 @@
+# 25.01
+
+  * address rotation source in spherical 2d coordinate (#2967)
+
+  * update scripts and input files for diffusion test  (#3012)
+
+  * update pressure via eos when transverse_use_eos=1 (#3004)
+
+  * update thermal diffusion documentation (#3011)
+
+  * rename `Opacity_dir` -> `OPACITY_DIR` (#3006)
+
+  * sync GPU CI dependencies with AMReX (#3010)
+
+  * wdmerger: update inputs for He mergers to include burn retry
+    and adjust I/O (#3008)
+
+  * fix area/vol factors for spherical when theta is close to 0 or pi
+    (#3007)
+
 # 24.12
 
   * update clang-tidy CI (#2992, #3002)
