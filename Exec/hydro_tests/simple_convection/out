@@ -3,10 +3,10 @@ MPI initialized with 1 MPI processes
 MPI initialized with thread support level 3
 AMReX (24.12-14-gb3f67385e62f) initialized
 
-Starting run at 19:46:20 UTC on 2025-01-07.
+Starting run at 19:51:27 UTC on 2025-01-07.
 Successfully read inputs file ... 
 
-Castro git describe: 25.01-2-g98f28c296-dirty
+Castro git describe: 25.01-3-gda435ce4f-dirty
 AMReX git describe: 24.12-14-gb3f67385e6
 Microphysics git describe: 25.01-11-g20bcd24e
 
@@ -18,9 +18,9 @@ Castro::numpts_1d at level  0 is 412
 Setting the gravity type to ConstantGrav
 Initializing the data at level 0
 Done initializing the level 0 data 
-...estimated hydro-limited timestep at level 0: 0.006099876702
+...estimated hydro-limited timestep at level 0: 0.006971287659
 ...hydro-limited CFL timestep constrained at (i,j) = (1,0)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006099876702
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006971287659
 
 
 TIME= 0 MASS        = 7999.980189
@@ -48,542 +48,928 @@ INITIAL GRIDS
             smallest grid: 128 x 128  biggest grid: 128 x 128
 
 CHECKPOINT: file = chk00000
-checkPoint() time = 0.00724296 secs.
+checkPoint() time = 0.007406037 secs.
 PLOTFILE: file = plt00000
-Write plotfile time = 0.035070967  seconds
+Write plotfile time = 0.034976428  seconds
 
-...estimated hydro-limited timestep at level 0: 0.006099876702
+...estimated hydro-limited timestep at level 0: 0.006971287659
 ...hydro-limited CFL timestep constrained at (i,j) = (1,0)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006099876702
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006971287659
 
-[Level 0 step 1] ADVANCE at time 0 with dt = 0.0006099876702
+[Level 0 step 1] ADVANCE at time 0 with dt = 0.0006971287659
 
-[1m[32m  Beginning subcycle 1 starting at time 0 with dt = 0.0006099876702[0m
+[1m[32m  Beginning subcycle 1 starting at time 0 with dt = 0.0006971287659[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001659300001 on level 0
+Castro::construct_old_gravity() time = 0.0001736859999 on level 0
 
-Castro::do_old_sources() time = 0.003088726 on level 0
+Castro::do_old_sources() time = 0.002927591 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006152122503
+...estimated hydro-limited timestep at level 0: 0.007038802973
 ...hydro-limited CFL timestep constrained at (i,j) = (0,0)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006152122503
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007038802973
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7291848739
+  Zones advanced per microsecond at this level: 0.7189900542
 
 [Level 0 step 1] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.05071605 on level 0
+Castro::construct_ctu_hydro_source() time = 0.051744182 on level 0
 
-Castro::construct_new_gravity() time = 0.0003969479999 on level 0
+Castro::construct_new_gravity() time = 0.0004037039998 on level 0
 
-Castro::do_new_sources() time = 0.004478553 on level 0
-
-
-TIME= 0.0006099876702 MASS        = 8000.11861
-TIME= 0.0006099876702 XMOM        = 0.7359932983
-TIME= 0.0006099876702 YMOM        = 0.03600527885
-TIME= 0.0006099876702 ZMOM        = 0
-TIME= 0.0006099876702 ANG MOM X   = 0
-TIME= 0.0006099876702 ANG MOM Y   = 0
-TIME= 0.0006099876702 ANG MOM Z   = -57.58776542
-TIME= 0.0006099876702 RHO*e       = 34520.32913
-TIME= 0.0006099876702 RHO*K       = 2435.412638
-TIME= 0.0006099876702 RHO*E       = 36955.74177
-TIME= 0.0006099876702 RHO*PHI     = 0
-TIME= 0.0006099876702 TOTAL ENERGY= 36955.74177
-TIME= 0.0006099876702 CENTER OF MASS X-LOC = 2.000028103
-TIME= 0.0006099876702 CENTER OF MASS X-VEL = 9.199779831e-05
-TIME= 0.0006099876702 CENTER OF MASS Y-LOC = 1.428625404
-TIME= 0.0006099876702 CENTER OF MASS Y-VEL = 4.500593129e-06
-TIME= 0.0006099876702 CENTER OF MASS Z-LOC = 0
-TIME= 0.0006099876702 CENTER OF MASS Z-VEL = 0
-TIME= 0.0006099876702 MAXIMUM TEMPERATURE  = 4.995103938e-08
-TIME= 0.0006099876702 MAXIMUM DENSITY      = 1030.248657
-
-STEP = 1 TIME = 0.0006099876702 DT = 0.0006099876702
+Castro::do_new_sources() time = 0.004436759 on level 0
 
 
-[STEP 1] Coarse TimeStep time: 0.070619825
+TIME= 0.0006971287659 MASS        = 8000.138384
+TIME= 0.0006971287659 XMOM        = 0.7450616998
+TIME= 0.0006971287659 YMOM        = 0.1947225275
+TIME= 0.0006971287659 ZMOM        = 0
+TIME= 0.0006971287659 ANG MOM X   = 0
+TIME= 0.0006971287659 ANG MOM Y   = 0
+TIME= 0.0006971287659 ANG MOM Z   = -57.40973517
+TIME= 0.0006971287659 RHO*e       = 34551.75105
+TIME= 0.0006971287659 RHO*K       = 2404.148536
+TIME= 0.0006971287659 RHO*E       = 36955.89958
+TIME= 0.0006971287659 RHO*PHI     = 0
+TIME= 0.0006971287659 TOTAL ENERGY= 36955.89958
+TIME= 0.0006971287659 CENTER OF MASS X-LOC = 2.000032116
+TIME= 0.0006971287659 CENTER OF MASS X-VEL = 9.313110149e-05
+TIME= 0.0006971287659 CENTER OF MASS Y-LOC = 1.428625363
+TIME= 0.0006971287659 CENTER OF MASS Y-VEL = 2.433989491e-05
+TIME= 0.0006971287659 CENTER OF MASS Z-LOC = 0
+TIME= 0.0006971287659 CENTER OF MASS Z-VEL = 0
+TIME= 0.0006971287659 MAXIMUM TEMPERATURE  = 5.015867034e-08
+TIME= 0.0006971287659 MAXIMUM DENSITY      = 1035.084258
+
+STEP = 1 TIME = 0.0006971287659 DT = 0.0006971287659
+
+
+[STEP 1] Coarse TimeStep time: 0.071565377
 [STEP 1] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006152122503
+...estimated hydro-limited timestep at level 0: 0.007038802973
 ...hydro-limited CFL timestep constrained at (i,j) = (0,0)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006152122503
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007038802973
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006152122503
- ... but limiting to: 0.0006709864372 = 1.1 * 0.0006099876702
-[Level 0 step 2] ADVANCE at time 0.0006099876702 with dt = 0.0006709864372
+ ... new dt computed: 0.007038802973
+ ... but limiting to: 0.0007668416425 = 1.1 * 0.0006971287659
+[Level 0 step 2] ADVANCE at time 0.0006971287659 with dt = 0.0007668416425
 
-[1m[32m  Beginning subcycle 1 starting at time 0.0006099876702 with dt = 0.0006709864372[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.0006971287659 with dt = 0.0007668416425[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001720829996 on level 0
+Castro::construct_old_gravity() time = 0.0001607940003 on level 0
 
-Castro::do_old_sources() time = 0.002900374 on level 0
+Castro::do_old_sources() time = 0.002931325 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006152784108
+...estimated hydro-limited timestep at level 0: 0.007027470395
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006152784108
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007027470395
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7324318286
+  Zones advanced per microsecond at this level: 0.7280989597
 
 [Level 0 step 2] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.053194196 on level 0
+Castro::construct_ctu_hydro_source() time = 0.055724938 on level 0
 
-Castro::construct_new_gravity() time = 0.0003867749997 on level 0
+Castro::construct_new_gravity() time = 0.0001532189999 on level 0
 
-Castro::do_new_sources() time = 0.005724171 on level 0
-
-
-TIME= 0.001280974107 MASS        = 8000.277836
-TIME= 0.001280974107 XMOM        = 0.7931732249
-TIME= 0.001280974107 YMOM        = 0.6818531066
-TIME= 0.001280974107 ZMOM        = 0
-TIME= 0.001280974107 ANG MOM X   = 0
-TIME= 0.001280974107 ANG MOM Y   = 0
-TIME= 0.001280974107 ANG MOM Z   = -56.43469409
-TIME= 0.001280974107 RHO*e       = 34745.29421
-TIME= 0.001280974107 RHO*K       = 2211.719963
-TIME= 0.001280974107 RHO*E       = 36957.01417
-TIME= 0.001280974107 RHO*PHI     = 0
-TIME= 0.001280974107 TOTAL ENERGY= 36957.01417
-TIME= 0.001280974107 CENTER OF MASS X-LOC = 2.000058121
-TIME= 0.001280974107 CENTER OF MASS X-VEL = 9.914320992e-05
-TIME= 0.001280974107 CENTER OF MASS Y-LOC = 1.428627548
-TIME= 0.001280974107 CENTER OF MASS Y-VEL = 8.522867838e-05
-TIME= 0.001280974107 CENTER OF MASS Z-LOC = 0
-TIME= 0.001280974107 CENTER OF MASS Z-VEL = 0
-TIME= 0.001280974107 MAXIMUM TEMPERATURE  = 5.146865602e-08
-TIME= 0.001280974107 MAXIMUM DENSITY      = 1063.132059
-
-STEP = 2 TIME = 0.001280974107 DT = 0.0006709864372
+Castro::do_new_sources() time = 0.00403325 on level 0
 
 
-[STEP 2] Coarse TimeStep time: 0.071360356
+TIME= 0.001463970408 MASS        = 8000.32149
+TIME= 0.001463970408 XMOM        = 0.808218567
+TIME= 0.001463970408 YMOM        = 1.029228372
+TIME= 0.001463970408 ZMOM        = 0
+TIME= 0.001463970408 ANG MOM X   = 0
+TIME= 0.001463970408 ANG MOM Y   = 0
+TIME= 0.001463970408 ANG MOM Z   = -56.12343791
+TIME= 0.001463970408 RHO*e       = 34802.82995
+TIME= 0.001463970408 RHO*K       = 2154.58345
+TIME= 0.001463970408 RHO*E       = 36957.4134
+TIME= 0.001463970408 RHO*PHI     = 0
+TIME= 0.001463970408 TOTAL ENERGY= 36957.4134
+TIME= 0.001463970408 CENTER OF MASS X-LOC = 2.000066271
+TIME= 0.001463970408 CENTER OF MASS X-VEL = 0.0001010232611
+TIME= 0.001463970408 CENTER OF MASS Y-LOC = 1.428625054
+TIME= 0.001463970408 CENTER OF MASS Y-VEL = 0.0001286483765
+TIME= 0.001463970408 CENTER OF MASS Z-LOC = 0
+TIME= 0.001463970408 CENTER OF MASS Z-VEL = 0
+TIME= 0.001463970408 MAXIMUM TEMPERATURE  = 5.184019164e-08
+TIME= 0.001463970408 MAXIMUM DENSITY      = 1071.657799
+
+STEP = 2 TIME = 0.001463970408 DT = 0.0007668416425
+
+
+[STEP 2] Coarse TimeStep time: 0.070768616
 [STEP 2] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006152784108
+...estimated hydro-limited timestep at level 0: 0.007027470395
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006152784108
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007027470395
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006152784108
- ... but limiting to: 0.0007380850809 = 1.1 * 0.0006709864372
-[Level 0 step 3] ADVANCE at time 0.001280974107 with dt = 0.0007380850809
+ ... new dt computed: 0.007027470395
+ ... but limiting to: 0.0008435258068 = 1.1 * 0.0007668416425
+[Level 0 step 3] ADVANCE at time 0.001463970408 with dt = 0.0008435258068
 
-[1m[32m  Beginning subcycle 1 starting at time 0.001280974107 with dt = 0.0007380850809[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.001463970408 with dt = 0.0008435258068[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.000362927 on level 0
+Castro::construct_old_gravity() time = 0.000167442 on level 0
 
-Castro::do_old_sources() time = 0.004313112 on level 0
+Castro::do_old_sources() time = 0.002861461 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006139078645
+...estimated hydro-limited timestep at level 0: 0.007012481151
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006139078645
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007012481151
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.5536780831
+  Zones advanced per microsecond at this level: 0.7287568534
 
 [Level 0 step 3] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.069769834 on level 0
+Castro::construct_ctu_hydro_source() time = 0.055637712 on level 0
 
-Castro::construct_new_gravity() time = 0.0001517740002 on level 0
+Castro::construct_new_gravity() time = 0.00015252 on level 0
 
-Castro::do_new_sources() time = 0.004028026 on level 0
-
-
-TIME= 0.002019059188 MASS        = 8000.45996
-TIME= 0.002019059188 XMOM        = 0.8418336841
-TIME= 0.002019059188 YMOM        = 1.47487191
-TIME= 0.002019059188 ZMOM        = 0
-TIME= 0.002019059188 ANG MOM X   = 0
-TIME= 0.002019059188 ANG MOM Y   = 0
-TIME= 0.002019059188 ANG MOM Z   = -55.39035384
-TIME= 0.002019059188 RHO*e       = 34963.46967
-TIME= 0.002019059188 RHO*K       = 1995.037086
-TIME= 0.002019059188 RHO*E       = 36958.50676
-TIME= 0.002019059188 RHO*PHI     = 0
-TIME= 0.002019059188 TOTAL ENERGY= 36958.50676
-TIME= 0.002019059188 CENTER OF MASS X-LOC = 2.000090147
-TIME= 0.002019059188 CENTER OF MASS X-VEL = 0.0001052231607
-TIME= 0.002019059188 CENTER OF MASS Y-LOC = 1.428630231
-TIME= 0.002019059188 CENTER OF MASS Y-VEL = 0.0001843483897
-TIME= 0.002019059188 CENTER OF MASS Z-LOC = 0
-TIME= 0.002019059188 CENTER OF MASS Z-VEL = 0
-TIME= 0.002019059188 MAXIMUM TEMPERATURE  = 5.286303212e-08
-TIME= 0.002019059188 MAXIMUM DENSITY      = 1093.255186
-
-STEP = 3 TIME = 0.002019059188 DT = 0.0007380850809
+Castro::do_new_sources() time = 0.004076345 on level 0
 
 
-[STEP 3] Coarse TimeStep time: 0.09225254
+TIME= 0.002307496215 MASS        = 8000.531749
+TIME= 0.002307496215 XMOM        = 0.8593372865
+TIME= 0.002307496215 YMOM        = 2.046379696
+TIME= 0.002307496215 ZMOM        = 0
+TIME= 0.002307496215 ANG MOM X   = 0
+TIME= 0.002307496215 ANG MOM Y   = 0
+TIME= 0.002307496215 ANG MOM Z   = -55.00207201
+TIME= 0.002307496215 RHO*e       = 35042.26534
+TIME= 0.002307496215 RHO*K       = 1916.936945
+TIME= 0.002307496215 RHO*E       = 36959.20229
+TIME= 0.002307496215 RHO*PHI     = 0
+TIME= 0.002307496215 TOTAL ENERGY= 36959.20229
+TIME= 0.002307496215 CENTER OF MASS X-LOC = 2.000102567
+TIME= 0.002307496215 CENTER OF MASS X-VEL = 0.0001074100214
+TIME= 0.002307496215 CENTER OF MASS Y-LOC = 1.428624702
+TIME= 0.002307496215 CENTER OF MASS Y-VEL = 0.0002557804607
+TIME= 0.002307496215 CENTER OF MASS Z-LOC = 0
+TIME= 0.002307496215 CENTER OF MASS Z-VEL = 0
+TIME= 0.002307496215 MAXIMUM TEMPERATURE  = 5.334143636e-08
+TIME= 0.002307496215 MAXIMUM DENSITY      = 1104.161872
+
+STEP = 3 TIME = 0.002307496215 DT = 0.0008435258068
+
+
+[STEP 3] Coarse TimeStep time: 0.070614614
 [STEP 3] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006139078645
+...estimated hydro-limited timestep at level 0: 0.007012481151
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006139078645
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007012481151
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006139078645
- ... but limiting to: 0.000811893589 = 1.1 * 0.0007380850809
-[Level 0 step 4] ADVANCE at time 0.002019059188 with dt = 0.000811893589
+ ... new dt computed: 0.007012481151
+ ... but limiting to: 0.0009278783875 = 1.1 * 0.0008435258068
+[Level 0 step 4] ADVANCE at time 0.002307496215 with dt = 0.0009278783875
 
-[1m[32m  Beginning subcycle 1 starting at time 0.002019059188 with dt = 0.000811893589[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.002307496215 with dt = 0.0009278783875[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001590040001 on level 0
+Castro::construct_old_gravity() time = 0.0001785449999 on level 0
 
-Castro::do_old_sources() time = 0.002858603 on level 0
+Castro::do_old_sources() time = 0.002875613 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006130740418
+...estimated hydro-limited timestep at level 0: 0.007006212204
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006130740418
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007006212204
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7293657904
+  Zones advanced per microsecond at this level: 0.7307917821
 
 [Level 0 step 4] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.055250471 on level 0
+Castro::construct_ctu_hydro_source() time = 0.055513917 on level 0
 
-Castro::construct_new_gravity() time = 0.000156737 on level 0
+Castro::construct_new_gravity() time = 0.0001655859996 on level 0
 
-Castro::do_new_sources() time = 0.004274957 on level 0
-
-
-TIME= 0.002830952777 MASS        = 8000.666997
-TIME= 0.002830952777 XMOM        = 0.8798303965
-TIME= 0.002830952777 YMOM        = 2.421128341
-TIME= 0.002830952777 ZMOM        = 0
-TIME= 0.002830952777 ANG MOM X   = 0
-TIME= 0.002830952777 ANG MOM Y   = 0
-TIME= 0.002830952777 ANG MOM Z   = -54.51897563
-TIME= 0.002830952777 RHO*e       = 35173.56935
-TIME= 0.002830952777 RHO*K       = 1786.662862
-TIME= 0.002830952777 RHO*E       = 36960.23221
-TIME= 0.002830952777 RHO*PHI     = 0
-TIME= 0.002830952777 TOTAL ENERGY= 36960.23221
-TIME= 0.002830952777 CENTER OF MASS X-LOC = 2.000124342
-TIME= 0.002830952777 CENTER OF MASS X-VEL = 0.0001099696309
-TIME= 0.002830952777 CENTER OF MASS Y-LOC = 1.428633882
-TIME= 0.002830952777 CENTER OF MASS Y-VEL = 0.0003026158121
-TIME= 0.002830952777 CENTER OF MASS Z-LOC = 0
-TIME= 0.002830952777 CENTER OF MASS Z-VEL = 0
-TIME= 0.002830952777 MAXIMUM TEMPERATURE  = 5.411073635e-08
-TIME= 0.002830952777 MAXIMUM DENSITY      = 1119.881564
-
-STEP = 4 TIME = 0.002830952777 DT = 0.000811893589
+Castro::do_new_sources() time = 0.004109222 on level 0
 
 
-[STEP 4] Coarse TimeStep time: 0.071278033
+TIME= 0.003235374603 MASS        = 8000.77119
+TIME= 0.003235374603 XMOM        = 0.8958795107
+TIME= 0.003235374603 YMOM        = 3.24784036
+TIME= 0.003235374603 ZMOM        = 0
+TIME= 0.003235374603 ANG MOM X   = 0
+TIME= 0.003235374603 ANG MOM Y   = 0
+TIME= 0.003235374603 ANG MOM Z   = -54.12029149
+TIME= 0.003235374603 RHO*e       = 35269.01716
+TIME= 0.003235374603 RHO*K       = 1692.258136
+TIME= 0.003235374603 RHO*E       = 36961.2753
+TIME= 0.003235374603 RHO*PHI     = 0
+TIME= 0.003235374603 TOTAL ENERGY= 36961.2753
+TIME= 0.003235374603 CENTER OF MASS X-LOC = 2.000141155
+TIME= 0.003235374603 CENTER OF MASS X-VEL = 0.0001119741447
+TIME= 0.003235374603 CENTER OF MASS Y-LOC = 1.428624951
+TIME= 0.003235374603 CENTER OF MASS Y-VEL = 0.0004059409128
+TIME= 0.003235374603 CENTER OF MASS Z-LOC = 0
+TIME= 0.003235374603 CENTER OF MASS Z-VEL = 0
+TIME= 0.003235374603 MAXIMUM TEMPERATURE  = 5.463929694e-08
+TIME= 0.003235374603 MAXIMUM DENSITY      = 1132.941223
+
+STEP = 4 TIME = 0.003235374603 DT = 0.0009278783875
+
+
+[STEP 4] Coarse TimeStep time: 0.07048345
 [STEP 4] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006130740418
+...estimated hydro-limited timestep at level 0: 0.007006212204
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006130740418
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007006212204
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006130740418
- ... but limiting to: 0.0008930829479 = 1.1 * 0.000811893589
-[Level 0 step 5] ADVANCE at time 0.002830952777 with dt = 0.0008930829479
+ ... new dt computed: 0.007006212204
+ ... but limiting to: 0.001020666226 = 1.1 * 0.0009278783875
+[Level 0 step 5] ADVANCE at time 0.003235374603 with dt = 0.001020666226
 
-[1m[32m  Beginning subcycle 1 starting at time 0.002830952777 with dt = 0.0008930829479[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.003235374603 with dt = 0.001020666226[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0002907479998 on level 0
+Castro::construct_old_gravity() time = 0.0001658870001 on level 0
 
-Castro::do_old_sources() time = 0.002966641 on level 0
+Castro::do_old_sources() time = 0.002927 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006149169263
+...estimated hydro-limited timestep at level 0: 0.007071779057
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006149169263
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007071779057
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7324589297
+  Zones advanced per microsecond at this level: 0.7144492076
 
 [Level 0 step 5] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.054624406 on level 0
+Castro::construct_ctu_hydro_source() time = 0.05699887 on level 0
 
-Castro::construct_new_gravity() time = 0.0001603249998 on level 0
+Castro::construct_new_gravity() time = 0.0001643779997 on level 0
 
-Castro::do_new_sources() time = 0.004040509 on level 0
-
-
-TIME= 0.003724035725 MASS        = 8000.90068
-TIME= 0.003724035725 XMOM        = 0.9056700783
-TIME= 0.003724035725 YMOM        = 3.560569014
-TIME= 0.003724035725 ZMOM        = 0
-TIME= 0.003724035725 ANG MOM X   = 0
-TIME= 0.003724035725 ANG MOM Y   = 0
-TIME= 0.003724035725 ANG MOM Z   = -53.86093816
-TIME= 0.003724035725 RHO*e       = 35374.04755
-TIME= 0.003724035725 RHO*K       = 1588.1527
-TIME= 0.003724035725 RHO*E       = 36962.20025
-TIME= 0.003724035725 RHO*PHI     = 0
-TIME= 0.003724035725 TOTAL ENERGY= 36962.20025
-TIME= 0.003724035725 CENTER OF MASS X-LOC = 2.000160731
-TIME= 0.003724035725 CENTER OF MASS X-VEL = 0.0001131960156
-TIME= 0.003724035725 CENTER OF MASS Y-LOC = 1.428639021
-TIME= 0.003724035725 CENTER OF MASS Y-VEL = 0.000445021024
-TIME= 0.003724035725 CENTER OF MASS Z-LOC = 0
-TIME= 0.003724035725 CENTER OF MASS Z-VEL = 0
-TIME= 0.003724035725 MAXIMUM TEMPERATURE  = 5.46982092e-08
-TIME= 0.003724035725 MAXIMUM DENSITY      = 1143.533531
-
-STEP = 5 TIME = 0.003724035725 DT = 0.0008930829479
+Castro::do_new_sources() time = 0.004025783 on level 0
 
 
-[STEP 5] Coarse TimeStep time: 0.070391218
+TIME= 0.004256040829 MASS        = 8001.041357
+TIME= 0.004256040829 XMOM        = 0.9160738604
+TIME= 0.004256040829 YMOM        = 4.680805314
+TIME= 0.004256040829 ZMOM        = 0
+TIME= 0.004256040829 ANG MOM X   = 0
+TIME= 0.004256040829 ANG MOM Y   = 0
+TIME= 0.004256040829 ANG MOM Z   = -53.53276583
+TIME= 0.004256040829 RHO*e       = 35480.94838
+TIME= 0.004256040829 RHO*K       = 1482.699906
+TIME= 0.004256040829 RHO*E       = 36963.64828
+TIME= 0.004256040829 RHO*PHI     = 0
+TIME= 0.004256040829 TOTAL ENERGY= 36963.64828
+TIME= 0.004256040829 CENTER OF MASS X-LOC = 2.00018192
+TIME= 0.004256040829 CENTER OF MASS X-VEL = 0.0001144943289
+TIME= 0.004256040829 CENTER OF MASS Y-LOC = 1.428625802
+TIME= 0.004256040829 CENTER OF MASS Y-VEL = 0.0005850245118
+TIME= 0.004256040829 CENTER OF MASS Z-LOC = 0
+TIME= 0.004256040829 CENTER OF MASS Z-VEL = 0
+TIME= 0.004256040829 MAXIMUM TEMPERATURE  = 5.518281796e-08
+TIME= 0.004256040829 MAXIMUM DENSITY      = 1158.612475
+
+STEP = 5 TIME = 0.004256040829 DT = 0.001020666226
+
+
+[STEP 5] Coarse TimeStep time: 0.071999376
 [STEP 5] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006149169263
+...estimated hydro-limited timestep at level 0: 0.007071779057
 ...hydro-limited CFL timestep constrained at (i,j) = (60,3)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006149169263
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007071779057
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006149169263
- ... but limiting to: 0.0009823912427 = 1.1 * 0.0008930829479
-[Level 0 step 6] ADVANCE at time 0.003724035725 with dt = 0.0009823912427
+ ... new dt computed: 0.007071779057
+ ... but limiting to: 0.001122732849 = 1.1 * 0.001020666226
+[Level 0 step 6] ADVANCE at time 0.004256040829 with dt = 0.001122732849
 
-[1m[32m  Beginning subcycle 1 starting at time 0.003724035725 with dt = 0.0009823912427[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.004256040829 with dt = 0.001122732849[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001619930003 on level 0
+Castro::construct_old_gravity() time = 0.0001750320002 on level 0
 
-Castro::do_old_sources() time = 0.002862227 on level 0
+Castro::do_old_sources() time = 0.002985633 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006191426391
-...hydro-limited CFL timestep constrained at (i,j) = (124,9)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006191426391
+...estimated hydro-limited timestep at level 0: 0.007069018082
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007069018082
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7196387154
+  Zones advanced per microsecond at this level: 0.7276585637
 
 [Level 0 step 6] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.055194928 on level 0
+Castro::construct_ctu_hydro_source() time = 0.055475105 on level 0
 
-Castro::construct_new_gravity() time = 0.0003140590002 on level 0
+Castro::construct_new_gravity() time = 0.000167231 on level 0
 
-Castro::do_new_sources() time = 0.00501113 on level 0
-
-
-TIME= 0.004706426968 MASS        = 8001.162495
-TIME= 0.004706426968 XMOM        = 0.9162800228
-TIME= 0.004706426968 YMOM        = 4.856885999
-TIME= 0.004706426968 ZMOM        = 0
-TIME= 0.004706426968 ANG MOM X   = 0
-TIME= 0.004706426968 ANG MOM Y   = 0
-TIME= 0.004706426968 ANG MOM Z   = -53.47262378
-TIME= 0.004706426968 RHO*e       = 35562.06972
-TIME= 0.004706426968 RHO*K       = 1402.357999
-TIME= 0.004706426968 RHO*E       = 36964.42772
-TIME= 0.004706426968 RHO*PHI     = 0
-TIME= 0.004706426968 TOTAL ENERGY= 36964.42772
-TIME= 0.004706426968 CENTER OF MASS X-LOC = 2.000199271
-TIME= 0.004706426968 CENTER OF MASS X-VEL = 0.000114518362
-TIME= 0.004706426968 CENTER OF MASS Y-LOC = 1.428645507
-TIME= 0.004706426968 CENTER OF MASS Y-VEL = 0.0006070225423
-TIME= 0.004706426968 CENTER OF MASS Z-LOC = 0
-TIME= 0.004706426968 CENTER OF MASS Z-VEL = 0
-TIME= 0.004706426968 MAXIMUM TEMPERATURE  = 5.521337248e-08
-TIME= 0.004706426968 MAXIMUM DENSITY      = 1169.982414
-
-STEP = 6 TIME = 0.004706426968 DT = 0.0009823912427
+Castro::do_new_sources() time = 0.004086811 on level 0
 
 
-[STEP 6] Coarse TimeStep time: 0.07203078
+TIME= 0.005378773678 MASS        = 8001.343875
+TIME= 0.005378773678 XMOM        = 0.914906989
+TIME= 0.005378773678 YMOM        = 6.319110725
+TIME= 0.005378773678 ZMOM        = 0
+TIME= 0.005378773678 ANG MOM X   = 0
+TIME= 0.005378773678 ANG MOM Y   = 0
+TIME= 0.005378773678 ANG MOM Z   = -53.29306007
+TIME= 0.005378773678 RHO*e       = 35674.92441
+TIME= 0.005378773678 RHO*K       = 1291.416347
+TIME= 0.005378773678 RHO*E       = 36966.34075
+TIME= 0.005378773678 RHO*PHI     = 0
+TIME= 0.005378773678 TOTAL ENERGY= 36966.34075
+TIME= 0.005378773678 CENTER OF MASS X-LOC = 2.00022471
+TIME= 0.005378773678 CENTER OF MASS X-VEL = 0.0001143441656
+TIME= 0.005378773678 CENTER OF MASS Y-LOC = 1.428626941
+TIME= 0.005378773678 CENTER OF MASS Y-VEL = 0.000789756174
+TIME= 0.005378773678 CENTER OF MASS Z-LOC = 0
+TIME= 0.005378773678 CENTER OF MASS Z-VEL = 0
+TIME= 0.005378773678 MAXIMUM TEMPERATURE  = 5.566338232e-08
+TIME= 0.005378773678 MAXIMUM DENSITY      = 1184.936546
+
+STEP = 6 TIME = 0.005378773678 DT = 0.001122732849
+
+
+[STEP 6] Coarse TimeStep time: 0.070765688
 [STEP 6] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006191426391
-...hydro-limited CFL timestep constrained at (i,j) = (124,9)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006191426391
+...estimated hydro-limited timestep at level 0: 0.007069018082
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007069018082
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006191426391
- ... but limiting to: 0.001080630367 = 1.1 * 0.0009823912427
-[Level 0 step 7] ADVANCE at time 0.004706426968 with dt = 0.001080630367
+ ... new dt computed: 0.007069018082
+ ... but limiting to: 0.001235006134 = 1.1 * 0.001122732849
+[Level 0 step 7] ADVANCE at time 0.005378773678 with dt = 0.001235006134
 
-[1m[32m  Beginning subcycle 1 starting at time 0.004706426968 with dt = 0.001080630367[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.005378773678 with dt = 0.001235006134[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0002768619997 on level 0
+Castro::construct_old_gravity() time = 0.0001691150001 on level 0
 
-Castro::do_old_sources() time = 0.002938507 on level 0
+Castro::do_old_sources() time = 0.002952532 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006182642498
+...estimated hydro-limited timestep at level 0: 0.007060215969
 ...hydro-limited CFL timestep constrained at (i,j) = (127,6)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006182642498
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007060215969
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7372144321
+  Zones advanced per microsecond at this level: 0.7256568673
 
 [Level 0 step 7] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.05436704 on level 0
+Castro::construct_ctu_hydro_source() time = 0.055785719 on level 0
 
-Castro::construct_new_gravity() time = 0.0001531910002 on level 0
+Castro::construct_new_gravity() time = 0.0001531030002 on level 0
 
-Castro::do_new_sources() time = 0.004090098 on level 0
-
-
-TIME= 0.005787057335 MASS        = 8001.453967
-TIME= 0.005787057335 XMOM        = 0.9074393853
-TIME= 0.005787057335 YMOM        = 6.373522145
-TIME= 0.005787057335 ZMOM        = 0
-TIME= 0.005787057335 ANG MOM X   = 0
-TIME= 0.005787057335 ANG MOM Y   = 0
-TIME= 0.005787057335 ANG MOM Z   = -53.36723479
-TIME= 0.005787057335 RHO*e       = 35734.85388
-TIME= 0.005787057335 RHO*K       = 1232.073646
-TIME= 0.005787057335 RHO*E       = 36966.92753
-TIME= 0.005787057335 RHO*PHI     = 0
-TIME= 0.005787057335 TOTAL ENERGY= 36966.92753
-TIME= 0.005787057335 CENTER OF MASS X-LOC = 2.000239887
-TIME= 0.005787057335 CENTER OF MASS X-VEL = 0.0001134093115
-TIME= 0.005787057335 CENTER OF MASS Y-LOC = 1.428653381
-TIME= 0.005787057335 CENTER OF MASS Y-VEL = 0.0007965454993
-TIME= 0.005787057335 CENTER OF MASS Z-LOC = 0
-TIME= 0.005787057335 CENTER OF MASS Z-VEL = 0
-TIME= 0.005787057335 MAXIMUM TEMPERATURE  = 5.58479647e-08
-TIME= 0.005787057335 MAXIMUM DENSITY      = 1192.790816
-
-STEP = 7 TIME = 0.005787057335 DT = 0.001080630367
+Castro::do_new_sources() time = 0.004052754 on level 0
 
 
-[STEP 7] Coarse TimeStep time: 0.069912058
+TIME= 0.006613779812 MASS        = 8001.679567
+TIME= 0.006613779812 XMOM        = 0.8878196172
+TIME= 0.006613779812 YMOM        = 8.18213072
+TIME= 0.006613779812 ZMOM        = 0
+TIME= 0.006613779812 ANG MOM X   = 0
+TIME= 0.006613779812 ANG MOM Y   = 0
+TIME= 0.006613779812 ANG MOM Z   = -53.43309775
+TIME= 0.006613779812 RHO*e       = 35847.92406
+TIME= 0.006613779812 RHO*K       = 1121.436641
+TIME= 0.006613779812 RHO*E       = 36969.3607
+TIME= 0.006613779812 RHO*PHI     = 0
+TIME= 0.006613779812 TOTAL ENERGY= 36969.3607
+TIME= 0.006613779812 CENTER OF MASS X-LOC = 2.000269745
+TIME= 0.006613779812 CENTER OF MASS X-VEL = 0.0001109541578
+TIME= 0.006613779812 CENTER OF MASS Y-LOC = 1.428628316
+TIME= 0.006613779812 CENTER OF MASS Y-VEL = 0.00102255166
+TIME= 0.006613779812 CENTER OF MASS Z-LOC = 0
+TIME= 0.006613779812 CENTER OF MASS Z-VEL = 0
+TIME= 0.006613779812 MAXIMUM TEMPERATURE  = 5.635267072e-08
+TIME= 0.006613779812 MAXIMUM DENSITY      = 1205.041026
+
+STEP = 7 TIME = 0.006613779812 DT = 0.001235006134
+
+
+[STEP 7] Coarse TimeStep time: 0.070997012
 [STEP 7] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006182642498
+...estimated hydro-limited timestep at level 0: 0.007060215969
 ...hydro-limited CFL timestep constrained at (i,j) = (127,6)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006182642498
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007060215969
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006182642498
- ... but limiting to: 0.001188693404 = 1.1 * 0.001080630367
-[Level 0 step 8] ADVANCE at time 0.005787057335 with dt = 0.001188693404
+ ... new dt computed: 0.007060215969
+ ... but limiting to: 0.001358506747 = 1.1 * 0.001235006134
+[Level 0 step 8] ADVANCE at time 0.006613779812 with dt = 0.001358506747
 
-[1m[32m  Beginning subcycle 1 starting at time 0.005787057335 with dt = 0.001188693404[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.006613779812 with dt = 0.001358506747[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001598929998 on level 0
+Castro::construct_old_gravity() time = 0.00020313 on level 0
 
-Castro::do_old_sources() time = 0.003003155 on level 0
+Castro::do_old_sources() time = 0.002956008 on level 0
 
 ... Leaving construct_ctu_hydro_source() on level 0
 
-...estimated hydro-limited timestep at level 0: 0.006176671744
+...estimated hydro-limited timestep at level 0: 0.007055751495
 ...hydro-limited CFL timestep constrained at (i,j) = (127,6)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006176671744
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007055751495
 
 [1m[32m  Subcycle completed[0m
 
   Subcycling complete
 
-  Zones advanced per microsecond at this level: 0.7320435425
+  Zones advanced per microsecond at this level: 0.6266647376
 
 [Level 0 step 8] Advanced 49152 cells
-Castro::construct_ctu_hydro_source() time = 0.055203241 on level 0
+Castro::construct_ctu_hydro_source() time = 0.066445507 on level 0
 
-Castro::construct_new_gravity() time = 0.0001518839999 on level 0
+Castro::construct_new_gravity() time = 0.0001565709999 on level 0
 
-Castro::do_new_sources() time = 0.004012471 on level 0
-
-
-TIME= 0.006975750739 MASS        = 8001.776226
-TIME= 0.006975750739 XMOM        = 0.8751989687
-TIME= 0.006975750739 YMOM        = 8.075968043
-TIME= 0.006975750739 ZMOM        = 0
-TIME= 0.006975750739 ANG MOM X   = 0
-TIME= 0.006975750739 ANG MOM Y   = 0
-TIME= 0.006975750739 ANG MOM Z   = -53.61513743
-TIME= 0.006975750739 RHO*e       = 35890.14127
-TIME= 0.006975750739 RHO*K       = 1079.573251
-TIME= 0.006975750739 RHO*E       = 36969.71452
-TIME= 0.006975750739 RHO*PHI     = 0
-TIME= 0.006975750739 TOTAL ENERGY= 36969.71452
-TIME= 0.006975750739 CENTER OF MASS X-LOC = 2.000282973
-TIME= 0.006975750739 CENTER OF MASS X-VEL = 0.0001093755866
-TIME= 0.006975750739 CENTER OF MASS Y-LOC = 1.428662372
-TIME= 0.006975750739 CENTER OF MASS Y-VEL = 0.001009271918
-TIME= 0.006975750739 CENTER OF MASS Z-LOC = 0
-TIME= 0.006975750739 CENTER OF MASS Z-VEL = 0
-TIME= 0.006975750739 MAXIMUM TEMPERATURE  = 5.644556891e-08
-TIME= 0.006975750739 MAXIMUM DENSITY      = 1209.725634
-
-STEP = 8 TIME = 0.006975750739 DT = 0.001188693404
+Castro::do_new_sources() time = 0.004148866 on level 0
 
 
-[STEP 8] Coarse TimeStep time: 0.07043508
+TIME= 0.007972286559 MASS        = 8002.048396
+TIME= 0.007972286559 XMOM        = 0.8334796437
+TIME= 0.007972286559 YMOM        = 10.30132509
+TIME= 0.007972286559 ZMOM        = 0
+TIME= 0.007972286559 ANG MOM X   = 0
+TIME= 0.007972286559 ANG MOM Y   = 0
+TIME= 0.007972286559 ANG MOM Z   = -54.01409503
+TIME= 0.007972286559 RHO*e       = 35998.93092
+TIME= 0.007972286559 RHO*K       = 973.7735811
+TIME= 0.007972286559 RHO*E       = 36972.7045
+TIME= 0.007972286559 RHO*PHI     = 0
+TIME= 0.007972286559 TOTAL ENERGY= 36972.7045
+TIME= 0.007972286559 CENTER OF MASS X-LOC = 2.000317477
+TIME= 0.007972286559 CENTER OF MASS X-VEL = 0.0001041582858
+TIME= 0.007972286559 CENTER OF MASS Y-LOC = 1.428630171
+TIME= 0.007972286559 CENTER OF MASS Y-VEL = 0.001287336015
+TIME= 0.007972286559 CENTER OF MASS Z-LOC = 0
+TIME= 0.007972286559 CENTER OF MASS Z-VEL = 0
+TIME= 0.007972286559 MAXIMUM TEMPERATURE  = 5.686874377e-08
+TIME= 0.007972286559 MAXIMUM DENSITY      = 1213.247812
+
+STEP = 8 TIME = 0.007972286559 DT = 0.001358506747
+
+
+[STEP 8] Coarse TimeStep time: 0.081670591
 [STEP 8] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
 
-...estimated hydro-limited timestep at level 0: 0.006176671744
+...estimated hydro-limited timestep at level 0: 0.007055751495
 ...hydro-limited CFL timestep constrained at (i,j) = (127,6)
-Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.006176671744
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007055751495
 
 Castro::compute_new_dt : limiting dt at level 0
- ... new dt computed: 0.006176671744
- ... but limiting to: 0.001307562744 = 1.1 * 0.001188693404
-[Level 0 step 9] ADVANCE at time 0.006975750739 with dt = 0.001307562744
+ ... new dt computed: 0.007055751495
+ ... but limiting to: 0.001494357422 = 1.1 * 0.001358506747
+[Level 0 step 9] ADVANCE at time 0.007972286559 with dt = 0.001494357422
 
-[1m[32m  Beginning subcycle 1 starting at time 0.006975750739 with dt = 0.001307562744[0m
+[1m[32m  Beginning subcycle 1 starting at time 0.007972286559 with dt = 0.001494357422[0m
   Estimated number of subcycles remaining: 1
 
 ... Entering construct_ctu_hydro_source() on level 0
 
-Castro::construct_old_gravity() time = 0.0001725269999 on level 0
+Castro::construct_old_gravity() time = 0.000167916 on level 0
 
-Castro::do_old_sources() time = 0.003382251 on level 0
+Castro::do_old_sources() time = 0.002828373 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007054744306
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007054744306
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7256404764
+
+[Level 0 step 9] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.056042653 on level 0
+
+Castro::construct_new_gravity() time = 0.0001635469998 on level 0
+
+Castro::do_new_sources() time = 0.003887527 on level 0
+
+
+TIME= 0.00946664398 MASS        = 8002.450049
+TIME= 0.00946664398 XMOM        = 0.7470655256
+TIME= 0.00946664398 YMOM        = 12.73499608
+TIME= 0.00946664398 ZMOM        = 0
+TIME= 0.00946664398 ANG MOM X   = 0
+TIME= 0.00946664398 ANG MOM Y   = 0
+TIME= 0.00946664398 ANG MOM Z   = -55.01366249
+TIME= 0.00946664398 RHO*e       = 36127.7953
+TIME= 0.00946664398 RHO*K       = 848.5635001
+TIME= 0.00946664398 RHO*E       = 36976.3588
+TIME= 0.00946664398 RHO*PHI     = 0
+TIME= 0.00946664398 TOTAL ENERGY= 36976.3588
+TIME= 0.00946664398 CENTER OF MASS X-LOC = 2.000367593
+TIME= 0.00946664398 CENTER OF MASS X-VEL = 9.335460028e-05
+TIME= 0.00946664398 CENTER OF MASS Y-LOC = 1.428633231
+TIME= 0.00946664398 CENTER OF MASS Y-VEL = 0.001591387138
+TIME= 0.00946664398 CENTER OF MASS Z-LOC = 0
+TIME= 0.00946664398 CENTER OF MASS Z-VEL = 0
+TIME= 0.00946664398 MAXIMUM TEMPERATURE  = 5.706788313e-08
+TIME= 0.00946664398 MAXIMUM DENSITY      = 1217.22039
+
+STEP = 9 TIME = 0.00946664398 DT = 0.001494357422
+
+
+[STEP 9] Coarse TimeStep time: 0.07094343
+[STEP 9] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007054744306
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007054744306
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007054744306
+ ... but limiting to: 0.001643793164 = 1.1 * 0.001494357422
+[Level 0 step 10] ADVANCE at time 0.00946664398 with dt = 0.001643793164
+
+[1m[32m  Beginning subcycle 1 starting at time 0.00946664398 with dt = 0.001643793164[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
+
+Castro::construct_old_gravity() time = 0.0001757489999 on level 0
+
+Castro::do_old_sources() time = 0.002891069 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007058025123
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007058025123
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7294998585
+
+[Level 0 step 10] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.055679736 on level 0
+
+Castro::construct_new_gravity() time = 0.000153208 on level 0
+
+Castro::do_new_sources() time = 0.004004049 on level 0
+
+
+TIME= 0.01111043714 MASS        = 8002.884475
+TIME= 0.01111043714 XMOM        = 0.6192965102
+TIME= 0.01111043714 YMOM        = 15.41207482
+TIME= 0.01111043714 ZMOM        = 0
+TIME= 0.01111043714 ANG MOM X   = 0
+TIME= 0.01111043714 ANG MOM Y   = 0
+TIME= 0.01111043714 ANG MOM Z   = -56.57095304
+TIME= 0.01111043714 RHO*e       = 36235.41332
+TIME= 0.01111043714 RHO*K       = 744.9109414
+TIME= 0.01111043714 RHO*E       = 36980.32426
+TIME= 0.01111043714 RHO*PHI     = 0
+TIME= 0.01111043714 TOTAL ENERGY= 36980.32426
+TIME= 0.01111043714 CENTER OF MASS X-LOC = 2.000420135
+TIME= 0.01111043714 CENTER OF MASS X-VEL = 7.73841622e-05
+TIME= 0.01111043714 CENTER OF MASS Y-LOC = 1.428637627
+TIME= 0.01111043714 CENTER OF MASS Y-VEL = 0.001925814981
+TIME= 0.01111043714 CENTER OF MASS Z-LOC = 0
+TIME= 0.01111043714 CENTER OF MASS Z-VEL = 0
+TIME= 0.01111043714 MAXIMUM TEMPERATURE  = 5.704923263e-08
+TIME= 0.01111043714 MAXIMUM DENSITY      = 1217.337945
+
+STEP = 10 TIME = 0.01111043714 DT = 0.001643793164
+
+
+[STEP 10] Coarse TimeStep time: 0.070664194
+[STEP 10] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007058025123
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007058025123
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007058025123
+ ... but limiting to: 0.00180817248 = 1.1 * 0.001643793164
+[Level 0 step 11] ADVANCE at time 0.01111043714 with dt = 0.00180817248
+
+[1m[32m  Beginning subcycle 1 starting at time 0.01111043714 with dt = 0.00180817248[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
+
+Castro::construct_old_gravity() time = 0.0001674690002 on level 0
+
+Castro::do_old_sources() time = 0.002832082 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007065124406
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007065124406
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7286956699
+
+[Level 0 step 11] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.055556582 on level 0
+
+Castro::construct_new_gravity() time = 0.0001529649999 on level 0
+
+Castro::do_new_sources() time = 0.004177172 on level 0
+
+
+TIME= 0.01291860962 MASS        = 8003.351192
+TIME= 0.01291860962 XMOM        = 0.4517512807
+TIME= 0.01291860962 YMOM        = 18.37763615
+TIME= 0.01291860962 ZMOM        = 0
+TIME= 0.01291860962 ANG MOM X   = 0
+TIME= 0.01291860962 ANG MOM Y   = 0
+TIME= 0.01291860962 ANG MOM Z   = -58.68816648
+TIME= 0.01291860962 RHO*e       = 36323.45119
+TIME= 0.01291860962 RHO*K       = 661.1331383
+TIME= 0.01291860962 RHO*E       = 36984.58433
+TIME= 0.01291860962 RHO*PHI     = 0
+TIME= 0.01291860962 TOTAL ENERGY= 36984.58433
+TIME= 0.01291860962 CENTER OF MASS X-LOC = 2.000475878
+TIME= 0.01291860962 CENTER OF MASS X-VEL = 5.644526522e-05
+TIME= 0.01291860962 CENTER OF MASS Y-LOC = 1.428643919
+TIME= 0.01291860962 CENTER OF MASS Y-VEL = 0.002296242625
+TIME= 0.01291860962 CENTER OF MASS Z-LOC = 0
+TIME= 0.01291860962 CENTER OF MASS Z-VEL = 0
+TIME= 0.01291860962 MAXIMUM TEMPERATURE  = 5.708808025e-08
+TIME= 0.01291860962 MAXIMUM DENSITY      = 1210.715996
+
+STEP = 11 TIME = 0.01291860962 DT = 0.00180817248
+
+
+[STEP 11] Coarse TimeStep time: 0.070714619
+[STEP 11] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007065124406
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007065124406
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007065124406
+ ... but limiting to: 0.001988989728 = 1.1 * 0.00180817248
+[Level 0 step 12] ADVANCE at time 0.01291860962 with dt = 0.001988989728
+
+[1m[32m  Beginning subcycle 1 starting at time 0.01291860962 with dt = 0.001988989728[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
+
+Castro::construct_old_gravity() time = 0.000163143 on level 0
+
+Castro::do_old_sources() time = 0.002893255 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007075328512
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007075328512
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7252110522
+
+[Level 0 step 12] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.056189551 on level 0
+
+Castro::construct_new_gravity() time = 0.000170071 on level 0
+
+Castro::do_new_sources() time = 0.003927511 on level 0
+
+
+TIME= 0.01490759935 MASS        = 8003.848299
+TIME= 0.01490759935 XMOM        = 0.2433848782
+TIME= 0.01490759935 YMOM        = 21.62024223
+TIME= 0.01490759935 ZMOM        = 0
+TIME= 0.01490759935 ANG MOM X   = 0
+TIME= 0.01490759935 ANG MOM Y   = 0
+TIME= 0.01490759935 ANG MOM Z   = -61.26741095
+TIME= 0.01490759935 RHO*e       = 36394.24227
+TIME= 0.01490759935 RHO*K       = 594.8662759
+TIME= 0.01490759935 RHO*E       = 36989.10855
+TIME= 0.01490759935 RHO*PHI     = 0
+TIME= 0.01490759935 TOTAL ENERGY= 36989.10855
+TIME= 0.01490759935 CENTER OF MASS X-LOC = 2.000536329
+TIME= 0.01490759935 CENTER OF MASS X-VEL = 3.040848216e-05
+TIME= 0.01490759935 CENTER OF MASS Y-LOC = 1.428653035
+TIME= 0.01490759935 CENTER OF MASS Y-VEL = 0.002701230886
+TIME= 0.01490759935 CENTER OF MASS Z-LOC = 0
+TIME= 0.01490759935 CENTER OF MASS Z-VEL = 0
+TIME= 0.01490759935 MAXIMUM TEMPERATURE  = 5.746022746e-08
+TIME= 0.01490759935 MAXIMUM DENSITY      = 1199.969068
+
+STEP = 12 TIME = 0.01490759935 DT = 0.001988989728
+
+
+[STEP 12] Coarse TimeStep time: 0.071086197
+[STEP 12] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007075328512
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007075328512
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007075328512
+ ... but limiting to: 0.002187888701 = 1.1 * 0.001988989728
+[Level 0 step 13] ADVANCE at time 0.01490759935 with dt = 0.002187888701
+
+[1m[32m  Beginning subcycle 1 starting at time 0.01490759935 with dt = 0.002187888701[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
+
+Castro::construct_old_gravity() time = 0.0001862150002 on level 0
+
+Castro::do_old_sources() time = 0.002845306 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007090676735
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007090676735
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7254169805
+
+[Level 0 step 13] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.056246266 on level 0
+
+Castro::construct_new_gravity() time = 0.0001587729998 on level 0
+
+Castro::do_new_sources() time = 0.003845909 on level 0
+
+
+TIME= 0.01709548805 MASS        = 8004.374505
+TIME= 0.01709548805 XMOM        = -0.02637737012
+TIME= 0.01709548805 YMOM        = 25.22081401
+TIME= 0.01709548805 ZMOM        = 0
+TIME= 0.01709548805 ANG MOM X   = 0
+TIME= 0.01709548805 ANG MOM Y   = 0
+TIME= 0.01709548805 ANG MOM Z   = -64.40253035
+TIME= 0.01709548805 RHO*e       = 36450.33324
+TIME= 0.01709548805 RHO*K       = 543.5385025
+TIME= 0.01709548805 RHO*E       = 36993.87174
+TIME= 0.01709548805 RHO*PHI     = 0
+TIME= 0.01709548805 TOTAL ENERGY= 36993.87174
+TIME= 0.01709548805 CENTER OF MASS X-LOC = 2.000599724
+TIME= 0.01709548805 CENTER OF MASS X-VEL = -3.295369314e-06
+TIME= 0.01709548805 CENTER OF MASS Y-LOC = 1.428665473
+TIME= 0.01709548805 CENTER OF MASS Y-VEL = 0.003150878809
+TIME= 0.01709548805 CENTER OF MASS Z-LOC = 0
+TIME= 0.01709548805 CENTER OF MASS Z-VEL = 0
+TIME= 0.01709548805 MAXIMUM TEMPERATURE  = 5.766408099e-08
+TIME= 0.01709548805 MAXIMUM DENSITY      = 1198.143341
+
+STEP = 13 TIME = 0.01709548805 DT = 0.002187888701
+
+
+[STEP 13] Coarse TimeStep time: 0.071042531
+[STEP 13] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007090676735
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007090676735
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007090676735
+ ... but limiting to: 0.002406677571 = 1.1 * 0.002187888701
+[Level 0 step 14] ADVANCE at time 0.01709548805 with dt = 0.002406677571
+
+[1m[32m  Beginning subcycle 1 starting at time 0.01709548805 with dt = 0.002406677571[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
+
+Castro::construct_old_gravity() time = 0.00016594 on level 0
+
+Castro::do_old_sources() time = 0.002949476 on level 0
+
+... Leaving construct_ctu_hydro_source() on level 0
+
+...estimated hydro-limited timestep at level 0: 0.007109859348
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007109859348
+
+[1m[32m  Subcycle completed[0m
+
+  Subcycling complete
+
+  Zones advanced per microsecond at this level: 0.7234214372
+
+[Level 0 step 14] Advanced 49152 cells
+Castro::construct_ctu_hydro_source() time = 0.056262947 on level 0
+
+Castro::construct_new_gravity() time = 0.0001588240002 on level 0
+
+Castro::do_new_sources() time = 0.00392044 on level 0
+
+
+TIME= 0.01950216563 MASS        = 8004.924685
+TIME= 0.01950216563 XMOM        = -0.3579835712
+TIME= 0.01950216563 YMOM        = 29.1530651
+TIME= 0.01950216563 ZMOM        = 0
+TIME= 0.01950216563 ANG MOM X   = 0
+TIME= 0.01950216563 ANG MOM Y   = 0
+TIME= 0.01950216563 ANG MOM Z   = -68.10945792
+TIME= 0.01950216563 RHO*e       = 36495.0064
+TIME= 0.01950216563 RHO*K       = 503.8125861
+TIME= 0.01950216563 RHO*E       = 36998.81899
+TIME= 0.01950216563 RHO*PHI     = 0
+TIME= 0.01950216563 TOTAL ENERGY= 36998.81899
+TIME= 0.01950216563 CENTER OF MASS X-LOC = 2.000666674
+TIME= 0.01950216563 CENTER OF MASS X-VEL = -4.472041716e-05
+TIME= 0.01950216563 CENTER OF MASS Y-LOC = 1.428681974
+TIME= 0.01950216563 CENTER OF MASS Y-VEL = 0.003641891242
+TIME= 0.01950216563 CENTER OF MASS Z-LOC = 0
+TIME= 0.01950216563 CENTER OF MASS Z-VEL = 0
+TIME= 0.01950216563 MAXIMUM TEMPERATURE  = 5.766083408e-08
+TIME= 0.01950216563 MAXIMUM DENSITY      = 1189.475978
+
+STEP = 14 TIME = 0.01950216563 DT = 0.002406677571
+
+
+[STEP 14] Coarse TimeStep time: 0.071170274
+[STEP 14] FAB kilobyte spread across MPI nodes: [41776 ... 41776]
+
+...estimated hydro-limited timestep at level 0: 0.007109859348
+...hydro-limited CFL timestep constrained at (i,j) = (127,6)
+Castro::estTimeStep (hydro-limited) at level 0:  estdt = 0.007109859348
+
+Castro::compute_new_dt : limiting dt at level 0
+ ... new dt computed: 0.007109859348
+ ... but limiting to: 0.002647345329 = 1.1 * 0.002406677571
+[Level 0 step 15] ADVANCE at time 0.01950216563 with dt = 0.002647345329
+
+[1m[32m  Beginning subcycle 1 starting at time 0.01950216563 with dt = 0.002647345329[0m
+  Estimated number of subcycles remaining: 1
+
+... Entering construct_ctu_hydro_source() on level 0
 

@@ -25,11 +25,13 @@ castro.add_ext_src = 1
 castro.do_grav = 1
 castro.do_sponge = 0
 
+castro.use_pslope = 1
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -2.0
 
 # TIME STEP CONTROL
-castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 

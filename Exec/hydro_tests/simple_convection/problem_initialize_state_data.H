@@ -34,6 +34,7 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
     state(i,j,k,URHO) = interpolate(height, model::idens);
+    amrex::Real pressure = interpolate(height, model::ipres);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
@@ -41,12 +42,13 @@ void problem_initialize_state_data (int i, int j, int k,
 
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
+    eos_state.p = pressure;
     eos_state.T = state(i,j,k,UTEMP);
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n);
     }
 
-    eos(eos_input_rt, eos_state);
+    eos(eos_input_rp, eos_state);
 
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,UEINT);
