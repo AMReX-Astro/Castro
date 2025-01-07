@@ -8,7 +8,8 @@
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
-                                    const GeometryData& geomdata)
+                                    const GeometryData& geomdata,
+                                    amrex::RandomEngine const& engine)
 {
 
     const Real* dx = geomdata.CellSize();
@@ -59,42 +60,18 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-#if 0
-    //  Now add the velocity perturbation
-    if (problem::apply_vel_field) {
+    if (state(i,j,k,URHO) > 2.0_rt * problem::low_density_cutoff) {
 
-        Real ydist = y - problem::velpert_height_loc;
+        amrex::Real cs = std::sqrt(eos_rp::eos_gamma * eos_state.p / state(i,j,k,URHO));
 
-        Real upert[3] = {0.0_rt};
-
-        // at the moment this is really just a 2-d perturbation
-
-        // loop over each vortex
-
-        for (int vortex = 0; vortex < problem::num_vortices; vortex++) {
-
-            Real xdist = x - problem::xloc_vortices[vortex];
-
-            Real r = std::sqrt(xdist * xdist + ydist * ydist);
-
-            upert[0] += -(ydist/problem::velpert_scale) * problem::velpert_amplitude *
-                std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
-                std::pow(-1.0_rt, vortex+1);
-
-            upert[1] += (xdist/problem::velpert_scale) * problem::velpert_amplitude *
-                std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
-                std::pow(-1.0_rt, vortex+1);
-        }
-
-        state(i,j,k,UMX) = state(i,j,k,URHO) * upert[0];
-        state(i,j,k,UMY) = state(i,j,k,URHO) * upert[1];
+        state(i,j,k,UMX) = state(i,j,k,URHO) * (2.0 * amrex::Random(engine) - 1.0_rt);
+        state(i,j,k,UMY) = state(i,j,k,URHO) * (2.0 * amrex::Random(engine) - 1.0_rt);
         state(i,j,k,UMZ) = 0.0_rt;
 
-        state(i,j,k,UEDEN) += 0.5_rt * state(i,j,k,URHO) * (upert[0] * upert[0] +
-                                                            upert[1] * upert[1] +
-                                                            upert[2] * upert[2]);
+        state(i,j,k,UEDEN) += 0.5_rt * (state(i,j,k,UMX) * state(i,j,k,UMX) +
+                                        state(i,j,k,UMY) * state(i,j,k,UMY) +
+                                        state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
     }
-#endif
 
 }
 
