@@ -66,8 +66,8 @@ void problem_initialize_state_data (int i, int j, int k,
 
         amrex::Real cs = std::sqrt(eos_rp::eos_gamma * eos_state.p / state(i,j,k,URHO));
 
-        state(i,j,k,UMX) = state(i,j,k,URHO) * (2.0 * amrex::Random(engine) - 1.0_rt);
-        state(i,j,k,UMY) = state(i,j,k,URHO) * (2.0 * amrex::Random(engine) - 1.0_rt);
+        state(i,j,k,UMX) = state(i,j,k,URHO) * 0.05_rt * cs * (2.0 * amrex::Random(engine) - 1.0_rt);
+        state(i,j,k,UMY) = state(i,j,k,URHO) * 0.05_rt * cs * (2.0 * amrex::Random(engine) - 1.0_rt);
         state(i,j,k,UMZ) = 0.0_rt;
 
         state(i,j,k,UEDEN) += 0.5_rt * (state(i,j,k,UMX) * state(i,j,k,UMX) +
