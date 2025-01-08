@@ -17,6 +17,10 @@ amr.n_cell           = 128     384
 castro.lo_bc       =  2   3
 castro.hi_bc       =  2   2
 
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -25,6 +29,9 @@ castro.add_ext_src = 1
 castro.do_grav = 1
 castro.do_sponge = 0
 
+castro.ppm_type = 1
+castro.grav_source_type = 2
+castro.use_pslope = 1
 castro.use_pslope = 1
 
 gravity.gravity_type = ConstantGrav
