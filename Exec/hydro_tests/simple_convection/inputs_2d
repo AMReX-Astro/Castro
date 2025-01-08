@@ -74,5 +74,6 @@ problem.scale_height = 2.0
 problem.dens_base = 1000.0
 problem.low_density_cutoff = 1.e-3
 
+problem.e_rate = 0.5
 
 
