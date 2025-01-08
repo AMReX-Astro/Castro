@@ -23,7 +23,7 @@ USE_MAESTRO_INIT = FALSE
 
 CASTRO_HOME ?= ../../..
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the Network directory in $(MICROPHYSICS_HOME)/networks
