@@ -29,7 +29,7 @@ jobs:
           sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
 
       - name: Install CUDA
-        run: .github/workflows/dependencies/dependencies_nvcc.sh 12.6
+        run: .github/workflows/dependencies/dependencies_nvcc.sh 12.5
 
       - name: Install hypre
         run: |
