@@ -3,7 +3,7 @@ name: exact Riemann
 on: [pull_request]
 jobs:
   exact_riemann:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
