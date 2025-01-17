@@ -975,8 +975,7 @@ Castro::variableSetUp ()
   //
   // We want a derived type that corresponds to the number of particles
   // in each cell.  We only intend to use it in plotfiles for debugging
-  // purposes.  We'll just use the DERNULL since don't do anything in
-  // fortran for now.  We'll actually set the values in writePlotFile().
+  // purposes.  We'll actually set the values in writePlotFile().
   //
   derive_lst.add("particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
   derive_lst.addComponent("particle_count",desc_lst,State_Type,URHO,1);

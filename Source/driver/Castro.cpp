@@ -1015,7 +1015,7 @@ Castro::initData ()
     BL_PROFILE("Castro::initData()");
 
     //
-    // Loop over grids, call FORTRAN function to init with data.
+    // Loop over grids, call initialization functions
     //
 #if AMREX_SPACEDIM > 1
     const Real* dx  = geom.CellSize();
@@ -3716,8 +3716,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  // grab them from Fortran to C++; then read any C++ parameters directly
-  // from inputs (via ParmParse)
+  // read any runtime parameters directly from inputs (via ParmParse)
   init_extern_parameters();
 
 }
