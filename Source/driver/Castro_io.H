@@ -19,6 +19,12 @@ public:
         std::cout.rdbuf(original_output);
     }
 
+    // Remove copy/move constructors/assignment operators.
+    CoutRedirection (const CoutRedirection&) = delete;
+    CoutRedirection (CoutRedirection&&) = delete;
+    CoutRedirection& operator= (const CoutRedirection&) = delete;
+    CoutRedirection& operator= (CoutRedirection&&) = delete;
+
     std::string getCapturedOutput () {
         return captured_output.str();
     }
