@@ -288,7 +288,7 @@ Castro::finalize_do_advance (Real time, Real dt)
             if (do_validity_check) {
                 int is_new = 1;
 
-		// We only display the estTimeStep output if the validity check fails
+                // We only display the estTimeStep output if the validity check fails
                 std::string estTimeStep_output;
 
                 Real new_dt;
