@@ -289,15 +289,15 @@ Castro::finalize_do_advance (Real time, Real dt)
                 int is_new = 1;
 
 		// We only display the estTimeStep output if the validity check fails
-		std::string estTimeStep_output;
+                std::string estTimeStep_output;
 
-		Real new_dt;
+                Real new_dt;
 
-		{
-		    CoutRedirection redirection;
-		    new_dt = estTimeStep(is_new);
-		    estTimeStep_output = redirection.getCapturedOutput();
-		}
+                {
+                    CoutRedirection redirection;
+                    new_dt = estTimeStep(is_new);
+                    estTimeStep_output = redirection.getCapturedOutput();
+                }
 
                 if (castro::change_max * new_dt < dt) {
                     status.success = false;
