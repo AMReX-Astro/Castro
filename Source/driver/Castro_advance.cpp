@@ -229,10 +229,21 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
         int is_new = 0;
-        Real old_dt = estTimeStep(is_new);
+
+        // We only display the estTimeStep output if the validity check fails
+        std::string estTimeStep_output;
+
+        Real old_dt;
+
+        {
+            CoutRedirection redirection;
+            old_dt = estTimeStep(is_new);
+            estTimeStep_output = redirection.getCapturedOutput();
+        }
 
         if (castro::change_max * old_dt < dt) {
             status.success = false;
+            std::cout << estTimeStep_output;
             status.reason = "pre-advance timestep validity check failed";
         }
     }
@@ -276,10 +287,21 @@ Castro::finalize_do_advance (Real time, Real dt)
 
             if (do_validity_check) {
                 int is_new = 1;
-                Real new_dt = estTimeStep(is_new);
+
+		// We only display the estTimeStep output if the validity check fails
+		std::string estTimeStep_output;
+
+		Real new_dt;
+
+		{
+		    CoutRedirection redirection;
+		    new_dt = estTimeStep(is_new);
+		    estTimeStep_output = redirection.getCapturedOutput();
+		}
 
                 if (castro::change_max * new_dt < dt) {
                     status.success = false;
+                    std::cout << estTimeStep_output;
                     status.reason = "post-advance timestep validity check failed";
                     return status;
                 }
