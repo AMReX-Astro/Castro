@@ -12,15 +12,15 @@ class CoutRedirection {
 
 public:
     CoutRedirection () : original_output(std::cout.rdbuf()) {
-	std::cout.rdbuf(captured_output.rdbuf());
+        std::cout.rdbuf(captured_output.rdbuf());
     }
 
     ~CoutRedirection () {
-	std::cout.rdbuf(original_output);
+        std::cout.rdbuf(original_output);
     }
 
     std::string getCapturedOutput () {
-	return captured_output.str();
+        return captured_output.str();
     }
 
 private:
