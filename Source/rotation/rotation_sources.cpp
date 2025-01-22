@@ -148,9 +148,7 @@ Castro::corrrsrc(const Box& bx,
 
   // Corrector step for the rotation source terms. This is applied
   // after the hydrodynamics update to fix the time-level n
-  // prediction and add the time-level n+1 data.  This subroutine
-  // exists outside of the Fortran module above because it needs to
-  // be called directly from C++.
+  // prediction and add the time-level n+1 data.
 
   // uold and unew are the old and new time state data
 
