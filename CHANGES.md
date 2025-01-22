@@ -928,7 +928,7 @@
      the conversion of primitive to conserved variables (#804)
 
    * We've changed how the backup for retries is done.  Presently if
-     use_retry is enabled we make a pre-emptive copy of the StateData
+     use_retry is enabled we make a preemptive copy of the StateData
      right at the beginning of the timestep.  Now we only backup when
      we detect that a retry is needed (#812)
 
