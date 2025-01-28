@@ -19,7 +19,7 @@ USE_MODEL_PARSER = TRUE
 
 USE_SIMPLIFIED_SDC=TRUE
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks

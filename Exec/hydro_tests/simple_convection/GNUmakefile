@@ -1,17 +1,20 @@
-PRECISION  = DOUBLE
-PROFILE    = FALSE
+PRECISION        = DOUBLE
+PROFILE          = FALSE
+DEBUG            = FALSE
+DIM              = 2
 
-DEBUG      = FALSE
+COMP	         = gnu
 
-DIM        = 2
+USE_MPI          = TRUE
+USE_OMP          = FALSE
 
-COMP	   = gnu
+USE_GRAV         = TRUE
+USE_REACT        = FALSE
 
-USE_MPI    = TRUE
-USE_OMP    = FALSE
+USE_MODEL_PARSER = TRUE
+USE_RNG_STATE_INIT = TRUE
 
-# define the location of the CASTRO top directory
-CASTRO_HOME  ?= ../../..
+CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := gamma_law
