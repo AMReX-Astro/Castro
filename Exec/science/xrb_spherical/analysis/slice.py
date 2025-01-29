@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
-from yt.units import cm
 
 
 def slice(fnames:List[str], fields:List[str],
