@@ -155,6 +155,20 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const& qm,
                             Array4<Real> const& qp) {
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  const auto dx = geom.CellSizeArray();
+
+  bool lo_bc_test = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_bc_test = hi_bc[idir] == amrex::PhysBCType::symmetry;
+
+  bool is_axisymmetric = geom.Coord() == 1
+;
   amrex::ParallelFor(bx, NQ,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
@@ -165,7 +179,9 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sp;
 
     load_stencil(q_arr, idir, i, j, k, n, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir, dx[idir],
+                    lo_bc_test, hi_bc_test, is_axisymmetric, domlo, domhi,
+                    flat, sm, sp);
 
     if (idir == 0) {
       // right state at i-1/2
