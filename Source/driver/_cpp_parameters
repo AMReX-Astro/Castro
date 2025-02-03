@@ -377,6 +377,9 @@ stopping_criterion_field     string        ""
 # Threshold value for determining whether to stop.
 stopping_criterion_value     Real          1.e200
 
+# whether to loosen nse bailout condition when max_subcycles is reached
+loosen_nse_bailout               int           0
+
 #-----------------------------------------------------------------------------
 # category: reactions
 #-----------------------------------------------------------------------------
