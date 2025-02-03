@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File Castro_io.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
@@ -105,6 +105,18 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_io.H</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv411inputs_name"><code class="docutils literal notranslate"><span class="pre">inputs_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv415CoutRedirection"><code class="docutils literal notranslate"><span class="pre">CoutRedirection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection15CoutRedirectionEv"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::CoutRedirection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirectionD0Ev"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::~CoutRedirection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection15CoutRedirectionERK15CoutRedirection"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::CoutRedirection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection15CoutRedirectionERR15CoutRedirection"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::CoutRedirection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirectionaSERK15CoutRedirection"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirectionaSERR15CoutRedirection"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::operator=()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection17getCapturedOutputEv"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::getCapturedOutput()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection15captured_outputE"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::captured_output</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N15CoutRedirection15original_outputE"><code class="docutils literal notranslate"><span class="pre">CoutRedirection::original_output</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
@@ -223,6 +235,64 @@
 <dd></dd></dl>
 
 </div>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415CoutRedirection">
+<span id="_CPPv315CoutRedirection"></span><span id="_CPPv215CoutRedirection"></span><span id="CoutRedirection"></span><span class="target" id="classCoutRedirection"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CoutRedirection</span></span></span><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;Castro_io.H&gt;</em></div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection15CoutRedirectionEv">
+<span id="_CPPv3N15CoutRedirection15CoutRedirectionEv"></span><span id="_CPPv2N15CoutRedirection15CoutRedirectionEv"></span><span id="CoutRedirection::CoutRedirection"></span><span class="target" id="classCoutRedirection_1a6596a85413984f08eed3bf7cd7f64089"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CoutRedirection</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirectionD0Ev">
+<span id="_CPPv3N15CoutRedirectionD0Ev"></span><span id="_CPPv2N15CoutRedirectionD0Ev"></span><span id="CoutRedirection::~CoutRedirection"></span><span class="target" id="classCoutRedirection_1a9fc17953ff8930f1b5e960d7f94a9903"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~CoutRedirection</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection15CoutRedirectionERK15CoutRedirection">
+<span id="_CPPv3N15CoutRedirection15CoutRedirectionERK15CoutRedirection"></span><span id="_CPPv2N15CoutRedirection15CoutRedirectionERK15CoutRedirection"></span><span id="CoutRedirection::CoutRedirection__CoutRedirectionCR"></span><span class="target" id="classCoutRedirection_1ac5fcbd752c40479bdf2df4431982b870"></span><span class="sig-name descname"><span class="n"><span class="pre">CoutRedirection</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv4N15CoutRedirection15CoutRedirectionERK15CoutRedirection" title="CoutRedirection::CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection15CoutRedirectionERR15CoutRedirection">
+<span id="_CPPv3N15CoutRedirection15CoutRedirectionERR15CoutRedirection"></span><span id="_CPPv2N15CoutRedirection15CoutRedirectionERR15CoutRedirection"></span><span id="CoutRedirection::CoutRedirection__CoutRedirectionRR"></span><span class="target" id="classCoutRedirection_1a6558e97e04094a511f6c3d5b5d451499"></span><span class="sig-name descname"><span class="n"><span class="pre">CoutRedirection</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv4N15CoutRedirection15CoutRedirectionERR15CoutRedirection" title="CoutRedirection::CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirectionaSERK15CoutRedirection">
+<span id="_CPPv3N15CoutRedirectionaSERK15CoutRedirection"></span><span id="_CPPv2N15CoutRedirectionaSERK15CoutRedirection"></span><span id="CoutRedirection::assign-operator__CoutRedirectionCR"></span><span class="target" id="classCoutRedirection_1a9784f3bec5d85fb1e67b621a7d6966d4"></span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv415CoutRedirection" title="CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv415CoutRedirection" title="CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirectionaSERR15CoutRedirection">
+<span id="_CPPv3N15CoutRedirectionaSERR15CoutRedirection"></span><span id="_CPPv2N15CoutRedirectionaSERR15CoutRedirection"></span><span id="CoutRedirection::assign-operator__CoutRedirectionRR"></span><span class="target" id="classCoutRedirection_1ab528b093decc11eaec1c1142360550ac"></span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv415CoutRedirection" title="CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../class/classCoutRedirection.html#_CPPv415CoutRedirection" title="CoutRedirection"><span class="n"><span class="pre">CoutRedirection</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection17getCapturedOutputEv">
+<span id="_CPPv3N15CoutRedirection17getCapturedOutputEv"></span><span id="_CPPv2N15CoutRedirection17getCapturedOutputEv"></span><span id="CoutRedirection::getCapturedOutput"></span><span class="target" id="classCoutRedirection_1ab70f3e90145ac7ba368472a872a24ad0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">getCapturedOutput</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-members">Private Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection15captured_outputE">
+<span id="_CPPv3N15CoutRedirection15captured_outputE"></span><span id="_CPPv2N15CoutRedirection15captured_outputE"></span><span id="CoutRedirection::captured_output__std::ostringstream"></span><span class="target" id="classCoutRedirection_1a22c26eed75e5c24743bbcd623bec0d88"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostringstream</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">captured_output</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N15CoutRedirection15original_outputE">
+<span id="_CPPv3N15CoutRedirection15original_outputE"></span><span id="_CPPv2N15CoutRedirection15original_outputE"></span><span id="CoutRedirection::original_output__std::streambufP"></span><span class="target" id="classCoutRedirection_1ae3164a6ad47101ef056395b1989ad6e0"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">streambuf</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">original_output</span></span></span><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </section>
 
 

@@ -1,0 +1,4 @@
+Class CoutRedirection
+=====================
+
+.. doxygenclass:: CoutRedirection

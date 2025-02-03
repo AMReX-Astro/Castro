@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File Radiation.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
@@ -533,7 +533,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9Radiation12consRegisterEi">
-<span id="_CPPv3N9Radiation12consRegisterEi"></span><span id="_CPPv2N9Radiation12consRegisterEi"></span><span id="Radiation::consRegister__i"></span><span class="target" id="classRadiation_1a7b45ae8eba8f7ffc9d7373e3e474ae91"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">FluxRegister</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">consRegister</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span><span class="sig-paren">)</span><br /></dt>
+<span id="_CPPv3N9Radiation12consRegisterEi"></span><span id="_CPPv2N9Radiation12consRegisterEi"></span><span id="Radiation::consRegister__i"></span><span class="target" id="classRadiation_1a4e5b8b8a81afa0c389d9570027f8a7a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">FluxRegister</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">consRegister</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span><span class="sig-paren">)</span><br /></dt>
 <dd><p>access to conservation flux register for energy diagnostics</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -889,14 +889,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>R</strong> – </p></li>
-<li><p><strong>kappa_r</strong> – </p></li>
-<li><p><strong>kcomp</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>igroup</strong> – </p></li>
-<li><p><strong>nGrow_Er</strong> – </p></li>
-<li><p><strong>Rcomp</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -910,9 +903,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>lamcomp</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1363,8 +1354,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1394,12 +1384,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
 <li><p><strong>Snew</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>F</strong> – </p></li>
-<li><p><strong>iflx</strong> – </p></li>
-<li><p><strong>lab_factor</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1413,11 +1398,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
 <li><p><strong>Snew</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>F</strong> – </p></li>
-<li><p><strong>iflx</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
