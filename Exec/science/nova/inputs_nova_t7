@@ -1,12 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 2000000
+#max_step = 2732918
+stop_time = 1700.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1          0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0          0
-geometry.prob_hi     = 20.480e7   10.240e7
-amr.n_cell           = 1280       640
+geometry.prob_hi     = 30.720e7   15.360e7
+amr.n_cell           = 1920       960
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -47,6 +48,8 @@ castro.small_temp = 5.0e5
 castro.small_dens = 1.0e-6
 castro.retry_small_density_cutoff = 2.0e-5
 castro.limit_fluxes_on_small_dens = 1
+castro.state_interp_order = 0
+#castro.abundance_failure_rho_cutoff = 1.0e-3
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.06e8
@@ -69,7 +72,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 2            # maximum level number allowed
+amr.max_level       = 1            # maximum level number allowed
 amr.ref_ratio       = 4 2          # refinement ratio
 amr.regrid_int      = 2 2          # how often to regrid
 amr.max_grid_size   = 256
@@ -80,11 +83,11 @@ amr.refine_grid_layout = 0
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 150       # number of timesteps between checkpoints
+amr.check_per       = 0.1        # size of timestep between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_int         = 5000       # number of timesteps between plotfiles
+amr.plot_per         = 0.1        # set a plot every half second
 amr.derive_plot_vars = ALL
 
 # DATA LOG
@@ -92,12 +95,12 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T7_10000.00cm.hse"
+problem.model_name =  "glasner_T7.hse.dx10000.00cm"
 
 problem.apply_vel_field = 0
 problem.apply_temp_field = 1
 problem.width = 1.0e6
-problem.amplitude = 0.5
+problem.amplitude = 0.05
 problem.num_vortices = 10
 problem.width_ratio = 1.8
 
@@ -118,7 +121,7 @@ amr.refine.dens.value_greater = 1.0e2
 amr.refine.dens.field_name = density
 
 amr.refine.temp.max_level = 2
-amr.refine.temp.value_greater = 1.0e7
+amr.refine.temp.value_greater = 3.0e7
 amr.refine.temp.field_name = Temp
 
 amr.refine.edot.max_level = 2
