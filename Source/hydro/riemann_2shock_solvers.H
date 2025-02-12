@@ -29,7 +29,7 @@ namespace TwoShock {
 
       // CG Eq. 31
       gstar = (pstar-p)*gdot/(pstar+p) + gam;
-      gstar = std::clamp(gstar, gmin, gmax);
+      gstar = amrex::Clamp(gstar, gmin, gmax);
 
       // Now use that predicted value of game with the R-H jump conditions
       // to compute the wave speed.
@@ -666,7 +666,7 @@ namespace TwoShock {
 
       // interpolate for the case that we are in a rarefaction
       amrex::Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
-      frac = std::clamp(frac, 0.0_rt, 1.0_rt);
+      frac = amrex::Clamp(frac, 0.0_rt, 1.0_rt);
 
       qint.rho = frac*rstar + (1.0_rt - frac)*ro;
       qint.un = frac*ustar + (1.0_rt - frac)*uo;
