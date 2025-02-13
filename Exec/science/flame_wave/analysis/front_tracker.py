@@ -391,14 +391,19 @@ class Metrics:
             fig: mpl.figure.Figure
             ax: mpl.axes.Axes
             fig, plt_axes = plt.subplots(
-                2, len(fields), layout="constrained", figsize=(7 * len(fields), 4.8)
+                2,
+                len(fields),
+                layout="constrained",
+                sharex="all",
+                figsize=(7 * len(fields), 4.8),
             )
+            if len(fields) == 1:
+                plt_axes = [[ax] for ax in plt_axes]
             finfo = {field: ds._get_field_info(field) for field in fields}
-            # setup shared axes
+            # share y axis between all the slice plots (this, along with
+            # sharex="all" above, keeps them in sync when zooming and panning
+            # with the QtAgg backend)
             for i in range(1, len(fields)):
-                # share x axis from each slice plot to the corresponding profile plot
-                plt_axes[1, i].sharex(plt_axes[0, i])
-                # share y axis between all the slice plots
                 plt_axes[0, i].sharey(plt_axes[0, 0])
 
         for i, field in enumerate(fields):
@@ -590,6 +595,8 @@ def show_plots(args):
                     continue
                 globmax[field] = float("-inf")
             for row in reader:
+                if args.tmax is not None and float(row["time"]) > args.tmax:
+                    break
                 for field in globmax:
                     globmax[field] = max(globmax[field], float(row[f"max_{field}"]))
     for fname in args.datasets:
@@ -661,9 +668,9 @@ def main():
         csvwriter.writerow(header)
 
         for time, maxes, locs in zip(times, all_maxes, loclist):
-            row = [time.to("s")]
-            row.extend(maxes[field].to("cm") for field in fields)
-            row.extend(locs[col].to("cm") for col in cols)
+            row = [time.to_value("s")]
+            row.extend(maxes[field].value for field in fields)
+            row.extend(locs[col].to_value("cm") for col in cols)
             csvwriter.writerow(row)
 
     print("Task completed.")

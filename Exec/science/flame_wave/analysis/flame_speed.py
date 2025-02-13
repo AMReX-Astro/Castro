@@ -19,11 +19,13 @@ plt.rcParams.update(
 )
 
 
-def measure_and_plot(dat, args):  # pylint: disable=too-many-locals, too-many-statements
+def measure_and_plot(dat, args):
     """
     Plots front_location vs. time on the current pyplot figure, as well as any
     reasonable linear fits.
     """
+    # pylint: disable=too-many-locals, too-many-statements, too-many-branches
+    # pylint: disable=use-dict-literal
 
     slopes = {}
 
@@ -32,21 +34,22 @@ def measure_and_plot(dat, args):  # pylint: disable=too-many-locals, too-many-st
     indx = tarr.argsort()
     tarr = tarr[indx]
 
-    # pylint: disable-next=use-dict-literal
     common_props = dict(linewidth=2, alpha=0.8)
-
-    plt.figure(figsize=(8, 6))
 
     # give the same color to <column> and <column>_gmax, regardless of where
     # they occur in columns
     color_iter = itertools.cycle(plt.rcParams["axes.prop_cycle"].by_key()["color"])
     color_lookup = {}
+    any_local_max = False
+    any_global_max = False
     for column in args.columns:
         m = re.match(r"(?P<field>.+?)\[(?P<percent>.+?)%\](?P<gmax>_gmax)?", column)
         assert m is not None
         field = m["field"]
         percent = float(m["percent"])
         global_max = m["gmax"] is not None
+        any_local_max |= not global_max
+        any_global_max |= global_max
 
         key = (field, percent)
         if key not in color_lookup:
@@ -65,22 +68,23 @@ def measure_and_plot(dat, args):  # pylint: disable=too-many-locals, too-many-st
         if args.tmax is not None:
             reg_mask &= tarr <= args.tmax / 1000
 
-        m, b, r, _, sd = linregress(tarr[reg_mask], radarr[reg_mask])
-        print(f"{column:<30}\t{m=:.2e}\t{r**2=:.3f}\t{sd=:.2e}")
+        if np.count_nonzero(reg_mask) >= 2:
+            m, b, r, _, sd = linregress(tarr[reg_mask], radarr[reg_mask])
+            print(f"{column:<30}\t{m=:.2e}\t{r**2=:.3f}\t{sd=:.2e}")
 
-        if r**2 > 0.8:
-            if len(args.columns) > 1:
-                color = kwargs["color"]
-            else:
-                color = "black"
-            plt.plot(
-                tarr[reg_mask] * 1000,
-                m * tarr[reg_mask] + b,
-                **common_props,
-                color=color,
-                linestyle="dotted",
-            )
-            slopes[column] = m
+            if r**2 > 0.8:
+                if len(args.columns) > 1:
+                    color = kwargs["color"]
+                else:
+                    color = "black"
+                plt.plot(
+                    tarr[reg_mask] * 1000,
+                    m * tarr[reg_mask] + b,
+                    **common_props,
+                    color=color,
+                    linestyle="dotted",
+                )
+                slopes[column] = m
 
     ax = plt.gca()
     ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
@@ -89,14 +93,18 @@ def measure_and_plot(dat, args):  # pylint: disable=too-many-locals, too-many-st
     # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
     # build a custom legend
-    legend_elements = []
+    line2d_kwargs = []
     if len(args.columns) > 1:
-        legend_elements.extend(
-            [
-                Line2D([0], [0], **common_props, c="k", ls="dashed", label="local max"),
-                Line2D([0], [0], **common_props, c="k", ls="solid", label="global max"),
-            ]
-        )
+        if any_local_max:
+            line2d_kwargs.append(dict(ls="dashed", label="local max"))
+        if any_global_max:
+            line2d_kwargs.append(dict(ls="solid", label="global max"))
+        if slopes:
+            line2d_kwargs.append(dict(ls="dotted", label="linear fit"))
+    legend_elements = [
+        Line2D([0], [0], **common_props, color="black", **kwargs)
+        for kwargs in line2d_kwargs
+    ]
     legend_elements.extend(
         Patch(facecolor=color, label=f"{field} {percent:g}%")
         for (field, percent), color in color_lookup.items()
@@ -114,8 +122,6 @@ def measure_and_plot(dat, args):  # pylint: disable=too-many-locals, too-many-st
     for item in (ax.get_xticklabels() + ax.get_yticklabels()) + [ax.yaxis.offsetText]:
         item.set_fontsize(16)
         item.set_color("dimgrey")
-
-    plt.tight_layout()
 
     return slopes
 
@@ -140,7 +146,9 @@ def main():
     dat = pd.read_csv(args.data_file, sep=r"\s+")
 
     plt.style.use("ggplot")
+    plt.figure(figsize=(8, 6))
     measure_and_plot(dat, args)
+    plt.tight_layout()
     plt.show()
 
 
