@@ -201,17 +201,6 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 endif
 
-ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
-  DEFINES += -DREACT_SPARSE_JACOBIAN
-
-  # The following is sometimes useful to turn on for debugging sparse J indices
-  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
-  # Otherwise, set/scale do nothing, and get returns 0.
-  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
-    DEFINES += -DSPARSE_STOP_ON_OOB
-  endif
-endif
-
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
   DEFINES += -DSDC_EVOLVE_ENERGY
 endif
