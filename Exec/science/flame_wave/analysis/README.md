@@ -24,20 +24,19 @@ user to specify framerate.
 
 ### front_tracker.py
 Script for measuring the location of a flame or shock front over a sequence of snapshots. Allows the
-user to specify the metrics (will only track 1 / 1000th the local enuc maximum by default), whether
-to use a global or local maximum, domain bounds, and a few other things. For a usage description and
-a full list of valid parameters, type `./front_tracker.py -h`. Should work for any dataset, but has
-only been tested on flame wave ones. Restrictions: Currently only tracks along one dimension (the
-user can tell it how to eliminate the others - either through slicing or averaging), and only tracks
-percentages of the maximum of some field. Outputs to space-delimited data file called
-front_tracking.dat by default.
+user to specify the metrics (will only track 1 / 1000th the enuc maximum by default), domain bounds,
+and a few other things. For a usage description and a full list of valid parameters, type
+`./front_tracker.py -h`. Should work for any dataset, but has only been tested on flame wave ones.
+Restrictions: Currently only tracks along one dimension (the user can tell it how to eliminate the
+others - either through slicing or averaging), and only tracks percentages of the maximum of some
+field. Outputs to space-delimited data file called front_tracking.dat by default.
 
 ### flame_speed.py
-Script for reading in the front tracking dataset, plotting it, and fitting a line to some portion of
-it. Usage: `./flame_speed.py data_file starting_index`, where starting index is the index of the
-first datapoint to consider when fitting the line. The script prints out the slope of the line, the
-r-squared value, and the fit error. The plot will appear squashed when it pops up - the window needs
-to be enlarged. Uses `scipy` and `pandas`.
+Script for reading in the front tracking dataset generated with `front_tracker.py`, plotting it, and
+fitting a line to some portion of it.
+Usage: `./flame_speed.py [--tmin TMIN] [--tmax TMAX] data_file column [column...]`, where `TMIN` and
+`TMAX` specify the times to consider when fitting the line. The script prints out the slope of the
+line, the r-squared value, and the fit error. Uses `scipy` and `pandas`.
 
 ### multirays.py
 Plot 1D vertical slices of axisymmetric datasets. It generates 3 ortho rays - one at each end of
