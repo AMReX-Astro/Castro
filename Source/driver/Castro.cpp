@@ -4490,7 +4490,7 @@ Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
   }
 
   if (state_in.contains_nan(URHO,state_in.nComp(),ng,true)) {
-#ifdef AMREX_USE_GPU
+#if defined(AMREX_USE_GPU) && !defined(ALLOW_GPU_PRINTF)
       std::string abort_string = std::string("State has NaNs in check_for_nan()");
       amrex::Abort(abort_string.c_str());
 #else
