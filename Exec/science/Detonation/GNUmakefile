@@ -18,7 +18,7 @@ EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 ifeq ($(USE_NSE_NET), TRUE)
-	NETWORK_DIR := subch_base
+	NETWORK_DIR := he-burn/he-burn-18a
 	SCREEN_METHOD := chabrier1998
 else
 	NETWORK_DIR := aprox19

@@ -135,12 +135,8 @@ Microphysics Parameters
 
     .. index:: USE_REACT, general_null, GENERAL_NET_INPUTS, NETWORK_DIR, INTEGRATOR_DIR
 
-  * ``USE_REACT_SPARSE_JACOBIAN``
-
-  * ``USE_SPARSE_STOP_ON_OOB``
-
-  * ``EOS_DIR``: the equation of state to use.  This will be a subdirectory under the
-    Microphysics repo.
+    * ``EOS_DIR``: the equation of state to use.  This will be a subdirectory under the
+      Microphysics repo.
 
     .. index:: EOS_DIR
 
@@ -275,5 +271,3 @@ This is the current build system process.
 
 For all of this to work, we need the ``tmp_build_dir/s`` directory to
 be first in the vpath, so our modified sources are found and used.
-
-

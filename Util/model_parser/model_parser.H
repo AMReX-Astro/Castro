@@ -129,7 +129,7 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
                                model::profile(model_index).state(id, var_index));
         Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
                                model::profile(model_index).state(id, var_index));
-        interp = std::clamp(interp, minvar, maxvar);
+        interp = amrex::Clamp(interp, minvar, maxvar);
     }
 
     return interp;
