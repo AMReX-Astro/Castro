@@ -576,7 +576,7 @@ class Metrics:
 
 def process_dataset(fname: str, args: Any) -> tuple[float, Metrics] | tuple[None, None]:
     ds = load_dataset(fname)
-    if args.tmax is not None and ds.current_time > args.tmax:
+    if args.tmax is not None and ds.current_time > args.tmax + 1e-6:
         return None, None
     return ds.current_time, Metrics(ds, args)
 
