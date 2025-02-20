@@ -10,6 +10,7 @@ COMP	   = gnu
 USE_MPI    = TRUE
 
 USE_REACT  = TRUE
+USE_SHOCK_VAR = TRUE
 
 CASTRO_HOME ?= ../../..
 
