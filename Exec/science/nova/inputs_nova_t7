@@ -16,7 +16,9 @@ amr.n_cell           = 1920       1920       960
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0   0   3
 castro.hi_bc       =  0   0   2
+
 castro.zl_ext_bc_type = 1
+# castro.yl_ext_bc_type = 1     2D case
 
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
@@ -113,7 +115,6 @@ integrator.jacobian = 1
 integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
-integrator.abort_on_failure = 1
 
 # refinement
 
