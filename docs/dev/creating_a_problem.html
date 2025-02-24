@@ -263,7 +263,7 @@ while integrating the HSE profile can be better.  For modeling a
 plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
 conditions instead of a simple symmetry boundary is essential when
 using the standard CTU PPM solver.</p>
-<p>A different special boundary condition, based on outflow, is available at
+<p id="index-3">A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the <code class="docutils literal notranslate"><span class="pre">model_parser</span></code>
 module to fill the ghost cells at the upper boundary with the initial
 model data.  You set this as:</p>
@@ -332,7 +332,7 @@ the grid.</p>
 </section>
 <section id="model-parser">
 <h2>Model Parser<a class="headerlink" href="#model-parser" title="Link to this heading"></a></h2>
-<p>Many problem setups begin with a 1-d initial model that is mapped onto
+<p id="index-4">Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The <code class="docutils literal notranslate"><span class="pre">model_parser.H</span></code> provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MODEL_PARSER</span> <span class="o">=</span> <span class="n">TRUE</span>
