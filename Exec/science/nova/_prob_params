@@ -23,8 +23,6 @@ y_h1                 real             0.0_rt        n
 
 width                real            0.0_rt         y
 
-L                    real            0.0_rt         n
-
 L_x                  real            0.0_rt         n
 
 L_y                  real            0.0_rt         n
