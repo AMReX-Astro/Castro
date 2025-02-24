@@ -5,28 +5,28 @@ stop_time = 1700.0
 # In 3d:
 
 # PROBLEM SIZE & GEOMETRY
-# geometry.is_periodic = 1          1          0
-# geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-# geometry.prob_lo     = 0          0          0
-# geometry.prob_hi     = 30.720e7   30.720e7   15.360e7
-# amr.n_cell           = 1920       1920       960
+geometry.is_periodic = 1          1          0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0          0          0
+geometry.prob_hi     = 30.720e7   30.720e7   15.360e7
+amr.n_cell           = 1920       1920       960
 
-# castro.lo_bc       =  0   0   3
-# castro.hi_bc       =  0   0   2
-# castro.zl_ext_bc_type = 1
+castro.lo_bc       =  0   0   3
+castro.hi_bc       =  0   0   2
+castro.zl_ext_bc_type = 1
 
 # In 2d:
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1          0
-geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0          0
-geometry.prob_hi     = 30.720e7   15.360e7
-amr.n_cell           = 1920       960
+# geometry.is_periodic = 1          0
+# geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+# geometry.prob_lo     = 0          0
+# geometry.prob_hi     = 30.720e7   15.360e7
+# amr.n_cell           = 1920       960
 
-castro.lo_bc       =  0   3
-castro.hi_bc       =  0   2
-castro.yl_ext_bc_type = 1
+# castro.lo_bc       =  0   3
+# castro.hi_bc       =  0   2
+# castro.yl_ext_bc_type = 1
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
