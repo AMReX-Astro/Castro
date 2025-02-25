@@ -2,44 +2,61 @@
 #max_step = 2732918
 stop_time = 1700.0
 
-# In 3d:
-
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1          1          0
-geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0          0          0
-geometry.prob_hi     = 30.720e7   30.720e7   15.360e7
-amr.n_cell           = 1920       1920       960
 
-castro.lo_bc       =  0   0   3
-castro.hi_bc       =  0   0   2
-castro.zl_ext_bc_type = 1
+geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
-# In 2d:
+#if AMREX_SPACEDIM == 3
 
-# PROBLEM SIZE & GEOMETRY
-# geometry.is_periodic = 1          0
-# geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-# geometry.prob_lo     = 0          0
-# geometry.prob_hi     = 30.720e7   15.360e7
-# amr.n_cell           = 1920       960
+  geometry.is_periodic = 1          1          0
+  geometry.prob_lo     = 0          0          0
+  geometry.prob_hi     = 11.520e7   11.520e7   15.360e7
+  amr.n_cell           = 360       360       960
 
-# castro.lo_bc       =  0   3
-# castro.hi_bc       =  0   2
-# castro.yl_ext_bc_type = 1
+    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+    # 0 = Interior           3 = Symmetry
+    # 1 = Inflow             4 = SlipWall
+    # 2 = Outflow            5 = NoSlipWall
+    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-# 0 = Interior           3 = Symmetry
-# 1 = Inflow             4 = SlipWall
-# 2 = Outflow            5 = NoSlipWall
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+  castro.lo_bc       =  0   0   3
+  castro.hi_bc       =  0   0   2
+  castro.zl_ext_bc_type = 1
 
-castro.hse_interp_temp = 1
-castro.hse_reflect_vels = 1
+  castro.fill_ambient_bc = 1
+  castro.ambient_fill_dir = 2
+  castro.ambient_outflow_vel = 1
 
-castro.fill_ambient_bc = 1
-castro.ambient_fill_dir = 1
-castro.ambient_outflow_vel = 1
+  castro.hse_interp_temp = 1
+  castro.hse_reflect_vels = 1
+
+# elif AMREX_SPACEDIM == 2
+
+  geometry.is_periodic = 1          0
+  geometry.prob_lo     = 0          0
+  geometry.prob_hi     = 30.720e7   15.360e7
+  amr.n_cell           = 1920       960
+
+    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+    # 0 = Interior           3 = Symmetry
+    # 1 = Inflow             4 = SlipWall
+    # 2 = Outflow            5 = NoSlipWall
+    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+
+  castro.lo_bc       =  0   3
+  castro.hi_bc       =  0   2
+  castro.yl_ext_bc_type = 1
+
+  castro.fill_ambient_bc = 1
+  castro.ambient_fill_dir = 1
+  castro.ambient_outflow_vel = 1
+
+  castro.hse_interp_temp = 1
+  castro.hse_reflect_vels = 1
+
+#endif
+
+castro.domain_is_plane_parallel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1           #hydrodynamics
@@ -92,19 +109,18 @@ amr.v                 = 1       # verbosity in Amr.cpp
 # REFINEMENT / REGRIDDING
 amr.max_level       = 1            # maximum level number allowed
 amr.ref_ratio       = 4 2          # refinement ratio
-amr.regrid_int      = 2 2          # how often to regrid
+amr.regrid_int      = 5000         # how often to regrid
 
-# In three dimensions, please use the following two options:
-amr.max_grid_size   = 32
-amr.blocking_factor = 8
+#if AMREX_SPACEDIM == 3
+  amr.max_grid_size   = 64
+  amr.blocking_factor = 32
+#elif AMREX_SPACEDIM == 2
+  amr.max_grid_size   = 256
+  amr.blocking_factor = 64
+#endif
 
-# In two dimensions, please coment the previous two options
-# and use:
-# amr.max_grid_size   = 256
-# amr.blocking_factor = 64
-
-amr.n_error_buf     = 2 2         # number of buffer cells in error est
-amr.refine_grid_layout = 0
+amr.grid_eff        = 0.7
+amr.n_error_buf     = 4 2         # number of buffer cells in error est
 
 
 # CHECKPOINT FILES
