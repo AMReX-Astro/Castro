@@ -10,8 +10,10 @@ geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
   geometry.is_periodic = 1          1          0
   geometry.prob_lo     = 0          0          0
-  geometry.prob_hi     = 11.520e7   11.520e7   15.360e7
-  amr.n_cell           = 360       360       960
+#  geometry.prob_hi     = 4.096e7    4.096e7    16.384e7
+#  amr.n_cell           = 256        256        1024
+  geometry.prob_hi     = 30.720e7   30.720e7   15.360e7
+  amr.n_cell           = 1920       1920       960
 
     # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
     # 0 = Interior           3 = Symmetry
@@ -57,6 +59,7 @@ geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
 #endif
 
 castro.domain_is_plane_parallel = 1
+castro.hydro_memory_footprint_ratio = 3
 
 # WHICH PHYSICS
 castro.do_hydro = 1           #hydrodynamics
@@ -78,8 +81,11 @@ castro.use_flattening = 1
 
 castro.small_temp = 5.0e5
 castro.small_dens = 5.0e-6
-castro.retry_small_density_cutoff = 5.0e-5
 castro.limit_fluxes_on_small_dens = 1
+castro.retry_small_density_cutoff = 5.0e-5
+castro.use_retry = 1
+castro.max_subcycles = 16
+
 # castro.state_interp_order = 0
 # castro.abundance_failure_rho_cutoff = 1.0e-3
 
@@ -96,8 +102,8 @@ castro.drive_initial_convection_reinit_period = 2
 castro.drive_initial_convection_tmax = 50
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
-castro.init_shrink    = 0.1     # scale back initial timestep
+castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.init_shrink    = 0.01     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
@@ -114,18 +120,19 @@ amr.regrid_int      = 5000         # how often to regrid
 #if AMREX_SPACEDIM == 3
   amr.max_grid_size   = 64
   amr.blocking_factor = 32
+  amr.grid_eff        = 0.7
+  amr.n_error_buf     = 4 2         # number of buffer cells in error est
 #elif AMREX_SPACEDIM == 2
   amr.max_grid_size   = 256
   amr.blocking_factor = 64
+  amr.regrid_int      = 2 2         # how often to regrid
+  amr.n_error_buf     = 2 2         # number of buffer cells in error est
 #endif
-
-amr.grid_eff        = 0.7
-amr.n_error_buf     = 4 2         # number of buffer cells in error est
-
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
 amr.check_per       = 0.5        # size of timestep between checkpoints
+amr.check_int       = 10         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
