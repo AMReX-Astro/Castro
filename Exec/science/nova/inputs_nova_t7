@@ -1,28 +1,36 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 2000000
+#max_step = 2732918
+stop_time = 1700.0
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1          0
-geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0          0
-geometry.prob_hi     = 20.480e7   10.240e7
-amr.n_cell           = 1280       640
 
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-# 0 = Interior           3 = Symmetry
-# 1 = Inflow             4 = SlipWall
-# 2 = Outflow            5 = NoSlipWall
-# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   3
-castro.hi_bc       =  0   2
-castro.yl_ext_bc_type = 1
+geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
-castro.hse_interp_temp = 1
-castro.hse_reflect_vels = 1
+#if AMREX_SPACEDIM == 3
 
-castro.fill_ambient_bc = 1
-castro.ambient_fill_dir = 1
-castro.ambient_outflow_vel = 1
+  geometry.is_periodic = 1          1          0
+  geometry.prob_lo     = 0          0          0
+  geometry.prob_hi     = 10.240e7   10.240e7   15.360e7
+  amr.n_cell           = 640       640         960
+
+  castro.ambient_fill_dir = 2
+  castro.fill_ambient_bc = 1
+
+
+# elif AMREX_SPACEDIM == 2
+
+  geometry.is_periodic = 1          0
+  geometry.prob_lo     = 0          0
+  geometry.prob_hi     = 30.720e7   15.360e7
+  amr.n_cell           = 1920       960
+
+  castro.ambient_fill_dir = 1
+  castro.fill_ambient_bc = 1
+
+#endif
+
+castro.domain_is_plane_parallel = 1
+castro.hydro_memory_footprint_ratio = 3
 
 # WHICH PHYSICS
 castro.do_hydro = 1           #hydrodynamics
@@ -31,35 +39,42 @@ castro.do_grav = 1            #gravity
 
 castro.do_sponge = 1          #using sponge
 castro.sponge_timescale = 1.0e-6
-castro.sponge_lower_density =  0.01
-castro.sponge_upper_density = 0.1
-
-castro.diffuse_temp = 1
+castro.sponge_upper_density = 1.0e-1
+castro.sponge_lower_density =  1.0e-2
 
 castro.ppm_type = 1
 castro.grav_source_type = 2
 castro.use_pslope = 1
-castro.pslope_cutoff_density = 6.0e1
+castro.ppm_well_balanced = 1
+castro.pslope_cutoff_density = 1.0e-2
 
 castro.use_flattening = 1
 
 castro.small_temp = 5.0e5
-castro.small_dens = 1.0e-6
-castro.retry_small_density_cutoff = 2.0e-5
+castro.small_dens = 5.0e-6
 castro.limit_fluxes_on_small_dens = 1
+castro.retry_small_density_cutoff = 5.0e-5
+castro.use_retry = 1
+castro.max_subcycles = 16
+
+# castro.state_interp_order = 0
+# castro.abundance_failure_rho_cutoff = 1.0e-3
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -7.06e8
 
-castro.react_rho_min = 6.0e1
+castro.react_rho_min = 1.0e1
 castro.react_T_min = 5.0e6
 
-castro.diffuse_cutoff_density = 1.0e2
-castro.diffuse_cutoff_density_hi = 2.0e4
+# CONVECTION
+
+castro.drive_initial_convection = 1
+castro.drive_initial_convection_reinit_period = 2
+castro.drive_initial_convection_tmax = 50
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
-castro.init_shrink    = 0.1     # scale back initial timestep
+castro.cfl            = 0.7     # cfl number for hyperbolic system
+castro.init_shrink    = 0.01     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 
 # DIAGNOSTICS & VERBOSITY
@@ -69,22 +84,31 @@ amr.v                 = 1       # verbosity in Amr.cpp
 
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 2            # maximum level number allowed
+amr.max_level       = 1            # maximum level number allowed
 amr.ref_ratio       = 4 2          # refinement ratio
-amr.regrid_int      = 2 2          # how often to regrid
-amr.max_grid_size   = 256
-amr.blocking_factor = 64
-amr.n_error_buf     = 2 2         # number of buffer cells in error est
-amr.refine_grid_layout = 0
 
+
+#if AMREX_SPACEDIM == 3
+  amr.max_grid_size   = 64
+  amr.blocking_factor = 32
+  amr.grid_eff        = 0.7
+  amr.regrid_int      = 2 2         # how often to regrid
+  amr.n_error_buf     = 4 2         # number of buffer cells in error est
+#elif AMREX_SPACEDIM == 2
+  amr.max_grid_size   = 256
+  amr.blocking_factor = 64
+  amr.regrid_int      = 2 2         # how often to regrid
+  amr.n_error_buf     = 4 2         # number of buffer cells in error est
+#endif
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 150       # number of timesteps between checkpoints
+amr.check_per       = 0.5        # size of timestep between checkpoints
+amr.check_int       = 10         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_int         = 5000       # number of timesteps between plotfiles
+amr.plot_per         = 0.5        # set a plot every half second
 amr.derive_plot_vars = ALL
 
 # DATA LOG
@@ -92,13 +116,14 @@ amr.data_log = log
 
 # problem initialization
 
-problem.model_name =  "glasner_T7_10000.00cm.hse"
+problem.model_name =  "glasner_T7.hse.dx10000.00cm"
 
 problem.apply_vel_field = 0
 problem.apply_temp_field = 1
 problem.width = 1.0e6
-problem.amplitude = 0.5
-problem.num_vortices = 10
+problem.amplitude = 0.05
+problem.num_vortices_x = 10
+problem.num_vortices_y = 9
 problem.width_ratio = 1.8
 
 # Microphysics
@@ -107,7 +132,6 @@ integrator.jacobian = 1
 integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
-integrator.abort_on_failure = 0
 
 # refinement
 
@@ -118,7 +142,7 @@ amr.refine.dens.value_greater = 1.0e2
 amr.refine.dens.field_name = density
 
 amr.refine.temp.max_level = 2
-amr.refine.temp.value_greater = 1.0e7
+amr.refine.temp.value_greater = 3.0e7
 amr.refine.temp.field_name = Temp
 
 amr.refine.edot.max_level = 2
