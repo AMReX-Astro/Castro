@@ -10,27 +10,12 @@ geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
 
   geometry.is_periodic = 1          1          0
   geometry.prob_lo     = 0          0          0
-#  geometry.prob_hi     = 4.096e7    4.096e7    16.384e7
-#  amr.n_cell           = 256        256        1024
-  geometry.prob_hi     = 30.720e7   30.720e7   15.360e7
-  amr.n_cell           = 1920       1920       960
+  geometry.prob_hi     = 10.240e7   10.240e7   15.360e7
+  amr.n_cell           = 640       640         960
 
-    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-    # 0 = Interior           3 = Symmetry
-    # 1 = Inflow             4 = SlipWall
-    # 2 = Outflow            5 = NoSlipWall
-    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-
-  castro.lo_bc       =  0   0   3
-  castro.hi_bc       =  0   0   2
-  castro.zl_ext_bc_type = 1
-
-  castro.fill_ambient_bc = 1
   castro.ambient_fill_dir = 2
-  castro.ambient_outflow_vel = 1
+  castro.fill_ambient_bc = 1
 
-  castro.hse_interp_temp = 1
-  castro.hse_reflect_vels = 1
 
 # elif AMREX_SPACEDIM == 2
 
@@ -39,22 +24,8 @@ geometry.coord_sys = 0                  # 0 => cart, 1 => RZ  2=>spherical
   geometry.prob_hi     = 30.720e7   15.360e7
   amr.n_cell           = 1920       960
 
-    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-    # 0 = Interior           3 = Symmetry
-    # 1 = Inflow             4 = SlipWall
-    # 2 = Outflow            5 = NoSlipWall
-    # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-
-  castro.lo_bc       =  0   3
-  castro.hi_bc       =  0   2
-  castro.yl_ext_bc_type = 1
-
-  castro.fill_ambient_bc = 1
   castro.ambient_fill_dir = 1
-  castro.ambient_outflow_vel = 1
-
-  castro.hse_interp_temp = 1
-  castro.hse_reflect_vels = 1
+  castro.fill_ambient_bc = 1
 
 #endif
 
@@ -115,18 +86,19 @@ amr.v                 = 1       # verbosity in Amr.cpp
 # REFINEMENT / REGRIDDING
 amr.max_level       = 1            # maximum level number allowed
 amr.ref_ratio       = 4 2          # refinement ratio
-amr.regrid_int      = 5000         # how often to regrid
+
 
 #if AMREX_SPACEDIM == 3
   amr.max_grid_size   = 64
   amr.blocking_factor = 32
   amr.grid_eff        = 0.7
+  amr.regrid_int      = 2 2         # how often to regrid
   amr.n_error_buf     = 4 2         # number of buffer cells in error est
 #elif AMREX_SPACEDIM == 2
   amr.max_grid_size   = 256
   amr.blocking_factor = 64
   amr.regrid_int      = 2 2         # how often to regrid
-  amr.n_error_buf     = 2 2         # number of buffer cells in error est
+  amr.n_error_buf     = 4 2         # number of buffer cells in error est
 #endif
 
 # CHECKPOINT FILES
