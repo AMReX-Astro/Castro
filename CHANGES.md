@@ -1,3 +1,20 @@
+# 25.03
+
+  * nova problem: update the inputs to match Smith Clark & Zingale
+    (2025) and support 3D (#3031, #3040)
+
+  * docs updates (#3039)
+
+  * update the network names for the subchandra and subch_base
+    problems (#3033)
+
+  * update the HIP CI action to support a later runner (#3034)
+
+  * add support for printing from `check_for_name` from GPUs (#3036)
+
+  * remove some old sparse Jacobian stuff from the build system
+    (#3035)
+
 # 25.02
 
   * docs updates (#3027)
