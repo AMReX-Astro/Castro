@@ -59,7 +59,8 @@ amr.check_int       = 1000     # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = diffuse_plt
-amr.plot_int        = 10
+#amr.plot_int        = 10
+amr.plot_per        = 0.0001
 amr.derive_plot_vars=ALL
 
 # PROBLEM PARAMETERS
