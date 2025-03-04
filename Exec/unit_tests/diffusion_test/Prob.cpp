@@ -22,13 +22,13 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
     auto domain_lo = castro.geom.Domain().loVect3d();
     auto domain_hi = castro.geom.Domain().hiVect3d();
-    const auto coord_type = castro.geom.Coord();
 
     // the state data
     MultiFab& S = castro.get_new_data(State_Type);
 
     // derive the analytic solution
-    auto analytic = castro.derive("analytic", time, coord_type);
+    const int ngrow = 1;
+    auto analytic = castro.derive("analytic", time, ngrow);
 
 #ifdef TRUE_SDC
     // if we are fourth-order, we need to convert to averages
