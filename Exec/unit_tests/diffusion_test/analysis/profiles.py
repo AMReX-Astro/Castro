@@ -15,37 +15,6 @@ import yt
 from yt.frontends.boxlib.api import CastroDataset
 
 
-## Define RGBA to HEX
-def rgba_to_hex(rgba):
-    r = int(rgba[0]*255.0)
-    g = int(rgba[1]*255.0)
-    b = int(rgba[2]*255.0)
-    return '#{:02X}{:02X}{:02X}'.format(r, g, b)
-
-def get_analytic_profile(x_coord, time, problo, probhi,
-                         geometry, dimension):
-
-    if geometry == "spherical":
-        exponent = 1.5
-        center = 0.0
-    elif dimension == 2 and geometry == "cylindrical":
-        exponent = 1.5
-        center = 0.5 * (problo[1] + probhi[1])
-    else:
-        exponent = dimension / 2.0
-        center = 0.5 * (problo[0] + probhi[0])
-
-    dist2 = (x_coord - float(center))**2
-    T1 = 1.0
-    T2 = 2.0
-    t_0 = 0.001
-    diff_coeff = 1.0
-    temp = T1 + (T2 - T1) * (t_0 / (time + t_0))**exponent * \
-           np.exp(-0.25 * dist2 / (diff_coeff * (time + t_0)))
-
-    return temp
-
-
 def get_T_profile(plotfile):
 
     ds = CastroDataset(plotfile)
@@ -69,8 +38,7 @@ def get_T_profile(plotfile):
     srt = np.argsort(ad[coord])
     x_coord = np.array(ad[coord][srt])
     temp = np.array(ad['Temp'][srt])
-    analytic_temp = get_analytic_profile(x_coord, time, problo, probhi,
-                                         ds.geometry, dimension)
+    analytic_temp = np.array(ad['analytic'][srt])
 
     return time, x_coord, temp, analytic_temp
 
