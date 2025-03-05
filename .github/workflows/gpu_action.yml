@@ -36,7 +36,7 @@ jobs:
           wget -q https://github.com/hypre-space/hypre/archive/refs/tags/v2.28.0.tar.gz
           tar xfz v2.28.0.tar.gz
           cd hypre-2.28.0/src
-          CUDA_HOME=/usr/local/cuda HYPRE_CUDA_SM=60 ./configure --with-cxxstandard=17 --with-cuda --enable-unified-memory --without-MPI
+          CUDA_HOME=/usr/local/cuda HYPRE_CUDA_SM=60 ./configure --with-cxxstandard=17 --with-cuda --enable-unified-memory --disable-fortran --without-MPI
           make -j 4
           make install
           cd ../../
