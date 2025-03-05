@@ -446,7 +446,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
-                eos_state.T = small_temp;
+                eos_state.T = T_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
@@ -919,7 +919,7 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
                 eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
-                eos_state.T = small_temp;
+                eos_state.T = T_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
