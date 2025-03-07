@@ -30,15 +30,14 @@ void problem_bc_fill(int i, int j, int k,
 #if AMREX_SPACEDIM == 2
     const auto coord = geomdata.Coord();
     const int* domlo = geomdata.Domain().loVect();
-    const int* domhi = geomdata.Domain().hiVect();
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
     Real r[3] = {0.0_rt};
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+    r[0] = problo[0] + dx[0] * static_cast<Real>(i);
 
     if (coord == CoordSys::SPHERICAL) {
-        if (bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) {
+        if ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0])) {
             state(i,j,k,URHO) = problem::rho0;
             state(i,j,k,UMX) = 0.0_rt;
             state(i,j,k,UMY) = 0.0_rt;
