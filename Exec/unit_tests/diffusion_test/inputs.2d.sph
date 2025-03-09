@@ -5,7 +5,7 @@ stop_time = 0.001
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
 geometry.coord_sys   = 2    # 2 = SPHERICAL
-geometry.prob_lo     = 0.1   0.0
+geometry.prob_lo     = 0.25   0.0
 geometry.prob_hi     = 1.0       3.141592653589793238
 amr.n_cell           = 64        64
 
@@ -64,10 +64,11 @@ amr.plot_per        = 0.0001
 amr.derive_plot_vars=ALL
 
 # PROBLEM PARAMETERS
-problem.diff_coeff = 1.0
+problem.diff_coeff = 15.0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
+castro.diffuse_use_amrex_mlmg = 0
 
 # EOS
 eos.eos_assume_neutral = 1

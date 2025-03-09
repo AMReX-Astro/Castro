@@ -34,7 +34,7 @@ void problem_bc_fill(int i, int j, int k,
     const Real* problo = geomdata.ProbLo();
 
     Real r[3] = {0.0_rt};
-    r[0] = problo[0] + dx[0] * static_cast<Real>(i);
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i));
 
     if (coord == CoordSys::SPHERICAL) {
         if ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0])) {
