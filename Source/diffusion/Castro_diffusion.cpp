@@ -223,7 +223,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                        Real kth_r = edge_coeff_arr(ir,jr,kr);
                        Real kth_l = edge_coeff_arr(i ,j ,k);
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM < 3
                        // Apply geometric terms for curvilinear coordinates
 
                        if ((coord != 0) && (idir == 0)) {
