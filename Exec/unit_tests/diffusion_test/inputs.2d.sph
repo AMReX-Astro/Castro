@@ -64,7 +64,7 @@ amr.plot_per        = 0.0001
 amr.derive_plot_vars=ALL
 
 # PROBLEM PARAMETERS
-problem.diff_coeff = 15.0
+problem.diff_coeff = 1.0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
