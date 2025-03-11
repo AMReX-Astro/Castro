@@ -28,6 +28,7 @@ void problem_bc_fill(int i, int j, int k,
 
     const auto coord = geomdata.Coord();
     const int* domlo = geomdata.Domain().loVect();
+    const int* domhi = geomdata.Domain().hiVect();
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
