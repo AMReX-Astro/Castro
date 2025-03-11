@@ -5,7 +5,7 @@ stop_time = 0.001
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
 geometry.coord_sys   = 2    # 2 = SPHERICAL
-geometry.prob_lo     = 0.25   0.0
+geometry.prob_lo     = 0.1       0.0
 geometry.prob_hi     = 1.0       3.141592653589793238
 amr.n_cell           = 64        64
 
