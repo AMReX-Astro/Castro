@@ -327,7 +327,11 @@ Castro::read_params ()
 #else
         int ngrow = 4;
 #endif
-        if ( dgeom.ProbLo(0) < static_cast<Real>(ngrow) * dgeom.CellSize(0) )
+        Vector<int> n_cell(AMREX_SPACEDIM);
+        ppa.queryarr("n_cell",n_cell,0,AMREX_SPACEDIM);
+        Real ngrow_size = static_cast<Real>(ngrow) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
+
+        if ( dgeom.ProbLo(0) < ngrow_size )
         {
           amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
         }
