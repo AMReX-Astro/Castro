@@ -73,8 +73,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_GROW      = -1;
-int          Castro::NUM_GROW_SRC  = -1;
 
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;

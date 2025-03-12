@@ -1407,8 +1407,6 @@ protected:
     static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
-    static int       NUM_GROW;
-    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
