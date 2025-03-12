@@ -297,27 +297,6 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  // NUM_GROW is the number of ghost cells needed for the hyperbolic
-  // portions -- note that this includes the flattening, which
-  // generally requires 4 ghost cells
-#ifdef MHD
-  NUM_GROW = 6;
-#else
-  NUM_GROW = 4;
-#endif
-
-  // NUM_GROW_SRC is for quantities that will be reconstructed, but
-  // don't need the full stencil required for flattening
-#ifdef MHD
-  NUM_GROW_SRC = 6;
-#else
-  if (time_integration_method == SpectralDeferredCorrections) {
-      NUM_GROW_SRC = NUM_GROW;
-  } else {
-      NUM_GROW_SRC = 3;
-  }
-#endif
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
