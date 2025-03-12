@@ -193,9 +193,9 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
            Array4<Real> const & TempDiff_array = TempDiffTerm.array(mfi);
 
            // edged based k_th in different averaging direction.
-           Vector<Array4<Real const>> edge_coeff_arrs {AMREX_D_DECL((*coeffs[0]).array(mfi),
-                                                                    (*coeffs[1]).array(mfi),
-                                                                    (*coeffs[2]).array(mfi))};
+           const Vector<Array4<Real const>> edge_coeff_arrs {AMREX_D_DECL((*coeffs[0]).array(mfi),
+                                                                          (*coeffs[1]).array(mfi),
+                                                                          (*coeffs[2]).array(mfi))};
 
            ParallelFor(bx,
            [=] AMREX_GPU_DEVICE (int i, int j, int k)
