@@ -193,9 +193,13 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
            Array4<Real> const & TempDiff_array = TempDiffTerm.array(mfi);
 
            // edged based k_th in different averaging direction.
-           const Vector<Array4<Real const>> edge_coeff_arrs {AMREX_D_DECL((*coeffs[0]).array(mfi),
-                                                                          (*coeffs[1]).array(mfi),
-                                                                          (*coeffs[2]).array(mfi))};
+           Array4<const Real> const edge_coeff_x = (*coeffs[0]).array(mfi);
+#if AMREX_SPACEDIM >= 2
+           Array4<const Real> const edge_coeff_y = (*coeffs[1]).array(mfi);
+#endif
+#if AMREX_SPACEDIM == 3
+           Array4<const Real> const edge_coeff_z = (*coeffs[2]).array(mfi);
+#endif
 
            ParallelFor(bx,
            [=] AMREX_GPU_DEVICE (int i, int j, int k)
@@ -209,22 +213,26 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                    int jr = j;
                    int kr = k;
 
+                   Real dxinv2 = dxinv[idir]*dxinv[idir];
+                   Real kth_r;
+                   Real kth_l;
+
                    if (idir == 0) {
                        il = i - 1;
                        ir = i + 1;
+                       kth_r = edge_coeff_x(ir,jr,kr);
+                       kth_l = edge_coeff_x(i ,j ,k);
                    } else if (idir == 1) {
                        jl = j - 1;
                        jr = j + 1;
+                       kth_r = edge_coeff_y(ir,jr,kr);
+                       kth_l = edge_coeff_y(i ,j ,k);
                    } else {
                        kl = k - 1;
                        kr = k + 1;
+                       kth_r = edge_coeff_z(ir,jr,kr);
+                       kth_l = edge_coeff_z(i ,j ,k);
                    }
-
-                   Real dxinv2 = dxinv[idir]*dxinv[idir];
-
-                   const auto& edge_coeff_arr = edge_coeff_arrs[idir];
-                   Real kth_r = edge_coeff_arr(ir,jr,kr);
-                   Real kth_l = edge_coeff_arr(i ,j ,k);
 
 #if AMREX_SPACEDIM < 3
                    // Apply geometric terms for curvilinear coordinates
