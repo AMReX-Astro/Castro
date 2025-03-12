@@ -7,19 +7,19 @@ constexpr int MAX_LEV{15};
 // portions -- note that this includes the flattening, which
 // generally requires 4 ghost cells
 #ifdef MHD
-constexpr int NUM_GROW = 6;
+constexpr int NUM_GROW{6};
 #else
-constexpr int NUM_GROW = 4;
+constexpr int NUM_GROW{4};
 #endif
 
 // NUM_GROW_SRC is for quantities that will be reconstructed, but
 // don't need the full stencil required for flattening
 #ifdef MHD
-constexpr int NUM_GROW_SRC = 6;
+constexpr int NUM_GROW_SRC{6};
 #elif TRUE_SDC
-constexpr int NUM_GROW_SRC = NUM_GROW;
+constexpr int NUM_GROW_SRC{NUM_GROW};
 #else
-constexpr int NUM_GROW_SRC = 3;
+constexpr int NUM_GROW_SRC{3};
 #endif
 
 #endif
