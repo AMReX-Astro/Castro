@@ -322,15 +322,10 @@ Castro::read_params ()
         {
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
-#ifdef MHD
-        int ngrow = 6;
-#else
-        int ngrow = 4;
-#endif
+
         Vector<int> n_cell(AMREX_SPACEDIM);
         ppa.queryarr("n_cell",n_cell,0,AMREX_SPACEDIM);
-        Real ngrow_size = static_cast<Real>(ngrow) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
-
+        Real ngrow_size = static_cast<Real>(NUM_GROW) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
         if ( dgeom.ProbLo(0) < ngrow_size )
         {
           amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
