@@ -182,90 +182,89 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 #pragma omp parallel if (Gpu::notInLaunchRegion())
 #endif
        for (MFIter mfi(Temperature, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+       {
+           const auto dx = geom.CellSizeArray();
+           const auto dxinv = geom.InvCellSizeArray();
+           const auto problo = geom.ProbLoArray();
+           const int coord = geom.Coord();
+
+           const Box& bx = mfi.tilebox();
+           Array4<Real const> const& Temp_array = Temperature.array(mfi);
+           Array4<Real> const & TempDiff_array = TempDiffTerm.array(mfi);
+
+           ParallelFor(bx,
+           [=] AMREX_GPU_DEVICE (int i, int j, int k)
            {
-               const auto dx = geom.CellSizeArray();
-               const auto dxinv = geom.InvCellSizeArray();
-               const auto problo = geom.ProbLoArray();
-               const int coord = geom.Coord();
-
-               const Box& bx = mfi.tilebox();
-               Array4<Real const> const& Temp_array = Temperature.array(mfi);
-               Array4<Real> const & TempDiff_array = TempDiffTerm.array(mfi);
-
+               // edged based k_th in different averaging direction.
+               Vector<Array4<Real const> const> edge_coeff_arrs {AMREX_D_DECL((*coeffs[0]).array(mfi),
+                                                                              (*coeffs[1]).array(mfi),
+                                                                              (*coeffs[2]).array(mfi))};
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+                   int il = i;
+                   int jl = j;
+                   int kl = k;
 
-                   // note coeffs is edged based k_th
-                   Array4<Real const> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
+                   int ir = i;
+                   int jr = j;
+                   int kr = k;
 
-                   ParallelFor(bx,
-                   [=] AMREX_GPU_DEVICE (int i, int j, int k)
-                   {
-                       int il = i;
-                       int jl = j;
-                       int kl = k;
+                   if (idir == 0) {
+                       il = i - 1;
+                       ir = i + 1;
+                   } else if (idir == 1) {
+                       jl = j - 1;
+                       jr = j + 1;
+                   } else {
+                       kl = k - 1;
+                       kr = k + 1;
+                   }
 
-                       int ir = i;
-                       int jr = j;
-                       int kr = k;
-
-                       if (idir == 0) {
-                           il = i - 1;
-                           ir = i + 1;
-                       } else if (idir == 1) {
-                           jl = j - 1;
-                           jr = j + 1;
-                       } else {
-                           kl = k - 1;
-                           kr = k + 1;
-                       }
-
-                       Real dxinv2 = dxinv[idir]*dxinv[idir];
-                       Real kth_r = edge_coeff_arr(ir,jr,kr);
-                       Real kth_l = edge_coeff_arr(i ,j ,k);
+                   Real dxinv2 = dxinv[idir]*dxinv[idir];
+                   Real kth_r = edge_coeff_arrs[idir](ir,jr,kr);
+                   Real kth_l = edge_coeff_arrs[idir](i ,j ,k);
 
 #if AMREX_SPACEDIM < 3
-                       // Apply geometric terms for curvilinear coordinates
+                   // Apply geometric terms for curvilinear coordinates
 
-                       if ((coord != 0) && (idir == 0)) {
-                           // In curilinear radial direction
+                   if ((coord != 0) && (idir == 0)) {
+                       // In curilinear radial direction
 
-                           Real rr = problo[idir] + static_cast<Real>(ir) * dx[idir];
-                           Real rl = problo[idir] + static_cast<Real>(i) * dx[idir];
-                           Real rc = problo[idir] + (static_cast<Real>(i) + 0.5_rt) * dx[idir];
+                       Real rr = problo[idir] + static_cast<Real>(ir) * dx[idir];
+                       Real rl = problo[idir] + static_cast<Real>(i) * dx[idir];
+                       Real rc = problo[idir] + (static_cast<Real>(i) + 0.5_rt) * dx[idir];
 
-                           if (coord == 1) {
-                               // Cylindrical radial equation looks like: 1/r d(r kth dT/dr)/dr
+                       if (coord == 1) {
+                           // Cylindrical radial equation looks like: 1/r d(r kth dT/dr)/dr
 
-                               kth_r *= rr;
-                               kth_l *= rl;
-                               dxinv2 *= 1.0_rt / rc;
-                           } else {
-                               // Spherical radial equation looks like: 1/r^2 d(r^2 kth dT/dr)/dr
+                           kth_r *= rr;
+                           kth_l *= rl;
+                           dxinv2 *= 1.0_rt / rc;
+                       } else {
+                           // Spherical radial equation looks like: 1/r^2 d(r^2 kth dT/dr)/dr
 
-                               kth_r *= rr * rr;
-                               kth_l *= rl * rl;
-                               dxinv2 *= 1.0_rt / (rc * rc) ;
-                           }
-                       } else if ((coord == 2) && (idir == 1)) {
-                           // In spherical theta direction
-                           // Spherical theta equation looks like: 1/r^2 sin(θ) d(sin(θ) kth dT/dθ)/dθ
-
-                           Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-                           Real thetar = problo[idir] + static_cast<Real>(jr) * dx[idir];
-                           Real thetal = problo[idir] + static_cast<Real>(j) * dx[idir];
-                           Real thetac = problo[idir] + (static_cast<Real>(j) + 0.5_rt) * dx[idir];
-
-                           kth_r *= std::sin(thetar);
-                           kth_l *= std::sin(thetal);
-                           dxinv2 *= 1.0_rt / (rc * rc * std::sin(thetac));
+                           kth_r *= rr * rr;
+                           kth_l *= rl * rl;
+                           dxinv2 *= 1.0_rt / (rc * rc) ;
                        }
-#endif
-                       TempDiff_array(i,j,k) += dxinv2 *
-                           (kth_r * (Temp_array(ir,jr,kr) - Temp_array(i ,j ,k )) -
-                            kth_l * (Temp_array(i ,j ,k ) - Temp_array(il,jl,kl)));
-                   });
-               }
-           }
+                   } else if ((coord == 2) && (idir == 1)) {
+                       // In spherical theta direction
+                       // Spherical theta equation looks like: 1/r^2 sin(θ) d(sin(θ) kth dT/dθ)/dθ
 
+                       Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                       Real thetar = problo[idir] + static_cast<Real>(jr) * dx[idir];
+                       Real thetal = problo[idir] + static_cast<Real>(j) * dx[idir];
+                       Real thetac = problo[idir] + (static_cast<Real>(j) + 0.5_rt) * dx[idir];
+
+                       kth_r *= std::sin(thetar);
+                       kth_l *= std::sin(thetal);
+                       dxinv2 *= 1.0_rt / (rc * rc * std::sin(thetac));
+                   }
+#endif
+                   TempDiff_array(i,j,k) += dxinv2 *
+                       (kth_r * (Temp_array(ir,jr,kr) - Temp_array(i ,j ,k )) -
+                        kth_l * (Temp_array(i ,j ,k ) - Temp_array(il,jl,kl)));
+               }
+           });
+       }
    }
 }
