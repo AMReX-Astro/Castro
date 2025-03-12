@@ -221,8 +221,10 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                    }
 
                    Real dxinv2 = dxinv[idir]*dxinv[idir];
-                   Real kth_r = edge_coeff_arrs[idir](ir,jr,kr);
-                   Real kth_l = edge_coeff_arrs[idir](i ,j ,k);
+
+                   const auto& edge_coeff_arr = edge_coeff_arrs[idir];
+                   Real kth_r = edge_coeff_arr(ir,jr,kr);
+                   Real kth_l = edge_coeff_arr(i ,j ,k);
 
 #if AMREX_SPACEDIM < 3
                    // Apply geometric terms for curvilinear coordinates
