@@ -222,17 +222,23 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                        ir = i + 1;
                        kth_r = edge_coeff_x(ir,jr,kr);
                        kth_l = edge_coeff_x(i ,j ,k);
-                   } else if (idir == 1) {
+                   }
+#if AMREX_SPACEDIM >= 2
+                   else if (idir == 1) {
                        jl = j - 1;
                        jr = j + 1;
                        kth_r = edge_coeff_y(ir,jr,kr);
                        kth_l = edge_coeff_y(i ,j ,k);
-                   } else {
+                   }
+#endif
+#if AMREX_SPACEDIM == 3
+                   else {
                        kl = k - 1;
                        kr = k + 1;
                        kth_r = edge_coeff_z(ir,jr,kr);
                        kth_l = edge_coeff_z(i ,j ,k);
                    }
+#endif
 
 #if AMREX_SPACEDIM < 3
                    // Apply geometric terms for curvilinear coordinates
