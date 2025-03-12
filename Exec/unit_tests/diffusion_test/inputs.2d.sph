@@ -1,11 +1,11 @@
-# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+#------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 50000
 stop_time = 0.001
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
 geometry.coord_sys   = 2    # 2 = SPHERICAL
-geometry.prob_lo     = 0.00001   0.0
+geometry.prob_lo     = 0.1       0.0
 geometry.prob_hi     = 1.0       3.141592653589793238
 amr.n_cell           = 64        64
 
@@ -16,7 +16,7 @@ castro.allow_non_unit_aspect_zones = 1
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   3
+castro.lo_bc       =  1   3
 castro.hi_bc       =  2   3
 
 # WHICH PHYSICS
@@ -68,6 +68,7 @@ problem.diff_coeff = 1.0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
+castro.diffuse_use_amrex_mlmg = 0
 
 # EOS
 eos.eos_assume_neutral = 1
