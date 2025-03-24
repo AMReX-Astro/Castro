@@ -122,11 +122,11 @@ void problem_initialize_state_data (int i, int j, int k,
         Real temp_pert = 0.0_rt;
 
         if (problem::num_vortices % 2 == 0){
-            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) )*
-                                    *std::exp(-pow(ydist / problem::width, 2));
+            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) ) *
+                std::exp(-std::pow(ydist / problem::width, 2));
         } else {
-            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) )*
-                                     *std::exp(-pow(ydist / problem::width, 2));
+            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) ) *
+                std::exp(-std::pow(ydist / problem::width, 2));
         }
 
         state(i,j,k,UTEMP) = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
@@ -139,10 +139,12 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (problem::num_vortices % 2 == 0){
             temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices_x)*M_PI*x/problem::L_x) *
-                                    std::cos(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y))*std::exp(-pow(zdist / problem::width, 2));
+                                 std::cos(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y)) *
+                std::exp(-std::pow(zdist / problem::width, 2));
         } else {
             temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x)*
-                                    std::sin(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y))*std::exp(-pow(zdist / problem::width, 2));
+                                    std::sin(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y)) *
+                std::exp(-std::pow(zdist / problem::width, 2));
         }
         state(i,j,k,UTEMP) = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
 #endif
