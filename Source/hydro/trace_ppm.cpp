@@ -459,15 +459,14 @@ Castro::trace_ppm(const Box& bx,
 #else
         do_trace = check_trace_source(srcQ, idir, i, j, k, n);
 #endif
-
         if (do_trace) {
             load_stencil(srcQ, idir, i, j, k, n, s);
             ppm_reconstruct(s, flat, sm, sp);
             ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_passive, Im_src_passive);
-        }
 
-        Ip_passive += hdt * Ip_src_passive;
-        Im_passive += hdt * Im_src_passive;
+            Ip_passive += hdt * Ip_src_passive;
+            Im_passive += hdt * Im_src_passive;
+        }
 #endif
 
         // Plus state on face i
