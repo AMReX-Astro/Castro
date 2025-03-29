@@ -82,7 +82,7 @@ void src_to_prim(int i, int j, int k, const Real dt,
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
         const int nc = upassmap(ipassive);
         const int n = qpassmap(ipassive);
-        srcQ(i,j,k,n) = (srcU[nc] - q_arr[i,j,k,n] * srcQ(i,j,k,QRHO)) * rhoinv;
+        srcQ(i,j,k,n) = (srcU[nc] - q_arr(i,j,k,n) * srcQ(i,j,k,QRHO)) * rhoinv;
     }
 #endif
 }
