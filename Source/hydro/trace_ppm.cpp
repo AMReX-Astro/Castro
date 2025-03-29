@@ -448,6 +448,28 @@ Castro::trace_ppm(const Box& bx,
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_passive, Im_passive);
 
+#ifdef CONS_SPECIES_HAVE_SOURCES
+        // Now apply source term
+
+        Real Ip_src_passive;
+        Real Im_src_passive;
+
+#ifndef AMREX_USE_GPU
+        do_trace = do_source_trace[n];
+#else
+        do_trace = check_trace_source(srcQ, idir, i, j, k, n);
+#endif
+
+        if (do_trace) {
+            load_stencil(srcQ, idir, i, j, k, QUN, s);
+            ppm_reconstruct(s, flat, sm, sp);
+            ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_passive, Im_src_passive);
+        }
+
+        Ip_passive += hdt * Ip_src_passive;
+        Im_passive += hdt * Im_src_passive;
+#endif
+
         // Plus state on face i
 
         if ((idir == 0 && i >= vlo[0]) ||

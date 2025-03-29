@@ -40,9 +40,9 @@
    total-pressure         QPTOT     NQTHERM                                 1                 MHD
    total-reint            QREITOT   NQTHERM                                 1                 RADIATION
    radiation              QRAD      NQTHERM                                 NGROUPS           RADIATION
-   advected               QFA       None                                    NumAdv            None
-   species                QFS       None                                    NumSpec           None
-   auxiliary              QFX       None                                    NumAux            None
+   advected               QFA       [(NQSRC, CONS_SPECIES_HAVE_SOURCES)]    NumAdv            None
+   species                QFS       [(NQSRC, CONS_SPECIES_HAVE_SOURCES)]    NumSpec           None
+   auxiliary              QFX       [(NQSRC, CONS_SPECIES_HAVE_SOURCES)]    NumAux            None
 
 
 # the auxiliary quantities
@@ -63,5 +63,3 @@
    density                GDRHO     None            1                   HYBRID_MOMENTUM
    flux-limiter           GDLAMS    None            NGROUPS             RADIATION
    radiation              GDERADS   None            NGROUPS             RADIATION
-
-

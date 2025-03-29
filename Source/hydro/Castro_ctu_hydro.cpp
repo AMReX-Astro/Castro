@@ -203,7 +203,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       const Box& qbx = amrex::grow(bx, NUM_GROW);
       const Box& qbx3 = amrex::grow(bx, 3);
 
-#ifdef RADIATION
+#if defined(RADIATION) || defined(CONS_SPECIES_HAVE_SOURCES)
       q.resize(qbx, NQ);
 #else
       // note: we won't store the passives in q, so we'll compute their
