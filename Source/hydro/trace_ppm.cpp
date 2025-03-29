@@ -461,7 +461,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
         if (do_trace) {
-            load_stencil(srcQ, idir, i, j, k, QUN, s);
+            load_stencil(srcQ, idir, i, j, k, n, s);
             ppm_reconstruct(s, flat, sm, sp);
             ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_passive, Im_src_passive);
         }
