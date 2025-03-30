@@ -1,3 +1,20 @@
+# 25.04
+
+  * for spherical geometry, allow the inner BC to not be at zero for
+    diffusion test problem (#3047) and improve the plotting script
+    (#3041)
+
+  * allow Castro to create the div{k grad{T}} diffusion term instead
+    of using the MLMG routines from AMReX (#3048)
+
+  * fix the spherical boundary check at initialization (#3046)
+
+  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr`
+
+  * fix a NaN in `transverse_use_eos` when running in 3D
+
+  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation` problem.
+
 # 25.03
 
   * nova problem: update the inputs to match Smith Clark & Zingale
