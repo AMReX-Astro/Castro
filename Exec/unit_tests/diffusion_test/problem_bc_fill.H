@@ -43,6 +43,25 @@ void problem_bc_fill(int i, int j, int k,
     r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
+    if (diffuse_use_amrex_mlmg) {
+        if (   ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0]))
+            || ((bcs(UTEMP).hi(0) == amrex::BCType::ext_dir) && (i > domhi[0]))) {
+            r[0] += dx[0] * 0.5_rt;
+        }
+#if AMREX_SPACEDIM >= 2
+        if (   ((bcs(UTEMP).lo(1) == amrex::BCType::ext_dir) && (j < domlo[1]))
+            || ((bcs(UTEMP).hi(1) == amrex::BCType::ext_dir) && (j > domhi[1]))) {
+            r[1] += dx[1] * 0.5_rt;
+        }
+#endif
+#if AMREX_SPACEDIM == 3
+        if (   ((bcs(UTEMP).lo(2) == amrex::BCType::ext_dir) && (k < domlo[2]))
+            || ((bcs(UTEMP).hi(2) == amrex::BCType::ext_dir) && (k > domhi[2]))) {
+            r[2] += dx[2] * 0.5_rt;
+        }
+#endif
+    }
+
     if (   ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0]))
         || ((bcs(UTEMP).hi(0) == amrex::BCType::ext_dir) && (i > domhi[0]))
 #if AMREX_SPACEDIM >= 2
