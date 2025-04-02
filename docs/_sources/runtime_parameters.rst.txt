@@ -409,7 +409,7 @@ namespace: ``castro``
 
 **diffusion**
 
-.. index:: castro.diffuse_temp, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac
+.. index:: castro.diffuse_temp, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac, castro.diffuse_use_amrex_mlmg
 
 
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
@@ -425,6 +425,9 @@ namespace: ``castro``
 |                                            | cutoff density. This should be the larger of the two        |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``diffuse_cond_scale_fac``                 | scaling factor for conductivity                             | 1.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``diffuse_use_amrex_mlmg``                 | evaluate diffusion source term using amrex built-in solver  | 1                           |
+|                                            | or evaluate within castro                                   |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
