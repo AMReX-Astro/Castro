@@ -28,6 +28,20 @@ void problem_initialize_state_data (int i, int j, int k,
     r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
+// #if AMREX_SPACEDIM == 2
+//     // Deal with 2D spherical special case.
+//     if (coord_type == 2) {
+//         Real r_sph = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+//         Real theta = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
+
+//         // This is Cylindrical R = rsin(theta) - R_0
+//         r[0] = r_sph * std::sin(theta) - problem::center[0];
+
+//         // This is Z = rcos(theta) - Z_0
+//         r[1] = r_sph * std::cos(theta) - problem::center[1];
+//     }
+// #endif
+
     // set the composition
 
     Real X[NumSpec] = {0.0_rt};

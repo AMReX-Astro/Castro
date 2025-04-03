@@ -17,7 +17,7 @@ castro.allow_non_unit_aspect_zones = 1
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  1   3
-castro.hi_bc       =  2   3
+castro.hi_bc       =  1   3
 
 # WHICH PHYSICS
 castro.do_hydro = 0
@@ -65,6 +65,7 @@ amr.derive_plot_vars=ALL
 
 # PROBLEM PARAMETERS
 problem.diff_coeff = 1.0
+#problem.center = 0.5 0 0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
