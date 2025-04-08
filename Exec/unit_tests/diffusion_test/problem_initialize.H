@@ -24,7 +24,7 @@ void problem_initialize ()
     // then it is assumed that center[0] is to offset in the cylindrical radial-direction
     // and center[1] is to offset in the z-direction.
 
-    if ((problem::center[0] == 0.0_rt) &&(coord_type == 0)) {
+    if ((problem::center[0] == 0.0_rt) && (coord_type == 0)) {
         problem::center[0] = 0.5_rt * (problo[0] + probhi[0]);
     }
 #if AMREX_SPACEDIM >= 2

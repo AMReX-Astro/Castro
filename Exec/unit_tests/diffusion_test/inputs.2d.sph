@@ -79,12 +79,13 @@ problem.diff_coeff = 1.0
 # i.e. problem.gaussian_init=1
 # Put gaussian in the center of the domain, and use outflow condition in r-dir
 # Make sure the Gaussian diffuses quickly before reaching the boundary.
-problem.center = 0.5 0 0
+
+# problem.center = 0.5 0 0
 
 # Setting problem.gaussian_init=0 initializes problem with initial condition
 # that is oscillatory in r, but has theta variations.
 # Use Dirichlet boundary in r-dir for this
-#problem.gaussian_init = 0
+problem.gaussian_init = 0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
