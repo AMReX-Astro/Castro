@@ -46,9 +46,11 @@ void problem_bc_fill(int i, int j, int k,
         }
     }
 
+    // If we evaluate diffusion within castro, then boundary condition needs to be cell-centered.
     // If MLMG is used to evaluate diffusion term, then the Dirichlet boundary condition
     // for MLMG needs to be face-centered. This is done via mlabec.setLevelBC(0, &Temperature)
-    // in Diffusion.cpp. Here add another 0.5*dx to accomplish that.
+    // in Diffusion.cpp. Here add another 0.5 * dx to convert from cell-centered to face-centered.
+
     if (diffuse_use_amrex_mlmg) {
         if (   ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0]))
             || ((bcs(UTEMP).hi(0) == amrex::BCType::ext_dir) && (i > domhi[0]))) {
