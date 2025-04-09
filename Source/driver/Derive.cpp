@@ -405,23 +405,29 @@ extern "C"
 
         } else if (coord_type == 1) {
           // axisymmetric coords (2-d)
+          Real rm = static_cast<Real>(i)*dx[0] + problo[0];
           Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
-          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
-          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+          Real rp = (static_cast<Real>(i) + 1.0_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*dx[0]);
+          der(i,j,k,0) = (rp*kgradT_xhi - rm*kgradT_xlo)/(r*dx[0]);
 #if AMREX_SPACEDIM == 2
           der(i,j,k,0) += (kgradT_yhi - kgradT_ylo)/dx[1];
 #endif
 
         } else if (coord_type == 2) {
-          // spherical coords (1-d)
+          // spherical coords (1-d) and (2-d)
+          Real rm = static_cast<Real>(i)*dx[0] + problo[0];
           Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
-          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
-          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+          Real rp = (static_cast<Real>(i) + 1.0_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = (rp1*rp1*kgradT_xhi - rm1*rm1*kgradT_xlo)/(r*r*dx[0]);
+          der(i,j,k,0) = (rp*rp*kgradT_xhi - rm*rm*kgradT_xlo)/(r*r*dx[0]);
+#if AMREX_SPACEDIM == 2
+          Real sinm = std::sin(static_cast<Real>(j)*dx[1] + problo[1]);
+          Real sinc = std::sin((static_cast<Real>(j) + 0.5_rt)*dx[1] + problo[1]);
+          Real sinp = std::sin((static_cast<Real>(j) + 1.0_rt)*dx[1] + problo[1]);
 
+          der(i,j,k,0) += (sinp*kgradT_yhi - sinm*kgradT_ylo)/(r*r*sinc*dx[1]);
+#endif
         }
       });
     }
@@ -1029,10 +1035,41 @@ extern "C"
 #endif
 
         } else if (coord_type == 2) {
-          // 1-d spherical -- we don't really have a vorticity in this
-          // case
-          der(i,j,k,0) = 0.0;
+#if AMREX_SPACEDIM == 2
+          // 2D spherical -- the coordinate ordering is r, theta, phi
+          // Ignore d/dphi for azimuthal symmetry
 
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          Real sinc = std::sin((static_cast<Real>(j) + 0.5_rt)*dx[1] + problo[1]);
+          Real sinm1 = std::sin((static_cast<Real>(j) - 0.5_rt)*dx[1] + problo[1]);
+          Real sinp1 = std::sin((static_cast<Real>(j) + 1.5_rt)*dx[1] + problo[1]);
+
+          // d (sin(theta) v_phi)/dtheta
+          Real sinvphi_theta = 0.5_rt * (sinp1 * dat(i+1,j,k,3) / dat(i+1,j,k,0) -
+                                         sinm1 * dat(i-1,j,k,3) / dat(i-1,j,k,0)) / dx[1];
+
+          // d (r v_phi)/dr
+          Real rvphi_r = 0.5_rt * (rp1 * dat(i+1,j,k,3) / dat(i+1,j,k,0) -
+                                   rm1 * dat(i-1,j,k,3) / dat(i-1,j,k,0)) / dx[0];
+
+          // d (r v_theta)/dr
+          Real rvtheta_r = 0.5_rt * (rp1 * dat(i+1,j,k,2) / dat(i+1,j,k,0) -
+                                   rm1 * dat(i-1,j,k,2) / dat(i-1,j,k,0)) / dx[0];
+
+          // dv_r/dtheta
+          Real vr_theta = 0.5_rt * (dat(i+1,j,k,1) / dat(i+1,j,k,0) -
+                                    dat(i-1,j,k,1) / dat(i-1,j,k,0)) / dx[1];
+
+          der(i,j,k,0) = std::sqrt((sinvphi_theta/sinc)*(sinvphi_theta/sinc) +
+                                   (rvtheta_r - vr_theta)*(rvtheta_r - vr_theta) +
+                                   (rvphi_r*rvphi_r)) / r;
+#else
+          // 1-d spherical -- we don't really have a vorticity in this case
+          der(i,j,k,0) = 0.0;
+#endif
         }
       });
     }
@@ -1087,17 +1124,24 @@ extern "C"
 
           der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]);
 #if AMREX_SPACEDIM >= 2
-          der(i,j,k,0) += 0.5_rt*(vhi - vlo) / dx[1];
+          der(i,j,k,0) += 0.5_rt * (vhi - vlo) / dx[1];
 #endif
 
         } else if (coord_type == 2) {
+          // Spherical geometry
 
           Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
           Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
           Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = 0.5_rt * (rp1*rp1*uhi - rm1*rm1*ulo) /
-            (r*r * dx[0]);
+          der(i,j,k,0) = 0.5_rt * (rp1*rp1*uhi - rm1*rm1*ulo) / (r*r*dx[0]);
+#if AMREX_SPACEDIM == 2
+          Real sinc = std::sin((static_cast<Real>(j) + 0.5_rt)*dx[1] + problo[1]);
+          Real sinm1 = std::sin((static_cast<Real>(j) - 0.5_rt)*dx[1] + problo[1]);
+          Real sinp1 = std::sin((static_cast<Real>(j) + 1.5_rt)*dx[1] + problo[1]);
+
+          der(i,j,k,0) += 0.5_rt * (vhi*sinp1 - vlo*sinm1) / (r*sinc*dx[1]);
+#endif
         }
 
       });
