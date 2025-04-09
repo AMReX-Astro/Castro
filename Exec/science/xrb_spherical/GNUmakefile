@@ -26,7 +26,7 @@ NUM_MODELS := 2
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch_base
+NETWORK_DIR := he-burn/he-burn-18a
 
 INTEGRATOR_DIR := VODE
 

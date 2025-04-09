@@ -5,6 +5,7 @@
 [*] castro.diffuse_cutoff_density = 20000
 [*] castro.diffuse_cutoff_density_hi = 50000
 [*] castro.diffuse_cond_scale_fac = 10
+    castro.diffuse_use_amrex_mlmg = 1
     castro.use_point_mass = 0
     castro.point_mass = 0
     castro.point_mass_fix_solution = 0

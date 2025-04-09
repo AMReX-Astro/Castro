@@ -1,3 +1,56 @@
+# 25.04
+
+  * for spherical geometry, allow the inner BC to not be at zero for
+    diffusion test problem (#3047) and improve the plotting script
+    (#3041)
+
+  * allow Castro to create the div{k grad{T}} diffusion term instead
+    of using the MLMG routines from AMReX (#3048)
+
+  * fix the spherical boundary check at initialization (#3046)
+
+  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr`
+
+  * fix a NaN in `transverse_use_eos` when running in 3D
+
+  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation` problem.
+
+# 25.03
+
+  * nova problem: update the inputs to match Smith Clark & Zingale
+    (2025) and support 3D (#3031, #3040)
+
+  * docs updates (#3039)
+
+  * update the network names for the subchandra and subch_base
+    problems (#3033)
+
+  * update the HIP CI action to support a later runner (#3034)
+
+  * add support for printing from `check_for_name` from GPUs (#3036)
+
+  * remove some old sparse Jacobian stuff from the build system
+    (#3035)
+
+# 25.02
+
+  * docs updates (#3027)
+
+  * add the `simple_convection` problem (#3016)
+
+  * codespell CI updates (#3025)
+
+  * only print mid-timestep `estTimeStep` outputs if relevant (#3023)
+
+  * CI updates to match Microphysics changes (#3021, #3024)
+
+  * remove some old comments related to Fortran (#3022)
+
+  * fix a tiling issue with shock detection on CPUs (#3019)
+
+  * remove unneeded files from problem setups (#3018) and fix comments
+    in problem setup `GNUmakefile`s
+
 # 25.01
 
   * address rotation source in spherical 2d coordinate (#2967)

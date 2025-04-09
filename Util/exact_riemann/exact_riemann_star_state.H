@@ -149,7 +149,7 @@ riemann_star_state(const amrex::Real rho_l, const amrex::Real u_l, const amrex::
         }
 
         // get ready for the next iteration
-        pstar = std::clamp(pstar_new, 0.5 * pstar, 2.0 * pstar);
+        pstar = amrex::Clamp(pstar_new, 0.5 * pstar, 2.0 * pstar);
 
         iter++;
     }

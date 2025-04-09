@@ -73,8 +73,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_GROW      = -1;
-int          Castro::NUM_GROW_SRC  = -1;
 
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
@@ -323,7 +321,10 @@ Castro::read_params ()
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
 
-        if ( dgeom.ProbLo(0) < static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
+        Vector<int> n_cell(AMREX_SPACEDIM);
+        ppa.queryarr("n_cell",n_cell,0,AMREX_SPACEDIM);
+        Real ngrow_size = static_cast<Real>(NUM_GROW) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
+        if ( dgeom.ProbLo(0) < ngrow_size )
         {
           amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
         }
@@ -4490,7 +4491,7 @@ Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
   }
 
   if (state_in.contains_nan(URHO,state_in.nComp(),ng,true)) {
-#ifdef AMREX_USE_GPU
+#if defined(AMREX_USE_GPU) && !defined(ALLOW_GPU_PRINTF)
       std::string abort_string = std::string("State has NaNs in check_for_nan()");
       amrex::Abort(abort_string.c_str());
 #else
