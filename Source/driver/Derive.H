@@ -12,125 +12,125 @@ extern "C"
 
   void ca_derpres
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dereint1
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dereint2
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derlogden
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_deruplusc
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_deruminusc
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dersoundspeed
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dergamma1
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermachnumber
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derentropy
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
 #ifdef DIFFUSION
   void ca_dercond
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derdiffcoeff
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derdiffterm
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 #endif
 
   void ca_derenuc
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derenuctimescale
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dervel
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagvel
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermaggrav
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derradialvel
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dercircvel
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagmom
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derangmomx (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int ncomp,
-                      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+                      const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
                       amrex::Real time, const int* bcrec, int level);
 
   void ca_derangmomy (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int ncomp,
-                      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+                      const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
                       amrex::Real time, const int* bcrec, int level);
 
   void ca_derangmomz (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int ncomp,
-                      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+                      const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
                       amrex::Real time, const int* bcrec, int level);
 
   void ca_derkineng (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int ncomp,
-                     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+                     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
                      amrex::Real time, const int* bcrec, int level);
 
   void ca_dernull
@@ -144,53 +144,53 @@ extern "C"
 
   void ca_derspec
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derabar
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derye
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagvort
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derdivu
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derstate
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
 #ifdef MHD
   void ca_dermagcenx
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagceny
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermagcenz
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derdivb
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
-     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geom,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
 #endif
@@ -198,7 +198,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-  
+
 /* problem-specific includes */
 #include <Problem_Derive.H>
 

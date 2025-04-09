@@ -105,12 +105,12 @@ Diffusion::make_mg_bc ()
             mlmg_lobc[idim] = MLLinOp::BCType::Periodic;
             mlmg_hibc[idim] = MLLinOp::BCType::Periodic;
         } else {
-            if (phys_bc->lo(idim) == Inflow) {
+            if (phys_bc->lo(idim) == amrex::PhysBCType::inflow) {
                 mlmg_lobc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
                 mlmg_lobc[idim] = MLLinOp::BCType::Neumann;
             }
-            if (phys_bc->hi(idim) == Symmetry) {
+            if (phys_bc->hi(idim) == amrex::PhysBCType::symmetry) {
                 mlmg_hibc[idim] = MLLinOp::BCType::Dirichlet;
             } else {
                 mlmg_hibc[idim] = MLLinOp::BCType::Neumann;
@@ -119,7 +119,8 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
+    const auto problo = geom.ProbLo();
+    if ((geom.IsSPHERICAL() || geom.IsRZ()) && problo[0] == 0.0_rt) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 

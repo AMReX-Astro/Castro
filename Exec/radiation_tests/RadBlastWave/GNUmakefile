@@ -8,16 +8,18 @@ USE_MPI    = TRUE
 
 USE_RAD    = TRUE
 
-CASTRO_HOME = ../../..
+CASTRO_HOME ?= ../../..
 
 EOS_DIR     := gamma_law
 
 NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
-Opacity_dir := rad_power_law
+OPACITY_DIR := rad_power_law
 
-Bpack   := ./Make.package
-Blocs   := .
+PROBLEM_DIR ?= ./
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

@@ -1,3 +1,5 @@
 DIM=2
 
-include ../../GNUmakefile
+PROBLEM_DIR := ../../
+
+include $(PROBLEM_DIR)/GNUmakefile

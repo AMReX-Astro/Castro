@@ -9,9 +9,6 @@ using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
-#ifdef SHOCK_VAR
-                     Array4<Real const> const& shk,
-#endif
                      Array4<Real> const& U_new,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
@@ -45,7 +42,7 @@ Castro::consup_hydro(const Box& bx,
 #endif
         ) * volinv;
 
-   // Add the p div(u) source term to (rho e).
+    // Add the p div(u) source term to (rho e).
     if (n == UEINT) {
 
       Real pdu = (qx(i+1,j,k,GDPRES) + qx(i,j,k,GDPRES)) *
@@ -68,18 +65,19 @@ Castro::consup_hydro(const Box& bx,
 
       U_new(i,j,k,n) = U_new(i,j,k,n) - dt * pdu;
 
-#ifdef SHOCK_VAR
-    } else if (n == USHK) {
-      U_new(i,j,k,USHK) = shk(i,j,k);
+    } else if (n == UMX && !mom_flux_has_p(0, 0, geomdata.Coord())) {
+        // Add gradp term to momentum equation -- only for axisymmetric
+        // coords (and only for the radial flux).
+
+        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize(0);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (n == UMY && !mom_flux_has_p(1, 1, geomdata.Coord())) {
+        // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
+
+        Real r = geomdata.ProbLo(0) + (static_cast<Real>(i) + 0.5_rt) * geomdata.CellSize(0);
+        U_new(i,j,k,UMY) += - dt * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / (r * geomdata.CellSize(1));
 #endif
-
-    } else if (n == UMX) {
-      // Add gradp term to momentum equation -- only for axisymmetric
-      // coords (and only for the radial flux).
-
-      if (!mom_flux_has_p(0, 0, geomdata.Coord())) {
-        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize()[0];
-      }
     }
   });
 }
@@ -103,7 +101,10 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -120,7 +121,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaX,
 #endif
                 vbx, dt);
 
@@ -133,7 +134,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaY,
 #endif
                 vbx, dt);
 
@@ -175,7 +176,10 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                            Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                           Array4<Real const> const& dloga,
+                           Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                           Array4<Real const> const& dlogaY,
 #endif
                            const Real dt) {
 
@@ -189,7 +193,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaX,
 #endif
                     vbx, dt);
 
@@ -202,7 +206,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaY,
 #endif
                     vbx, dt);
 
@@ -245,7 +249,10 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -275,7 +282,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaX,
 #endif
                 srcQ, vbx, dt);
 
@@ -287,7 +294,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaY,
 #endif
                 srcQ, vbx, dt);
 
@@ -368,8 +375,8 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
 
             if (n >= QFS && n <= QFS-1+NumSpec) {
                 // mass fractions should be in [0, 1]
-                qleft(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qleft(i,j,k,n)));
-                qright(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qright(i,j,k,n)));
+                qleft(i,j,k,n) = amrex::Clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
+                qright(i,j,k,n) = amrex::Clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
             }
         }
 

@@ -68,7 +68,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
-#ifndef MHD     
+#ifndef MHD
 #ifndef AMREX_USE_GPU
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
@@ -80,7 +80,7 @@ Castro::advance (Real time,
 
 #endif // TRUE_SDC
 #endif // AMREX_USE_GPU
-#endif //MHD    
+#endif //MHD
     }
 
     // If the user requests, indicate that we want a regrid at the end of the step.
@@ -158,7 +158,7 @@ Castro::initialize_do_advance (Real time, Real dt)
       FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
       FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
-#endif      
+#endif
       // for the CTU unsplit method, we always start with the old
       // state note: although clean_state has already been done on
       // the old state in initialize_advance, we still need to do
@@ -175,7 +175,7 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      // we'll handle the filling inside of do_advance_sdc 
+      // we'll handle the filling inside of do_advance_sdc
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
     } else {
@@ -229,10 +229,21 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     if (castro::check_dt_before_advance && !is_first_step_on_this_level) {
         int is_new = 0;
-        Real old_dt = estTimeStep(is_new);
+
+        // We only display the estTimeStep output if the validity check fails
+        std::string estTimeStep_output;
+
+        Real old_dt;
+
+        {
+            CoutRedirection redirection;
+            old_dt = estTimeStep(is_new);
+            estTimeStep_output = redirection.getCapturedOutput();
+        }
 
         if (castro::change_max * old_dt < dt) {
             status.success = false;
+            std::cout << estTimeStep_output;
             status.reason = "pre-advance timestep validity check failed";
         }
     }
@@ -276,10 +287,21 @@ Castro::finalize_do_advance (Real time, Real dt)
 
             if (do_validity_check) {
                 int is_new = 1;
-                Real new_dt = estTimeStep(is_new);
+
+                // We only display the estTimeStep output if the validity check fails
+                std::string estTimeStep_output;
+
+                Real new_dt;
+
+                {
+                    CoutRedirection redirection;
+                    new_dt = estTimeStep(is_new);
+                    estTimeStep_output = redirection.getCapturedOutput();
+                }
 
                 if (castro::change_max * new_dt < dt) {
                     status.success = false;
+                    std::cout << estTimeStep_output;
                     status.reason = "post-advance timestep validity check failed";
                     return status;
                 }
@@ -467,7 +489,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration)
                  get_old_data(Mag_Type_x),
                  get_old_data(Mag_Type_y),
                  get_old_data(Mag_Type_z),
-#endif      
+#endif
                   S_old, time, S_old.nGrow());
 
 

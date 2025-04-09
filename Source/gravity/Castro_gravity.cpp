@@ -113,7 +113,7 @@ Castro::construct_old_gravity (Real time)
             gravity->test_level_grad_phi_prev(level);
 
         }
- 
+
     }
 
     // Define the old gravity vector.
@@ -122,15 +122,17 @@ Castro::construct_old_gravity (Real time)
 
     if (verbose > 0)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity() time = " << run_time << " on level "
+                       << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -278,15 +280,17 @@ Castro::construct_new_gravity (Real time)
 
     if (verbose > 0)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -386,9 +390,9 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
             }
 #endif
 
-            Real SrE;
+            Real SrE{};
 
-            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {
+            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {  // NOLINT(bugprone-branch-clone)
 
                 // Src = rho u dot g, evaluated with all quantities at t^n
 
@@ -431,14 +435,16 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
     if (castro::verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_old_gravity_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif
@@ -584,7 +590,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
                 // Correct energy
 
-                Real SrEcorr;
+                Real SrEcorr{};
 
                 if (castro::grav_source_type == 1) {
 
@@ -667,15 +673,17 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
     if (castro::verbose > 1)
     {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        amrex::Real run_time = ParallelDescriptor::second() - strt_time;
+        amrex::Real llevel = level;
 
 #ifdef BL_LAZY
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time << " on level " << level << "\n" << "\n";
+        amrex::Print() << "Castro::construct_new_gravity_source() time = " << run_time
+                       << " on level " << llevel << "\n" << "\n";
 #ifdef BL_LAZY
         });
 #endif

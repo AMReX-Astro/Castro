@@ -1,7 +1,10 @@
-model_name      character       ""        y
+model_name      string         ""        y
+
+interpolate_pres   int          0         y
 
 perturb_model   int             0         y
 velpert_amplitude  real         1.e5      y
 velpert_scale   real            1.e7      y
 
 isi28           int            -1
+

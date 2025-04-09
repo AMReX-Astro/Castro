@@ -64,7 +64,7 @@ def doit(plotfile):
 
     # look toward the +x initially
     cam.focus = ds.arr(np.array([ds.domain_left_edge[0], 0.0, 0.0]), 'cm')
-    
+
     # center of the domain -- eventually we might want to do the
     # center of mass
     cam.position = ds.arr(np.array([0.0, 0.0, 0.0]), 'cm')
@@ -77,7 +77,7 @@ def doit(plotfile):
 
     cam.switch_orientation(normal_vector=normal,
                            north_vector=[0., 0., 1.])
-    
+
     # there is no such thing as a camera width -- the entire volume is rendered
     #cam.set_width(ds.domain_width)
 

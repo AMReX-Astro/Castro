@@ -40,17 +40,17 @@ analyic solution) at the end of the simulation.  This can be used
 for convergence testing.
 
 
-## 1-d spherical with AMR
+## 2-d axisymmetric with AMR
 
 This uses the 2nd order accurate predictor-corrector formulation of
 diffusion that is used with the CTU hydrodynamics solver.  A test of
-the diffusion in 1-d spherical coordinates, with 2 levels of
-refinement can be run as:
+the diffusion in 2-d cylindrical axisymmetric coordinates,
+with 2 levels of refinement can be run as:
 
 ```
-./Castro2d.gnu.ex inputs.2d.sph
-./Castro2d.gnu.ex inputs.2d.sph amr.n_cell=128 256
-./Castro2d.gnu.ex inputs.2d.sph amr.n_cell=256 512
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=64  128
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=128 256
+./Castro2d.gnu.ex inputs.2d.axisymmetric amr.n_cell=256 512
 ```
 
 At the end, each run will report the norm of the error against the
@@ -58,9 +58,9 @@ analytic solution, giving:
 
 ```
  base resolution      L-inf error
-64                  0.0003707056645
-128                 9.414571162e-05
-256                 2.437072009e-05
+ (64 , 128)          0.0003707056645
+ (128, 256)          9.414571162e-05
+ (256, 512)          2.437072009e-05
 ```
 
 
@@ -137,15 +137,15 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{center}
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
-\hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-rho_e&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-Temp&    	 3.479414e-04 & 2.012958966 & 8.620750e-05 \\ 
-rho_X&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+\hline
+density&         0.000000e+00 & ------------ &0.000000e+00 \\
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+rho_E&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\
+rho_e&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\
+Temp&         3.479414e-04 & 2.012958966 & 8.620750e-05 \\
+rho_X&         0.000000e+00 & ------------ &0.000000e+00 \\
 ```
 
 (some bits were edited out)
@@ -190,16 +190,16 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{center}
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
-\hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-rho_e&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-Temp&    	 1.063477e-05 & 3.952987539 & 6.866892e-07 \\ 
-rho_X&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-pressure&    	 7.410837e-06 & 3.948910124 & 4.798736e-07 \\ 
+\hline
+density&         0.000000e+00 & ------------ &0.000000e+00 \\
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+rho_E&         1.111626e-05 & 3.948910124 & 7.198104e-07 \\
+rho_e&         1.111626e-05 & 3.948910124 & 7.198104e-07 \\
+Temp&         1.063477e-05 & 3.952987539 & 6.866892e-07 \\
+rho_X&         0.000000e+00 & ------------ &0.000000e+00 \\
+pressure&         7.410837e-06 & 3.948910124 & 4.798736e-07 \\
 ```
 
 e.g. we see fourth-order convergence in the temperature
@@ -241,18 +241,14 @@ Warning: BoxArray lengths are not the same at level 0
 \begin{center}
 \begin{tabular}{|cccc|} \hline
 Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
-\hline 
-density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
-rho_e&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
-Temp&    	 1.770452e-06 & 3.966033724 & 1.132894e-07 \\ 
+\hline
+density&         0.000000e+00 & ------------ &0.000000e+00 \\
+xmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+ymom&         0.000000e+00 & ------------ &0.000000e+00 \\
+zmom&         0.000000e+00 & ------------ &0.000000e+00 \\
+rho_E&         1.902161e-06 & 3.957610923 & 1.224299e-07 \\
+rho_e&         1.902161e-06 & 3.957610923 & 1.224299e-07 \\
+Temp&         1.770452e-06 & 3.966033724 & 1.132894e-07 \\
 ```
 
 e.g. we see fourth-order convergence in the temperature
-
-
-
-

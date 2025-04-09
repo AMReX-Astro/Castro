@@ -1,3 +1,6 @@
+#ifndef CASTRO_SOURCES_H
+#define CASTRO_SOURCES_H
+
 ///
 /// Returns true if flag corresponding to source type ``src`` is set.
 ///
@@ -54,7 +57,7 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 ///
-    advance_status do_old_sources (amrex::Real time, amrex::Real dt);
+    advance_status do_old_sources (amrex::Real time, amrex::Real dt, bool apply_to_state = true);
 
 
 ///
@@ -146,7 +149,7 @@
 ///
 /// @param update       Real Vector of changes
 ///
-    static void print_source_change(amrex::Vector<amrex::Real> update);
+    static void print_source_change(const amrex::Vector<amrex::Real>& update);
 
 
 ///
@@ -327,15 +330,27 @@
 
 
 ///
-/// Fill ``ext_src`` with axisymmetric geometry sources
+/// Fill ``ext_src`` with 2D cylindrical R-Z geometry sources
 ///
 /// @param time     current time
 /// @param dt       timestep
 /// @param S        state
 /// @param ext_src  MultiFab to fill with sources
 ///
-    void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+    void fill_RZ_geom_source(amrex::Real time, amrex::Real dt,
+                             amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Fill ``ext_src`` with 2D spherical R-Theta geometry sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S        state
+/// @param ext_src  MultiFab to fill with sources
+///
+    void fill_RTheta_geom_source(amrex::Real time, amrex::Real dt,
+                                 amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
 
 
 ///
@@ -378,3 +393,5 @@
 ///
 
     advance_status post_advance_operators (amrex::Real time, amrex::Real dt);
+
+#endif

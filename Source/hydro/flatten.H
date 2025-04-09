@@ -22,16 +22,16 @@ Real flatten(int i, int j, int k,
 
     int ishft = dp > 0.0_rt ? 1 : -1;
 
-    Real denom = amrex::max(small_pres, std::abs(q_arr(i+2,j,k,pres_comp) - q_arr(i-2,j,k,pres_comp)));
+    Real denom = std::max(small_pres, std::abs(q_arr(i+2,j,k,pres_comp) - q_arr(i-2,j,k,pres_comp)));
     Real zeta = std::abs(dp) / denom;
-    Real z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    Real z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     Real tst = 0.0_rt;
     if (q_arr(i-1,j,k,QU) - q_arr(i+1,j,k,QU) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    Real tmp = amrex::min(q_arr(i+1,j,k,pres_comp), q_arr(i-1,j,k,pres_comp));
+    Real tmp = std::min(q_arr(i+1,j,k,pres_comp), q_arr(i-1,j,k,pres_comp));
 
     Real chi = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
@@ -41,23 +41,23 @@ Real flatten(int i, int j, int k,
 
     dp = q_arr(i+1-ishft,j,k,pres_comp) - q_arr(i-1-ishft,j,k,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i+2-ishft,j,k,pres_comp)-q_arr(i-2-ishft,j,k,pres_comp)));
+    denom = std::max(small_pres, std::abs(q_arr(i+2-ishft,j,k,pres_comp)-q_arr(i-2-ishft,j,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    Real z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    Real z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i-1-ishft,j,k,QU) - q_arr(i+1-ishft,j,k,QU) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    tmp = amrex::min(q_arr(i+1-ishft,j,k,pres_comp), q_arr(i-1-ishft,j,k,pres_comp));
+    tmp = std::min(q_arr(i+1-ishft,j,k,pres_comp), q_arr(i-1-ishft,j,k,pres_comp));
 
     Real chi2 = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
-    Real flatn = 1.0_rt - amrex::max(chi2 * z2, chi * z);
+    Real flatn = 1.0_rt - std::max(chi2 * z2, chi * z);
 
 
 #if AMREX_SPACEDIM >= 2
@@ -67,16 +67,16 @@ Real flatten(int i, int j, int k,
 
     ishft = dp > 0.0_rt ? 1 : -1;
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
+    denom = std::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j-1,k,QV) - q_arr(i,j+1,k,QV) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    tmp = amrex::min(q_arr(i,j+1,k,pres_comp), q_arr(i,j-1,k,pres_comp));
+    tmp = std::min(q_arr(i,j+1,k,pres_comp), q_arr(i,j-1,k,pres_comp));
 
     chi = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
@@ -86,23 +86,23 @@ Real flatten(int i, int j, int k,
 
     dp = q_arr(i,j+1-ishft,k,pres_comp) - q_arr(i,j-1-ishft,k,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
+    denom = std::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j-1-ishft,k,QV) - q_arr(i,j+1-ishft,k,QV) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    tmp = amrex::min(q_arr(i,j+1-ishft,k,pres_comp), q_arr(i,j-1-ishft,k,pres_comp));
+    tmp = std::min(q_arr(i,j+1-ishft,k,pres_comp), q_arr(i,j-1-ishft,k,pres_comp));
 
     chi2 = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
-    flatn = amrex::min(flatn, 1.0_rt - amrex::max(chi2 * z2, chi * z));
+    flatn = std::min(flatn, 1.0_rt - std::max(chi2 * z2, chi * z));
 #endif
 
 
@@ -113,16 +113,16 @@ Real flatten(int i, int j, int k,
 
     ishft = dp > 0.0_rt ? 1: -1;
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j,k+2,pres_comp) - q_arr(i,j,k-2,pres_comp)));
+    denom = std::max(small_pres, std::abs(q_arr(i,j,k+2,pres_comp) - q_arr(i,j,k-2,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j,k-1,QW) - q_arr(i,j,k+1,QW) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    tmp = amrex::min(q_arr(i,j,k+1,pres_comp), q_arr(i,j,k-1,pres_comp));
+    tmp = std::min(q_arr(i,j,k+1,pres_comp), q_arr(i,j,k-1,pres_comp));
 
     chi = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
@@ -132,23 +132,23 @@ Real flatten(int i, int j, int k,
 
     dp = q_arr(i,j,k+1-ishft,pres_comp) - q_arr(i,j,k-1-ishft,pres_comp);
 
-    denom = amrex::max(small_pres, std::abs(q_arr(i,j,k+2-ishft,pres_comp) - q_arr(i,j,k-2-ishft,pres_comp)));
+    denom = std::max(small_pres, std::abs(q_arr(i,j,k+2-ishft,pres_comp) - q_arr(i,j,k-2-ishft,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
+    z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j,k-1-ishft,QW) - q_arr(i,j,k+1-ishft,QW) >= 0.0_rt) {
       tst = 1.0_rt;
     }
 
-    tmp = amrex::min(q_arr(i,j,k+1-ishft,pres_comp), q_arr(i,j,k-1-ishft,pres_comp));
+    tmp = std::min(q_arr(i,j,k+1-ishft,pres_comp), q_arr(i,j,k-1-ishft,pres_comp));
 
     chi2 = 0.0_rt;
     if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
-    flatn = amrex::min(flatn,  1.0_rt - amrex::max(chi2 * z2, chi * z));
+    flatn = std::min(flatn,  1.0_rt - std::max(chi2 * z2, chi * z));
 #endif
 
     return flatn;

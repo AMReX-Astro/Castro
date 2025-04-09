@@ -1,0 +1,36 @@
+name: "clang-tidy"
+
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  clang_tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          echo "MICROPHYSICS_HOME=$(pwd)" >> $GITHUB_ENV
+          cd ../amrex
+          git fetch; git checkout development
+          echo "AMREX_HOME=$(pwd)" >> $GITHUB_ENV
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          .github/workflows/dependencies/dependencies_clang-tidy-apt-llvm.sh 19
+
+      - name: Compile flame_wave
+        run: |
+          echo $AMREX_HOME
+          echo $MICROPHYSICS_HOME
+          cd Exec/science/subchandra
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-19 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+

@@ -7,6 +7,8 @@ Real A_z (int i, int j, int k,
           const GeometryData& geomdata)
 {
 
+    amrex::ignore_unused(k);
+
     // Compute A_z.  This lives on edges, e.g., {A_z}_{i-1/2,j-1/2,k}
     // so it is centered only in the z-direction.
 

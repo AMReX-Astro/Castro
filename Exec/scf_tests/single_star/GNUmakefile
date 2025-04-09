@@ -1,12 +1,7 @@
 # Define the location of the CASTRO top directory,
 # if not already defined by an environment variable.
 
-CASTRO_HOME := ../../..
-
-# Location of this directory. Useful if
-# you're trying to compile this from another location.
-
-TEST_DIR = $(CASTRO_HOME)/Exec/scf_tests/single_star
+CASTRO_HOME ?= ../../..
 
 PRECISION   ?= DOUBLE
 PROFILE     ?= FALSE
@@ -15,7 +10,7 @@ DEBUG       ?= FALSE
 
 DIM         := 3
 
-COMP	    ?= gcc
+COMP	    ?= gnu
 
 USE_MPI     ?= TRUE
 USE_OMP     ?= FALSE
@@ -26,8 +21,9 @@ USE_ROTATION := TRUE
 EOS_DIR     ?= helmholtz
 NETWORK_DIR ?= aprox13
 
+PROBLEM_DIR ?= ./
 
-Bpack   += $(TEST_DIR)/Make.package
-Blocs   += $(TEST_DIR)
+Bpack   += $(PROBLEM_DIR)/Make.package
+Blocs   += $(PROBLEM_DIR)
 
 include $(CASTRO_HOME)/Exec/Make.Castro

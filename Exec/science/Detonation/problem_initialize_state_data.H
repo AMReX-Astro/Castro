@@ -22,7 +22,15 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = problem::dens;
 
-    Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen)/ width));
+    Real sigma_arg = -(c_T - xcen) / width;
+    Real sigma;
+    // need to avoid FP overflow for sigma_arg >= 709
+    // 1/(1 + exp(100)) ~= 3e-44, which is much smaller than machine epsilon
+    if (sigma_arg < 100) {
+        sigma = 1.0_rt / (1.0_rt + std::exp(sigma_arg));
+    } else {
+        sigma = 0.0_rt;
+    }
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
@@ -62,12 +70,12 @@ void problem_initialize_state_data (int i, int j, int k,
     burn_state.mu_p = problem::mu_p;
     burn_state.mu_n = problem::mu_n;
 
-    if (burn_state.T > 2.0e9) {
-      auto nse_state = get_actual_nse_state(burn_state);
+    if (burn_state.T > 2.5e9) {
+        auto nse_state = get_actual_nse_state(burn_state, 1.0e-10_rt, true);
 
-      for (int n = 0; n < NumSpec; ++n) {
-	state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
-      }
+      // for (int n = 0; n < NumSpec; ++n) {
+      //   state(i,j,k,UFS+n) = state(i,j,k,URHO) * nse_state.xn[n];
+      // }
 
       state(i,j,k,UMUP) = nse_state.mu_p;
       state(i,j,k,UMUN) = nse_state.mu_n;

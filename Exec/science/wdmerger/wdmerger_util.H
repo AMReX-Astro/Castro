@@ -16,7 +16,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
                        Real& period, Real eccentricity, Real phi, Real& a,
                        Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p);
 
-void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec]);
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec], const std::string& star_type);
 
 void ensure_primary_mass_larger ();
 
@@ -89,7 +89,9 @@ Real stellar_mask (int i, int j, int k,
         loc[iloc] -= problem::center[iloc];
     }
 
-    Real phi_rot = rotational_potential(loc);
+    auto omega = get_omega_vec(geomdata, j);
+
+    Real phi_rot = rotational_potential(loc, omega, geomdata.Coord());
 
     Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
     Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;

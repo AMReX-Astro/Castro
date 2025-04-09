@@ -1,0 +1,12 @@
+dens_base      real     10.0    y
+
+scale_height   real      4.0    y
+
+y_height       real      2.0    y
+
+thickness      real      0.25   y
+
+e_rate         real      0.1    y
+
+low_density_cutoff   real    0.01    y
+

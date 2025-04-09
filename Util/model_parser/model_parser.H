@@ -44,26 +44,33 @@ namespace model_string
 {
     inline std::string& ltrim(std::string& s)
     {
-	auto it = std::find_if(s.begin(), s.end(),
+        auto it = std::find_if(s.begin(), s.end(),
                                [](int c) {
                                    return !std::isspace(c);
                                });
-	s.erase(s.begin(), it);
-	return s;
+        s.erase(s.begin(), it);
+        return s;
     }
 
     inline std::string& rtrim(std::string& s)
     {
-	auto it = std::find_if(s.rbegin(), s.rend(),
+        auto it = std::find_if(s.rbegin(), s.rend(),
                                [](int c) {
                                    return !std::isspace(c);
                                });
-	s.erase(it.base(), s.end());
-	return s;
+        s.erase(it.base(), s.end());
+        return s;
     }
 }
 
 
+///
+/// return the index into the model coordinate, loc, such that
+/// model::profile(model_index).r(loc) < r < model::profile(model_index).r(loc+1)
+/// if r < model::profile(model_index).r(0) then we return 0, likewise
+/// if r > model::profile(model_index).r(model::npts-2) then we return model::npt-2,
+/// since this will give us the interval [npts-2, npts-1] to interpolate in
+///
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
 locate(const Real r, const int model_index) {
@@ -74,7 +81,7 @@ locate(const Real r, const int model_index) {
        loc = 0;
 
     } else if (r > model::profile(model_index).r(model::npts-2)) {
-       loc = model::npts-1;
+       loc = model::npts-2;
 
     } else {
 
@@ -91,7 +98,7 @@ locate(const Real r, const int model_index) {
             }
         }
 
-        loc = ihi;
+        loc = ilo;
     }
 
     return loc;
@@ -102,73 +109,38 @@ AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
 interpolate(const Real r, const int var_index, const int model_index=0) {
 
-    // find the value of model_state component var_index at point r
-    // using linear interpolation.  Eventually, we can do something
-    // fancier here.
+    // this gives us an index such that profile.r(id) < r < profile.r(id+1)
 
     int id = locate(r, model_index);
 
     Real slope;
     Real interp;
 
-    if (id == 0) {
+    slope = (model::profile(model_index).state(id+1, var_index) -
+             model::profile(model_index).state(id, var_index)) /
+        (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
+    interp = slope * (r - model::profile(model_index).r(id)) +
+        model::profile(model_index).state(id, var_index);
 
-       slope = (model::profile(model_index).state(id+1, var_index) -
-                model::profile(model_index).state(id, var_index)) /
-           (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
-       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-       // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::profile(model_index).state(id+1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       Real maxvar = amrex::max(model::profile(model_index).state(id+1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       interp = amrex::max(interp, minvar);
-       interp = amrex::min(interp, maxvar);
-
-    } else if (id == model::npts-1) {
-
-       slope = (model::profile(model_index).state(id, var_index) -
-                model::profile(model_index).state(id-1, var_index)) /
-           (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
-       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-
-       // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::profile(model_index).state(id-1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       Real maxvar = amrex::max(model::profile(model_index).state(id-1, var_index),
-                                model::profile(model_index).state(id, var_index));
-       interp = amrex::max(interp, minvar);
-       interp = amrex::min(interp, maxvar);
-
-    } else {
-
-        if (r >= model::profile(model_index).r(id)) {
-
-            slope = (model::profile(model_index).state(id+1, var_index) -
-                     model::profile(model_index).state(id, var_index)) /
-                (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
-            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-        } else {
-
-            slope = (model::profile(model_index).state(id, var_index) -
-                     model::profile(model_index).state(id-1, var_index)) /
-                (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
-            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
-
-        }
-
+    // safety check to make sure interp lies within the bounding points.  We don't
+    // do this at the lower boundary, which usually corresponds to the center of the star.
+    if (r >= model::profile(model_index).r(0)) {
+        Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
+                               model::profile(model_index).state(id, var_index));
+        Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
+                               model::profile(model_index).state(id, var_index));
+        interp = amrex::Clamp(interp, minvar, maxvar);
     }
 
     return interp;
 
 }
 
-// Subsample the interpolation to get an averaged profile. For this we need to know the
-// 3D coordinate (relative to the model center) and cell size.
 
+///
+/// Subsample the interpolation to get an averaged profile. For this we need to know the
+/// 3D coordinate (relative to the model center) and cell size.
+///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 1, int model_index = 0)
 {

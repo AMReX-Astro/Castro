@@ -1,0 +1,123 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 200000
+stop_time =  0.024
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0 0 0
+geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0     0     0
+geometry.prob_hi     = 1.536e8  1.536e8
+amr.n_cell           = 64       64
+
+
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  2   2   4
+castro.hi_bc       =  2   2   4
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 1
+
+castro.ppm_type = 1
+castro.ppm_temp_fix = 0
+
+castro.time_integration_method = 3
+
+castro.disable_shock_burning = 1
+castro.shock_detection_threshold = 1
+
+# castro.transverse_reset_density = 1
+
+castro.small_dens   = 1.e-5
+castro.small_temp     = 1.e7
+
+castro.use_flattening = 1
+
+castro.riemann_solver = 1
+
+# TIME STEP CONTROL
+castro.cfl            = 0.4     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.05    # scale back initial timestep
+
+#castro.dtnuc_e = 0.1
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+#amr.grid_log        = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 8 8 8 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = det_x_24km_chk  # root name of checkpoint file
+amr.check_int       = 1000         # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = det_x_24km_plt  # root name of plotfile
+amr.plot_per = 2.e-3
+amr.derive_plot_vars = ALL
+
+# problem initialization
+
+problem.T_l = 1.1e9
+problem.T_r = 1.75e8
+
+problem.dens = 3.e6
+problem.cfrac = 0.0
+problem.nfrac = 0.01
+
+problem.smallx = 1.e-10
+
+problem.idir = 1
+
+problem.w_T = 1.e-2
+problem.a_T = 0.15
+problem.ecc_T = 0.7
+
+# refinement
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.max_level = 0
+amr.refine.temperr.value_greater = 4.e9
+amr.refine.temperr.field_name = Temp
+
+amr.refine.tempgrad.max_level = 5
+amr.refine.tempgrad.gradient = 1.e8
+amr.refine.tempgrad.field_name = Temp
+
+# Microphysics
+
+network.small_x = 1.e-10
+integrator.SMALL_X_SAFE = 1.e-10
+
+integrator.rtol_spec = 1.e-5
+integrator.atol_spec = 1.e-5
+integrator.rtol_enuc = 1.e-5
+integrator.atol_enuc = 1.e-5
+integrator.jacobian = 1
+
+integrator.X_reject_buffer = 4.0
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
+
+integrator.retry_rtol_spec = 1.e-5
+integrator.retry_atol_spec = 1.e-5
+integrator.retry_rtol_enuc = 1.e-5
+integrator.retry_atol_enuc = 1.e-5
+
+integrator.ode_max_steps = 10000

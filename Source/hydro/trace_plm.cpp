@@ -33,17 +33,17 @@ Castro::trace_plm(const Box& bx, const int idir,
   // vbx is the valid box (no ghost cells)
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
+  const int coord = geom.Coord();
 
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  bool lo_symm = lo_bc[idir] == Symmetry;
-  bool hi_symm = hi_bc[idir] == Symmetry;
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
 
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
-
-  const Real dtdx = dt/dx[idir];
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -99,6 +99,16 @@ Castro::trace_plm(const Box& bx, const int idir,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
+
+    Real dtdL = dt / dx[idir];
+    Real dL = dx[idir];
+
+    // Want dt/(rdtheta) instead of dt/dtheta for 2d Spherical
+    if (coord == 2 && idir == 1) {
+        Real r = problo[0] + static_cast<Real>(i + 0.5_rt) * dx[0];
+        dL = r * dx[1];
+        dtdL = dt / dL;
+    }
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
                                   (idir == 1 && j == domlo[1]) ||
@@ -166,7 +176,7 @@ Castro::trace_plm(const Box& bx, const int idir,
       load_stencil(srcQ, idir, i, j, k, QUN, src);
 
       Real dp = dq[IEIGN_P];
-      pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
+      pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dL, dp);
       dq[IEIGN_P] = dp;
 
     }
@@ -185,7 +195,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     // construct the right state on the i interface
 
-    Real ref_fac = 0.5_rt*(1.0_rt + dtdx*amrex::min(e[0], 0.0_rt));
+    Real ref_fac = 0.5_rt*(1.0_rt + dtdL*amrex::min(e[0], 0.0_rt));
     Real rho_ref = rho - ref_fac*dq[IEIGN_RHO];
     Real un_ref = un - ref_fac*dq[IEIGN_UN];
     Real ut_ref = ut - ref_fac*dq[IEIGN_UT];
@@ -195,8 +205,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     // this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
     Real trace_fac0 = 0.0_rt; //  FOURTH*dtdx*(e(1) - e(1))*(1.0_rt - sign(1.0_rt, e(1)))
-    Real trace_fac1 = 0.25_rt*dtdx*(e[0] - e[1])*(1.0_rt - std::copysign(1.0_rt, e[1]));
-    Real trace_fac2 = 0.25_rt*dtdx*(e[0] - e[2])*(1.0_rt - std::copysign(1.0_rt, e[2]));
+    Real trace_fac1 = 0.25_rt*dtdL*(e[0] - e[1])*(1.0_rt - std::copysign(1.0_rt, e[1]));
+    Real trace_fac2 = 0.25_rt*dtdL*(e[0] - e[2])*(1.0_rt - std::copysign(1.0_rt, e[2]));
 
     Real apright = trace_fac2*alphap;
     Real amright = trace_fac0*alpham;
@@ -230,7 +240,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     // now construct the left state on the i+1 interface
 
-    ref_fac = 0.5_rt*(1.0_rt - dtdx*amrex::max(e[2], 0.0_rt));
+    ref_fac = 0.5_rt*(1.0_rt - dtdL*amrex::max(e[2], 0.0_rt));
     rho_ref = rho + ref_fac*dq[IEIGN_RHO];
     un_ref = un + ref_fac*dq[IEIGN_UN];
     ut_ref = ut + ref_fac*dq[IEIGN_UT];
@@ -238,8 +248,8 @@ Castro::trace_plm(const Box& bx, const int idir,
     p_ref = p + ref_fac*dq[IEIGN_P];
     rhoe_ref = rhoe + ref_fac*dq[IEIGN_RE];
 
-    trace_fac0 = 0.25_rt*dtdx*(e[2] - e[0])*(1.0_rt + std::copysign(1.0_rt, e[0]));
-    trace_fac1 = 0.25_rt*dtdx*(e[2] - e[1])*(1.0_rt + std::copysign(1.0_rt, e[1]));
+    trace_fac0 = 0.25_rt*dtdL*(e[2] - e[0])*(1.0_rt + std::copysign(1.0_rt, e[0]));
+    trace_fac1 = 0.25_rt*dtdL*(e[2] - e[1])*(1.0_rt + std::copysign(1.0_rt, e[1]));
     trace_fac2 = 0.0_rt; //  FOURTH*dtdx*(e(3) - e(3))*(1.0_rt + sign(1.0_rt, e(3)))
 
     Real apleft = trace_fac2*alphap;
@@ -301,34 +311,47 @@ Castro::trace_plm(const Box& bx, const int idir,
     }
 
 #if (AMREX_SPACEDIM < 3)
-    // geometry source terms -- these only apply to the x-states
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dtdx*(cc + std::abs(un));
+    // geometry source terms
+    // these only apply to the x-states for cylindrical and spherical
+    // or y-states for spherical
+
+    if (dloga(i,j,k) != 0.0_rt) {
+      Real courn = dtdL*(cc + std::abs(un));
       Real eta = (1.0_rt-courn)/(cc*dt*std::abs(dloga(i,j,k)));
       Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
       Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
       Real sourcp = sourcr*csq;
       Real source = sourcp*enth;
 
-      if (i <= vhi[0]) {
+      if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,QRHO) += sourcr;
         qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
         qm(i+1,j,k,QPRES) += sourcp;
         qm(i+1,j,k,QREINT) += source;
       }
 
-      if (i >= vlo[0]) {
+      if (idir == 1 && j <= vhi[1]) {
+        qm(i,j+1,k,QRHO) += sourcr;
+        qm(i,j+1,k,QRHO) = amrex::max(qm(i,j+1,k,QRHO), lsmall_dens);
+        qm(i,j+1,k,QPRES) += sourcp;
+        qm(i,j+1,k,QREINT) += source;
+      }
+
+      if ((idir == 0 && i >= vlo[0]) ||
+          (idir == 1 && j >= vlo[1])) {
         qp(i,j,k,QRHO) += sourcr;
         qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
         qp(i,j,k,QPRES) += sourcp;
         qp(i,j,k,QREINT) += source;
       }
+
     }
+
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nc = upassmap(ipassive);
-      int n = qpassmap(ipassive);
+      const int nc = upassmap(ipassive);
+      const int n = qpassmap(ipassive);
 
       // get the slope
 
@@ -340,12 +363,12 @@ Castro::trace_plm(const Box& bx, const int idir,
           (idir == 1 && j >= vlo[1]) ||
           (idir == 2 && k >= vlo[2])) {
 
-        Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
+        Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdL;
         qp(i,j,k,n) = s[i0] + 0.5_rt*(-1.0_rt - spzero)*dX;
       }
 
       // Left state
-      Real spzero = un >= 0.0_rt ? un*dtdx : 1.0_rt;
+      Real spzero = un >= 0.0_rt ? un*dtdL : 1.0_rt;
       Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dX;
 
       if (idir == 0 && i <= vhi[0]) {

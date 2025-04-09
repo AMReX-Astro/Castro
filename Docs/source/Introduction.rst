@@ -24,8 +24,8 @@ Castro's major capabilities:
   * adaptive mesh refinement with subcycling; jumps of 2x and 4x
     between levels (see :ref:`ch:amr`)
 
-  * arbitrary equation of state (provided by the companion StarKiller
-    Microphysics project)
+  * arbitrary equation of state (provided by the companion `AMReX-Astro
+    Microphysics <https://github.com/amrex-astro/Microphysics>`_ project)
 
   * general nuclear reaction networks
 
@@ -72,7 +72,7 @@ Castro works in CGS units unless otherwise specified.
 throughout the code documentation and papers.
 
 .. _table:units:
-  
+
 .. table:: Common quantities and units.
 
    +-----------------------+-----------------------+-----------------------+
@@ -110,5 +110,3 @@ throughout the code documentation and papers.
 
 Physical constants, again using the CGS system are available
 in ``Microphysics/constants/``.
-
-

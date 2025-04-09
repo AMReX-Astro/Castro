@@ -16,7 +16,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // Provides the simulation to be run in the x,y,or z direction
     // where length direction is the length side in a square prism
 
-    Real length_cell;
+    Real length_cell{};
     if (problem::idir == 1) {
         length_cell = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
     } else if (problem::idir == 2) {

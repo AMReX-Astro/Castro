@@ -101,10 +101,10 @@ Castro::wd_update (Real time, Real dt)
         GpuArray<bool, 3> symm_bound_hi{false};
 
         for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-            if (phys_bc.lo()[n] == Symmetry) {
+            if (phys_bc.lo()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_lo[n] = true;
             }
-            if (phys_bc.hi()[n] == Symmetry) {
+            if (phys_bc.hi()[n] == amrex::PhysBCType::symmetry) {
                 symm_bound_hi[n] = true;
             }
         }
@@ -252,7 +252,7 @@ Castro::wd_update (Real time, Real dt)
     bool local_flag = true;
 
     for (int i = 0; i <= 6; ++i) {
-        Castro::volInBoundary(time, vol_P[i], vol_S[i], pow(10.0,i), local_flag);
+        Castro::volInBoundary(time, vol_P[i], vol_S[i], std::pow(10.0,i), local_flag);
     }
 
     // Do all of the reductions.
@@ -355,12 +355,12 @@ Castro::wd_update (Real time, Real dt)
 
     if (mass_P > 0.0 && vol_P[2] > 0.0) {
         rho_avg_P = mass_P / vol_P[2];
-        t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
+        t_ff_P = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
     }
 
     if (mass_S > 0.0 && vol_S[2] > 0.0) {
         rho_avg_S = mass_S / vol_S[2];
-        t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
+        t_ff_S = std::sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
     // Compute updated roche Radii
@@ -604,7 +604,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const Real ldt = new_time - old_time;
 
-        force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        force[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0);
         force[lev]->setVal(0.0);
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
@@ -665,9 +665,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const int* lo_bc = phys_bc.lo();
 
-        const bool symm_lo_x = (lo_bc[0] == Symmetry);
-        const bool symm_lo_y = (lo_bc[1] == Symmetry);
-        const bool symm_lo_z = (lo_bc[2] == Symmetry);
+        const bool symm_lo_x = (lo_bc[0] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_y = (lo_bc[1] == amrex::PhysBCType::symmetry);
+        const bool symm_lo_z = (lo_bc[2] == amrex::PhysBCType::symmetry);
 
         ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
         ReduceData<Real, Real, Real, Real, Real, Real> reduce_data(reduce_op);
@@ -798,6 +798,7 @@ Castro::update_relaxation(Real time, Real dt) {
     get_lagrange_points(mass_P, mass_S, com_P, com_S, L1, L2, L3);
 
     const auto dx = geom.CellSizeArray();
+    const auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -833,7 +834,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
                 // Compute the effective potential.
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega_vec = get_omega_vec(geomdata, j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega_vec, coord);
 
                 for (int n = 0; n < 3; ++n) {
                     r[n] -= L1[n];
@@ -901,7 +903,8 @@ Castro::update_relaxation(Real time, Real dt) {
                 GpuArray<Real, 3> r;
                 position(i, j, k, geomdata, r);
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega_vec = get_omega_vec(geomdata, j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega_vec, coord);
 
                 Real done = 0.0_rt;
 

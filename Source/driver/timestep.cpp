@@ -35,6 +35,9 @@ Castro::estdt_cfl (int is_new)
   // Courant-condition limited timestep
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
+  const auto coord = geom.Coord();
+  amrex::ignore_unused(problo, coord);
 
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -46,7 +49,7 @@ Castro::estdt_cfl (int is_new)
 
       Array4<Real const> const& u = ua[box_no];
 
-      IntVect idx(D_DECL(i,j,k));
+      IntVect idx(AMREX_D_DECL(i,j,k));
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
@@ -82,6 +85,11 @@ Castro::estdt_cfl (int is_new)
       Real dt2;
 #if AMREX_SPACEDIM >= 2
       dt2 = dx[1]/(c + std::abs(uy));
+      if (coord == 2) {
+          // dx[1] in Spherical2D is just dtheta, need rdtheta for physical length
+          // so just multiply by the smallest r
+          dt2 *= problo[0] + 0.5_rt * dx[0];
+      }
 #else
       dt2 = dt1;
 #endif
@@ -127,6 +135,9 @@ Castro::estdt_mhd (int is_new)
 
   // MHD timestep limiter
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
+  const auto coord = geom.Coord();
+  amrex::ignore_unused(problo, coord);
 
   const MultiFab& U_state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -150,7 +161,7 @@ Castro::estdt_mhd (int is_new)
       Array4<Real const> const& by_arr = bya[box_no];
       Array4<Real const> const& bz_arr = bza[box_no];
 
-      IntVect idx(D_DECL(i,j,k));
+      IntVect idx(AMREX_D_DECL(i,j,k));
 
       Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
       Real bcx = 0.5_rt * (bx_arr(i+1,j,k) + bx_arr(i,j,k));
@@ -206,6 +217,9 @@ Castro::estdt_mhd (int is_new)
       Real dt2;
 #if AMREX_SPACEDIM >= 2
       dt2 = dx[1]/(cy + std::abs(uy));
+      if (coord == 2) {
+          dt2 *= problo[0] + 0.5_rt * dx[0];
+      }
 #else
       dt2 = dt1;
 #endif
@@ -238,6 +252,9 @@ Castro::estdt_temp_diffusion (int is_new)
   // where D = k/(rho c_v), and k is the conductivity
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
+  const auto coord = geom.Coord();
+  amrex::ignore_unused(problo, coord);
 
   const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -253,7 +270,7 @@ Castro::estdt_temp_diffusion (int is_new)
 
       Array4<Real const> const& ustate = ua[box_no];
 
-      IntVect idx(D_DECL(i,j,k));
+      IntVect idx(AMREX_D_DECL(i,j,k));
 
       if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
 
@@ -287,6 +304,10 @@ Castro::estdt_temp_diffusion (int is_new)
           Real dt2;
 #if AMREX_SPACEDIM >= 2
           dt2 = 0.5_rt * dx[1]*dx[1] / D;
+          if (coord == 2) {
+              Real r = problo[0] + 0.5_rt * dx[0];
+              dt2 *= r * r;
+          }
 #else
           dt2 = dt1;
 #endif
@@ -315,11 +336,14 @@ Castro::estdt_burning (int is_new)
 {
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) {
-        IntVect idx(D_DECL(0,0,0));
+        IntVect idx(AMREX_D_DECL(0,0,0));
         return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
     }
 
     const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    amrex::ignore_unused(problo, coord);
 
     MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
@@ -331,7 +355,7 @@ Castro::estdt_burning (int is_new)
 
         Array4<Real const> const& S = ua[box_no];
 
-        IntVect idx(D_DECL(i,j,k));
+        IntVect idx(AMREX_D_DECL(i,j,k));
 
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
@@ -368,7 +392,13 @@ Castro::estdt_burning (int is_new)
 #if AMREX_SPACEDIM == 1
         burn_state.dx = dx[0];
 #else
-        burn_state.dx = amrex::min(D_DECL(dx[0], dx[1], dx[2]));
+        Real dx1 = dx[1];
+#if AMREX_SPACEDIM >= 2
+        if (coord == 2) {
+            dx1 *= problo[0] + 0.5_rt * dx[0];
+        }
+#endif
+        burn_state.dx = amrex::min(AMREX_D_DECL(dx[0], dx1, dx[2]));
 #endif
 
         burn_state.rho = S(i,j,k,URHO);
@@ -438,8 +468,8 @@ Castro::estdt_burning (int is_new)
 #endif
 
 #ifdef NSE_NET
-	burn_state.mu_p = S(i,j,k,UMUP);
-	burn_state.mu_n = S(i,j,k,UMUN);
+        burn_state.mu_p = S(i,j,k,UMUP);
+        burn_state.mu_n = S(i,j,k,UMUN);
 #endif
 
         if (!in_nse(burn_state)) {
@@ -464,6 +494,9 @@ Real
 Castro::estdt_rad (int is_new)
 {
     auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    amrex::ignore_unused(problo, coord);
 
     const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
     const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
@@ -523,6 +556,9 @@ Castro::estdt_rad (int is_new)
             Real dt1 = dx[0] / (c + std::abs(ux));
 #if AMREX_SPACEDIM >= 2
             Real dt2 = dx[1] / (c + std::abs(uy));
+            if (coord == 2) {
+                dt2 *= problo[0] + 0.5_rt * dx[0];
+            }
 #else
             Real dt2 = std::numeric_limits<Real>::max();
 #endif

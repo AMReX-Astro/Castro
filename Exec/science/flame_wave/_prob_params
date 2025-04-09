@@ -29,19 +29,19 @@ H_star                  real              500.e0_rt                 y
 
 atm_delta               real              25.e0_rt                  y
 
-fuel1_name              character         "helium-4"                y
+fuel1_name              string         "helium-4"                y
 
-fuel2_name              character         ""                        y
+fuel2_name              string         ""                        y
 
-fuel3_name              character         ""                        y
+fuel3_name              string         ""                        y
 
-fuel4_name              character         ""                        y
+fuel4_name              string         ""                        y
 
-ash1_name               character         "iron-56"                 y
+ash1_name               string         "iron-56"                 y
 
-ash2_name               character         ""                        y
+ash2_name               string         ""                        y
 
-ash3_name               character         ""                        y
+ash3_name               string         ""                        y
 
 fuel1_frac              real              1.0_rt                    y
 
