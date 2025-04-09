@@ -16,6 +16,8 @@ The different inputs files setup different fuels or solvers.
 
 * `inputs.H_He` : a mixed H/He flame appropriate for X-ray bursts.
 
+  Note: the `NETWORK_DIR` will need to be set for this to include
+  a network that has O14, O15, like `CNO_extras`.
 
 
 A time series of flame profiles can be made using the
