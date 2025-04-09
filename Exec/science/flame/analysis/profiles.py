@@ -7,6 +7,7 @@ import glob
 import sys
 
 import matplotlib
+from matplotlib import ticker
 import numpy as np
 from cycler import cycler
 
@@ -102,6 +103,7 @@ def doit(pfiles, limitlabels, xmin, xmax):
 
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")
+    ax_T.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
 
     if xmax > 0:
         ax_T.set_xlim(xmin, xmax)
@@ -117,6 +119,7 @@ def doit(pfiles, limitlabels, xmin, xmax):
 
     ax_v.set_ylabel("v (cm/s)")
     ax_v.set_xlabel("x (cm)")
+    ax_v.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
 
     if xmax > 0:
         ax_v.set_xlim(xmin, xmax)
@@ -137,7 +140,7 @@ if __name__ == "__main__":
                    help="maximum x-coordinate to show")
     p.add_argument("--dt", type=float, default=0.005,
                    help="time spacing between plotfiles")
-    p.add_argument("--tmax", type=float, default=1.0,
+    p.add_argument("--tmax", type=float, default=-1.0,
                    help="maximum time to show")
     p.add_argument("--limitlabels", type=float, default=1.,
                    help="Show all labels (default) or reduce to ~ given value")
@@ -152,9 +155,12 @@ if __name__ == "__main__":
 
     psorted = [f"{args.prefix}{q}" for q in plot_nums]
 
+    if args.tmax == -1:
+        ds = yt.load(psorted[-1])
+        args.tmax = float(ds.current_time) * 1.01
+
     times = np.arange(0.0, args.tmax + args.dt, args.dt)
 
     plot_want = find_files(psorted, times)
-    print(plot_want)
 
     doit(plot_want, args.limitlabels, args.xmin, args.xmax)
