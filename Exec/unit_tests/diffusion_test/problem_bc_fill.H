@@ -33,15 +33,42 @@ void problem_bc_fill(int i, int j, int k,
     const Real* problo = geomdata.ProbLo();
 
     Real r[3] = {0.0_rt};
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
-
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
+    if (coord <= 1) {
+        for (int i; i < AMREX_SPACEDIM; ++i) {
+            r[i] -= problem::center[i];
+        }
+    }
+
+    // If we evaluate diffusion within castro, then boundary condition needs to be cell-centered.
+    // If MLMG is used to evaluate diffusion term, then the Dirichlet boundary condition
+    // for MLMG needs to be face-centered. This is done via mlabec.setLevelBC(0, &Temperature)
+    // in Diffusion.cpp. Here add another 0.5 * dx to convert from cell-centered to face-centered.
+
+    if (diffuse_use_amrex_mlmg) {
+        if (   ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0]))
+            || ((bcs(UTEMP).hi(0) == amrex::BCType::ext_dir) && (i > domhi[0]))) {
+            r[0] += dx[0] * 0.5_rt;
+        }
+#if AMREX_SPACEDIM >= 2
+        if (   ((bcs(UTEMP).lo(1) == amrex::BCType::ext_dir) && (j < domlo[1]))
+            || ((bcs(UTEMP).hi(1) == amrex::BCType::ext_dir) && (j > domhi[1]))) {
+            r[1] += dx[1] * 0.5_rt;
+        }
+#endif
+#if AMREX_SPACEDIM == 3
+        if (   ((bcs(UTEMP).lo(2) == amrex::BCType::ext_dir) && (k < domlo[2]))
+            || ((bcs(UTEMP).hi(2) == amrex::BCType::ext_dir) && (k > domhi[2]))) {
+            r[2] += dx[2] * 0.5_rt;
+        }
+#endif
+    }
 
     if (   ((bcs(UTEMP).lo(0) == amrex::BCType::ext_dir) && (i < domlo[0]))
         || ((bcs(UTEMP).hi(0) == amrex::BCType::ext_dir) && (i > domhi[0]))
