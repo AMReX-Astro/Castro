@@ -18,12 +18,7 @@ void problem_initialize ()
 
     // set center variable
 
-    // Note that 2D spherical is a special case here.
-    // Here problem::center = 0 by default for 2d spherical geometry.
-    // If user manually sets a nonzero center,
-    // then it is assumed that center[0] is to offset in the cylindrical radial-direction
-    // and center[1] is to offset in the z-direction.
-
+    // Note problem::center = 0 by default for 2d spherical geometry.
     if ((problem::center[0] == 0.0_rt) && (coord_type == 0)) {
         problem::center[0] = 0.5_rt * (problo[0] + probhi[0]);
     }

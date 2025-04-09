@@ -36,12 +36,10 @@ Real analytic(const Real* r, const Real time, const int coord_type) {
         if (coord_type == 2) {
             dist2 = r[0] * r[0];
 #if AMREX_SPACEDIM == 2
-            // Note r[0] = r, r[1] = theta,
-            // problem::center[0] = cylindrical r-center, problem::center[1] = z-center
-            dist2 += -2.0_rt * problem::center[0] * r[0] * std::sin(r[1]) -
-                2.0_rt * problem::center[1] * r[0] * std::cos(r[1]) +
-                problem::center[0] * problem::center[0] +
-                problem::center[1] * problem::center[1];
+            // problem::center[0] = r_0 and problem::center[1] = theta_0
+            // dist2 = r^2 + r_0^2 - 2 r r_0 cos(theta - theta_0)
+            dist2 += problem::center[0]*problem::center[0] -
+                2.0_rt * r[0] * problem::center[0] * std::cos(r[1] - problem::center[1]);
 #endif
         } else {
             for (int d = 0; d < AMREX_SPACEDIM; d++) {
