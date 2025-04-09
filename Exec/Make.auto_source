@@ -154,7 +154,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(EXTRACXXFLAGS) $(includes)" \
+          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(EXTRACXXFLAGS) $(CPPFLAGS) $(includes)" \
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
           $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
