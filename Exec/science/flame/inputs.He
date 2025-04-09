@@ -4,9 +4,9 @@ max_step = 500000
 stop_time    = 0.2
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0   
+geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0   
+geometry.prob_lo     = 0
 geometry.prob_hi     = 8.192e4
 amr.n_cell           = 256
 
@@ -15,8 +15,8 @@ amr.n_cell           = 256
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3 
-castro.hi_bc       =  2 
+castro.lo_bc       =  3
+castro.hi_bc       =  2
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -42,7 +42,7 @@ castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 1       # maximum level number allowed
 amr.ref_ratio       = 4 4  2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -65,8 +65,10 @@ castro.store_omegadot = 1
 
 problem.rho_fuel = 2.e6
 problem.T_fuel = 5.e7
+problem.fuel1_name = "helium-4"
 
 problem.T_ash = 2.e9
+problem.ash1_name = "oxygen-16"
 
 problem.pert_frac = 0.2
 problem.pert_delta = 0.05
