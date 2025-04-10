@@ -19,6 +19,9 @@ The different inputs files setup different fuels or solvers.
   Note: the `NETWORK_DIR` will need to be set for this to include
   a network that has O14, O15, like `CNO_extras`.
 
+* `inputs.C` : a pure C flame at a density of 5.e8 g/cc, appropriate
+  for SN Ia.  This is a very small domain and the resolution
+  requirements are very dependent on the density.
 
 A time series of flame profiles can be made using the
 `analysis/profiles.py` script.  This has options to set the dt to skip
