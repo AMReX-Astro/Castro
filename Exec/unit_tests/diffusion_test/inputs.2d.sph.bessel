@@ -1,11 +1,11 @@
-# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+#------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 50000
 stop_time = 0.001
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
 geometry.coord_sys   = 2    # 2 = SPHERICAL
-geometry.prob_lo     = 0.00001   0.0
+geometry.prob_lo     = 0.1       0.0
 geometry.prob_hi     = 1.0       3.141592653589793238
 amr.n_cell           = 64        64
 
@@ -16,8 +16,8 @@ castro.allow_non_unit_aspect_zones = 1
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   3
-castro.hi_bc       =  2   3
+castro.lo_bc       =  1   3
+castro.hi_bc       =  1   3
 
 # WHICH PHYSICS
 castro.do_hydro = 0
@@ -59,14 +59,29 @@ amr.check_int       = 1000     # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = diffuse_plt
-amr.plot_int        = 10
+#amr.plot_int        = 10
+amr.plot_per        = 0.0001
 amr.derive_plot_vars=ALL
 
 # PROBLEM PARAMETERS
 problem.diff_coeff = 1.0
 
+# To test the theta-dependence of the spherical 2D diffusion solver, either
+# 1. Set a nonzero problem center for gaussian initial condition via problem.center
+#    This requires resolution convergence test
+# 2. Initialize problem with theta-dependent initial condition via gaussian_init=0.
+#    There is an analytic solution for this.
+
+# This input file is used to test option 2.
+# Setting problem.gaussian_init=0 initializes problem with initial condition
+# that is oscillatory in r, but has a cos(theta) term for theta variation.
+# Dirichlet boundary in r-dir is needed for this.
+
+problem.gaussian_init = 0
+
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
+castro.diffuse_use_amrex_mlmg = 0
 
 # EOS
 eos.eos_assume_neutral = 1

@@ -15,13 +15,6 @@ import yt
 from yt.frontends.boxlib.api import CastroDataset
 
 
-## Define RGBA to HEX
-def rgba_to_hex(rgba):
-    r = int(rgba[0]*255.0)
-    g = int(rgba[1]*255.0)
-    b = int(rgba[2]*255.0)
-    return '#{:02X}{:02X}{:02X}'.format(r, g, b)
-
 def get_T_profile(plotfile):
 
     ds = CastroDataset(plotfile)
@@ -32,17 +25,22 @@ def get_T_profile(plotfile):
     # Sort the ray values by 'x' so there are no discontinuities
     # in the line plot
 
+    dimension = ds.dimensionality
     coords = {"cartesian":"x",
               "cylindrical":"z",
               "spherical":"r"}
 
     coord = coords[ds.geometry]
 
+    problo = ds.domain_left_edge
+    probhi = ds.domain_right_edge
+
     srt = np.argsort(ad[coord])
     x_coord = np.array(ad[coord][srt])
     temp = np.array(ad['Temp'][srt])
+    analytic_temp = np.array(ad['analytic'][srt])
 
-    return time, x_coord, temp
+    return time, x_coord, temp, analytic_temp
 
 
 def doit(prefix, nums, skip, limitlabels, xmin, xmax):
@@ -52,12 +50,9 @@ def doit(prefix, nums, skip, limitlabels, xmin, xmax):
 
     ax_T = f.add_subplot(111)
 
-    # Get set of colors to use and apply to plot
-    numplots = int(len(nums) / skip)
-    cm = plt.get_cmap('nipy_spectral')
-    clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
-    hexclist = [rgba_to_hex(ci) for ci in clist]
-    ax_T.set_prop_cycle(cycler('color', hexclist))
+    # Get colors
+    numplots = len(range(0, len(nums), skip))
+    colors = plt.cm.nipy_spectral(np.linspace(0, 1, numplots))
 
     if limitlabels > 1:
         skiplabels = int(numplots / limitlabels)
@@ -69,17 +64,18 @@ def doit(prefix, nums, skip, limitlabels, xmin, xmax):
     index = 0
 
     for n in range(0, len(nums), skip):
-
         pfile = "{}{}".format(prefix, nums[n])
-
-        time, x, T = get_T_profile(pfile)
+        i = int(n / skip)
+        time, x, T, analytic_T = get_T_profile(pfile)
 
         if index % skiplabels == 0:
-            ax_T.plot(x, T, label="t = {:7.5f} s".format(time))
+            ax_T.plot(x, T, "-", color=colors[i], label="simulation: t = {:7.5f} s".format(time))
+            ax_T.plot(x, analytic_T, "--", color=colors[i], label="analytic: t = {:7.5f} s".format(time))
         else:
-            ax_T.plot(x, T)
+            ax_T.plot(x, T, "-", color=colors[i])
+            ax_T.plot(x, analytic_T, "--", color=colors[i])
 
-        index = index + 1
+        index += 1
 
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")

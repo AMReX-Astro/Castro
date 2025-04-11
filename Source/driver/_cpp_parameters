@@ -445,16 +445,19 @@ drive_initial_convection_reinit_period   Real    1.e200
 diffuse_temp                 bool           0                  DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            DIFFUSION
+diffuse_cutoff_density       Real          -1.e200             DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200             DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                DIFFUSION
+diffuse_cond_scale_fac       Real           1.0                DIFFUSION
 
+# evaluate diffusion source term using amrex built-in solver or
+# evaluate within castro
+diffuse_use_amrex_mlmg       bool           1                  DIFFUSION
 
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
