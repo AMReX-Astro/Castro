@@ -158,7 +158,7 @@ if __name__ == "__main__":
     ###
     ### Parallelize the loop. Copied from flame_wave/analysis/front_tracker.py
     ###
-    with concurrent.futures.ProcessPoolExecutor(max_workers=args.jobs) as executor:
+    with ProcessPoolExecutor(max_workers=args.jobs) as executor:
         future_to_index = {
             executor.submit(process_dataset, fname, metric): i
             for i, fname in enumerate(args.fnames)
