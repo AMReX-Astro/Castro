@@ -8,8 +8,16 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import cm
+from dataclasses import dataclass
 
-def track_flame_front(ds, args):
+# class to hold necessary parameters for tracking flame
+@dataclass
+class Metric:
+    field: str
+    threshold: float
+    percent: float
+
+def track_flame_front(ds, metric):
     '''
     This function tracks the flame front position for a given dataset.
     It returns a list of the form: [Time (in ms), Theta, averaged_max_field, Theta_max, max_field]
@@ -48,10 +56,10 @@ def track_flame_front(ds, args):
     averaged_field = []
 
     # First determine the global max of field quantity
-    max_val = ds.all_data()[args.field].max()
+    max_val = ds.all_data()[metric.field].max()
 
     # Determine a threshold of selecting zones for the average, i.e. minimum value allowed
-    min_val = max_val * args.threshold
+    min_val = max_val * metric.threshold
 
     # track the theta that has the maximum global value
     max_theta_loc = 0.0
@@ -65,12 +73,12 @@ def track_flame_front(ds, args):
         # isrt = np.argsort(ray["t"])
 
         # Do the tracking
-        if any(ray[args.field) == max_val):
+        if any(ray[metric.field) == max_val):
             max_theta_loc = theta
 
         # Consider zones that are larger than minimum value
-        valid_zones = ray[args.field] > min_val
-        valid_values = ray[args.field][valid_zones]
+        valid_zones = ray[metric.field] > min_val
+        valid_values = ray[metric.field][valid_zones]
 
         if len(valid_values) > 0:
             averaged_field.append(valid_values.mean())
@@ -81,7 +89,7 @@ def track_flame_front(ds, args):
     max_index = np.argmax(averaged_field)
 
     # Now assuming flame moves forward in theta, find theta such that the field drops below some threshold of the averaged max
-    loc_index = averaged_field[max_index:] < args.percent * max(averaged_field)
+    loc_index = averaged_field[max_index:] < metric.percent * max(averaged_field)
 
     # Find the first theta that the field drops below the threshold.
     theta_loc = thetas[max_index:][loc_index][0]
@@ -97,7 +105,7 @@ def track_flame_front(ds, args):
     return timeTheta
 
 
-def process_dataset(fname, args):
+def process_dataset(fname, metric):
     ds = CastroDataset(fname)
 
     # Returns a list [time, theta, max averaged value, theta_max, max value]
@@ -122,7 +130,7 @@ if __name__ == "__main__":
                         the global maximum of the field quantity used to select valid zones
                         for averaging""")
     parser.add_argument('--jobs', '-j', default=1, type=int,
-                        help="""Number of workers to process plot files in parallel"""
+                        help="""Number of workers to process plot files in parallel""")
     parser.add_argument('--out', '-o', default="front_tracking.dat", type=str,
                         help="""Output filename for the tracking information""")
 
@@ -138,6 +146,13 @@ if __name__ == "__main__":
     if args.threshold <= 0.0 or args.percent > 1.0:
         parser.error("threshold must be a float between (0, 1]")
 
+    # create a metric class to hold data needed to track flame
+    metric = Metric(
+        field=args.field,
+        threshold=args.threshold,
+        percent=args.percent,
+    )
+
     timeThetaArray = []
 
     ###
@@ -145,7 +160,7 @@ if __name__ == "__main__":
     ###
     with concurrent.futures.ProcessPoolExecutor(max_workers=args.jobs) as executor:
         future_to_index = {
-            executor.submit(process_dataset, fname, args): i
+            executor.submit(process_dataset, fname, metric): i
             for i, fname in enumerate(args.fnames)
         }
         try:
