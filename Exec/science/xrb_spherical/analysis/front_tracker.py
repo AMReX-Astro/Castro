@@ -73,7 +73,7 @@ def track_flame_front(ds, metric):
         # isrt = np.argsort(ray["t"])
 
         # Do the tracking
-        if any(ray[metric.field) == max_val):
+        if any(ray[metric.field] == max_val):
             max_theta_loc = theta
 
         # Consider zones that are larger than minimum value
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     This file tracks the flame front and writes them into a txt file.
     """)
 
-    parser.add_argument('--fnames', nargs='+', type=str,
+    parser.add_argument('fnames', nargs='+', type=str,
                         help="Dataset file names for tracking flame front.")
     parser.add_argument('--field', '-f', default="enuc", type=str,
                         metavar="{enuc, Temp}",

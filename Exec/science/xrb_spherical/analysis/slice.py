@@ -151,7 +151,7 @@ if __name__ == "__main__":
         it plots multiple slice plots.
         """)
 
-    parser.add_argument('--fnames', nargs='+', type=str,
+    parser.add_argument('fnames', nargs='+', type=str,
                         help="""dataset file names for plotting. Accepts one or more datasets.
                         If multiple file names are given, a grid of slice plots of different
                         files will be plotted for a given field parameter.
