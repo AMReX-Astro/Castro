@@ -98,8 +98,12 @@ def slice(fnames:List[str], fields:List[str],
             elif field == "Temp":
                 sp.set_zlim(field, 5.e7, 2.5e9)
                 sp.set_cmap(field, "magma_r")
+            elif field == "abar":
+                sp.set_zlim(field, 4, 8)
+                sp.set_log(field, False)
+                sp.set_cmap(field, "plasma_r")
             elif field == "enuc":
-                sp.set_zlim(field, 1.e18, 1.e20)
+                sp.set_zlim(field, 1.e15, 1.e20)
             elif field == "density":
                 sp.set_zlim(field, 1.e-3, 5.e8)
 
