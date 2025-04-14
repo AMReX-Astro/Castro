@@ -164,7 +164,7 @@ if __name__ == "__main__":
                         If multiple file names are given, a grid of slice plots of different
                         files will be plotted for a given field parameter.
                         Note that either fnames or field must be single valued.""")
-    parser.add_argument('--fields', nargs='+', type=str,
+    parser.add_argument('-f', '--fields', nargs='+', type=str,
                         help="""field parameters for plotting. Accepts one or more datasets.
                         If multiple parameters are given, a grid of slice plots of different
                         field parameters will be plotted for a given fname.
@@ -178,7 +178,6 @@ if __name__ == "__main__":
                         Alternative way of defining plotting center""")
     parser.add_argument('-w', '--width', default=4.0, type=float,
                         help="scaling for the domain width of the slice plot")
-
 
     args = parser.parse_args()
 

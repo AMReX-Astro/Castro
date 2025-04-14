@@ -4,6 +4,7 @@ import sys
 import glob
 import yt
 import numpy as np
+import pandas and pd
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from yt.frontends.boxlib.api import CastroDataset
@@ -95,21 +96,22 @@ def track_flame_front(ds, metric):
     theta_loc = thetas[max_index:][loc_index][0]
 
     # Returns 5 quantities
-    # 1) time in ms
-    # 2) theta that corresponds to the maximum averaged value
-    # 3) maximum averaged value
-    # 4) theta that corresponds to the maximum global value
-    # 5) maximum global value
-    timeTheta = [time, theta_loc, max(averaged_field), max_theta_loc, max_val]
+    # 1) file name of the dataset
+    # 2) time in ms
+    # 3) theta that corresponds to the flame front
+    # 4) theta that corresponds to the maximum averaged value
+    # 5) maximum averaged value
+    # 6) theta that corresponds to the maximum global value
+    # 7) maximum global value
+    tracking_data = [str(ds), time, theta_loc, thetas[max_index],
+                     max(averaged_field), max_theta_loc, max_val]
 
-    return timeTheta
+    return tracking_data
 
 
 def process_dataset(fname, metric):
     ds = CastroDataset(fname)
-
-    # Returns a list [time, theta, max averaged value, theta_max, max value]
-    return track_flame_front(ds, args)
+    return track_flame_front(ds, metric)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
@@ -126,12 +128,12 @@ if __name__ == "__main__":
                         help="""Float number between (0, 1]. Representing the percent of
                         the averaged maximum of the field quantity used to track the flame.""")
     parser.add_argument('--threshold', '-t', default=1.e-6, type=float,
-                        help="""Float number between (0, 1]. Representine the percent of
+                        help="""Float number between (0, 1]. Representing the percent of
                         the global maximum of the field quantity used to select valid zones
                         for averaging""")
     parser.add_argument('--jobs', '-j', default=1, type=int,
                         help="""Number of workers to process plot files in parallel""")
-    parser.add_argument('--out', '-o', default="front_tracking.dat", type=str,
+    parser.add_argument('--out', '-o', default="front_tracking.csv", type=str,
                         help="""Output filename for the tracking information""")
 
     args = parser.parse_args()
@@ -153,7 +155,7 @@ if __name__ == "__main__":
         percent=args.percent,
     )
 
-    timeThetaArray = []
+    tracking_data_array = []
 
     ###
     ### Parallelize the loop. Copied from flame_wave/analysis/front_tracker.py
@@ -167,7 +169,7 @@ if __name__ == "__main__":
             for future in as_completed(future_to_index):
                 i = future_to_index.pop(future)
                 try:
-                    timeThetaArray.append(future.result())
+                    tracking_data_array.append(future.result())
                 except Exception as exc:
                     print(f"{args.fnames[i]} generated an exception: {exc}", file=sys.stderr, flush=True)
         except KeyboardInterrupt:
@@ -178,8 +180,12 @@ if __name__ == "__main__":
             executor.shutdown(wait=True, cancel_futures=True)
             sys.exit(1)
 
-    # Sort array by time and write to file
-    timeThetaArray.sort(key=lambda x: x[0])
-    timeThetaArray = np.array(timeThetaArray)
+    # Sort array by time
+    tracking_data_array.sort(key=lambda x: x[1])
 
-    np.savetxt(args.out, timeThetaArray, delimiter=',')
+    # Write to file
+    columns = ["fname", "time", "front_theta", "theta_max_avg",
+               "max_avg_" + args.field, "theta_max", "max_global_" + args.field]
+
+    df = pd.DataFrame(tracking_data_array, columns=columns)
+    df.to_csv(args.out, index=False)
