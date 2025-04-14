@@ -68,13 +68,13 @@ def slice(fnames:List[str], fields:List[str],
         width = widthScale * dr
         box_widths = (width, width)
 
-        # Preset centers for the Top, Mid and Bot panels
-        # Centers will be physical coordinates in Cylindrical, i.e. R-Z
-        centers = {"top":(r_center*np.sin(thetal)+0.5*width, r_center*np.cos(thetal)),
-                   "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
-                   "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
-
         if theta is None:
+            # Preset centers for the Top, Mid and Bot panels
+            # Centers will be physical coordinates in Cylindrical, i.e. R-Z
+            centers = {"top":(r_center*np.sin(thetal)+0.5*width, r_center*np.cos(thetal)),
+                       "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
+                       "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
+
             center = centers[loc]
         else:
             R = r_center*np.sin(theta)
@@ -110,6 +110,14 @@ def slice(fnames:List[str], fields:List[str],
             sp.set_buff_size((2400,2400))
             sp.set_axes_unit("km")
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
+
+            # Plot a vertical to indicate flame front
+            if theta is not None:
+                sp.annotate_line([rl*np.sin(theta), rl*np.cos(theta)],
+                                 [rr*np.sin(theta), rr*np.cos(theta)],
+                                 coord_system="plot",
+                                 color="k",
+                                 linestyle="--")
 
             plot = sp.plots[field]
             plot.figure = fig
