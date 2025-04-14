@@ -86,6 +86,8 @@ def track_flame_front(ds, metric):
         else:
             averaged_field.append(0.0)
 
+    averaged_field = np.array(averaged_field)
+
     # Now Determine the index of the maximum radially averaged field
     max_index = np.argmax(averaged_field)
 
@@ -103,8 +105,8 @@ def track_flame_front(ds, metric):
     # 5) maximum averaged value
     # 6) theta that corresponds to the maximum global value
     # 7) maximum global value
-    tracking_data = [str(ds), time, theta_loc, thetas[max_index],
-                     max(averaged_field), max_theta_loc, max_val]
+    tracking_data = [str(ds), float(time), float(theta_loc), float(thetas[max_index]),
+                     float(max(averaged_field)), float(max_theta_loc, max_val)]
 
     return tracking_data
 
@@ -184,7 +186,7 @@ if __name__ == "__main__":
     tracking_data_array.sort(key=lambda x: x[1])
 
     # Write to file
-    columns = ["fname", "time", "front_theta", "theta_max_avg",
+    columns = ["fname", "time[ms]", "front_theta", "theta_max_avg",
                "max_avg_" + args.field, "theta_max", "max_global_" + args.field]
 
     df = pd.DataFrame(tracking_data_array, columns=columns)
