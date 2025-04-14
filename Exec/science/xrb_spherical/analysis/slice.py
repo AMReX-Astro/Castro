@@ -14,7 +14,7 @@ from yt.units import km
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
-          dr: Optional[float] = None,
+          dr: Optional: float = 0.15,
           theta: Optional[float] = None) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
@@ -34,7 +34,7 @@ def slice(fnames:List[str], fields:List[str],
     widthScale: scaling for the domain width of the slice plot
 
     dr: user defined distance between lower r to upper r boundary. Assumed in unit km.
-        This is used to change the center of the SlicePlot
+        This is used to change the center and width of the SlicePlot.
 
     theta:  user defined theta center of the slice plot
     """
@@ -60,9 +60,7 @@ def slice(fnames:List[str], fields:List[str],
         # Some geometry properties
         rr = ds.domain_right_edge[0].in_units("km")
         rl = ds.domain_left_edge[0].in_units("km")
-        dr = dr*km
-        if dr is None:
-            dr = rr - rl
+        dr = dr * rr.units
         r_center = 0.5 * dr + rl
 
         thetar = ds.domain_right_edge[1]
