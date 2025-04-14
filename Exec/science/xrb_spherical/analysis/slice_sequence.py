@@ -18,6 +18,9 @@ parser.add_argument('-f', '--fields', nargs='+', type=str,
                     help="field parameters for plotting, e.g. enuc abar.")
 parser.add_argument('-w', '--width', default=4.0, type=float,
                     help="scaling for the domain width of the slice plot")
+parser.add_argument('-r', '--dr', default=0.15, type=float,
+                    help="""Distance between upper r and lower r shown in the SlicePlot.
+                    Assumed in unit km. This is used to control center and width of the SlicePlot""")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
@@ -34,8 +37,8 @@ front_thetas = tracking_data["front_theta"]
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
-        executor.submit(slice, [fname], args.fields,
-                        theta=front_thetas[i], widthScale=args.width): i
+        executor.submit(slice, [fname], args.fields, widthScale=args.width
+                        dr=args.dr, theta=front_thetas[i]): i
         for i, fname in enumerate(fnames)
     }
     try:
