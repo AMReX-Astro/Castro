@@ -92,12 +92,12 @@ def track_flame_front(ds, metric):
     max_index = np.argmax(averaged_field)
 
     # Now assuming flame moves forward in theta, find theta such that the field drops below some threshold of the averaged max
-    loc_index = averaged_field[max_index:] < metric.percent * max(averaged_field)
+    loc_index = averaged_field[max_index:] <= metric.percent * max(averaged_field)
 
     # Find the first theta that the field drops below the threshold.
     theta_loc = thetas[max_index:][loc_index][0]
 
-    # Returns 5 quantities
+    # Returns 7 quantities
     # 1) file name of the dataset
     # 2) time in ms
     # 3) theta that corresponds to the flame front
