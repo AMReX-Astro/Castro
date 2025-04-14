@@ -4,7 +4,7 @@ import sys
 import glob
 import yt
 import numpy as np
-import pandas and pd
+import pandas as pd
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from yt.frontends.boxlib.api import CastroDataset
