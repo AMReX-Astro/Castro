@@ -37,7 +37,7 @@ front_thetas = tracking_data["front_theta"]
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
-        executor.submit(slice, [fname], args.fields, widthScale=args.width
+        executor.submit(slice, [fname], args.fields, widthScale=args.width,
                         dr=args.dr, theta=front_thetas[i]): i
         for i, fname in enumerate(fnames)
     }
