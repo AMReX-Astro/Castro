@@ -10,10 +10,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
-
+from yt.units import km
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
+          dr: [float] = 0.15,
           theta: Optional[float] = None) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
@@ -31,6 +32,9 @@ def slice(fnames:List[str], fields:List[str],
     loc:    preset center location of the domain. {top, mid, bot}
 
     widthScale: scaling for the domain width of the slice plot
+
+    dr: user defined distance between lower r to upper r boundary. Assumed in unit km.
+        This is used to change the center of the SlicePlot
 
     theta:  user defined theta center of the slice plot
     """
@@ -56,8 +60,9 @@ def slice(fnames:List[str], fields:List[str],
         # Some geometry properties
         rr = ds.domain_right_edge[0].in_units("km")
         rl = ds.domain_left_edge[0].in_units("km")
-        dr = rr - rl
-        r_center = 0.5 * (rr + rl)
+        if dr is None:
+            dr = rr - rl
+        r_center = 0.5 * dr + rl
 
         thetar = ds.domain_right_edge[1]
         thetal = ds.domain_left_edge[1]
@@ -104,6 +109,7 @@ def slice(fnames:List[str], fields:List[str],
                 sp.set_cmap(field, "plasma_r")
             elif field == "enuc":
                 sp.set_zlim(field, 1.e15, 1.e20)
+                sp.set_log(field, linthresh=1.e11)
             elif field == "density":
                 sp.set_zlim(field, 1.e-3, 5.e8)
 
@@ -176,6 +182,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
+    parser.add_argument('-r', '--dr', type=float,
+                        help="""Distance between upper r and lower r shown in the SlicePlot.
+                        This is used to control center and width of the SlicePlot""")
     parser.add_argument('-w', '--width', default=4.0, type=float,
                         help="scaling for the domain width of the slice plot")
 
@@ -190,5 +199,5 @@ if __name__ == "__main__":
     if loc not in loc_options:
         parser.error("loc must be one of the three: {top, mid, bot}")
 
-    slice(args.fnames, args.fields,
-          loc=loc, theta=args.theta, widthScale=args.width)
+    slice(args.fnames, args.fields, loc=loc,
+          widthScale=args.width, dr=args.dr, theta=args.theta)
