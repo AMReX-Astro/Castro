@@ -106,7 +106,7 @@ def track_flame_front(ds, metric):
     # 6) theta that corresponds to the maximum global value
     # 7) maximum global value
     tracking_data = [str(ds), float(time), float(theta_loc), float(thetas[max_index]),
-                     float(max(averaged_field)), float(max_theta_loc, max_val)]
+                     float(max(averaged_field)), float(max_theta_loc), float(max_val)]
 
     return tracking_data
 
