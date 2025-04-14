@@ -3,6 +3,7 @@
 # Plot the structure of a single plotfile, including the most abundance nuclei
 
 import argparse
+import os
 import re
 import sys
 
@@ -91,13 +92,17 @@ def doit(pf, xmin, xmax, nuc_thresh):
     ax_T.plot(x, T)
     ax_e.plot(x, enuc)
 
+    nplot = 0
     for nuc, X in zip(nuc_names, mass_fractions):
         if nuc in main_nuclei and X.max() > nuc_thresh:
             ax_X.plot(x, X, label=nuc, color=main_nuclei[nuc], lw=2)
+            nplot += 1
         elif X.max() > 0.1:
             ax_X.plot(x, X, label=nuc, ls="--")
+            nplot += 1
         elif X.max() > nuc_thresh:
             ax_X.plot(x, X, label=nuc, ls=":")
+            nplot += 1
 
     ax_T.set_ylabel("T (K)")
     ax_T.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
@@ -118,12 +123,20 @@ def doit(pf, xmin, xmax, nuc_thresh):
     ax_X.set_ylabel(r"X")
     ax_X.set_xlabel("x (cm)")
     ax_X.set_ylim(0.1 * nuc_thresh, 1.1)
-    ax_X.legend(ncol=2, fontsize="small", loc="upper left")
+
+    ncol = 1
+    if nplot >= 5:
+        ncol = 2
+
+    ax_X.legend(ncol=ncol, fontsize="small") #, loc="upper left")
     ax_X.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     f.text(0.02, 0.02, f"t = {float(time):8.3f} s", transform=f.transFigure)
     f.tight_layout()
-    f.savefig(f"snapshot_{pf}.png")
+
+    prefix = os.getcwd().split("/")[-1]
+    time_str = f"{time:05.3f}s"
+    f.savefig(f"snapshot_{prefix}_{pf}_{time_str}.png")
 
 
 
