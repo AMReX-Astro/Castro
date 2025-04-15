@@ -14,7 +14,7 @@ from yt.units import km
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
-          dr: Optional: float = 0.15,
+          dr: Optional[float] = None,
           theta: Optional[float] = None) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
@@ -58,9 +58,14 @@ def slice(fnames:List[str], fields:List[str],
         # Process information for each dataset
 
         # Some geometry properties
-        rr = ds.domain_right_edge[0].in_units("km")
         rl = ds.domain_left_edge[0].in_units("km")
-        dr = dr * rr.units
+        if dr is None:
+            rr = ds.domain_right_edge[0].in_units("km")
+            dr = rr - rl
+        else:
+            dr = dr * rl.units
+            rr = rl + dr
+
         r_center = 0.5 * dr + rl
 
         thetar = ds.domain_right_edge[1]
@@ -122,7 +127,8 @@ def slice(fnames:List[str], fields:List[str],
                                  [rr*np.sin(theta), rr*np.cos(theta)],
                                  coord_system="plot",
                                  color="k",
-                                 linestyle="--")
+                                 linewidth=1.5,
+                                 linestyle="-.")
 
             plot = sp.plots[field]
             plot.figure = fig
@@ -181,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
-    parser.add_argument('-r', '--dr', default=0.15, type=float,
+    parser.add_argument('-r', '--dr', type=float,
                         help="""Distance between upper r and lower r shown in the SlicePlot.
                         Assumed in unit km. This is used to control center and width of the SlicePlot""")
     parser.add_argument('-w', '--width', default=4.0, type=float,

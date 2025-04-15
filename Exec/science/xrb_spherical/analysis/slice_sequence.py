@@ -18,7 +18,7 @@ parser.add_argument('-f', '--fields', nargs='+', type=str,
                     help="field parameters for plotting, e.g. enuc abar.")
 parser.add_argument('-w', '--width', default=4.0, type=float,
                     help="scaling for the domain width of the slice plot")
-parser.add_argument('-r', '--dr', default=0.15, type=float,
+parser.add_argument('-r', '--dr', type=float,
                     help="""Distance between upper r and lower r shown in the SlicePlot.
                     Assumed in unit km. This is used to control center and width of the SlicePlot""")
 parser.add_argument('--jobs', '-j', default=1, type=int,
