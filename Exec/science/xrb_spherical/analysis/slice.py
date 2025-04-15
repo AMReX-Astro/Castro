@@ -86,9 +86,18 @@ def slice(fnames:List[str], fields:List[str],
 
             center = centers[loc]
         else:
-            R = r_center*np.sin(theta)
-            Z = r_center*np.cos(theta)
-            if R < 0.5*width:
+            # If theta is provided explicitely, then assume this is the theta corresponding to
+            # flame front. Then keep the front at ~3/4 of the plotting width.
+
+            # Determine dtheta that displaces from center to ~3/4 of the plotting domain
+            threeQuarterTheta = np.arcsin(0.75 * width / r_center)
+            halfTheta = np.arcsin(0.5 * width / r_center)
+            dtheta = threeQuarterTheta - halfTheta
+
+            # Determine center using theta but also displace it by dtheta
+            R = r_center*np.sin(theta - dtheta)
+            Z = r_center*np.cos(theta - dtheta)
+            if R < 0.75*width:
                 R = 0.5*width
             center = [R, Z]
 
