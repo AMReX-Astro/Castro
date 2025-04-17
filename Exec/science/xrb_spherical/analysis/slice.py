@@ -97,7 +97,7 @@ def slice(fnames:List[str], fields:List[str],
             # Determine center using theta but also displace it by dtheta
             R = r_center*np.sin(theta - dtheta)
             Z = r_center*np.cos(theta - dtheta)
-            if R < 0.7 * width:
+            if R < 0.5 * width:
                 R = 0.5 * width
             center = [R, Z]
 
