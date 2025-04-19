@@ -86,7 +86,7 @@ def slice(fnames:List[str], fields:List[str],
 
             center = centers[loc]
         else:
-            # If theta is provided explicitely, then assume this is the theta corresponding to
+            # If theta is provided explicitly, then assume this is the theta corresponding to
             # flame front. Then keep the front at ~0.7 of the plotting width.
 
             # Determine dtheta that displaces from center to ~0.7 of the plotting domain
