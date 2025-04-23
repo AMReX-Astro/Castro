@@ -25,7 +25,7 @@ void problem_initialize_state_data (int i, int j, int k,
     r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
     if (coord_type <= 1) {
-        for (int n; n < AMREX_SPACEDIM; ++n) {
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
             r[n] -= problem::center[n];
         }
     }
