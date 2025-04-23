@@ -114,7 +114,7 @@ void problem_initialize ()
 
         Castro::problem_data_logs.resize(1);
 
-        Castro::problem_data_logs[0].reset(new std::fstream);
+        Castro::problem_data_logs[0] = std::make_unique<std::fstream>();
         Castro::problem_data_logs[0]->open("toy_flame.log", std::ios::out | std::ios::app);
         if (!Castro::problem_data_logs[0]->good()) {
             amrex::FileOpenFailed("toy_flame.log");

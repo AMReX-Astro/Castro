@@ -422,10 +422,9 @@ void ca_dergradpx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
 
-    // Compute grad p / p . xhat
+    amrex::ignore_unused(geomdata);
 
-    const auto dx = geomdata.CellSizeArray();
-    const int coord_type = geomdata.Coord();
+    // Compute grad p / p . xhat
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
@@ -435,9 +434,6 @@ void ca_dergradpx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 #elif AMREX_SPACEDIM == 1
     return; // Skip for 1D
 #endif
-
-    Real dxinv = 1.0_rt / dx[0];
-    Real dyinv = 1.0_rt / dx[1];
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -532,10 +528,9 @@ void ca_dergradpy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
 
-    // compute grad p / p . yhat
+    amrex::ignore_unused(geomdata);
 
-    const auto dx = geomdata.CellSizeArray();
-    const int coord_type = geomdata.Coord();
+    // compute grad p / p . yhat
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
@@ -545,10 +540,6 @@ void ca_dergradpy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 #elif AMREX_SPACEDIM == 1
     return; // Skip for 1D
 #endif
-
-    Real dxinv = 1.0_rt / dx[0];
-    Real dyinv = 1.0_rt / dx[1];
-
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)

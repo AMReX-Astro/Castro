@@ -9,7 +9,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
   // compute the norm of the solution vs. the analytic solution
 
-  int nlevels = amr_level.size();
+  int nlevels = static_cast<int>(amr_level.size());
 
   Real L0 = -1.e30;
   Real L2 = -1.e30;
@@ -17,7 +17,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
   for (int n = 0; n < nlevels; ++n) {
 
     // the Castro object for this level
-    Castro& castro = dynamic_cast<Castro&>(*amr_level[n]);
+    auto& castro = dynamic_cast<Castro&>(*amr_level[n]);
     Real time = castro.get_state_data(State_Type).curTime();
 
     // the state data
