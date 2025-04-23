@@ -8,8 +8,8 @@
 using namespace amrex;
 
 
-void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                 const FArrayBox& datfab, const Geometry& geomdata,
+void deranalytic(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                 const FArrayBox& /*datfab*/, const Geometry& geomdata,
                  Real time, const int* /*bcrec*/, int /*level*/)
 {
 
