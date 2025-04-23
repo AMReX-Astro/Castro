@@ -41,8 +41,8 @@ void problem_bc_fill(int i, int j, int k,
     r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
     if (coord <= 1) {
-        for (int i; i < AMREX_SPACEDIM; ++i) {
-            r[i] -= problem::center[i];
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+            r[n] -= problem::center[n];
         }
     }
 

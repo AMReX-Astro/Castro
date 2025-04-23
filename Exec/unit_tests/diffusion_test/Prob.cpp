@@ -20,9 +20,6 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     Castro& castro = dynamic_cast<Castro&>(*amr_level[n]);
     Real time = castro.get_state_data(State_Type).curTime();
 
-    auto domain_lo = castro.geom.Domain().loVect3d();
-    auto domain_hi = castro.geom.Domain().hiVect3d();
-
     // the state data
     MultiFab& S = castro.get_new_data(State_Type);
 
