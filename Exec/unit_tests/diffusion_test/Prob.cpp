@@ -30,6 +30,9 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 #ifdef TRUE_SDC
     // if we are fourth-order, we need to convert to averages
     if (sdc_order == 4) {
+        auto domain_lo = castro.geom.Domain().loVect3d();
+        auto domain_hi = castro.geom.Domain().hiVect3d();
+
         FArrayBox tmp;
 
         for (MFIter mfi(*analytic); mfi.isValid(); ++mfi) {
