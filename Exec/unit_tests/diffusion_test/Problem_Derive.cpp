@@ -8,8 +8,8 @@
 using namespace amrex;
 
 
-void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                 const FArrayBox& datfab, const Geometry& geomdata,
+void deranalytic(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                 const FArrayBox& /*datfab*/, const Geometry& geomdata,
                  Real time, const int* /*bcrec*/, int /*level*/)
 {
 
@@ -18,7 +18,6 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     const int coord_type = geomdata.Coord();
 
-    auto const dat = datfab.array();
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
@@ -33,8 +32,8 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
         r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
         if (coord_type <= 1) {
-            for (int i; i < AMREX_SPACEDIM; ++i) {
-                r[i] -= problem::center[i];
+            for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                r[n] -= problem::center[n];
             }
         }
 
