@@ -21,8 +21,8 @@ Real analytic(const Real* r, const Real time, const int coord_type) {
     } else
 #endif
     {
-        Real exponent;
-        if (coord_type == 2) {
+        Real exponent{};
+        if (coord_type == 2) {  // NOLINT(bugprone-branch-clone)
             // Handle spherical coordinates
             exponent = 3.0_rt / 2.0_rt;
         } else if (AMREX_SPACEDIM == 2 && coord_type == 1) {
