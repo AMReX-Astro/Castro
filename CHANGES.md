@@ -1,3 +1,45 @@
+# 25.05
+
+  * update nova inputs are README (#3066)
+
+  * clang-tidy clean-ups (#3064, #3069)
+
+  * fix some loop initialization and shadowing issues in the diffusion
+    test (#3068, #3070)
+
+  * update Sod analysis scripts for NumPy 2.x (#3065)
+
+  * update `xrb_spherical` analysis scripts (#3013)
+
+  * update scaling numbers for `flame_wave` (#3058)
+
+  * update `massive_star` README file (#3059)
+
+  * add a new analysis script to `Detonation` that shows the structure
+    at a single time, including composition (#3061)
+
+  * fix shadowing in `timestep.cpp` (#3063)
+
+  * update `subch_planar` inputs and README (#3062)
+
+  * have the `job_info` file capture the `EXTRACXXFLAGS` in the build
+    system (#3057)
+
+  * clean up the `flame` problem and make the inputs files clearer +
+    add one for carbon flames.  Also update the analysis scripts
+    (#3056)
+
+  * fix CI test branch issues (#3060)
+
+  * add Bessel-Legendre initial conditions for the 2D diffusion
+    test in spherical geometry (#3054)
+
+  * update the `flame_wave` analysis script to allow for parallel runs,
+    interactivity, and performance (#3030)
+
+  * fix the `divu`, `magvort`, and `diffterm` plot variables for 2D
+    spherical geometry (#3055)
+
 # 25.04
 
   * for spherical geometry, allow the inner BC to not be at zero for
