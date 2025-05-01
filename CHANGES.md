@@ -51,11 +51,12 @@
 
   * fix the spherical boundary check at initialization (#3046)
 
-  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr`
+  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr` (#3049)
 
-  * fix a NaN in `transverse_use_eos` when running in 3D
+  * fix a NaN in `transverse_use_eos` when running in 3D (#3043)
 
-  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation` problem.
+  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation`
+    problem. (#3038)
 
 # 25.03
 
