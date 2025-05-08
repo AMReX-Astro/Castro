@@ -76,7 +76,7 @@ Run with:
 ./Castro2d.gnu.MPI.ex inputs.2d.sph.bessel amr.n_cell=256 256
 ```
 
-After each run, the norm of the errror against the analytic solution
+After each run, the norm of the error against the analytic solution
 shows 2nd order accuracy:
 
 ```
