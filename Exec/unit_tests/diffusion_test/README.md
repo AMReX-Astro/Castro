@@ -324,7 +324,7 @@ Level  L1 norm of Error in Each Component
                diff_term        2.631251e-01       1.915835   6.973300e-02
 ```
 
-For the higher resolution run, e.g. `convergence_diffusion.2d.hi.out`:
+For the higher resolution runs, e.g. `convergence_diffusion.2d.hi.out`:
 
 ```
 Level  L1 norm of Error in Each Component
