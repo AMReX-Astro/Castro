@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File RadSolve.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -76,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
@@ -83,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -96,7 +98,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8H.html">File Castro_diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
@@ -115,7 +116,8 @@
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HLL__solvers_8H.html">File HLL_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -123,13 +125,48 @@
 <li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadDerive_8H.html">File RadDerive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadHydro_8H.html">File RadHydro.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File RadSolve.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File RadSolve.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48RadSolve"><code class="docutils literal notranslate"><span class="pre">RadSolve</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve8RadSolveEPN5amrex3AmrEiRKN5amrex8BoxArrayERKN5amrex19DistributionMappingE"><code class="docutils literal notranslate"><span class="pre">RadSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve9levelInitEi"><code class="docutils literal notranslate"><span class="pre">levelInit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve10levelBndryER8RadBndry"><code class="docutils literal notranslate"><span class="pre">levelBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve10levelBndryER10MGRadBndryKi"><code class="docutils literal notranslate"><span class="pre">levelBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve24cellCenteredApplyMetricsEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">cellCenteredApplyMetrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve15setLevelACoeffsEiRKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">setLevelACoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve15setLevelBCoeffsEiRKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">setLevelBCoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve15setLevelCCoeffsEiRKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">setLevelCCoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve12levelACoeffsEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">levelACoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve12levelBCoeffsEiRN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERN5amrex8MultiFabEiN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">levelBCoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEN5amrex4RealEPN5amrex12FluxRegisterEN5amrex4RealEiN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">levelRhs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve10levelSolveEiRN5amrex8MultiFabEiRN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">levelSolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve9levelFluxEiRN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">levelFlux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve12levelFluxRegEiPN5amrex12FluxRegisterEPN5amrex12FluxRegisterERKN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEEi"><code class="docutils literal notranslate"><span class="pre">levelFluxReg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve21levelFluxFaceToCenterEiRKN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">levelFluxFaceToCenter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve10levelDtermEiRN5amrex8MultiFabERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">levelDterm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve10levelClearEv"><code class="docutils literal notranslate"><span class="pre">levelClear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve14computeBCoeffsERN5amrex8MultiFabEiRN5amrex8MultiFabEiRN5amrex8MultiFabEiN5amrex4RealERKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">computeBCoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve12levelACoeffsEiRN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEiN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">levelACoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEiiN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">levelRhs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve12levelDCoeffsEiRN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">levelDCoeffs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve13setHypreMultiEN5amrex4RealEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">setHypreMulti()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve17restoreHypreMultiEv"><code class="docutils literal notranslate"><span class="pre">restoreHypreMulti()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve6cMultiE"><code class="docutils literal notranslate"><span class="pre">cMulti</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve7d1MultiE"><code class="docutils literal notranslate"><span class="pre">d1Multi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve7d2MultiE"><code class="docutils literal notranslate"><span class="pre">d2Multi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve11read_paramsEv"><code class="docutils literal notranslate"><span class="pre">read_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve13getEdgeMetricEiRKN5amrex8GeometryERKN5amrex3BoxERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEE"><code class="docutils literal notranslate"><span class="pre">getEdgeMetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve6parentE"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve2hdE"><code class="docutils literal notranslate"><span class="pre">hd</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve2hmE"><code class="docutils literal notranslate"><span class="pre">hm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8RadSolve3hemE"><code class="docutils literal notranslate"><span class="pre">hem</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
@@ -145,6 +182,7 @@
 <li class="toctree-l2"><a class="reference internal" href="flatten_8H.html">File flatten.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
@@ -165,9 +203,14 @@
 <li class="toctree-l2"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__constants_8H.html">File riemann_constants.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
@@ -205,7 +248,7 @@
            <div itemprop="articleBody">
              
   <section id="file-radsolve-h">
-<h1>File RadSolve.H<a class="headerlink" href="#file-radsolve-h" title="Permalink to this heading"></a></h1>
+<h1>File RadSolve.H<a class="headerlink" href="#file-radsolve-h" title="Link to this heading"></a></h1>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv48RadSolve">
 <span id="_CPPv38RadSolve"></span><span id="_CPPv28RadSolve"></span><span id="RadSolve"></span><span class="target" id="classRadSolve"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RadSolve</span></span></span><br /></dt>
@@ -222,11 +265,6 @@
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N8RadSolveD0Ev">
-<span id="_CPPv3N8RadSolveD0Ev"></span><span id="_CPPv2N8RadSolveD0Ev"></span><span id="RadSolve::~RadSolve"></span><span class="target" id="classRadSolve_1af83de61b88a231f9ff7d8962f456e445"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~RadSolve</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N8RadSolve9levelInitEi">
@@ -341,12 +379,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>kappa_r</strong> – </p></li>
-<li><p><strong>kcomp</strong> – </p></li>
-<li><p><strong>c</strong> – </p></li>
-<li><p><strong>lamcomp</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -406,10 +439,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>Flux</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>igroup</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -424,9 +454,7 @@
 <li><p><strong>level</strong> – </p></li>
 <li><p><strong>flux_in</strong> – </p></li>
 <li><p><strong>flux_out</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>Flux</strong> – </p></li>
-<li><p><strong>igroup</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -439,10 +467,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>Flux</strong> – </p></li>
-<li><p><strong>flx</strong> – </p></li>
-<li><p><strong>iflx</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -544,10 +569,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>vel</strong> – </p></li>
-<li><p><strong>dcf</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -655,7 +677,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

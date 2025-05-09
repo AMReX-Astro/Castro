@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File RadHydro.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -76,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
@@ -83,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -96,7 +98,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8H.html">File Castro_diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
@@ -115,7 +116,8 @@
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HLL__solvers_8H.html">File HLL_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -123,12 +125,41 @@
 <li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadDerive_8H.html">File RadDerive.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File RadHydro.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File RadHydro.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48rk_order"><code class="docutils literal notranslate"><span class="pre">rk_order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48use_WENO"><code class="docutils literal notranslate"><span class="pre">use_WENO</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv410cfl_fspace"><code class="docutils literal notranslate"><span class="pre">cfl_fspace</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48onethird"><code class="docutils literal notranslate"><span class="pre">onethird</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49twothirds"><code class="docutils literal notranslate"><span class="pre">twothirds</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48onesixth"><code class="docutils literal notranslate"><span class="pre">onesixth</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B1"><code class="docutils literal notranslate"><span class="pre">B1</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B2"><code class="docutils literal notranslate"><span class="pre">B2</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B3"><code class="docutils literal notranslate"><span class="pre">B3</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B4"><code class="docutils literal notranslate"><span class="pre">B4</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B5"><code class="docutils literal notranslate"><span class="pre">B5</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv42B6"><code class="docutils literal notranslate"><span class="pre">B6</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C20"><code class="docutils literal notranslate"><span class="pre">C20</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C21"><code class="docutils literal notranslate"><span class="pre">C21</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C40"><code class="docutils literal notranslate"><span class="pre">C40</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C41"><code class="docutils literal notranslate"><span class="pre">C41</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C42"><code class="docutils literal notranslate"><span class="pre">C42</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C43"><code class="docutils literal notranslate"><span class="pre">C43</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C50"><code class="docutils literal notranslate"><span class="pre">C50</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C51"><code class="docutils literal notranslate"><span class="pre">C51</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C52"><code class="docutils literal notranslate"><span class="pre">C52</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C53"><code class="docutils literal notranslate"><span class="pre">C53</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C54"><code class="docutils literal notranslate"><span class="pre">C54</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C60"><code class="docutils literal notranslate"><span class="pre">C60</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C61"><code class="docutils literal notranslate"><span class="pre">C61</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C62"><code class="docutils literal notranslate"><span class="pre">C62</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C63"><code class="docutils literal notranslate"><span class="pre">C63</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C64"><code class="docutils literal notranslate"><span class="pre">C64</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv43C65"><code class="docutils literal notranslate"><span class="pre">C65</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
@@ -145,6 +176,7 @@
 <li class="toctree-l2"><a class="reference internal" href="flatten_8H.html">File flatten.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
@@ -165,9 +197,14 @@
 <li class="toctree-l2"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__constants_8H.html">File riemann_constants.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
@@ -205,7 +242,7 @@
            <div itemprop="articleBody">
              
   <section id="file-radhydro-h">
-<h1>File RadHydro.H<a class="headerlink" href="#file-radhydro-h" title="Permalink to this heading"></a></h1>
+<h1>File RadHydro.H<a class="headerlink" href="#file-radhydro-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
@@ -233,147 +270,147 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv48rk_order">
-<span id="_CPPv38rk_order"></span><span id="_CPPv28rk_order"></span><span id="rk_order__i"></span><span class="target" id="RadHydro_8H_1a411c69a8bbc9ec94eeb88595420ba7f3"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rk_order</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv48rk_order" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv38rk_order"></span><span id="_CPPv28rk_order"></span><span id="rk_order__i"></span><span class="target" id="RadHydro_8H_1a411c69a8bbc9ec94eeb88595420ba7f3"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rk_order</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv48rk_order" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv48use_WENO">
-<span id="_CPPv38use_WENO"></span><span id="_CPPv28use_WENO"></span><span id="use_WENO__b"></span><span class="target" id="RadHydro_8H_1a87938bc17b92d66c90bfb73e186f9376"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">use_WENO</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><a class="headerlink" href="#_CPPv48use_WENO" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv38use_WENO"></span><span id="_CPPv28use_WENO"></span><span id="use_WENO__b"></span><span class="target" id="RadHydro_8H_1a87938bc17b92d66c90bfb73e186f9376"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">use_WENO</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><a class="headerlink" href="#_CPPv48use_WENO" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv410cfl_fspace">
-<span id="_CPPv310cfl_fspace"></span><span id="_CPPv210cfl_fspace"></span><span id="cfl_fspace__Real"></span><span class="target" id="RadHydro_8H_1aca7968512e83fce0dcd247879351d0a0"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cfl_fspace</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv410cfl_fspace" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv310cfl_fspace"></span><span id="_CPPv210cfl_fspace"></span><span id="cfl_fspace__Real"></span><span class="target" id="RadHydro_8H_1aca7968512e83fce0dcd247879351d0a0"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cfl_fspace</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv410cfl_fspace" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv48onethird">
-<span id="_CPPv38onethird"></span><span id="_CPPv28onethird"></span><span id="onethird__Real"></span><span class="target" id="RadHydro_8H_1a3a426e2742dedb9668de332e81885cdc"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onethird</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv48onethird" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv38onethird"></span><span id="_CPPv28onethird"></span><span id="onethird__Real"></span><span class="target" id="RadHydro_8H_1a3a426e2742dedb9668de332e81885cdc"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onethird</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv48onethird" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv49twothirds">
-<span id="_CPPv39twothirds"></span><span id="_CPPv29twothirds"></span><span id="twothirds__Real"></span><span class="target" id="RadHydro_8H_1a05b05a2f7ab869c695ad8fb7fde8a560"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">twothirds</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv49twothirds" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv39twothirds"></span><span id="_CPPv29twothirds"></span><span id="twothirds__Real"></span><span class="target" id="RadHydro_8H_1a05b05a2f7ab869c695ad8fb7fde8a560"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">twothirds</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv49twothirds" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv48onesixth">
-<span id="_CPPv38onesixth"></span><span id="_CPPv28onesixth"></span><span id="onesixth__Real"></span><span class="target" id="RadHydro_8H_1a20fabd3180b9129be59e3abdc4dc4bb5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onesixth</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">6.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv48onesixth" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv38onesixth"></span><span id="_CPPv28onesixth"></span><span id="onesixth__Real"></span><span class="target" id="RadHydro_8H_1a20fabd3180b9129be59e3abdc4dc4bb5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">onesixth</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">6.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv48onesixth" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B1">
-<span id="_CPPv32B1"></span><span id="_CPPv22B1"></span><span id="B1__Real"></span><span class="target" id="RadHydro_8H_1aad962a09ce1f041488fb1f1d29322155"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B1" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B1"></span><span id="_CPPv22B1"></span><span id="B1__Real"></span><span class="target" id="RadHydro_8H_1aad962a09ce1f041488fb1f1d29322155"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B1</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B1" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B2">
-<span id="_CPPv32B2"></span><span id="_CPPv22B2"></span><span id="B2__Real"></span><span class="target" id="RadHydro_8H_1a5a169900e91ef4ef3aee139540c2b112"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">16.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B2" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B2"></span><span id="_CPPv22B2"></span><span id="B2__Real"></span><span class="target" id="RadHydro_8H_1a5a169900e91ef4ef3aee139540c2b112"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B2</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">16.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B2" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B3">
-<span id="_CPPv32B3"></span><span id="_CPPv22B3"></span><span id="B3__Real"></span><span class="target" id="RadHydro_8H_1a0ef6775d19d65a4c658f0421c72cbba7"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B3</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B3" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B3"></span><span id="_CPPv22B3"></span><span id="B3__Real"></span><span class="target" id="RadHydro_8H_1a0ef6775d19d65a4c658f0421c72cbba7"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B3</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.5</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B3" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B4">
-<span id="_CPPv32B4"></span><span id="_CPPv22B4"></span><span id="B4__Real"></span><span class="target" id="RadHydro_8H_1a9bbd3f51e4ba4e28f68353ca5d325e73"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B4</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">9.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">16.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B4" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B4"></span><span id="_CPPv22B4"></span><span id="B4__Real"></span><span class="target" id="RadHydro_8H_1a9bbd3f51e4ba4e28f68353ca5d325e73"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B4</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">9.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">16.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B4" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B5">
-<span id="_CPPv32B5"></span><span id="_CPPv22B5"></span><span id="B5__Real"></span><span class="target" id="RadHydro_8H_1a059f873a7ec5c72c93af6657134a8879"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B5</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B5" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B5"></span><span id="_CPPv22B5"></span><span id="B5__Real"></span><span class="target" id="RadHydro_8H_1a059f873a7ec5c72c93af6657134a8879"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B5</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B5" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv42B6">
-<span id="_CPPv32B6"></span><span id="_CPPv22B6"></span><span id="B6__Real"></span><span class="target" id="RadHydro_8H_1a88a7572c8c4c33d205edb3eb3b90de92"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B6</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">90.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B6" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv32B6"></span><span id="_CPPv22B6"></span><span id="B6__Real"></span><span class="target" id="RadHydro_8H_1a88a7572c8c4c33d205edb3eb3b90de92"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">B6</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">90.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv42B6" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C20">
-<span id="_CPPv33C20"></span><span id="_CPPv23C20"></span><span id="C20__Real"></span><span class="target" id="RadHydro_8H_1a44555765dffa942e1168346ba0b157af"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C20</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C20" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C20"></span><span id="_CPPv23C20"></span><span id="C20__Real"></span><span class="target" id="RadHydro_8H_1a44555765dffa942e1168346ba0b157af"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C20</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C20" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C21">
-<span id="_CPPv33C21"></span><span id="_CPPv23C21"></span><span id="C21__Real"></span><span class="target" id="RadHydro_8H_1a50c5cbb4318e3614a4ae5f21e297ac92"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C21</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C21" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C21"></span><span id="_CPPv23C21"></span><span id="C21__Real"></span><span class="target" id="RadHydro_8H_1a50c5cbb4318e3614a4ae5f21e297ac92"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C21</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C21" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C40">
-<span id="_CPPv33C40"></span><span id="_CPPv23C40"></span><span id="C40__Real"></span><span class="target" id="RadHydro_8H_1a40b24d26c6394fce997cbd667734cc66"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C40</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">17.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C40" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C40"></span><span id="_CPPv23C40"></span><span id="C40__Real"></span><span class="target" id="RadHydro_8H_1a40b24d26c6394fce997cbd667734cc66"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C40</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">17.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C40" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C41">
-<span id="_CPPv33C41"></span><span id="_CPPv23C41"></span><span id="C41__Real"></span><span class="target" id="RadHydro_8H_1ac5f955c90f8d1296f265e5f6ba72859c"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C41</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">9.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C41" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C41"></span><span id="_CPPv23C41"></span><span id="C41__Real"></span><span class="target" id="RadHydro_8H_1ac5f955c90f8d1296f265e5f6ba72859c"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C41</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">9.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C41" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C42">
-<span id="_CPPv33C42"></span><span id="_CPPv23C42"></span><span id="C42__Real"></span><span class="target" id="RadHydro_8H_1a85011929f8e8572220d72421040d99e6"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C42</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C42" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C42"></span><span id="_CPPv23C42"></span><span id="C42__Real"></span><span class="target" id="RadHydro_8H_1a85011929f8e8572220d72421040d99e6"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C42</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">3.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C42" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C43">
-<span id="_CPPv33C43"></span><span id="_CPPv23C43"></span><span id="C43__Real"></span><span class="target" id="RadHydro_8H_1a5a4a2fce4cf47a3e5d2d9ec941c12fe1"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C43</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.75</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C43" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C43"></span><span id="_CPPv23C43"></span><span id="C43__Real"></span><span class="target" id="RadHydro_8H_1a5a4a2fce4cf47a3e5d2d9ec941c12fe1"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C43</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.75</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C43" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C50">
-<span id="_CPPv33C50"></span><span id="_CPPv23C50"></span><span id="C50__Real"></span><span class="target" id="RadHydro_8H_1a5280f93224f8cb1b9c80953288178fc5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C50</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">21.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C50" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C50"></span><span id="_CPPv23C50"></span><span id="C50__Real"></span><span class="target" id="RadHydro_8H_1a5280f93224f8cb1b9c80953288178fc5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C50</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">21.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C50" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C51">
-<span id="_CPPv33C51"></span><span id="_CPPv23C51"></span><span id="C51__Real"></span><span class="target" id="RadHydro_8H_1a2dc2a6452cd046e7b51055934ab7d035"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C51</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C51" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C51"></span><span id="_CPPv23C51"></span><span id="C51__Real"></span><span class="target" id="RadHydro_8H_1a2dc2a6452cd046e7b51055934ab7d035"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C51</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">7.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C51" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C52">
-<span id="_CPPv33C52"></span><span id="_CPPv23C52"></span><span id="C52__Real"></span><span class="target" id="RadHydro_8H_1aed9f7ad7887647a052a8421580e3326c"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C52</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C52" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C52"></span><span id="_CPPv23C52"></span><span id="C52__Real"></span><span class="target" id="RadHydro_8H_1aed9f7ad7887647a052a8421580e3326c"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C52</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C52" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C53">
-<span id="_CPPv33C53"></span><span id="_CPPv23C53"></span><span id="C53__Real"></span><span class="target" id="RadHydro_8H_1aaa8e67a5d7d3cb1f2f2ce0e68da7177e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C53</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">4.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C53" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C53"></span><span id="_CPPv23C53"></span><span id="C53__Real"></span><span class="target" id="RadHydro_8H_1aaa8e67a5d7d3cb1f2f2ce0e68da7177e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C53</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">4.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C53" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C54">
-<span id="_CPPv33C54"></span><span id="_CPPv23C54"></span><span id="C54__Real"></span><span class="target" id="RadHydro_8H_1affa3d1d7cc7344d9f31d08f5ac8e6910"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C54</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">64.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">21.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C54" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C54"></span><span id="_CPPv23C54"></span><span id="C54__Real"></span><span class="target" id="RadHydro_8H_1affa3d1d7cc7344d9f31d08f5ac8e6910"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C54</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">64.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">21.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C54" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C60">
-<span id="_CPPv33C60"></span><span id="_CPPv23C60"></span><span id="C60__Real"></span><span class="target" id="RadHydro_8H_1af16f4308baa368dee35d3e61dd5f35d6"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C60</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">27.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C60" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C60"></span><span id="_CPPv23C60"></span><span id="C60__Real"></span><span class="target" id="RadHydro_8H_1af16f4308baa368dee35d3e61dd5f35d6"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C60</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">8.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">27.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C60" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C61">
-<span id="_CPPv33C61"></span><span id="_CPPv23C61"></span><span id="C61__Real"></span><span class="target" id="RadHydro_8H_1a817181ff82ed0f021eaaa38a993419db"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C61</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C61" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C61"></span><span id="_CPPv23C61"></span><span id="C61__Real"></span><span class="target" id="RadHydro_8H_1a817181ff82ed0f021eaaa38a993419db"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C61</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">5.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C61" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C62">
-<span id="_CPPv33C62"></span><span id="_CPPv23C62"></span><span id="C62__Real"></span><span class="target" id="RadHydro_8H_1a6681b740b89f5808ee20b57ed0e64cb4"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C62</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C62" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C62"></span><span id="_CPPv23C62"></span><span id="C62__Real"></span><span class="target" id="RadHydro_8H_1a6681b740b89f5808ee20b57ed0e64cb4"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C62</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C62" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C63">
-<span id="_CPPv33C63"></span><span id="_CPPv23C63"></span><span id="C63__Real"></span><span class="target" id="RadHydro_8H_1a94218b61883afe0ca1ad2b63e5ad5b18"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C63</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C63" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C63"></span><span id="_CPPv23C63"></span><span id="C63__Real"></span><span class="target" id="RadHydro_8H_1a94218b61883afe0ca1ad2b63e5ad5b18"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C63</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C63" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C64">
-<span id="_CPPv33C64"></span><span id="_CPPv23C64"></span><span id="C64__Real"></span><span class="target" id="RadHydro_8H_1af51e0701662eaff4a3278298ef35ba20"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C64</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">27.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C64" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C64"></span><span id="_CPPv23C64"></span><span id="C64__Real"></span><span class="target" id="RadHydro_8H_1af51e0701662eaff4a3278298ef35ba20"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C64</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">32.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">27.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C64" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv43C65">
-<span id="_CPPv33C65"></span><span id="_CPPv23C65"></span><span id="C65__Real"></span><span class="target" id="RadHydro_8H_1ac46c66c13cf8b8eae3fc1c5a2337f285"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C65</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">14.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C65" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv33C65"></span><span id="_CPPv23C65"></span><span id="C65__Real"></span><span class="target" id="RadHydro_8H_1ac46c66c13cf8b8eae3fc1c5a2337f285"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C65</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">14.0</span></span><span class="n"><span class="pre">_rt</span></span><span class="w"> </span><span class="o"><span class="pre">/</span></span><span class="w"> </span><span class="m"><span class="pre">45.0</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv43C65" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -390,7 +427,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

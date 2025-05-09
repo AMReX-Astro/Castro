@@ -28,7 +28,7 @@ The Castro parameters that control the behavior of the code and
 physics modules are listed in ``_cpp_parameters`` and take the form of::
 
     # comment describing the parameter
-    name   type   default   need in Fortran?   ifdef
+    name   type   default   ifdef
 
 Here,
 
@@ -45,13 +45,7 @@ Here,
 
   * `default` is the default value of the parameter.
 
-The next columns are optional, but you need to fill in all of the
-information up to and including any of the optional columns you need
-(e.g., if you are going to provide "need in Fortran?" and "ifdef").
-
-  * `need in Fortran?` is ``y`` if the runtime parameter should be
-    made available in Fortran (through ``meth_params_module``).
-    Note: this option is deprecated.
+The next column is optional:
 
   * `ifdef` provides the name of a preprocessor name that should
     wrap this parameter definition—it will only be compiled in if that

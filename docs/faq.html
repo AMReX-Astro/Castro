@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Frequently Asked Questions &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -84,6 +85,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -91,7 +94,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -135,9 +137,9 @@
            <div itemprop="articleBody">
              
   <section id="frequently-asked-questions">
-<h1>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this heading"></a></h1>
+<h1>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Link to this heading"></a></h1>
 <section id="compiling">
-<h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this heading"></a></h2>
+<h2>Compiling<a class="headerlink" href="#compiling" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p><em>Compiling fails giving me a cryptic message about a module not
 being found.</em></p>
@@ -148,42 +150,50 @@ Castro directory hierarchy. make will look through the
 directories in the <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code> to find the files.</p>
 <p>There are 2 things you can do to check what’s happening. First, inspect
 the directories in <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code>. This can be done via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">print</span><span class="o">-</span><span class="n">VPATH_LOCATIONS</span>
-</pre></div>
-</div>
-<p>Next, ask make to tell you where it is finding each of the source
+<div class="highlight-default notranslate"><div class="highlight"><pre><style type="text/css">
+span.prompt1:before {
+  content: "$ ";
+}
+</style><span class="prompt1">make<span class="w"> </span>print-VPATH_LOCATIONS</span>
+</pre></div></div><p>Next, ask make to tell you where it is finding each of the source
 files. This is done through a script <code class="docutils literal notranslate"><span class="pre">find_files_vpath.py</span></code>
 that is hooked into Castro’s build system. You can run this as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">file_locations</span>
-</pre></div>
-</div>
-<p>At the end of the report, it will list any files it cannot find in
-the vpath. Some of these are to be expected (like <code class="docutils literal notranslate"><span class="pre">extern.f90</span></code>
-and <code class="docutils literal notranslate"><span class="pre">buildInfo.cpp</span></code>—these are written at compile-time. But any
-other missing files need to be investigated.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span>file_locations</span>
+</pre></div></div><p>At the end of the report, it will list any files it cannot find in
+the vpath. Some of these are to be expected (like
+<code class="docutils literal notranslate"><span class="pre">buildInfo.cpp</span></code>—these are written at compile-time). But any other
+missing files need to be investigated.</p>
+</li>
+<li><p><em>I put a copy of one of the header files (e.g. ``problem_tagging.H``)
+in my problem setup but it does not seem to recognized / used by
+the build system.  Why doesn’t my executable use my custom version
+of the header?</em></p>
+<p>This is likely due to compiler caching / ccache.  You need to
+clear the cache and the build:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">ccache<span class="w"> </span>-C</span>
+<span class="prompt1">make<span class="w"> </span>clean</span>
+</pre></div></div><p>Then rebuild and it should be recognized.</p>
 </li>
 <li><p><em>I’m still having trouble compiling. How can I find out what
 all of the make variables are set to?</em></p>
 <p>Use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">help</span>
-</pre></div>
-</div>
-<p>This will tell you the value of all the compilers and their options.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nb">help</span></span>
+</pre></div></div><p>This will tell you the value of all the compilers and their options.</p>
 </li>
 </ol>
 </section>
 <section id="debugging">
-<span id="debugging-backtrace"></span><h2>Debugging<a class="headerlink" href="#debugging" title="Permalink to this heading"></a></h2>
+<span id="debugging-backtrace"></span><h2>Debugging<a class="headerlink" href="#debugging" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p><em>Castro crashes with a floating point exception—how can
 I get more information?</em></p>
 <p>The best thing to do is to recompile the code with <code class="docutils literal notranslate"><span class="pre">TEST=TRUE</span></code>
-set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
-signals raised in both C++ and Fortran functions. Behind the
+set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
+signals raised in C++ functions. Behind the
 scenes, this defines the <code class="docutils literal notranslate"><span class="pre">AMREX_TESTING</span></code> preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the <code class="docutils literal notranslate"><span class="pre">BLBackTrace::handler()</span></code>
-function to handle various signals raised in both C++ and Fortran
+function to handle various signals raised in C++
 functions. This is a Linux/UNIX capability. This gives us a chance
 to print out backtrace information. The signals include seg fault,
 floating point exceptions (NaNs, divided by zero and overflow), and
@@ -220,11 +230,11 @@ file (e.g. <code class="docutils literal notranslate"><span class="pre">BackTrac
 <li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
 <p>Given a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>, you can dump out the state as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span><span class="w"> </span><span class="n">IntVect</span><span class="p">(</span><span class="n">AMREX_D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">)));</span>
 </pre></div>
 </div>
 <p>Here, the IntVect has the dimension that we were compiled with
-(and this is handled through the preprocessor <code class="docutils literal notranslate"><span class="pre">D_DECL</span></code>). In
+(and this is handled through the preprocessor <code class="docutils literal notranslate"><span class="pre">AMREX_D_DECL</span></code>). In
 this case, we are inspecting zone (10, 20, 30), in the global index
 space. Note that since a multifab exists only on a single level, the
 integer indices here refer to the global index space on that level.</p>
@@ -232,8 +242,8 @@ integer indices here refer to the global index space on that level.</p>
 <li><p><em>What if I want to see all the data in a FArrayBox?</em></p>
 <p>You can simply output a FAB to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code>. Imagine that you
 are in an MFIter loop, with a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S</span> <span class="o">=</span> <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
-<span class="n">std</span><span class="p">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">S</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="p">::</span><span class="n">endl</span><span class="p">;</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">S</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FArrayBox</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This will output the contents on the FAB, one zone per line.</p>
@@ -241,7 +251,7 @@ are in an MFIter loop, with a MultiFab <code class="docutils literal notranslate
 </ol>
 </section>
 <section id="profiling">
-<h2>Profiling<a class="headerlink" href="#profiling" title="Permalink to this heading"></a></h2>
+<h2>Profiling<a class="headerlink" href="#profiling" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p><em>How can I get line-by-line profiling information?</em></p>
 <p>With the GNU compilers, you can enabling profiling with gprof
@@ -252,25 +262,21 @@ by compiling with</p>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>When you run, a file named <code class="docutils literal notranslate"><span class="pre">gmon.out</span></code> will be produced. This can
 be processed with gprof by running:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gprof</span> <span class="n">exec</span><span class="o">-</span><span class="n">name</span>
-</pre></div>
-</div>
-<p>where <em>exec-name</em> is the name of the executable. More detailed
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">gprof<span class="w"> </span>exec-name</span>
+</pre></div></div><p>where <em>exec-name</em> is the name of the executable. More detailed
 line-by-line information can be obtained by passing the -l
 argument to gprof.</p>
 </li>
 </ol>
 </section>
 <section id="managing-runs">
-<h2>Managing Runs<a class="headerlink" href="#managing-runs" title="Permalink to this heading"></a></h2>
+<h2>Managing Runs<a class="headerlink" href="#managing-runs" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p><em>How can I force the running code to output, even it the plot or
 checkpoint interval parameters don’t require it?</em></p>
 <p>Create a file called <code class="docutils literal notranslate"><span class="pre">dump_and_continue</span></code>, e.g., as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">touch</span> <span class="n">dump_and_continue</span>
-</pre></div>
-</div>
-<p>This will force the code to output a checkpoint file that can be used
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">touch<span class="w"> </span>dump_and_continue</span>
+</pre></div></div><p>This will force the code to output a checkpoint file that can be used
 to restart. Other options are <code class="docutils literal notranslate"><span class="pre">plot_and_continue</span></code> to output
 a plotfile, <code class="docutils literal notranslate"><span class="pre">dump_and_stop</span></code> to output a checkpoint file
 and halt the code, and <code class="docutils literal notranslate"><span class="pre">stop_run</span></code> to simply stop the code.</p>
@@ -294,15 +300,13 @@ is overridden in the checkpoint code in AMReX).</p>
 </li>
 <li><p><em>How can I check the compilation parameters of a Castro executable?</em></p>
 <p>The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro</span><span class="o">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">describe</span>
-</pre></div>
-</div>
-</li>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">./Castro.exe<span class="w"> </span>--describe</span>
+</pre></div></div></li>
 </ol>
 </section>
 <section id="runtime-errors">
-<span id="ch-faq-vis"></span><h2>Runtime Errors<a class="headerlink" href="#runtime-errors" title="Permalink to this heading"></a></h2>
-<ol class="arabic">
+<span id="ch-faq-vis"></span><h2>Runtime Errors<a class="headerlink" href="#runtime-errors" title="Link to this heading"></a></h2>
+<ol class="arabic" id="index-0">
 <li><p><em>When running with retries, Castro requests too many substeps
 and crashes.</em></p>
 <p>This can occur due to CFL violations or negative densities.  If
@@ -319,12 +323,13 @@ input file. This allows piecewise constant refinement, but sacrifices
 some benefit of the refinement.</p>
 <p>If the error continues, try to increase the tolerance of determining
 specie abundance validity check by setting <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_tolerance</span></code>
-to a higher value.</p>
+to a higher value, or increasing the density floor below which this is
+ignored by changing <code class="docutils literal notranslate"><span class="pre">castro.abundance_failure_rho_cutoff</span></code>.</p>
 </li>
 </ol>
 </section>
 <section id="visualization">
-<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading"></a></h2>
+<h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p><em>When I try to use Amrvis with the Nvidia driver, all I see is
 black—no data. How do I fix this?</em></p>
@@ -356,7 +361,7 @@ by running <code class="docutils literal notranslate"><span class="pre">nvidia-x
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Setting Up Your Own Problem &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
@@ -83,6 +84,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -90,7 +93,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -134,7 +136,7 @@
            <div itemprop="articleBody">
              
   <section id="setting-up-your-own-problem">
-<h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this heading"></a></h1>
+<h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Link to this heading"></a></h1>
 <p>Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, …).  These groups are
 sub-directories under the <code class="docutils literal notranslate"><span class="pre">Castro/Exec/</span></code> directory.  Each problem is
@@ -164,7 +166,7 @@ AMReX’s behavior.</p></li>
 <p>The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.</p>
 <section id="runtime-parameters">
-<span id="index-0"></span><h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
+<span id="index-0"></span><h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
 <p>The problem-specific runtime parameters are defined in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.
 This has the form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>name       datatype    default      namelist?     size
@@ -193,7 +195,7 @@ added.</p></li>
 <p>The variables will all be initialized for the GPU as well.</p>
 </section>
 <section id="problem-initialization">
-<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this heading"></a></h2>
+<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Link to this heading"></a></h2>
 <p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
 <li><p><code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code></p>
@@ -231,7 +233,7 @@ The arguments passed are:</p>
 </ul>
 </section>
 <section id="boundary-conditions">
-<span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading"></a></h2>
+<span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading"></a></h2>
 <p id="index-2">Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
 hydrostatic boundary condition that can be used for the lower boundary.  It
@@ -261,7 +263,7 @@ while integrating the HSE profile can be better.  For modeling a
 plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
 conditions instead of a simple symmetry boundary is essential when
 using the standard CTU PPM solver.</p>
-<p>A different special boundary condition, based on outflow, is available at
+<p id="index-3">A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the <code class="docutils literal notranslate"><span class="pre">model_parser</span></code>
 module to fill the ghost cells at the upper boundary with the initial
 model data.  You set this as:</p>
@@ -282,7 +284,7 @@ problem setup needs to fill the <code class="docutils literal notranslate"><span
 <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/Castro_bc_fill_nd.cpp</span></code>.</p>
 </section>
 <section id="optional-files">
-<h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this heading"></a></h2>
+<h2>Optional Files<a class="headerlink" href="#optional-files" title="Link to this heading"></a></h2>
 <p>The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.</p>
 <ul>
@@ -304,7 +306,7 @@ tag variable for a zone to set. An example is provided by the <code class="docut
 problem which refines a rectangular region (fuel layer) based on
 a density parameter and the H mass fraction.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derive.H</span></code>, and <code class="docutils literal notranslate"><span class="pre">Problem_Derives.cpp</span></code></p>
+<li id="problem-derives"><p><code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derive.H</span></code>, and <code class="docutils literal notranslate"><span class="pre">Problem_Derive.cpp</span></code></p>
 <p>Together, these provide a mechanism to create derived quantities
 that can be stored in the plotfile. <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>
 provides the C++ code that defines these new plot variables. It
@@ -329,11 +331,11 @@ the grid.</p>
 </ul>
 </section>
 <section id="model-parser">
-<h2>Model Parser<a class="headerlink" href="#model-parser" title="Permalink to this heading"></a></h2>
-<p>Many problem setups begin with a 1-d initial model that is mapped onto
+<h2>Model Parser<a class="headerlink" href="#model-parser" title="Link to this heading"></a></h2>
+<p id="index-4">Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The <code class="docutils literal notranslate"><span class="pre">model_parser.H</span></code> provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_CXX_MODEL_PARSER</span> <span class="o">=</span> <span class="n">TRUE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MODEL_PARSER</span> <span class="o">=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
 <p>to the problem <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  There are 2 other parameters that can
@@ -393,7 +395,7 @@ or an auxiliary quantity (indexed from <code class="docutils literal notranslate
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

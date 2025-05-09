@@ -1,32 +1,30 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spectral Deferred Corrections &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adaptive Mesh Refinement" href="AMR.html" />
-    <link rel="prev" title="Microphysics" href="EOSNetwork.html" /> 
+    <link rel="prev" title="Tracer particles" href="Particles.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -78,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -85,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -129,11 +129,11 @@
            <div itemprop="articleBody">
              
   <section id="spectral-deferred-corrections">
-<span id="ch-sdc"></span><h1>Spectral Deferred Corrections<a class="headerlink" href="#spectral-deferred-corrections" title="Permalink to this heading"></a></h1>
+<span id="ch-sdc"></span><h1>Spectral Deferred Corrections<a class="headerlink" href="#spectral-deferred-corrections" title="Link to this heading"></a></h1>
 <p>The Castro SDC solver couples the hydrodynamics tightly together,
 iteratively improving the convergence of the solution.  This is the
 basis of the 4th order accurate Castro solver.  The algorithm is described
-in <span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>.</p>
+in <span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Here we are referring to the full SDC time integration scheme
@@ -151,28 +151,23 @@ default the number of iterations used is equal to the value of
 <code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</p></li>
 </ul>
 <p>The options that affect the nonlinear solve are:</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
 the reaction system.  Values are:</p>
-<ul>
+<ul class="simple">
 <li><p>1 : pure Newton iteration (we subdivide the time interval if
 needed to get the Newton method to converge).</p></li>
 <li><p>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</p></li>
 <li><p>3 : use VODE for the first iteration and then Newton for the
 subsequent iterations.</p></li>
 </ul>
+<p>The tolerances for both the Newton and VODE solver are controlled by
+the usual Microphysics parameters: <code class="docutils literal notranslate"><span class="pre">integrator.rtol_spec</span></code>,
+<code class="docutils literal notranslate"><span class="pre">integrator.atol_spec</span></code>, <code class="docutils literal notranslate"><span class="pre">integrator.rtol_enuc</span></code>,
+<code class="docutils literal notranslate"><span class="pre">integrator.atol_enuc</span></code>.</p>
+<p>In all cases, the type of Jacobian (analytic or numerical) is determined by
+<code class="docutils literal notranslate"><span class="pre">integrator.jacobian</span></code>.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code> : the relative error on the density in solving the nonlinear system.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code> : the relative error on the partial densities, <span class="math notranslate nohighlight">\((\rho X_k)\)</span>
-in the nonlinear solve.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code> : the relative error of the energy in the nonlinear solve.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code> : the absolute error in the mass fractions during the nonlinear solve.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code> : the factor by which to relax the
-tolerances (i.e. increase them) for earlier iterations.  We reach
-the desired tolerances on the final iteration.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code> : whether we solve the system in terms of <span class="math notranslate nohighlight">\((\rho e)\)</span> or <span class="math notranslate nohighlight">\((\rho E)\)</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sdc_newton_use_analytic_jac</span></code> : whether we use the analytic Jacobian when doing Newton iterations for
-the reaction part of the system or compute it numerically.</p></li>
 </ul>
 </section>
 
@@ -180,14 +175,14 @@ the reaction part of the system or compute it numerically.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="EOSNetwork.html" class="btn btn-neutral float-left" title="Microphysics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Particles.html" class="btn btn-neutral float-left" title="Tracer particles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="AMR.html" class="btn btn-neutral float-right" title="Adaptive Mesh Refinement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

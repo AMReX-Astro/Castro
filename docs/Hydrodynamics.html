@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hydrodynamics &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -102,6 +103,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -109,7 +112,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -153,9 +155,9 @@
            <div itemprop="articleBody">
              
   <section id="hydrodynamics">
-<span id="ch-hydro"></span><h1>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Permalink to this heading"></a></h1>
+<span id="ch-hydro"></span><h1>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>The hydrodynamics scheme in Castro implements an unsplit
 second-order Godunov method. Characteristic tracing is used to
 time-center the input states to the Riemann solver. The same
@@ -183,7 +185,7 @@ this as the “gas”.</p>
 </ul>
 </section>
 <section id="hydrodynamics-data-structures">
-<h2>Hydrodynamics Data Structures<a class="headerlink" href="#hydrodynamics-data-structures" title="Permalink to this heading"></a></h2>
+<h2>Hydrodynamics Data Structures<a class="headerlink" href="#hydrodynamics-data-structures" title="Link to this heading"></a></h2>
 <p>Within the routines that implement the hydrodynamics, there are
 several main data structures that hold the state.</p>
 <ul>
@@ -192,7 +194,7 @@ e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></c
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 6</span></a>.</p>
 <span id="table-consints"></span><table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 6 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -285,7 +287,7 @@ present in <code class="docutils literal notranslate"><span class="pre">NQSRC</s
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-primlist"></span><table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 7 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 7 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -363,7 +365,7 @@ by the integer keys listed in <a class="reference internal" href="#table-qauxlis
 Note, unless otherwise specified the quantities without a subscript are “gas”
 only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-qauxlist"></span><table class="docutils align-default" id="id21">
-<caption><span class="caption-number">Table 8 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 8 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -418,7 +420,7 @@ the integer keys defined in <a class="reference internal" href="#table-gdlist"><
 Note, unless otherwise specified the quantities without a subscript are
 “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-gdlist"></span><table class="docutils align-default" id="id22">
-<caption><span class="caption-number">Table 9 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 9 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
 <th class="head"><p><strong>quantity</strong></p></th>
@@ -476,7 +478,7 @@ defined)</p></td>
 </ul>
 </section>
 <section id="conservation-forms">
-<h2>Conservation Forms<a class="headerlink" href="#conservation-forms" title="Permalink to this heading"></a></h2>
+<h2>Conservation Forms<a class="headerlink" href="#conservation-forms" title="Link to this heading"></a></h2>
 <p>We begin with the fully compressible equations for the conserved state vector,
 <span class="math notranslate nohighlight">\(\Ub = (\rho, \rho \ub, \rho E, \rho A_k, \rho X_k, \rho Y_k):\)</span></p>
 <div class="math notranslate nohighlight">
@@ -528,7 +530,7 @@ network.</p></li>
 </ul>
 </section>
 <section id="source-terms">
-<h2>Source Terms<a class="headerlink" href="#source-terms" title="Permalink to this heading"></a></h2>
+<h2>Source Terms<a class="headerlink" href="#source-terms" title="Link to this heading"></a></h2>
 <p>We now compute explicit source terms for each variable in <span class="math notranslate nohighlight">\(\Qb\)</span> and
 <span class="math notranslate nohighlight">\(\Ub\)</span>. The primitive variable source terms will be used to construct
 time-centered fluxes. The conserved variable source will be used to
@@ -572,9 +574,17 @@ S_{{\rm ext},\rho A_k} \\
 S_{{\rm ext},\rho X_k} \\
 S_{{\rm ext},\rho Y_k}
 \end{array}\right)^n.\end{split}\]</div>
+<div class="admonition note" id="index-0">
+<p class="admonition-title">Note</p>
+<p>To reduce memory usage, we do not include source terms for the
+advected quantities, species, and auxiliary variables in the conserved
+state vector by default. If your application needs external source terms for
+these variables, set <code class="docutils literal notranslate"><span class="pre">USE_SPECIES_SOURCES=TRUE</span></code> when compiling so that space
+will be allocated for them.</p>
+</div>
 </section>
 <section id="primitive-forms">
-<h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Permalink to this heading"></a></h2>
+<h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Link to this heading"></a></h2>
 <p>Castro uses the primitive form of the fluid equations, defined in terms of
 the state <span class="math notranslate nohighlight">\(\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)\)</span>, to construct the
 interface states that are input to the Riemann problem.</p>
@@ -606,7 +616,7 @@ vector, as described in Section <a class="reference external" href="#Sec:Compute
 When accessing the primitive variable state vector, the integer variable
 keys for the different quantities are listed in <a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 7</span></a>.</p>
 <section id="internal-energy-and-temperature">
-<h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Permalink to this heading"></a></h3>
+<h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Link to this heading"></a></h3>
 <p>We augment the above system with an internal energy equation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
@@ -617,7 +627,7 @@ keys for the different quantities are listed in <a class="reference internal" hr
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. <span id="id1">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">26</a>]</span>). Second, it is sometimes the case that the
+see e.g. <span id="id1">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">28</a>]</span>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -629,7 +639,7 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <span id="id2">[<a class="reference internal" href="zreferences.html#id16" title="G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. Computer Physics Communications, 89:149-168, August 1995. doi:10.1016/0010-4655(94)00191-4.">22</a>]</span>, <span id="id3">[<a class="reference internal" href="zreferences.html#id17" title="G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. ApJS, 211:19, April 2014. arXiv:1307.2265, doi:10.1088/0067-0049/211/2/19.">21</a>]</span>, where we switch
+from ENZO <span id="id2">[<a class="reference internal" href="zreferences.html#id16" title="G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. Computer Physics Communications, 89:149-168, August 1995. doi:10.1016/0010-4655(94)00191-4.">24</a>]</span>, <span id="id3">[<a class="reference internal" href="zreferences.html#id17" title="G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. ApJS, 211:19, April 2014. arXiv:1307.2265, doi:10.1088/0067-0049/211/2/19.">23</a>]</span>, where we switch
 between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
 state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
 <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
@@ -658,7 +668,7 @@ intrinsic to the shock-capturing part of the scheme.</p>
 <p>In the code we also carry around <span class="math notranslate nohighlight">\(T\)</span> in the primitive state vector.</p>
 </section>
 <section id="primitive-variable-system">
-<h3>Primitive Variable System<a class="headerlink" href="#primitive-variable-system" title="Permalink to this heading"></a></h3>
+<h3>Primitive Variable System<a class="headerlink" href="#primitive-variable-system" title="Link to this heading"></a></h3>
 <p>The full primitive variable form (without the advected or auxiliary
 quantities) is</p>
 <div class="math notranslate nohighlight">
@@ -757,7 +767,7 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 </section>
 </section>
 <section id="hydrodynamics-update">
-<span id="sec-advection-step"></span><h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this heading"></a></h2>
+<span id="sec-advection-step"></span><h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Link to this heading"></a></h2>
 <p>There are four major steps in the hydrodynamics update:</p>
 <ol class="arabic simple">
 <li><p>Converting to primitive variables</p></li>
@@ -765,7 +775,7 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 <li><p>Solving the Riemann problem</p></li>
 <li><p>Doing the conservative update</p></li>
 </ol>
-<p id="index-0">Each of these steps has a variety of runtime parameters that
+<p id="index-1">Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:</p>
 <ul>
@@ -777,18 +787,8 @@ source term (0 or 1; default 0)</p></li>
 after the solution update (0 or 1; default: 0)</p>
 <p>See <a class="reference internal" href="sponge.html#sponge-section"><span class="std std-ref">Sponge</span></a> for more details on the sponge.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.normalize_species</span></code>: enforce that <span class="math notranslate nohighlight">\(\sum_i X_i = 1\)</span>
-(0 or 1; default: 0)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.spherical_star</span></code>: this is used to set the boundary
-conditions by assuming the star is spherically symmetric in
-the outer regions (0 or 1; default: 0)</p>
-<p>When used, Castro averages the values at a given radius over the
-cells that are inside the domain to define a radial function. This
-function is then used to set the values outside the domain in
-implementing the boundary conditions.</p>
-</li>
 </ul>
-<p id="index-1">Several floors are imposed on the thermodynamic quantities to prevet unphysical
+<p id="index-2">Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>: (Real; default: -1.e20)</p></li>
@@ -796,8 +796,8 @@ behavior:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.small_pres</span></code>: (Real; default: -1.e20)</p></li>
 </ul>
 <section id="compute-primitive-variables">
-<span id="sec-compute-primitive-variables"></span><h3>Compute Primitive Variables<a class="headerlink" href="#compute-primitive-variables" title="Permalink to this heading"></a></h3>
-<p>We compute the primtive variables from the conserved variables.</p>
+<span id="sec-compute-primitive-variables"></span><h3>Compute Primitive Variables<a class="headerlink" href="#compute-primitive-variables" title="Link to this heading"></a></h3>
+<p>We compute the primitive variables from the conserved variables.</p>
 <ul>
 <li><p><span class="math notranslate nohighlight">\(\rho, \rho e\)</span>: directly copy these from the conserved state
 vector</p></li>
@@ -811,7 +811,7 @@ Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T 
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper <span id="id4">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">28</a>]</span> and the Flash paper <span id="id5">[<a class="reference internal" href="zreferences.html#id11" title="B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. ApJS, 131:273-334, November 2000. doi:10.1086/317361.">36</a>]</span>.
+PPM paper <span id="id4">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">30</a>]</span> and the Flash paper <span id="id5">[<a class="reference internal" href="zreferences.html#id11" title="B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. ApJS, 131:273-334, November 2000. doi:10.1086/317361.">38</a>]</span>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -851,19 +851,19 @@ near shocks (0 or 1; default 1)</p></li>
 </ul>
 </section>
 <section id="edge-state-prediction">
-<h3>Edge State Prediction<a class="headerlink" href="#edge-state-prediction" title="Permalink to this heading"></a></h3>
+<h3>Edge State Prediction<a class="headerlink" href="#edge-state-prediction" title="Link to this heading"></a></h3>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in <span id="id6">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">25</a>]</span>,
-the classic PPM limiters <span id="id7">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">28</a>]</span>, and the new PPM limiters introduced
-in <span id="id8">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">27</a>]</span>. The choice of
+linear method that follows the description in <span id="id6">[<a class="reference internal" href="zreferences.html#id12" title="P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. Journal of Computational Physics, 87:171-200, March 1990. doi:10.1016/0021-9991(90)90233-Q.">27</a>]</span>,
+the classic PPM limiters <span id="id7">[<a class="reference internal" href="zreferences.html#id5" title="P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. Journal of Computational Physics, 54:174-201, September 1984. doi:10.1016/0021-9991(84)90143-8.">30</a>]</span>, and the new PPM limiters introduced
+in <span id="id8">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">29</a>]</span>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of <span id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">27</a>]</span> to eliminate sensitivity due to roundoff error
+of <span id="id9">[<a class="reference internal" href="zreferences.html#id13" title="P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. Journal of Computational Physics, 227:7069-7076, July 2008. doi:10.1016/j.jcp.2008.03.034.">29</a>]</span> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">52</a>]</span>. We
+described in Miller &amp; Colella (2002) <span id="id10">[<a class="reference internal" href="zreferences.html#id14" title="G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. Journal of Computational Physics, 183:26-82, November 2002. doi:10.1006/jcph.2002.7158.">54</a>]</span>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -985,7 +985,7 @@ the following test. If <span class="math notranslate nohighlight">\(s\delta s - 
 <li><p><strong>Step 2</strong>: Construct a quadratic profile using <span class="math notranslate nohighlight">\(s_{i,-},s_i\)</span>,
 and <span class="math notranslate nohighlight">\(s_{i,+}\)</span>.</p>
 <div class="math notranslate nohighlight" id="equation-quadratic-interp">
-<span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Permalink to this equation"></a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
+<span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Link to this equation"></a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
 <div class="math notranslate nohighlight">
 \[s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),\]</div>
 <div class="math notranslate nohighlight">
@@ -1030,7 +1030,7 @@ s_{R,i-\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k &lt; 0}\lb_k\cdot\left[s_i-
 framework, the details follow exactly as given in Section 4.2.1 in
 Miller &amp; Colella, except for the details of the Riemann solver,
 which are given below.</p>
-<p id="index-2">For the reconstruction of the interface states, the following apply:</p>
+<p id="index-3">For the reconstruction of the interface states, the following apply:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
 default: 1).  A value of 1 is the standard piecewise parabolic
@@ -1063,15 +1063,15 @@ its transverse update.</p></li>
 </ul>
 </section>
 <section id="riemann-problem">
-<h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this heading"></a></h3>
+<h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Link to this heading"></a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">26</a>]</span> (the same solver used
+Colella &amp; Glaz solver <span id="id11">[<a class="reference internal" href="zreferences.html#id3" title="P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. Journal of Computational Physics, 59:264-289, June 1985. doi:10.1016/0021-9991(85)90146-9.">28</a>]</span> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.</p>
-<div class="admonition note" id="index-3">
+<div class="admonition note" id="index-4">
 <p class="admonition-title">Note</p>
 <p>These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
 that the interface velocity cannot exceed the speed of light in both the
@@ -1154,16 +1154,21 @@ described in the original paper.</p>
 parameters apply:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.riemann_solver</span></code>: this can be one of the following values:</p>
-<ul class="simple">
+<ul>
 <li><p>0: the Colella, Glaz, &amp; Ferguson solver.</p></li>
 <li><p>1: the Colella &amp; Glaz solver</p></li>
-<li><p>2: the HLLC solver. Note: this should only be used with Cartesian
+<li><p>2: the HLLC solver.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HLLC should only be used with Cartesian
 geometries because it relies on the pressure term being part of the flux
-in the momentum equation.</p></li>
+in the momentum equation.</p>
+</div>
+</li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
 Glaz, &amp; Ferguson manuscript (it also appears in <span id="id12">[<a class="reference internal" href="zreferences.html#id15" title="Richard B. Pember, Jeffrey A. Greenough, and Phillip Colella. An adaptive, higher-order godunov method for gas dynamics in three-dimensional orthogonal curvilinear coordinates. In unknown. 1996.">8</a>]</span>),
-as described in the original Castro paper <span id="id13">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">17</a>]</span>.</p>
+as described in the original Castro paper <span id="id13">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">19</a>]</span>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
@@ -1199,7 +1204,7 @@ problem). Note, this cannot be used with the HLLC solver.</p>
 </ul>
 </section>
 <section id="compute-fluxes-and-update">
-<h3>Compute Fluxes and Update<a class="headerlink" href="#compute-fluxes-and-update" title="Permalink to this heading"></a></h3>
+<h3>Compute Fluxes and Update<a class="headerlink" href="#compute-fluxes-and-update" title="Link to this heading"></a></h3>
 <p>Compute the fluxes as a function of the primitive variables, and then
 advance the solution:</p>
 <div class="math notranslate nohighlight">
@@ -1210,8 +1215,8 @@ solution, effectively time-centering the source term.</p>
 </section>
 </section>
 <section id="temperature-fixes">
-<span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Permalink to this heading"></a></h2>
-<p id="index-4">There are a number of experimental options for improving the behavior
+<span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Link to this heading"></a></h2>
+<p id="index-5">There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
 prediction. The options are controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code>,
 which takes values:</p>
@@ -1239,10 +1244,10 @@ from this.</p></li>
 </div></blockquote>
 </section>
 <section id="resets">
-<h2>Resets<a class="headerlink" href="#resets" title="Permalink to this heading"></a></h2>
+<h2>Resets<a class="headerlink" href="#resets" title="Link to this heading"></a></h2>
 <section id="flux-limiting">
-<span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Permalink to this heading"></a></h3>
-<p id="index-5">Multi-dimensional hydrodynamic simulations often have numerical
+<span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Link to this heading"></a></h3>
+<p id="index-6">Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
 occur as a result of a hydro update. Castro contains a prescription
@@ -1256,7 +1261,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">43</a>]</span>. This
+implements the positivity-preserving method of <span id="id14">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">45</a>]</span>. This
 behavior is controlled by
 <code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code>.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1286,28 +1291,28 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">43</a>]</span>.</p>
+found in <span id="id15">[<a class="reference internal" href="zreferences.html#id20" title="X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. Journal of Computational Physics, 242:169-180, June 2013. URL: http://adsabs.harvard.edu/abs/2013JCoPh.242..169H, arXiv:1203.1540.">45</a>]</span>.</p>
 </section>
 </section>
 <section id="hybrid-momentum">
-<h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this heading"></a></h2>
-<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.
+<h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Link to this heading"></a></h2>
+<p>Castro implements the hybrid momentum scheme of <span id="id16">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">25</a>]</span>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">23</a>]</span>.</p>
+source terms appear in this formulation, which are written out in <span id="id17">[<a class="reference internal" href="zreferences.html#id21" title="Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. Astrophysical Journal Supplement Series, 212:23, June 2014. arXiv:1404.5942, doi:10.1088/0067-0049/212/2/23.">25</a>]</span>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. Monthly Notices of the Royal Astronomical Society, 208:721-750, June 1984. URL: http://adsabs.harvard.edu/abs/1984MNRAS.208..721P.">57</a>]</span>.  The
+originated with <span id="id18">[<a class="reference internal" href="zreferences.html#id22" title="J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. Monthly Notices of the Royal Astronomical Society, 208:721-750, June 1984. URL: http://adsabs.harvard.edu/abs/1984MNRAS.208..721P.">60</a>]</span>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <figure class="align-default" id="id23">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
-<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Permalink to this image"></a></p>
+<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
@@ -1317,7 +1322,7 @@ spreads out into a disk:</p>
 <figcaption>
 <p><span class="caption-number">Fig. 3 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
-has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Permalink to this image"></a></p>
+has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The hybrid momentum algorithm is enabled by setting:</p>
@@ -1331,7 +1336,7 @@ has become disrupted into a disk.</span><a class="headerlink" href="#id24" title
 <p><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
 zones.  With this angular-momentum preserving scheme we see that
-the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Permalink to this image"></a></p>
+the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -1348,7 +1353,7 @@ the initial torus is largely intact.</span><a class="headerlink" href="#id25" ti
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

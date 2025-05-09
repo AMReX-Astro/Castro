@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verification &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -78,6 +79,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -85,7 +88,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -154,11 +156,11 @@
            <div itemprop="articleBody">
              
   <section id="verification">
-<h1>Verification<a class="headerlink" href="#verification" title="Permalink to this heading"></a></h1>
+<h1>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h1>
 <section id="hydrodynamics-test-problems">
-<h2>Hydrodynamics Test Problems<a class="headerlink" href="#hydrodynamics-test-problems" title="Permalink to this heading"></a></h2>
+<h2>Hydrodynamics Test Problems<a class="headerlink" href="#hydrodynamics-test-problems" title="Link to this heading"></a></h2>
 <section id="sods-problem-and-other-shock-tube-problems">
-<h3>Sod’s Problem (and Other Shock Tube Problems)<a class="headerlink" href="#sods-problem-and-other-shock-tube-problems" title="Permalink to this heading"></a></h3>
+<h3>Sod’s Problem (and Other Shock Tube Problems)<a class="headerlink" href="#sods-problem-and-other-shock-tube-problems" title="Link to this heading"></a></h3>
 <p>The Exec/hydro_tests/Sod problem directory sets up a general one-dimensional
 shock tube. The left and right primitive-variable states are specified
 and the solution evolves until a user-specified end time. For a simple
@@ -166,8 +168,8 @@ discontinuity, the exact solution can be found from an exact Riemann
 solver. For this problem, the exact solutions were computed with the
 exact Riemann solver from Toro <span id="id1">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 4.</p>
 <section id="sods-problem">
-<h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Permalink to this heading"></a></h4>
-<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">60</a>]</span> is a simple shock tube problem that
+<h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Link to this heading"></a></h4>
+<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">63</a>]</span> is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:</p>
 <div class="math notranslate nohighlight">
@@ -204,23 +206,25 @@ kept constant. We use a CFL number of 0.9, an initial timestep shrink
 (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05.</p>
 <figure class="align-center" id="id12">
-<span id="fig-sod"></span><a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" /></a>
+<span id="fig-sod"></span><a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 10 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the newest ppm
 limiters, along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A
 coarse grid of 32 zones in the direction of propagation, with 2
 levels of refinement was used. The analytic solution appears as the
-red line.</span><a class="headerlink" href="#id12" title="Permalink to this image"></a></p>
+red line.</span><a class="headerlink" href="#id12" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <figure class="align-center" id="id13">
-<span id="fig-sod-ppm0"></span><a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" /></a>
+<span id="fig-sod-ppm0"></span><a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 11 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the
 piecewise-linear Godunov method with limiters, along the <span class="math notranslate nohighlight">\(x\)</span>,
 <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones in the
 direction of propagation, with 2 levels of refinement was used. The
-analytic solution appears as the red line.</span><a class="headerlink" href="#id13" title="Permalink to this image"></a></p>
+analytic solution appears as the red line.</span><a class="headerlink" href="#id13" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 10</span></a> shows the Castro solution using the newest PPM limiters
@@ -262,7 +266,7 @@ through the output:</p>
 </ol>
 </section>
 <section id="double-rarefaction">
-<h4>Double Rarefaction<a class="headerlink" href="#double-rarefaction" title="Permalink to this heading"></a></h4>
+<h4>Double Rarefaction<a class="headerlink" href="#double-rarefaction" title="Link to this heading"></a></h4>
 <p>The double rarefaction is the “Test 2” problem described by Toro
 <span id="id3">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 6. In this test, the center of the domain
 is evacuated as two rarefaction waves propagate in each direction, outward
@@ -309,12 +313,13 @@ problem along
 timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM solver with
 the new limiters are used.</p>
 <figure class="align-center" id="id14">
-<span id="fig-test2"></span><a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" /></a>
+<span id="fig-test2"></span><a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 12 </span><span class="caption-text">Castro solution for the double rarefaction problem run in 3-d,
 along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid
 of 32 zones in the direction of propagation, with 2 levels of
-refinement was used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id14" title="Permalink to this image"></a></p>
+refinement was used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id14" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><a class="reference internal" href="#fig-test2"><span class="std std-numref">Fig. 12</span></a> shows the Castro output, run along all 3
@@ -325,7 +330,7 @@ described for the Sod’s problem above. The gnuplot script
 fextract named test2x.out, test2y.out, and test2z.out.</p>
 </section>
 <section id="strong-shock">
-<h4>Strong Shock<a class="headerlink" href="#strong-shock" title="Permalink to this heading"></a></h4>
+<h4>Strong Shock<a class="headerlink" href="#strong-shock" title="Link to this heading"></a></h4>
 <p>The strong shock test is the “Test 3” problem described by Toro
 <span id="id4">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 6. In this test, a large pressure jump
 at the initial interface creates a very strong rightward moving
@@ -371,12 +376,13 @@ timestep shrink (<code class="docutils literal notranslate"><span class="pre">ca
 the timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM
 solver with the new limiters are used.</p>
 <figure class="align-center" id="id15">
-<span id="fig-test3"></span><a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" /></a>
+<span id="fig-test3"></span><a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 13 </span><span class="caption-text">Castro solution for the strong shock problem run in 3-d, along the
 <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones
 in the direction of propagation, with 2 levels of refinement was
-used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id15" title="Permalink to this image"></a></p>
+used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id15" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p><a class="reference internal" href="#fig-test3"><span class="std std-numref">Fig. 13</span></a> shows the Castro output, run along all 3
@@ -388,25 +394,25 @@ fextract named test3x.out, test3y.out, and test3z.out.</p>
 </section>
 </section>
 <section id="sedov-problem">
-<h3>Sedov Problem<a class="headerlink" href="#sedov-problem" title="Permalink to this heading"></a></h3>
+<h3>Sedov Problem<a class="headerlink" href="#sedov-problem" title="Link to this heading"></a></h3>
 <p>The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical (or cylindrical in 2-d Cartesian
 coordinates) blast wave. Analytic solutions were found by Sedov
-<span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">59</a>]</span>.</p>
+<span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">62</a>]</span>.</p>
 <p>A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
 be modeled in 2-d Cartesian coordinates. A spherical blast wave can
 be modeled in 1-d spherical, 2-d axisymmetric (cylindrical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span>), or 3-d
 Cartesian coordinates. This provides a good test on the geometric
 factors in the hydrodynamics solver.
 We use a publicly available code, <code class="docutils literal notranslate"><span class="pre">sedov3.f</span></code>
-<span id="id6">[<a class="reference internal" href="zreferences.html#id42" title="J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.asu.edu/research_pages/sedov.shtml. URL: http://cococubed.asu.edu/papers/la-ur-07-2849.pdf.">46</a>]</span>, to generate the analytic solutions.</p>
+<span id="id6">[<a class="reference internal" href="zreferences.html#id42" title="J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.com/research_pages/sedov.shtml. URL: http://cococubed.com/papers/la-ur-07-2849.pdf.">48</a>]</span>, to generate the analytic solutions.</p>
 <p>The Castro implementation of the Sedov problem is <code class="docutils literal notranslate"><span class="pre">in</span>
 <span class="pre">Exec/hydro_tests/Sedov/</span></code>.  A number of different inputs files
 are provided, corresponding to different Sedov/Castro geometries. The
 main ones are:</p>
 <span id="table-sedov-inputs"></span><table class="docutils align-default" id="id16">
-<caption><span class="caption-number">Table 10 </span><span class="caption-text">Sedov problem inputs files</span><a class="headerlink" href="#id16" title="Permalink to this table"></a></caption>
+<caption><span class="caption-number">Table 10 </span><span class="caption-text">Sedov problem inputs files</span><a class="headerlink" href="#id16" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>inputs file</p></th>
 <th class="head"><p>description</p></th>
@@ -438,7 +444,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, <span class="math notranslate nohighlight">\(\rho_\mathrm{ambient}\)</span>, and pressure, <span class="math notranslate nohighlight">\(p_\mathrm{ambient}\)</span>.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">56</a>]</span>
+the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">59</a>]</span>
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
@@ -491,27 +497,29 @@ explosions (with the output named <code class="docutils literal notranslate"><sp
 the 3 solutions to the analytic solution, <code class="docutils literal notranslate"><span class="pre">spherical_sedov.dat</span></code>.</p>
 <p><a class="reference internal" href="#fig-sedov-sph"><span class="std std-numref">Fig. 14</span></a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
 <figure class="align-center" id="id17">
-<span id="fig-sedov-sph"></span><a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" /></a>
+<span id="fig-sedov-sph"></span><a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 14 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 1-d
 spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
-of these geometries produces a spherical Sedov explosion.</span><a class="headerlink" href="#id17" title="Permalink to this image"></a></p>
+of these geometries produces a spherical Sedov explosion.</span><a class="headerlink" href="#id17" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <section id="cylindrical-blast-wave">
-<h4>Cylindrical Blast Wave<a class="headerlink" href="#cylindrical-blast-wave" title="Permalink to this heading"></a></h4>
+<h4>Cylindrical Blast Wave<a class="headerlink" href="#cylindrical-blast-wave" title="Link to this heading"></a></h4>
 <figure class="align-center" id="id18">
-<a class="reference internal image-reference" href="_images/sedov_cyl.png"><img alt="Sedov in 2-d" src="_images/sedov_cyl.png" style="width: 5in;" /></a>
+<a class="reference internal image-reference" href="_images/sedov_cyl.png"><img alt="Sedov in 2-d" src="_images/sedov_cyl.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 15 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 2-d
 Cartesian coordinates. This corresponds to a cylindrical Sedov
-explosion.</span><a class="headerlink" href="#id18" title="Permalink to this image"></a></p>
+explosion.</span><a class="headerlink" href="#id18" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 </section>
 <section id="rayleigh-taylor">
-<h3>Rayleigh-Taylor<a class="headerlink" href="#rayleigh-taylor" title="Permalink to this heading"></a></h3>
+<h3>Rayleigh-Taylor<a class="headerlink" href="#rayleigh-taylor" title="Link to this heading"></a></h3>
 <p>2D. Domain size 0.5 by 1.0. 256 by 512 cells, single level
 calculation. Periodic in x, solid walls on top and bottom in y.
 Gamma law gas with <span class="math notranslate nohighlight">\(\gamma=1.4\)</span>, no reactions. Zero initial velocity.
@@ -532,21 +540,22 @@ to smooth the transition between the high and low density material:</p>
 half and no density perturbation. We run to <span class="math notranslate nohighlight">\(t=2.5\)</span> with piecewise
 linear, old PPM, and new PPM. CFL=0.9. See <a class="reference internal" href="#fig-rt"><span class="std std-numref">Fig. 16</span></a>.</p>
 <figure class="align-center" id="id19">
-<span id="fig-rt"></span><a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" /></a>
+<span id="fig-rt"></span><a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" />
+</a>
 <figcaption>
-<p><span class="caption-number">Fig. 16 </span><span class="caption-text">Rayleigh-Taylor with different PPM types.</span><a class="headerlink" href="#id19" title="Permalink to this image"></a></p>
+<p><span class="caption-number">Fig. 16 </span><span class="caption-text">Rayleigh-Taylor with different PPM types.</span><a class="headerlink" href="#id19" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 </section>
 <section id="gravity-test-problems">
-<h2>Gravity Test Problems<a class="headerlink" href="#gravity-test-problems" title="Permalink to this heading"></a></h2>
+<h2>Gravity Test Problems<a class="headerlink" href="#gravity-test-problems" title="Link to this heading"></a></h2>
 </section>
 <section id="radiation-test-problems">
-<h2>Radiation Test Problems<a class="headerlink" href="#radiation-test-problems" title="Permalink to this heading"></a></h2>
+<h2>Radiation Test Problems<a class="headerlink" href="#radiation-test-problems" title="Link to this heading"></a></h2>
 <p>There are two photon radiation solvers in Castro—a gray solver and a
 multigroup solver. The gray solver follows the algorithm outlined
-in <span id="id8">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">42</a>]</span>. We use the notation described in that
+in <span id="id8">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">44</a>]</span>. We use the notation described in that
 paper. In particular, the radiation energy equation takes the form
 of:</p>
 <div class="math notranslate nohighlight">
@@ -559,16 +568,16 @@ Roseland-mean opacity, <span class="math notranslate nohighlight">\(\kappa_P\)</
 keep the radiation field causal. Castro allows for <span class="math notranslate nohighlight">\(\kappa_R\)</span>
 and <span class="math notranslate nohighlight">\(\kappa_P\)</span> to be set independently as power-laws.</p>
 <section id="light-front">
-<h3>Light Front<a class="headerlink" href="#light-front" title="Permalink to this heading"></a></h3>
+<h3>Light Front<a class="headerlink" href="#light-front" title="Link to this heading"></a></h3>
 <p>The light front problem tests the ability of the radiation solver to
 operate in the free-streaming limit. A radiation front is
-estabilished by initializing one end of the computational domain with
+established by initializing one end of the computational domain with
 a finite radiation field, and zero radiation field everywhere else.
 The speed of propagation of the radiation front is keep in check by
 the flux-limiters, to prevent it from exceeding <span class="math notranslate nohighlight">\(c\)</span>.</p>
 </section>
 <section id="diffusion-of-a-gaussian-pulse">
-<h3>Diffusion of a Gaussian Pulse<a class="headerlink" href="#diffusion-of-a-gaussian-pulse" title="Permalink to this heading"></a></h3>
+<h3>Diffusion of a Gaussian Pulse<a class="headerlink" href="#diffusion-of-a-gaussian-pulse" title="Link to this heading"></a></h3>
 <p>The diffusion of a Gaussian pulse problem tests the diffusion term in
 the radiation energy equation. The radiation energy density is
 initialized at time <span class="math notranslate nohighlight">\(t = t_0\)</span> to a Gaussian distribution:</p>
@@ -580,7 +589,7 @@ Gaussian, with the time-dependent solution of:</p>
 \[E_R = (E_R)_0 \frac{t_0}{t_0 + t} \exp \left \{ -\frac{1}{4 D (t_0 + t)} |r - r_0|^2 \right \}\]</div>
 </section>
 <section id="radiation-source-problem">
-<h3>Radiation Source Problem<a class="headerlink" href="#radiation-source-problem" title="Permalink to this heading"></a></h3>
+<h3>Radiation Source Problem<a class="headerlink" href="#radiation-source-problem" title="Link to this heading"></a></h3>
 <p>The radiation source problem tests the coupling between the radiation
 field and the gas energy through the radiation source term. The
 problem begins with the radiation field and gas temperature out of
@@ -589,44 +598,46 @@ heat it. If the gas is too hot, then it will radiate and cool. In
 each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
-<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">63</a>]</span>.</p>
+<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>.</p>
 <figure class="align-center" id="id20">
-<a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
+<a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 17 </span><span class="caption-text">Castro solution for radiating source test problem. Heating and
 cooling solutions are shown as a function of time, compared to the
-analytic solution. The gray photon solver was used.</span><a class="headerlink" href="#id20" title="Permalink to this image"></a></p>
+analytic solution. The gray photon solver was used.</span><a class="headerlink" href="#id20" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 <section id="radiating-sphere">
-<h3>Radiating Sphere<a class="headerlink" href="#radiating-sphere" title="Permalink to this heading"></a></h3>
+<h3>Radiating Sphere<a class="headerlink" href="#radiating-sphere" title="Link to this heading"></a></h3>
 <p>The radiating sphere (RadSphere) is a multigroup radiation
 test problem. A hot sphere is centered at the origin in a spherical
 geometry. The spectrum from this sphere follows a Planck
 distribution. The ambient medium is at a much lower temperature. A
 frequency-dependent opacity makes the domain optically thin for high
-frequecies and optically thick for low frequency. At long times, the
+frequencies and optically thick for low frequency. At long times, the
 solution will be a combination of the blackbody radiation from the
 ambient medium plus the radiation that propagated from the hot sphere.
-An analytic solution exists <span id="id10">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">39</a>]</span> which gives the
+An analytic solution exists <span id="id10">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">41</a>]</span> which gives the
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">63</a>]</span>. The routine that computes
+follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
 <figure class="align-default" id="id21">
-<a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>
+<a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" />
+</a>
 <figcaption>
 <p><span class="caption-number">Fig. 18 </span><span class="caption-text">Castro solution for radiating sphere problem, showing the radiation
 energy density as a function of energy group.  This test was run
-with 64 photon energy groups.</span><a class="headerlink" href="#id21" title="Permalink to this image"></a></p>
+with 64 photon energy groups.</span><a class="headerlink" href="#id21" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 </section>
 </section>
 <section id="regression-testing">
-<h2>Regression Testing<a class="headerlink" href="#regression-testing" title="Permalink to this heading"></a></h2>
+<h2>Regression Testing<a class="headerlink" href="#regression-testing" title="Link to this heading"></a></h2>
 <p>An automated regression test suite for Castro (or any AMReX-based
 code) written in Python exists in the AMReX-Codes github organization.</p>
 </section>
@@ -643,7 +654,7 @@ code) written in Python exists in the AMReX-Codes github organization.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

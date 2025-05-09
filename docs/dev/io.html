@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Outputting &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -92,6 +93,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -99,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -143,10 +145,10 @@
            <div itemprop="articleBody">
              
   <section id="outputting">
-<span id="ch-io"></span><h1>Outputting<a class="headerlink" href="#outputting" title="Permalink to this heading"></a></h1>
+<span id="ch-io"></span><h1>Outputting<a class="headerlink" href="#outputting" title="Link to this heading"></a></h1>
 <section id="restart-capability">
-<h2>Restart Capability<a class="headerlink" href="#restart-capability" title="Permalink to this heading"></a></h2>
-<span class="target" id="index-0"></span><span class="target" id="index-1"></span><p id="index-2">Castro has a standard sort of checkpointing and restarting capability.
+<h2>Restart Capability<a class="headerlink" href="#restart-capability" title="Link to this heading"></a></h2>
+<p id="index-2"><span id="index-1"></span><span id="index-0"></span>Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):</p>
 <blockquote>
@@ -219,7 +221,7 @@ simulation time. The directory names will be <code class="docutils literal notra
 </div>
 </section>
 <section id="plotfile-outputting">
-<span id="sec-plotfiles"></span><h2>Plotfile Outputting<a class="headerlink" href="#plotfile-outputting" title="Permalink to this heading"></a></h2>
+<span id="sec-plotfiles"></span><h2>Plotfile Outputting<a class="headerlink" href="#plotfile-outputting" title="Link to this heading"></a></h2>
 <p id="index-3">Castro has two levels of plotfiles, <cite>regular</cite> plotfiles and <cite>small</cite>
 plotfiles.  The idea behind this distinction is that we can output a
 small number of variables very frequently in the small plotfiles and
@@ -311,7 +313,7 @@ directory names will be <code class="docutils literal notranslate"><span class="
 0.2\)</span> after 61 level-0 steps, etc.</p>
 </section>
 <section id="controlling-whats-in-the-plotfile">
-<h2>Controlling What’s in the PlotFile<a class="headerlink" href="#controlling-whats-in-the-plotfile" title="Permalink to this heading"></a></h2>
+<h2>Controlling What’s in the PlotFile<a class="headerlink" href="#controlling-whats-in-the-plotfile" title="Link to this heading"></a></h2>
 <p id="index-6">There are a few options that can be set at runtime to control what
 variables appear in the regular plotfile.</p>
 <blockquote>
@@ -355,9 +357,9 @@ variables to include in the small plotfile.</p></li>
 </div></blockquote>
 </section>
 <section id="plotfile-variables">
-<h2>Plotfile Variables<a class="headerlink" href="#plotfile-variables" title="Permalink to this heading"></a></h2>
+<h2>Plotfile Variables<a class="headerlink" href="#plotfile-variables" title="Link to this heading"></a></h2>
 <section id="native-variables">
-<h3>Native variables<a class="headerlink" href="#native-variables" title="Permalink to this heading"></a></h3>
+<h3>Native variables<a class="headerlink" href="#native-variables" title="Link to this heading"></a></h3>
 <p>These variables come directly from the <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, either the
 <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> (for the hydrodynamic variables), <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code>
 (for the nuclear energy generation quantities). <code class="docutils literal notranslate"><span class="pre">PhiGrav_Type</span></code> and
@@ -412,43 +414,39 @@ defined in the network)</p></td>
 <span class="math notranslate nohighlight">\(\omegadot_k = DX_k/Dt\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
-<td><p>Nuclear energy generation rate / gram</p></td>
-<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></p></td>
 <td><p>Nuclear energy generation rate density</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></p></td>
 <td><p>Gravitational potential</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
 <code class="docutils literal notranslate"><span class="pre">grav_z</span></code></p></td>
 <td><p>Gravitational acceleration</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rmom</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rmom</span></code></p></td>
 <td><p>Radial momentum (defined for
 <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lmom</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lmom</span></code></p></td>
 <td><p>Angular momentum (<span class="math notranslate nohighlight">\(\theta\)</span>; defined for
 <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pmom</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pmom</span></code></p></td>
 <td><p>z-momentum (defined for <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Shock</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Shock</span></code></p></td>
 <td><p>Shock flag (= 1 if a zone has a shock;
 defined for <code class="docutils literal notranslate"><span class="pre">SHOCK</span></code>)</p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
 …</p></td>
 <td><p>Radiation energy density
 (for multigroup radiation, each group has its
@@ -459,7 +457,7 @@ own variable)</p></td>
 </table>
 </section>
 <section id="derived-variables">
-<h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this heading"></a></h3>
+<h3>Derived variables<a class="headerlink" href="#derived-variables" title="Link to this heading"></a></h3>
 <table class="docutils align-default" id="index-8">
 <thead>
 <tr class="row-odd"><th class="head"><p>variable name</p></th>
@@ -469,7 +467,12 @@ own variable)</p></td>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">abar</span></code></p></td>
+<td><p>Mean atomic mass</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derabar</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\amu\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
 <code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code>,
 <code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></p></td>
 <td><p>Angular momentum / volume in the x, y, or z dir
@@ -481,42 +484,47 @@ where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the dista
 <code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
 <td><p>Thermal diffusion coefficient,
 <span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm cm^2~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derdivu</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
 <td><p>Specific internal energy computed from the
 conserved <span class="math notranslate nohighlight">\((\rho e)\)</span> state variable as
 <span class="math notranslate nohighlight">\(e = (\rho e)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dereint2</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
 <td><p>Specific internal energy computed from the
 total energy and momentum conserved state as
 <span class="math notranslate nohighlight">\(e=[(\rho E)-\frac{1}{2}(\rho \ub^2)]/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dereint1</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
 <td><p>Specific entropy, <span class="math notranslate nohighlight">\(s\)</span>, computed as
 <span class="math notranslate nohighlight">\(s = s(\rho, e, X_k)\)</span>, where <cite>e</cite> is
 computed from <span class="math notranslate nohighlight">\((\rho e)\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derentropy</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate / gram</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></p></td>
 <td><p>Total radiation energy density
@@ -655,7 +663,8 @@ speed</p></td>
 </table>
 </section>
 <section id="problem-specific-plotfile-variables">
-<h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Permalink to this heading"></a></h3>
+<h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Link to this heading"></a></h3>
+<p>See the section on <a class="reference internal" href="creating_a_problem.html#problem-derives"><span class="std std-ref">Problem_Derives.H</span></a> for more details about defining your own plotfile variables.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>variable name</p></th>
@@ -731,7 +740,7 @@ speed</p></td>
 </section>
 </section>
 <section id="screen-output">
-<h2>Screen Output<a class="headerlink" href="#screen-output" title="Permalink to this heading"></a></h2>
+<h2>Screen Output<a class="headerlink" href="#screen-output" title="Link to this heading"></a></h2>
 <p>There are several options that set how much output is written to the
 screen as Castro runs:</p>
 <blockquote>
@@ -788,7 +797,7 @@ simulation time, and “0.005” is the level-0 time step. This file
 can be plotted very easily to monitor the time step.</p>
 </section>
 <section id="integral-diagnostics">
-<h2>Integral Diagnostics<a class="headerlink" href="#integral-diagnostics" title="Permalink to this heading"></a></h2>
+<h2>Integral Diagnostics<a class="headerlink" href="#integral-diagnostics" title="Link to this heading"></a></h2>
 <p id="index-9">Castro can calculate integrals of quantities on the grid and other
 global quantities and output them to both the screen and to a runtime
 file at regular intervals.  By default, this capability is off.  To
@@ -846,10 +855,17 @@ includes the gravitational wave amplitudes</p></li>
 </li>
 </ul>
 </div></blockquote>
-<p>Some problems have custom versions of the diagnostics with additional information.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/diag_parser.py</span></code> contains Python code for parsing
+these output files into Numpy arrays.  Usage instructions are included
+in the file, along with an example script at
+<code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/plot_species.py</span></code>.  This reads a
+<code class="docutils literal notranslate"><span class="pre">species_diag.out</span></code> file provided on the command line and makes a plot
+of the total mass fractions over time.</p>
+<p>Some problems have custom versions of the diagnostics with additional
+information.  These are not currently supported by the Python parser.</p>
 </section>
 <section id="parallel-i-o">
-<span id="sec-parallel-io"></span><h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this heading"></a></h2>
+<span id="sec-parallel-io"></span><h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Link to this heading"></a></h2>
 <p>Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
 The fundamental data structure we read/write to disk is a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>,
@@ -897,7 +913,7 @@ create a very large number of files, which can lead to inode issues.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

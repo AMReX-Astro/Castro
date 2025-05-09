@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>File Radiation.H &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -76,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
@@ -83,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -96,7 +98,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Castro__F_8H.html">File Castro_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__diffusion_8H.html">File Castro_diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
@@ -115,7 +116,8 @@
 <li class="toctree-l2"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HABEC__F_8H.html">File HABEC_F.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HABEC_8H.html">File HABEC.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HLL__solvers_8H.html">File HLL_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
@@ -123,15 +125,165 @@
 <li class="toctree-l2"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Problem__Derive__F_8H.html">File Problem_Derive_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="RAD__F_8H.html">File RAD_F.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadDerive_8H.html">File RadDerive.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadHydro_8H.html">File RadHydro.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Radiation.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Radiation.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv49Radiation"><code class="docutils literal notranslate"><span class="pre">Radiation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11Solver_TypeE"><code class="docutils literal notranslate"><span class="pre">Solver_Type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9RadiationEPN5amrex3AmrEP6Castroi"><code class="docutils literal notranslate"><span class="pre">Radiation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6regridEiRKN5amrex8BoxArrayERKN5amrex19DistributionMappingE"><code class="docutils literal notranslate"><span class="pre">regrid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation5closeEi"><code class="docutils literal notranslate"><span class="pre">close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7restartEiRKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKNSt6stringERNSt7istreamE"><code class="docutils literal notranslate"><span class="pre">restart()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10checkPointEiRKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowE"><code class="docutils literal notranslate"><span class="pre">checkPoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation17set_current_groupEi"><code class="docutils literal notranslate"><span class="pre">set_current_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12group_centerEi"><code class="docutils literal notranslate"><span class="pre">group_center()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12group_weightEi"><code class="docutils literal notranslate"><span class="pre">group_weight()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation17deltaEnergyRatMaxEi"><code class="docutils literal notranslate"><span class="pre">deltaEnergyRatMax()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12deltaTRatMaxEi"><code class="docutils literal notranslate"><span class="pre">deltaTRatMax()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12consRegisterEi"><code class="docutils literal notranslate"><span class="pre">consRegister()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9post_initEi"><code class="docutils literal notranslate"><span class="pre">post_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12pre_timestepEi"><code class="docutils literal notranslate"><span class="pre">pre_timestep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9init_fluxEii"><code class="docutils literal notranslate"><span class="pre">init_flux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation19deferred_sync_setupEi"><code class="docutils literal notranslate"><span class="pre">deferred_sync_setup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13deferred_syncEiRN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">deferred_sync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation19single_group_updateEiii"><code class="docutils literal notranslate"><span class="pre">single_group_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation21MGFLD_implicit_updateEiii"><code class="docutils literal notranslate"><span class="pre">MGFLD_implicit_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12write_groupsER7ostream"><code class="docutils literal notranslate"><span class="pre">write_groups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6refluxEi"><code class="docutils literal notranslate"><span class="pre">reflux()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15compute_limiterEiRKN5amrex8BoxArrayERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">compute_limiter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15estimate_gamrPrERKN5amrex9FArrayBoxERKN5amrex9FArrayBoxERN5amrex9FArrayBoxEPKN5amrex4RealERKN5amrex3BoxE"><code class="docutils literal notranslate"><span class="pre">estimate_gamrPr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11EstTimeStepERN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">EstTimeStep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11filter_primEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">filter_prim()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation16compute_exchangeERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">compute_exchange()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11compute_etaERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEii"><code class="docutils literal notranslate"><span class="pre">compute_eta()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22internal_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">internal_energy_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22internal_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">internal_energy_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">nonconservative_energy_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12state_updateERN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">state_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12getBndryDataER8RadBndryRN5amrex8MultiFabEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">getBndryData()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation14getBndryDataMGER10MGRadBndryRN5amrex8MultiFabEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">getBndryDataMG()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation17getBndryDataMG_gaER10MGRadBndryRN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">getBndryDataMG_ga()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8filBndryERN5amrex13BndryRegisterEiN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">filBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation14scaledGradientEiRN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERN5amrex8MultiFabEiRN5amrex8MultiFabEiii"><code class="docutils literal notranslate"><span class="pre">scaledGradient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11fluxLimiterEiRN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEEi"><code class="docutils literal notranslate"><span class="pre">fluxLimiter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7get_c_vERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxE"><code class="docutils literal notranslate"><span class="pre">get_c_v()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9get_frhoeERN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">get_frhoe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation19get_planck_and_tempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEiN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">get_planck_and_temp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13get_rosselandERN5amrex8MultiFabEPN5amrex8AmrLevelEi"><code class="docutils literal notranslate"><span class="pre">get_rosseland()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation26update_rosseland_from_tempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex8GeometryEi"><code class="docutils literal notranslate"><span class="pre">update_rosseland_from_temp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation19get_rosseland_v_dcfERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEPN5amrex8AmrLevelEi"><code class="docutils literal notranslate"><span class="pre">get_rosseland_v_dcf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10get_groupsEi"><code class="docutils literal notranslate"><span class="pre">get_groups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18extrapolateBordersERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">extrapolateBorders()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation23SGFLD_compute_rosselandERN5amrex8MultiFabERKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">SGFLD_compute_rosseland()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation23SGFLD_compute_rosselandERN5amrex9FArrayBoxERKN5amrex9FArrayBoxE"><code class="docutils literal notranslate"><span class="pre">SGFLD_compute_rosseland()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10update_dcfERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">update_dcf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation20check_convergence_erERN5amrex4RealERN5amrex4RealERN5amrex4RealERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">check_convergence_er()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22check_convergence_mattERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealERN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">check_convergence_matt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation16compute_couplingERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">compute_coupling()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12compute_etatERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">compute_etat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22eos_opacity_emissivityERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEiii"><code class="docutils literal notranslate"><span class="pre">eos_opacity_emissivity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10gray_accelERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEEP8RadSolveR10MGRadBndryRKN5amrex8BoxArrayEiN5amrex4RealEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">gray_accel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11local_accelERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">local_accel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation19state_energy_updateERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8BoxArrayERN5amrex4RealERN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">state_energy_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13update_matterERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEiN5amrex4RealEN5amrex4RealEib"><code class="docutils literal notranslate"><span class="pre">update_matter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13bisect_matterERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8BoxArrayEi"><code class="docutils literal notranslate"><span class="pre">bisect_matter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation23MGFLD_compute_rosselandERN5amrex8MultiFabERKN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">MGFLD_compute_rosseland()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation23MGFLD_compute_rosselandERN5amrex9FArrayBoxERKN5amrex9FArrayBoxE"><code class="docutils literal notranslate"><span class="pre">MGFLD_compute_rosseland()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation24MGFLD_compute_scatteringERN5amrex9FArrayBoxERKN5amrex9FArrayBoxE"><code class="docutils literal notranslate"><span class="pre">MGFLD_compute_scattering()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7rhstoErERN5amrex8MultiFabEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">rhstoEr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22save_lambda_in_plotvarEiRKN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEE"><code class="docutils literal notranslate"><span class="pre">save_lambda_in_plotvar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22save_lab_Er_in_plotvarEiRKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">save_lab_Er_in_plotvar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation20save_flux_in_plotvarEiRKN5amrex8MultiFabERKN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERKN5amrex8MultiFabERKN5amrex8MultiFabEiKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">save_flux_in_plotvar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation24save_com_flux_in_plotvarEiRKN5amrex8MultiFabERKN5amrex5ArrayIN5amrex8MultiFabE14AMREX_SPACEDIMEERKN5amrex8MultiFabERKN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">save_com_flux_in_plotvar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7verboseE"><code class="docutils literal notranslate"><span class="pre">verbose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7maxiterE"><code class="docutils literal notranslate"><span class="pre">maxiter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7miniterE"><code class="docutils literal notranslate"><span class="pre">miniter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation22convergence_check_typeE"><code class="docutils literal notranslate"><span class="pre">convergence_check_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8relInTolE"><code class="docutils literal notranslate"><span class="pre">relInTol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8absInTolE"><code class="docutils literal notranslate"><span class="pre">absInTol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9maxInIterE"><code class="docutils literal notranslate"><span class="pre">maxInIter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9minInIterE"><code class="docutils literal notranslate"><span class="pre">minInIter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation16skipAccelAllowedE"><code class="docutils literal notranslate"><span class="pre">skipAccelAllowed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18matter_update_typeE"><code class="docutils literal notranslate"><span class="pre">matter_update_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8n_bisectE"><code class="docutils literal notranslate"><span class="pre">n_bisect</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8dedT_facE"><code class="docutils literal notranslate"><span class="pre">dedT_fac</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation23inner_convergence_checkE"><code class="docutils literal notranslate"><span class="pre">inner_convergence_check</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18delta_e_rat_dt_tolE"><code class="docutils literal notranslate"><span class="pre">delta_e_rat_dt_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18delta_T_rat_dt_tolE"><code class="docutils literal notranslate"><span class="pre">delta_T_rat_dt_tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13update_planckE"><code class="docutils literal notranslate"><span class="pre">update_planck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation16update_rosselandE"><code class="docutils literal notranslate"><span class="pre">update_rosseland</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation14update_opacityE"><code class="docutils literal notranslate"><span class="pre">update_opacity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation14update_limiterE"><code class="docutils literal notranslate"><span class="pre">update_limiter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation20inner_update_limiterE"><code class="docutils literal notranslate"><span class="pre">inner_update_limiter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation2dTE"><code class="docutils literal notranslate"><span class="pre">dT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8underfacE"><code class="docutils literal notranslate"><span class="pre">underfac</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7do_syncE"><code class="docutils literal notranslate"><span class="pre">do_sync</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation21do_kappa_stm_emissionE"><code class="docutils literal notranslate"><span class="pre">do_kappa_stm_emission</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7plotvarE"><code class="docutils literal notranslate"><span class="pre">plotvar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8use_dkdTE"><code class="docutils literal notranslate"><span class="pre">use_dkdT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12use_WiensLawE"><code class="docutils literal notranslate"><span class="pre">use_WiensLaw</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7Tf_WienE"><code class="docutils literal notranslate"><span class="pre">Tf_Wien</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation3xnuE"><code class="docutils literal notranslate"><span class="pre">xnu</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7nugroupE"><code class="docutils literal notranslate"><span class="pre">nugroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8dnugroupE"><code class="docutils literal notranslate"><span class="pre">dnugroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10lognugroupE"><code class="docutils literal notranslate"><span class="pre">lognugroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11dlognugroupE"><code class="docutils literal notranslate"><span class="pre">dlognugroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18read_static_paramsEv"><code class="docutils literal notranslate"><span class="pre">read_static_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10SolverTypeE"><code class="docutils literal notranslate"><span class="pre">SolverType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6radtoEE"><code class="docutils literal notranslate"><span class="pre">radtoE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6EtoradE"><code class="docutils literal notranslate"><span class="pre">Etorad</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10radfluxtoFE"><code class="docutils literal notranslate"><span class="pre">radfluxtoF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13do_multigroupE"><code class="docutils literal notranslate"><span class="pre">do_multigroup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7nGroupsE"><code class="docutils literal notranslate"><span class="pre">nGroups</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18rad_hydro_combinedE"><code class="docutils literal notranslate"><span class="pre">rad_hydro_combined</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15Er_Lorentz_termE"><code class="docutils literal notranslate"><span class="pre">Er_Lorentz_term</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12icomp_lambdaE"><code class="docutils literal notranslate"><span class="pre">icomp_lambda</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8icomp_kpE"><code class="docutils literal notranslate"><span class="pre">icomp_kp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8icomp_krE"><code class="docutils literal notranslate"><span class="pre">icomp_kr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12icomp_lab_ErE"><code class="docutils literal notranslate"><span class="pre">icomp_lab_Er</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12icomp_lab_FrE"><code class="docutils literal notranslate"><span class="pre">icomp_lab_Fr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation12icomp_com_FrE"><code class="docutils literal notranslate"><span class="pre">icomp_com_Fr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8nplotvarE"><code class="docutils literal notranslate"><span class="pre">nplotvar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13plotvar_namesE"><code class="docutils literal notranslate"><span class="pre">plotvar_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15filter_lambda_TE"><code class="docutils literal notranslate"><span class="pre">filter_lambda_T</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15filter_lambda_SE"><code class="docutils literal notranslate"><span class="pre">filter_lambda_S</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15filter_prim_intE"><code class="docutils literal notranslate"><span class="pre">filter_prim_int</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13filter_prim_TE"><code class="docutils literal notranslate"><span class="pre">filter_prim_T</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13filter_prim_SE"><code class="docutils literal notranslate"><span class="pre">filter_prim_S</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10accelerateE"><code class="docutils literal notranslate"><span class="pre">accelerate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15convert_MeV_ergE"><code class="docutils literal notranslate"><span class="pre">convert_MeV_erg</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6clightE"><code class="docutils literal notranslate"><span class="pre">clight</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation7hPlanckE"><code class="docutils literal notranslate"><span class="pre">hPlanck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6kBoltzE"><code class="docutils literal notranslate"><span class="pre">kBoltz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation8AvogadroE"><code class="docutils literal notranslate"><span class="pre">Avogadro</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation1cE"><code class="docutils literal notranslate"><span class="pre">c</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation5sigmaE"><code class="docutils literal notranslate"><span class="pre">sigma</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation4aRadE"><code class="docutils literal notranslate"><span class="pre">aRad</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation20current_group_numberE"><code class="docutils literal notranslate"><span class="pre">current_group_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18current_group_nameE"><code class="docutils literal notranslate"><span class="pre">current_group_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10pure_hydroE"><code class="docutils literal notranslate"><span class="pre">pure_hydro</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6parentE"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6rad_bcE"><code class="docutils literal notranslate"><span class="pre">rad_bc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6reltolE"><code class="docutils literal notranslate"><span class="pre">reltol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6abstolE"><code class="docutils literal notranslate"><span class="pre">abstol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation17delta_e_rat_levelE"><code class="docutils literal notranslate"><span class="pre">delta_e_rat_level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation17delta_T_rat_levelE"><code class="docutils literal notranslate"><span class="pre">delta_T_rat_level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation9flux_consE"><code class="docutils literal notranslate"><span class="pre">flux_cons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation13flux_cons_oldE"><code class="docutils literal notranslate"><span class="pre">flux_cons_old</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation10flux_trialE"><code class="docutils literal notranslate"><span class="pre">flux_trial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11delta_t_oldE"><code class="docutils literal notranslate"><span class="pre">delta_t_old</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation5dfluxE"><code class="docutils literal notranslate"><span class="pre">dflux</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11group_unitsE"><code class="docutils literal notranslate"><span class="pre">group_units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation18group_print_factorE"><code class="docutils literal notranslate"><span class="pre">group_print_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation4spotE"><code class="docutils literal notranslate"><span class="pre">spot</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
@@ -145,6 +297,7 @@
 <li class="toctree-l2"><a class="reference internal" href="flatten_8H.html">File flatten.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
@@ -165,9 +318,14 @@
 <li class="toctree-l2"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__2shock__solvers_8H.html">File riemann_2shock_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__constants_8H.html">File riemann_constants.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
@@ -205,7 +363,7 @@
            <div itemprop="articleBody">
              
   <section id="file-radiation-h">
-<h1>File Radiation.H<a class="headerlink" href="#file-radiation-h" title="Permalink to this heading"></a></h1>
+<h1>File Radiation.H<a class="headerlink" href="#file-radiation-h" title="Link to this heading"></a></h1>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv49Radiation">
 <span id="_CPPv39Radiation"></span><span id="_CPPv29Radiation"></span><span id="Radiation"></span><span class="target" id="classRadiation"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Radiation</span></span></span><br /></dt>
@@ -255,11 +413,6 @@
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9RadiationD0Ev">
-<span id="_CPPv3N9RadiationD0Ev"></span><span id="_CPPv2N9RadiationD0Ev"></span><span id="Radiation::~Radiation"></span><span class="target" id="classRadiation_1ab612392d4d1557339c9975ca73b34d10"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~Radiation</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9Radiation6regridEiRKN5amrex8BoxArrayERKN5amrex19DistributionMappingE">
@@ -369,18 +522,18 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9Radiation14deltaEnergyTolEv">
-<span id="_CPPv3N9Radiation14deltaEnergyTolEv"></span><span id="_CPPv2N9Radiation14deltaEnergyTolEv"></span><span id="Radiation::deltaEnergyTol"></span><span class="target" id="classRadiation_1a66ac6dbb8d8bdd732f19358b987aa10c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">deltaEnergyTol</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="classRadiation_1a1be2fbe57e7f6f7b319dac32fb6e944e"></span><span class="sig-name descname"><span class="pre">inline</span> <span class="pre">nodiscard</span> <span class="pre">amrex::Real</span> <span class="pre">deltaEnergyTol</span> <span class="pre">()</span> <span class="pre">const</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9Radiation9deltaTTolEv">
-<span id="_CPPv3N9Radiation9deltaTTolEv"></span><span id="_CPPv2N9Radiation9deltaTTolEv"></span><span id="Radiation::deltaTTol"></span><span class="target" id="classRadiation_1ac2bd0b6293c5b97a6864d8ef1273dae6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">deltaTTol</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="classRadiation_1adbabe2c16fdbf6a27d0197f6c224fd87"></span><span class="sig-name descname"><span class="pre">inline</span> <span class="pre">nodiscard</span> <span class="pre">amrex::Real</span> <span class="pre">deltaTTol</span> <span class="pre">()</span> <span class="pre">const</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9Radiation12consRegisterEi">
-<span id="_CPPv3N9Radiation12consRegisterEi"></span><span id="_CPPv2N9Radiation12consRegisterEi"></span><span id="Radiation::consRegister__i"></span><span class="target" id="classRadiation_1a7b45ae8eba8f7ffc9d7373e3e474ae91"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">FluxRegister</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">consRegister</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span><span class="sig-paren">)</span><br /></dt>
+<span id="_CPPv3N9Radiation12consRegisterEi"></span><span id="_CPPv2N9Radiation12consRegisterEi"></span><span id="Radiation::consRegister__i"></span><span class="target" id="classRadiation_1a4e5b8b8a81afa0c389d9570027f8a7a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">FluxRegister</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">consRegister</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span><span class="sig-paren">)</span><br /></dt>
 <dd><p>access to conservation flux register for energy diagnostics</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -736,14 +889,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>R</strong> – </p></li>
-<li><p><strong>kappa_r</strong> – </p></li>
-<li><p><strong>kcomp</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>igroup</strong> – </p></li>
-<li><p><strong>nGrow_Er</strong> – </p></li>
-<li><p><strong>Rcomp</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -757,9 +903,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>lamcomp</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1210,8 +1354,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1241,12 +1384,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
 <li><p><strong>Snew</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>F</strong> – </p></li>
-<li><p><strong>iflx</strong> – </p></li>
-<li><p><strong>lab_factor</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1260,11 +1398,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>level</strong> – </p></li>
 <li><p><strong>Snew</strong> – </p></li>
-<li><p><strong>amrex::Array&lt;amrex::MultiFab</strong> – </p></li>
-<li><p><strong>lambda</strong> – </p></li>
-<li><p><strong>Er</strong> – </p></li>
-<li><p><strong>F</strong> – </p></li>
-<li><p><strong>iflx</strong> – </p></li>
+<li><p><strong>amrex::Array</strong> – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1303,7 +1437,7 @@
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9Radiation8absInTolE">
 <span id="_CPPv3N9Radiation8absInTolE"></span><span id="_CPPv2N9Radiation8absInTolE"></span><span id="Radiation::absInTol__amrex::Real"></span><span class="target" id="classRadiation_1a1d88cd454da980c3d1ffd6f721e20e3c"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">absInTol</span></span></span><br /></dt>
-<dd><p>tolerance for inner iternation of J equation </p>
+<dd><p>tolerance for inner iteration of J equation </p>
 </dd></dl>
 
 <dl class="cpp var">
@@ -1445,6 +1579,16 @@
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N9Radiation8dnugroupE">
 <span id="_CPPv3N9Radiation8dnugroupE"></span><span id="_CPPv2N9Radiation8dnugroupE"></span><span id="Radiation::dnugroup__amrex::Vector:amrex::Real:"></span><span class="target" id="classRadiation_1ac630cc8791f80d604bf4cd14226f5fc5"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dnugroup</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Radiation10lognugroupE">
+<span id="_CPPv3N9Radiation10lognugroupE"></span><span id="_CPPv2N9Radiation10lognugroupE"></span><span id="Radiation::lognugroup__amrex::Vector:amrex::Real:"></span><span class="target" id="classRadiation_1a665fa322a7ba4bd44ad5cd115b4318d5"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lognugroup</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9Radiation11dlognugroupE">
+<span id="_CPPv3N9Radiation11dlognugroupE"></span><span id="_CPPv2N9Radiation11dlognugroupE"></span><span id="Radiation::dlognugroup__amrex::Vector:amrex::Real:"></span><span class="target" id="classRadiation_1ab28db95d213cda3fb0c9f71fdc9b420f"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dlognugroup</span></span></span><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -1720,7 +1864,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

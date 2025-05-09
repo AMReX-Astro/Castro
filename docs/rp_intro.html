@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Runtime Parameters &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -78,6 +78,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -92,6 +93,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -99,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -143,9 +145,9 @@
            <div itemprop="articleBody">
              
   <section id="runtime-parameters">
-<h1>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h1>
+<h1>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h1>
 <section id="introduction-to-runtime-parameters">
-<h2>Introduction to Runtime Parameters<a class="headerlink" href="#introduction-to-runtime-parameters" title="Permalink to this heading"></a></h2>
+<h2>Introduction to Runtime Parameters<a class="headerlink" href="#introduction-to-runtime-parameters" title="Link to this heading"></a></h2>
 <p>Castro runtime parameters are set
 in the inputs file and managed by the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>
 class. For Castro-specific parameters, we list the runtime
@@ -161,11 +163,11 @@ of network, integrator, and EOS, and creates the <code class="docutils literal n
 <code class="docutils literal notranslate"><span class="pre">extern_parameters.cpp</span></code> files that manage the parameters.  These
 are set at runtime via the inputs file.</p>
 <section id="castro-specific-parameters">
-<h3>Castro-specific parameters<a class="headerlink" href="#castro-specific-parameters" title="Permalink to this heading"></a></h3>
+<h3>Castro-specific parameters<a class="headerlink" href="#castro-specific-parameters" title="Link to this heading"></a></h3>
 <p>The Castro parameters that control the behavior of the code and
 physics modules are listed in <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code> and take the form of:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
-name   type   default   need in Fortran?   ifdef
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment describing the parameter</span>
+<span class="n">name</span>   <span class="nb">type</span>   <span class="n">default</span>   <span class="n">ifdef</span>
 </pre></div>
 </div>
 <p>Here,</p>
@@ -183,14 +185,9 @@ was implemented for backwards compatibility.</p>
 <li><p><cite>default</cite> is the default value of the parameter.</p></li>
 </ul>
 </div></blockquote>
-<p>The next columns are optional, but you need to fill in all of the
-information up to and including any of the optional columns you need
-(e.g., if you are going to provide “need in Fortran?” and “ifdef”).</p>
+<p>The next column is optional:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><cite>need in Fortran?</cite> is <code class="docutils literal notranslate"><span class="pre">y</span></code> if the runtime parameter should be
-made available in Fortran (through <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>).
-Note: this option is deprecated.</p></li>
 <li><p><cite>ifdef</cite> provides the name of a preprocessor name that should
 wrap this parameter definition—it will only be compiled in if that
 name is defined to the preprocessor.</p></li>
@@ -201,7 +198,7 @@ parameter definition will be used to generate the documentation
 describing the parameters.</p>
 </section>
 <section id="microphysics-extern-parameter-format">
-<h3>Microphysics/extern parameter format<a class="headerlink" href="#microphysics-extern-parameter-format" title="Permalink to this heading"></a></h3>
+<h3>Microphysics/extern parameter format<a class="headerlink" href="#microphysics-extern-parameter-format" title="Link to this heading"></a></h3>
 <p>The microphysics/extern parameter definitions take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment describing the parameter</span>
 <span class="n">name</span>              <span class="n">data</span><span class="o">-</span><span class="nb">type</span>       <span class="n">default</span><span class="o">-</span><span class="n">value</span>      <span class="n">priority</span>
@@ -214,7 +211,7 @@ specific implementations to override the general parameter defaults.</p>
 </section>
 </section>
 <section id="parameters-by-namespace">
-<h2>Parameters by Namespace<a class="headerlink" href="#parameters-by-namespace" title="Permalink to this heading"></a></h2>
+<h2>Parameters by Namespace<a class="headerlink" href="#parameters-by-namespace" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html">namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></a></li>
@@ -239,7 +236,7 @@ specific implementations to override the general parameter defaults.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

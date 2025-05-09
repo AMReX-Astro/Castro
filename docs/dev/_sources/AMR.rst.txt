@@ -148,6 +148,8 @@ fine cell data above it.)
 
 The synchronization consists of two parts:
 
+.. index:: castro.do_reflux
+
 -  Step 1: Hyperbolic reflux
 
    In the hyperbolic reflux step, we update the conserved variables with
@@ -159,7 +161,7 @@ The synchronization consists of two parts:
    where :math:`V` is the volume of the cell and the correction from
    :math:`\delta\Fb` is supported only on coarse cells adjacent to fine grids.
 
-   Note: this can be enabled/disabled via castro.do_reflux. Generally,
+   Note: this can be enabled/disabled via ``castro.do_reflux``. Generally,
    it should be enabled (1).
 
    Also note that for axisymmetric or 1D spherical coordinates, the

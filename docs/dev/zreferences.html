@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>References &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -61,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -75,6 +76,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -82,7 +85,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -126,8 +128,9 @@
            <div itemprop="articleBody">
              
   <section id="references">
-<h1>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h1>
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
 <div class="docutils container" id="id1">
+<div role="list" class="citation-list">
 <div class="citation" id="id2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Marsha Berger and Isidore Rigoutsos. An algorithm for point clustering and grid generation. <em>Systems, Man and Cybernetics, IEEE Transactions on</em>, 21(5):1278–1286, 1991.</p>
@@ -138,7 +141,7 @@
 </div>
 <div class="citation" id="id59" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
-<p>Su Bingjing and Gordon L. Olson. Benchmark results for the non-equilibrium marshak diffusion problem. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 56(3):337 – 351, 1996. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/0022407396845249">http://www.sciencedirect.com/science/article/pii/0022407396845249</a>, <a class="reference external" href="https://doi.org/https://doi.org/10.1016/0022-4073(96)84524-9">doi:https://doi.org/10.1016/0022-4073(96)84524-9</a>.</p>
+<p>Su Bingjing and Gordon L. Olson. Benchmark results for the non-equilibrium marshak diffusion problem. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 56(3):337 – 351, 1996. <a class="reference external" href="https://doi.org/https://doi.org/10.1016/0022-4073(96)84524-9">doi:https://doi.org/10.1016/0022-4073(96)84524-9</a>.</p>
 </div>
 <div class="citation" id="id68" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
@@ -170,11 +173,11 @@
 </div>
 <div class="citation" id="id56" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></span>
-<p>A.I. Shestakov and J.H. Bolstad. An exact solution for the linearized multifrequency radiation diffusion equation. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 91(2):133 – 153, 2005. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0022407304002092">http://www.sciencedirect.com/science/article/pii/S0022407304002092</a>, <a class="reference external" href="https://doi.org/https://doi.org/10.1016/j.jqsrt.2004.05.052">doi:https://doi.org/10.1016/j.jqsrt.2004.05.052</a>.</p>
+<p>A.I. Shestakov and J.H. Bolstad. An exact solution for the linearized multifrequency radiation diffusion equation. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 91(2):133 – 153, 2005. <a class="reference external" href="https://doi.org/https://doi.org/10.1016/j.jqsrt.2004.05.052">doi:https://doi.org/10.1016/j.jqsrt.2004.05.052</a>.</p>
 </div>
 <div class="citation" id="id60" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></span>
-<p>Bingjing Su and Gordon L. Olson. Non-grey benchmark results for two temperature non-equilibrium radiative transfer. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 62(3):279 – 302, 1999. URL: <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0022407398001058">http://www.sciencedirect.com/science/article/pii/S0022407398001058</a>, <a class="reference external" href="https://doi.org/https://doi.org/10.1016/S0022-4073(98)00105-8">doi:https://doi.org/10.1016/S0022-4073(98)00105-8</a>.</p>
+<p>Bingjing Su and Gordon L. Olson. Non-grey benchmark results for two temperature non-equilibrium radiative transfer. <em>Journal of Quantitative Spectroscopy and Radiative Transfer</em>, 62(3):279 – 302, 1999. <a class="reference external" href="https://doi.org/https://doi.org/10.1016/S0022-4073(98)00105-8">doi:https://doi.org/10.1016/S0022-4073(98)00105-8</a>.</p>
 </div>
 <div class="citation" id="id39" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></span>
@@ -184,244 +187,256 @@
 <span class="label"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></span>
 <p>Weiqun Zhang, Ann Almgren, Vince Beckner, John Bell, Johannes Blaschke, Cy Chan, Marcus Day, Brian Friesen, Kevin Gott, Daniel Graves, Max P. Katz, Andrew Myers, Tan Nguyen, Andrew Nonaka, Michele Rosso, Samuel Williams, and Michael Zingale. Amrex: a framework for block-structured adaptive mesh refinement. <em>Journal of Open Source Software</em>, 4(37):1370, 2019. URL: <a class="reference external" href="https://doi.org/10.21105/joss.01370">https://doi.org/10.21105/joss.01370</a>.</p>
 </div>
-<div class="citation" id="id72" role="doc-biblioentry">
+<div class="citation" id="id76" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>15<span class="fn-bracket">]</span></span>
+<p>M. Zingale, M. P. Katz, A. Nonaka, and M. Rasmussen. An improved method for coupling hydrodynamics with astrophysical reaction networks. <em>The Astrophysical Journal</em>, 936(1):6, aug 2022. URL: <a class="reference external" href="https://dx.doi.org/10.3847/1538-4357/ac8478">https://dx.doi.org/10.3847/1538-4357/ac8478</a>, <a class="reference external" href="https://doi.org/10.3847/1538-4357/ac8478">doi:10.3847/1538-4357/ac8478</a>.</p>
+</div>
+<div class="citation" id="id72" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></span>
 <p>M. Zingale, M. P. Katz, D. E. Willcox, and A. Harpole. Practical effects of integrating temperature with strang split reactions. <em>Research Notes of the AAS</em>, 5(4):71, apr 2021. URL: <a class="reference external" href="https://doi.org/10.3847/2515-5172/abf3cb">https://doi.org/10.3847/2515-5172/abf3cb</a>, <a class="reference external" href="https://doi.org/10.3847/2515-5172/abf3cb">doi:10.3847/2515-5172/abf3cb</a>.</p>
 </div>
+<div class="citation" id="id77" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>17<span class="fn-bracket">]</span></span>
+<p>Michael Zingale, Zhi Chen, Melissa Rasmussen, Abigail Polin, Max Katz, Alexander Smith Clark, and Eric T. Johnson. Sensitivity of simulations of double-detonation type ia supernovae to integration methodology. <em>The Astrophysical Journal</em>, 966(2):150, may 2024. URL: <a class="reference external" href="https://dx.doi.org/10.3847/1538-4357/ad3441">https://dx.doi.org/10.3847/1538-4357/ad3441</a>, <a class="reference external" href="https://doi.org/10.3847/1538-4357/ad3441">doi:10.3847/1538-4357/ad3441</a>.</p>
+</div>
 <div class="citation" id="id36" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>16<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>18<span class="fn-bracket">]</span></span>
 <p>A. G. Aksenov and S. I. Blinnikov. A Newton iteration method for obtaining equilibria of rapidly rotating stars. <em>Astronomy &amp; Astrophysics</em>, 290:674–681, Oct 1994.</p>
 </div>
 <div class="citation" id="id4" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>17<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>19<span class="fn-bracket">]</span></span>
 <p>A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. <em>ApJ</em>, 715:1221–1238, June 2010. <a class="reference external" href="https://doi.org/10.1088/0004-637X/715/2/1221">doi:10.1088/0004-637X/715/2/1221</a>.</p>
 </div>
 <div class="citation" id="id9" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>18<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>20<span class="fn-bracket">]</span></span>
 <p>A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. <em>ApJ</em>, 684:449–470, September 2008. <a class="reference external" href="https://doi.org/10.1086/590321">doi:10.1086/590321</a>.</p>
 </div>
 <div class="citation" id="id8" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>19<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>21<span class="fn-bracket">]</span></span>
 <p>A. S. Almgren, J. B. Bell, C. A. Rendleman, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. II. Energy Evolution. <em>Astrophysical Journal</em>, 649(2):927–938, October 2006. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0606496">arXiv:astro-ph/0606496</a>, <a class="reference external" href="https://doi.org/10.1086/507089">doi:10.1086/507089</a>.</p>
 </div>
 <div class="citation" id="id67" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>20<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>22<span class="fn-bracket">]</span></span>
 <p>M. Brio and C. C. Wu. An Upwind Differencing Scheme for the Equations of Ideal Magnetohydrodynamics. <em>Journal of Computational Physics</em>, 75(2):400–422, April 1988. <a class="reference external" href="https://doi.org/10.1016/0021-9991(88)90120-9">doi:10.1016/0021-9991(88)90120-9</a>.</p>
 </div>
 <div class="citation" id="id17" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>21<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>23<span class="fn-bracket">]</span></span>
 <p>G. L. Bryan, M. L. Norman, B. W. O'Shea, T. Abel, J. H. Wise, M. J. Turk, D. R. Reynolds, D. C. Collins, P. Wang, S. W. Skillman, B. Smith, R. P. Harkness, J. Bordner, J.-h. Kim, M. Kuhlen, H. Xu, N. Goldbaum, C. Hummels, A. G. Kritsuk, E. Tasker, S. Skory, C. M. Simpson, O. Hahn, J. S. Oishi, G. C. So, F. Zhao, R. Cen, Y. Li, and Enzo Collaboration. ENZO: An Adaptive Mesh Refinement Code for Astrophysics. <em>ApJS</em>, 211:19, April 2014. <a class="reference external" href="https://arxiv.org/abs/1307.2265">arXiv:1307.2265</a>, <a class="reference external" href="https://doi.org/10.1088/0067-0049/211/2/19">doi:10.1088/0067-0049/211/2/19</a>.</p>
 </div>
 <div class="citation" id="id16" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>22<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>24<span class="fn-bracket">]</span></span>
 <p>G. L. Bryan, M. L. Norman, J. M. Stone, R. Cen, and J. P. Ostriker. A piecewise parabolic method for cosmological hydrodynamics. <em>Computer Physics Communications</em>, 89:149–168, August 1995. <a class="reference external" href="https://doi.org/10.1016/0010-4655(94)00191-4">doi:10.1016/0010-4655(94)00191-4</a>.</p>
 </div>
 <div class="citation" id="id21" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>23<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>25<span class="fn-bracket">]</span></span>
 <p>Z. D. Byerly, B. Adelstein-Lelbach, J. E. Tohline, and D. C. Marcello. A Hybrid Advection Scheme for Conserving Angular Momentum on a Refined Cartesian Mesh. <em>Astrophysical Journal Supplement Series</em>, 212:23, June 2014. <a class="reference external" href="https://arxiv.org/abs/1404.5942">arXiv:1404.5942</a>, <a class="reference external" href="https://doi.org/10.1088/0067-0049/212/2/23">doi:10.1088/0067-0049/212/2/23</a>.</p>
 </div>
 <div class="citation" id="id35" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>24<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>26<span class="fn-bracket">]</span></span>
 <p>M. J. Clement. On the solution of Poisson's equation for rapidly rotating stars. <em>Astrophysical Journal</em>, 194:709–714, Dec 1974. <a class="reference external" href="https://doi.org/10.1086/153292">doi:10.1086/153292</a>.</p>
 </div>
 <div class="citation" id="id12" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>25<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>27<span class="fn-bracket">]</span></span>
 <p>P. Colella. Multidimensional upwind methods for hyperbolic conservation laws. <em>Journal of Computational Physics</em>, 87:171–200, March 1990. <a class="reference external" href="https://doi.org/10.1016/0021-9991(90)90233-Q">doi:10.1016/0021-9991(90)90233-Q</a>.</p>
 </div>
 <div class="citation" id="id3" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>26<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>28<span class="fn-bracket">]</span></span>
 <p>P. Colella and H. M. Glaz. Efficient solution algorithms for the Riemann problem for real gases. <em>Journal of Computational Physics</em>, 59:264–289, June 1985. <a class="reference external" href="https://doi.org/10.1016/0021-9991(85)90146-9">doi:10.1016/0021-9991(85)90146-9</a>.</p>
 </div>
 <div class="citation" id="id13" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>27<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>29<span class="fn-bracket">]</span></span>
 <p>P. Colella and M. D. Sekora. A limiter for PPM that preserves accuracy at smooth extrema. <em>Journal of Computational Physics</em>, 227:7069–7076, July 2008. <a class="reference external" href="https://doi.org/10.1016/j.jcp.2008.03.034">doi:10.1016/j.jcp.2008.03.034</a>.</p>
 </div>
 <div class="citation" id="id5" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>28<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>30<span class="fn-bracket">]</span></span>
 <p>P. Colella and P. R. Woodward. The Piecewise Parabolic Method (PPM) for Gas-Dynamical Simulations. <em>Journal of Computational Physics</em>, 54:174–201, September 1984. <a class="reference external" href="https://doi.org/10.1016/0021-9991(84)90143-8">doi:10.1016/0021-9991(84)90143-8</a>.</p>
 </div>
 <div class="citation" id="id6" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>29<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>31<span class="fn-bracket">]</span></span>
 <p>S. A. Colgate and R. H. White. The Hydrodynamic Behavior of Supernovae Explosions. <em>ApJ</em>, 143:626, March 1966. <a class="reference external" href="https://doi.org/10.1086/148549">doi:10.1086/148549</a>.</p>
 </div>
 <div class="citation" id="id65" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>30<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>32<span class="fn-bracket">]</span></span>
 <p>Robert K. Crockett, Phillip Colella, Robert T. Fisher, Richard I. Klein, and Christopher F. McKee. An unsplit, cell-centered Godunov method for ideal MHD. <em>Journal of Computational Physics</em>, 203(2):422–448, March 2005. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0309307">arXiv:astro-ph/0309307</a>, <a class="reference external" href="https://doi.org/10.1016/j.jcp.2004.08.021">doi:10.1016/j.jcp.2004.08.021</a>.</p>
 </div>
 <div class="citation" id="id28" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>31<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>33<span class="fn-bracket">]</span></span>
 <p>Mario C. R. D'Souza, Patrick M. Motl, Joel E. Tohline, and Juhan Frank. Numerical Simulations of the Onset and Stability of Dynamical Mass Transfer in Binaries. <em>Astrophysical Journal</em>, 643(1):381–401, May 2006. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0512137">arXiv:astro-ph/0512137</a>, <a class="reference external" href="https://doi.org/10.1086/500384">doi:10.1086/500384</a>.</p>
 </div>
 <div class="citation" id="id61" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>32<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>34<span class="fn-bracket">]</span></span>
 <p>Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. <em>Astrophysical Journal</em>, 894(1):6, May 2020. <a class="reference external" href="https://arxiv.org/abs/1912.04956">arXiv:1912.04956</a>, <a class="reference external" href="https://doi.org/10.3847/1538-4357/ab80bc">doi:10.3847/1538-4357/ab80bc</a>.</p>
 </div>
 <div class="citation" id="id33" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>33<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>35<span class="fn-bracket">]</span></span>
 <p>Y. Eriguchi and E. Mueller. A general computational method for obtaining equilibria of self-gravitating and rotating gases. <em>Astronomy &amp; Astrophysics</em>, 146:260–268, May 1985.</p>
 </div>
 <div class="citation" id="id30" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>34<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>36<span class="fn-bracket">]</span></span>
 <p>Wesley Even and Joel E. Tohline. Constructing Synchronously Rotating Double White Dwarf Binaries. <em>The Astrophysical Journal Supplement Series</em>, 184:248–263, Oct 2009. <a class="reference external" href="https://arxiv.org/abs/0908.2116">arXiv:0908.2116</a>, <a class="reference external" href="https://doi.org/10.1088/0067-0049/184/2/248">doi:10.1088/0067-0049/184/2/248</a>.</p>
 </div>
 <div class="citation" id="id52" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>35<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>37<span class="fn-bracket">]</span></span>
 <p>August E. Evrard. Beyond N-body: 3D cosmological gas dynamics. <em>Monthly Notices of the Royal Astronomical Society</em>, 235:911–934, December 1988. URL: <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/1988MNRAS.235..911E">https://ui.adsabs.harvard.edu/abs/1988MNRAS.235..911E</a>.</p>
 </div>
 <div class="citation" id="id11" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>36<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>38<span class="fn-bracket">]</span></span>
 <p>B. Fryxell, K. Olson, P. Ricker, F. X. Timmes, M. Zingale, D. Q. Lamb, P. MacNeice, R. Rosner, J. W. Truran, and H. Tufo. FLASH: An Adaptive Mesh Hydrodynamics Code for Modeling Astrophysical Thermonuclear Flashes. <em>ApJS</em>, 131:273–334, November 2000. <a class="reference external" href="https://doi.org/10.1086/317361">doi:10.1086/317361</a>.</p>
 </div>
 <div class="citation" id="id34" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>37<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></span>
 <p>Kotaro Fujisawa. A versatile numerical method for obtaining structures of rapidly rotating baroclinic stars: self-consistent and systematic solutions with shellular-type rotation. <em>Monthly Notices of the Royal Astronomical Society</em>, 454:3060–3072, Dec 2015. URL: <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2015MNRAS.454.3060F">https://ui.adsabs.harvard.edu/abs/2015MNRAS.454.3060F</a>, <a class="reference external" href="https://arxiv.org/abs/1507.02693">arXiv:1507.02693</a>.</p>
 </div>
 <div class="citation" id="id51" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>38<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>40<span class="fn-bracket">]</span></span>
 <p>Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. <em>Journal of Computational Physics</em>, 205(2):509–539, May 2005. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0501557">arXiv:astro-ph/0501557</a>, <a class="reference external" href="https://doi.org/10.1016/j.jcp.2004.11.016">doi:10.1016/j.jcp.2004.11.016</a>.</p>
 </div>
 <div class="citation" id="id46" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>39<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></span>
 <p>F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, <em>Computational Methods in Transport: Verification and Validation</em>, number 62 in Lecture Notes in Computational Science and Engineering, pages 151–167. Springer, 2008.</p>
 </div>
 <div class="citation" id="id23" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>40<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></span>
 <p>I. Hachisu. A Versatile Method for Obtaining Structures of Rapidly Rotating Stars. <em>The Astrophysical Journal Supplement Series</em>, 61:479, Jul 1986. <a class="reference external" href="https://doi.org/10.1086/191121">doi:10.1086/191121</a>.</p>
 </div>
 <div class="citation" id="id24" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>41<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></span>
 <p>Izumi Hachisu. A Versatile Method for Obtaining Structures of Rapidly Rotating Stars. II. Three-dimensional Self-consistent Field Method. <em>The Astrophysical Journal Supplement Series</em>, 62:461, Nov 1986. <a class="reference external" href="https://doi.org/10.1086/191148">doi:10.1086/191148</a>.</p>
 </div>
 <div class="citation" id="id44" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>42<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></span>
 <p>L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. <em>Journal of Computational Physics</em>, 184:53–78, January 2003. <a class="reference external" href="https://doi.org/10.1016/S0021-9991(02)00015-3">doi:10.1016/S0021-9991(02)00015-3</a>.</p>
 </div>
 <div class="citation" id="id20" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>43<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></span>
 <p>X. Y. Hu, N. A. Adams, and C.-W. Shu. Positivity-preserving method for high-order conservative schemes solving compressible Euler equations. <em>Journal of Computational Physics</em>, 242:169–180, June 2013. URL: <a class="reference external" href="http://adsabs.harvard.edu/abs/2013JCoPh.242..169H">http://adsabs.harvard.edu/abs/2013JCoPh.242..169H</a>, <a class="reference external" href="https://arxiv.org/abs/1203.1540">arXiv:1203.1540</a>.</p>
 </div>
 <div class="citation" id="id37" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>44<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></span>
 <p>Stephen Jackson, Keith B. MacGregor, and Andrew Skumanich. On the Use of the Self-consistent-Field Method in the Construction of Models for Rapidly Rotating Main-Sequence Stars. <em>The Astrophysical Journal Supplement Series</em>, 156:245–264, Feb 2005. <a class="reference external" href="https://doi.org/10.1086/426587">doi:10.1086/426587</a>.</p>
 </div>
 <div class="citation" id="id31" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>45<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></span>
 <p>Kundan Kadam, Patrick M. Motl, Dominic C. Marcello, Juhan Frank, and Geoffrey C. Clayton. Numerical simulations of mass transfer in binaries with bipolytropic components. <em>Monthly Notices of the Royal Astronomical Society</em>, 481:3683–3707, Dec 2018. URL: <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.3683K">https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.3683K</a>, <a class="reference external" href="https://arxiv.org/abs/1809.04884">arXiv:1809.04884</a>.</p>
 </div>
 <div class="citation" id="id42" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>46<span class="fn-bracket">]</span></span>
-<p>J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.asu.edu/research_pages/sedov.shtml. URL: <a class="reference external" href="http://cococubed.asu.edu/papers/la-ur-07-2849.pdf">http://cococubed.asu.edu/papers/la-ur-07-2849.pdf</a>.</p>
+<span class="label"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></span>
+<p>J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.com/research_pages/sedov.shtml. URL: <a class="reference external" href="http://cococubed.com/papers/la-ur-07-2849.pdf">http://cococubed.com/papers/la-ur-07-2849.pdf</a>.</p>
 </div>
 <div class="citation" id="id19" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>47<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>49<span class="fn-bracket">]</span></span>
 <p>M. P. Katz. <em>White Dwarf Mergers on Adaptive Meshes</em>. PhD thesis, State University of New York at Stony Brook, 2016.</p>
 </div>
 <div class="citation" id="id18" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>48<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></span>
 <p>M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. <em>APJ</em>, 819:94, March 2016. <a class="reference external" href="https://arxiv.org/abs/1512.06099">arXiv:1512.06099</a>, <a class="reference external" href="https://doi.org/10.3847/0004-637X/819/2/94">doi:10.3847/0004-637X/819/2/94</a>.</p>
 </div>
 <div class="citation" id="id32" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>49<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></span>
 <p>Woong-Tae Kim and Sanghyuk Moon. Equilibrium Sequences and Gravitational Instability of Rotating Isothermal Rings. <em>Astrophysical Journal</em>, 829:45, Sep 2016. <a class="reference external" href="https://arxiv.org/abs/1607.03570">arXiv:1607.03570</a>, <a class="reference external" href="https://doi.org/10.3847/0004-637X/829/1/45">doi:10.3847/0004-637X/829/1/45</a>.</p>
 </div>
 <div class="citation" id="id47" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>50<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></span>
 <p>R. Kippenhahn and A. Weigert. <em>Stellar Structure and Evolution</em>. Springer, 1990.</p>
 </div>
 <div class="citation" id="id54" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>51<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></span>
 <p>R. B. Lowrie and J. D. Edwards. Radiative shock solutions with grey nonequilibrium diffusion. <em>Shock Waves</em>, 18:129–143, 2008.</p>
 </div>
 <div class="citation" id="id14" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>52<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>54<span class="fn-bracket">]</span></span>
 <p>G. H. Miller and P. Colella. A Conservative Three-Dimensional Eulerian Method for Coupled Solid-Fluid Shock Capturing. <em>Journal of Computational Physics</em>, 183:26–82, November 2002. <a class="reference external" href="https://doi.org/10.1006/jcph.2002.7158">doi:10.1006/jcph.2002.7158</a>.</p>
 </div>
 <div class="citation" id="id29" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>53<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>55<span class="fn-bracket">]</span></span>
 <p>Patrick M. Motl, Juhan Frank, Joel E. Tohline, and Mario C. R. D'Souza. The Stability of Double White Dwarf Binaries Undergoing Direct-Impact Accretion. <em>Astrophysical Journal</em>, 670(2):1314–1325, December 2007. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0702388">arXiv:astro-ph/0702388</a>, <a class="reference external" href="https://doi.org/10.1086/522076">doi:10.1086/522076</a>.</p>
 </div>
 <div class="citation" id="id27" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>54<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>56<span class="fn-bracket">]</span></span>
 <p>Patrick M. Motl, Joel E. Tohline, and Juhan Frank. Numerical Methods for the Simulation of Dynamical Mass Transfer in Binaries. <em>Astrophysical Journal Supplement Series</em>, 138(1):121–148, January 2002. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0107308">arXiv:astro-ph/0107308</a>, <a class="reference external" href="https://doi.org/10.1086/324159">doi:10.1086/324159</a>.</p>
 </div>
+<div class="citation" id="id78" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>57<span class="fn-bracket">]</span></span>
+<p>Andrew Myers, Weiqun Zhang, Ann Almgren, Thierry Antoun, John Bell, Axel Huebl, and Alexander Sinn. AMReX and pyAMReX: Looking Beyond ECP. <em>arXiv e-prints</em>, pages arXiv:2403.12179, March 2024. <a class="reference external" href="https://arxiv.org/abs/2403.12179">arXiv:2403.12179</a>, <a class="reference external" href="https://doi.org/10.48550/arXiv.2403.12179">doi:10.48550/arXiv.2403.12179</a>.</p>
+</div>
 <div class="citation" id="id25" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>55<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>58<span class="fn-bracket">]</span></span>
 <p>Kimberly C. B. New and Joel E. Tohline. The Relative Stability against Merger of Close, Compact Binaries. <em>Astrophysical Journal</em>, 490:311–327, Nov 1997. <a class="reference external" href="https://arxiv.org/abs/gr-qc/9703013">arXiv:gr-qc/9703013</a>, <a class="reference external" href="https://doi.org/10.1086/304861">doi:10.1086/304861</a>.</p>
 </div>
 <div class="citation" id="id43" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>56<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>59<span class="fn-bracket">]</span></span>
 <p>M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. <em>Journal of Computational Physics</em>, 213:391–412, March 2006. <a class="reference external" href="https://doi.org/10.1016/j.jcp.2005.08.023">doi:10.1016/j.jcp.2005.08.023</a>.</p>
 </div>
 <div class="citation" id="id22" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>57<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>60<span class="fn-bracket">]</span></span>
 <p>J. C. B. Papaloizou and J. E. Pringle. The dynamical stability of differentially rotating discs with constant specific angular momentum. <em>Monthly Notices of the Royal Astronomical Society</em>, 208:721–750, June 1984. URL: <a class="reference external" href="http://adsabs.harvard.edu/abs/1984MNRAS.208..721P">http://adsabs.harvard.edu/abs/1984MNRAS.208..721P</a>.</p>
 </div>
 <div class="citation" id="id62" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>58<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>61<span class="fn-bracket">]</span></span>
 <p>Taeho Ryu, Michael Zingale, and Rosalba Perna. Turbulence-driven thermal and kinetic energy fluxes in the atmospheres of hot Jupiters. <em>Monthly Notices of the Royal Astronomical Society</em>, 481(4):5517–5531, December 2018. URL: <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.5517R">https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.5517R</a>, <a class="reference external" href="https://arxiv.org/abs/1806.07890">arXiv:1806.07890</a>.</p>
 </div>
 <div class="citation" id="id41" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>59<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>62<span class="fn-bracket">]</span></span>
 <p>L. I. Sedov. <em>Similarity and Dimensional Methods in Mechanics</em>. Academic Press, 1959. translated from the 4th Russian Ed.</p>
 </div>
 <div class="citation" id="id40" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>60<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>63<span class="fn-bracket">]</span></span>
 <p>G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. <em>Journal of Computational Physics</em>, 27:1–31, April 1978. <a class="reference external" href="https://doi.org/10.1016/0021-9991(78)90023-2">doi:10.1016/0021-9991(78)90023-2</a>.</p>
 </div>
 <div class="citation" id="id53" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>61<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>64<span class="fn-bracket">]</span></span>
 <p>Volker Springel. E pur si muove: Galilean-invariant cosmological hydrodynamical simulations on a moving mesh. <em>Monthly Notices of the Royal Astronomical Society</em>, 401(2):791–851, January 2010. URL: <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2010MNRAS.401..791S">https://ui.adsabs.harvard.edu/abs/2010MNRAS.401..791S</a>, <a class="reference external" href="https://arxiv.org/abs/0901.4107">arXiv:0901.4107</a>.</p>
 </div>
 <div class="citation" id="id66" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>62<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>65<span class="fn-bracket">]</span></span>
 <p>James M. Stone, Thomas A. Gardiner, Peter Teuben, John F. Hawley, and Jacob B. Simon. Athena: A New Code for Astrophysical MHD. <em>Astrophysical Journal Supplement Series</em>, 178(1):137–177, September 2008. <a class="reference external" href="https://arxiv.org/abs/0804.0402">arXiv:0804.0402</a>, <a class="reference external" href="https://doi.org/10.1086/588755">doi:10.1086/588755</a>.</p>
 </div>
 <div class="citation" id="id45" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>63<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>66<span class="fn-bracket">]</span></span>
 <p>F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. <em>Astrophysical Journal Supplement</em>, 181:1–52, March 2009. <a class="reference external" href="https://doi.org/10.1088/0067-0049/181/1/1">doi:10.1088/0067-0049/181/1/1</a>.</p>
 </div>
 <div class="citation" id="id26" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>64<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>67<span class="fn-bracket">]</span></span>
 <p>F. Douglas Swesty, Edward Y. M. Wang, and Alan C. Calder. Numerical Models of Binary Neutron Star System Mergers. I. Numerical Methods and Equilibrium Data for Newtonian Models. <em>Astrophysical Journal</em>, 541:937–958, Oct 2000. <a class="reference external" href="https://arxiv.org/abs/astro-ph/9911192">arXiv:astro-ph/9911192</a>, <a class="reference external" href="https://doi.org/10.1086/309460">doi:10.1086/309460</a>.</p>
 </div>
 <div class="citation" id="id75" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>65<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>68<span class="fn-bracket">]</span></span>
 <p>F. X. Timmes. Physical Properties of Laminar Helium Deflagrations. <em>Astrophysical Journal</em>, 528(2):913–945, January 2000. <a class="reference external" href="https://doi.org/10.1086/308203">doi:10.1086/308203</a>.</p>
 </div>
 <div class="citation" id="id58" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>66<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>69<span class="fn-bracket">]</span></span>
 <p>N. J. Turner and J. M. Stone. A Module for Radiation Hydrodynamic Calculations with ZEUS-2D Using Flux-limited Diffusion. <em>Astrophysical Journal Supplement Series</em>, 135(1):95–107, July 2001. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0102145">arXiv:astro-ph/0102145</a>, <a class="reference external" href="https://doi.org/10.1086/321779">doi:10.1086/321779</a>.</p>
 </div>
 <div class="citation" id="id38" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>67<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>70<span class="fn-bracket">]</span></span>
 <p>Shin'ichirou Yoshida. Rotating white dwarf models with finite-temperature envelopes. <em>arXiv e-prints</em>, pages arXiv:1812.10898, Dec 2018. <a class="reference external" href="https://arxiv.org/abs/1812.10898">arXiv:1812.10898</a>.</p>
 </div>
 <div class="citation" id="id48" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>68<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>71<span class="fn-bracket">]</span></span>
 <p>Y. B. Zeldovich and D. Novikov. <em>Relativistic astrophysics. Vol.1: Stars and relativity</em>. University of Chicago Press, 1971.</p>
 </div>
 <div class="citation" id="id55" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>69<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>72<span class="fn-bracket">]</span></span>
 <p>W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. <em>Astrophysical Journal Supplement Series</em>, 196(2):20, October 2011. <a class="reference external" href="https://arxiv.org/abs/1105.2466">arXiv:1105.2466</a>, <a class="reference external" href="https://doi.org/10.1088/0067-0049/196/2/20">doi:10.1088/0067-0049/196/2/20</a>.</p>
 </div>
 <div class="citation" id="id57" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>70<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>73<span class="fn-bracket">]</span></span>
 <p>W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. <em>Astrophysical Journal Supplement Series</em>, 204(1):7, January 2013. <a class="reference external" href="https://arxiv.org/abs/1207.3845">arXiv:1207.3845</a>, <a class="reference external" href="https://doi.org/10.1088/0067-0049/204/1/7">doi:10.1088/0067-0049/204/1/7</a>.</p>
 </div>
 <div class="citation" id="id71" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>71<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>74<span class="fn-bracket">]</span></span>
 <p>M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. <em>Astrophysical Journal Supplement Series</em>, 143(2):539–565, December 2002. <a class="reference external" href="https://arxiv.org/abs/astro-ph/0208031">arXiv:astro-ph/0208031</a>, <a class="reference external" href="https://doi.org/10.1086/342754">doi:10.1086/342754</a>.</p>
 </div>
 <div class="citation" id="id10" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>72<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>75<span class="fn-bracket">]</span></span>
 <p>M. Zingale and M. P. Katz. On the Piecewise Parabolic Method for Compressible Flow With Stellar Equations of State. <em>ApJS</em>, 216:31, February 2015. <a class="reference external" href="https://doi.org/10.1088/0067-0049/216/2/31">doi:10.1088/0067-0049/216/2/31</a>.</p>
 </div>
 <div class="citation" id="id49" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>73<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>76<span class="fn-bracket">]</span></span>
 <p>M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. <em>Astrophysical Journal</em>, 886(2):105, Dec 2019. <a class="reference external" href="https://arxiv.org/abs/1908.03661">arXiv:1908.03661</a>, <a class="reference external" href="https://doi.org/10.3847/1538-4357/ab4e1d">doi:10.3847/1538-4357/ab4e1d</a>.</p>
 </div>
 <div class="citation" id="id63" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>74<span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span>77<span class="fn-bracket">]</span></span>
 <p>M. Zingale, C. M. Malone, A. Nonaka, A. S. Almgren, and J. B. Bell. Comparisons of Two- and Three-Dimensional Convection in Type I X-Ray Bursts. <em>Astrophysical Journal</em>, 807(1):60, July 2015. <a class="reference external" href="https://arxiv.org/abs/1410.5796">arXiv:1410.5796</a>, <a class="reference external" href="https://doi.org/10.1088/0004-637X/807/1/60">doi:10.1088/0004-637X/807/1/60</a>.</p>
 </div>
 </div>
@@ -438,7 +453,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

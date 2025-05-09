@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Timestepping and Retries &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Timestepping and Retries</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#simulation-time">Simulation Time</a></li>
@@ -90,6 +91,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -97,7 +100,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -141,9 +143,9 @@
            <div itemprop="articleBody">
              
   <section id="timestepping-and-retries">
-<h1>Timestepping and Retries<a class="headerlink" href="#timestepping-and-retries" title="Permalink to this heading"></a></h1>
+<h1>Timestepping and Retries<a class="headerlink" href="#timestepping-and-retries" title="Link to this heading"></a></h1>
 <section id="simulation-time">
-<h2>Simulation Time<a class="headerlink" href="#simulation-time" title="Permalink to this heading"></a></h2>
+<h2>Simulation Time<a class="headerlink" href="#simulation-time" title="Link to this heading"></a></h2>
 <p>There are two parameters that can define when a simulation ends:</p>
 <blockquote>
 <div><ul class="simple">
@@ -169,13 +171,13 @@ past it.</p>
 the number of level 0 steps taken equals 1000, whichever comes first.</p>
 </section>
 <section id="time-step-constraints">
-<h2>Time Step Constraints<a class="headerlink" href="#time-step-constraints" title="Permalink to this heading"></a></h2>
+<h2>Time Step Constraints<a class="headerlink" href="#time-step-constraints" title="Link to this heading"></a></h2>
 <section id="hydrodynamics">
-<h3>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Permalink to this heading"></a></h3>
+<h3>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Link to this heading"></a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span> <span class="pre">=</span> <span class="pre">1</span></code>, then typically
 the code chooses a time step based on the CFL number:</p>
 <div class="math notranslate nohighlight" id="equation-eq-cfl">
-<span class="eqno">(2)<a class="headerlink" href="#equation-eq-cfl" title="Permalink to this equation"></a></span>\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
+<span class="eqno">(2)<a class="headerlink" href="#equation-eq-cfl" title="Link to this equation"></a></span>\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
                                                                \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
                                                                \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]\]</div>
 <p>If SDC integration is used instead, then we have</p>
@@ -186,7 +188,7 @@ the code chooses a time step based on the CFL number:</p>
 <p>(If we are simulating in 1D or 2D, the extraneous parts related to <span class="math notranslate nohighlight">\(v\)</span> and/or <span class="math notranslate nohighlight">\(w\)</span> are removed.)</p>
 </section>
 <section id="additional-controls">
-<h3>Additional Controls<a class="headerlink" href="#additional-controls" title="Permalink to this heading"></a></h3>
+<h3>Additional Controls<a class="headerlink" href="#additional-controls" title="Link to this heading"></a></h3>
 <p>The following parameters affect the timestep choice:</p>
 <blockquote>
 <div><ul class="simple">
@@ -239,7 +241,7 @@ be <code class="docutils literal notranslate"><span class="pre">castro.init_shri
 grow in subsequent steps by a factor of castro.change_max each step.</p>
 </section>
 <section id="diffusion">
-<h3>Diffusion<a class="headerlink" href="#diffusion" title="Permalink to this heading"></a></h3>
+<h3>Diffusion<a class="headerlink" href="#diffusion" title="Link to this heading"></a></h3>
 <p>If diffusion is enabled, the timestep will also be limited by:</p>
 <div class="math notranslate nohighlight">
 \[\Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
@@ -251,7 +253,7 @@ input parameter is necessary to enable this constraint. See Chapter
 <a class="reference internal" href="diffusion.html#ch-diffusion"><span class="std std-ref">Thermal Diffusion</span></a> for more details.</p>
 </section>
 <section id="reactions">
-<h3>Reactions<a class="headerlink" href="#reactions" title="Permalink to this heading"></a></h3>
+<h3>Reactions<a class="headerlink" href="#reactions" title="Link to this heading"></a></h3>
 <p>If reactions are enabled, the timestep will also
 be limited by two constraints:</p>
 <div class="math notranslate nohighlight">
@@ -277,7 +279,7 @@ for these values in the literature are <span class="math notranslate nohighlight
 </section>
 </section>
 <section id="subcycling">
-<h2>Subcycling<a class="headerlink" href="#subcycling" title="Permalink to this heading"></a></h2>
+<h2>Subcycling<a class="headerlink" href="#subcycling" title="Link to this heading"></a></h2>
 <p>Subcycling with AMR means that coarser grids can take a larger timestep
 than finer grids.
 Castro supports a number of different modes for subcycling in time,
@@ -313,7 +315,7 @@ level-1 step, and take 2 timesteps at level-3 for each level-2 step.</p>
 <p>which will subcycle twice at every level (except level 0).</p>
 </section>
 <section id="retry-mechanism">
-<span id="ch-retry"></span><span id="index-0"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Permalink to this heading"></a></h2>
+<span id="ch-retry"></span><span id="index-0"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Link to this heading"></a></h2>
 <p id="index-1">Castro’s Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
@@ -344,7 +346,7 @@ the density below which we want to silently renormalize the species.</p></li>
 <li><p>Integration failure in the burner</p>
 <p>By construction, the integration routines in Microphysics will not
 abort if the integration fails, but instead return control to the
-calling function and set <a href="#id1"><span class="problematic" id="id2">``</span></a>burn_t burn_state.success=false`.  This
+calling function and set <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state.success=false</span></code>.  This
 allows Castro to handle the failure.</p>
 </li>
 </ul>
@@ -363,7 +365,7 @@ allows Castro to handle the failure.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

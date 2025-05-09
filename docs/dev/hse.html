@@ -1,31 +1,31 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hydrostatic Equilibrium &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="MHD" href="mhd.html" />
+    <link rel="next" title="Equation of State" href="EOS.html" />
     <link rel="prev" title="Hydrodynamics" href="Hydrodynamics.html" /> 
 </head>
 
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -93,6 +94,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#test-problems">Test problems</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -100,7 +103,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -144,7 +146,7 @@
            <div itemprop="articleBody">
              
   <section id="hydrostatic-equilibrium">
-<h1>Hydrostatic Equilibrium<a class="headerlink" href="#hydrostatic-equilibrium" title="Permalink to this heading"></a></h1>
+<h1>Hydrostatic Equilibrium<a class="headerlink" href="#hydrostatic-equilibrium" title="Link to this heading"></a></h1>
 <p>There are a few places where we take care to maintain HSE.  These differ
 by integration method:</p>
 <ul class="simple">
@@ -156,9 +158,9 @@ HSE much more difficult.</p></li>
 states – they are only spatially reconstructed, not extrapolated in time.</p></li>
 </ul>
 <section id="reconstruction">
-<h2>Reconstruction<a class="headerlink" href="#reconstruction" title="Permalink to this heading"></a></h2>
+<h2>Reconstruction<a class="headerlink" href="#reconstruction" title="Link to this heading"></a></h2>
 <section id="piecewise-linear">
-<h3>Piecewise linear<a class="headerlink" href="#piecewise-linear" title="Permalink to this heading"></a></h3>
+<h3>Piecewise linear<a class="headerlink" href="#piecewise-linear" title="Link to this heading"></a></h3>
 <p id="index-0">Piecewise linear reconstruction can be used with both CTU and
 true-SDC.</p>
 <p>For the 4th-order MC limiter, if we set <code class="docutils literal notranslate"><span class="pre">castro.use_pslope</span> <span class="pre">=</span> <span class="pre">1</span></code>,
@@ -187,7 +189,7 @@ construct the total slope (including the hydrostatic part) as:</p>
 the reconstruction part, this step is identical between CTU and true-SDC.</p>
 </section>
 <section id="ppm">
-<h3>PPM<a class="headerlink" href="#ppm" title="Permalink to this heading"></a></h3>
+<h3>PPM<a class="headerlink" href="#ppm" title="Link to this heading"></a></h3>
 <p>The PPM version of <code class="docutils literal notranslate"><span class="pre">use_pslope</span></code> is essentially the same as the PLM
 version described above.  We first compute the excess pressure,
 <span class="math notranslate nohighlight">\(\tilde{p}\)</span>, and then fit a cubic to the 4 cells surrounding an
@@ -196,18 +198,22 @@ and right values of the parabola in each zone.  The PPM limiting is
 then done on the parabola, again working with <span class="math notranslate nohighlight">\(\tilde{p}\)</span>.
 Finally, the parabola values are updated to include the hydrostatic
 pressure.</p>
+<p id="index-1">We can do better with PPM, and only use the perturbational pressure,
+<span class="math notranslate nohighlight">\(\tilde{p}\)</span>, in the characteristic tracing and then add back the
+hydrostatic pressure to the interface afterwards.  This is done via
+<code class="docutils literal notranslate"><span class="pre">castro.ppm_well_balanced=1</span></code>.</p>
 </section>
 <section id="fully-fourth-order-method">
-<h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Permalink to this heading"></a></h3>
+<h3>Fully fourth-order method<a class="headerlink" href="#fully-fourth-order-method" title="Link to this heading"></a></h3>
 <p>The 4th order accurate true SDC solver does not appear to need any
 well-balancing.  It maintains HSE to very high precision, as shown in
-<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>.</p>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p>
 </section>
 </section>
 <section id="boundary-conditions">
-<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this heading"></a></h2>
+<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Link to this heading"></a></h2>
 <section id="reflecting">
-<h3>reflecting<a class="headerlink" href="#reflecting" title="Permalink to this heading"></a></h3>
+<h3>reflecting<a class="headerlink" href="#reflecting" title="Link to this heading"></a></h3>
 <p>For piecewise linear reconstruction, in <code class="docutils literal notranslate"><span class="pre">slope.H</span></code>, when using the
 4th order MC slopes (<code class="docutils literal notranslate"><span class="pre">castro.plm_limiter</span> <span class="pre">=</span> <span class="pre">2</span></code>), we impose special
 ghost cell values on the normal velocity at reflecting boundaries to
@@ -216,9 +222,9 @@ ensure that the velocity goes to 0 at the boundary. This follows
 error).  Only the normal velocity is treated specially.</p>
 </section>
 <section id="hse">
-<h3>HSE<a class="headerlink" href="#hse" title="Permalink to this heading"></a></h3>
-<p id="index-1">For hydrostatic boundary conditions, we follow the method from
-<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">71</a>]</span>.  Essentially, this starts with the last
+<h3>HSE<a class="headerlink" href="#hse" title="Link to this heading"></a></h3>
+<p id="index-2">For hydrostatic boundary conditions, we follow the method from
+<span id="id3">[<a class="reference internal" href="zreferences.html#id71" title="M. Zingale, L. J. Dursi, J. ZuHone, A. C. Calder, B. Fryxell, T. Plewa, J. W. Truran, A. Caceres, K. Olson, P. M. Ricker, K. Riley, R. Rosner, A. Siegel, F. X. Timmes, and N. Vladimirova. Mapping Initial Hydrostatic Models in Godunov Codes. Astrophysical Journal Supplement Series, 143(2):539-565, December 2002. arXiv:astro-ph/0208031, doi:10.1086/342754.">74</a>]</span>.  Essentially, this starts with the last
 zone inside of the boundary and integrates HSE into the ghost cells,
 keeping the density either constant or extrapolating it.  Together
 the discretized HSE equation and the EOS yield the density and pressure
@@ -253,7 +259,7 @@ requires <code class="docutils literal notranslate"><span class="pre">hse_interp
 </section>
 </section>
 <section id="interface-states-at-reflecting-boundary">
-<h2>Interface states at reflecting boundary<a class="headerlink" href="#interface-states-at-reflecting-boundary" title="Permalink to this heading"></a></h2>
+<h2>Interface states at reflecting boundary<a class="headerlink" href="#interface-states-at-reflecting-boundary" title="Link to this heading"></a></h2>
 <p>For all methods, we enforce the reflecting condition on the interface
 states directly by reflecting the state just inside the domain to
 overwrite the state on the reflecting boundary just outside of the
@@ -263,7 +269,7 @@ reconstruction that used a one-sided stencil (like the 4th order
 method).</p>
 </section>
 <section id="test-problems">
-<h2>Test problems<a class="headerlink" href="#test-problems" title="Permalink to this heading"></a></h2>
+<h2>Test problems<a class="headerlink" href="#test-problems" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Castro/Exec/gravity_tests/hse_convergence_general</span></code> can be used to
 test the different HSE approaches.  This sets up a 1-d X-ray burst
 atmosphere (based on the <code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> setup).  Richardson
@@ -277,13 +283,13 @@ look at how the peak velocity changes).</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="Hydrodynamics.html" class="btn btn-neutral float-left" title="Hydrodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="EOS.html" class="btn btn-neutral float-right" title="Equation of State" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

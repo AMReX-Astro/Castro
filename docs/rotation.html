@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rotation &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -78,6 +79,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -93,7 +96,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -137,9 +139,9 @@
            <div itemprop="articleBody">
              
   <section id="rotation">
-<span id="ch-rotation"></span><h1>Rotation<a class="headerlink" href="#rotation" title="Permalink to this heading"></a></h1>
+<span id="ch-rotation"></span><h1>Rotation<a class="headerlink" href="#rotation" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>Currently, Castro supports constant, solid-body rotation about a fixed
 (in space and time) axis in 2D and 3D by transforming the evolution
 equations to the rotating frame of reference.</p>
@@ -170,6 +172,9 @@ setting it in the <code class="docutils literal notranslate"><span class="pre">p
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">1</span></code>, (r,z): along the z-axis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">2</span></code>, (r, <span class="math notranslate nohighlight">\(\theta\)</span>): along the z-axis after converting
+to the spherical coordinate, i.e.
+<span class="math notranslate nohighlight">\(\hat{z} = \cos{\theta} \hat{r} = \sin{\theta} \hat{\theta}\)</span>.</p></li>
 </ul>
 </li>
 <li><p>3D</p>
@@ -201,21 +206,23 @@ energy during a rotation update (default: 4)</p></li>
 term, which mixes momenta in the source term, whether we should
 solve for the update implicitly (default: 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_axis</span></code> : rotation axis (default: 3
-(Cartesian); 2 (cylindrical))</p></li>
+(Cartesian); 2 (cylindrical)). This parameter doesn’t affect
+spherical coordinate since rotation axis is automatically set
+to z-axis.</p></li>
 </ul>
 <p>For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
 switching to a rotating reference frame.</p>
 </section>
 <section id="coordinate-transformation-to-rotating-frame">
-<h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this heading"></a></h2>
+<h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Link to this heading"></a></h2>
 <figure class="align-default" id="id2">
 <img alt="inertial vs. corotating frame" src="_images/tframes.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 5 </span><span class="caption-text">Inertial frame <span class="math notranslate nohighlight">\(C\)</span> and
 non-inertial frame <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. We consider a fluid element
 <span class="math notranslate nohighlight">\(P\)</span>, whose distance in the two frames is related by
-<span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+<span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Consider an inertial reference frame <span class="math notranslate nohighlight">\(C\)</span> and a non-inertial
@@ -230,12 +237,12 @@ at the point <span class="math notranslate nohighlight">\(P\)</span> whose locat
 \[\rb = \rbt + \boldsymbol{l},\]</div>
 <p>or in component notation</p>
 <div class="math notranslate nohighlight" id="equation-eq-r">
-<span class="eqno">(12)<a class="headerlink" href="#equation-eq-r" title="Permalink to this equation"></a></span>\[r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},\]</div>
+<span class="eqno">(12)<a class="headerlink" href="#equation-eq-r" title="Link to this equation"></a></span>\[r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},\]</div>
 <p>where <span class="math notranslate nohighlight">\(\boldsymbol{e_i}\)</span> and <span class="math notranslate nohighlight">\(\widetilde{\boldsymbol{e_i}}\)</span> are the <span class="math notranslate nohighlight">\(i\)</span>th unit
 vectors in the <span class="math notranslate nohighlight">\(C\)</span> and <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> coordinate systems,
 respectively. The total time rate of change of <a class="reference internal" href="#equation-eq-r">(12)</a> is given by</p>
 <div class="math notranslate nohighlight" id="equation-eq-vcomp">
-<span class="eqno">(13)<a class="headerlink" href="#equation-eq-vcomp" title="Permalink to this equation"></a></span>\[\frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},\]</div>
+<span class="eqno">(13)<a class="headerlink" href="#equation-eq-vcomp" title="Link to this equation"></a></span>\[\frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},\]</div>
 <p>where we have used the fact that the unit vectors of the inertial
 frame <span class="math notranslate nohighlight">\(C\)</span> are not moving (or at least can be considered stationary,
 and the change in <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> gives the relative motion of the two
@@ -245,11 +252,11 @@ time can come from changing direction. This change is carried out by
 a rotation about the <span class="math notranslate nohighlight">\(\ob\)</span> axis, and the tip of the unit
 vector moves circumferentially, that is</p>
 <div class="math notranslate nohighlight" id="equation-eq-etilde-rot">
-<span class="eqno">(14)<a class="headerlink" href="#equation-eq-etilde-rot" title="Permalink to this equation"></a></span>\[\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.\]</div>
+<span class="eqno">(14)<a class="headerlink" href="#equation-eq-etilde-rot" title="Link to this equation"></a></span>\[\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.\]</div>
 <p>Plugging <a class="reference internal" href="#equation-eq-etilde-rot">(14)</a> into <a class="reference internal" href="#equation-eq-vcomp">(13)</a> and switching back to
 vector notation, we have</p>
 <div class="math notranslate nohighlight" id="equation-eq-r-dot">
-<span class="eqno">(15)<a class="headerlink" href="#equation-eq-r-dot" title="Permalink to this equation"></a></span>\[\frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.\]</div>
+<span class="eqno">(15)<a class="headerlink" href="#equation-eq-r-dot" title="Link to this equation"></a></span>\[\frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.\]</div>
 <p>The left hand side of <a class="reference internal" href="#equation-eq-r-dot">(15)</a> is interpreted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
@@ -258,11 +265,11 @@ and third terms on the right hand side of <a class="reference internal" href="#e
 additional velocity due to rotation and translation of the frame
 <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> as seen in <span class="math notranslate nohighlight">\(C\)</span>. In other words,</p>
 <div class="math notranslate nohighlight" id="equation-eq-v">
-<span class="eqno">(16)<a class="headerlink" href="#equation-eq-v" title="Permalink to this equation"></a></span>\[\vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},\]</div>
+<span class="eqno">(16)<a class="headerlink" href="#equation-eq-v" title="Link to this equation"></a></span>\[\vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},\]</div>
 <p>where we use <span class="math notranslate nohighlight">\(\boldsymbol{v_l}\)</span> to represent the translational velocity.</p>
 <p>Similarly, by taking a second time derivative of <a class="reference internal" href="#equation-eq-v">(16)</a> we have</p>
 <div class="math notranslate nohighlight" id="equation-eq-a">
-<span class="eqno">(17)<a class="headerlink" href="#equation-eq-a" title="Permalink to this equation"></a></span>\[\frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.\]</div>
+<span class="eqno">(17)<a class="headerlink" href="#equation-eq-a" title="Link to this equation"></a></span>\[\frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.\]</div>
 <p>Henceforth we will assume the two coordinate systems are not
 translating relative to one another, <span class="math notranslate nohighlight">\(\boldsymbol{v_l} = 0\)</span>. It is
 also worth mentioning that derivatives with respect to spatial
@@ -271,16 +278,16 @@ i.e. <span class="math notranslate nohighlight">\(\nablab\cdot\vb = \nablab\cdot
 Because of this, the continuity equation remains unchanged in the
 rotating frame:</p>
 <div class="math notranslate nohighlight" id="equation-eq-cont-rot">
-<span class="eqno">(18)<a class="headerlink" href="#equation-eq-cont-rot" title="Permalink to this equation"></a></span>\[\frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),\]</div>
+<span class="eqno">(18)<a class="headerlink" href="#equation-eq-cont-rot" title="Link to this equation"></a></span>\[\frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),\]</div>
 <p>or</p>
 <div class="math notranslate nohighlight" id="equation-eq-cont-rot-total">
-<span class="eqno">(19)<a class="headerlink" href="#equation-eq-cont-rot-total" title="Permalink to this equation"></a></span>\[\frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
+<span class="eqno">(19)<a class="headerlink" href="#equation-eq-cont-rot-total" title="Link to this equation"></a></span>\[\frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
 </section>
 <section id="momentum-equation-in-rotating-frame">
-<h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Permalink to this heading"></a></h2>
+<h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Link to this heading"></a></h2>
 <p>The usual momentum equation applies in an inertial frame:</p>
 <div class="math notranslate nohighlight" id="equation-eq-mom1">
-<span class="eqno">(20)<a class="headerlink" href="#equation-eq-mom1" title="Permalink to this equation"></a></span>\[\frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
+<span class="eqno">(20)<a class="headerlink" href="#equation-eq-mom1" title="Link to this equation"></a></span>\[\frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
 <p>Using the continuity equation, <a class="reference internal" href="#equation-eq-cont-rot-total">(19)</a>, and substituting for
 the terms in the rotating frame from <a class="reference internal" href="#equation-eq-a">(17)</a>, we have from <a class="reference internal" href="#equation-eq-mom1">(20)</a>:</p>
 <div class="math notranslate nohighlight">
@@ -292,18 +299,18 @@ the terms in the rotating frame from <a class="reference internal" href="#equati
   \end{align}\end{split}\]</div>
 <p>or</p>
 <div class="math notranslate nohighlight" id="equation-eq-mom-rot-tot">
-<span class="eqno">(21)<a class="headerlink" href="#equation-eq-mom-rot-tot" title="Permalink to this equation"></a></span>\[\frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
+<span class="eqno">(21)<a class="headerlink" href="#equation-eq-mom-rot-tot" title="Link to this equation"></a></span>\[\frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
 </section>
 <section id="energy-equations-in-rotating-frame">
-<h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Permalink to this heading"></a></h2>
+<h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Link to this heading"></a></h2>
 <p>From <a class="reference internal" href="#equation-eq-mom-rot-tot">(21)</a>, we have the velocity evolution equation in
 a rotating frame</p>
 <div class="math notranslate nohighlight" id="equation-eq-v-rot">
-<span class="eqno">(22)<a class="headerlink" href="#equation-eq-v-rot" title="Permalink to this equation"></a></span>\[\frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].\]</div>
+<span class="eqno">(22)<a class="headerlink" href="#equation-eq-v-rot" title="Link to this equation"></a></span>\[\frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].\]</div>
 <p>The kinetic energy equation can be obtained from <a class="reference internal" href="#equation-eq-v-rot">(22)</a> by
-mulitplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</p>
+multiplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-eq-ekin-rot-total">
-<span class="eqno">(23)<a class="headerlink" href="#equation-eq-ekin-rot-total" title="Permalink to this equation"></a></span>\[\begin{split}\begin{align}
+<span class="eqno">(23)<a class="headerlink" href="#equation-eq-ekin-rot-total" title="Link to this equation"></a></span>\[\begin{split}\begin{align}
     \rho\vbt\cdot\frac{D\vbt}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
     \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
     \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
@@ -311,7 +318,7 @@ mulitplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</
 <p>The internal energy is simply advected, and, from the first law of
 thermodynamics, can change due to <span class="math notranslate nohighlight">\(pdV\)</span> work:</p>
 <div class="math notranslate nohighlight" id="equation-eq-eint-rot-total">
-<span class="eqno">(24)<a class="headerlink" href="#equation-eq-eint-rot-total" title="Permalink to this equation"></a></span>\[\frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.\]</div>
+<span class="eqno">(24)<a class="headerlink" href="#equation-eq-eint-rot-total" title="Link to this equation"></a></span>\[\frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.\]</div>
 <p>Combining <a class="reference internal" href="#equation-eq-ekin-rot-total">(23)</a> and <a class="reference internal" href="#equation-eq-eint-rot-total">(24)</a> we can
 get the evolution of the total specific energy in the rotating frame,
 <span class="math notranslate nohighlight">\(\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt\)</span>:</p>
@@ -327,7 +334,7 @@ get the evolution of the total specific energy in the rotating frame,
     \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].\]</div>
 </section>
 <section id="switching-to-the-rotating-reference-frame">
-<h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Permalink to this heading"></a></h2>
+<h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Link to this heading"></a></h2>
 <p>If we choose to be a stationary observer in the rotating reference
 frame, we can drop all of the tildes, which indicated terms in the
 non-inertial frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>. Doing so, and making sure we
@@ -342,7 +349,7 @@ reference:</p>
   \end{align}\end{split}\]</div>
 </section>
 <section id="adding-the-forcing-to-the-hydrodynamics">
-<h2>Adding the forcing to the hydrodynamics<a class="headerlink" href="#adding-the-forcing-to-the-hydrodynamics" title="Permalink to this heading"></a></h2>
+<h2>Adding the forcing to the hydrodynamics<a class="headerlink" href="#adding-the-forcing-to-the-hydrodynamics" title="Link to this heading"></a></h2>
 <p>There are several ways to incorporate the effect of the rotation
 forcing on the hydrodynamical evolution. We control this through the
 use of the runtime parameter castro.rot_source_type. This
@@ -397,7 +404,7 @@ This does the update of the Coriolis term in the momentum equation
 implicitly (e.g., the velocity in the Coriolis force for the zone
 depends on the updated momentum). The energy update is unchanged.</p>
 <p>A detailed discussion of these options and some verification
-tests is presented in <span id="id1">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">48</a>]</span>.</p>
+tests is presented in <span id="id1">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">50</a>]</span>.</p>
 </section>
 </section>
 
@@ -412,7 +419,7 @@ tests is presented in <span id="id1">[<a class="reference internal" href="zrefer
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

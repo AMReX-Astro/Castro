@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Development Best Practices &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -76,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -83,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -140,19 +142,19 @@
            <div itemprop="articleBody">
              
   <section id="development-best-practices">
-<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this heading"></a></h1>
+<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Link to this heading"></a></h1>
 <section id="coding-conventions">
-<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this heading"></a></h2>
+<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Link to this heading"></a></h2>
 <p>Castro development should do its best to adhere to the following coding
 style guidelines.</p>
 <section id="general">
-<h3>General<a class="headerlink" href="#general" title="Permalink to this heading"></a></h3>
+<h3>General<a class="headerlink" href="#general" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Indentation should be spaces, not tabs, with 4 spaces preferred.</p></li>
 </ul>
 </section>
 <section id="c">
-<h3>C++<a class="headerlink" href="#c" title="Permalink to this heading"></a></h3>
+<h3>C++<a class="headerlink" href="#c" title="Link to this heading"></a></h3>
 <ul>
 <li><p>Conditional should appear as:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
@@ -173,7 +175,7 @@ style guidelines.</p>
 </ul>
 </section>
 <section id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h3>
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
 <p>C++ routines should use Doxygen style comments.</p>
 <ul>
 <li><p>C++ functions should be documented in the header file using the style:</p>
@@ -196,7 +198,7 @@ with a brief inline description:</p>
 </section>
 </section>
 <section id="castro-releases">
-<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this heading"></a></h2>
+<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Link to this heading"></a></h2>
 <p>This outlines the procedure for doing the monthly Castro release.</p>
 <p>Castro uses submodules for dependencies, this means that, at a
 minimum, we must update the AMReX and  Microphysics submodules monthly when we
@@ -242,7 +244,7 @@ summarizing changes since last major release.</p></li>
 </ul>
 </div></blockquote>
 <section id="interim-updates">
-<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this heading"></a></h3>
+<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Link to this heading"></a></h3>
 <p>When breaking changes to Microphysics occur in its development branch
 that Castro depends on, we must update the Microphysics submodule on
 the Castro development branch in the same way, replacing the git
@@ -257,7 +259,7 @@ submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
 </section>
 </section>
 <section id="continuous-integration">
-<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this heading"></a></h2>
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h2>
 <p>We github actions to run integration tests on the code and to build and deploy the documentation.</p>
 <p>Currently, we run the <a class="reference external" href="https://clang-analyzer.llvm.org/">clang static analyzer</a>, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch.</p>
 </section>
@@ -274,7 +276,7 @@ submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

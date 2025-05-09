@@ -1,0 +1,469 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reactions &mdash; Castro  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MHD" href="mhd.html" />
+    <link rel="prev" title="Equation of State" href="EOS.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Castro
+              <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    <div class="branch">
+        Branch: <a href="../reactions.html">main</a> | <a href="./reactions.html">development</a>
+    </div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Reactions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-burning">Controlling burning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#burning-in-shocks">Burning in Shocks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reactions-flowchart">Reactions Flowchart</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#strang">Strang</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simplified-sdc">Simplified-SDC</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Reactions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/reactions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reactions">
+<h1>Reactions<a class="headerlink" href="#reactions" title="Link to this heading"></a></h1>
+<p id="index-0">The nuclear network serves two purposes: it defines the fluid
+components used in both the equation of state and the hydrodynamics,
+and it evolves those components through a nuclear burning step.  All
+of the reaction networks that Castro uses are provided by the
+<a class="reference external" href="https://github.com/amrex-astro/Microphysics">Microphysics repository</a>.</p>
+<div class="admonition note" id="index-1">
+<p class="admonition-title">Note</p>
+<p>To enable reactions in a simulation, you must compile with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_REACT</span><span class="o">=</span><span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>This can be set in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
+</div>
+<p>Microphysics comes with a <code class="docutils literal notranslate"><span class="pre">general_null</span></code>
+network. This is a bare interface for a
+nuclear reaction network. No reactions are enabled, and no auxiliary variables
+are accepted.  It contains several sets of isotopes; for example,
+<code class="docutils literal notranslate"><span class="pre">Microphysics/networks/general_null/triple_alpha_plus_o.net</span></code> would describe the
+isotopes needed to represent the triple-<span class="math notranslate nohighlight">\(\alpha\)</span> reaction converting
+helium into carbon, as well as oxygen and iron.</p>
+<p>Other reaction networks can be found in <code class="docutils literal notranslate"><span class="pre">Microphysics/networks</span></code>.  To select
+a network, you set the make variable <code class="docutils literal notranslate"><span class="pre">NETWORK_DIR</span></code> to the name of the network
+directory.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An arbitrary reaction network can be created for Castro via the
+<a class="reference external" href="https://pynucastro.github.io/pynucastro/">pynucastro library</a>.</p>
+</div>
+<p>The main interface for burning is in <code class="docutils literal notranslate"><span class="pre">Microphysics/interfaces/burner.H</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="n">burner</span><span class="w"> </span><span class="p">(</span><span class="n">burn_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="n">dt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> type contains all of the information needed for the reaction
+network.  It is similar to the equation of state <code class="docutils literal notranslate"><span class="pre">eos_t</span></code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The equation of state routines can be called directly with a <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> in place
+of an <code class="docutils literal notranslate"><span class="pre">eos_t</span></code>.</p>
+</div>
+<p>Castro has several different modes of coupling reactions and
+hydrodynamics, selected through the parameter
+<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code>.  See <a class="reference internal" href="FlowChart.html#sec-flowchart"><span class="std std-ref">Flowchart</span></a> for the
+details.</p>
+<section id="controlling-burning">
+<h2>Controlling burning<a class="headerlink" href="#controlling-burning" title="Link to this heading"></a></h2>
+<p id="index-2">There are a number of reactions-related parameters that can be set at runtime
+in the inputs file. Reactions are enabled by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_react</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>(Note: turning reactions off for problems where they’re not required can help improve
+the efficiency).</p>
+<p>It is possible to set the maximum and minimum temperature and density for allowing
+reactions to occur in a zone using the parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code> for temperature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code> for density</p></li>
+</ul>
+<section id="burning-in-shocks">
+<h3>Burning in Shocks<a class="headerlink" href="#burning-in-shocks" title="Link to this heading"></a></h3>
+<p id="index-3">Burning can also be disabled inside shocks.  This requires that the code be
+compiled with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_SHOCK_VAR</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  This will allocate storage for a shock flag in the conserved
+state array.  This flag is computed via a multidimensional shock detection algorithm
+described in <span id="id1">[<a class="reference internal" href="zreferences.html#id77" title="Michael Zingale, Zhi Chen, Melissa Rasmussen, Abigail Polin, Max Katz, Alexander Smith Clark, and Eric T. Johnson. Sensitivity of simulations of double-detonation type ia supernovae to integration methodology. The Astrophysical Journal, 966(2):150, may 2024. URL: https://dx.doi.org/10.3847/1538-4357/ad3441, doi:10.3847/1538-4357/ad3441.">17</a>]</span>.  A zone is tagged as a shock if the following
+conditions are true:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\nabla \cdot \ub &amp;&lt; 0 \\
+\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &amp;&gt; f_\mathrm{shock}
+\end{align*}\end{split}\]</div>
+<p>This requires that there is compression and that the pressure jump (excluding
+the part of the pressure that balances gravity) is large.  The runtime parameter</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">disable_shock_burning</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>will skip reactions in a zone where we’ve detected a shock.  The runtime parameters
+<code class="docutils literal notranslate"><span class="pre">castro.shock_detection_threshold</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.shock_detection_include_sources</span></code>
+will set the value of <span class="math notranslate nohighlight">\(f_\mathrm{shock}\)</span> and whether to subtract <span class="math notranslate nohighlight">\(\rho {\bf g}\)</span>
+from the pressure gradient.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Both the compilation with <code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> and the runtime parameter
+<code class="docutils literal notranslate"><span class="pre">castro.disable_shock_burning</span> <span class="pre">=</span> <span class="pre">1</span></code> are needed to turn off burning in shocks.</p>
+</div>
+</section>
+</section>
+<section id="reactions-flowchart">
+<h2>Reactions Flowchart<a class="headerlink" href="#reactions-flowchart" title="Link to this heading"></a></h2>
+<p>Here we describe how the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> is setup before the burn and how we update the
+castro state afterwards for both Strang and simplified-SDC.</p>
+<section id="strang">
+<h3>Strang<a class="headerlink" href="#strang" title="Link to this heading"></a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">Castro_react.cpp</span></code>, the flow is:</p>
+<ul>
+<li><p>create <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state</span></code></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NSE_NET</span></code> is defined, initialize the chemical potentials that
+will be used as an initial guess for the NSE solve</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.mu_p</span></code> <span class="math notranslate nohighlight">\(= U(\mu_p)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.mu_n</span></code> <span class="math notranslate nohighlight">\(= U(\mu_n)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y_e</span></code> <span class="math notranslate nohighlight">\(= 0\)</span> (this will be filled if needed by the NSE routines)</p></li>
+</ul>
+</li>
+<li><p>initialize <code class="docutils literal notranslate"><span class="pre">burn_state.dx</span></code> – this is used for some NSE conditions.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">burn_state.success</span> <span class="pre">=</span> <span class="pre">true</span></code> : we assume that the burn was successful.  The
+integrator will set this to <code class="docutils literal notranslate"><span class="pre">false</span></code> is a problem occurred.</p></li>
+<li><p>fill the thermodynamic quantities for input to the burner:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.rho</span></code> <span class="math notranslate nohighlight">\(= U(\rho)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.e</span></code> <span class="math notranslate nohighlight">\(= U(\rho e) / U(\rho)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.T</span></code> <span class="math notranslate nohighlight">\(= U(T)\)</span></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is assumed here that the temperature is thermodynamically
+consistent with the energy.  For most networks, the temperature
+passed in will be used to set the thermodynamics in the burner.</p>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.xn[]</span></code> <span class="math notranslate nohighlight">\(= U(\rho X_k) / U(\rho)\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NAUX_NET</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>: <code class="docutils literal notranslate"><span class="pre">burn_state.aux[]</span></code> <span class="math notranslate nohighlight">\(= U(\rho \alpha_k) / U(\rho)\)</span></p></li>
+</ul>
+</li>
+<li><p>If we are doing <code class="docutils literal notranslate"><span class="pre">castro.drive_initial_convection</span></code> then we set
+<code class="docutils literal notranslate"><span class="pre">burn_state.T_fixed</span></code> by interpolating from the initial model.</p></li>
+<li><p>Initialize the metadata that is used for diagnostics</p></li>
+<li><p>Call the burner:</p>
+<ul>
+<li><p>We check to make sure that <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(\rho\)</span> are within the limits given
+by <code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code>, <code class="docutils literal notranslate"><span class="pre">castro_react_rho_min</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>.</p></li>
+<li><p>The burner will set <code class="docutils literal notranslate"><span class="pre">burn_state.success</span> <span class="pre">=</span> <span class="pre">false</span></code> if it failed.  This can happen
+for a number of reasons and is integrator-dependent.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Castro will not abort by default here if the burn failed.
+Instead we leave it to the <a class="reference internal" href="timestepping.html#ch-retry"><span class="std std-ref">Retry Mechanism</span></a> mechanism to attempt
+the step again with a smaller timestep.</p>
+</div>
+</li>
+</ul>
+</li>
+<li><p>Store the burning sources for plotting</p>
+<p id="index-4">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
+diagnostics.</p>
+<p>We fill these as:</p>
+<ul id="index-5">
+<li><p>energy generation rate:</p>
+<p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
+</li>
+<li><p>species and auxiliary creation rates (only if <code class="docutils literal notranslate"><span class="pre">castro.store_omegadot</span> <span class="pre">=</span> <span class="pre">1</span></code>):</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho X_k) = U(\rho) \dfrac{\mathtt{burn\_state.xn[k]}\, -\, U(\rho X_k) / U(\rho)}{\Delta t}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho \alpha_k) = U(\rho) \dfrac{\mathtt{burn\_state.aux[k]}\, -\, U(\rho \alpha_k) / U(\rho)}{\Delta t}\)</span></p></li>
+</ul>
+</li>
+<li><p>NSE flag (only if <code class="docutils literal notranslate"><span class="pre">NSE</span></code> is defined).  This simply stores the value of <code class="docutils literal notranslate"><span class="pre">burn_state.nse</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Update the conserved state:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(\rho \ub\)</span> are unchanged by reactions so those variables are not
+updated here.  They are already the “new” state.</p>
+</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho e) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.e}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho E) = U^\mathrm{old}(\rho E) + (U^\mathrm{new}(\rho e) - U^\mathrm{old}(\rho e))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho X_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.xn[k]}\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NAUX_NET</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>: <span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho \alpha_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.aux[k]}\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NSE_NET</span></code> :</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(U(\mu_p) = \mathtt{burn\_state.mu\_p}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U(\mu_n) = \mathtt{burn\_state.mu\_n}\)</span></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="simplified-sdc">
+<h3>Simplified-SDC<a class="headerlink" href="#simplified-sdc" title="Link to this heading"></a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">Castro_react.cpp</span></code>, the flow is:</p>
+<ul>
+<li><p>create <code class="docutils literal notranslate"><span class="pre">burn_t</span> <span class="pre">burn_state</span></code></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NSE_NET</span></code> is defined, initialize the chemical potentials that
+will be used as an initial guess for the NSE solve</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.mu_p</span></code> <span class="math notranslate nohighlight">\(= U(\mu_p)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.mu_n</span></code> <span class="math notranslate nohighlight">\(= U(\mu_n)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y_e</span></code> <span class="math notranslate nohighlight">\(= 0\)</span> (this will be filled if needed by the NSE routines)</p></li>
+</ul>
+</li>
+<li><p>initialize <code class="docutils literal notranslate"><span class="pre">burn_state.dx</span></code> – this is used for some NSE conditions.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">burn_state.success</span> <span class="pre">=</span> <span class="pre">true</span></code> : we assume that the burn was successful.  The
+integrator will set this to <code class="docutils literal notranslate"><span class="pre">false</span></code> is a problem occurred.</p></li>
+<li><p>fill the conserved state – this is stored in the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> only when
+we are using simplified-SDC.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SRHO]</span></code> <span class="math notranslate nohighlight">\(= U(\rho)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SMX]</span></code> <span class="math notranslate nohighlight">\(= U(\rho u)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SMY]</span></code> <span class="math notranslate nohighlight">\(= U(\rho v)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SMZ]</span></code> <span class="math notranslate nohighlight">\(= U(\rho w)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SEDEN]</span></code> <span class="math notranslate nohighlight">\(= U(\rho E)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SEINT]</span></code> <span class="math notranslate nohighlight">\(= U(\rho e)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.y[SFS+k]</span></code> <span class="math notranslate nohighlight">\(= U(\rho X_k)\)</span> for <span class="math notranslate nohighlight">\(k = 0 \ldots N_{\mathrm{spec}} - 1\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NAUX_NET</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> : <code class="docutils literal notranslate"><span class="pre">burn_state.y[SFX+k]</span></code> <span class="math notranslate nohighlight">\(= U(\rho \alpha_k)\)</span> for <span class="math notranslate nohighlight">\(k = 0 \ldots N_{\mathrm{aux}} - 1\)</span></p></li>
+</ul>
+</li>
+<li><p>fill the thermodynamic quantities in the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.rho</span></code> <span class="math notranslate nohighlight">\(= U(\rho)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">burn_state.T</span></code> <span class="math notranslate nohighlight">\(= U(T)\)</span> – this is mainly going to be used as an initial guess</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We don’t initialize <code class="docutils literal notranslate"><span class="pre">burn_state.xn[]</span></code> or <code class="docutils literal notranslate"><span class="pre">burn_state.aux[]</span></code></p>
+</div>
+<ul class="simple">
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NAUX_NET</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>: <code class="docutils literal notranslate"><span class="pre">burn_state.aux[]</span></code> <span class="math notranslate nohighlight">\(= U(\rho \alpha_k) / U(\rho)\)</span></p></li>
+</ul>
+</li>
+<li><p>If we are doing <code class="docutils literal notranslate"><span class="pre">castro.drive_initial_convection</span></code> then we set
+<code class="docutils literal notranslate"><span class="pre">burn_state.T_fixed</span></code> by interpolating from the initial model.</p></li>
+<li><p>Store the advective update that will be used during the SDC integration.</p></li>
+<li><p>Compute</p></li>
+<li><p>Initialize the metadata that is used for diagnostics</p></li>
+<li><p>Call the burner:</p>
+<ul>
+<li><p>We check to make sure that <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(\rho\)</span> are within the limits given
+by <code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code>, <code class="docutils literal notranslate"><span class="pre">castro_react_rho_min</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>.</p></li>
+<li><p>The burner will set <code class="docutils literal notranslate"><span class="pre">burn_state.success</span> <span class="pre">=</span> <span class="pre">false</span></code> if it failed.  This can happen
+for a number of reasons and is integrator-dependent.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Castro will not abort by default here if the burn failed.
+Instead we leave it to the <a class="reference internal" href="timestepping.html#ch-retry"><span class="std std-ref">Retry Mechanism</span></a> mechanism to attempt
+the step again with a smaller timestep.</p>
+</div>
+</li>
+</ul>
+</li>
+<li><p>Store the burning sources for plotting</p>
+<p id="index-6">We use the <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> to hold the reactive
+sources that are output to the plotfile and the <code class="docutils literal notranslate"><span class="pre">burn_weights</span></code>
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> to hold the number of righthand side evaluations for
+diagnostics.</p>
+<p>We fill these as:</p>
+<ul id="index-7">
+<li><p>energy generation rate:</p>
+<p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho e) = \dfrac{U(\rho) \, \cdot\, \mathtt{burn\_state.e}\, -\, U(\rho e)}{\Delta t}\)</span></p>
+</li>
+<li><p>species and auxiliary creation rates (only if <code class="docutils literal notranslate"><span class="pre">castro.store_omegadot</span> <span class="pre">=</span> <span class="pre">1</span></code>):</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho X_k) = U(\rho) \dfrac{\mathtt{burn\_state.xn[k]}\, -\, U(\rho X_k) / U(\rho)}{\Delta t}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathtt{reactions}(\rho \alpha_k) = U(\rho) \dfrac{\mathtt{burn\_state.aux[k]}\, -\, U(\rho \alpha_k) / U(\rho)}{\Delta t}\)</span></p></li>
+</ul>
+</li>
+<li><p>NSE flag (only if <code class="docutils literal notranslate"><span class="pre">NSE</span></code> is defined).  This simply stores the value of <code class="docutils literal notranslate"><span class="pre">burn_state.nse</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Update the conserved state:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(\rho \ub\)</span> are unchanged by reactions so those variables are not
+updated here.  They are already the “new” state.</p>
+</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho e) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.e}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho E) = U^\mathrm{old}(\rho E) + (U^\mathrm{new}(\rho e) - U^\mathrm{old}(\rho e))\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho X_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.xn[k]}\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NAUX_NET</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>: <span class="math notranslate nohighlight">\(U^\mathrm{new}(\rho \alpha_k) = U^\mathrm{new}(\rho) \cdot \mathtt{burn\_state.aux[k]}\)</span></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">NSE_NET</span></code> :</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(U(\mu_p) = \mathtt{burn\_state.mu\_p}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(U(\mu_n) = \mathtt{burn\_state.mu\_n}\)</span></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="EOS.html" class="btn btn-neutral float-left" title="Equation of State" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+
+</body>
+</html>

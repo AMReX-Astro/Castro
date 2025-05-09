@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thermal Diffusion &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -78,9 +79,16 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Thermal Diffusion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overall-procedure">Overall Procedure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#computing-thermal-conductivity">Computing Thermal Conductivity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-thermal-diffusion">Computing Thermal Diffusion</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#timestep-limiter">Timestep Limiter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#conductivities">Conductivities</a></li>
@@ -91,7 +99,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -135,8 +142,8 @@
            <div itemprop="articleBody">
              
   <section id="thermal-diffusion">
-<span id="ch-diffusion"></span><h1>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Permalink to this heading"></a></h1>
-<p>Castro incorporates explicit thermal diffusion into the energy equation.
+<span id="ch-diffusion"></span><h1>Thermal Diffusion<a class="headerlink" href="#thermal-diffusion" title="Link to this heading"></a></h1>
+<p>Castro incorporates explicit thermal diffusion into the energy equations.
 In terms of the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>, this appears as:</p>
 <div class="math notranslate nohighlight">
 \[\rho \frac{De}{Dt} + p \nabla \cdot \ub = \nabla \cdot \kth \nabla T\]</div>
@@ -149,12 +156,69 @@ In terms of the specific internal energy, <span class="math notranslate nohighli
 </pre></div>
 </div>
 </div>
-<p>It is treated explicitly, by constructing the contribution to the evolution as a
-source term. This is time-centered to achieve second-order accuracy
+<p>Thermal Diffusion related source codes are contained in the <code class="docutils literal notranslate"><span class="pre">diffusion</span></code> directory.
+Thermal Diffusion is treated explicitly, by constructing the contribution to the
+evolution as a source term. This is time-centered to achieve second-order accuracy
 in time.</p>
+<section id="overall-procedure">
+<h2>Overall Procedure<a class="headerlink" href="#overall-procedure" title="Link to this heading"></a></h2>
+<section id="computing-thermal-conductivity">
+<h3>Computing Thermal Conductivity<a class="headerlink" href="#computing-thermal-conductivity" title="Link to this heading"></a></h3>
+<p>The main function that computes the diffusion term is <code class="docutils literal notranslate"><span class="pre">getTempDiffusionTerm()</span></code>.
+Within <code class="docutils literal notranslate"><span class="pre">getTempDiffusionTerm()</span></code>, it first calculates the cell centered
+thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span> contained in the variable <code class="docutils literal notranslate"><span class="pre">coeff_cc</span></code>
+using the function <code class="docutils literal notranslate"><span class="pre">fill_temp_cond()</span></code> located in <code class="docutils literal notranslate"><span class="pre">diffusion_util.cpp</span></code>.
+<code class="docutils literal notranslate"><span class="pre">fill_temp_cond()</span></code> fills an <code class="docutils literal notranslate"><span class="pre">eos_state</span></code> using the
+input conserved variables, which is used to calculate <span class="math notranslate nohighlight">\(\kth\)</span> via
+<code class="docutils literal notranslate"><span class="pre">conductivity(eos_state)</span></code>. <code class="docutils literal notranslate"><span class="pre">conductivity()</span></code> routine is supplied via
+the <code class="docutils literal notranslate"><span class="pre">Microphysics</span></code> package. See <a class="reference internal" href="#sec-conductivities"><span class="std std-ref">Conductivities</span></a> to see the
+specific choices of conductivity routines available.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The diffusion approximation breaks down at the surface of stars,
+where the density rapidly drops and the mean free path becomes
+large. In those instances, you should use the flux limited diffusion
+module in Castro to evolve a radiation field.</p>
+</div>
+<p>Now <span class="math notranslate nohighlight">\(\kth\)</span> is reset to 0 unless
+<span class="math notranslate nohighlight">\(\rho \gt \mathrm{castro::diffuse\_cutoff\_density}\)</span>.
+And if <span class="math notranslate nohighlight">\(\rho \lt \mathrm{castro::diffuse\_cutoff\_density\_hi}\)</span>,
+a linear scaling of <span class="math notranslate nohighlight">\(\kth\)</span> is done as:</p>
+<div class="math notranslate nohighlight">
+\[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
+<p>Lastly, <span class="math notranslate nohighlight">\(\kth\)</span> is scaled with <code class="docutils literal notranslate"><span class="pre">castro::diffuse_cond_scale_fac</span></code>,
+a runtime parameter controlled by the user.</p>
+<p>After obtaining cell-centered <span class="math notranslate nohighlight">\(\kth\)</span>, we do an average along
+i, j, and k depending on the direction to obtain face-centered MultiFabs.
+This is stored in <code class="docutils literal notranslate"><span class="pre">coeffs</span></code>, a vector of MultiFabs, and the number of
+MultiFabs corresponds to geometry dimension, since a <span class="math notranslate nohighlight">\(\nabla\)</span> operator
+will be applied to it later.
+These Multifabs have 1 ghost cells due to the nature of MLMG solvers.</p>
+</section>
+<section id="computing-thermal-diffusion">
+<span id="sec-thermal-diffusion"></span><h3>Computing Thermal Diffusion<a class="headerlink" href="#computing-thermal-diffusion" title="Link to this heading"></a></h3>
+<p>We are now ready to compute <span class="math notranslate nohighlight">\(\nabla \cdot \kth \nabla T\)</span>
+after obtaining <span class="math notranslate nohighlight">\(\kth\)</span>. This is done in the <code class="docutils literal notranslate"><span class="pre">applyop_mlmg()</span></code> function
+in <code class="docutils literal notranslate"><span class="pre">Diffusion.cpp</span></code>. It defines <code class="docutils literal notranslate"><span class="pre">mlabec</span></code> an instance of class
+<code class="docutils literal notranslate"><span class="pre">MLABecLaplacian</span></code> which defines the Laplacian of the form:</p>
+<div class="math notranslate nohighlight">
+\[(A\alpha - B\nabla \cdot \beta \nabla) \phi = f\]</div>
+<p>where A and B are constant scalars, and <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>
+are scalar fields. In order to make it correctly represents our diffusion term,
+we set A = 0 and B = -1, which is done via <code class="docutils literal notranslate"><span class="pre">mlabec.setScalars(0.0,</span> <span class="pre">-1.0)</span></code>.
+Now we recognize <span class="math notranslate nohighlight">\(\beta = \kth\)</span>, which needs to be an array of MultiFab,
+corresponding to dimension. This is done via <code class="docutils literal notranslate"><span class="pre">mlabec.setBCoeffs()</span></code>.</p>
+<p>One of the important flag that we need to pass in is to set <code class="docutils literal notranslate"><span class="pre">setMetricTerm(true)</span></code>.
+This enables modifications due to curvilinear coordinates.</p>
+<p>Finally we create an instance of <code class="docutils literal notranslate"><span class="pre">MLMG</span></code> using <code class="docutils literal notranslate"><span class="pre">mlabec</span></code>, and call
+<code class="docutils literal notranslate"><span class="pre">mlmg.apply()</span></code>, which simply evaluates the LHS but do not solve it.
+See more information in the amrex documentation:
+<a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/LinearSolvers.html">https://amrex-codes.github.io/amrex/docs_html/LinearSolvers.html</a></p>
+</section>
+</section>
 <section id="timestep-limiter">
-<h2>Timestep Limiter<a class="headerlink" href="#timestep-limiter" title="Permalink to this heading"></a></h2>
-<p>Castro integrates diffusion explicitly in time&amp;mdash;this means that
+<h2>Timestep Limiter<a class="headerlink" href="#timestep-limiter" title="Link to this heading"></a></h2>
+<p>Castro integrates diffusion explicitly in time; this means that
 there is a diffusion timestep limiter.</p>
 <p>To see the similarity to the thermal diffusion equation, consider the
 special case of constant conductivity, <span class="math notranslate nohighlight">\(\kth\)</span>, and density, and
@@ -170,7 +234,7 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 <p>This is implemented in <code class="docutils literal notranslate"><span class="pre">estdt_temp_diffusion</span></code>.</p>
 </section>
 <section id="runtime-parameters">
-<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this heading"></a></h2>
+<h2>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Link to this heading"></a></h2>
 <p>The following parameter affects diffusion:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</p>
@@ -180,31 +244,20 @@ specific heat at constant volume.  Finally, ignore hydrodynamics, so
 </pre></div>
 </div>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cond_scale_fac</span></code>: a linear scaling to <span class="math notranslate nohighlight">\(\kth\)</span>. (default 0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code>: density under which <span class="math notranslate nohighlight">\(\kth\)</span> is set to 0.
+(Default: -1e200)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code>: density under which a linear scaling is
+applied to <span class="math notranslate nohighlight">\(\kth\)</span>, see section <a class="reference internal" href="#sec-thermal-diffusion"><span class="std std-ref">Computing Thermal Diffusion</span></a> for details.
+(Default: -1e200)</p></li>
 </ul>
-<p id="index-0">The diffusion approximation breaks down at the surface of stars,
-where the density rapidly drops and the mean free path becomes
-large. In those instances, you should use the flux limited diffusion
-module in Castro to evolve a radiation field. However, if your
-interest is only on the diffusion in the interior, you can use
-the parameters:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></p></li>
-</ul>
-</div></blockquote>
-<p>to specify a density,
-below which, diffusion is not modeled. This is implemented in the
-code by linearly scaling the conductivity to zero between these limits, e.g.,</p>
-<div class="math notranslate nohighlight">
-\[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
 </section>
 <section id="conductivities">
-<h2>Conductivities<a class="headerlink" href="#conductivities" title="Permalink to this heading"></a></h2>
+<span id="sec-conductivities"></span><h2>Conductivities<a class="headerlink" href="#conductivities" title="Link to this heading"></a></h2>
 <p>To complete the setup, a thermal conductivity must be specified. These
 are supplied by Microphysics, and use an interface similar to the
 equation of state interface.</p>
-<div class="admonition note" id="index-1">
+<div class="admonition note" id="index-0">
 <p class="admonition-title">Note</p>
 <p>The choice of conductivity must be specified at compile-time via
 the <code class="docutils literal notranslate"><span class="pre">CONDUCTIVITY_DIR</span></code> option.</p>
@@ -239,11 +292,11 @@ This is selected by setting:</p>
 <p>in the inputs file.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stellar</span></code> : This is the set of conductivities and radiative opacities
-appropriate for stellar interiors described in <span id="id1">[<a class="reference internal" href="zreferences.html#id75" title="F. X. Timmes. Physical Properties of Laminar Helium Deflagrations. Astrophysical Journal, 528(2):913-945, January 2000. doi:10.1086/308203.">65</a>]</span>.</p></li>
+appropriate for stellar interiors described in <span id="id1">[<a class="reference internal" href="zreferences.html#id75" title="F. X. Timmes. Physical Properties of Laminar Helium Deflagrations. Astrophysical Journal, 528(2):913-945, January 2000. doi:10.1086/308203.">68</a>]</span>.</p></li>
 </ul>
 </section>
 <section id="unit-tests">
-<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading"></a></h2>
+<h2>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading"></a></h2>
 <p>A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as <code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>.</p>
 </section>
@@ -260,7 +313,7 @@ and does pure diffusion is provided as <code class="docutils literal notranslate
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

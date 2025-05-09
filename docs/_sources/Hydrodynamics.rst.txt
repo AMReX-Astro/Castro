@@ -100,7 +100,7 @@ several main data structures that hold the state.
    source terms.  ``NQSRC`` ≤ ``NQ``.
 
    .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
-      present in ``NQSRC``.  
+      present in ``NQSRC``.
 
    :numref:`table:primlist` gives the names of the primitive variable integer
    keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
@@ -342,6 +342,14 @@ accounted for in **Steps 1** and **6**. The source terms are:
    S_{{\rm ext},\rho Y_k}
    \end{array}\right)^n.
 
+.. index:: USE_SPECIES_SOURCES
+
+.. note:: To reduce memory usage, we do not include source terms for the
+   advected quantities, species, and auxiliary variables in the conserved
+   state vector by default. If your application needs external source terms for
+   these variables, set ``USE_SPECIES_SOURCES=TRUE`` when compiling so that space
+   will be allocated for them.
+
 Primitive Forms
 ===============
 
@@ -356,13 +364,13 @@ The primitive variable equations for density, velocity, and pressure are:
    \begin{align}
      \frac{\partial\rho}{\partial t} &= -\ub\cdot\nabla\rho - \rho\nabla\cdot\ub + S_{{\rm ext},\rho} \\
    %
-     \frac{\partial\ub}{\partial t} &= -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb + 
+     \frac{\partial\ub}{\partial t} &= -\ub\cdot\nabla\ub - \frac{1}{\rho}\nabla p + \gb +
    \frac{1}{\rho} (\Sb_{{\rm ext},\rho\ub} - \ub \; S_{{\rm ext},\rho}) \\
    \frac{\partial p}{\partial t} &= -\ub\cdot\nabla p - \rho c^2\nabla\cdot\ub +
    \left(\frac{\partial p}{\partial \rho}\right)_{e,X}S_{{\rm ext},\rho}\nonumber\\
    &+\  \frac{1}{\rho}\sum_k\left(\frac{\partial p}{\partial X_k}\right)_{\rho,e,X_j,j\neq k}\left(\rho\dot\omega_k + S_{{\rm ext},\rho X_k} - X_kS_{{\rm ext},\rho}\right)\nonumber\\
    & +\  \frac{1}{\rho}\left(\frac{\partial p}{\partial e}\right)_{\rho,X}\left[-eS_{{\rm ext},\rho} - \sum_k\rho q_k\dot\omega_k + \nabla\cdot\kth\nabla T \right.\nonumber\\
-   & \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr] 
+   & \quad\qquad\qquad\qquad+\ S_{{\rm ext},\rho E} - \ub\cdot\left(\Sb_{{\rm ext},\rho\ub} - \frac{\ub}{2}S_{{\rm ext},\rho}\right)\Biggr]
    \end{align}
 
 The advected quantities appear as:
@@ -374,7 +382,7 @@ The advected quantities appear as:
                                         ( S_{{\rm ext},\rho A_k} - A_k S_{{\rm ext},\rho} ), \\
    \frac{\partial X_k}{\partial t} &= -\ub\cdot\nabla X_k + \dot\omega_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho X_k}  - X_k S_{{\rm ext},\rho} ), \\
-   \frac{\partial Y_k}{\partial t} &= -\ub\cdot\nabla Y_k + \frac{1}{\rho} 
+   \frac{\partial Y_k}{\partial t} &= -\ub\cdot\nabla Y_k + \frac{1}{\rho}
                                         ( S_{{\rm ext},\rho Y_k}  - Y_k S_{{\rm ext},\rho} ).
    \end{align}
 
@@ -391,7 +399,7 @@ We augment the above system with an internal energy equation:
 .. math::
 
    \begin{align}
-   \frac{\partial(\rho e)}{\partial t} &= - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k 
+   \frac{\partial(\rho e)}{\partial t} &= - \ub\cdot\nabla(\rho e) - (\rho e+p)\nabla\cdot\ub - \sum_k \rho q_k\dot\omega_k
                                            + \nabla\cdot\kth\nabla T + S_{{\rm ext},\rho E} \nonumber\\
    & -\  \ub\cdot\left(\Sb_{{\rm ext},\rho\ub}-\frac{1}{2}S_{{\rm ext},\rho}\ub\right),
    \end{align}
@@ -568,7 +576,7 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
-.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species
 
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
@@ -584,18 +592,6 @@ runtime parameters for hydrodynamics:
    after the solution update (0 or 1; default: 0)
 
    See :ref:`sponge_section` for more details on the sponge.
-
--  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
-   (0 or 1; default: 0)
-
--  ``castro.spherical_star``: this is used to set the boundary
-   conditions by assuming the star is spherically symmetric in
-   the outer regions (0 or 1; default: 0)
-
-   When used, Castro averages the values at a given radius over the
-   cells that are inside the domain to define a radial function. This
-   function is then used to set the values outside the domain in
-   implementing the boundary conditions.
 
 .. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
@@ -613,7 +609,7 @@ behavior:
 Compute Primitive Variables
 ---------------------------
 
-We compute the primtive variables from the conserved variables.
+We compute the primitive variables from the conserved variables.
 
 -  :math:`\rho, \rho e`: directly copy these from the conserved state
    vector
@@ -798,7 +794,7 @@ equations in 1D, for simplicity):
 
       .. math:: \alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}
 
-   -  If we are not at an extremum and 
+   -  If we are not at an extremum and
       :math:`|\alpha_{i,\pm}| > 2|\alpha_{i,\mp}|`, then define
 
       .. math:: s = \text{sign}(\alpha_{i,\mp})
@@ -941,7 +937,7 @@ neighboring cell-centered values of :math:`c`. We have also computed
 :math:`\rho_{\rm small}, p_{\rm small}`, and :math:`c_{\rm small}` using
 cell-centered data.
 
-Here are the steps. First, define 
+Here are the steps. First, define
 :math:`(\rho c)_{\rm small} = \rho_{\rm small}c_{\rm small}`. Then, define:
 
 .. math:: (\rho c)_{L/R} = \max\left[(\rho c)_{\rm small},\left|\Gamma_{L/R},p_{L/R},\rho_{L/R}\right|\right].
@@ -1007,8 +1003,8 @@ Then, define
    (\rho e)_{\rm gdnv} &=& f(\rho e)^* + (1-f)(\rho e)_0.
    \end{align}
 
-Finally, if :math:`c_{\rm out} < 0`, set 
-:math:`\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0`, and 
+Finally, if :math:`c_{\rm out} < 0`, set
+:math:`\rho_{\rm gdnv}=\rho_0, u_{\rm gdnv}=u_0, p_{\rm gdnv}=p_0`, and
 :math:`(\rho e)_{\rm gdnv}=(\rho e)_0`.
 If :math:`c_{\rm in}\ge 0`, set :math:`\rho_{\rm gdnv}=\rho^*, u_{\rm gdnv}=u^*,
 p_{\rm gdnv}=p^*`, and :math:`(\rho e)_{\rm gdnv}=(\rho e)^*`.
@@ -1029,9 +1025,13 @@ parameters apply:
 
    -  1: the Colella & Glaz solver
 
-   -  2: the HLLC solver. Note: this should only be used with Cartesian
-      geometries because it relies on the pressure term being part of the flux
-      in the momentum equation.
+   -  2: the HLLC solver.
+
+      .. note::
+
+         HLLC should only be used with Cartesian
+         geometries because it relies on the pressure term being part of the flux
+         in the momentum equation.
 
    The default is to use the solver based on an unpublished Colella,
    Glaz, & Ferguson manuscript (it also appears in :cite:`pember:1996`),
@@ -1166,8 +1166,8 @@ where :math:`0 \leq \theta_{{\rm i}+1/2} \leq 1` is a scalar, and :math:`\mathbf
 where :math:`0 < \text{CFL} < 1` is the CFL safety factor (the method is
 guaranteed to preserve positivity as long as :math:`\text{CFL} < 1/2`), and
 :math:`\alpha` is a scalar that ensures multi-dimensional correctness
-(:math:`\alpha = 1` in 1D, :math:`1/2` in 2D, :math:`1/3` in 3D). 
-:math:`\mathbf{F}_{{\rm i}}` is the flux of material evaluated at the zone center 
+(:math:`\alpha = 1` in 1D, :math:`1/2` in 2D, :math:`1/3` in 3D).
+:math:`\mathbf{F}_{{\rm i}}` is the flux of material evaluated at the zone center
 :math:`{\rm i}` using the cell-centered quantities :math:`\mathbf{U}`. The scalar
 :math:`\theta_{{\rm i}+1/2}` is chosen at every interface by calculating the
 update that would be obtained from , setting

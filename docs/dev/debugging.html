@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Debugging &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -92,6 +93,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -99,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -143,13 +145,13 @@
            <div itemprop="articleBody">
              
   <section id="debugging">
-<h1>Debugging<a class="headerlink" href="#debugging" title="Permalink to this heading"></a></h1>
+<h1>Debugging<a class="headerlink" href="#debugging" title="Link to this heading"></a></h1>
 <p>There are several methods we typically use to debug issues in Castro.
 Some descriptions are given below.</p>
 <section id="using-the-compiler-and-other-tools">
-<h2>Using the compiler and other tools<a class="headerlink" href="#using-the-compiler-and-other-tools" title="Permalink to this heading"></a></h2>
+<h2>Using the compiler and other tools<a class="headerlink" href="#using-the-compiler-and-other-tools" title="Link to this heading"></a></h2>
 <section id="compiler-checks">
-<h3>Compiler checks<a class="headerlink" href="#compiler-checks" title="Permalink to this heading"></a></h3>
+<h3>Compiler checks<a class="headerlink" href="#compiler-checks" title="Link to this heading"></a></h3>
 <p>Recompile the code in debug-mode by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DEBUG</span> <span class="o">:=</span> <span class="n">TRUE</span>
 </pre></div>
@@ -159,7 +161,7 @@ This will create an executable with bounds checking and other compiler
 options enabled.  Running this sometimes will show issues.</p>
 </section>
 <section id="check-for-invalid-floating-point-exceptions">
-<h3>Check for invalid floating point exceptions<a class="headerlink" href="#check-for-invalid-floating-point-exceptions" title="Permalink to this heading"></a></h3>
+<h3>Check for invalid floating point exceptions<a class="headerlink" href="#check-for-invalid-floating-point-exceptions" title="Link to this heading"></a></h3>
 <p>Compiling in debug mode also initializes uninitialized variables to
 NaN.  For optimized code, the same can be done by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span> <span class="o">:=</span> <span class="n">TRUE</span>
@@ -177,18 +179,18 @@ pushing it to the backtrace stack as described here:
 <a class="reference internal" href="faq.html#debugging-backtrace"><span class="std std-ref">Debugging</span></a>.</p>
 </section>
 <section id="make-sure-your-runtime-options-are-valid">
-<h3>Make sure your runtime options are valid<a class="headerlink" href="#make-sure-your-runtime-options-are-valid" title="Permalink to this heading"></a></h3>
+<h3>Make sure your runtime options are valid<a class="headerlink" href="#make-sure-your-runtime-options-are-valid" title="Link to this heading"></a></h3>
 <p>Castro can validate the runtime options specified in the inputs file
 by running with <code class="docutils literal notranslate"><span class="pre">castro.abort_on_invalid_params</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
 </section>
 <section id="valgrind">
-<h3>Valgrind<a class="headerlink" href="#valgrind" title="Permalink to this heading"></a></h3>
+<h3>Valgrind<a class="headerlink" href="#valgrind" title="Link to this heading"></a></h3>
 <p>We frequently run Castro with valgrind to find illegal memory
 accesses.  The valgrind documentation can give details on how to use
 it.</p>
 </section>
 <section id="clang-tidy">
-<h3>Clang-tidy<a class="headerlink" href="#clang-tidy" title="Permalink to this heading"></a></h3>
+<h3>Clang-tidy<a class="headerlink" href="#clang-tidy" title="Link to this heading"></a></h3>
 <p id="index-0">We run <a class="reference external" href="https://clang.llvm.org/extra/clang-tidy/">clang-tidy</a> on all
 pull requests using a <a class="reference external" href="https://github.com/AMReX-Astro/cpp-linter-action">GitHub action</a>. <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code>
 analyzes the source code, produces warnings for potential bugs and
@@ -206,15 +208,22 @@ the <code class="docutils literal notranslate"><span class="pre">-O</span></code
 <p>You can also use ask it to fix errors automatically via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_CLANG_TIDY</span><span class="o">=</span>TRUE<span class="w"> </span><span class="nv">CLANG_TIDY</span><span class="o">=</span><span class="s2">&quot;clang-tidy --fix-errors&quot;</span></span>
 </pre></div></div><p>and you can treat warnings as errors by adding <code class="docutils literal notranslate"><span class="pre">CLANG_TIDY_WARN_ERROR=TRUE</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Building a Castro problem with <code class="docutils literal notranslate"><span class="pre">clang-tidy</span></code> will suppress the
+checks in AMReX and Microphysics sources and headers.  This is set by
+the parameter <code class="docutils literal notranslate"><span class="pre">CLANG_TIDY_IGNORE_SOURCES</span></code> in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code>, and
+the <code class="docutils literal notranslate"><span class="pre">HeaderFilterRegex</span></code> whitelist in <code class="docutils literal notranslate"><span class="pre">.clang-tidy</span></code>.</p>
+</div>
 </section>
 <section id="thread-sanitizer">
-<h3>Thread sanitizer<a class="headerlink" href="#thread-sanitizer" title="Permalink to this heading"></a></h3>
+<h3>Thread sanitizer<a class="headerlink" href="#thread-sanitizer" title="Link to this heading"></a></h3>
 </section>
 </section>
 <section id="instrumenting-the-code">
-<h2>Instrumenting the Code<a class="headerlink" href="#instrumenting-the-code" title="Permalink to this heading"></a></h2>
+<h2>Instrumenting the Code<a class="headerlink" href="#instrumenting-the-code" title="Link to this heading"></a></h2>
 <section id="checking-for-nans">
-<h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this heading"></a></h3>
+<h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Link to this heading"></a></h3>
 <p>In the C++ code, you can check whether a FAB contains NaNs using
 the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">MFIter</span><span class="w"> </span><span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">);</span><span class="w"> </span><span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span><span class="w"> </span><span class="o">++</span><span class="n">mfi</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -234,7 +243,7 @@ to operate over.</p>
 </section>
 </section>
 <section id="physics-issues">
-<h2>Physics issues<a class="headerlink" href="#physics-issues" title="Permalink to this heading"></a></h2>
+<h2>Physics issues<a class="headerlink" href="#physics-issues" title="Link to this heading"></a></h2>
 </section>
 </section>
 
@@ -249,7 +258,7 @@ to operate over.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

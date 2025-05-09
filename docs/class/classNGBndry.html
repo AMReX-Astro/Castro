@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Class NGBndry &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
-        <script src="../_static/clipboard.min.js"></script>
-        <script src="../_static/copybutton.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -76,6 +77,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Thermal Diffusion</a></li>
@@ -83,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -97,6 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classCoutRedirection.html">Class CoutRedirection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
@@ -104,7 +107,16 @@
 <li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Class NGBndry</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Class NGBndry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv47NGBndry"><code class="docutils literal notranslate"><span class="pre">NGBndry</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"><code class="docutils literal notranslate"><span class="pre">NGBndry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"><code class="docutils literal notranslate"><span class="pre">setBndryFluxConds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE"><code class="docutils literal notranslate"><span class="pre">bndryTypes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE"><code class="docutils literal notranslate"><span class="pre">mixedBndry()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndryBld.html">Class NGBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadBndry.html">Class RadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadBndryBld.html">Class RadBndryBld</a></li>
@@ -144,23 +156,19 @@
            <div itemprop="articleBody">
              
   <section id="class-ngbndry">
-<h1>Class NGBndry<a class="headerlink" href="#class-ngbndry" title="Permalink to this heading"></a></h1>
+<h1>Class NGBndry<a class="headerlink" href="#class-ngbndry" title="Link to this heading"></a></h1>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv47NGBndry">
-<span id="_CPPv37NGBndry"></span><span id="_CPPv27NGBndry"></span><span id="NGBndry"></span><span class="target" id="classNGBndry"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NGBndry</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">RadInterpBndryData</span></span><a class="headerlink" href="#_CPPv47NGBndry" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv37NGBndry"></span><span id="_CPPv27NGBndry"></span><span id="NGBndry"></span><span class="target" id="classNGBndry"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NGBndry</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">RadInterpBndryData</span></span><a class="headerlink" href="#_CPPv47NGBndry" title="Link to this definition"></a><br /></dt>
 <dd><p>Subclassed by <a class="reference internal" href="../file/MGRadBndry_8H.html#classMGRadBndry"><span class="std std-ref">MGRadBndry</span></a>, <a class="reference internal" href="../file/RadBndry_8H.html#classRadBndry"><span class="std std-ref">RadBndry</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
-<span id="_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndry::NGBndry__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCR"></span><span class="target" id="classNGBndry_1a5299c28d18798f3362c84267b0809b98"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NGBndry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BoxArray</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_grids</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">DistributionMapping</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_dmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_ncomp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Geometry</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_geom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndry::NGBndry__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCR"></span><span class="target" id="classNGBndry_1a5299c28d18798f3362c84267b0809b98"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NGBndry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BoxArray</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_grids</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">DistributionMapping</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_dmap</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">_ncomp</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Geometry</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_geom</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE" title="Link to this definition"></a><br /></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>_grids</strong> – </p></li>
-<li><p><strong>_dmap</strong> – </p></li>
-<li><p><strong>_ncomp</strong> – </p></li>
-<li><p><strong>_geom</strong> – </p></li>
 <li><p><strong>_grids</strong> – </p></li>
 <li><p><strong>_dmap</strong> – </p></li>
 <li><p><strong>_ncomp</strong> – </p></li>
@@ -172,7 +180,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode">
-<span id="_CPPv3N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="_CPPv2N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="NGBndry::setBndryFluxConds__amrex::BCRecCR.BC_ModeC"></span><span class="target" id="classNGBndry_1a1be60281dc393a03d1fa6f2bad40a273"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setBndryFluxConds</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BCRec</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/NGBndry_8H.html#_CPPv47BC_Mode" title="BC_Mode"><span class="n"><span class="pre">BC_Mode</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">phys_bc_mode</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="../file/NGBndry_8H.html#_CPPv4N7BC_Mode16Inhomogeneous_BCE" title="Inhomogeneous_BC"><span class="n"><span class="pre">Inhomogeneous_BC</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="_CPPv2N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="NGBndry::setBndryFluxConds__amrex::BCRecCR.BC_ModeC"></span><span class="target" id="classNGBndry_1a1be60281dc393a03d1fa6f2bad40a273"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setBndryFluxConds</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BCRec</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/NGBndry_8H.html#_CPPv47BC_Mode" title="BC_Mode"><span class="n"><span class="pre">BC_Mode</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">phys_bc_mode</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="../file/NGBndry_8H.html#_CPPv4N7BC_Mode16Inhomogeneous_BCE" title="Inhomogeneous_BC"><span class="n"><span class="pre">Inhomogeneous_BC</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode" title="Link to this definition"></a><br /></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -185,7 +193,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">
-<span id="_CPPv3NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="NGBndry::bndryTypes__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a3cdefa3041f94605bbb95a03f11e147c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BaseFab</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">bndryTypes</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Orientation</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_face</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="NGBndry::bndryTypes__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a3c125b252e0f6bcc554bdf8a98295ed2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">BaseFab</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">int</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">bndryTypes</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Orientation</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_face</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE" title="Link to this definition"></a><br /></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>_face</strong> – </p>
@@ -195,7 +203,7 @@
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE">
-<span id="_CPPv3NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="NGBndry::mixedBndry__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a616ada7eb1bcffd5999eaa6b7b0dbe93"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mixedBndry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Orientation</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">_face</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="NGBndry::mixedBndry__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1ab8bcd435c739f9a0aeeee84d92177ec2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mixedBndry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Orientation</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE" title="Link to this definition"></a><br /></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>_face</strong> – </p>
@@ -208,27 +216,9 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-functions">Protected Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="classNGBndry_1afd7e1ab3000d9da59fb335fb5ac44aef"></span><span class="sig-name descname"><span class="pre">amrex::Vector&lt;</span> <span class="pre">std::unique_ptr&lt;</span> <span class="pre">amrex::BaseFab&lt;</span> <span class="pre">int</span> <span class="pre">&gt;</span> <span class="pre">&gt;</span> <span class="pre">&gt;</span> <span class="pre">bctypearray</span> <span class="pre">(\2</span> <span class="pre">*AMREX_SPACEDIM\)</span></span></dt>
+<span class="target" id="classNGBndry_1ae1233a4112846a9f483313aade31dc3a"></span><span class="sig-name descname"><span class="pre">amrex::Vector&lt;</span> <span class="pre">std::unique_ptr&lt;</span> <span class="pre">amrex::BaseFab&lt;</span> <span class="pre">int</span> <span class="pre">&gt;</span> <span class="pre">&gt;</span> <span class="pre">&gt;</span> <span class="pre">bctypearray</span> <span class="pre">(\2</span> <span class="pre">*AMREX_SPACEDIM\)</span></span></dt>
 <dd><p>If used, these arrays must be built/deleted by a derived class: </p>
 </dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-private-functions">Private Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7NGBndry7NGBndryERK7NGBndry">
-<span id="_CPPv3N7NGBndry7NGBndryERK7NGBndry"></span><span id="_CPPv2N7NGBndry7NGBndryERK7NGBndry"></span><span id="NGBndry::NGBndry__NGBndryCR"></span><span class="target" id="classNGBndry_1a82a8a81e1aa556d9994ad4f62356b875"></span><span class="sig-name descname"><span class="n"><span class="pre">NGBndry</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7NGBndry7NGBndryERK7NGBndry" title="NGBndry::NGBndry"><span class="n"><span class="pre">NGBndry</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7NGBndry7NGBndryERK7NGBndry" title="Permalink to this definition"></a><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>src</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7NGBndryaSERK7NGBndry">
-<span id="_CPPv3N7NGBndryaSERK7NGBndry"></span><span id="_CPPv2N7NGBndryaSERK7NGBndry"></span><span id="NGBndry::assign-operator__NGBndryCR"></span><span class="target" id="classNGBndry_1a33ce0ed3952176b25a30d518a8287868"></span><a class="reference internal" href="#_CPPv47NGBndry" title="NGBndry"><span class="n"><span class="pre">NGBndry</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv47NGBndry" title="NGBndry"><span class="n"><span class="pre">NGBndry</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">src</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7NGBndryaSERK7NGBndry" title="Permalink to this definition"></a><br /></dt>
-<dd></dd></dl>
 
 </div>
 </dd></dl>
@@ -246,7 +236,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

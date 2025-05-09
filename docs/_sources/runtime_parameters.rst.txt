@@ -3,292 +3,271 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.do_reflux, castro.update_sources_after_reflux, castro.allow_non_unit_aspect_zones
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``state_interp_order``                     | highest order used in interpolation                         | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``lin_limit_state_interp``                 | how to do limiting of the state data when interpolating 0:  | 0             |
-|                                            | only prevent new extrema 1: preserve linear combinations of |               |
-|                                            | state variables 2: preserve linear combinations and prevent |               |
-|                                            | new extrema                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``state_nghost``                           | Number of ghost zones for state data to have. Note that if  | 0             |
-|                                            | you are using radiation, choosing this to be zero will be   |               |
-|                                            | overridden since radiation needs at least one ghost zone.   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_reflux``                              | do we do the hyperbolic reflux at coarse-fine interfaces?   | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``update_sources_after_reflux``            | whether to re-compute new-time source terms after a reflux  | 1             |
-|                                            | Note: this only works for the CTU and simple-SDC            |               |
-|                                            | time_integration_method drivers                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``allow_non_unit_aspect_zones``            | Castro was originally written assuming dx = dy = dz.  This  | 0             |
-|                                            | assumption is enforced at runtime.  Setting                 |               |
-|                                            | allow_non_unit_aspect_zones = 1 opts out.                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``state_interp_order``                     | highest order used in interpolation                         | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``lin_limit_state_interp``                 | how to do limiting of the state data when interpolating 0:  | 0                           |
+|                                            | only prevent new extrema 1: preserve linear combinations of |                             |
+|                                            | state variables 2: preserve linear combinations and prevent |                             |
+|                                            | new extrema                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_reflux``                              | do we do the hyperbolic reflux at coarse-fine interfaces?   | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``update_sources_after_reflux``            | whether to re-compute new-time source terms after a reflux  | 1                           |
+|                                            | Note: this only works for the CTU and simple-SDC            |                             |
+|                                            | time_integration_method drivers                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``allow_non_unit_aspect_zones``            | Castro was originally written assuming dx = dy = dz.  This  | 0                           |
+|                                            | assumption is enforced at runtime.  Setting                 |                             |
+|                                            | allow_non_unit_aspect_zones = 1 opts out.                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 **hydrodynamics**
 
-.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.mhd_limit_characteristic, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.pslope_cutoff_density, castro.limit_fluxes_on_small_dens, castro.speed_limit, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_fixed_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.ambient_density, castro.ambient_temp, castro.ambient_energy, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_newton_use_analytic_jac, castro.use_axisymmetric_geom_source, castro.add_sdc_react_source_to_advection, castro.hydro_memory_footprint_ratio
+.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_do_limiting, castro.mhd_limit_characteristic, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.hybrid_riemann, castro.riemann_solver, castro.riemann_shock_maxiter, castro.riemann_pstar_tol, castro.riemann_cg_blend, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.ppm_well_balanced, castro.pslope_cutoff_density, castro.limit_fluxes_on_small_dens, castro.speed_limit, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_fixed_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.ambient_density, castro.ambient_temp, castro.ambient_energy, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.use_geom_source, castro.add_sdc_react_source_to_advection, castro.hydro_memory_footprint_ratio
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``difmag``                                 | the coefficient of the artificial viscosity                 | 0.1           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``small_dens``                             | the small density cutoff.  Densities below this value will  | -1.e200       |
-|                                            | be reset                                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``small_temp``                             | the small temperature cutoff.  Temperatures below this      | -1.e200       |
-|                                            | value will be reset                                         |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``small_pres``                             | the small pressure cutoff.  Pressures below this value will | -1.e200       |
-|                                            | be reset                                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``small_ener``                             | the small specific internal energy cutoff.  Internal        | -1.e200       |
-|                                            | energies below this value will be reset                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_hydro``                               | permits hydro to be turned on and off for running pure rad  | -1            |
-|                                            | problems                                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``time_integration_method``                | how do we advance in time? 0 = CTU + Strang, 1 is not used, | 0             |
-|                                            | 2 = SDC, 3 = simplified-SDC                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``limit_fourth_order``                     | do we use a limiter with the fourth-order accurate          | 1             |
-|                                            | reconstruction?                                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``initialization_is_cell_average``         | for fourth order, we usually assume that the initialization | 0             |
-|                                            | is done to cell centers and we convert to cell-averages.    |               |
-|                                            | With this option, we take the initialization as cell-       |               |
-|                                            | averages (except for T, which we compute to fourth-order    |               |
-|                                            | through the EOS after initialization).                      |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_reconstructed_gamma1``               | should we use a reconstructed version of Gamma_1 in the     | 0             |
-|                                            | Riemann solver? or the default zone average (requires SDC   |               |
-|                                            | integration, since we do not trace)                         |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``add_ext_src``                            | if true, define an additional source term                   | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hybrid_hydro``                           | whether to use the hybrid advection scheme that updates     | 0             |
-|                                            | z-angular momentum, cylindrical momentum, and azimuthal     |               |
-|                                            | momentum (3D only)                                          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ppm_type``                               | reconstruction type: 0: piecewise linear; 1: classic        | 1             |
-|                                            | Colella \& Woodward ppm; 2: extrema-preserving ppm          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mhd_limit_characteristic``               | For MHD + PLM, do we limit on characteristic or primitive   | 1             |
-|                                            | variables                                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ppm_temp_fix``                           | various methods of giving temperature a larger role in the  | 0             |
-|                                            | reconstruction---see Zingale \& Katz 2015                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plm_iorder``                             | for piecewise linear, reconstruction order to use 1 =       | 2             |
-|                                            | piecewise constant, 2 = piecewise linear                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plm_limiter``                            | for piecewise linear, what limiter to use? 1 = 2nd order    | 2             |
-|                                            | MC, 2 = 4th order MC                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hybrid_riemann``                         | do we drop from our regular Riemann solver to HLL when we   | 0             |
-|                                            | are in shocks to avoid the odd-even decoupling instability? |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``riemann_solver``                         | which Riemann solver do we use: 0: Colella, Glaz, \&        | 0             |
-|                                            | Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-   |               |
-|                                            | shock solver) 2: HLLC                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``cg_maxiter``                             | for the Colella \& Glaz Riemann solver, the maximum number  | 12            |
-|                                            | of iterations to take when solving for the star state       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``cg_tol``                                 | for the Colella \& Glaz Riemann solver, the tolerance to    | 1.0e-5        |
-|                                            | demand in finding the star state                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``cg_blend``                               | for the Colella \& Glaz Riemann solver, what to do if we do | 2             |
-|                                            | not converge to a solution for the star state. 0 = do       |               |
-|                                            | nothing; print iterations and exit 1 = revert to the        |               |
-|                                            | original guess for p-star 2 = do a bisection search for     |               |
-|                                            | another 2 * cg_maxiter iterations.                          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_flattening``                         | flatten the reconstructed profiles around shocks to prevent | 1             |
-|                                            | them from becoming too thin                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``transverse_use_eos``                     | after we add the transverse correction to the interface     | 0             |
-|                                            | states, replace the predicted pressure with an EOS call     |               |
-|                                            | (using :math:`e` and :math:`\rho`).                         |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``transverse_reset_density``               | if the transverse interface state correction, if the new    | 1             |
-|                                            | density is negative, then replace all of the interface      |               |
-|                                            | quantities with their values without the transverse         |               |
-|                                            | correction.                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``transverse_reset_rhoe``                  | if the interface state for :math:`(\rho e)` is negative     | 0             |
-|                                            | after we add the transverse terms, then replace the         |               |
-|                                            | interface value of :math:`(\rho e)` with a value            |               |
-|                                            | constructed from the :math:`(\rho e)` evolution equation    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dual_energy_eta1``                       | Threshold value of (E - K) / E such that above eta1, the    | 1.0e0         |
-|                                            | hydrodynamic pressure is derived from E - K; otherwise, we  |               |
-|                                            | use the internal energy variable UEINT.                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dual_energy_eta2``                       | Threshold value of (E - K) / E such that above eta2, we     | 1.0e-4        |
-|                                            | update the internal energy variable UEINT to match E - K.   |               |
-|                                            | Below this, UEINT remains unchanged.                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 0             |
-|                                            | :math:`(\rho g)` from the pressure before limiting?  This   |               |
-|                                            | is a well-balanced method that does well with HSE           |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``pslope_cutoff_density``                  | if we are using pslope, below what density to we turn off   | -1.e20        |
-|                                            | the well-balanced reconstruction?                           |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``limit_fluxes_on_small_dens``             | Should we limit the density fluxes so that we do not create | 0             |
-|                                            | small densities?                                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``speed_limit``                            | Enforce the magnitude of the velocity to be no larger than  | 0.0           |
-|                                            | this number (and optionally limit the fluxes as well). Only |               |
-|                                            | applies if it is greater than 0.                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_sponge``                              | permits sponge to be turned on and off                      | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_implicit``                        | if we are using the sponge, whether to use the implicit     | 1             |
-|                                            | solve for it                                                |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ext_src_implicit``                       | if we are using user-defined source terms, are these solved | 0             |
-|                                            | implicitly?                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``source_term_predictor``                  | extrapolate the source terms (gravity and rotation) to      | 0             |
-|                                            | :math:`n+1/2` timelevel for use in the interface state      |               |
-|                                            | prediction                                                  |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``first_order_hydro``                      | set the flattening parameter to zero to force the           | 0             |
-|                                            | reconstructed profiles to be flat, resulting in a first-    |               |
-|                                            | order method                                                |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``xl_ext_bc_type``                         | if we are doing an external -x boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``xr_ext_bc_type``                         | if we are doing an external +x boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``yl_ext_bc_type``                         | if we are doing an external -y boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``yr_ext_bc_type``                         | if we are doing an external +y boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``zl_ext_bc_type``                         | if we are doing an external -z boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``zr_ext_bc_type``                         | if we are doing an external +z boundary condition, who do   | -1            |
-|                                            | we interpret it? 1 = HSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hse_zero_vels``                          | if we are doing HSE boundary conditions, do we zero the     | 0             |
-|                                            | velocity?                                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hse_interp_temp``                        | if we are doing HSE boundary conditions, should we get the  | 0             |
-|                                            | temperature via interpolation (constant gradient) or hold   |               |
-|                                            | it constant?                                                |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hse_fixed_temp``                         | if we are doing HSE boundary conditions and holding the     | -1.e200       |
-|                                            | temperature constant, then set it to a fixed value at the   |               |
-|                                            | boundaries (only if positive)                               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hse_reflect_vels``                       | if we are doing HSE boundary conditions, how do we treat    | 0             |
-|                                            | the velocity? reflect? or outflow?                          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``fill_ambient_bc``                        | fills physical domain boundaries with the ambient state     | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_fill_dir``                       | which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = | -1            |
-|                                            | y, 2 = z                                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_outflow_vel``                    | in the ambient region, do we do a basic outflow in the      | 0             |
-|                                            | normal direction of the velocity (with a min/max to ensure  |               |
-|                                            | it is outgoing)                                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``clamp_ambient_temp``                     | clamps the ambient material to the ambient temperature      | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_safety_factor``                  | specifies the upper limit, as a multiple of the ambient     | 1.1e0         |
-|                                            | density, for operations that are applied to ambient         |               |
-|                                            | material, such as clamping T.                               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_density``                        | density of the ambient material (should default to the same | -1.e200       |
-|                                            | as small_dens)                                              |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_temp``                           | temperature of the ambient material (should default to the  | -1.e200       |
-|                                            | same as small_temp)                                         |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``ambient_energy``                         | energy of the ambient material (should default to the same  | -1.e200       |
-|                                            | as small_ener)                                              |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_order``                              | integration order for SDC integration valid options are 2   | 2             |
-|                                            | and 4                                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_quadrature``                         | which quadrature type to use with SDC?  0 = Gauss-Lobatto,  | 0             |
-|                                            | 1 = Radau                                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_extra``                              | number of extra SDC iterations to take beyond the order.    | 0             |
-|                                            | This only applies for true SDC.                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver``                             | which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 | 1             |
-|                                            | = VODE for first iter                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver_tol_dens``                    | relative tolerance for the nonlinear solve on rho with SDC  | 1.e-6         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver_tol_spec``                    | relative tolerance for the nonlinear solve on rho X_k with  | 1.e-6         |
-|                                            | SDC                                                         |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver_tol_ener``                    | relative tolerance for the nonlinear solve on (rho e) or    | 1.e-6         |
-|                                            | (rho E) with SDC                                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver_atol``                        | absolute tolerance for species with SDC (this will be       | 1.e-10        |
-|                                            | multiplied by the current rho in the zone to define the     |               |
-|                                            | absolute tolerance on (rho X)).                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solver_relax_factor``                | factor by which to reduce the SDC solver tol for each       | 1.0           |
-|                                            | iteration before the last (e.g., for iteration k out of     |               |
-|                                            | kmax iterations, the tol is                                 |               |
-|                                            | :math:`\epsilon/f^{(k_\mathrm{max} - k)}`                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_solve_for_rhoe``                     | do we solve for (rho e) or (rho E) in the SDC nonlinear     | 1             |
-|                                            | solve?                                                      |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_newton_use_analytic_jac``            | do we use the analytic or numerical Jacobian for the        | 1             |
-|                                            | Newton-Raphson solver? for the VODE solver, we use          |               |
-|                                            | integrator.jacobian instead                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_axisymmetric_geom_source``           | for 2-d axisymmetry, do we include the geometry source      | 1             |
-|                                            | terms from Bernand-Champmartin?                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``add_sdc_react_source_to_advection``      | for simplified-SDC, do we add the reactive source           | 1             |
-|                                            | prediction to the interface states used in the advective    |               |
-|                                            | source construction?                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``hydro_memory_footprint_ratio``           | In GPU builds, the hydro advance typically results in a     | -1.0          |
-|                                            | large amount of extra temporary memory allocated due to the |               |
-|                                            | large tile sizes that are used for computational            |               |
-|                                            | efficiency. If you want to constrain the code's GPU memory  |               |
-|                                            | footprint at the expense of throughput, set the following   |               |
-|                                            | parameter to some number greater than 0. This controls the  |               |
-|                                            | ratio of additional extra memory that can be allocated by   |               |
-|                                            | the hydro relative to the size of the base state            |               |
-|                                            | (indirectly, by controlling the hydro tile size and then    |               |
-|                                            | synchronizing each time the amount of currently allocated   |               |
-|                                            | fab memory reaches the target limit). Choosing a value only |               |
-|                                            | slightly larger than 0 means that you want very little      |               |
-|                                            | additional memory allocated, and you will take a relatively |               |
-|                                            | large performance hit, while choosing a value much greater  |               |
-|                                            | than 1.0 would result in maximum throughput but also        |               |
-|                                            | maximum memory footprint. You will likely have to           |               |
-|                                            | experimentally find a good ratio for your use case, but a   |               |
-|                                            | ratio around 2.0 - 4.0 is likely to yield a reasonable      |               |
-|                                            | balance between memory footprint and throughput. Note: the  |               |
-|                                            | first timestep will be very slow when using this option.    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``difmag``                                 | the coefficient of the artificial viscosity                 | 0.1                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``small_dens``                             | the small density cutoff.  Densities below this value will  | -1.e200                     |
+|                                            | be reset                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``small_temp``                             | the small temperature cutoff.  Temperatures below this      | -1.e200                     |
+|                                            | value will be reset                                         |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``small_pres``                             | the small pressure cutoff.  Pressures below this value will | -1.e200                     |
+|                                            | be reset                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``small_ener``                             | the small specific internal energy cutoff.  Internal        | -1.e200                     |
+|                                            | energies below this value will be reset                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_hydro``                               | permits hydro to be turned on and off for running pure rad  | true                        |
+|                                            | problems                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``time_integration_method``                | how do we advance in time? 0 = CTU + Strang, 1 is not used, | 0                           |
+|                                            | 2 = SDC, 3 = simplified-SDC                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``limit_fourth_order``                     | do we use a limiter with the fourth-order accurate          | 1                           |
+|                                            | reconstruction?                                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``initialization_is_cell_average``         | for fourth order, we usually assume that the initialization | 0                           |
+|                                            | is done to cell centers and we convert to cell-averages.    |                             |
+|                                            | With this option, we take the initialization as cell-       |                             |
+|                                            | averages (except for T, which we compute to fourth-order    |                             |
+|                                            | through the EOS after initialization).                      |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_reconstructed_gamma1``               | should we use a reconstructed version of Gamma_1 in the     | 0                           |
+|                                            | Riemann solver? or the default zone average (requires SDC   |                             |
+|                                            | integration, since we do not trace)                         |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``add_ext_src``                            | if true, define an additional source term                   | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hybrid_hydro``                           | whether to use the hybrid advection scheme that updates     | 0                           |
+|                                            | z-angular momentum, cylindrical momentum, and azimuthal     |                             |
+|                                            | momentum (3D only)                                          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ppm_type``                               | reconstruction type: 0: piecewise linear; 1: classic        | 1                           |
+|                                            | Colella \& Woodward ppm;                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ppm_do_limiting``                        | do we limit the ppm parabola?                               | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mhd_limit_characteristic``               | For MHD + PLM, do we limit on characteristic or primitive   | 1                           |
+|                                            | variables                                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ppm_temp_fix``                           | various methods of giving temperature a larger role in the  | 0                           |
+|                                            | reconstruction---see Zingale \& Katz 2015                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plm_iorder``                             | for piecewise linear, reconstruction order to use 1 =       | 2                           |
+|                                            | piecewise constant, 2 = piecewise linear                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plm_limiter``                            | for piecewise linear, what limiter to use? 1 = 2nd order    | 2                           |
+|                                            | MC, 2 = 4th order MC                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hybrid_riemann``                         | do we drop from our regular Riemann solver to HLL when we   | 0                           |
+|                                            | are in shocks to avoid the odd-even decoupling instability? |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``riemann_solver``                         | which Riemann solver do we use: 0: Colella, Glaz, \&        | 0                           |
+|                                            | Ferguson (a two-shock solver); 1: Colella \& Glaz (a two-   |                             |
+|                                            | shock solver) 2: HLLC                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``riemann_shock_maxiter``                  | maximum number of iterations to used in the Riemann solver  | 12                          |
+|                                            | when solving for the star state                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``riemann_pstar_tol``                      | tolerance to use when finding the star stat                 | 1.0e-5                      |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``riemann_cg_blend``                       | for the Colella \& Glaz Riemann solver, what to do if we do | 2                           |
+|                                            | not converge to a solution for the star state. 0 = do       |                             |
+|                                            | nothing; print iterations and exit 1 = revert to the        |                             |
+|                                            | original guess for p-star 2 = do a bisection search for     |                             |
+|                                            | another 2 * riemann_shock_maxiter iterations.               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_flattening``                         | flatten the reconstructed profiles around shocks to prevent | 1                           |
+|                                            | them from becoming too thin                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``transverse_use_eos``                     | after we add the transverse correction to the interface     | 0                           |
+|                                            | states, replace the predicted pressure with an EOS call     |                             |
+|                                            | (using :math:`e` and :math:`\rho`).                         |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``transverse_reset_density``               | if the transverse interface state correction, if the new    | 1                           |
+|                                            | density is negative, then replace all of the interface      |                             |
+|                                            | quantities with their values without the transverse         |                             |
+|                                            | correction.                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``transverse_reset_rhoe``                  | if the interface state for :math:`(\rho e)` is negative     | 0                           |
+|                                            | after we add the transverse terms, then replace the         |                             |
+|                                            | interface value of :math:`(\rho e)` with a value            |                             |
+|                                            | constructed from the :math:`(\rho e)` evolution equation    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dual_energy_eta1``                       | Threshold value of (E - K) / E such that above eta1, the    | 1.0e0                       |
+|                                            | hydrodynamic pressure is derived from E - K; otherwise, we  |                             |
+|                                            | use the internal energy variable UEINT.                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dual_energy_eta2``                       | Threshold value of (E - K) / E such that above eta2, we     | 1.0e-4                      |
+|                                            | update the internal energy variable UEINT to match E - K.   |                             |
+|                                            | Below this, UEINT remains unchanged.                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 0                           |
+|                                            | :math:`(\rho g)` from the pressure before limiting?  This   |                             |
+|                                            | is a well-balanced method that does well with HSE           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ppm_well_balanced``                      | for PPM, do we only use the perturbational pressure in the  | 0                           |
+|                                            | characteristic tracing?  This is more indepth than the      |                             |
+|                                            | simple `use_pslope` approach.                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``pslope_cutoff_density``                  | if we are using pslope, below what density to we turn off   | -1.e20                      |
+|                                            | the well-balanced reconstruction?                           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``limit_fluxes_on_small_dens``             | Should we limit the density fluxes so that we do not create | 0                           |
+|                                            | small densities?                                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``speed_limit``                            | Enforce the magnitude of the velocity to be no larger than  | 0.0                         |
+|                                            | this number (and optionally limit the fluxes as well). Only |                             |
+|                                            | applies if it is greater than 0.                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_sponge``                              | permits sponge to be turned on and off                      | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_implicit``                        | if we are using the sponge, whether to use the implicit     | 1                           |
+|                                            | solve for it                                                |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ext_src_implicit``                       | if we are using user-defined source terms, are these solved | 0                           |
+|                                            | implicitly?                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``source_term_predictor``                  | extrapolate the source terms (gravity and rotation) to      | 0                           |
+|                                            | :math:`n+1/2` timelevel for use in the interface state      |                             |
+|                                            | prediction                                                  |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``first_order_hydro``                      | set the flattening parameter to zero to force the           | 0                           |
+|                                            | reconstructed profiles to be flat, resulting in a first-    |                             |
+|                                            | order method                                                |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``xl_ext_bc_type``                         | if we are doing an external -x boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``xr_ext_bc_type``                         | if we are doing an external +x boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``yl_ext_bc_type``                         | if we are doing an external -y boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``yr_ext_bc_type``                         | if we are doing an external +y boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``zl_ext_bc_type``                         | if we are doing an external -z boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``zr_ext_bc_type``                         | if we are doing an external +z boundary condition, who do   | -1                          |
+|                                            | we interpret it? 1 = HSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hse_zero_vels``                          | if we are doing HSE boundary conditions, do we zero the     | 0                           |
+|                                            | velocity?                                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hse_interp_temp``                        | if we are doing HSE boundary conditions, should we get the  | 0                           |
+|                                            | temperature via interpolation (constant gradient) or hold   |                             |
+|                                            | it constant?                                                |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hse_fixed_temp``                         | if we are doing HSE boundary conditions and holding the     | -1.e200                     |
+|                                            | temperature constant, then set it to a fixed value at the   |                             |
+|                                            | boundaries (only if positive)                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hse_reflect_vels``                       | if we are doing HSE boundary conditions, how do we treat    | 0                           |
+|                                            | the velocity? reflect? or outflow?                          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``fill_ambient_bc``                        | fills physical domain boundaries with the ambient state     | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_fill_dir``                       | which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = | -1                          |
+|                                            | y, 2 = z                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_outflow_vel``                    | in the ambient region, do we do a basic outflow in the      | 0                           |
+|                                            | normal direction of the velocity (with a min/max to ensure  |                             |
+|                                            | it is outgoing)                                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``clamp_ambient_temp``                     | clamps the ambient material to the ambient temperature      | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_safety_factor``                  | specifies the upper limit, as a multiple of the ambient     | 1.1e0                       |
+|                                            | density, for operations that are applied to ambient         |                             |
+|                                            | material, such as clamping T.                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_density``                        | density of the ambient material (should default to the same | -1.e200                     |
+|                                            | as small_dens)                                              |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_temp``                           | temperature of the ambient material (should default to the  | -1.e200                     |
+|                                            | same as small_temp)                                         |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``ambient_energy``                         | energy of the ambient material (should default to the same  | -1.e200                     |
+|                                            | as small_ener)                                              |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sdc_order``                              | integration order for SDC integration valid options are 2   | 2                           |
+|                                            | and 4                                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sdc_quadrature``                         | which quadrature type to use with SDC?  0 = Gauss-Lobatto,  | 0                           |
+|                                            | 1 = Radau                                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sdc_extra``                              | number of extra SDC iterations to take beyond the order.    | 0                           |
+|                                            | This only applies for true SDC.                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sdc_solver``                             | which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 | 1                           |
+|                                            | = VODE for first iter                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_geom_source``                        | Do we include geometry source terms due to local unit       | 1                           |
+|                                            | vectors in non-Cartesian Coord? We currently support R-Z    |                             |
+|                                            | cylinderical 2D (Bernand-Champmartin) and R-THETA spherical |                             |
+|                                            | 2D                                                          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``add_sdc_react_source_to_advection``      | for simplified-SDC, do we add the reactive source           | 1                           |
+|                                            | prediction to the interface states used in the advective    |                             |
+|                                            | source construction?                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``hydro_memory_footprint_ratio``           | In GPU builds, the hydro advance typically results in a     | -1.0                        |
+|                                            | large amount of extra temporary memory allocated due to the |                             |
+|                                            | large tile sizes that are used for computational            |                             |
+|                                            | efficiency. If you want to constrain the code's GPU memory  |                             |
+|                                            | footprint at the expense of throughput, set the following   |                             |
+|                                            | parameter to some number greater than 0. This controls the  |                             |
+|                                            | ratio of additional extra memory that can be allocated by   |                             |
+|                                            | the hydro relative to the size of the base state            |                             |
+|                                            | (indirectly, by controlling the hydro tile size and then    |                             |
+|                                            | synchronizing each time the amount of currently allocated   |                             |
+|                                            | fab memory reaches the target limit). Choosing a value only |                             |
+|                                            | slightly larger than 0 means that you want very little      |                             |
+|                                            | additional memory allocated, and you will take a relatively |                             |
+|                                            | large performance hit, while choosing a value much greater  |                             |
+|                                            | than 1.0 would result in maximum throughput but also        |                             |
+|                                            | maximum memory footprint. You will likely have to           |                             |
+|                                            | experimentally find a good ratio for your use case, but a   |                             |
+|                                            | ratio around 2.0 - 4.0 is likely to yield a reasonable      |                             |
+|                                            | balance between memory footprint and throughput. Note: the  |                             |
+|                                            | first timestep will be very slow when using this option.    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -297,150 +276,159 @@ namespace: ``castro``
 .. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.check_dt_before_advance, castro.check_dt_after_advance, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.abundance_failure_tolerance, castro.abundance_failure_rho_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters, castro.stopping_criterion_field, castro.stopping_criterion_value
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``fixed_dt``                               | a fixed timestep to use for all steps (negative turns it    | -1.0          |
-|                                            | off)                                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``initial_dt``                             | the initial timestep (negative uses the step returned from  | -1.0          |
-|                                            | the timestep constraints)                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dt_cutoff``                              | the smallest valid timestep, as a fraction of the current   | 1.e-12        |
-|                                            | simulation time. if we go below this, we abort.             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``max_dt``                                 | the largest valid timestep---limit all timesteps to be no   | 1.e200        |
-|                                            | larger than this                                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``cfl``                                    | the effective Courant number to use---we will not allow the | 0.8           |
-|                                            | hydrodynamic waves to cross more than this fraction of a    |               |
-|                                            | zone over a single timestep                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``init_shrink``                            | a factor by which to reduce the first timestep from that    | 1.0           |
-|                                            | requested by the timestep estimators                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``change_max``                             | the maximum factor by which the timestep can increase or    | 1.1           |
-|                                            | decrease from one step to the next. Must be greater than    |               |
-|                                            | 1.0---use max_dt to set a cap on the timestep.              |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``check_dt_before_advance``                | whether to check that we will take a valid timestep before  | 1             |
-|                                            | the advance                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``check_dt_after_advance``                 | whether to check that we took a valid timestep after the    | 1             |
-|                                            | advance                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_per_is_exact``                      | enforce that the AMR plot interval must be hit exactly      | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``small_plot_per_is_exact``                | enforce that the AMR small plot interval must be hit        | 0             |
-|                                            | exactly                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_retry``                              | Retry a timestep if it violated the timestep-limiting       | 1             |
-|                                            | criteria or other checks (negative density, burn failure)   |               |
-|                                            | over the course of an advance. The criteria will suggest a  |               |
-|                                            | new timestep that satisfies the criteria, and we will do    |               |
-|                                            | subcycled timesteps on the same level until we reach the    |               |
-|                                            | original target time.                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``retry_subcycle_factor``                  | When performing a retry, the factor to multiply the current | 0.5           |
-|                                            | timestep by when trying again.                              |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``retry_small_density_cutoff``             | Skip retries for small (or negative) density if the zone's  | -1.e200       |
-|                                            | density prior to the update was below this threshold.       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``abundance_failure_tolerance``            | Set the threshold for failing the species abundance         | 1.e-2         |
-|                                            | validity check.                                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``abundance_failure_rho_cutoff``           | Do not abort for invalid species abundances if the zone's   | -1.e200       |
-|                                            | density is below this threshold.                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_post_step_regrid``                   | Regrid after every timestep.                                | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``max_subcycles``                          | Do not permit more subcycled timesteps than this parameter. | 10            |
-|                                            | Set to a negative value to disable this criterion.          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sdc_iters``                              | Number of iterations for the simplified SDC advance.        | 2             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``stopping_criterion_field``               | Field to use for determining whether to stop the            | ""            |
-|                                            | simulation.                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``stopping_criterion_value``               | Threshold value for determining whether to stop.            | 1.e200        |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``fixed_dt``                               | a fixed timestep to use for all steps (negative turns it    | -1.0                        |
+|                                            | off)                                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``initial_dt``                             | the initial timestep (negative uses the step returned from  | -1.0                        |
+|                                            | the timestep constraints)                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dt_cutoff``                              | the smallest valid timestep, as a fraction of the current   | 1.e-12                      |
+|                                            | simulation time. if we go below this, we abort.             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``max_dt``                                 | the largest valid timestep---limit all timesteps to be no   | 1.e200                      |
+|                                            | larger than this                                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``cfl``                                    | the effective Courant number to use---we will not allow the | 0.8                         |
+|                                            | hydrodynamic waves to cross more than this fraction of a    |                             |
+|                                            | zone over a single timestep                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``init_shrink``                            | a factor by which to reduce the first timestep from that    | 1.0                         |
+|                                            | requested by the timestep estimators                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``change_max``                             | the maximum factor by which the timestep can increase or    | 1.1                         |
+|                                            | decrease from one step to the next. Must be greater than    |                             |
+|                                            | 1.0---use max_dt to set a cap on the timestep.              |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``check_dt_before_advance``                | whether to check that we will take a valid timestep before  | 1                           |
+|                                            | the advance                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``check_dt_after_advance``                 | whether to check that we took a valid timestep after the    | 1                           |
+|                                            | advance                                                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_per_is_exact``                      | enforce that the AMR plot interval must be hit exactly      | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``small_plot_per_is_exact``                | enforce that the AMR small plot interval must be hit        | 0                           |
+|                                            | exactly                                                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_retry``                              | Retry a timestep if it violated the timestep-limiting       | 1                           |
+|                                            | criteria or other checks (negative density, burn failure)   |                             |
+|                                            | over the course of an advance. The criteria will suggest a  |                             |
+|                                            | new timestep that satisfies the criteria, and we will do    |                             |
+|                                            | subcycled timesteps on the same level until we reach the    |                             |
+|                                            | original target time.                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``retry_subcycle_factor``                  | When performing a retry, the factor to multiply the current | 0.5                         |
+|                                            | timestep by when trying again.                              |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``retry_small_density_cutoff``             | Skip retries for small (or negative) density if the zone's  | -1.e200                     |
+|                                            | density prior to the update was below this threshold.       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``abundance_failure_tolerance``            | Set the threshold for failing the species abundance         | 1.e-2                       |
+|                                            | validity check.                                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``abundance_failure_rho_cutoff``           | Do not abort for invalid species abundances if the zone's   | -1.e200                     |
+|                                            | density is below this threshold.                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_post_step_regrid``                   | Regrid after every timestep.                                | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``max_subcycles``                          | Do not permit more subcycled timesteps than this parameter. | 10                          |
+|                                            | Set to a negative value to disable this criterion.          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sdc_iters``                              | Number of iterations for the simplified SDC advance.        | 2                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``stopping_criterion_field``               | Field to use for determining whether to stop the            | ""                          |
+|                                            | simulation.                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``stopping_criterion_value``               | Threshold value for determining whether to stop.            | 1.e200                      |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.shock_detection_threshold, castro.shock_detection_include_sources, castro.T_guess, castro.drive_initial_convection, castro.drive_initial_convection_tmax, castro.drive_initial_convection_reinit_period
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``dtnuc_e``                                | Limit the timestep based on how much the burning can change | 1.e200        |
-|                                            | the internal energy of a zone. The timestep is equal to     |               |
-|                                            | ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dtnuc_X``                                | Limit the timestep based on how much the burning can change | 1.e200        |
-|                                            | the species mass fractions of a zone. The timestep is equal |               |
-|                                            | to ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dtnuc_X_threshold``                      | If we are using the timestep limiter based on changes in    | 1.e-3         |
-|                                            | $X$, set a threshold on the species abundance below which   |               |
-|                                            | the limiter is not applied. This helps prevent the timestep |               |
-|                                            | from becoming very small due to changes in trace species.   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_react``                               | permits reactions to be turned on and off -- mostly for     | -1            |
-|                                            | efficiency's sake                                           |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``react_T_min``                            | minimum temperature for allowing reactions to occur in a    | 0.0           |
-|                                            | zone                                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``react_T_max``                            | maximum temperature for allowing reactions to occur in a    | 1.e200        |
-|                                            | zone                                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``react_rho_min``                          | minimum density for allowing reactions to occur in a zone   | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``react_rho_max``                          | maximum density for allowing reactions to occur in a zone   | 1.e200        |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``disable_shock_burning``                  | disable burning inside hydrodynamic shock regions           | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``T_guess``                                | initial guess for the temperature when inverting the EoS    | 1.e8          |
-|                                            | (e.g. when calling eos_input_re)                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``drive_initial_convection``               | if set to 1, we interpolate from the initial model to get   | 0             |
-|                                            | the temperature used to call the burner.  This prevents     |               |
-|                                            | reactions from going nonlinear and running away in place    |               |
-|                                            | before a convective field is established.                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``drive_initial_convection_tmax``          | maximum time over which to do the drive_initial_convection  | 1.e200        |
-|                                            | procedure                                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``drive_initial_convection_reinit_period`` | frequency with which to re-initialize the thermodynamic     | 1.e200        |
-|                                            | data while preserving the velocity field during             |               |
-|                                            | drive_initial_convection                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``dtnuc_e``                                | Limit the timestep based on how much the burning can change | 1.e200                      |
+|                                            | the internal energy of a zone. The timestep is equal to     |                             |
+|                                            | ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dtnuc_X``                                | Limit the timestep based on how much the burning can change | 1.e200                      |
+|                                            | the species mass fractions of a zone. The timestep is equal |                             |
+|                                            | to ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dtnuc_X_threshold``                      | If we are using the timestep limiter based on changes in    | 1.e-3                       |
+|                                            | $X$, set a threshold on the species abundance below which   |                             |
+|                                            | the limiter is not applied. This helps prevent the timestep |                             |
+|                                            | from becoming very small due to changes in trace species.   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_react``                               | permits reactions to be turned on and off -- mostly for     | true                        |
+|                                            | efficiency's sake                                           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``react_T_min``                            | minimum temperature for allowing reactions to occur in a    | 0.0                         |
+|                                            | zone                                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``react_T_max``                            | maximum temperature for allowing reactions to occur in a    | 1.e200                      |
+|                                            | zone                                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``react_rho_min``                          | minimum density for allowing reactions to occur in a zone   | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``react_rho_max``                          | maximum density for allowing reactions to occur in a zone   | 1.e200                      |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``disable_shock_burning``                  | disable burning inside hydrodynamic shock regions note:     | 0                           |
+|                                            | requires compiling with `USE_SHOCK_VAR=TRUE`                |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``shock_detection_threshold``              | shock detection threshold for grad{P} / P                   | 0.6666666666666666666666_rt |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``shock_detection_include_sources``        | do we subtract off the hydrostatic pressure when evaluating | 1                           |
+|                                            | a shock?                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``T_guess``                                | initial guess for the temperature when inverting the EoS    | 1.e8                        |
+|                                            | (e.g. when calling eos_input_re)                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``drive_initial_convection``               | if set to 1, we interpolate from the initial model to get   | 0                           |
+|                                            | the temperature used to call the burner.  This prevents     |                             |
+|                                            | reactions from going nonlinear and running away in place    |                             |
+|                                            | before a convective field is established.                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``drive_initial_convection_tmax``          | maximum time over which to do the drive_initial_convection  | 1.e200                      |
+|                                            | procedure                                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``drive_initial_convection_reinit_period`` | frequency with which to re-initialize the thermodynamic     | 1.e200                      |
+|                                            | data while preserving the velocity field during             |                             |
+|                                            | drive_initial_convection                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 **diffusion**
 
-.. index:: castro.diffuse_temp, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac
+.. index:: castro.diffuse_temp, castro.diffuse_cutoff_density, castro.diffuse_cutoff_density_hi, castro.diffuse_cond_scale_fac, castro.diffuse_use_amrex_mlmg
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``diffuse_temp``                           | enable thermal diffusion                                    | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density``                 | set a cutoff density for diffusion -- we zero the term out  | -1.e200       |
-|                                            | below this density                                          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``diffuse_cutoff_density_hi``              | secondary cutoff density -- there will be a linear dropoff  | -1.e200       |
-|                                            | in the diffusion coefficient between this and the primary   |               |
-|                                            | cutoff density. This should be the larger of the two        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``diffuse_cond_scale_fac``                 | scaling factor for conductivity                             | 1.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``diffuse_temp``                           | enable thermal diffusion                                    | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``diffuse_cutoff_density``                 | set a cutoff density for diffusion -- we zero the term out  | -1.e200                     |
+|                                            | below this density                                          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``diffuse_cutoff_density_hi``              | secondary cutoff density -- there will be a linear dropoff  | -1.e200                     |
+|                                            | in the diffusion coefficient between this and the primary   |                             |
+|                                            | cutoff density. This should be the larger of the two        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``diffuse_cond_scale_fac``                 | scaling factor for conductivity                             | 1.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``diffuse_use_amrex_mlmg``                 | evaluate diffusion source term using amrex built-in solver  | 1                           |
+|                                            | or evaluate within castro                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -449,56 +437,61 @@ namespace: ``castro``
 .. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist, castro.point_mass_offset_is_true, castro.point_mass_location_offset
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_grav``                                | permits gravity calculation to be turned on and off         | -1            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``moving_center``                          | to we recompute the center used for the multipole gravity   | 0             |
-|                                            | solve each step?                                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``grav_source_type``                       | determines how the gravitational source term is added to    | 4             |
-|                                            | the momentum and energy state variables.                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_rotation``                            | permits rotation calculation to be turned on and off        | -1            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``rotational_period``                      | the rotation period for the corotating frame                | -1.e200       |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``rotation_include_centrifugal``           | permits the centrifugal terms in the rotation to be turned  | 1             |
-|                                            | on and off                                                  |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``rotation_include_coriolis``              | permits the Coriolis terms in the rotation to be turned on  | 1             |
-|                                            | and off                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``rot_source_type``                        | determines how the rotation source terms are added to the   | 4             |
-|                                            | momentum and energy equations                               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``implicit_rotation_update``               | we can do a implicit solution of the rotation update to     | 1             |
-|                                            | allow for better coupling of the Coriolis terms             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``rot_axis``                               | the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) | 3             |
-|                                            | for the rotation vector                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_point_mass``                         | include a central point mass                                | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``point_mass``                             | mass of the point mass                                      | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``point_mass_fix_solution``                | if we have a central point mass, we can prevent mass from   | 0             |
-|                                            | building up in the zones adjacent to it by keeping their    |               |
-|                                            | density constant and adding their mass to the point mass    |               |
-|                                            | object                                                      |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``gw_dist``                                | Distance (in kpc) used for calculation of the gravitational | 0.0           |
-|                                            | wave amplitude (this will be calculated along all three     |               |
-|                                            | coordinate axes). Only relevant if castro.sum_interval > 0  |               |
-|                                            | and if set to a positive number. A standard value in the    |               |
-|                                            | literature is 10.0 (kpc).                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``point_mass_offset_is_true``              | This integer is used to activate parallel plane 1/r**2      | 0             |
-|                                            | gravity.                                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``point_mass_location_offset``             |                                                             | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``do_grav``                                | permits gravity calculation to be turned on and off         | true                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``moving_center``                          | to we recompute the center used for the multipole gravity   | 0                           |
+|                                            | solve each step?                                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``grav_source_type``                       | determines how the gravitational source term is added to    | 4                           |
+|                                            | the momentum and energy state variables.                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_rotation``                            | permits rotation calculation to be turned on and off        | true                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``rotational_period``                      | the rotation period for the corotating frame                | -1.e200                     |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``rotation_include_centrifugal``           | permits the centrifugal terms in the rotation to be turned  | 1                           |
+|                                            | on and off                                                  |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``rotation_include_coriolis``              | permits the Coriolis terms in the rotation to be turned on  | 1                           |
+|                                            | and off                                                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``rot_source_type``                        | determines how the rotation source terms are added to the   | 4                           |
+|                                            | momentum and energy equations                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``implicit_rotation_update``               | we can do a implicit solution of the rotation update to     | 1                           |
+|                                            | allow for better coupling of the Coriolis terms             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``rot_axis``                               | the coordinate axis for the rotation vector For Cartesian:  | 3                           |
+|                                            | (:math:`x=1`, :math:`y=2`, :math:`z=3`) For non-Cartesian   |                             |
+|                                            | coordinates, this parameter doesn't do anything because:    |                             |
+|                                            | For RZ (Cylindrical 2D), it is automatically set to z-axis  |                             |
+|                                            | (rot_axis = 2) For Spherical2D, it is also assumed to be in |                             |
+|                                            | the z-axis i.e. cos(theta) r_hat - sin(theta) theta_hat in  |                             |
+|                                            | Spherical coordinate.                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_point_mass``                         | include a central point mass                                | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``point_mass``                             | mass of the point mass                                      | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``point_mass_fix_solution``                | if we have a central point mass, we can prevent mass from   | 0                           |
+|                                            | building up in the zones adjacent to it by keeping their    |                             |
+|                                            | density constant and adding their mass to the point mass    |                             |
+|                                            | object                                                      |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``gw_dist``                                | Distance (in kpc) used for calculation of the gravitational | 0.0                         |
+|                                            | wave amplitude (this will be calculated along all three     |                             |
+|                                            | coordinate axes). Only relevant if castro.sum_interval > 0  |                             |
+|                                            | and if set to a positive number. A standard value in the    |                             |
+|                                            | literature is 10.0 (kpc).                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``point_mass_offset_is_true``              | This integer is used to activate parallel plane 1/r**2      | 0                           |
+|                                            | gravity.                                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``point_mass_location_offset``             |                                                             | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -507,50 +500,48 @@ namespace: ``castro``
 .. index:: castro.sponge_lower_radius, castro.sponge_upper_radius, castro.sponge_lower_density, castro.sponge_upper_density, castro.sponge_lower_pressure, castro.sponge_upper_pressure, castro.sponge_lower_factor, castro.sponge_upper_factor, castro.sponge_target_x_velocity, castro.sponge_target_y_velocity, castro.sponge_target_z_velocity, castro.sponge_timescale
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``sponge_lower_radius``                    | Minimum simulation distance from center to start applying   | -1.0          |
-|                                            | the sponge                                                  |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_upper_radius``                    | Simulation distance from the center at which the sponge is  | -1.0          |
-|                                            | fully applied                                               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_lower_density``                   | Minimum density at which to start applying the sponge       | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_upper_density``                   | Density at which the sponge is fully applied                | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_lower_pressure``                  | Minimum pressure at which to start applying the sponge      | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_upper_pressure``                  | Pressure at which the sponge is fully applied               | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_lower_factor``                    | Scaling factor for the sponge below the low end             | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_upper_factor``                    | Scaling factor for the sponge above the high end            | 1.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_target_x_velocity``               | Target x-velocity for the sponge to drive to                | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_target_y_velocity``               | Target y-velocity for the sponge to drive to                | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_target_z_velocity``               | Target z-velocity for the sponge to drive to                | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sponge_timescale``                       | Timescale on which the sponge operates                      | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``sponge_lower_radius``                    | Minimum simulation distance from center to start applying   | -1.0                        |
+|                                            | the sponge                                                  |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_upper_radius``                    | Simulation distance from the center at which the sponge is  | -1.0                        |
+|                                            | fully applied                                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_lower_density``                   | Minimum density at which to start applying the sponge       | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_upper_density``                   | Density at which the sponge is fully applied                | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_lower_pressure``                  | Minimum pressure at which to start applying the sponge      | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_upper_pressure``                  | Pressure at which the sponge is fully applied               | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_lower_factor``                    | Scaling factor for the sponge below the low end             | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_upper_factor``                    | Scaling factor for the sponge above the high end            | 1.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_target_x_velocity``               | Target x-velocity for the sponge to drive to                | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_target_y_velocity``               | Target y-velocity for the sponge to drive to                | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_target_z_velocity``               | Target z-velocity for the sponge to drive to                | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sponge_timescale``                       | Timescale on which the sponge operates                      | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 **parallelization**
 
-.. index:: castro.do_acc, castro.bndry_func_thread_safe
+.. index:: castro.bndry_func_thread_safe
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_acc``                                 | determines whether we use accelerators for specific loops   | -1            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``bndry_func_thread_safe``                 |                                                             | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``bndry_func_thread_safe``                 |                                                             | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -559,15 +550,15 @@ namespace: ``castro``
 .. index:: castro.grown_factor, castro.star_at_center
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``grown_factor``                           | the factor by which to extend the domain upon restart for   | 1             |
-|                                            | embiggening                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``star_at_center``                         | used with the embiggening routines to determine how to      | -1            |
-|                                            | extend the domain                                           |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``grown_factor``                           | the factor by which to extend the domain upon restart for   | 1                           |
+|                                            | embiggening                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``star_at_center``                         | used with the embiggening routines to determine how to      | true                        |
+|                                            | extend the domain                                           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -576,40 +567,38 @@ namespace: ``castro``
 .. index:: castro.do_scf_initial_model, castro.scf_maximum_density, castro.scf_equatorial_radius, castro.scf_polar_radius, castro.scf_relax_tol, castro.scf_max_iterations
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_scf_initial_model``                   | Should we use SCF to construct the initial model?           | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``scf_maximum_density``                    | Maximum density on the domain when using SCF                | -1.e6         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``scf_equatorial_radius``                  | Equatorial and polar radii of the star constructed by SCF   | -1.e9         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``scf_polar_radius``                       |                                                             | -1.e9         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``scf_relax_tol``                          | SCF relaxation tolerance                                    | 1.e-3         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``scf_max_iterations``                     | Maximum number of SCF iterations                            | 30            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``do_scf_initial_model``                   | Should we use SCF to construct the initial model?           | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``scf_maximum_density``                    | Maximum density on the domain when using SCF                | -1.e6                       |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``scf_equatorial_radius``                  | Equatorial and polar radii of the star constructed by SCF   | -1.e9                       |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``scf_polar_radius``                       |                                                             | -1.e9                       |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``scf_relax_tol``                          | SCF relaxation tolerance                                    | 1.e-3                       |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``scf_max_iterations``                     | Maximum number of SCF iterations                            | 30                          |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 **refinement**
 
-.. index:: castro.do_special_tagging, castro.spherical_star, castro.max_tagging_radius
+.. index:: castro.do_special_tagging, castro.max_tagging_radius
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_special_tagging``                     |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``spherical_star``                         |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``max_tagging_radius``                     | Maximum radius from the center (in units of the domain      | 10.0e0        |
-|                                            | width) where tagging is allowed. The default choice implies |               |
-|                                            | no restriction.                                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``do_special_tagging``                     |                                                             | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``max_tagging_radius``                     | Maximum radius from the center (in units of the domain      | 10.0e0                      |
+|                                            | width) where tagging is allowed. The default choice implies |                             |
+|                                            | no restriction.                                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -618,57 +607,57 @@ namespace: ``castro``
 .. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step, castro.store_omegadot, castro.store_burn_weights, castro.abort_on_invalid_params
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``v``                                      | verbosity level (higher numbers mean more output)           | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | false         |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | false         |
-|                                            | some of the derived quantities (e.g. radial velocity).      |               |
-|                                            | Note: this will always assume that the last spatial         |               |
-|                                            | dimension is vertical                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``print_update_diagnostics``               | display information about updates to the state (how much    | (0, 1)        |
-|                                            | mass, momentum, energy added)                               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sum_interval``                           | how often (number of coarse timesteps) to compute integral  | -1            |
-|                                            | sums (for runtime diagnostics)                              |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``sum_per``                                | how often (simulation time) to compute integral sums (for   | -1.0e0        |
-|                                            | runtime diagnostics)                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``job_name``                               | a string describing the simulation that will be copied into | "Castro"      |
-|                                            | the plotfile's ``job_info`` file                            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``output_at_completion``                   | write a final plotfile and checkpoint upon completion       | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``reset_checkpoint_time``                  | Do we want to reset the time in the checkpoint? This ONLY   | -1.e200       |
-|                                            | takes effect if amr.regrid_on_restart = 1 and               |               |
-|                                            | amr.checkpoint_on_restart = 1, (which require that max_step |               |
-|                                            | and stop_time be less than the value in the checkpoint) and |               |
-|                                            | you set it to value greater than this default value.        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``reset_checkpoint_step``                  | Do we want to reset the number of steps in the checkpoint?  | -1            |
-|                                            | This ONLY takes effect if amr.regrid_on_restart = 1 and     |               |
-|                                            | amr.checkpoint_on_restart = 1, (which require that max_step |               |
-|                                            | and stop_time be less than the value in the checkpoint) and |               |
-|                                            | you set it to value greater than this default value.        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``store_omegadot``                         | Do we store the species creation rates in the plotfile?     | 0             |
-|                                            | Note, if this option is enabled then more memory will be    |               |
-|                                            | allocated to hold the results of the burn                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``store_burn_weights``                     | Do we store the burn weights as a diagnostic in the         | 0             |
-|                                            | plotfile?    Note, if this option is enabled then more      |               |
-|                                            | memory will be allocated to hold the results of the burn    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``abort_on_invalid_params``                | Do we abort the run if the inputs file specifies a runtime  | 0             |
-|                                            | parameter that we don't know about?  Note: this will only   |               |
-|                                            | take effect for those namespaces where 100% of the runtime  |               |
-|                                            | parameters are managed by the python scripts.               |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``v``                                      | verbosity level (higher numbers mean more output)           | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``dump_old``                               | do we dump the old state into the checkpoint files too?     | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``domain_is_plane_parallel``               | do we assume the domain is plane parallel when computing    | 0                           |
+|                                            | some of the derived quantities (e.g. radial velocity).      |                             |
+|                                            | Note: this will always assume that the last spatial         |                             |
+|                                            | dimension is vertical                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``print_update_diagnostics``               | display information about updates to the state (how much    | (0, 1)                      |
+|                                            | mass, momentum, energy added)                               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sum_interval``                           | how often (number of coarse timesteps) to compute integral  | -1                          |
+|                                            | sums (for runtime diagnostics)                              |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``sum_per``                                | how often (simulation time) to compute integral sums (for   | -1.0e0                      |
+|                                            | runtime diagnostics)                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``job_name``                               | a string describing the simulation that will be copied into | "Castro"                    |
+|                                            | the plotfile's ``job_info`` file                            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``output_at_completion``                   | write a final plotfile and checkpoint upon completion       | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``reset_checkpoint_time``                  | Do we want to reset the time in the checkpoint? This ONLY   | -1.e200                     |
+|                                            | takes effect if amr.regrid_on_restart = 1 and               |                             |
+|                                            | amr.checkpoint_on_restart = 1, (which require that max_step |                             |
+|                                            | and stop_time be less than the value in the checkpoint) and |                             |
+|                                            | you set it to value greater than this default value.        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``reset_checkpoint_step``                  | Do we want to reset the number of steps in the checkpoint?  | -1                          |
+|                                            | This ONLY takes effect if amr.regrid_on_restart = 1 and     |                             |
+|                                            | amr.checkpoint_on_restart = 1, (which require that max_step |                             |
+|                                            | and stop_time be less than the value in the checkpoint) and |                             |
+|                                            | you set it to value greater than this default value.        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``store_omegadot``                         | Do we store the species creation rates in the plotfile?     | 0                           |
+|                                            | Note, if this option is enabled then more memory will be    |                             |
+|                                            | allocated to hold the results of the burn                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``store_burn_weights``                     | Do we store the burn weights as a diagnostic in the         | 0                           |
+|                                            | plotfile?    Note, if this option is enabled then more      |                             |
+|                                            | memory will be allocated to hold the results of the burn    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``abort_on_invalid_params``                | Do we abort the run if the inputs file specifies a runtime  | 0                           |
+|                                            | parameter that we don't know about?  Note: this will only   |                             |
+|                                            | take effect for those namespaces where 100% of the runtime  |                             |
+|                                            | parameters are managed by the python scripts.               |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -677,11 +666,11 @@ namespace: ``castro``
 .. index:: castro.do_radiation
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_radiation``                           | do we enable radiation for a radiation-hydrodynamics run?   | -1            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``do_radiation``                           | do we enable radiation for a radiation-hydrodynamics run?   | true                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -690,11 +679,11 @@ namespace: ``castro``
 .. index:: castro.do_tracer_particles
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``do_tracer_particles``                    | permits tracer particle calculation to be turned on and off | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``do_tracer_particles``                    | permits tracer particle calculation to be turned on and off | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -704,69 +693,67 @@ namespace: ``diffusion``
 .. index:: diffusion.v, diffusion.mlmg_maxorder
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``v``                                      | the level of verbosity for the diffusion solve (higher      | 0             |
-|                                            | number means more output)                                   |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mlmg_maxorder``                          | Use MLMG as the operator                                    | 4             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``v``                                      | the level of verbosity for the diffusion solve (higher      | 0                           |
+|                                            | number means more output)                                   |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mlmg_maxorder``                          | Use MLMG as the operator                                    | 4                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
 namespace: ``gravity``
 ----------------------
 
-.. index:: gravity.gravity_type, gravity.const_grav, gravity.direct_sum_bcs, gravity.drdxfac, gravity.max_multipole_order, gravity.v, gravity.no_sync, gravity.no_composite, gravity.do_composite_phi_correction, gravity.max_solve_level, gravity.get_g_from_phi, gravity.mlmg_max_fmg_iter, gravity.mlmg_agglomeration, gravity.mlmg_consolidation, gravity.mlmg_nsolve
+.. index:: gravity.gravity_type, gravity.const_grav, gravity.direct_sum_bcs, gravity.drdxfac, gravity.max_multipole_order, gravity.v, gravity.no_sync, gravity.do_composite_phi_correction, gravity.max_solve_level, gravity.get_g_from_phi, gravity.mlmg_max_fmg_iter, gravity.mlmg_agglomeration, gravity.mlmg_consolidation, gravity.mlmg_nsolve
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``gravity_type``                           | what type                                                   | "fillme"      |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``const_grav``                             | if doing constant gravity, what is the acceleration         | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``direct_sum_bcs``                         | Check if the user wants to compute the boundary conditions  | 0             |
-|                                            | using the brute force method.  Default is false, since this |               |
-|                                            | method is slow.                                             |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``drdxfac``                                | ratio of dr for monopole gravity binning to grid resolution | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``max_multipole_order``                    | the maximum mulitpole order to use for multipole BCs when   | 0             |
-|                                            | doing Poisson gravity                                       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``v``                                      | the level of verbosity for the gravity solve (higher number | 0             |
-|                                            | means more output on the status of the solve / multigrid    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``no_sync``                                | do we perform the synchronization at coarse-fine            | 0             |
-|                                            | interfaces?                                                 |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``no_composite``                           | do we do a composite solve?                                 | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``do_composite_phi_correction``            | should we apply a lagged correction to the potential that   | 1             |
-|                                            | gets us closer to the composite solution? This makes the    |               |
-|                                            | resulting fine grid calculation slightly more accurate, at  |               |
-|                                            | the cost of an additional Poisson solve per timestep.       |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``max_solve_level``                        | For all gravity types, we can choose a maximum level for    | MAX_LEV-1     |
-|                                            | explicitly calculating the gravity and associated           |               |
-|                                            | potential. Above that level, we interpolate from coarser    |               |
-|                                            | levels.                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``get_g_from_phi``                         | For non-Poisson gravity, do we want to construct the        | 0             |
-|                                            | gravitational acceleration by taking the gradient of the    |               |
-|                                            | potential, rather than constructing it directly?            |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mlmg_max_fmg_iter``                      | how many FMG cycles?                                        | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mlmg_agglomeration``                     | Do agglomeration?                                           | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mlmg_consolidation``                     |                                                             | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``mlmg_nsolve``                            | Do N-Solve?                                                 | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``gravity_type``                           | what type                                                   | "fillme"                    |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``const_grav``                             | if doing constant gravity, what is the acceleration         | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``direct_sum_bcs``                         | Check if the user wants to compute the boundary conditions  | 0                           |
+|                                            | using the brute force method.  Default is false, since this |                             |
+|                                            | method is slow.                                             |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``drdxfac``                                | ratio of dr for monopole gravity binning to grid resolution | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``max_multipole_order``                    | the maximum mulitpole order to use for multipole BCs when   | 0                           |
+|                                            | doing Poisson gravity                                       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``v``                                      | the level of verbosity for the gravity solve (higher number | 0                           |
+|                                            | means more output on the status of the solve / multigrid    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``no_sync``                                | do we perform the synchronization at coarse-fine            | 0                           |
+|                                            | interfaces?                                                 |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``do_composite_phi_correction``            | should we apply a lagged correction to the potential that   | 1                           |
+|                                            | gets us closer to the composite solution? This makes the    |                             |
+|                                            | resulting fine grid calculation slightly more accurate, at  |                             |
+|                                            | the cost of an additional Poisson solve per timestep.       |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``max_solve_level``                        | For all gravity types, we can choose a maximum level for    | MAX_LEV-1                   |
+|                                            | explicitly calculating the gravity and associated           |                             |
+|                                            | potential. Above that level, we interpolate from coarser    |                             |
+|                                            | levels.                                                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``get_g_from_phi``                         | For non-Poisson gravity, do we want to construct the        | 0                           |
+|                                            | gravitational acceleration by taking the gradient of the    |                             |
+|                                            | potential, rather than constructing it directly?            |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mlmg_max_fmg_iter``                      | how many FMG cycles?                                        | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mlmg_agglomeration``                     | Do agglomeration?                                           | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mlmg_consolidation``                     |                                                             | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``mlmg_nsolve``                            | Do N-Solve?                                                 | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -776,30 +763,30 @@ namespace: ``particles``
 .. index:: particles.v, particles.particle_init_file, particles.particle_restart_file, particles.restart_from_nonparticle_chkfile, particles.particle_output_file, particles.timestamp_dir, particles.timestamp_density, particles.timestamp_temperature
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``v``                                      | the level of verbosity for the tracer particle (0 or 1)     | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``particle_init_file``                     | the name of an input file containing the total particle     | ""            |
-|                                            | number and the initial position of each particle.           |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``particle_restart_file``                  | the name of a file with new particles at restart            | ""            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``restart_from_nonparticle_chkfile``       | to restart from a checkpoint that was written with          | 0             |
-|                                            | ``USE_PARTICLES`` =FALSE                                    |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``particle_output_file``                   | the name of timestamp files.                                | ""            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``timestamp_dir``                          | the name of a directory in which timestamp files are        | ""            |
-|                                            | stored.                                                     |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``timestamp_density``                      | whether the local densities at given positions of particles | 1             |
-|                                            | are stored in output files                                  |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``timestamp_temperature``                  | whether the local temperatures at given positions of        | 0             |
-|                                            | particles are stored in output files                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``v``                                      | the level of verbosity for the tracer particle (0 or 1)     | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``particle_init_file``                     | the name of an input file containing the total particle     | ""                          |
+|                                            | number and the initial position of each particle.           |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``particle_restart_file``                  | the name of a file with new particles at restart            | ""                          |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``restart_from_nonparticle_chkfile``       | to restart from a checkpoint that was written with          | 0                           |
+|                                            | ``USE_PARTICLES`` =FALSE                                    |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``particle_output_file``                   | the name of timestamp files.                                | ""                          |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``timestamp_dir``                          | the name of a directory in which timestamp files are        | ""                          |
+|                                            | stored.                                                     |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``timestamp_density``                      | whether the local densities at given positions of particles | 1                           |
+|                                            | are stored in output files                                  |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``timestamp_temperature``                  | whether the local temperatures at given positions of        | 0                           |
+|                                            | particles are stored in output files                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -809,36 +796,36 @@ namespace: ``radiation``
 .. index:: radiation.prop_temp_floor, radiation.flatten_pp_threshold, radiation.comoving, radiation.closure, radiation.limiter, radiation.fspace_advection_type, radiation.plot_lambda, radiation.plot_kappa_p, radiation.plot_kappa_r, radiation.plot_lab_Er, radiation.plot_lab_flux, radiation.plot_com_flux
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``prop_temp_floor``                        |                                                             | 0.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``flatten_pp_threshold``                   |                                                             | -1.0          |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``comoving``                               | are we in a comoving reference frame?                       | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``closure``                                | which closure relation to use 0: f = lambda 1: f = 1/3 2: f | 3             |
-|                                            | = 1 - 2 * lambda 3: f = lambda + (lambda * R)^2 4: f = 1/3  |               |
-|                                            | + 2/3 (lambda * R)^2                                        |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``limiter``                                | which limiter to use 0: no limiter 2: Lev-Pom limiter 12:   | 2             |
-|                                            | Bruenn 22: square root 32: Minerbo                          |               |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``fspace_advection_type``                  | frequency space advection type                              | 2             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_lambda``                            | do we plot the flux limiter lambda?                         | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_kappa_p``                           | do we plot the Planck mean opacity?                         | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_kappa_r``                           | do we plot the Rosseland mean opacity?                      | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_lab_Er``                            | do we plot the lab radiation energy?                        | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_lab_flux``                          | do we plot the lab radiation flux?                          | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``plot_com_flux``                          | do we plot the comoving frame radiation flux?               | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``prop_temp_floor``                        |                                                             | 0.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``flatten_pp_threshold``                   |                                                             | -1.0                        |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``comoving``                               | are we in a comoving reference frame?                       | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``closure``                                | which closure relation to use 0: f = lambda 1: f = 1/3 2: f | 3                           |
+|                                            | = 1 - 2 * lambda 3: f = lambda + (lambda * R)^2 4: f = 1/3  |                             |
+|                                            | + 2/3 (lambda * R)^2                                        |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``limiter``                                | which limiter to use 0: no limiter 2: Lev-Pom limiter 12:   | 2                           |
+|                                            | Bruenn 22: square root 32: Minerbo                          |                             |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``fspace_advection_type``                  | frequency space advection type                              | 2                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_lambda``                            | do we plot the flux limiter lambda?                         | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_kappa_p``                           | do we plot the Planck mean opacity?                         | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_kappa_r``                           | do we plot the Rosseland mean opacity?                      | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_lab_Er``                            | do we plot the lab radiation energy?                        | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_lab_flux``                          | do we plot the lab radiation flux?                          | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``plot_com_flux``                          | do we plot the comoving frame radiation flux?               | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 
@@ -848,25 +835,25 @@ namespace: ``radsolve``
 .. index:: radsolve.level_solver_flag, radsolve.use_hypre_nonsymmetric_terms, radsolve.reltol, radsolve.abstol, radsolve.maxiter, radsolve.alpha, radsolve.beta, radsolve.v
 
 
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| parameter                                  | description                                                 | default value |
-+============================================+=============================================================+===============+
-| ``level_solver_flag``                      | the linear solver option to use                             | 1             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``use_hypre_nonsymmetric_terms``           |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``reltol``                                 |                                                             | 1.e-10        |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``abstol``                                 |                                                             | 1.e-10        |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``maxiter``                                |                                                             | 40            |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``alpha``                                  |                                                             | 1.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``beta``                                   |                                                             | 1.0           |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
-| ``v``                                      |                                                             | 0             |
-+--------------------------------------------+-------------------------------------------------------------+---------------+
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| parameter                                  | description                                                 | default value               |
++============================================+=============================================================+=============================+
+| ``level_solver_flag``                      | the linear solver option to use                             | 1                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``use_hypre_nonsymmetric_terms``           |                                                             | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``reltol``                                 |                                                             | 1.e-10                      |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``abstol``                                 |                                                             | 1.e-10                      |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``maxiter``                                |                                                             | 40                          |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``alpha``                                  |                                                             | 1.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``beta``                                   |                                                             | 1.0                         |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
+| ``v``                                      |                                                             | 0                           |
++--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
 

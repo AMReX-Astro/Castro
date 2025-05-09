@@ -1,32 +1,32 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Distributed Problem Setups &mdash; Castro  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script src="_static/clipboard.min.js"></script>
-        <script src="_static/copybutton.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Timestepping and Retries" href="timestepping.html" />
-    <link rel="prev" title="Software Design" href="software.html" /> 
+    <link rel="prev" title="GPU Programming Model" href="gpu.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -78,6 +79,8 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
@@ -85,7 +88,6 @@
 <li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
@@ -129,7 +131,7 @@
            <div itemprop="articleBody">
              
   <section id="distributed-problem-setups">
-<h1>Distributed Problem Setups<a class="headerlink" href="#distributed-problem-setups" title="Permalink to this heading"></a></h1>
+<h1>Distributed Problem Setups<a class="headerlink" href="#distributed-problem-setups" title="Link to this heading"></a></h1>
 <p>There are a number of standard problem setups that come with Castro.
 These can be used as a starting point toward writing your own setup.
 We organize these into subdirectories by broad type (radiation, hydro,
@@ -142,13 +144,13 @@ problems are:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">DustCollapse</span></code>: A pressureless cloud collapse that is a
 standard test problem for gravity. An analytic solution that
 describes the radius of the sphere as a function of time is found
-in Colgate and White <span id="id1">[<a class="reference internal" href="zreferences.html#id6" title="S. A. Colgate and R. H. White. The Hydrodynamic Behavior of Supernovae Explosions. ApJ, 143:626, March 1966. doi:10.1086/148549.">29</a>]</span>. This problem is also
+in Colgate and White <span id="id1">[<a class="reference internal" href="zreferences.html#id6" title="S. A. Colgate and R. H. White. The Hydrodynamic Behavior of Supernovae Explosions. ApJ, 143:626, March 1966. doi:10.1086/148549.">31</a>]</span>. This problem is also
 found in the FLASH User’s Guide.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">evrard_collapse</span></code>: This is the collapse of an isothermal
 spherical gas cloud.  This problem was originally discussed in
-<span id="id2">[<a class="reference internal" href="zreferences.html#id52" title="August E. Evrard. Beyond N-body: 3D cosmological gas dynamics. Monthly Notices of the Royal Astronomical Society, 235:911-934, December 1988. URL: https://ui.adsabs.harvard.edu/abs/1988MNRAS.235..911E.">35</a>]</span>.
+<span id="id2">[<a class="reference internal" href="zreferences.html#id52" title="August E. Evrard. Beyond N-body: 3D cosmological gas dynamics. Monthly Notices of the Royal Astronomical Society, 235:911-934, December 1988. URL: https://ui.adsabs.harvard.edu/abs/1988MNRAS.235..911E.">37</a>]</span>.
 This implementation of the test comes from section 9.1 of
-<span id="id3">[<a class="reference internal" href="zreferences.html#id53" title="Volker Springel. E pur si muove: Galilean-invariant cosmological hydrodynamical simulations on a moving mesh. Monthly Notices of the Royal Astronomical Society, 401(2):791-851, January 2010. URL: https://ui.adsabs.harvard.edu/abs/2010MNRAS.401..791S, arXiv:0901.4107.">61</a>]</span>.</p></li>
+<span id="id3">[<a class="reference internal" href="zreferences.html#id53" title="Volker Springel. E pur si muove: Galilean-invariant cosmological hydrodynamical simulations on a moving mesh. Monthly Notices of the Royal Astronomical Society, 401(2):791-851, January 2010. URL: https://ui.adsabs.harvard.edu/abs/2010MNRAS.401..791S, arXiv:0901.4107.">64</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: Model a 1-d stellar atmosphere (plane-parallel or
 spherical/self-gravitating) and dump energy in via an analytic
 heat source and watch the atmosphere’s hydrostatic state adjust
@@ -159,14 +161,14 @@ hydro + gravity in maintaining HSE.  Convergence can be measured either
 by looking at the max <span class="math notranslate nohighlight">\(|U|\)</span> in the plotfiles.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: This is a problem that explores the
 change in a hydrostatic structure due to heating.  This was used
-originally in <span id="id4">[<a class="reference internal" href="zreferences.html#id8" title="A. S. Almgren, J. B. Bell, C. A. Rendleman, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. II. Energy Evolution. Astrophysical Journal, 649(2):927-938, October 2006. arXiv:astro-ph/0606496, doi:10.1086/507089.">19</a>]</span>.</p></li>
+originally in <span id="id4">[<a class="reference internal" href="zreferences.html#id8" title="A. S. Almgren, J. B. Bell, C. A. Rendleman, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. II. Energy Evolution. Astrophysical Journal, 649(2):927-938, October 2006. arXiv:astro-ph/0606496, doi:10.1086/507089.">21</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">StarGrav</span></code>: This problem sets up a single spherical star in
 hydrostatic equilibrium and is used to assess the ability to
 maintain HSE.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">uniform_cube_sphere</span></code>: This is used to compute the
 gravitational potential of a perfect cube, for which there is an
 analytic solution.  It tests our isolated boundary conditions.
-This was demonstrated in <span id="id5">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">48</a>]</span>.</p></li>
+This was demonstrated in <span id="id5">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">50</a>]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -176,10 +178,10 @@ This was demonstrated in <span id="id5">[<a class="reference internal" href="zre
 <li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code>: The acoustic pulse problem from
 <span id="id6">[<a class="reference internal" href="zreferences.html#id64" title="Peter McCorquodale and Phillip Colella. A high-order finite-volume method for conservation laws on locally refined grids. Commun. Appl. Math. Comput. Sci., 6(1):1–25, 2011. URL: https://doi.org/10.2140/camcos.2011.6.1.">6</a>]</span> used to measure convergence of pure
 hydrodynamics problems (as used for Castro in
-<span id="id7">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>).</p></li>
+<span id="id7">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse_general</span></code>: a general equation of state version
 of <code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code> used for measuring convergence in
-<span id="id8">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>.</p></li>
+<span id="id8">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">double_bubble</span></code>: Initialize 1 or 2 bubbles in a stratified
 atmosphere (isothermal or isentropic) and allow for the bubbles
 to have the same or a different <span class="math notranslate nohighlight">\(\gamma\)</span> from one another /
@@ -192,13 +194,13 @@ discussed in <span id="id9">[<a class="reference internal" href="zreferences.htm
 castro.hybrid_riemann option to hydrodynamics.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: A single-model Rayleigh-Taylor instability problem.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>: The standard Sedov-Taylor blast wave problem. This
-setup was used in the first Castro paper <span id="id10">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">17</a>]</span>.</p></li>
+setup was used in the first Castro paper <span id="id10">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">19</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod</span></code>: A one-dimensional shock tube setup, including the
 classic Sod problem. This setup was used in the original Castro
-paper <span id="id11">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">17</a>]</span>.</p></li>
+paper <span id="id11">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">19</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>: A version of the Sod shock tube for the general
 stellar equation of state. This setup and the included inputs
-files was used in <span id="id12">[<a class="reference internal" href="zreferences.html#id10" title="M. Zingale and M. P. Katz. On the Piecewise Parabolic Method for Compressible Flow With Stellar Equations of State. ApJS, 216:31, February 2015. doi:10.1088/0067-0049/216/2/31.">72</a>]</span>.</p></li>
+files was used in <span id="id12">[<a class="reference internal" href="zreferences.html#id10" title="M. Zingale and M. P. Katz. On the Piecewise Parabolic Method for Compressible Flow With Stellar Equations of State. ApJS, 216:31, February 2015. doi:10.1088/0067-0049/216/2/31.">75</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>: A simple nova-like convection problem with an
 external heating source. This problem shows how to use the model
 parser to initialize a 1-d atmosphere on the Castro grid,
@@ -211,13 +213,13 @@ A MAESTROeX version of this problem setup also exists.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mhd_tests</span></code>:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Alfven</span></code>: a linearized MHD wave test problem from <span id="id13">[<a class="reference internal" href="zreferences.html#id65" title="Robert K. Crockett, Phillip Colella, Robert T. Fisher, Richard I. Klein, and Christopher F. McKee. An unsplit, cell-centered Godunov method for ideal MHD. Journal of Computational Physics, 203(2):422-448, March 2005. arXiv:astro-ph/0309307, doi:10.1016/j.jcp.2004.08.021.">30</a>]</span> and <span id="id14">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">7</a>]</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">BrioWu</span></code>: the Brio Wu shock tube problem as described in <span id="id15">[<a class="reference internal" href="zreferences.html#id67" title="M. Brio and C. C. Wu. An Upwind Differencing Scheme for the Equations of Ideal Magnetohydrodynamics. Journal of Computational Physics, 75(2):400-422, April 1988. doi:10.1016/0021-9991(88)90120-9.">20</a>]</span>.  This is a standard
-test problem used in many MHD code papers (e.g. <span id="id16">[<a class="reference internal" href="zreferences.html#id66" title="James M. Stone, Thomas A. Gardiner, Peter Teuben, John F. Hawley, and Jacob B. Simon. Athena: A New Code for Astrophysical MHD. Astrophysical Journal Supplement Series, 178(1):137-177, September 2008. arXiv:0804.0402, doi:10.1086/588755.">62</a>]</span>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Alfven</span></code>: a linearized MHD wave test problem from <span id="id13">[<a class="reference internal" href="zreferences.html#id65" title="Robert K. Crockett, Phillip Colella, Robert T. Fisher, Richard I. Klein, and Christopher F. McKee. An unsplit, cell-centered Godunov method for ideal MHD. Journal of Computational Physics, 203(2):422-448, March 2005. arXiv:astro-ph/0309307, doi:10.1016/j.jcp.2004.08.021.">32</a>]</span> and <span id="id14">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">7</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BrioWu</span></code>: the Brio Wu shock tube problem as described in <span id="id15">[<a class="reference internal" href="zreferences.html#id67" title="M. Brio and C. C. Wu. An Upwind Differencing Scheme for the Equations of Ideal Magnetohydrodynamics. Journal of Computational Physics, 75(2):400-422, April 1988. doi:10.1016/0021-9991(88)90120-9.">22</a>]</span>.  This is a standard
+test problem used in many MHD code papers (e.g. <span id="id16">[<a class="reference internal" href="zreferences.html#id66" title="James M. Stone, Thomas A. Gardiner, Peter Teuben, John F. Hawley, and Jacob B. Simon. Athena: A New Code for Astrophysical MHD. Astrophysical Journal Supplement Series, 178(1):137-177, September 2008. arXiv:0804.0402, doi:10.1086/588755.">65</a>]</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">DaiWoodward</span></code>: a shock tube problem described in <span id="id17">[<a class="reference internal" href="zreferences.html#id68" title="Wenlong Dai and Paul R. Woodward. On the divergence-free condition and conservation laws in numerical simulations for supersonic magnetohydrodynamical flows. The Astrophysical Journal, 494(1):317–335, feb 1998. URL: https://doi.org/10.1086%2F305176, doi:10.1086/305176.">4</a>]</span></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FastRarefaction</span></code>: a shock tube problem dominated by kinetic energy, as described in <span id="id18">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">7</a>]</span></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MagnetosonicWaves</span></code>: the fast and slow magnetosonic wave problem from <span id="id19">[<a class="reference internal" href="zreferences.html#id65" title="Robert K. Crockett, Phillip Colella, Robert T. Fisher, Richard I. Klein, and Christopher F. McKee. An unsplit, cell-centered Godunov method for ideal MHD. Journal of Computational Physics, 203(2):422-448, March 2005. arXiv:astro-ph/0309307, doi:10.1016/j.jcp.2004.08.021.">30</a>]</span></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">OrszagTang</span></code>: a two-dimensional magnetized vortex problem, following <span id="id20">[<a class="reference internal" href="zreferences.html#id66" title="James M. Stone, Thomas A. Gardiner, Peter Teuben, John F. Hawley, and Jacob B. Simon. Athena: A New Code for Astrophysical MHD. Astrophysical Journal Supplement Series, 178(1):137-177, September 2008. arXiv:0804.0402, doi:10.1086/588755.">62</a>]</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MagnetosonicWaves</span></code>: the fast and slow magnetosonic wave problem from <span id="id19">[<a class="reference internal" href="zreferences.html#id65" title="Robert K. Crockett, Phillip Colella, Robert T. Fisher, Richard I. Klein, and Christopher F. McKee. An unsplit, cell-centered Godunov method for ideal MHD. Journal of Computational Physics, 203(2):422-448, March 2005. arXiv:astro-ph/0309307, doi:10.1016/j.jcp.2004.08.021.">32</a>]</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OrszagTang</span></code>: a two-dimensional magnetized vortex problem, following <span id="id20">[<a class="reference internal" href="zreferences.html#id66" title="James M. Stone, Thomas A. Gardiner, Peter Teuben, John F. Hawley, and Jacob B. Simon. Athena: A New Code for Astrophysical MHD. Astrophysical Journal Supplement Series, 178(1):137-177, September 2008. arXiv:0804.0402, doi:10.1086/588755.">65</a>]</span></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: a magnetized Rayleigh-Taylor instability problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">species</span></code>: a simple test problem to ensure that species are accurately advected.</p></li>
 </ul>
@@ -227,22 +229,22 @@ test problem used in many MHD code papers (e.g. <span id="id16">[<a class="refer
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Rad2Tshock</span></code>: This sets up a radiating shock that can be
-compared to a semi-analytic solution described in <span id="id21">[<a class="reference internal" href="zreferences.html#id54" title="R. B. Lowrie and J. D. Edwards. Radiative shock solutions with grey nonequilibrium diffusion. Shock Waves, 18:129-143, 2008.">51</a>]</span>.</p></li>
+compared to a semi-analytic solution described in <span id="id21">[<a class="reference internal" href="zreferences.html#id54" title="R. B. Lowrie and J. D. Edwards. Radiative shock solutions with grey nonequilibrium diffusion. Shock Waves, 18:129-143, 2008.">53</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadFront</span></code>: This is the optically-thin streaming of a radiation front problem
-demonstrated originally in Castro in <span id="id22">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">69</a>]</span>.</p></li>
+demonstrated originally in Castro in <span id="id22">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">72</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadShestakovBolstad</span></code>: This is a linear multigroup diffusion test problem first described
-by <span id="id23">[<a class="reference internal" href="zreferences.html#id56" title="A.I. Shestakov and J.H. Bolstad. An exact solution for the linearized multifrequency radiation diffusion equation. Journal of Quantitative Spectroscopy and Radiative Transfer, 91(2):133 - 153, 2005. URL: http://www.sciencedirect.com/science/article/pii/S0022407304002092, doi:https://doi.org/10.1016/j.jqsrt.2004.05.052.">11</a>]</span> and demonstrated in Castro in <span id="id24">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">70</a>]</span>.</p></li>
+by <span id="id23">[<a class="reference internal" href="zreferences.html#id56" title="A.I. Shestakov and J.H. Bolstad. An exact solution for the linearized multifrequency radiation diffusion equation. Journal of Quantitative Spectroscopy and Radiative Transfer, 91(2):133 - 153, 2005. doi:https://doi.org/10.1016/j.jqsrt.2004.05.052.">11</a>]</span> and demonstrated in Castro in <span id="id24">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">73</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadSourceTest</span></code>: Test the implementation of the source terms in the gray radiation
 solver.  This does the “relaxation to thermal equilibrium” test as
-described in <span id="id25">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">63</a>]</span>  (originally described in <span id="id26">[<a class="reference internal" href="zreferences.html#id58" title="N. J. Turner and J. M. Stone. A Module for Radiation Hydrodynamic Calculations with ZEUS-2D Using Flux-limited Diffusion. Astrophysical Journal Supplement Series, 135(1):95-107, July 2001. arXiv:astro-ph/0102145, doi:10.1086/321779.">66</a>]</span>).</p></li>
+described in <span id="id25">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>  (originally described in <span id="id26">[<a class="reference internal" href="zreferences.html#id58" title="N. J. Turner and J. M. Stone. A Module for Radiation Hydrodynamic Calculations with ZEUS-2D Using Flux-limited Diffusion. Astrophysical Journal Supplement Series, 135(1):95-107, July 2001. arXiv:astro-ph/0102145, doi:10.1086/321779.">69</a>]</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadSphere</span></code>: This is a multigroup radiating sphere test problem with an analytic solution,
-described in <span id="id27">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">39</a>]</span> and <span id="id28">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">63</a>]</span> and shown in Castro in <span id="id29">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">70</a>]</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code>: This is a non-equlibrium Marshak wave test described in <span id="id30">[<a class="reference internal" href="zreferences.html#id59" title="Su Bingjing and Gordon L. Olson. Benchmark results for the non-equilibrium marshak diffusion problem. Journal of Quantitative Spectroscopy and Radiative Transfer, 56(3):337 - 351, 1996. URL: http://www.sciencedirect.com/science/article/pii/0022407396845249, doi:https://doi.org/10.1016/0022-4073(96)84524-9.">3</a>]</span> and shown
-in Castro in <span id="id31">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">69</a>]</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlsonMG</span></code>: This is a multigroup version of <code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code> described in <span id="id32">[<a class="reference internal" href="zreferences.html#id60" title="Bingjing Su and Gordon L. Olson. Non-grey benchmark results for two temperature non-equilibrium radiative transfer. Journal of Quantitative Spectroscopy and Radiative Transfer, 62(3):279 - 302, 1999. URL: http://www.sciencedirect.com/science/article/pii/S0022407398001058, doi:https://doi.org/10.1016/S0022-4073(98)00105-8.">12</a>]</span>
-and shown in Castro in <span id="id33">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">70</a>]</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadThermalWave</span></code>: A thermal wave test adapted from <span id="id34">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">42</a>]</span> and shown in Castro
-in <span id="id35">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">69</a>]</span>.</p></li>
+described in <span id="id27">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">41</a>]</span> and <span id="id28">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span> and shown in Castro in <span id="id29">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">73</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code>: This is a non-equlibrium Marshak wave test described in <span id="id30">[<a class="reference internal" href="zreferences.html#id59" title="Su Bingjing and Gordon L. Olson. Benchmark results for the non-equilibrium marshak diffusion problem. Journal of Quantitative Spectroscopy and Radiative Transfer, 56(3):337 - 351, 1996. doi:https://doi.org/10.1016/0022-4073(96)84524-9.">3</a>]</span> and shown
+in Castro in <span id="id31">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">72</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlsonMG</span></code>: This is a multigroup version of <code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code> described in <span id="id32">[<a class="reference internal" href="zreferences.html#id60" title="Bingjing Su and Gordon L. Olson. Non-grey benchmark results for two temperature non-equilibrium radiative transfer. Journal of Quantitative Spectroscopy and Radiative Transfer, 62(3):279 - 302, 1999. doi:https://doi.org/10.1016/S0022-4073(98)00105-8.">12</a>]</span>
+and shown in Castro in <span id="id33">[<a class="reference internal" href="zreferences.html#id57" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. III. Multigroup Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 204(1):7, January 2013. arXiv:1207.3845, doi:10.1088/0067-0049/204/1/7.">73</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadThermalWave</span></code>: A thermal wave test adapted from <span id="id34">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">44</a>]</span> and shown in Castro
+in <span id="id35">[<a class="reference internal" href="zreferences.html#id55" title="W. Zhang, L. Howell, A. Almgren, A. Burrows, and J. Bell. CASTRO: A New Compressible Astrophysical Solver. II. Gray Radiation Hydrodynamics. Astrophysical Journal Supplement Series, 196(2):20, October 2011. arXiv:1105.2466, doi:10.1088/0067-0049/196/2/20.">72</a>]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -250,12 +252,12 @@ in <span id="id35">[<a class="reference internal" href="zreferences.html#id55" t
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">bubble_convergence</span></code>: a reacting bubble problem designed for measuring the convergence of
-the reactive hydro algorithms in Castro.  This was used in <span id="id36">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span>.</p></li>
+the reactive hydro algorithms in Castro.  This was used in <span id="id36">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>: A reacting bubble in a stratified white
 dwarf atmosphere. This problem was featured in the
-Maestro reaction paper <span id="id37">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">18</a>]</span>.</p></li>
+Maestro reaction paper <span id="id37">[<a class="reference internal" href="zreferences.html#id9" title="A. S. Almgren, J. B. Bell, A. Nonaka, and M. Zingale. Low Mach Number Modeling of Type Ia Supernovae. III. Reactions. ApJ, 684:449-470, September 2008. doi:10.1086/590321.">20</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reacting_convergence</span></code>: a simple reacting hydrodynamics problem for measuring convergence,
-used in <span id="id38">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span> and <span id="id39">[<a class="reference internal" href="zreferences.html#id72" title="M. Zingale, M. P. Katz, D. E. Willcox, and A. Harpole. Practical effects of integrating temperature with strang split reactions. Research Notes of the AAS, 5(4):71, apr 2021. URL: https://doi.org/10.3847/2515-5172/abf3cb, doi:10.3847/2515-5172/abf3cb.">15</a>]</span></p></li>
+used in <span id="id38">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span> and <span id="id39">[<a class="reference internal" href="zreferences.html#id72" title="M. Zingale, M. P. Katz, D. E. Willcox, and A. Harpole. Practical effects of integrating temperature with strang split reactions. Research Notes of the AAS, 5(4):71, apr 2021. URL: https://doi.org/10.3847/2515-5172/abf3cb, doi:10.3847/2515-5172/abf3cb.">16</a>]</span></p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -267,17 +269,17 @@ here for reproducibility.</p>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Detonation</span></code>: this sets up a 1-d detonation that propagates through the domain.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flame</span></code>: this sets up a 1-d deflagration that propagates through the domain.  This setup
-was used for the testing in <span id="id40">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">32</a>]</span>.</p></li>
+was used for the testing in <span id="id40">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">34</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flame_wave</span></code>: this is a model of a flame propagating across a neutron star as a model for
-an X-ray burst.  This was presented in <span id="id41">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">32</a>]</span> and <span id="id42">[<a class="reference internal" href="zreferences.html#id73" title="A. Harpole, N. M. Ford, K. Eiden, M. Zingale, D. E. Willcox, Y. Cavecchi, and M. P. Katz. Dynamics of laterally propagating flames in x-ray bursts. ii. realistic burning &amp; rotation. Astrophysical Journal, 912(1):36, 2021. URL: https://ui.adsabs.harvard.edu/abs/2021arXiv210200051H/abstract.">5</a>]</span>.</p></li>
+an X-ray burst.  This was presented in <span id="id41">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">34</a>]</span> and <span id="id42">[<a class="reference internal" href="zreferences.html#id73" title="A. Harpole, N. M. Ford, K. Eiden, M. Zingale, D. E. Willcox, Y. Cavecchi, and M. P. Katz. Dynamics of laterally propagating flames in x-ray bursts. ii. realistic burning &amp; rotation. Astrophysical Journal, 912(1):36, 2021. URL: https://ui.adsabs.harvard.edu/abs/2021arXiv210200051H/abstract.">5</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">nova</span></code>: this models convection at the base of an accreted layer
 on a white dwarf as a model of a nova.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">planet</span></code>: this is the problem setup from <span id="id43">[<a class="reference internal" href="zreferences.html#id62" title="Taeho Ryu, Michael Zingale, and Rosalba Perna. Turbulence-driven thermal and kinetic energy fluxes in the atmospheres of hot Jupiters. Monthly Notices of the Royal Astronomical Society, 481(4):5517-5531, December 2018. URL: https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.5517R, arXiv:1806.07890.">58</a>]</span> that models shear and turbulence in a
+<li><p><code class="docutils literal notranslate"><span class="pre">planet</span></code>: this is the problem setup from <span id="id43">[<a class="reference internal" href="zreferences.html#id62" title="Taeho Ryu, Michael Zingale, and Rosalba Perna. Turbulence-driven thermal and kinetic energy fluxes in the atmospheres of hot Jupiters. Monthly Notices of the Royal Astronomical Society, 481(4):5517-5531, December 2018. URL: https://ui.adsabs.harvard.edu/abs/2018MNRAS.481.5517R, arXiv:1806.07890.">61</a>]</span> that models shear and turbulence in a
 hot Jupiter atmosphere.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">subchandra</span></code>: a model of sub-Chandra Type Ia supernova that initializes a hot spot in a helium
 layer on a low mass carbon-oxygen white dwarf.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wdmerger</span></code>: a problem setup for modeling white dwarf mergers.  This was used in <span id="id44">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">48</a>]</span>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xrb_mixed</span></code>: a compressible version of the X-ray burst convection problem from <span id="id45">[<a class="reference internal" href="zreferences.html#id63" title="M. Zingale, C. M. Malone, A. Nonaka, A. S. Almgren, and J. B. Bell. Comparisons of Two- and Three-Dimensional Convection in Type I X-Ray Bursts. Astrophysical Journal, 807(1):60, July 2015. arXiv:1410.5796, doi:10.1088/0004-637X/807/1/60.">74</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wdmerger</span></code>: a problem setup for modeling white dwarf mergers.  This was used in <span id="id44">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">50</a>]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xrb_mixed</span></code>: a compressible version of the X-ray burst convection problem from <span id="id45">[<a class="reference internal" href="zreferences.html#id63" title="M. Zingale, C. M. Malone, A. Nonaka, A. S. Almgren, and J. B. Bell. Comparisons of Two- and Three-Dimensional Convection in Type I X-Ray Bursts. Astrophysical Journal, 807(1):60, July 2015. arXiv:1410.5796, doi:10.1088/0004-637X/807/1/60.">77</a>]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -285,7 +287,7 @@ layer on a low mass carbon-oxygen white dwarf.</p></li>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>: a test of thermal diffusion (without hydro).  This was used to demonstrate convergence
-in both <span id="id46">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">73</a>]</span> and <span id="id47">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">32</a>]</span>.</p></li>
+in both <span id="id46">[<a class="reference internal" href="zreferences.html#id49" title="M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, and W. Zhang. Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections. Astrophysical Journal, 886(2):105, Dec 2019. arXiv:1908.03661, doi:10.3847/1538-4357/ab4e1d.">76</a>]</span> and <span id="id47">[<a class="reference internal" href="zreferences.html#id61" title="Kiran Eiden, Michael Zingale, Alice Harpole, Donald Willcox, Yuri Cavecchi, and Max P. Katz. Dynamics of Laterally Propagating Flames in X-Ray Bursts. I. Burning Front Structure. Astrophysical Journal, 894(1):6, May 2020. arXiv:1912.04956, doi:10.3847/1538-4357/ab80bc.">34</a>]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">particles_test</span></code>: a test of passive particles.</p></li>
 </ul>
 </div></blockquote>
@@ -297,14 +299,14 @@ in both <span id="id46">[<a class="reference internal" href="zreferences.html#id
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="software.html" class="btn btn-neutral float-left" title="Software Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gpu.html" class="btn btn-neutral float-left" title="GPU Programming Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="timestepping.html" class="btn btn-neutral float-right" title="Timestepping and Retries" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2022, Castro development team.</p>
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

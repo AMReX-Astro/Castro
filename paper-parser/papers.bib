@@ -1333,20 +1333,122 @@ series = {SC '20},
 }
 
 @ARTICLE{2023arXiv230317077Z,
-       author = {{Zingale}, Michael and {Eiden}, Kiran and {Katz}, Max},
-        title = "{Comparing Early Evolution of Flames in X-ray Bursts in Two and Three Dimensions}",
-      journal = {arXiv e-prints},
-     keywords = {Astrophysics - High Energy Astrophysical Phenomena},
-         year = 2023,
-        month = mar,
-          eid = {arXiv:2303.17077},
-        pages = {arXiv:2303.17077},
-          doi = {10.48550/arXiv.2303.17077},
-archivePrefix = {arXiv},
-       eprint = {2303.17077},
- primaryClass = {astro-ph.HE},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2023arXiv230317077Z},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System},
+doi = {10.3847/1538-4357/ace04e},
+url = {https://dx.doi.org/10.3847/1538-4357/ace04e},
+year = {2023},
+month = {jul},
+publisher = {The American Astronomical Society},
+volume = {952},
+number = {2},
+pages = {160},
+author = {Michael Zingale and Kiran Eiden and Max Katz},
+title = {Comparing Early Evolution of Flames in X-Ray Bursts in Two and Three Dimensions},
+journal = {The Astrophysical Journal},
+abstract = {We explore the early evolution of flame ignition and spreading on the surface of a neutron star in three dimensions, in the context of X-ray bursts. We look at the nucleosynthesis and morphology of the burning front and compare to two-dimensional axisymmetric simulations to gauge how important a full three-dimensional treatment of the flame is for the early dynamics. Finally, we discuss the progress toward full-star resolved flame simulations.},
   subject = {X-ray bursts}
+}
+
+
+@article{Chen_2023,
+doi = {10.3847/1538-4357/acec72},
+url = {https://dx.doi.org/10.3847/1538-4357/acec72},
+year = {2023},
+month = {sep},
+publisher = {The American Astronomical Society},
+volume = {955},
+number = {2},
+pages = {128},
+author = {Zhi Chen and Michael Zingale and Kiran Eiden},
+title = {Sensitivity of He Flames in X-Ray Bursts to Nuclear Physics},
+journal = {The Astrophysical Journal},
+abstract = {Through the use of axisymmetric 2D hydrodynamic simulations, we further investigate laterally propagating flames in X-ray bursts (XRBs). Our aim is to understand the sensitivity of a propagating helium flame to different nuclear physics. Using the Castro simulation code, we confirm the phenomenon of enhanced energy generation shortly after a flame is established by adding 12C(p, γ)13N(α, p)16O to the network, in agreement with the past literature. This sudden outburst of energy leads to a short accelerating phase, causing a drastic alteration in the overall dynamics of the flame in XRBs. Furthermore, we investigate the influence of different plasma screening routines on the propagation of the XRB flame. We finally examine the performance of simplified spectral deferred correction, a novel approach to hydrodynamics and reaction coupling incorporated in Castro, as an alternative to operator splitting.},
+  subject = {X-ray bursts}
+}
+
+
+
+@article{Zingale_2024,
+doi = {10.3847/1538-4357/ad3441},
+url = {https://dx.doi.org/10.3847/1538-4357/ad3441},
+year = {2024},
+month = {may},
+publisher = {The American Astronomical Society},
+volume = {966},
+number = {2},
+pages = {150},
+author = {Michael Zingale and Zhi Chen and Melissa Rasmussen and Abigail Polin and Max Katz and Alexander Smith Clark and Eric T. Johnson},
+title = {Sensitivity of Simulations of Double-detonation Type Ia Supernovae to Integration Methodology},
+journal = {The Astrophysical Journal},
+abstract = {We study the coupling of hydrodynamics and reactions in simulations of the double-detonation model for Type Ia supernovae. When assessing the
+ convergence of simulations, the focus is usually on spatial resolution; however, the method of coupling the physics together as well as the tolerances u
+sed in integrating a reaction network also play an important role. In this paper, we explore how the choices made in both coupling and integrating the re
+action portion of a simulation (operator/Strang splitting versus the simplified spectral deferred corrections method we introduced previously) influences
+ the accuracy, efficiency, and nucleosynthesis of simulations of double detonations. We find no need to limit reaction rates or reduce the simulation tim
+e step to the reaction timescale. The entire simulation methodology used here is GPU-accelerated and made freely available as part of the Castro simulati
+on code.},
+  subject = {Type Ia supernovae&mdash;sub-Chandra model}
+}
+
+@article{Chen_2024,
+doi = {10.1088/1742-6596/2742/1/012021},
+url = {https://dx.doi.org/10.1088/1742-6596/2742/1/012021},
+year = {2024},
+month = {apr},
+publisher = {IOP Publishing},
+volume = {2742},
+number = {1},
+pages = {012021},
+author = {Zhi Chen and Eric T. Johnson and Max Katz and Alexander Smith Clark and Brendan Boyd and Michael Zingale},
+title = {A Framework for Exploring Nuclear Physics Sensitivity in Numerical Simulations},
+journal = {Journal of Physics: Conference Series},
+abstract = {We describe the AMReX-Astrophysics framework for exploring the sensitivity of astrophysical simulations to the details of a nuclear reaction 
+network, including the number of nuclei, choice of reaction rates, and approximations used. This is explored by modeling a simple detonation with the Castro simulation code. The entire simulation methodology is open-source and GPU-enabled.},
+  subject = {algorithm}
+}
+
+@article{Johnson_2024,
+doi = {10.1088/1742-6596/2742/1/012005},
+url = {https://dx.doi.org/10.1088/1742-6596/2742/1/012005},
+year = {2024},
+month = {apr},
+publisher = {IOP Publishing},
+volume = {2742},
+number = {1},
+pages = {012005},
+author = {Eric T. Johnson and Michael Zingale},
+title = {Simulating Lateral H/He Flame Propagation in Type I X-ray Bursts},
+journal = {Journal of Physics: Conference Series},
+abstract = {X-ray bursts are the thermonuclear runaway of a mixed H/He layer on the surface of a neutron star. Observations suggest that the burning begi
+ns locally and spreads across the surface of the star as a flame. Recent multidimensional work has looked in detail at pure He flames spreading across a 
+neutron star. Here we report on progress in multidimensional modeling of mixed H/He flames and discuss the challenges.},
+  subject = {X-ray bursts}
+}
+
+@article{Zingale_2024,
+doi = {10.3847/1538-4357/ad8a66},
+url = {https://dx.doi.org/10.3847/1538-4357/ad8a66},
+year = {2024},
+month = {nov},
+publisher = {The American Astronomical Society},
+volume = {977},
+number = {1},
+pages = {30},
+author = {Michael Zingale and Zhi Chen and Eric T. Johnson and Max P. Katz and Alexander Smith Clark},
+title = {Strong Coupling of Hydrodynamics and Reactions in Nuclear Statistical Equilibrium for Modeling Convection in Massive Stars},
+journal = {The Astrophysical Journal},
+abstract = {We build on the simplified spectral deferred corrections (SDC) coupling of hydrodynamics and reactions to handle the case of nuclear statistical equilibrium (NSE) and electron/positron captures/decays in the cores of massive stars. Our approach blends a traditional reaction network on the grid with a tabulated NSE state from a very large,  nuclei network. We demonstrate how to achieve second-order accuracy in the simplified-SDC framework when coupling NSE to hydrodynamics, with the ability to evolve the star on the hydrodynamics time step. We discuss the application of this method to convection in massive stars leading up to core collapse. We also show how to initialize the initial convective state from a 1D model in a self-consistent fashion. All of these developments are done in the publicly available Castro simulation code and the entire simulation methodology is fully GPU-accelerated.},
+   subject = {stellar convection}
+}
+
+@article{Smith2025Multidimensional,
+	author = {Smith Clark, Alexander and Zingale, Michael},
+	journal = {The Open Journal of Astrophysics},
+	doi = {10.33232/001c.136890},
+	year = {2025},
+	month = {apr},
+	publisher = {Maynooth Academic Publishing},
+	title = {Multidimensional {Nova} {Simulations} with an {Extended} {Buffer} and {Lower} {Initial} {Mixing} {Temperatures}},
+	volume = {8},
+        subject = {novae}
 }
 
