@@ -61,7 +61,7 @@ low_density_cutoff      real              1.e-4_rt                  y
 
 smallx                  real              1.e-10_rt                 y
 
-r_refine_distance       real              1.e30_rt                  y
+refine_distance         real              1.e30_rt                  y
 
 max_hse_tagging_level   integer           2                         y
 

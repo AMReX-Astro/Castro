@@ -131,13 +131,13 @@ problem.ash1_frac = 1.0e0
 
 problem.low_density_cutoff = 1.e-4
 
-# Refinement parameters
+# Refinement Parameters
 
 problem.cutoff_density = 2.5e4
 problem.max_hse_tagging_level = 3
 problem.max_base_tagging_level = 2
 problem.X_min = 1.e-2
-problem.r_refine_distance = 9.216e4
+problem.refine_distance = 9.216e4
 
 # Microphysics
 
