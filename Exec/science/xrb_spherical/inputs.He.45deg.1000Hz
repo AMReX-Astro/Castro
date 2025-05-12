@@ -82,7 +82,7 @@ castro.max_subcycles = 16
 castro.retry_small_density_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 0       # timesteps between computing mass
+castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 

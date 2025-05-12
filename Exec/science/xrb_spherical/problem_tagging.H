@@ -26,16 +26,21 @@ void problem_tagging(int i, int j, int k,
     position(i, j, k, geomdata, loc);
 
     if (problem::tag_by_density) {
+
+        // Allow higher level refinement to better resolve
+        // the initial burning phase which is at the pole of the NS.
         if (state(i,j,k,URHO) > problem::cutoff_density &&
             state(i,j,k,UFS) / state(i,j,k,URHO) > problem::X_min) {
 
-            Real dist = std::abs(loc[0]);
+            // find the distance in cylindrical radial direction
+            Real dist = std::abs(loc[0] * std::sin(loc[1]));
 
-            if (level < problem::max_hse_tagging_level && dist < geomdata.ProbLo(0) + problem::r_refine_distance) {
+            if (level < problem::max_hse_tagging_level && dist < problem::refine_distance) {
                 tag(i,j,k) = TagBox::SET;
             }
         }
 
+        // Refine when density is above some threshold
         if (state(i,j,k,URHO) > problem::cutoff_density) {
             if (level < problem::max_base_tagging_level) {
                 tag(i,j,k) = TagBox::SET;
