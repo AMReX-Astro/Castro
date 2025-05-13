@@ -297,27 +297,6 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  // NUM_GROW is the number of ghost cells needed for the hyperbolic
-  // portions -- note that this includes the flattening, which
-  // generally requires 4 ghost cells
-#ifdef MHD
-  NUM_GROW = 6;
-#else
-  NUM_GROW = 4;
-#endif
-
-  // NUM_GROW_SRC is for quantities that will be reconstructed, but
-  // don't need the full stencil required for flattening
-#ifdef MHD
-  NUM_GROW_SRC = 6;
-#else
-  if (time_integration_method == SpectralDeferredCorrections) {
-      NUM_GROW_SRC = NUM_GROW;
-  } else {
-      NUM_GROW_SRC = 3;
-  }
-#endif
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were
@@ -975,8 +954,7 @@ Castro::variableSetUp ()
   //
   // We want a derived type that corresponds to the number of particles
   // in each cell.  We only intend to use it in plotfiles for debugging
-  // purposes.  We'll just use the DERNULL since don't do anything in
-  // fortran for now.  We'll actually set the values in writePlotFile().
+  // purposes.  We'll actually set the values in writePlotFile().
   //
   derive_lst.add("particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
   derive_lst.addComponent("particle_count",desc_lst,State_Type,URHO,1);

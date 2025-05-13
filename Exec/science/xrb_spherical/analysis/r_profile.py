@@ -41,6 +41,8 @@ for i, f in enumerate(fields):
     for theta in thetas:
         # simply go from (rmin, theta) -> (rmax, theta). Doesn't need to convert to physical R-Z
         ray = ds.ray((rmin, theta, 0*cm), (rmax, theta, 0*cm))
+
+        # sort by "t", which goes from 0 to 1 representing the spatial order.
         isrt = np.argsort(ray["t"])
         axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(float(theta)))
 

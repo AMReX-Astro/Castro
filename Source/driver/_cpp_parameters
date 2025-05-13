@@ -445,16 +445,19 @@ drive_initial_convection_reinit_period   Real    1.e200
 diffuse_temp                 bool           0                  DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            DIFFUSION
+diffuse_cutoff_density       Real          -1.e200             DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200             DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                DIFFUSION
+diffuse_cond_scale_fac       Real           1.0                DIFFUSION
 
+# evaluate diffusion source term using amrex built-in solver or
+# evaluate within castro
+diffuse_use_amrex_mlmg       bool           1                  DIFFUSION
 
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
@@ -490,7 +493,12 @@ rot_source_type              int           4                  ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     bool           1                  ROTATION
 
-# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
+# the coordinate axis for the rotation vector
+# For Cartesian: (:math:`x=1`, :math:`y=2`, :math:`z=3`)
+# For non-Cartesian coordinates, this parameter doesn't do anything because:
+# For RZ (Cylindrical 2D), it is automatically set to z-axis (rot_axis = 2)
+# For Spherical2D, it is also assumed to be in the z-axis
+# i.e. cos(theta) r_hat - sin(theta) theta_hat in Spherical coordinate.
 rot_axis                     int           3                  ROTATION
 
 # include a central point mass

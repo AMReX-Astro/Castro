@@ -419,6 +419,8 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 
     const auto dx = geom.CellSizeArray();
     const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -438,8 +440,9 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/
 #else
         loc[2] = 0.0_rt;
 #endif
+        auto omega = get_omega_vec(geomdata, j);
 
-        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc);
+        der(i,j,k,0) = dat(i,j,k,0) + rotational_potential(loc, omega, coord);
     });
 }
 
@@ -458,6 +461,8 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
 
     const auto dx = geom.CellSizeArray();
     const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -492,7 +497,9 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
             loc[iloc] -= problem::center[iloc];
         }
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc);
+        auto omega = get_omega_vec(geomdata, j);
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + rotational_potential(loc, omega, coord);
     });
 }
 
@@ -508,6 +515,8 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
 
     const auto dx = geom.CellSizeArray();
     const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -542,7 +551,9 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*nco
             loc[iloc] -= problem::center[iloc];
         }
 
-        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc);
+        auto omega = get_omega_vec(geomdata, j);
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + rotational_potential(loc, omega, coord);
     });
 }
 
@@ -572,6 +583,8 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncom
 
     const auto dx = geom.CellSizeArray();
     const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -592,7 +605,9 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncom
         loc[2] = 0.0_rt;
 #endif
 
-        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc);
+        auto omega = get_omega_vec(geomdata, j);
+
+        der(i,j,k,0) = dat(i,j,k,0) * rotational_potential(loc, omega, coord);
     });
 }
 

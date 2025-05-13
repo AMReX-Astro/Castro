@@ -17,7 +17,7 @@ EOS_DIR     := rad_power_law
 NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
-Opacity_dir := rad_power_law
+OPACITY_DIR := rad_power_law
 
 NGROUPS := 2
 
