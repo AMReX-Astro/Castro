@@ -206,7 +206,7 @@ Castro::retry_advance_ctu(Real dt, const advance_status& status)
 
 #if (AMREX_SPACEDIM == 2)
             if (Geom().IsSPHERICAL()) {
-                P_theta.setVal(0.0);
+                getLevel(lev).P_theta.setVal(0.0);
             }
 #endif
 
