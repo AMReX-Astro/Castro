@@ -16,7 +16,7 @@ parser.add_argument('tracking_fname', type=str,
                    help="txt file generated from front_tracker.py to track flame front position.")
 parser.add_argument('-f', '--fields', nargs='+', type=str,
                     help="field parameters for plotting, e.g. enuc abar.")
-parser.add_argument('-w', '--width', default=4.0, type=float,
+parser.add_argument('-w', '--width', default=3.0, type=float,
                     help="scaling for the domain width of the slice plot")
 parser.add_argument('-r', '--dr', type=float,
                     help="""Distance between upper r and lower r shown in the SlicePlot.
