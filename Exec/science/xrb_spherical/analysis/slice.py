@@ -139,6 +139,93 @@ def slice(fnames:List[str], fields:List[str],
                                  linewidth=1.5,
                                  linestyle="-.")
 
+            ### Annotate Latitude Lines
+
+            # Start from the theta center [deg] of the slice plot frame.
+            thetac = round(math.degrees(np.arcsin(center[0] / r_center)))
+            latitude_thetas = [thetac]
+
+            # Determine the upper and lower bound of the frame
+            lobnd_r = center[0] - 0.5 * box_widths[0]
+            lobnd_z = center[1] - 0.5 * box_widths[1]
+            hibnd_r = center[0] + 0.5 * box_widths[0]
+            hibnd_z = center[1] + 0.5 * box_widths[1]
+
+            for theta_increment in range(1, 181):
+                latitude_thetar = thetac + theta_increment
+                latitude_thetal = thetac - theta_increment
+
+                # Now find the RZ position of different latitude thetas
+                # and see if they're out of the frame.
+                lo_r = rl * np.sin(math.radians(latitude_thetal))
+                lo_z = rl * np.cos(math.radians(latitude_thetal))
+
+                hi_r = rl * np.sin(math.radians(latitude_thetar))
+                hi_z = rl * np.cos(math.radians(latitude_thetar))
+
+                # Check if the point is within the frame.
+                if 0 <= latitude_thetal < 180 and lo_r >= lobnd_r and lo_z >= lobnd_z:
+                        latitude_thetas.append(latitude_thetal)
+                if 0 <= latitude_thetar < 180 and hi_r < hibnd_r and hi_z < hibnd_z:
+                        latitude_thetas.append(latitude_thetar)
+
+                # If outside the frame, then breakout
+                if (lo_r < lobnd_r or lo_z < lobnd_z) and (hi_r >= hibnd_r or hi_z >= hibnd_z):
+                    break
+
+            # Now annotate latitude lines and do the labeling.
+            for latitude_theta in latitude_thetas:
+                if latitude_theta == 0:
+                    continue
+
+                latitude_radian = math.radians(latitude_theta)
+                linewidth = 2.0 if not latitude_theta % 5 else 1.0
+
+                # Label latitude
+                sp.annotate_text([(rl-0.15*dr)*np.sin(latitude_radian),
+                                  (rl-0.15*dr)*np.cos(latitude_radian)],
+                                 f"{int(90 - latitude_theta)}\u00B0",
+                                 text_args={"color": "silver",
+                                            "size": "12",
+                                            "family": "monospace",
+                                            "horizontalalignment": "center",
+                                            "verticalalignment": "center",
+                                            },
+                                 inset_box_args={
+                                     "boxstyle": "square,pad=0.3",
+                                     "facecolor": "white",
+                                     "edgecolor": "white",
+                                 },
+                                 coord_system="plot")
+
+                # Find the upper and lower bound of the latitude lines
+                rll = max(lobnd_r / np.sin(latitude_radian),
+                          lobnd_z / np.cos(latitude_radian))
+                rrr = min(hibnd_r / np.sin(latitude_radian),
+                          hibnd_z / np.cos(latitude_radian))
+
+                # First do a line to the lower half of the shell
+                sp.annotate_line([rll*np.sin(latitude_radian),
+                                  rll*np.cos(latitude_radian)],
+                                 [rl*np.sin(latitude_radian),
+                                  rl*np.cos(latitude_radian)],
+                                 coord_system="plot",
+                                 color="k",
+                                 alpha=0.2,
+                                 linewidth=linewidth,
+                                 linestyle="-")
+
+                # Then do a line to the upper half of the shell
+                sp.annotate_line([rr*np.sin(latitude_radian),
+                                  rr*np.cos(latitude_radian)],
+                                 [rrr*np.sin(latitude_radian),
+                                  rrr*np.cos(latitude_radian)],
+                                 coord_system="plot",
+                                 color="k",
+                                 alpha=0.2,
+                                 linewidth=linewidth,
+                                 linestyle="-")
+
             plot = sp.plots[field]
             plot.figure = fig
             plot.axes = grid[i+j*len(fields)].axes
