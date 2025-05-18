@@ -39,6 +39,11 @@ def process_outfiles(fnames):
     numMPIs = np.array(numMPIs)
     averageCoarseTimesteps = np.array(averageCoarseTimesteps)
 
+    # Sort
+    index = np.argsort(numMPIs)
+    numMPIs = numMPIs[index]
+    averageCoarseTimesteps = averageCoarseTimesteps[index]
+
     return numMPIs, averageCoarseTimesteps
 
 
@@ -73,10 +78,9 @@ if __name__ == "__main__":
         numMPIs_ref[0], averageCoarseTimesteps_ref[0] = process_outfiles(args.reference)
     else:
         # If no reference is provided, use the outfile that used the least number
-        # of MPI processors
-        index = np.argmin(numMPIs)
-        numMPIs_ref = numMPIs[index]
-        averageCoarseTimesteps_ref = averageCoarseTimesteps[index]
+        # of MPI processors. It's index 0 since its already sorted.
+        numMPIs_ref = numMPIs[0]
+        averageCoarseTimesteps_ref = averageCoarseTimesteps[0]
 
     # Speedup = t(0) / t(N)
     # ratio between the timestep used via least number of processors vs others.
