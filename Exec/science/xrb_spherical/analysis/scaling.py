@@ -6,6 +6,8 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({'font.size': 16})
+
 def process_outfiles(fnames):
     ''' Given a list of fnames, compute the average coarse timestep
     and number of MPI processors used.
@@ -108,12 +110,12 @@ if __name__ == "__main__":
         xlabel = "Number of Nodes"
 
     fig, ax = plt.subplots(figsize=(9, 7))
-    ax.scatter(x, y, marker='x', color="k", label="simulation")
+    ax.scatter(x, y, marker='x', color="k", label="simulation", s=100)
     ax.set_xscale("log", base=2)
     if args.comparison is None:
         # Ideal strong scaling curve
         theo_y = y[0] * x
-        ax.plot(x, theo_y, linestyle="-.", label="theory")
+        ax.plot(x, theo_y, linestyle="-.", label="ideal", linewidth=2)
         ax.set_yscale("log", base=2)
         ax.legend()
 
