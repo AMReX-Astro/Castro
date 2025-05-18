@@ -72,38 +72,53 @@ if __name__ == "__main__":
     parser.add_argument("--reference", action="store_true",
                         help="""Whether to use the run that used the least
                         number of processor as a reference.""")
+    parser.add_argument("-c", "--comparison", nargs='+', type=str,
+                        help="""To plot the relative speed difference between
+                        two sets of runs that ran with different number of processors.
+                        But used a different parameter, i.e. different max_grid size.
+                        Pass in another list of xxxx.out files that has the
+                        same number of out files compared to outFile.
+                        """)
 
     args = parser.parse_args()
 
     numMPIs, averageCoarseTimesteps = process_outfiles(args.outFiles)
-
     x = numMPIs
-    y = 1.0 / averageCoarseTimesteps
     xlabel = "Number of MPI Processors"
-    ylabel = "Inverse Timestep"
 
-    if args.reference:
+    if args.comparison is not None:
+        numMPIs_c, averageCoarseTimesteps_c = process_outfiles(args.comparison)
+        if np.array_equal(numMPIs, numMPIs_c):
+            y = averageCoarseTimesteps / averageCoarseTimesteps_c
+            ylabel = r"Coarse Timestep Ratio: $t_N / t_{N,ref}$"
+        else:
+            parser.error("comparison outfiles used different number of processors than outFiles")
+    elif args.reference:
         # Speedup = t(0) / t(N)
         # ratio between the timestep used compared with a reference.
         y = averageCoarseTimesteps[0] / averageCoarseTimesteps
         ylabel = "Speedup"
+    else:
+        y = 1.0 / averageCoarseTimesteps
+        ylabel = "Inverse Timestep"
 
     if args.nproc is not None:
         # Get Node numbers
         x = numMPIs / args.nproc
         xlabel = "Number of Nodes"
 
-    # Ideal run
-    theo_y = y[0] * x
-
     fig, ax = plt.subplots(figsize=(9, 7))
     ax.scatter(x, y, marker='x', color="k", label="simulation")
-    ax.plot(x, theo_y, linestyle="-.", label="theory")
     ax.set_xscale("log", base=2)
-    ax.set_yscale("log", base=2)
+    if args.comparison is None:
+        # Ideal strong scaling curve
+        theo_y = y[0] * x
+        ax.plot(x, theo_y, linestyle="-.", label="theory")
+        ax.set_yscale("log", base=2)
+        ax.legend()
+
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.grid(True)
-    ax.legend()
     fig.tight_layout()
     fig.savefig("xrb_scaling.png")
