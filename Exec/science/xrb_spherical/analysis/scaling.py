@@ -66,36 +66,43 @@ if __name__ == "__main__":
     parser.add_argument("outFiles", nargs='+', type=str,
                         help="""xxxx.out files each representing runs used with
                         different MPI processors""")
-    parser.add_argument("-r", "--reference", type=str,
-                        help="""A xxxx.out file used as reference for the scaling test.
-                        If no reference is provided, then the output file that used
-                        the least number of processors will be used as the reference.""")
+    parser.add_argument("-n", "--nproc", type=float,
+                        help="""Number of processors per node.
+                        Used to convert plot to number of nodes""")
+    parser.add_argument("--reference", action="store_true",
+                        help="""Whether to use the run that used the least
+                        number of processor as a reference.""")
 
     args = parser.parse_args()
 
     numMPIs, averageCoarseTimesteps = process_outfiles(args.outFiles)
-    if args.reference is not None:
-        numMPIs_ref[0], averageCoarseTimesteps_ref[0] = process_outfiles(args.reference)
-    else:
-        # If no reference is provided, use the outfile that used the least number
-        # of MPI processors. It's index 0 since its already sorted.
-        numMPIs_ref = numMPIs[0]
-        averageCoarseTimesteps_ref = averageCoarseTimesteps[0]
 
-    # Speedup = t(0) / t(N)
-    # ratio between the timestep used via least number of processors vs others.
-    speedup = averageCoarseTimesteps_ref / averageCoarseTimesteps
+    x = numMPIs
+    y = 1.0 / averageCoarseTimesteps
+    xlabel = "Number of MPI Processors"
+    ylabel = "Inverse Timestep"
 
-    # ratio between the least number of processors used vs others
-    MPIratio = numMPIs / numMPIs_ref
+    if args.reference:
+        # Speedup = t(0) / t(N)
+        # ratio between the timestep used compared with a reference.
+        y = averageCoarseTimesteps[0] / averageCoarseTimesteps
+        ylabel = "Speedup"
+
+    if args.nproc is not None:
+        # Get Node numbers
+        x = numMPIs / args.nproc
+        xlabel = "Number of Nodes"
+
+    # Ideal run
+    theo_y = y[0] * x
 
     fig, ax = plt.subplots(figsize=(9, 7))
-    ax.scatter(MPIratio, speedup, marker='x', color="k", label="simulation")
-    ax.plot(MPIratio, MPIratio, linestyle="-.", label="theory")
+    ax.scatter(x, y, marker='x', color="k", label="simulation")
+    ax.plot(x, theo_y, linestyle="-.", label="theory")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log", base=2)
-    ax.set_xlabel("MPI Processor Ratio")
-    ax.set_ylabel("Speedup")
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     ax.grid(True)
     ax.legend()
     fig.tight_layout()
