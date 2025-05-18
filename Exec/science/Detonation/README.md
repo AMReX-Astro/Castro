@@ -8,6 +8,9 @@ be set through the `GNUmakefile`.
 > and reactions, since this gives the best results for this
 > problem.
 
+> [!NOTE]
+> By default, the inputs files disable burning in shocks.
+
 This sets up a domain with a uniform density (`dens`).  A large
 temperature (`T_l`) is placed in the left side of the domain, and an
 ambient temperature (`T_r`) is in the right.  The parameter `center_T`
