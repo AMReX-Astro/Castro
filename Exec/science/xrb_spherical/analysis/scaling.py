@@ -59,18 +59,18 @@ if __name__ == "__main__":
     """)
 
     parser.add_argument("outFiles", nargs='+', type=str,
-                        help="xxxx.out files each representing runs used with
-                        different MPI processors")
+                        help="""xxxx.out files each representing runs used with
+                        different MPI processors""")
     parser.add_argument("-r", "--reference", type=str,
-                        help="A xxxx.out file used as reference for the scaling test.
+                        help="""A xxxx.out file used as reference for the scaling test.
                         If no reference is provided, then the output file that used
-                        the least number of processors will be used as the reference.")
+                        the least number of processors will be used as the reference.""")
 
     args = parser.parse_args()
 
-    numMPIs, averageCoarseTimesteps = process_data(args.outFiles)
+    numMPIs, averageCoarseTimesteps = process_outfiles(args.outFiles)
     if args.reference is not None:
-        numMPIs_ref[0], averageCoarseTimesteps_ref[0] = process_data(args.reference)
+        numMPIs_ref[0], averageCoarseTimesteps_ref[0] = process_outfiles(args.reference)
     else:
         # If no reference is provided, use the outfile that used the least number
         # of MPI processors
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     speedup = averageCoarseTimesteps_ref / averageCoarseTimesteps
 
     # ratio between the least number of processors used vs others
-    MPIratio = numMPIs_ref / numMPIs[0]
+    MPIratio = numMPIs / numMPIs_ref
 
     fig, ax = plt.subplots(figsize=(9, 7))
     ax.scatter(MPIratio, speedup, marker='x', color="k", label="simulation")
