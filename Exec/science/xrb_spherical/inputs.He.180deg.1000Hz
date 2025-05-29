@@ -96,7 +96,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = xrb_spherical_1000Hz_chk        # root name of checkpoint file
-amr.check_int       = 10000        # number of timesteps between checkpoints
+amr.check_int       = 300        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = xrb_spherical_1000Hz_plt        # root name of plotfile
