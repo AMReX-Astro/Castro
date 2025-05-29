@@ -23,6 +23,7 @@ castro.hi_bc       =  1   3
 castro.do_hydro = 0
 castro.diffuse_temp = 1
 castro.do_react = 0
+castro.diffuse_use_amrex_mlmg = 0
 
 # TIME STEP CONTROL
 
@@ -42,16 +43,6 @@ amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 32
-
-amr.refinement_indicators = temperr tempgrad
-
-amr.refine.temperr.value_greater = 1.1
-amr.refine.temperr.field_name = Temp
-amr.refine.temperr.max_level = 3
-
-amr.refine.tempgrad.gradient = 0.1
-amr.refine.tempgrad.field_name = Temp
-amr.refine.tempgrad.max_level = 3
 
 # CHECKPOINT FILES
 amr.check_file      = diffuse_chk     # root name of checkpoint file
@@ -81,7 +72,6 @@ problem.gaussian_init = 0
 
 # CONDUCTIVITY
 conductivity.const_conductivity = 10.0
-castro.diffuse_use_amrex_mlmg = 0
 
 # EOS
 eos.eos_assume_neutral = 1
