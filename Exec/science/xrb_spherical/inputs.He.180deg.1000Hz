@@ -134,6 +134,7 @@ problem.low_density_cutoff = 1.e-4
 # Refinement Parameters
 
 problem.cutoff_density = 2.5e4
+problem.cutoff_temp    = 1.e8
 problem.max_hse_tagging_level = 3
 problem.max_base_tagging_level = 2
 problem.X_min = 1.e-2
