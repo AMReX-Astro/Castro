@@ -84,7 +84,7 @@ max_base_tagging_level  integer           1                         y
 # Allow for additional refinement level to better resolve initial
 # burning phase. Aside from cutoff_temp and cutoff_dens,
 # also require the region to be within a certain cylindrical-r distance,
-# this is controlled by refine_distance and fuel1 mass fraction to be
+# this is controlled by refine_distance and helium-4 mass fraction to be
 # greater than refine_X_min.
 max_hse_tagging_level   integer           2                         y
 
@@ -92,5 +92,5 @@ max_hse_tagging_level   integer           2                         y
 # See description for max_hse_tagging_level
 refine_distance         real              1.e30_rt                  y
 
-# cutoff fuel1 mass fraction to allow for additional refinement.
+# cutoff helium-4 mass fraction to allow for additional refinement.
 X_min                   real              1.e-4_rt                  y

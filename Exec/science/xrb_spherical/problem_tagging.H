@@ -39,13 +39,10 @@ void problem_tagging(int i, int j, int k,
             // find the distance in cylindrical radial direction
             Real dist = std::abs(loc[0] * std::sin(loc[1]));
 
-            // Find index of fuel1
-            int id = network_spec_index(problem::fuel1_name);
-
             // Allow higher level refinement to better resolve
             // the initial burning phase which is at the pole of the NS.
             if (dist < problem::refine_distance &&
-                state(i,j,k,UFS+id) / state(i,j,k,URHO) >  problem::X_min &&
+                state(i,j,k,UFS+1) / state(i,j,k,URHO) >  problem::X_min &&
                 level < problem::max_hse_tagging_level) {
                 tag(i,j,k) = TagBox::SET;
             }
