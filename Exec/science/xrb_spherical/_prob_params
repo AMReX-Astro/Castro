@@ -8,7 +8,7 @@ theta_half_max          real              1.745e-2_rt               y
 # Blending stops at theta = theta_half_max + theta_half_width
 theta_half_width        real              4.9e-3_rt                 y
 
-# Highest temperature acheived during the tanh transition.
+# Highest temperature achieved during the tanh transition.
 T_hi                    real              5.e8_rt                   y
 
 # Isothermal temperature of the base region, i.e. neutron star temp
@@ -32,7 +32,7 @@ H_star                  real              500.e0_rt                 y
 # between T_hi and T_star. Transition stops at H_star + 3 atm_delta
 atm_delta               real              25.e0_rt                  y
 
-# Initialization that defines the composition of the accreting layer
+# Initialization that defines the composition of the accretion layer
 fuel1_name              string            "helium-4"                y
 
 fuel2_name              string            ""                        y
