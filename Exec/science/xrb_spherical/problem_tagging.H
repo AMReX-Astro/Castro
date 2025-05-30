@@ -3,6 +3,7 @@
 #include <AMReX_TagBox.H>
 #include <prob_parameters.H>
 #include <Castro_util.H>
+#include <network.H>
 
 ///
 /// Define problem-specific tagging criteria
@@ -25,24 +26,27 @@ void problem_tagging(int i, int j, int k,
     GpuArray<Real, 3> loc;
     position(i, j, k, geomdata, loc);
 
-    if (problem::tag_by_density) {
+    if (problem::tag_by_thermodynamics) {
 
-        // Allow higher level refinement to better resolve
-        // the initial burning phase which is at the pole of the NS.
-        if (state(i,j,k,URHO) > problem::cutoff_density &&
-            state(i,j,k,UFS) / state(i,j,k,URHO) > problem::X_min) {
+        // Consider refining when density and temp are above some threshold
+        if (state(i,j,k,URHO)  > problem::cutoff_density &&
+            state(i,j,k,UTEMP) > problem::cutoff_temp) {
+
+            if (level < problem::max_base_tagging_level) {
+                tag(i,j,k) = TagBox::SET;
+            }
 
             // find the distance in cylindrical radial direction
             Real dist = std::abs(loc[0] * std::sin(loc[1]));
 
-            if (level < problem::max_hse_tagging_level && dist < problem::refine_distance) {
-                tag(i,j,k) = TagBox::SET;
-            }
-        }
+            // Find index of fuel1
+            int id = network_spec_index(problem::fuel1_name);
 
-        // Refine when density is above some threshold
-        if (state(i,j,k,URHO) > problem::cutoff_density) {
-            if (level < problem::max_base_tagging_level) {
+            // Allow higher level refinement to better resolve
+            // the initial burning phase which is at the pole of the NS.
+            if (dist < problem::refine_distance &&
+                state(i,j,k,UFS+id) / state(i,j,k,URHO) >  problem::X_min &&
+                level < problem::max_hse_tagging_level) {
                 tag(i,j,k) = TagBox::SET;
             }
         }
