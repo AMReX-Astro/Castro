@@ -63,6 +63,29 @@ analytic solution, giving:
  (256, 512)          2.437072009e-05
 ```
 
+## 2-d Spherical Geometry
+
+An analytic convergence test with 2D spherical geometry is done
+using the initial condition constructed with spherical-bessel function
+and legendre polynomial, which tests both radial and theta dependence.
+Run with:
+
+```
+./Castro2d.gnu.MPI.ex inputs.2d.sph.bessel amr.n_cell=64 64
+./Castro2d.gnu.MPI.ex inputs.2d.sph.bessel amr.n_cell=128 128
+./Castro2d.gnu.MPI.ex inputs.2d.sph.bessel amr.n_cell=256 256
+```
+
+After each run, the norm of the error against the analytic solution
+shows 2nd order accuracy:
+
+```
+ base resolution      L-inf error
+ (64 ,  64)          0.0008168088258
+ (128, 128)          0.0002035772451
+ (256, 256)          5.109916938e-05
+```
+
 
 ## SDC-4 in 1-d
 
@@ -252,3 +275,72 @@ Temp&         1.770452e-06 & 3.966033724 & 1.132894e-07 \\
 ```
 
 e.g. we see fourth-order convergence in the temperature
+
+
+## 2-d spherical geometry (with AMR)
+
+We use a non-center Gaussian initial condition to test
+resolution convergence and AMR for 2D spherical geometry.
+
+First compile with power law conductivity:
+
+```
+make DIM=2 CONDUCTIVITY_DIR=powerlaw -j 20
+```
+
+Now run using:
+
+```
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.plot_per = 0.001 amr.n_cell=32 32 castro.fixed_dt=3.2e-6
+mv diffuse_plt00314 diffuse_sph_32
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.plot_per = 0.001 amr.n_cell=64 64 castro.fixed_dt=1.6e-6
+mv diffuse_plt00626 diffuse_sph_64
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.plot_per = 0.001 amr.n_cell=128 128 castro.fixed_dt=8.e-7
+mv diffuse_plt01251 diffuse_sph_128
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.plot_per = 0.001 amr.n_cell=256 256 castro.fixed_dt=4.e-7
+mv diffuse_plt02501 diffuse_sph_256
+```
+
+Now use the RichardsonConvergence Script:
+
+```
+./RichardsonConvergenceTest2d.gnu.ex coarFile=diffuse_sph_32 mediFile=diffuse_sph_64  fineFile=diffuse_sph_128 > convergence_diffusion.2d.lo.out
+./RichardsonConvergenceTest2d.gnu.ex coarFile=diffuse_sph_64 mediFile=diffuse_sph_128 fineFile=diffuse_sph_256 > convergence_diffusion.2d.hi.out
+```
+
+For the lower resolution runs, e.g. `convergence_diffusion.2d.lo.out`:
+
+```
+Level  L1 norm of Error in Each Component
+-----------------------------------------------
+                   rho_E        2.681136e-04       1.811933   7.636120e-05
+                   rho_e        2.681136e-04       1.811933   7.636120e-05
+                    Temp        2.681136e-04       1.811933   7.636120e-05
+                pressure        1.787424e-04       1.811933   5.090747e-05
+              soundspeed        1.458607e+00       1.797880   4.194908e-01
+                 entropy        2.867059e+04       1.786225   8.312456e+03
+            thermal_cond        6.322558e-04       1.841497   1.764196e-04
+              diff_coeff        6.322558e-04       1.841497   1.764196e-04
+               diff_term        2.631251e-01       1.915835   6.973300e-02
+```
+
+For the higher resolution runs, e.g. `convergence_diffusion.2d.hi.out`:
+
+```
+Level  L1 norm of Error in Each Component
+-----------------------------------------------
+Warning: BoxArray lengths are not the same at level 0
+level: 0
+Warning: BoxArray lengths are not the same at level 1
+level: 1
+Warning: BoxArray lengths are not the same at level 0
+                   rho_E        7.636120e-05       2.046783   1.848118e-05
+                   rho_e        7.636120e-05       2.046783   1.848118e-05
+                    Temp        7.636120e-05       2.046783   1.848118e-05
+                pressure        5.090747e-05       2.046783   1.232079e-05
+              soundspeed        4.194908e-01       2.034310   1.024081e-01
+                 entropy        8.312456e+03       2.020431   2.048891e+03
+            thermal_cond        1.764196e-04       2.066769   4.211021e-05
+              diff_coeff        1.764196e-04       2.066769   4.211021e-05
+               diff_term        6.973300e-02       1.903361   1.864102e-02
+```
