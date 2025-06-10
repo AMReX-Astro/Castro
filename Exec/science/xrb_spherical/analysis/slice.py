@@ -15,7 +15,11 @@ from yt.units import km
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
           dr: Optional[float] = None,
-          theta: Optional[float] = None) -> None:
+          theta: Optional[float] = None,
+          displace_theta: bool = True,
+          annotate_vline: bool = True,
+          annotate_lat_lines: bool = True,
+          show_full_star: bool = True) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
 
@@ -77,6 +81,7 @@ def slice(fnames:List[str], fields:List[str],
         width = widthScale * dr
         box_widths = (width, width)
 
+        # Now determine center of the frame
         if theta is None:
             # Preset centers for the Top, Mid and Bot panels
             # Centers will be physical coordinates in Cylindrical, i.e. R-Z
@@ -86,13 +91,17 @@ def slice(fnames:List[str], fields:List[str],
 
             center = centers[loc]
         else:
-            # If theta is provided explicitly, then assume this is the theta corresponding to
-            # flame front. Then keep the front at ~0.7 of the plotting width.
+            if displace_theta:
+                # Optionally displace the center by ~0.7 of the plotting width
+                # This is helpful when tracking the flame front.
+                # This keeps the front at ~0.7 of the plotting width.
 
-            # Determine dtheta that displaces from center to ~0.7 of the plotting domain
-            oSevenTheta = np.arcsin(0.7 * width / r_center)
-            halfTheta = np.arcsin(0.5 * width / r_center)
-            dtheta = oSevenTheta - halfTheta
+                # Determine dtheta that displaces from center to ~0.7 of the plotting domain
+                oSevenTheta = np.arcsin(0.7 * width / r_center)
+                halfTheta = np.arcsin(0.5 * width / r_center)
+                dtheta = oSevenTheta - halfTheta
+            else:
+                dtheta = 0
 
             # Determine center using theta but also displace it by dtheta
             R = r_center*np.sin(theta - dtheta)
@@ -101,9 +110,18 @@ def slice(fnames:List[str], fields:List[str],
                 R = 0.5 * width
             center = [R, Z]
 
+        if show_full_star:
+            # If we want to show the full domain in the background.
+            # Change boxwidth and center to full star
+            r_full = rr+dr
+            center = [r_full*np.sin(theta_center), r_full*np.cos(theta_center)]
+            if thetar < 0.5 * np.pi:
+                boxwidths = (r_full*np.sin(thetar), r_full*np.cos(thetal))
+            else:
+                boxwidths = (r_full, 2*r_full*np.cos(thetal))
+
         for i, field in enumerate(fields):
             # Plot each field parameter
-
             sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=16)
             sp.set_center(center)
 
@@ -131,7 +149,7 @@ def slice(fnames:List[str], fields:List[str],
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
             # Plot a vertical to indicate flame front
-            if theta is not None:
+            if theta is not None and annotate_vline:
                 sp.annotate_line([rl*np.sin(theta), rl*np.cos(theta)],
                                  [rr*np.sin(theta), rr*np.cos(theta)],
                                  coord_system="plot",
@@ -175,6 +193,10 @@ def slice(fnames:List[str], fields:List[str],
 
             # Now annotate latitude lines and do the labeling.
             for latitude_theta in latitude_thetas:
+                # Break out if we don't want to annotate latitude lines.
+                if not annotate_lat_lines:
+                    break
+
                 if latitude_theta == 0:
                     continue
 
@@ -288,6 +310,15 @@ if __name__ == "__main__":
                         Assumed in unit km. This is used to control center and width of the SlicePlot""")
     parser.add_argument('-w', '--width', default=3.0, type=float,
                         help="scaling for the domain width of the slice plot")
+    parser.add_argument('--displace_theta', action='store_true',
+                        help="""whether to displace the theta that defines the center of the frame.
+                        This is useful when theta represents the flame front position.""")
+    parser.add_argument('--annotate_vline', action='store_true',
+                        help="whether to annotate a vertical line along the given theta")
+    parser.add_argument('--annotate_lat_lines', action='store_true',
+                        help="whether to annotate latitude lines")
+    parser.add_argument('--show_full_star', action='store_true',
+                        help="whether show the full star in the background")
 
     args = parser.parse_args()
 
@@ -301,4 +332,6 @@ if __name__ == "__main__":
         parser.error("loc must be one of the three: {top, mid, bot}")
 
     slice(args.fnames, args.fields, loc=loc,
-          widthScale=args.width, dr=args.dr, theta=args.theta)
+          widthScale=args.width, dr=args.dr, theta=args.theta,
+          displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
+          annotate_lat_lines=args.annotate_lat_lines, show_full_star=args.show_full_star)
