@@ -70,7 +70,10 @@ def slice(fnames:List[str], fields:List[str],
             dr = dr * rl.units
             rr = rl + dr
 
-        r_center = 0.5 * dr + rl
+        if show_full_star:
+            r_center = 0.5 * rr
+        else:
+            r_center = 0.5 * dr + rl
 
         thetar = ds.domain_right_edge[1]
         thetal = ds.domain_left_edge[1]
