@@ -73,8 +73,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_GROW      = -1;
-int          Castro::NUM_GROW_SRC  = -1;
 
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
@@ -323,7 +321,10 @@ Castro::read_params ()
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
 
-        if ( dgeom.ProbLo(0) < static_cast<Real>(NUM_GROW) * dgeom.CellSize(0) )
+        Vector<int> n_cell(AMREX_SPACEDIM);
+        ppa.queryarr("n_cell",n_cell,0,AMREX_SPACEDIM);
+        Real ngrow_size = static_cast<Real>(NUM_GROW) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
+        if ( dgeom.ProbLo(0) < ngrow_size )
         {
           amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
         }
@@ -1015,7 +1016,7 @@ Castro::initData ()
     BL_PROFILE("Castro::initData()");
 
     //
-    // Loop over grids, call FORTRAN function to init with data.
+    // Loop over grids, call initialization functions
     //
 #if AMREX_SPACEDIM > 1
     const Real* dx  = geom.CellSize();
@@ -3716,8 +3717,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  // grab them from Fortran to C++; then read any C++ parameters directly
-  // from inputs (via ParmParse)
+  // read any runtime parameters directly from inputs (via ParmParse)
   init_extern_parameters();
 
 }
@@ -4269,7 +4269,7 @@ Castro::get_numpts ()
      long nx = bx.size()[0];
 
 #if (AMREX_SPACEDIM == 1)
-     numpts_1d = nx;
+     numpts_1d = static_cast<int>(nx);
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
@@ -4293,7 +4293,9 @@ Castro::define_new_center(const MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
+#if AMREX_SPACEDIM >= 2
     const Real* dx = geom.CellSize();
+#endif
 
     IntVect max_index = S.maxIndex(URHO,0);
     Box bx(max_index,max_index);
@@ -4491,7 +4493,7 @@ Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
   }
 
   if (state_in.contains_nan(URHO,state_in.nComp(),ng,true)) {
-#ifdef AMREX_USE_GPU
+#if defined(AMREX_USE_GPU) && !defined(ALLOW_GPU_PRINTF)
       std::string abort_string = std::string("State has NaNs in check_for_nan()");
       amrex::Abort(abort_string.c_str());
 #else

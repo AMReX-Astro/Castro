@@ -24,7 +24,7 @@ Real flatten(int i, int j, int k,
 
     Real denom = std::max(small_pres, std::abs(q_arr(i+2,j,k,pres_comp) - q_arr(i-2,j,k,pres_comp)));
     Real zeta = std::abs(dp) / denom;
-    Real z = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    Real z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     Real tst = 0.0_rt;
     if (q_arr(i-1,j,k,QU) - q_arr(i+1,j,k,QU) >= 0.0_rt) {
@@ -43,7 +43,7 @@ Real flatten(int i, int j, int k,
 
     denom = std::max(small_pres, std::abs(q_arr(i+2-ishft,j,k,pres_comp)-q_arr(i-2-ishft,j,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    Real z2 = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    Real z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i-1-ishft,j,k,QU) - q_arr(i+1-ishft,j,k,QU) >= 0.0_rt) {
@@ -69,7 +69,7 @@ Real flatten(int i, int j, int k,
 
     denom = std::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j-1,k,QV) - q_arr(i,j+1,k,QV) >= 0.0_rt) {
@@ -88,7 +88,7 @@ Real flatten(int i, int j, int k,
 
     denom = std::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j-1-ishft,k,QV) - q_arr(i,j+1-ishft,k,QV) >= 0.0_rt) {
@@ -115,7 +115,7 @@ Real flatten(int i, int j, int k,
 
     denom = std::max(small_pres, std::abs(q_arr(i,j,k+2,pres_comp) - q_arr(i,j,k-2,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    z = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j,k-1,QW) - q_arr(i,j,k+1,QW) >= 0.0_rt) {
@@ -134,7 +134,7 @@ Real flatten(int i, int j, int k,
 
     denom = std::max(small_pres, std::abs(q_arr(i,j,k+2-ishft,pres_comp) - q_arr(i,j,k-2-ishft,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = std::clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
+    z2 = amrex::Clamp(dzcut * (zeta - zcut1), 0.0_rt, 1.0_rt);
 
     tst = 0.0_rt;
     if (q_arr(i,j,k-1-ishft,QW) - q_arr(i,j,k+1-ishft,QW) >= 0.0_rt) {

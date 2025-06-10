@@ -18,7 +18,7 @@ USE_MHD = FALSE
 # define the location of the CASTRO top directory
 CASTRO_HOME ?= ../../..
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks

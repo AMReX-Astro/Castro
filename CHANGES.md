@@ -1,3 +1,156 @@
+# 25.06
+
+  * update `subch_planar` `README.md` (#3075)
+
+  * update ``diffusion_test`` with improved documentation for the 2D
+    spherical test (#3072)
+
+  * add protection to the build system that checks to make sure that a
+    `make clean` is done before we try to build with a different
+    network. (#3073)
+
+# 25.05
+
+  * update nova inputs are README (#3066)
+
+  * clang-tidy clean-ups (#3064, #3069)
+
+  * fix some loop initialization and shadowing issues in the diffusion
+    test (#3068, #3070)
+
+  * update Sod analysis scripts for NumPy 2.x (#3065)
+
+  * update `xrb_spherical` analysis scripts (#3013)
+
+  * update scaling numbers for `flame_wave` (#3058)
+
+  * update `massive_star` README file (#3059)
+
+  * add a new analysis script to `Detonation` that shows the structure
+    at a single time, including composition (#3061)
+
+  * fix shadowing in `timestep.cpp` (#3063)
+
+  * update `subch_planar` inputs and README (#3062)
+
+  * have the `job_info` file capture the `EXTRACXXFLAGS` in the build
+    system (#3057)
+
+  * clean up the `flame` problem and make the inputs files clearer +
+    add one for carbon flames.  Also update the analysis scripts
+    (#3056)
+
+  * fix CI test branch issues (#3060)
+
+  * add Bessel-Legendre initial conditions for the 2D diffusion
+    test in spherical geometry (#3054)
+
+  * update the `flame_wave` analysis script to allow for parallel runs,
+    interactivity, and performance (#3030)
+
+  * fix the `divu`, `magvort`, and `diffterm` plot variables for 2D
+    spherical geometry (#3055)
+
+# 25.04
+
+  * for spherical geometry, allow the inner BC to not be at zero for
+    diffusion test problem (#3047) and improve the plotting script
+    (#3041)
+
+  * allow Castro to create the div{k grad{T}} diffusion term instead
+    of using the MLMG routines from AMReX (#3048)
+
+  * fix the spherical boundary check at initialization (#3046)
+
+  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr` (#3049)
+
+  * fix a NaN in `transverse_use_eos` when running in 3D (#3043)
+
+  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation`
+    problem. (#3038)
+
+# 25.03
+
+  * nova problem: update the inputs to match Smith Clark & Zingale
+    (2025) and support 3D (#3031, #3040)
+
+  * docs updates (#3039)
+
+  * update the network names for the subchandra and subch_base
+    problems (#3033)
+
+  * update the HIP CI action to support a later runner (#3034)
+
+  * add support for printing from `check_for_name` from GPUs (#3036)
+
+  * remove some old sparse Jacobian stuff from the build system
+    (#3035)
+
+# 25.02
+
+  * docs updates (#3027)
+
+  * add the `simple_convection` problem (#3016)
+
+  * codespell CI updates (#3025)
+
+  * only print mid-timestep `estTimeStep` outputs if relevant (#3023)
+
+  * CI updates to match Microphysics changes (#3021, #3024)
+
+  * remove some old comments related to Fortran (#3022)
+
+  * fix a tiling issue with shock detection on CPUs (#3019)
+
+  * remove unneeded files from problem setups (#3018) and fix comments
+    in problem setup `GNUmakefile`s
+
+# 25.01
+
+  * address rotation source in spherical 2d coordinate (#2967)
+
+  * update scripts and input files for diffusion test  (#3012)
+
+  * update pressure via eos when transverse_use_eos=1 (#3004)
+
+  * update thermal diffusion documentation (#3011)
+
+  * rename `Opacity_dir` -> `OPACITY_DIR` (#3006)
+
+  * sync GPU CI dependencies with AMReX (#3010)
+
+  * wdmerger: update inputs for He mergers to include burn retry
+    and adjust I/O (#3008)
+
+  * fix area/vol factors for spherical when theta is close to 0 or pi
+    (#3007)
+
+# 24.12
+
+  * update clang-tidy CI (#2992, #3002)
+
+  * fix `problo` != 0 in non-Cartesian coords (#3001)
+
+  * fix `apply_av` in spherical (#3000)
+
+  * update `xrb_spherical` analysis (#2999)
+
+  * add spherical support to plm (#2996, #2997)
+
+  * fix coverity issue (#2998)
+
+  * fix geometric source term in ppm tracing for spherical (#2995)
+
+  * fix dloga for non-radial direction in tracing (#2994)
+
+  * fix `scale_flux` in 1d for Cartesian (#2991)
+
+  * add the `xrb_spherical` problem setup (#2972)
+
+  * add a new distance function that works for all geometries (#2990)
+
+  * fix confusing geom name in derive (#2989)
+
 # 24.11
 
   * a new well-balanced method was added to the CTU PPM solver.  This
@@ -882,7 +1035,7 @@
      the conversion of primitive to conserved variables (#804)
 
    * We've changed how the backup for retries is done.  Presently if
-     use_retry is enabled we make a pre-emptive copy of the StateData
+     use_retry is enabled we make a preemptive copy of the StateData
      right at the beginning of the timestep.  Now we only backup when
      we detect that a retry is needed (#812)
 

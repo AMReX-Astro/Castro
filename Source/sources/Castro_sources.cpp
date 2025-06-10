@@ -561,7 +561,7 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
 
     for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        const Box& obx = mfi.growntilebox(1);
+        const Box& obx = amrex::grow(bx, 1);
 
         shk.resize(bx, 1);
 #ifdef RADIATION

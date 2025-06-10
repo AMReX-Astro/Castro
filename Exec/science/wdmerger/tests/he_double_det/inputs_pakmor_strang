@@ -292,9 +292,6 @@ integrator.atol_spec = 1.0e-6
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.abort_on_failure = 0
-
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
 
@@ -302,7 +299,13 @@ integrator.renormalize_abundances = 1
 integrator.MAX_TEMP = 1.0e10
 
 # Use tabular rate evaluation when available
-network.use_tables = 1
+network.use_tables = 0
+
+# use retry in the burner and cap the number of steps to make the
+# reactions go faster
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
+integrator.ode_max_steps = 10000
 
 ############################################################################################
 # Gravity
@@ -377,16 +380,16 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-amr.check_per = 1.0
+amr.check_per = -1
 
 # Number of timesteps between checkpoints
-amr.check_int = -1
+amr.check_int = 50
 
 # Root name of plot files
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = 1.0
+amr.plot_per = 2.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
@@ -423,16 +426,19 @@ gravity.v = 1
 amr.plot_vars = ALL
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = pressure
+amr.derive_plot_vars = ALL
 
 # State variables to add to small plot files
 amr.small_plot_vars = density Temp
 
 # Derived variables to add to small plot files
-amr.derive_small_plot_vars = enuc X(He4) X(C12) X(O16)
+amr.derive_small_plot_vars = abar enuc MachNumber magvel magvort X(He4) X(C12) X(O16)
 
 # Name of the diagnostic sum output files
 amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.out
+
+# write plotfiles as single precision
+fab.format = NATIVE_32
 
 ############################################################################################
 # Problem parameters

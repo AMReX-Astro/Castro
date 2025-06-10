@@ -488,7 +488,7 @@ namespace HLL {
         }
 
         Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
-        frac = std::clamp(frac, 0.0_rt, 1.0_rt);
+        frac = amrex::Clamp(frac, 0.0_rt, 1.0_rt);
 
         Real qint[NQ] = {0.0};
 

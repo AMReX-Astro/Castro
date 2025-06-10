@@ -76,7 +76,7 @@ newton_shock(amrex::Real& W_s, const amrex::Real pstar,
             converged = true;
         }
 
-        W_s = std::clamp(W_s + dW, 0.5_rt * W_s, 2.0_rt * W_s);
+        W_s = amrex::Clamp(W_s + dW, 0.5_rt * W_s, 2.0_rt * W_s);
 
         // store some history
 
