@@ -1,11 +1,12 @@
 
-diff_coeff    real     1.0_rt       y
+diff_coeff        real     1.0_rt       y
 
-T1            real     1.0_rt       y
+T1                real     1.0_rt       y
 
-T2            real     2.0_rt       y
+T2                real     2.0_rt       y
 
-rho0          real     0.0_rt
+rho0              real     0.0_rt
 
-t_0           real     0.001_rt     y
+t_0               real     0.001_rt     y
 
+gaussian_init     bool     1            y

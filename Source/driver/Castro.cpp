@@ -4269,7 +4269,7 @@ Castro::get_numpts ()
      long nx = bx.size()[0];
 
 #if (AMREX_SPACEDIM == 1)
-     numpts_1d = nx;
+     numpts_1d = static_cast<int>(nx);
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
@@ -4293,7 +4293,9 @@ Castro::define_new_center(const MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
+#if AMREX_SPACEDIM >= 2
     const Real* dx = geom.CellSize();
+#endif
 
     IntVect max_index = S.maxIndex(URHO,0);
     Box bx(max_index,max_index);
