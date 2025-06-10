@@ -169,7 +169,14 @@ def slice(fnames:List[str], fields:List[str],
             hibnd_r = center[0] + 0.5 * box_widths[0]
             hibnd_z = center[1] + 0.5 * box_widths[1]
 
-            for theta_increment in range(1, 181):
+            if show_full_star:
+                # Plot latitude line every 10 degrees
+                theta_increment_step = 10
+            else:
+                # Plot latitude line every degree
+                theta_increment_step = 1
+
+            for theta_increment in range(1, 181, theta_increment_step):
                 latitude_thetar = thetac + theta_increment
                 latitude_thetal = thetac - theta_increment
 
