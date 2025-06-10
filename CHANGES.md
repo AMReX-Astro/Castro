@@ -1,3 +1,14 @@
+# 25.06
+
+  * update `subch_planar` `README.md` (#3075)
+
+  * update ``diffusion_test`` with improved documentation for the 2D
+    spherical test (#3072)
+
+  * add protection to the build system that checks to make sure that a
+    `make clean` is done before we try to build with a different
+    network. (#3073)
+
 # 25.05
 
   * update nova inputs are README (#3066)
