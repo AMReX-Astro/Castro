@@ -12,6 +12,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 
+
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
           dr: Optional[float] = None,
@@ -115,13 +116,12 @@ def slice(fnames:List[str], fields:List[str],
 
         if show_full_star:
             # If we want to show the full domain in the background.
-            # Change boxwidth and center to full star
-            r_full = rr+dr
-            center = [r_full*np.sin(theta_center), r_full*np.cos(theta_center)]
+            # Change box_widths and center to full star
+            center = [r_center*np.sin(theta_center), r_center*np.cos(theta_center)]
             if thetar < 0.5 * np.pi:
-                boxwidths = (r_full*np.sin(thetar), r_full*np.cos(thetal))
+                box_widths = (rr*np.sin(thetar), rr*np.cos(thetal))
             else:
-                boxwidths = (r_full, 2*r_full*np.cos(thetal))
+                box_widths = ( rr, rr*(np.abs(np.cos(thetar)) + np.cos(thetal)) )
 
         for i, field in enumerate(fields):
             # Plot each field parameter
@@ -173,13 +173,18 @@ def slice(fnames:List[str], fields:List[str],
             hibnd_z = center[1] + 0.5 * box_widths[1]
 
             if show_full_star:
-                # Plot latitude line every 10 degrees
-                theta_increment_step = 10
+                # Plot latitude line every 15 degrees
+                start = 15
+                end = 195
+                step = 15
             else:
                 # Plot latitude line every degree
-                theta_increment_step = 1
+                start = 1
+                end = 181
+                step = 1
 
-            for theta_increment in range(1, 181, theta_increment_step):
+            for theta_increment in range(start, end, step):
+                # This is actually in theta-coordinate.
                 latitude_thetar = thetac + theta_increment
                 latitude_thetal = thetac - theta_increment
 
@@ -191,14 +196,17 @@ def slice(fnames:List[str], fields:List[str],
                 hi_r = rl * np.sin(math.radians(latitude_thetar))
                 hi_z = rl * np.cos(math.radians(latitude_thetar))
 
-                # Check if the point is within the frame.
-                if 0 <= latitude_thetal < 180 and lo_r >= lobnd_r and lo_z >= lobnd_z:
+                # Check if the point is within the frame and append point
+                if (0 <= latitude_thetal < 180 and lo_r >= lobnd_r
+                    and lo_z >= lobnd_z and lo_z <= hibnd_z):
                         latitude_thetas.append(latitude_thetal)
-                if 0 <= latitude_thetar < 180 and hi_r < hibnd_r and hi_z < hibnd_z:
+                if (0 <= latitude_thetar < 180 and hi_r < hibnd_r
+                    and hi_z > lobnd_z and hi_z < hibnd_z):
                         latitude_thetas.append(latitude_thetar)
 
                 # If outside the frame, then breakout
-                if (lo_r < lobnd_r or lo_z < lobnd_z) and (hi_r >= hibnd_r or hi_z >= hibnd_z):
+                if ((lo_r < lobnd_r or lo_z < lobnd_z or lo_z > hibnd_z) and
+                    (hi_r >= hibnd_r or hi_z >= hibnd_z or hi_z <= lobnd_z)):
                     break
 
             # Now annotate latitude lines and do the labeling.
@@ -214,8 +222,12 @@ def slice(fnames:List[str], fields:List[str],
                 linewidth = 2.0 if not latitude_theta % 5 else 1.0
 
                 # Label latitude
-                sp.annotate_text([(rl-0.15*dr)*np.sin(latitude_radian),
-                                  (rl-0.15*dr)*np.cos(latitude_radian)],
+                if show_full_star:
+                    r_label = rl - 3*dr
+                else:
+                    r_label = rl - 0.15*dr
+                sp.annotate_text([r_label*np.sin(latitude_radian),
+                                  r_label*np.cos(latitude_radian)],
                                  f"{int(90 - latitude_theta)}\u00B0",
                                  text_args={"color": "silver",
                                             "size": "12",
@@ -231,10 +243,16 @@ def slice(fnames:List[str], fields:List[str],
                                  coord_system="plot")
 
                 # Find the upper and lower bound of the latitude lines
-                rll = max(lobnd_r / np.sin(latitude_radian),
-                          lobnd_z / np.cos(latitude_radian))
-                rrr = min(hibnd_r / np.sin(latitude_radian),
-                          hibnd_z / np.cos(latitude_radian))
+                if latitude_radian > 0.5*np.pi:
+                    rll = max(lobnd_r / np.sin(latitude_radian),
+                              hibnd_z / np.cos(latitude_radian))
+                    rrr = min(hibnd_r / np.sin(latitude_radian),
+                              lobnd_z / np.cos(latitude_radian))
+                else:
+                    rll = max(lobnd_r / np.sin(latitude_radian),
+                              lobnd_z / np.cos(latitude_radian))
+                    rrr = min(hibnd_r / np.sin(latitude_radian),
+                              hibnd_z / np.cos(latitude_radian))
 
                 # First do a line to the lower half of the shell
                 sp.annotate_line([rll*np.sin(latitude_radian),
