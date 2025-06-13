@@ -12,6 +12,78 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 
+def extract_info(ds,
+                 loc: str = "top", widthScale: float = 3.0,
+                 dr: Optional[float] = None,
+                 theta: Optional[float] = None,
+                 displace_theta: bool = True,
+                 show_full_star: bool = True):
+    '''
+    Extracts relevant infos of a plotting script
+    '''
+    # Some geometry properties
+    rl = ds.domain_left_edge[0].in_units("km")
+    if dr is None:
+        rr = ds.domain_right_edge[0].in_units("km")
+        dr = rr - rl
+    else:
+        dr = dr * rl.units
+        rr = rl + dr
+
+    if show_full_star:
+        r_center = 0.5 * rr
+    else:
+        r_center = 0.5 * dr + rl
+
+    r = [rl, r_center, rr]
+
+    thetar = ds.domain_right_edge[1]
+    thetal = ds.domain_left_edge[1]
+    theta_center = 0.5 * (thetar + thetal)
+
+    # Domain width of the slice plot
+    width = widthScale * dr
+    box_widths = (width, width)
+
+    # Now determine center of the frame
+    if show_full_star:
+        # If we want to show the full domain in the background.
+        # Change box_widths and center to full star
+        center = [r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)]
+        if thetar < 0.5 * np.pi:
+            box_widths = (r[2]*np.sin(thetar), r[2]*np.cos(thetal))
+        else:
+            box_widths = ( r[2], r[2]*(np.abs(np.cos(thetar)) + np.cos(thetal)) )
+
+    elif theta is None:
+        # Preset centers for the Top, Mid and Bot panels
+        # Centers will be physical coordinates in Cylindrical, i.e. R-Z
+        centers = {"top":(r[1]*np.sin(thetal)+0.5*width, r[1]*np.cos(thetal)),
+                   "mid":(r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)),
+                   "bot":(r[1]*np.sin(thetar)+0.5*width, r[1]*np.cos(thetar))}
+
+        center = centers[loc]
+    else:
+        if displace_theta:
+            # Optionally displace the center by ~0.7 of the plotting width
+            # This is helpful when tracking the flame front.
+            # This keeps the front at ~0.7 of the plotting width.
+
+            # Determine dtheta that displaces from center to ~0.7 of the plotting domain
+            oSevenTheta = np.arcsin(0.7 * width / r[1])
+            halfTheta = np.arcsin(0.5 * width / r[1])
+            dtheta = oSevenTheta - halfTheta
+        else:
+            dtheta = 0
+
+        # Determine center using theta but also displace it by dtheta
+        R = r[1]*np.sin(theta - dtheta)
+        Z = r[1]*np.cos(theta - dtheta)
+        if R < 0.5 * width:
+            R = 0.5 * width
+        center = [R, Z]
+
+    return r, box_widths, center
 
 def annotate_latitude_lines(sp, center, box_widths, r,
                             show_full_star=False):
@@ -137,79 +209,6 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                          alpha=0.2,
                          linewidth=linewidth,
                          linestyle="-")
-
-def extract_info(ds,
-                 loc: str = "top", widthScale: float = 3.0,
-                 dr: Optional[float] = None,
-                 theta: Optional[float] = None,
-                 displace_theta: bool = True,
-                 show_full_star: bool = True):
-    '''
-    Extracts relevant infos of a plotting script
-    '''
-    # Some geometry properties
-    rl = ds.domain_left_edge[0].in_units("km")
-    if dr is None:
-        rr = ds.domain_right_edge[0].in_units("km")
-        dr = rr - rl
-    else:
-        dr = dr * rl.units
-        rr = rl + dr
-
-    if show_full_star:
-        r_center = 0.5 * rr
-    else:
-        r_center = 0.5 * dr + rl
-
-    r = [rl, r_center, rr]
-
-    thetar = ds.domain_right_edge[1]
-    thetal = ds.domain_left_edge[1]
-    theta_center = 0.5 * (thetar + thetal)
-
-    # Domain width of the slice plot
-    width = widthScale * dr
-    box_widths = (width, width)
-
-    # Now determine center of the frame
-    if show_full_star:
-        # If we want to show the full domain in the background.
-        # Change box_widths and center to full star
-        center = [r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)]
-        if thetar < 0.5 * np.pi:
-            box_widths = (r[2]*np.sin(thetar), r[2]*np.cos(thetal))
-        else:
-            box_widths = ( r[2], r[2]*(np.abs(np.cos(thetar)) + np.cos(thetal)) )
-
-    elif theta is None:
-        # Preset centers for the Top, Mid and Bot panels
-        # Centers will be physical coordinates in Cylindrical, i.e. R-Z
-        centers = {"top":(r[1]*np.sin(thetal)+0.5*width, r[1]*np.cos(thetal)),
-                   "mid":(r[1]*np.sin(theta_center), r[1]*np.cos(theta_center)),
-                   "bot":(r[1]*np.sin(thetar)+0.5*width, r[1]*np.cos(thetar))}
-
-        center = centers[loc]
-    else:
-        if displace_theta:
-            # Optionally displace the center by ~0.7 of the plotting width
-            # This is helpful when tracking the flame front.
-            # This keeps the front at ~0.7 of the plotting width.
-
-            # Determine dtheta that displaces from center to ~0.7 of the plotting domain
-            oSevenTheta = np.arcsin(0.7 * width / r[1])
-            halfTheta = np.arcsin(0.5 * width / r[1])
-            dtheta = oSevenTheta - halfTheta
-        else:
-            dtheta = 0
-
-        # Determine center using theta but also displace it by dtheta
-        R = r[1]*np.sin(theta - dtheta)
-        Z = r[1]*np.cos(theta - dtheta)
-        if R < 0.5 * width:
-            R = 0.5 * width
-        center = [R, Z]
-
-    return r, box_widths, center
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,

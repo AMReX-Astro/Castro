@@ -14,7 +14,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
-
+from slice import extract_info, annotate_latitude_lines
 
 def single_slice(fname:str, field:str,
                  loc: str = "top", widthScale: float = 3.0,
@@ -52,67 +52,12 @@ def single_slice(fname:str, field:str,
     # Process information for the dataset
 
     # Some geometry properties
-    rl = ds.domain_left_edge[0].in_units("km")
-    if dr is None:
-        rr = ds.domain_right_edge[0].in_units("km")
-        dr = rr - rl
-    else:
-        dr = dr * rl.units
-        rr = rl + dr
-
-    if show_full_star:
-        r_center = 0.5 * rr
-    else:
-        r_center = 0.5 * dr + rl
-
-    thetar = ds.domain_right_edge[1]
-    thetal = ds.domain_left_edge[1]
-    dtheta = thetar - thetal
-    theta_center = 0.5 * (thetar + thetal)
-        
-    # Domain width of the slice plot
-    width = widthScale * dr
-    box_widths = (width, width)
-
-    # Now determine center of the frame
-
-    if show_full_star:
-            # If we want to show the full domain in the background.
-            # Change box_widths and center to full star
-            center = [r_center*np.sin(theta_center), r_center*np.cos(theta_center)]
-            if thetar < 0.5 * np.pi:
-                box_widths = (rr*np.sin(thetar), rr*np.cos(thetal))
-            else:
-                box_widths = ( rr, rr*(np.abs(np.cos(thetar)) + np.cos(thetal)) )
-
-    elif theta is None:
-        # Preset centers for the Top, Mid and Bot panels
-        # Centers will be physical coordinates in Cylindrical, i.e. R-Z
-        centers = {"top":(r_center*np.sin(thetal)+0.5*width, r_center*np.cos(thetal)),
-                   "mid":(r_center*np.sin(theta_center), r_center*np.cos(theta_center)),
-                   "bot":(r_center*np.sin(thetar)+0.5*width, r_center*np.cos(thetar))}
-        
-        center = centers[loc]
-
-    else:
-        if displace_theta:
-            # Optionally displace the center by ~0.7 of the plotting width
-            # This is helpful when tracking the flame front.
-            # This keeps the front at ~0.7 of the plotting width.
-            
-            # Determine dtheta that displaces from center to ~0.7 of the plotting domain
-            oSevenTheta = np.arcsin(0.7 * width / r_center)
-            halfTheta = np.arcsin(0.5 * width / r_center)
-            dtheta = oSevenTheta - halfTheta
-        else:
-            dtheta = 0
-
-        # Determine center using theta but also displace it by dtheta
-        R = r_center*np.sin(theta - dtheta)
-        Z = r_center*np.cos(theta - dtheta)
-        if R < 0.5 * width:
-            R = 0.5 * width
-        center = [R, Z]
+    r, box_widths, center = extract_info(ds,
+                                         loc=loc, widthScale=widthScale,
+                                         dr=dr,
+                                         theta=theta,
+                                         displace_theta=displace_theta,
+                                         show_full_star=show_full_star)
 
 
     # Plot each field parameter
@@ -144,131 +89,18 @@ def single_slice(fname:str, field:str,
 
     # Plot a vertical to indicate flame front
     if theta is not None and annotate_vline:
-        sp.annotate_line([rl*np.sin(theta), rl*np.cos(theta)],
-                         [rr*np.sin(theta), rr*np.cos(theta)],
+        sp.annotate_line([r[0]*np.sin(theta), r[0]*np.cos(theta)],
+                         [r[2]*np.sin(theta), r[2]*np.cos(theta)],
                          coord_system="plot",
                          color="k",
                          linewidth=1.5,
                          linestyle="-.")
 
     ### Annotate Latitude Lines
+    if annotate_lat_lines:
+        annotate_latitude_lines(sp, center, box_widths, r,
+                                show_full_star=show_full_star)
 
-    # Start from the theta center [deg] of the slice plot frame.
-    thetac = round(math.degrees(np.arcsin(center[0] / r_center)))
-    latitude_thetas = [thetac]
-
-    # Determine the upper and lower bound of the frame
-    lobnd_r = center[0] - 0.5 * box_widths[0]
-    lobnd_z = center[1] - 0.5 * box_widths[1]
-    hibnd_r = center[0] + 0.5 * box_widths[0]
-    hibnd_z = center[1] + 0.5 * box_widths[1]
-
-    if show_full_star:
-        # Plot latitude line every 15 degrees
-        start = 15
-        end = 195
-        step = 15
-    else:
-        # Plot latitude line every degree
-        start = 1
-        end = 181
-        step = 1
-
-    # Find what theta to latitude lines
-    for theta_increment in range(start, end, step):
-        # This is actually in theta-coordinate.
-        latitude_thetar = thetac + theta_increment
-        latitude_thetal = thetac - theta_increment
-
-        # Now find the RZ position of different latitude thetas
-        # and see if they're out of the frame.
-        lo_r = rl * np.sin(math.radians(latitude_thetal))
-        lo_z = rl * np.cos(math.radians(latitude_thetal))
-
-        hi_r = rl * np.sin(math.radians(latitude_thetar))
-        hi_z = rl * np.cos(math.radians(latitude_thetar))
-
-        # Check if the point is within the frame and append point
-        if (0 <= latitude_thetal < 180 and lo_r >= lobnd_r
-            and lo_z >= lobnd_z and lo_z <= hibnd_z):
-            latitude_thetas.append(latitude_thetal)
-        if (0 <= latitude_thetar < 180 and hi_r < hibnd_r
-            and hi_z > lobnd_z and hi_z < hibnd_z):
-            latitude_thetas.append(latitude_thetar)
-
-        # If outside the frame, then breakout
-        if ((lo_r < lobnd_r or lo_z < lobnd_z or lo_z > hibnd_z) and
-            (hi_r >= hibnd_r or hi_z >= hibnd_z or hi_z <= lobnd_z)):
-            break
-
-    # Now annotate latitude lines and do the labeling.
-    for latitude_theta in latitude_thetas:
-        # Break out if we don't want to annotate latitude lines.
-        if not annotate_lat_lines:
-            break
-        
-        if latitude_theta == 0:
-            continue
-
-        latitude_radian = math.radians(latitude_theta)
-        linewidth = 2.0 if not latitude_theta % 5 else 1.0
-
-        # Label latitude
-        if show_full_star:
-            r_label = rl - 3*dr
-        else:
-            r_label = rl - 0.15*dr
-
-        sp.annotate_text([r_label*np.sin(latitude_radian),
-                          r_label*np.cos(latitude_radian)],
-                         f"{int(90 - latitude_theta)}\u00B0",
-                         text_args={"color": "silver",
-                                    "size": "12",
-                                    "family": "monospace",
-                                    "horizontalalignment": "center",
-                                    "verticalalignment": "center",
-                                    },
-                         inset_box_args={
-                             "boxstyle": "square,pad=0.3",
-                             "facecolor": "white",
-                             "edgecolor": "white",
-                         },
-                         coord_system="plot")
-
-        # Find the upper and lower bound of the latitude lines
-        if latitude_radian > 0.5*np.pi:
-            rll = max(lobnd_r / np.sin(latitude_radian),
-                      hibnd_z / np.cos(latitude_radian))
-            rrr = min(hibnd_r / np.sin(latitude_radian),
-                      lobnd_z / np.cos(latitude_radian))
-        else:
-            rll = max(lobnd_r / np.sin(latitude_radian),
-                      lobnd_z / np.cos(latitude_radian))
-            rrr = min(hibnd_r / np.sin(latitude_radian),
-                      hibnd_z / np.cos(latitude_radian))
-
-        # First do a line to the lower half of the shell
-        sp.annotate_line([rll*np.sin(latitude_radian),
-                          rll*np.cos(latitude_radian)],
-                         [rl*np.sin(latitude_radian),
-                          rl*np.cos(latitude_radian)],
-                         coord_system="plot",
-                         color="k",
-                         alpha=0.2,
-                         linewidth=linewidth,
-                         linestyle="-")
-        
-        # Then do a line to the upper half of the shell
-        sp.annotate_line([rr*np.sin(latitude_radian),
-                          rr*np.cos(latitude_radian)],
-                         [rrr*np.sin(latitude_radian),
-                          rrr*np.cos(latitude_radian)],
-                         coord_system="plot",
-                         color="k",
-                         alpha=0.2,
-                         linewidth=linewidth,
-                         linestyle="-")
-    
     sp._setup_plots()
     return sp
 
@@ -276,21 +108,14 @@ def single_slice(fname:str, field:str,
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="""
-        A slice plot script for xrb_spherical problem.
-        Given a list of plotfiles or a list of field parameters,
-        it plots multiple slice plots.
+    This script plots the full-star along with a zoom-in plot
+    displayed in the center. This works with one field only.
         """)
 
     parser.add_argument('fname', type=str,
-                        help="""dataset file names for plotting. Accepts one or more datasets.
-                        If multiple file names are given, a grid of slice plots of different
-                        files will be plotted for a given field parameter.
-                        Note that either fnames or field must be single valued.""")
+                        help="""A single dataset file name for plotting.""")
     parser.add_argument('-f', '--field', type=str,
-                        help="""field parameters for plotting. Accepts one or more datasets.
-                        If multiple parameters are given, a grid of slice plots of different
-                        field parameters will be plotted for a given fname.
-                        Note that either fnames or fields must be single valued.
+                        help="""A single field parameter for plotting slice plot.
                         """)
     parser.add_argument('-l', '--loc', default='top', type=str, metavar="{top, mid, bot}",
                         help="""preset center location of the plot domain.
@@ -301,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--dr', type=float,
                         help="""Distance between upper r and lower r shown in the SlicePlot.
                         Assumed in unit km. This is used to control center and width of the SlicePlot""")
-    parser.add_argument('-w', '--width', default=3.0, type=float,
+    parser.add_argument('-w', '--width', default=2.0, type=float,
                         help="scaling for the domain width of the slice plot")
     parser.add_argument('--displace_theta', action='store_true',
                         help="""whether to displace the theta that defines the center of the frame.
@@ -319,25 +144,34 @@ if __name__ == "__main__":
     if loc not in loc_options:
         parser.error("loc must be one of the three: {top, mid, bot}")
 
+    # First get the slice plot of the full-star.
     full_star_slice = single_slice(args.fname, args.field, loc=loc,
                             widthScale=args.width, dr=args.dr, theta=args.theta,
                             displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
                             annotate_lat_lines=args.annotate_lat_lines, show_full_star=True)
     # full_star_slice.render()
 
+    # Extract the figure of the full-star slice and use that as the main figure for plotting.
     fig = full_star_slice.plots[args.field].figure
+
+    # Add an inset ax in the middle of the star
     rect = (0.24, 0.35, 0.4, 0.4)  # Left, Bottom, Width, Height
     inset_ax = fig.add_axes(rect)
-    
+
+    # Get the slice of the zoom-in plot
     zoom_in_slice = single_slice(args.fname, args.field, loc=loc,
                             widthScale=args.width, dr=args.dr, theta=args.theta,
                             displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
                             annotate_lat_lines=args.annotate_lat_lines, show_full_star=False)
     zoom_in_slice.hide_colorbar()
     # zoom_in_slice.render()
+
+    # Export to mpl figure, otherwise it has problems putting it in the inset ax
     fig_zoom = zoom_in_slice.export_to_mpl_figure((1,1))
+    # Need to render so that it displays.
     zoom_in_slice.render()
 
+    # Find the image of the zoom-in slice plot, and replot it using imshow onto the inset_ax
     inset_img = fig_zoom.axes[0].images[0]
     inset_ax.imshow(
         inset_img.get_array(),
@@ -372,6 +206,7 @@ if __name__ == "__main__":
             ha=text.get_ha(),
             va=text.get_va(),
             alpha=text.get_alpha(),
+            clip_on=True,
             transform=inset_ax.transData,  # Match data coordinates
             bbox=dict(
                 boxstyle="square,pad=0.1",
@@ -383,8 +218,19 @@ if __name__ == "__main__":
     ### Now annotate inset box lines ###
     # loc1 and loc2: corners to connect (1: upper right, 2: upper left, 3: lower left, 4: lower right)
     # Probably need to change loc1 and loc2 depending on where the zoom-in plot is.
-    mark_inset(fig.axes[0], inset_ax, loc1=2, loc2=1, fc="none", ec="red",
+    if args.theta < np.pi / 3.0 or (args.theta is None and loc=="top"):
+        loc1 = 1
+        loc2 = 2
+    elif args.theta > 2.0*np.pi/3.0 or (args.theta is None and loc=="bot"):
+        loc1 = 3
+        loc2 = 4
+    else:
+        # mid
+        loc1 = 1
+        loc2 = 4
+
+    mark_inset(fig.axes[0], inset_ax, loc1=loc1, loc2=loc2, fc="none", ec="red",
                linestyle="--", linewidth=1.0)
-    
-    # fig_inset.savefig("zoom_in_slice.png", format='png', bbox_inches='tight')
+
+    # Save the figure
     fig.savefig("full_star_slice.png", format='png', bbox_inches='tight')
