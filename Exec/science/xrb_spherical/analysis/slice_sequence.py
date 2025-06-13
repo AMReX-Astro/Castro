@@ -21,6 +21,13 @@ parser.add_argument('-w', '--width', default=3.0, type=float,
 parser.add_argument('-r', '--dr', type=float,
                     help="""Distance between upper r and lower r shown in the SlicePlot.
                     Assumed in unit km. This is used to control center and width of the SlicePlot""")
+parser.add_argument('--displace_theta', action='store_true',
+                    help="""whether to displace the theta that defines the center of the frame.
+                        This is useful when theta represents the flame front position.""")
+parser.add_argument('--annotate_vline', action='store_true',
+                    help="whether to annotate a vertical line along the given theta")
+parser.add_argument('--annotate_lat_lines', action='store_true',
+                    help="whether to annotate latitude lines")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
@@ -38,7 +45,9 @@ front_thetas = tracking_data["front_theta"]
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(slice, [fname], args.fields, widthScale=args.width,
-                        dr=args.dr, theta=front_thetas[i]): i
+                        dr=args.dr, theta=front_thetas[i],
+                        displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
+                        annotate_lat_lines=args.annotate_lat_lines): i
         for i, fname in enumerate(fnames)
     }
     try:
