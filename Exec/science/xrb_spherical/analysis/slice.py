@@ -99,7 +99,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
     """
 
     # Start from the theta center [deg] of the slice plot frame.
-    thetac = round(math.degrees(np.arcsin(center[0] / r[1])))
+    thetac = round(math.degrees(np.arccos(center[1] / r[1])))
     latitude_thetas = [thetac]
 
     # Determine the upper and lower bound of the frame
@@ -177,7 +177,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                          coord_system="plot")
 
         # Find the upper and lower bound of the latitude lines
-        if latitude_radian > 0.5*np.pi:
+        if latitude_radian >= 0.5*np.pi:
             rll = max(lobnd_r / np.sin(latitude_radian),
                       hibnd_z / np.cos(latitude_radian))
             rrr = min(hibnd_r / np.sin(latitude_radian),
@@ -189,26 +189,28 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                       hibnd_z / np.cos(latitude_radian))
 
         # First do a line to the lower half of the shell
-        sp.annotate_line([rll*np.sin(latitude_radian),
-                          rll*np.cos(latitude_radian)],
-                         [r[0]*np.sin(latitude_radian),
-                          r[0]*np.cos(latitude_radian)],
-                         coord_system="plot",
-                         color="k",
-                         alpha=0.2,
-                         linewidth=linewidth,
-                         linestyle="-")
+        if rll < r[0]:
+            sp.annotate_line([rll*np.sin(latitude_radian),
+                              rll*np.cos(latitude_radian)],
+                             [r[0]*np.sin(latitude_radian),
+                              r[0]*np.cos(latitude_radian)],
+                             coord_system="plot",
+                             color="k",
+                             alpha=0.2,
+                             linewidth=linewidth,
+                             linestyle="-")
 
         # Then do a line to the upper half of the shell
-        sp.annotate_line([r[2]*np.sin(latitude_radian),
-                          r[2]*np.cos(latitude_radian)],
-                         [rrr*np.sin(latitude_radian),
-                          rrr*np.cos(latitude_radian)],
-                         coord_system="plot",
-                         color="k",
-                         alpha=0.2,
-                         linewidth=linewidth,
-                         linestyle="-")
+        if rrr > r[2]:
+            sp.annotate_line([r[2]*np.sin(latitude_radian),
+                              r[2]*np.cos(latitude_radian)],
+                             [rrr*np.sin(latitude_radian),
+                              rrr*np.cos(latitude_radian)],
+                             coord_system="plot",
+                             color="k",
+                             alpha=0.2,
+                             linewidth=linewidth,
+                             linestyle="-")
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
