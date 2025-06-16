@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 9.8304e4       2.4576e4
-amr.n_cell           = 384         192
+geometry.prob_hi     = 1.96608e5      2.4576e4
+amr.n_cell           = 768         192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -75,7 +75,7 @@ castro.max_subcycles = 16
 castro.retry_small_density_cutoff = 10.0
 
 castro.abundance_failure_tolerance = 0.1
-castro.abundance_failure_rho_cutoff = 1.0
+castro.abundance_failure_rho_cutoff = 5.0
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 100     # timesteps between computing mass
