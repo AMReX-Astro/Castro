@@ -181,7 +181,7 @@ if __name__ == "__main__":
         norm=inset_img.norm
     )
 
-    # Add back annotation lines, i.e. latitude liens
+    # Add back annotation lines, i.e. latitude lines
     for line in fig_zoom.axes[0].lines:
         inset_ax.plot(
             line.get_xdata(),
