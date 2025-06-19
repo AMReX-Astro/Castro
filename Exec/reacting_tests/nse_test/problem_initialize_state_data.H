@@ -34,8 +34,11 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
     constexpr Real ye0 = 0.5_rt;
+#if defined(NSE_TABLE)
     constexpr Real dye = -0.05_rt;
-
+#elif defined(NSE_NET)
+    constexpr Real dye = -0.02_rt;
+#endif
     Real dist = std::sqrt(xx * xx + yy * yy + zz * zz);
 
     Real T;

@@ -100,9 +100,10 @@ amr.refine.tempgrad.field_name = Temp
 
 integrator.call_eos_in_rhs = 1
 
-integrator.rtol_spec = 1.e-6
-integrator.atol_spec = 1.e-6
-integrator.rtol_enuc = 1.e-6
+integrator.rtol_spec = 1.e-8
+integrator.atol_spec = 1.e-8
+integrator.rtol_enuc = 1.e-8
+integrator.atol_enuc = 1.e-8
 
 integrator.jacobian = 2
 integrator.ode_max_steps = 1500000
