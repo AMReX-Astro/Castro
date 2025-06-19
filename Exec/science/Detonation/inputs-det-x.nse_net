@@ -109,6 +109,6 @@ integrator.jacobian = 2
 integrator.ode_max_steps = 1500000
 
 nse.nse_molar_independent = 0
-nse.nse_dx_independent = 1
+nse.nse_dx_independent = 0
 nse.ase_tol = 0.1
 nse.nse_skip_molar = 0
