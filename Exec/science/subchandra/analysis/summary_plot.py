@@ -52,7 +52,7 @@ def doit(fns, f, prefix):
         # Ensure the colorbar limits match for all plots
         if f == "Temp":
             sp.set_zlim(f, 5.e7, 4e9)
-            sp.set_cmap(f, "magma_r")
+            sp.set_cmap(f, "magma")
         elif f == "enuc":
             sp.set_log(f, True, linthresh=1.e18)
             sp.set_zlim(f, -1.e22, 1.e22)
