@@ -166,6 +166,18 @@ Profiling
    line-by-line information can be obtained by passing the -l
    argument to gprof.
 
+#. *How can I use AMReX's profiling to see which functions dominate when
+   running in parallel?*
+
+   You can compile with:
+
+   .. prompt:: bash
+
+      TINY_PROFILE=TRUE
+
+   then at the end of the simulation, a table of profiling information will
+   be produced.  See `AMReX Profiling Tools <https://amrex-codes.github.io/amrex/docs_html/AMReX_Profiling_Tools.html>`_ for more information.
+
 Managing Runs
 =============
 

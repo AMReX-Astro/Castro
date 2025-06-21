@@ -267,6 +267,13 @@ be processed with gprof by running:</p>
 line-by-line information can be obtained by passing the -l
 argument to gprof.</p>
 </li>
+<li><p><em>How can I use AMReX’s profiling to see which functions dominate when
+running in parallel?</em></p>
+<p>You can compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1"><span class="nv">TINY_PROFILE</span><span class="o">=</span>TRUE</span>
+</pre></div></div><p>then at the end of the simulation, a table of profiling information will
+be produced.  See <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/AMReX_Profiling_Tools.html">AMReX Profiling Tools</a> for more information.</p>
+</li>
 </ol>
 </section>
 <section id="managing-runs">
