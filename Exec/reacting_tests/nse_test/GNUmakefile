@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 
@@ -22,7 +22,6 @@ EOS_DIR     := helmholtz
 ifeq ($(USE_NSE_NET), TRUE)
 	NETWORK_DIR := ase
 	SCREEN_METHOD := chabrier1998
-	USE_SIMPLIFIED_SDC := TRUE
 else
 	USE_NSE_TABLE := TRUE
 	NETWORK_DIR := aprox19
