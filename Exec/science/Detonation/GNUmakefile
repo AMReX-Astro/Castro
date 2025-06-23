@@ -12,6 +12,8 @@ USE_MPI    = TRUE
 USE_REACT  = TRUE
 USE_SHOCK_VAR = TRUE
 
+USE_SIMPLIFIED_SDC = TRUE
+
 CASTRO_HOME ?= ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
