@@ -1,4 +1,4 @@
-# massive star
+# `massive_star`
 
 This setup models the convective burning shells in a massive star
 leading up to core collapse.  Some details:
@@ -13,3 +13,14 @@ leading up to core collapse.  Some details:
 
 * The Castro ``drive_initial_convection`` functionality is used to
   establish the initial convective velocity field.
+
+## Publications
+
+This problem setup was used in:
+
+* *Strong Coupling of Hydrodynamics and Reactions in Nuclear
+  Statistical Equilibrium for Modeling Convection in Massive Stars*
+
+  Zingale, Michael, Chen, Zhi, Johnson, Eric T., Katz, Max P., &
+  Clark, Alexander Smith 2024, The Astrophysical Journal, 977, 1,
+  p. 30

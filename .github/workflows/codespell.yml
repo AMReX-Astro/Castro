@@ -1,13 +1,6 @@
 name: codespell
 
-on:
-  push:
-    branches:
-      - development
-      - main
-  pull_request:
-    branches:
-      - development
+on: [push, pull_request]
 
 jobs:
   codespell:

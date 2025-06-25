@@ -567,12 +567,6 @@ public:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
-  static inline amrex::Real
-  get_const_grav() {
-    return gravity::const_grav;
-  }
-
-
 };
 
 ///

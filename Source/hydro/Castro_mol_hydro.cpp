@@ -620,6 +620,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 #if AMREX_SPACEDIM <= 2
                    qe[0].array(),
+                   qe[1].array(),
 #endif
                    volume.array(mfi));
 
@@ -656,9 +657,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Array4<Real> pradial_fab = pradial.array();
 #endif
-#if AMREX_SPACEDIM == 1
-        Array4<Real> const qex_arr = qe[0].array();
-#endif
 
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -667,27 +665,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           Array4<Real> const flux_arr = (flux[idir]).array();
           Array4<Real const> const area_arr = (area[idir]).array(mfi);
 
-          scale_flux(nbx,
-#if AMREX_SPACEDIM == 1
-                     qex_arr,
-#endif
-                     flux_arr, area_arr, dt);
-
-
-          if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
-            Array4<Real> const qex_fab = qe[idir].array();
-            const int prescomp = GDPRES;
-
+          scale_flux(nbx, flux_arr, area_arr, dt);
 
 #if AMREX_SPACEDIM <= 2
-            if (!mom_flux_has_p(0, 0, coord)) {
-              amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-              {
-                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-              });
-            }
+          // get the scaled radial pressure -- we need to treat this specially
+
+          if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+            Array4<Real> const qex_arr = qe[idir].array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+            });
 #endif
           }
         }

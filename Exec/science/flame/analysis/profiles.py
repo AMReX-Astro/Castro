@@ -7,6 +7,7 @@ import glob
 import sys
 
 import matplotlib
+from matplotlib import ticker
 import numpy as np
 from cycler import cycler
 
@@ -16,12 +17,7 @@ import yt
 
 yt.set_log_level(50)
 
-dt = 0.005
-tmax = 0.05
-
-times = np.arange(0.0, tmax + dt, dt)
-
-def find_files(plist):
+def find_files(plist, times):
 
     mask = np.zeros(len(times))
     files_to_plot = []
@@ -107,21 +103,21 @@ def doit(pfiles, limitlabels, xmin, xmax):
 
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")
+    ax_T.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
 
     if xmax > 0:
         ax_T.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+    max_enuc = np.abs(enuc).max()
+    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
     if xmax > 0:
         ax_e.set_xlim(xmin, xmax)
 
     ax_v.set_ylabel("v (cm/s)")
     ax_v.set_xlabel("x (cm)")
+    ax_v.yaxis.set_major_formatter(ticker.ScalarFormatter(useMathText=True))
 
     if xmax > 0:
         ax_v.set_xlim(xmin, xmax)
@@ -140,6 +136,10 @@ if __name__ == "__main__":
                    help="minimum x-coordinate to show")
     p.add_argument("--xmax", type=float, default=-1,
                    help="maximum x-coordinate to show")
+    p.add_argument("--dt", type=float, default=0.005,
+                   help="time spacing between plotfiles")
+    p.add_argument("--tmax", type=float, default=-1.0,
+                   help="maximum time to show")
     p.add_argument("--limitlabels", type=float, default=1.,
                    help="Show all labels (default) or reduce to ~ given value")
 
@@ -153,7 +153,12 @@ if __name__ == "__main__":
 
     psorted = [f"{args.prefix}{q}" for q in plot_nums]
 
-    plot_want = find_files(psorted)
-    print(plot_want)
+    if args.tmax == -1:
+        ds = yt.load(psorted[-1])
+        args.tmax = float(ds.current_time) * 1.01
+
+    times = np.arange(0.0, args.tmax + args.dt, args.dt)
+
+    plot_want = find_files(psorted, times)
 
     doit(plot_want, args.limitlabels, args.xmin, args.xmax)

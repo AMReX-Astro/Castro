@@ -74,8 +74,8 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real vely = problem::bulk_velocity;
     Real dye = 0.0_rt;
-    Real dens;
-    Real velx;
+    Real dens{};
+    Real velx{};
 
     if (problem::problem == 1) {
 

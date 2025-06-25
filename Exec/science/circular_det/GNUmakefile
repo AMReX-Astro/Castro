@@ -15,7 +15,7 @@ USE_SHOCK_VAR = TRUE
 
 CASTRO_HOME ?= ../../..
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 NETWORK_DIR := aprox13

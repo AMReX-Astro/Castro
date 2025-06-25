@@ -119,7 +119,8 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
+    const auto* problo = geom.ProbLo();
+    if ((geom.IsSPHERICAL() || geom.IsRZ()) && problo[0] == 0.0_rt) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 

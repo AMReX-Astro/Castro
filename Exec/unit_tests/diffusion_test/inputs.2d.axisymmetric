@@ -1,0 +1,70 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 50000
+stop_time = 0.001
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0    0
+geometry.coord_sys   = 1    # 1 = RZ
+geometry.prob_lo     = 0.0  0.0
+geometry.prob_hi     = 0.5  1.0
+amr.n_cell           = 64  128
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  3   2
+castro.hi_bc       =  2   2
+
+# WHICH PHYSICS
+castro.do_hydro = 0
+castro.diffuse_temp = 1
+castro.do_react = 0
+
+# TIME STEP CONTROL
+
+castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1    # scale back initial timestep
+castro.change_max     = 1.1     # maximum increase in dt over successive steps
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+#amr.grid_log         = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 1       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2       # how often to regrid
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 32
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.value_greater = 1.1
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 3
+
+amr.refine.tempgrad.gradient = 0.1
+amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.max_level = 3
+
+# CHECKPOINT FILES
+amr.check_file      = diffuse_chk     # root name of checkpoint file
+amr.check_int       = 1000     # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = diffuse_plt
+amr.plot_int        = 10
+amr.derive_plot_vars=ALL
+
+# PROBLEM PARAMETERS
+problem.diff_coeff = 1.0
+
+# CONDUCTIVITY
+conductivity.const_conductivity = 10.0
+
+# EOS
+eos.eos_assume_neutral = 1

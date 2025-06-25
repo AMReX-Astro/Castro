@@ -604,7 +604,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const Real ldt = new_time - old_time;
 
-        force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        force[lev] = std::make_unique<MultiFab>(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0);
         force[lev]->setVal(0.0);
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
@@ -798,6 +798,7 @@ Castro::update_relaxation(Real time, Real dt) {
     get_lagrange_points(mass_P, mass_S, com_P, com_S, L1, L2, L3);
 
     const auto dx = geom.CellSizeArray();
+    const auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
@@ -833,7 +834,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
                 // Compute the effective potential.
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega_vec = get_omega_vec(geomdata, j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega_vec, coord);
 
                 for (int n = 0; n < 3; ++n) {
                     r[n] -= L1[n];
@@ -901,7 +903,8 @@ Castro::update_relaxation(Real time, Real dt) {
                 GpuArray<Real, 3> r;
                 position(i, j, k, geomdata, r);
 
-                Real phiEff = phi(i,j,k) + rotational_potential(r);
+                auto omega_vec = get_omega_vec(geomdata, j);
+                Real phiEff = phi(i,j,k) + rotational_potential(r, omega_vec, coord);
 
                 Real done = 0.0_rt;
 

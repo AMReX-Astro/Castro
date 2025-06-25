@@ -73,8 +73,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_GROW      = -1;
-int          Castro::NUM_GROW_SRC  = -1;
 
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
@@ -306,7 +304,30 @@ Castro::read_params ()
 #elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
-        amrex::Abort("We don't support spherical coordinate systems in 2D");
+        if ( (lo_bc[1] != amrex::PhysBCType::symmetry) && (dgeom.ProbLo(1) == 0.0) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=0 boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        {
+          std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
+          amrex::Error();
+        }
+
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
+        {
+          amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
+        }
+
+        Vector<int> n_cell(AMREX_SPACEDIM);
+        ppa.queryarr("n_cell",n_cell,0,AMREX_SPACEDIM);
+        Real ngrow_size = static_cast<Real>(NUM_GROW) * (dgeom.ProbHi(0) - dgeom.ProbLo(0)) / static_cast<Real>(n_cell[0]);
+        if ( dgeom.ProbLo(0) < ngrow_size )
+        {
+          amrex::Abort("ERROR:Castro::read_params: R-min must be large enough so ghost cells doesn't extend to negative R");
+        }
       }
 #elif (AMREX_SPACEDIM == 3)
     if ( dgeom.IsRZ() )
@@ -356,6 +377,14 @@ Castro::read_params ()
 #else
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
         amrex::Error("When building with USE_SIMPLIFIED_SDC=TRUE, only simplified SDC can be used.");
+    }
+#endif
+
+#ifdef TRUE_SDC
+    int max_level;
+    ppa.query("max_level", max_level);
+    if (max_level > 0) {
+        amrex::Error("True SDC does not work with AMR.");
     }
 #endif
 
@@ -566,7 +595,7 @@ Castro::read_params ()
     // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
     // override our overriding, they can do so.
 
-    Amr::setComputeNewDtOnRegrid(1);
+    Amr::setComputeNewDtOnRegrid(true);
 
     // Read in custom refinement scheme.
 
@@ -737,7 +766,7 @@ Castro::Castro (Amr&            papa,
       }
       radiation->regrid(level, grids, dmap);
 
-      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
+      rad_solver = std::make_unique<RadSolve>(parent, level, grids, dmap);
     }
 #endif
 
@@ -751,7 +780,7 @@ Castro::Castro (Amr&            papa,
 Castro::~Castro ()  // NOLINT(modernize-use-equals-default)
 {
 #ifdef RADIATION
-    if (radiation != 0) {
+    if (radiation != nullptr) {
       //radiation->cleanup(level);
       radiation->close(level);
     }
@@ -817,9 +846,19 @@ Castro::buildMetrics ()
         area[dir].setVal(0.0);
     }
 
-    dLogArea[0].clear();
 #if (AMREX_SPACEDIM <= 2)
-    geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
+    {
+        dLogArea[dir].clear();
+        geom.GetDLogA(dLogArea[dir],grids,dmap,dir,NUM_GROW);
+    }
+
+#if (AMREX_SPACEDIM == 1)
+    dLogArea[1].clear();
+    dLogArea[1].define(grids, dmap, 1, 0);
+    dLogArea[1].setVal(0.0);
+#endif
+
 #endif
 
     wall_time_start = 0.0;
@@ -977,7 +1016,7 @@ Castro::initData ()
     BL_PROFILE("Castro::initData()");
 
     //
-    // Loop over grids, call FORTRAN function to init with data.
+    // Loop over grids, call initialization functions
     //
 #if AMREX_SPACEDIM > 1
     const Real* dx  = geom.CellSize();
@@ -3125,6 +3164,9 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                         X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
                         std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+#elif defined(ALLOW_GPU_PRINTF)
+                        AMREX_DEVICE_PRINTF("(i, j, k) = %d %d %d, X[%d] = %g  (density here is: %g)\n",
+                                            i, j, k, n, X, u(i,j,k,URHO));
 #endif
                     }
                 }
@@ -3610,19 +3652,17 @@ Castro::apply_tagging_restrictions(TagBoxArray& tags, [[maybe_unused]] Real time
             const Real* probhi = geomdata.ProbHi();
             const Real* dx = geomdata.CellSize();
 
-            Real loc[3] = {0.0};
+            GpuArray<Real, 3> loc = {0.0};
 
-            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #endif
 #if AMREX_SPACEDIM == 3
-            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-            Real r = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
-                               (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]) +
-                               (loc[2] - problem::center[2]) * (loc[2] - problem::center[2]));
+            Real r = distance(geomdata, loc);
 
             Real max_dist_lo = 0.0;
             Real max_dist_hi = 0.0;
@@ -3677,8 +3717,7 @@ Castro::extern_init ()
     std::cout << "reading extern runtime parameters ..." << std::endl;
   }
 
-  // grab them from Fortran to C++; then read any C++ parameters directly
-  // from inputs (via ParmParse)
+  // read any runtime parameters directly from inputs (via ParmParse)
   init_extern_parameters();
 
 }
@@ -4230,7 +4269,7 @@ Castro::get_numpts ()
      long nx = bx.size()[0];
 
 #if (AMREX_SPACEDIM == 1)
-     numpts_1d = nx;
+     numpts_1d = static_cast<int>(nx);
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
@@ -4254,7 +4293,9 @@ Castro::define_new_center(const MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
+#if AMREX_SPACEDIM >= 2
     const Real* dx = geom.CellSize();
+#endif
 
     IntVect max_index = S.maxIndex(URHO,0);
     Box bx(max_index,max_index);
@@ -4326,9 +4367,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&problem::center[0], AMREX_SPACEDIM, owner);
 
-    // Make sure if R-Z that center stays exactly on axis
+    // Make sure if R-Z and SPHERICAL that center stays exactly on axis
     if ( Geom().IsRZ() ) {
       problem::center[0] = 0;
+    } else if ( Geom().IsSPHERICAL() ) {
+        problem::center[0] = 0;
+        problem::center[1] = 0;
     }
 
 }
@@ -4449,7 +4493,7 @@ Castro::check_for_nan(const MultiFab& state_in, int check_ghost)
   }
 
   if (state_in.contains_nan(URHO,state_in.nComp(),ng,true)) {
-#ifdef AMREX_USE_GPU
+#if defined(AMREX_USE_GPU) && !defined(ALLOW_GPU_PRINTF)
       std::string abort_string = std::string("State has NaNs in check_for_nan()");
       amrex::Abort(abort_string.c_str());
 #else

@@ -121,13 +121,6 @@ Gravity::read_params ()
                 amrex::Abort("Options are ConstantGrav, PoissonGrav, or MonopoleGrav");
              }
 
-        if (  gravity::gravity_type == "ConstantGrav")
-        {
-          if ( dgeom.IsSPHERICAL() ) {
-              amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
-          }
-        }
-
 #if (AMREX_SPACEDIM == 1)
         if (gravity::gravity_type == "PoissonGrav")
         {
@@ -881,11 +874,17 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab grav(grids[level], dmap[level], AMREX_SPACEDIM, ng);
     grav.setVal(0.0,ng);
 
+    const Geometry& geom = parent->Geom(level);
+
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
-
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction and zero in all others.
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -895,7 +894,6 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-       const Geometry& geom = parent->Geom(level);
        amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_prev[level]), geom);
        grav.mult(-1.0, ng); // g = - grad(phi)
 
@@ -952,11 +950,17 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     MultiFab grav(grids[level],dmap[level],AMREX_SPACEDIM,ng);
     grav.setVal(0.0,ng);
+    const Geometry& geom = parent->Geom(level);
 
     if (gravity::gravity_type == "ConstantGrav") {
 
-       // Set to constant value in the AMREX_SPACEDIM direction
-       grav.setVal(gravity::const_grav,AMREX_SPACEDIM-1,1,ng);
+        if (AMREX_SPACEDIM == 2 && geom.Coord() == 2) {
+            // 2D spherical r-theta, we want g in the radial direction
+            grav.setVal(gravity::const_grav, 0, 1, ng);
+        } else {
+            // Set to constant value in the AMREX_SPACEDIM direction
+            grav.setVal(gravity::const_grav, AMREX_SPACEDIM-1, 1, ng);
+        }
 
     } else if (gravity::gravity_type == "MonopoleGrav") {
 
@@ -967,7 +971,6 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity::gravity_type == "PoissonGrav") {
 
-        const Geometry& geom = parent->Geom(level);
         amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
         grav.mult(-1.0, ng); // g = - grad(phi)
 
@@ -1331,6 +1334,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
     const auto problo = geom.ProbLoArray();
+    const auto geomdata = geom.data();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1364,7 +1368,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
             loc[2] = 0.0_rt;
 #endif
 
-            Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
+            Real r = distance(geomdata, loc);
 
             int index = static_cast<int>(r / dr);
 
@@ -1454,6 +1458,7 @@ Gravity::compute_radial_mass(const Box& bx,
     Real drinv = 1.0_rt / dr;
 
     const int coord_type = geom.Coord();
+    const auto geomdata = geom.data();
 
     AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
 
@@ -1494,16 +1499,17 @@ Gravity::compute_radial_mass(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
         Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - problem::center[0];
 
-        Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+        loc[1]= problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
         Real lo_j = problo[1] + static_cast<Real>(j) * dx[1] - problem::center[1];
 
-        Real zc = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+        loc[2]= problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
         Real lo_k = problo[2] + static_cast<Real>(k) * dx[2] - problem::center[2];
 
-        Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
+        Real r = distance(geomdata, loc);
         int index = static_cast<int>(r * drinv);
 
         // We may be coming in here with a masked out zone (in a zone on a coarse
@@ -2777,12 +2783,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     BL_ASSERT(nPtsXZ <= std::numeric_limits<int>::max());
     BL_ASSERT(nPtsYZ <= std::numeric_limits<int>::max());
 
-    ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), nPtsXY);
-    ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), nPtsXY);
-    ParallelDescriptor::ReduceRealSum(bcXZLo.dataPtr(), nPtsXZ);
-    ParallelDescriptor::ReduceRealSum(bcXZHi.dataPtr(), nPtsXZ);
-    ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), nPtsYZ);
-    ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), nPtsYZ);
+    ParallelDescriptor::ReduceRealSum(bcXYLo.dataPtr(), static_cast<int>(nPtsXY));
+    ParallelDescriptor::ReduceRealSum(bcXYHi.dataPtr(), static_cast<int>(nPtsXY));
+    ParallelDescriptor::ReduceRealSum(bcXZLo.dataPtr(), static_cast<int>(nPtsXZ));
+    ParallelDescriptor::ReduceRealSum(bcXZHi.dataPtr(), static_cast<int>(nPtsXZ));
+    ParallelDescriptor::ReduceRealSum(bcYZLo.dataPtr(), static_cast<int>(nPtsYZ));
+    ParallelDescriptor::ReduceRealSum(bcYZHi.dataPtr(), static_cast<int>(nPtsYZ));
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3768,7 +3774,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     if (!grad_phi.empty())
     {
         if (!gmv[0].isAllPeriodic()) {
-            mlmg.setAlwaysUseBNorm(true);
+            mlmg.setConvergenceNormType(MLMGNormType::bnorm);
         }
 
         mlmg.setNSolve(gravity::mlmg_nsolve);

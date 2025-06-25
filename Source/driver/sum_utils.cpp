@@ -400,7 +400,8 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> pos{r};
 #ifdef ROTATION
-            pos = inertial_rotation(r, time);
+            auto omega = get_omega_vec(geomdata, j);
+            pos = inertial_rotation(r, omega, time);
 #endif
 
             // For constructing the velocity in the inertial frame, we need to
@@ -431,7 +432,7 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> inertial_g{g};
 #ifdef ROTATION
-            inertial_g = inertial_rotation(g, time);
+            inertial_g = inertial_rotation(g, omega, time);
 #endif
 
             // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.

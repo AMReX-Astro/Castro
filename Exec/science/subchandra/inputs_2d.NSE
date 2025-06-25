@@ -32,6 +32,7 @@ castro.do_sponge = 1
 castro.react_rho_min = 1.0
 castro.react_T_min = 5.e7
 
+castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 

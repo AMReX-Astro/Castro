@@ -30,6 +30,7 @@ castro.ppm_temp_fix = 0
 
 castro.time_integration_method = 3
 
+castro.disable_shock_burning = 1
 # castro.transverse_reset_density = 1
 
 castro.small_dens   = 1.e-5
