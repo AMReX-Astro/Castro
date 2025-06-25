@@ -56,7 +56,12 @@ void problem_initialize ()
     }
 
     // Temperature perturbation x-axis nodes length
-    problem::L = probhi[0] - problo[0];
+#if AMREX_SPACEDIM == 2
+    problem::L_x = probhi[0] - problo[0];
+#elif AMREX_SPACEDIM == 3
+    problem::L_x = probhi[0] - problo[0];
+    problem::L_y = probhi[1] - problo[1];
+#endif
 
     // Finding the h1 layer, and max temp location.
 

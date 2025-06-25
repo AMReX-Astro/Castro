@@ -9,6 +9,10 @@ velpert_amplitude     real            1.e2_rt       y
 
 num_vortices          integer         1             y
 
+num_vortices_x        integer         1             y
+
+num_vortices_y        integer         1             y
+
 max_num_vortices      integer         10            n
 
 xloc_vortices         real            0.0_rt        n     10
@@ -19,7 +23,9 @@ y_h1                 real             0.0_rt        n
 
 width                real            0.0_rt         y
 
-L                    real            0.0_rt         n
+L_x                  real            0.0_rt         n
+
+L_y                  real            0.0_rt         n
 
 amplitude            real            0.0_rt         y
 

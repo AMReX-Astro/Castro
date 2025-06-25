@@ -69,6 +69,7 @@ Castro::shock(const Box& bx,
   // This is basically the method in Gronow et al. 2020
 
   const auto dx = geom.CellSizeArray();
+  const auto problo = geom.ProbLoArray();
   const int coord_type = geom.Coord();
 
   Real dxinv = 1.0_rt / dx[0];
@@ -100,9 +101,9 @@ Castro::shock(const Box& bx,
    } else if (coord_type == 1) {
 
      // r-z
-     Real rc = (i + 0.5_rt) * dx[0];
-     Real rm = (i - 1 + 0.5_rt) * dx[0];
-     Real rp = (i + 1 + 0.5_rt) * dx[0];
+     Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+     Real rm = problo[0] + (static_cast<Real>(i) - 0.5_rt) * dx[0];
+     Real rp = problo[0] + (static_cast<Real>(i) + 1.5_rt) * dx[0];
 
 #if (AMREX_SPACEDIM == 1)
      div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]);
@@ -116,20 +117,20 @@ Castro::shock(const Box& bx,
     } else if (coord_type == 2) {
 
       // 1-d spherical
-      Real rc = (i + 0.5_rt) * dx[0];
-      Real rm = (i - 1 + 0.5_rt) * dx[0];
-      Real rp = (i + 1 + 0.5_rt) * dx[0];
+      Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+      Real rm = problo[0] + (static_cast<Real>(i) - 0.5_rt) * dx[0];
+      Real rp = problo[0] + (static_cast<Real>(i) + 1.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
 #if AMREX_SPACEDIM == 2
 
-      Real thetac = (j + 0.5_rt) * dx[1];
-      Real thetam = (j - 1 + 0.5_rt) * dx[1];
-      Real thetap = (j + 1 + 0.5_rt) * dx[1];
+      Real thetac = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+      Real thetam = problo[1] + (static_cast<Real>(j) - 0.5_rt) * dx[1];
+      Real thetap = problo[1] + (static_cast<Real>(j) + 1.5_rt) * dx[1];
 
       div_u += 0.5_rt * (std::sin(thetap) * q_arr(i,j+1,k,QV) -
                          std::sin(thetam) * q_arr(i,j-1,k,QV)) /
-          (rc * sin(thetac) * dx[1]);
+          (rc * std::sin(thetac) * dx[1]);
 #endif
 
 #ifndef AMREX_USE_GPU
@@ -270,7 +271,6 @@ Castro::divu(const Box& bx,
 
         if (i == 0) {
             ux = 0.0_rt;
-            vy = 0.0_rt;  // is this part correct?
         } else {
             Real rl = (i - 0.5_rt) * dx[0] + problo[0];
             Real rr = (i + 0.5_rt) * dx[0] + problo[0];
@@ -282,13 +282,13 @@ Castro::divu(const Box& bx,
 
             // Take 1/r d/dr(r*u)
             ux = (rr * ur - rl * ul) * dxinv / rc;
-
-            // These are transverse averages in the x-direction
-            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
-            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
-
-            vy = (vt - vb) * dyinv;
         }
+
+        // These are transverse averages in the x-direction
+        Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+        Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+
+        vy = (vt - vb) * dyinv;
 
     } else {
 
@@ -310,12 +310,18 @@ Castro::divu(const Box& bx,
         // Finite difference to get divergence. ux = 1/r^2 d/dr(r^2 * u)
         ux = (ur * rr * rr - ul * rl * rl) * dxinv / (rc * rc);
 
-        // These are transverse averages in the x-direction
-        Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
-        Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
+        // If sinc == 0, then vy goes inf.
+        // But due to Phi-symmetry, vt*sint = vb*sinb, so set to 0.
+        if (sinc == 0.0_rt) {
+            vy = 0.0_rt;
+        } else {
+            // These are transverse averages in the x-direction
+            Real vb = 0.5_rt * (q_arr(i,j-1,k,QV) + q_arr(i-1,j-1,k,QV));
+            Real vt = 0.5_rt * (q_arr(i,j,k,QV) + q_arr(i-1,j,k,QV));
 
-        // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
-        vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
+            // Finite difference to get divergence. vy = 1/(r sin) * d/dtheta(v sin)
+            vy = (vt * sint - vb * sinb) * dyinv / (rc * sinc);
+        }
     }
 
     div(i,j,k) = ux + vy;
@@ -353,12 +359,19 @@ Castro::apply_av(const Box& bx,
                  Array4<Real> const& flux) {
 
   const auto dx = geom.CellSizeArray();
+  const auto coord = geom.Coord();
+  const auto problo = geom.ProbLoArray();
 
   Real diff_coeff = difmag;
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
+      Real dL = dx[idir];
+      if (coord == 2 && idir == 1) {
+          Real r = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+          dL *= r;
+      }
 
       Real div1;
       if (idir == 0) {
@@ -400,7 +413,7 @@ Castro::apply_av(const Box& bx,
               div_var = div1 * (uin(i,j,k,n) - uin(i,j,k-dg2,n));
           }
 
-          flux(i,j,k,n) += dx[idir] * div_var;
+          flux(i,j,k,n) += dL * div_var;
       }
   });
 }
@@ -498,28 +511,14 @@ Castro::normalize_species_fluxes(const Box& bx,
 
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 Castro::scale_flux(const Box& bx,
-#if AMREX_SPACEDIM == 1
-                   Array4<Real const> const& qint,
-#endif
                    Array4<Real> const& flux,
                    Array4<Real const> const& area_arr,
                    const Real dt) {
 
-#if AMREX_SPACEDIM == 1
-  const int coord_type = geom.Coord();
-#endif
-
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
-
     flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
-#if AMREX_SPACEDIM == 1
-    // Correct the momentum flux with the grad p part.
-    if (coord_type == 0 && n == UMX) {
-      flux(i,j,k,n) += dt * area_arr(i,j,k) * qint(i,j,k,GDPRES);
-    }
-#endif
   });
 }
 

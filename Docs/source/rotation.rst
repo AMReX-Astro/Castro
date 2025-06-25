@@ -40,6 +40,10 @@ The "vertical direction" is defined as follows:
 
   * ``coord_sys = 1``, (r,z): along the z-axis
 
+  * ``coord_sys = 2``, (r, :math:`\theta`): along the z-axis after converting
+    to the spherical coordinate, i.e.
+    :math:`\hat{z} = \cos{\theta} \hat{r} = \sin{\theta} \hat{\theta}`.
+
 * 3D
 
   * ``coord_sys = 0``, (x,y,z): along the z-axis
@@ -76,7 +80,9 @@ The main parameters that affect rotation are:
    solve for the update implicitly (default: 1)
 
 -  ``castro.rot_axis`` : rotation axis (default: 3
-   (Cartesian); 2 (cylindrical))
+   (Cartesian); 2 (cylindrical)). This parameter doesn't affect
+   spherical coordinate since rotation axis is automatically set
+   to z-axis.
 
 For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon

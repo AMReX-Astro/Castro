@@ -152,6 +152,8 @@ plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
 conditions instead of a simple symmetry boundary is essential when
 using the standard CTU PPM solver.
 
+.. index:: castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel
+
 A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the ``model_parser``
 module to fill the ghost cells at the upper boundary with the initial
@@ -232,6 +234,8 @@ each of these in the main source tree.
 Model Parser
 ------------
 
+.. index:: USE_MODEL_PARSER, MAX_NPTS_MODEL
+
 Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The ``model_parser.H`` provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add::
@@ -282,5 +286,3 @@ This fills ``dens`` with the density at the position ``height``.  In
 addition to density, you can specify temperature (``model::itemp``),
 pressure (``model::ipres``), species (indexed from ``model::ispec``),
 or an auxiliary quantity (indexed from ``model::iaux``).
-
-

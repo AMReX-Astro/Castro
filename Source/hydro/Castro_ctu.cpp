@@ -101,7 +101,10 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -118,7 +121,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaX,
 #endif
                 vbx, dt);
 
@@ -131,7 +134,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                dloga,
+                dlogaY,
 #endif
                 vbx, dt);
 
@@ -173,7 +176,10 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                            Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                           Array4<Real const> const& dloga,
+                           Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                           Array4<Real const> const& dlogaY,
 #endif
                            const Real dt) {
 
@@ -187,7 +193,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qxm, qxp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaX,
 #endif
                     vbx, dt);
 
@@ -200,7 +206,7 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
                     U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                     qym, qyp,
 #if AMREX_SPACEDIM <= 2
-                    dloga,
+                    dlogaY,
 #endif
                     vbx, dt);
 
@@ -243,7 +249,10 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const& dloga,
+                       Array4<Real const> const& dlogaX,
+#endif
+#if AMREX_SPACEDIM == 2
+                       Array4<Real const> const& dlogaY,
 #endif
                        const Real dt) {
 
@@ -273,7 +282,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaX,
 #endif
                 srcQ, vbx, dt);
 
@@ -285,7 +294,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 U_arr, rho_inv_arr, q_arr, qaux_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
-                dloga,
+                dlogaY,
 #endif
                 srcQ, vbx, dt);
 
@@ -366,8 +375,8 @@ Castro::add_sdc_source_to_states(const Box& bx, const int idir, const Real dt,
 
             if (n >= QFS && n <= QFS-1+NumSpec) {
                 // mass fractions should be in [0, 1]
-                qleft(i,j,k,n) = std::clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
-                qright(i,j,k,n) = std::clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
+                qleft(i,j,k,n) = amrex::Clamp(qleft(i,j,k,n), 0.0_rt, 1.0_rt);
+                qright(i,j,k,n) = amrex::Clamp(qright(i,j,k,n), 0.0_rt, 1.0_rt);
             }
         }
 

@@ -305,8 +305,8 @@ Castro::estdt_temp_diffusion (int is_new)
 #if AMREX_SPACEDIM >= 2
           dt2 = 0.5_rt * dx[1]*dx[1] / D;
           if (coord == 2) {
-              Real r = problo[0] + 0.5_rt * dx[0];
-              dt2 *= r * r;
+              Real rc = problo[0] + 0.5_rt * dx[0];
+              dt2 *= rc * rc;
           }
 #else
           dt2 = dt1;

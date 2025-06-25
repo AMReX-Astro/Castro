@@ -10,15 +10,18 @@ COMP	   = gnu
 USE_MPI    = TRUE
 
 USE_REACT  = TRUE
+USE_SHOCK_VAR = TRUE
+
+USE_SIMPLIFIED_SDC = TRUE
 
 CASTRO_HOME ?= ../../..
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 ifeq ($(USE_NSE_NET), TRUE)
-	NETWORK_DIR := subch_base
+	NETWORK_DIR := he-burn/he-burn-18a
 	SCREEN_METHOD := chabrier1998
 else
 	NETWORK_DIR := aprox19
