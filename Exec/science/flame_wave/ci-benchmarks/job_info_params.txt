@@ -5,6 +5,7 @@
 [*] castro.diffuse_cutoff_density = 20000
 [*] castro.diffuse_cutoff_density_hi = 50000
 [*] castro.diffuse_cond_scale_fac = 10
+    castro.diffuse_use_amrex_mlmg = 1
     castro.use_point_mass = 0
     castro.point_mass = 0
     castro.point_mass_fix_solution = 0
@@ -245,6 +246,9 @@
     integrator.nse_include_enu_weak = 1
     integrator.linalg_do_pivoting = 1
     screening.enable_chabrier1998_quantum_corr = 0
+    screening.enable_debye_huckel_skip = 0
+    screening.debye_huckel_skip_threshold = 1.01
+    neutrino_cooling.include_recomb = 0
     integrator.subtract_internal_energy = 0
     eos.use_eos_coulomb = 1
     eos.eos_input_is_constant = 1

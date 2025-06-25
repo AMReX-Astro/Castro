@@ -28,7 +28,7 @@ through running your first problem:
 https://amrex-astro.github.io/Castro/docs/getting_started.html
 
 This will have you clone Castro and its dependencies (AMReX and
-StarKiller Microphysics),
+AMReX-Astro Microphysics),
 
 The User's Guide in written in re-structured text using Sphinx, with
 the source in `Castro/Docs/`, and is built automatically

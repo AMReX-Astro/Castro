@@ -34,7 +34,7 @@ INTEGRATOR_DIR ?= VODE
 
 COMP ?= gnu
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 
 EOS_DIR ?= helmholtz
 

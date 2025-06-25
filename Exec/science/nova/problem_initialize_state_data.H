@@ -115,19 +115,39 @@ void problem_initialize_state_data (int i, int j, int k,
     // Now we add the temperature perturbation
     if (problem::apply_temp_field){
 
+#if AMREX_SPACEDIM == 2
+
         Real ydist = y - problem::y_h1 - problem::width_ratio*problem::width;
         Real delta = problem::amplitude;
         Real temp_pert = 0.0_rt;
 
         if (problem::num_vortices % 2 == 0){
-            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
-                                    delta*std::exp(-pow(ydist / problem::width, 2));
+            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) ) *
+                std::exp(-std::pow(ydist / problem::width, 2));
         } else {
-            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L) )*
-                                     delta*std::exp(-pow(ydist / problem::width, 2));
+            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x) ) *
+                std::exp(-std::pow(ydist / problem::width, 2));
         }
 
-        state(i,j,k,UTEMP)  = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
+        state(i,j,k,UTEMP) = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
+
+#elif AMREX_SPACEDIM == 3
+
+        Real zdist = z - problem::y_h1 - problem::width_ratio*problem::width;
+        Real delta = problem::amplitude;
+        Real temp_pert = 0.0_rt;
+
+        if (problem::num_vortices % 2 == 0){
+            temp_pert = delta * (1.0_rt + std::sin(static_cast<Real>(problem::num_vortices_x)*M_PI*x/problem::L_x) *
+                                 std::cos(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y)) *
+                std::exp(-std::pow(zdist / problem::width, 2));
+        } else {
+            temp_pert = delta * (1.0_rt + std::cos(static_cast<Real>(problem::num_vortices)*M_PI*x/problem::L_x)*
+                                    std::sin(static_cast<Real>(problem::num_vortices_y)*M_PI*y/problem::L_y)) *
+                std::exp(-std::pow(zdist / problem::width, 2));
+        }
+        state(i,j,k,UTEMP) = state(i,j,k, UTEMP)*(1.0_rt + temp_pert);
+#endif
 
         // Now we enforce the EOS by calling T and p (giving us rho)
         eos_state.T = state(i,j,k,UTEMP);

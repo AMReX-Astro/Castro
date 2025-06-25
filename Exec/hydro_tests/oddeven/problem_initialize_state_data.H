@@ -14,28 +14,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 
-    Real yy = 0.0;
-#if AMREX_SPACEDIM >= 2
-    yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
-#endif
-
-    Real zz = 0.0;
-#if AMREX_SPACEDIM == 3
-    zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
-#endif
-
-
     // compute the integer location of the center of the domain
-    int icen = problem::center[0] / dx[0];
+    int icen = static_cast<int>(problem::center[0] / dx[0]);
 
     int jcen = 0;
 #if AMREX_SPACEDIM >= 2
-    jcen = problem::center[1] / dx[1];
+    jcen = static_cast<int>(problem::center[1] / dx[1]);
 #endif
 
     int kcen = 0;
 #if AMREX_SPACEDIM == 3
-    kcen = problem::center[2] / dx[2];
+    kcen = static_cast<int>(problem::center[2] / dx[2]);
 #endif
 
     Real dens = problem::dens_ambient;
