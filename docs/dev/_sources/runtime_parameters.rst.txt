@@ -136,12 +136,13 @@ namespace: ``castro``
 |                                            | update the internal energy variable UEINT to match E - K.   |                             |
 |                                            | Below this, UEINT remains unchanged.                        |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
-| ``use_pslope``                             | for the piecewise linear reconstruction, do we subtract off | 0                           |
-|                                            | :math:`(\rho g)` from the pressure before limiting?  This   |                             |
-|                                            | is a well-balanced method that does well with HSE           |                             |
+| ``use_pslope``                             | for the piecewise linear or piecewise parabolic             | 0                           |
+|                                            | reconstruction, do we subtract off :math:`(\rho g)` from    |                             |
+|                                            | the pressure before limiting? This is a well-balanced       |                             |
+|                                            | method that does well with HSE.                             |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``ppm_well_balanced``                      | for PPM, do we only use the perturbational pressure in the  | 0                           |
-|                                            | characteristic tracing?  This is more indepth than the      |                             |
+|                                            | characteristic tracing?  This is more in-depth than the     |                             |
 |                                            | simple `use_pslope` approach.                               |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``pslope_cutoff_density``                  | if we are using pslope, below what density to we turn off   | -1.e20                      |
