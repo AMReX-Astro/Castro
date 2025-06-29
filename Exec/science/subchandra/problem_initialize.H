@@ -115,8 +115,6 @@ void problem_initialize ()
 
     // convert the envelope and WD mass into CGS
 
-    std::cout << "here!!!! << " << problem::M_tot << std::endl;
-
     model_params.M_tot = problem::M_tot * C::M_solar;
     model_params.M_He = problem::M_He * C::M_solar;
 
@@ -137,14 +135,6 @@ void problem_initialize ()
 
     // find the distance (starting from the center) where the He layer begins
 
-
-    for (int i = 0; i < model::npts; ++i) {
-        std::cout << model::profile(0).r(i) << " " <<
-                     model::profile(0).state(i, model::idens) << " " <<
-                     model::profile(0).state(i, model::itemp) << " " <<
-                     model::profile(0).state(i, model::ipres) << std::endl;
-    }
-
     problem::R_He_base = 0.0;
     problem::ihe4 = ihe4;
 
@@ -155,7 +145,9 @@ void problem_initialize ()
         }
     }
 
-    amrex::Print() << "base of He layer found at " << problem::R_He_base << std::endl;
+    amrex::Print() << Font::Bold << FGColor::Green
+                   << "Base of He layer found at r = " << problem::R_He_base << " cm"
+                   << ResetDisplay << std::endl;
 }
 
 #endif

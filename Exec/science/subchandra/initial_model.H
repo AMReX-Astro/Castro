@@ -542,13 +542,6 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
             Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
 
-            std::cout << "mass, rho " << mass_wd / C::M_solar << " " << mass_he  / C::M_solar << " " << wd_err << " " << he_err << std::endl;
-            std::cout << "F0 = " << F0 << " G0 = " << G0 << std::endl;
-            std::cout << "dF/drho_c = " << dF_drhoc << " dF_drho_he = " << dF_drhohe << std::endl;
-            std::cout << "dG/drho_c = " << dG_drhoc << " dG_drho_he = " << dG_drhohe << std::endl;
-            std::cout << dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc << std::endl;
-            std::cout << drho_he << " " << drho_c << std::endl;
-
             rho_c_old = rho_c;
             mass_wd_old = mass_wd;
 
