@@ -93,7 +93,8 @@ void problem_initialize_state_data (int i, int j, int k,
     burn_state.mu_p = -3.0_rt;
     burn_state.mu_n = -12.0_rt;
 
-    auto nse_state = get_actual_nse_state(burn_state, eps, input_ye_is_valid);
+    auto nse_state = get_actual_nse_state(nse_input_rty, burn_state,
+                                          eps, input_ye_is_valid);
 
     for (int n = 0; n < NumSpec; ++n) {
         burn_state.xn[n] = nse_state.xn[n];
