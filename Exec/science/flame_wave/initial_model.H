@@ -1,6 +1,8 @@
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 
+#include <AMReX_REAL.H>
+
 //  Create a 1-d hydrostatic, atmosphere with an isothermal region
 //  (T_star) representing the NS, a hyperbolic tangent rise to a
 //  peak temperature (T_hi) representing the base of an accreted
