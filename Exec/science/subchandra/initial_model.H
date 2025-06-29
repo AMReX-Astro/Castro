@@ -20,7 +20,7 @@ namespace subch {
     // the He envelope mass we can achieve will depend on our grid
     // spacing.
 
-    constexpr Real TOL_HE_MASS = 1.e-3_rt;
+    constexpr Real TOL_HE_MASS = 2.e-3_rt;
 
     const int MAX_ITER = 1000;
 }
@@ -103,7 +103,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     // our desired mass
 
     amrex::Real rho_c_old = -1.0_rt;
-    amrex::Real rho_c = 1.e8_rt;  // 1.e8 is a reasonable starting WD central density fpr a 1 M_sun WD
+    amrex::Real rho_c = 1.e8_rt;  // 1.e8 is a reasonable starting WD central density for a 1 M_sun WD
 
     // rho_he_old is the old guess for the density to transition to He,
     // where we will be isentropic, and rho_he is the current guess.
@@ -317,10 +317,10 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                         drho = -(A + dAdT * dtemp) / dAdrho;
 
                         dens_zone = amrex::Clamp(dens_zone + drho,
-                                                       0.9_rt * dens_zone, 1.1_rt * dens_zone);
+                                                 0.9_rt * dens_zone, 1.1_rt * dens_zone);
 
                         temp_zone = amrex::Clamp(temp_zone + dtemp,
-                                                       0.9_rt * temp_zone, 1.1_rt * temp_zone);
+                                                 0.9_rt * temp_zone, 1.1_rt * temp_zone);
 
                         // check if the density falls below our minimum
                         // cut-off -- if so, floor it
@@ -370,7 +370,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                         drho = (p_want - pres_zone) / (dpd - 0.5_rt * dx * g_zone);
 
                         dens_zone = amrex::Clamp(dens_zone + drho,
-                                                       0.9_rt * dens_zone, 1.1_rt * dens_zone);
+                                                 0.9_rt * dens_zone, 1.1_rt * dens_zone);
 
                         if (std::abs(drho) < model_params.tol_hse * dens_zone) {
                             converged_hse = true;
@@ -487,13 +487,11 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             }
 
             Real core_X{0.0};
-            if (model_params.X_C12 == 0.0 && model_params.X_O16 == 0.0) {
-                // the envelope is never enriched with C/O, so any C/O is core
+            if ((model_params.X_C12 == 0.0 && model_params.X_O16 == 0.0) ||
+                (model::profile(0).state(i, model::ispec+model_params.ihe4) <=
+                 network_rp::small_x)) {
                 core_X += model::profile(0).state(i, model::ispec+model_params.ic12) +
-                          model::profile(0).state(i, model::ispec+model_params.io16);
-            } else if (model::profile(0).state(i, model::ispec+model_params.ihe4) <= network_rp::small_x) {
-                core_X += model::profile(0).state(i, model::ispec+model_params.ic12) +
-                          model::profile(0).state(i, model::ispec+model_params.io16);
+                    model::profile(0).state(i, model::ispec+model_params.io16);
             }
 
             mass_he += vol * model::profile(0).state(i, model::idens) * layer_X;
@@ -512,7 +510,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             mass_he_old = mass_he;
 
             rho_c = 1.01_rt * rho_c_old;
-            rho_he = 1.01_rt * rho_he_old;
+            rho_he = 0.95_rt * rho_he_old;
 
         } else {
             // have we converged
@@ -536,19 +534,20 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             Real G0 = mass_he - model_params.M_He;
 
             Real dF_drhoc = (mass_wd - mass_wd_old) / (rho_c - rho_c_old);
-            Real dF_drhohe = (mass_wd - mass_wd_old) / (rho_he - rho_he_old);
+            Real dF_drhohe = 0.0; // (mass_wd - mass_wd_old) / (rho_he - rho_he_old);
 
-            Real dG_drhoc = (mass_he - mass_he_old) / (rho_c - rho_c_old);
+            Real dG_drhoc = 0.0; // (mass_he - mass_he_old) / (rho_c - rho_c_old);
             Real dG_drhohe = (mass_he - mass_he_old) / (rho_he - rho_he_old);
 
             Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
             Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
 
             std::cout << "mass, rho " << mass_wd / C::M_solar << " " << mass_he  / C::M_solar << " " << wd_err << " " << he_err << std::endl;
-            std::cout << dF_drhoc << " " << dF_drhohe << " " << dG_drhoc << " " << dG_drhohe << std::endl;
+            std::cout << "F0 = " << F0 << " G0 = " << G0 << std::endl;
+            std::cout << "dF/drho_c = " << dF_drhoc << " dF_drho_he = " << dF_drhohe << std::endl;
+            std::cout << "dG/drho_c = " << dG_drhoc << " dG_drho_he = " << dG_drhohe << std::endl;
             std::cout << dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc << std::endl;
             std::cout << drho_he << " " << drho_c << std::endl;
-            //amrex::Error("stop");
 
             rho_c_old = rho_c;
             mass_wd_old = mass_wd;

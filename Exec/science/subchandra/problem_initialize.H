@@ -137,7 +137,16 @@ void problem_initialize ()
 
     // find the distance (starting from the center) where the He layer begins
 
+
+    for (int i = 0; i < model::npts; ++i) {
+        std::cout << model::profile(0).r(i) << " " <<
+                     model::profile(0).state(i, model::idens) << " " <<
+                     model::profile(0).state(i, model::itemp) << " " <<
+                     model::profile(0).state(i, model::ipres) << std::endl;
+    }
+
     problem::R_He_base = 0.0;
+    problem::ihe4 = ihe4;
 
     for (int n = 0; n < model::npts; n++) {
         if (model::profile(0).state(n, model::ispec+problem::ihe4) > 0.5_rt) {
