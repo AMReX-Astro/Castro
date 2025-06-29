@@ -74,13 +74,15 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         amrex::Error("too many zones requested -- increase NPTS_MODEL");
     }
 
-
     amrex::Array1D<amrex::Real, 0, NPTS_MODEL-1> rl;
     amrex::Array1D<amrex::Real, 0, NPTS_MODEL-1> rr;
 
     amrex::Array1D<amrex::Real, 0, NPTS_MODEL-1> M_enclosed;
 
     amrex::Real dx = (xmax - xmin) / static_cast<amrex::Real>(npts_model);
+
+    amrex::Print() << "generating initial model with " << npts_model << " points and dx = " << dx << " cm" << std::endl;
+
 
     // compute the coordinates of the new gridded function
 
@@ -101,13 +103,13 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     // our desired mass
 
     amrex::Real rho_c_old = -1.0_rt;
-    amrex::Real rho_c = 1.e9_rt;  // 1.e9 is a reasonable starting WD central density
+    amrex::Real rho_c = 1.e8_rt;  // 1.e8 is a reasonable starting WD central density fpr a 1 M_sun WD
 
     // rho_he_old is the old guess for the density to transition to He,
     // where we will be isentropic, and rho_he is the current guess.
 
     amrex::Real rho_he_old = -1.0_rt;
-    amrex::Real rho_he = 0.5_rt * rho_c;
+    amrex::Real rho_he = 0.1_rt * rho_c;
 
     bool mass_converged = false;
 
@@ -509,39 +511,56 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             rho_he_old = rho_he;
             mass_he_old = mass_he;
 
-            rho_c = 0.5_rt * rho_c_old;
-            rho_he = 0.5_rt * rho_he_old;
+            rho_c = 1.01_rt * rho_c_old;
+            rho_he = 1.01_rt * rho_he_old;
 
         } else {
             // have we converged
 
-            if (std::abs(mass_wd - model_params.M_tot) / model_params.M_tot < subch::TOL_WD_MASS &&
-                std::abs(mass_he - model_params.M_He) / model_params.M_He < subch::TOL_HE_MASS) {
+            amrex::Real wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
+            amrex::Real he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
+            if (wd_err < subch::TOL_WD_MASS && he_err < subch::TOL_HE_MASS) {
                 mass_converged = true;
                 break;
             }
 
             // do a secant iteration:
 
-            // M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...
+            // we'll define 2 expressions:
+            //   F = M_wd(rho_c, rho_he) - M_wd_want
+            //   G = M_he(rho_c, rho_he) - M_he_want
+            //
+            // and then do a 2 variable Newton solve
 
-            Real drho_c = (model_params.M_tot - mass_wd) /
-                ((mass_wd  - mass_wd_old) / (rho_c - rho_c_old));
+            Real F0 = mass_wd - model_params.M_tot;
+            Real G0 = mass_he - model_params.M_He;
+
+            Real dF_drhoc = (mass_wd - mass_wd_old) / (rho_c - rho_c_old);
+            Real dF_drhohe = (mass_wd - mass_wd_old) / (rho_he - rho_he_old);
+
+            Real dG_drhoc = (mass_he - mass_he_old) / (rho_c - rho_c_old);
+            Real dG_drhohe = (mass_he - mass_he_old) / (rho_he - rho_he_old);
+
+            Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
+            Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
+
+            std::cout << "mass, rho " << mass_wd / C::M_solar << " " << mass_he  / C::M_solar << " " << wd_err << " " << he_err << std::endl;
+            std::cout << dF_drhoc << " " << dF_drhohe << " " << dG_drhoc << " " << dG_drhohe << std::endl;
+            std::cout << dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc << std::endl;
+            std::cout << drho_he << " " << drho_c << std::endl;
+            //amrex::Error("stop");
 
             rho_c_old = rho_c;
             mass_wd_old = mass_wd;
 
             rho_c = amrex::Clamp(rho_c + drho_c,
-                                       0.9_rt * rho_c_old, 1.1_rt * rho_c_old);
-
-            Real drho_he = (model_params.M_He - mass_he) /
-                ((mass_he  - mass_he_old) / (rho_he - rho_he_old));
+                                 0.9_rt * rho_c_old, 1.1_rt * rho_c_old);
 
             rho_he_old = rho_he;
             mass_he_old = mass_he;
 
             rho_he = amrex::Clamp(rho_he + drho_he,
-                                        0.75_rt * rho_he_old, 1.5_rt * rho_he_old);
+                                  0.75_rt * rho_he_old, 1.5_rt * rho_he_old);
 
         }
 
