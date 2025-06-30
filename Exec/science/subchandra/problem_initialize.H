@@ -48,7 +48,7 @@ void problem_initialize ()
     // we will use a factor of 1/2 in dx to give a bit more resolution
     // when mapping
     auto dx = fine_geom.CellSizeArray();
-    auto dx_model = 0.5_rt * dx[AMREX_SPACEDIM-1];
+    auto dx_model = std::min(problem::model_min_res, 0.5_rt * dx[AMREX_SPACEDIM-1]);
 
     int nx_model = static_cast<int>(problem::model_r_max / dx_model);
 

@@ -29,6 +29,10 @@ second_pert_rad_factor    real           2.0_rt          y
 
 ####### initial model construction
 
+# maximum radius for the model construction.  We use this instead
+# of the domain size to keep the number of points in the model
+# small, since our start typically occupys a small fraction of the
+# domain (to give room for expansion).
 model_r_max          real         4.096e9                y
 
 M_tot                real         0.6                    y
@@ -63,3 +67,7 @@ isothermal_layer     int          0                      y
 # possibly temperature).  TOL_HSE should be very small (~
 # 1.e-10).
 tol_hse              real         1.e-10                 y
+
+# minimum resolution to use for the model generation.  If we make
+# it too coarse, we can run into convergence problems
+model_min_res        real         2.e6                   y
