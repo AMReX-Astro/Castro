@@ -76,6 +76,7 @@ tol_wd               real         1.e-3                  y
 # mass we can achieve will depend on our grid spacing.
 tol_he               real         5.e-3                  y
 
-# minimum resolution to use for the model generation.  If we make
-# it too coarse, we can run into convergence problems
-model_min_res        real         2.e6                   y
+# minimum resolution to use for the model generation.  We'll also look
+# at the grid spacing and take which ever is smaller.  If we make it
+# too coarse, we can run into convergence problems.
+model_min_res        real         1.e6                   y
