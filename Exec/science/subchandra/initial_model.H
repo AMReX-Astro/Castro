@@ -7,21 +7,6 @@
 
 
 namespace subch {
-
-    // TOL_WD_MASS is tolerance used for getting the total WD mass
-    // equal to M_tot (defined below).  It can be reasonably small,
-    // since there will always be a central density value that can
-    // give the desired WD mass on the grid we use
-
-    constexpr Real TOL_WD_MASS = 1.e-3_rt;
-
-    // TOL_HE_MASS is the tolerance used for getting the mass of the
-    // He envelope.  This should not be too small, since the values of
-    // the He envelope mass we can achieve will depend on our grid
-    // spacing.
-
-    constexpr Real TOL_HE_MASS = 2.e-3_rt;
-
     const int MAX_ITER = 1000;
 }
 
@@ -37,6 +22,8 @@ struct model_t {
     amrex::Real T_fluff;
 
     amrex::Real tol_hse;
+    amrex::Real tol_wd;
+    amrex::Real tol_he;
 
     bool isothermal_layer;
 
@@ -475,16 +462,13 @@ build_star(const model_t& model_params, const Real dx,
 
 AMREX_INLINE
 void
-generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
+generate_initial_model(const int npts_model, const Real xmax,
                        const model_t& model_params)
 {
 
     // Create a 1-d uniform grid that is identical to the mesh that we
     // are mapping onto, and then we want to force it into HSE on that
     // mesh.
-
-    // we are doing the full star
-    BL_ASSERT(xmin == 0.0);
 
     model::npts = npts_model;
     model::initialized = true;
@@ -524,36 +508,43 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     bool mass_converged = false;
 
-    amrex::Real mass_wd;
-    amrex::Real mass_he;
-    amrex::Real max_hse_error;
+    amrex::Real mass_wd{};
+    amrex::Real mass_he{};
+    amrex::Real max_hse_error{};
 
+    amrex::Real wd_err{};
+    amrex::Real he_err{};
 
     for (int iter_mass = 0; iter_mass < subch::MAX_ITER; ++iter_mass) {
 
         amrex::Real tmp;
 
-        amrex::Print() << "mass iter = " << iter_mass << " " << rho_c  << std::endl;
-
         std::tie(mass_wd, mass_he, max_hse_error) = build_star(model_params, dx, rho_c, rho_he);
 
         // have we converged?
 
-        amrex::Real wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
-        amrex::Real he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
-        if (wd_err < subch::TOL_WD_MASS && he_err < subch::TOL_HE_MASS) {
+        wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
+        he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
+
+        amrex::Print() << "mass iter = " << iter_mass
+                       << " errors: " << wd_err << " " << he_err << std::endl;
+
+
+        if (wd_err < model_params.tol_wd && he_err < model_params.tol_he) {
             mass_converged = true;
             break;
         }
 
         // perturb rho_c and see how things change
+
         const amrex::Real rho_c_pert = (1.0 + 1.e-3) * rho_c;
         amrex::Real mass_wd_rc;
         amrex::Real mass_he_rc;
         std::tie(mass_wd_rc, mass_he_rc, tmp) = build_star(model_params, dx, rho_c_pert, rho_he);
 
         // perturb rho_he and see how things change
-        const amrex::Real rho_he_pert = (1.0 + 1.e-1) * rho_he;
+
+        const amrex::Real rho_he_pert = (1.0 + 5.e-2) * rho_he;
         amrex::Real mass_wd_rhe;
         amrex::Real mass_he_rhe;
         std::tie(mass_wd_rhe, mass_he_rhe, tmp) = build_star(model_params, dx, rho_c, rho_he_pert);
@@ -569,14 +560,14 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         Real G0 = mass_he - model_params.M_He;
 
         Real dF_drhoc = (mass_wd - mass_wd_rc) / (rho_c - rho_c_pert);
-        Real dF_drhohe = 0.0; // (mass_wd - mass_wd_rhe) / (rho_he - rho_he_pert);
+        Real dF_drhohe = (mass_wd - mass_wd_rhe) / (rho_he - rho_he_pert);
 
-        Real dG_drhoc = 0.0; // (mass_he - mass_he_rc) / (rho_c - rho_c_pert);
+        Real dG_drhoc = (mass_he - mass_he_rc) / (rho_c - rho_c_pert);
         Real dG_drhohe = (mass_he - mass_he_rhe) / (rho_he - rho_he_pert);
 
-        std::cout << "dF_drhoc = " << dF_drhoc << " dF_drhohe = " << dF_drhohe << std::endl;
-        std::cout << "dG_drhoc = " << dG_drhoc << " dG_drhohe = " << dG_drhohe << std::endl;
-        std::cout << mass_he << " " << mass_he_rhe << " " << rho_he << " " << rho_he_pert << std::endl;
+        //std::cout << "dF_drhoc = " << dF_drhoc << " dF_drhohe = " << dF_drhohe << std::endl;
+        //std::cout << "dG_drhoc = " << dG_drhoc << " dG_drhohe = " << dG_drhohe << std::endl;
+        //std::cout << mass_he << " " << mass_he_rhe << " " << rho_he << " " << rho_he_pert << std::endl;
 
         Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
         Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
@@ -590,6 +581,9 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     } // end mass constraint loop
 
     if (! mass_converged) {
+        amrex::Print() << Font::Bold << FGColor::Red;
+        amrex::Print() << "iteration errors: " << wd_err << " " << he_err << std::endl;
+        amrex::Print() << ResetDisplay;
         amrex::Error("ERROR: mass did not converge");
     }
 

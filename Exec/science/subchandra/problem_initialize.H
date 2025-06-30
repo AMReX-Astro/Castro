@@ -125,12 +125,15 @@ void problem_initialize ()
     model_params.T_fluff = problem::temp_fluff;
 
     model_params.isothermal_layer = problem::isothermal_layer;
+
     model_params.tol_hse = problem::tol_hse;
+    model_params.tol_wd = problem::tol_wd;
+    model_params.tol_he = problem::tol_he;
 
     // generate the model
 
     generate_initial_model(nx_model,
-                           0.0_rt, problem::model_r_max,
+                           problem::model_r_max,
                            model_params);
 
     // find the distance (starting from the center) where the He layer begins
