@@ -184,7 +184,7 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 5000
+integrator.ode_max_steps = 20000
 
 integrator.use_burn_retry = 1
 integrator.retry_swap_jacobian = 1
