@@ -509,90 +509,83 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     // We don't know what WD central density will give the desired
     // total mass, so we need to iterate over central density
 
-    // we will do a secant iteration.  rho_c_old is the 'old' guess
-    // for the central density and rho_c is the current guess.  After
-    // 2 loops, we can start estimating the density required to yield
-    // our desired mass
+    // we will do a Newton-Raphson iteration, using a
+    // finite-difference approximation to the derivative.
 
-    amrex::Real rho_c_old = -1.0_rt;
-    amrex::Real rho_c = 1.e8_rt;  // 1.e8 is a reasonable starting WD central density for a 1 M_sun WD
+    // rho_c is the current guess for the central density,
 
-    // rho_he_old is the old guess for the density to transition to He,
-    // where we will be isentropic, and rho_he is the current guess.
+    // 1.e8 is a reasonable starting WD central density for a 1 M_sun WD
+    amrex::Real rho_c = 1.e8_rt;
 
-    amrex::Real rho_he_old = -1.0_rt;
+    // rho_he is the current guess for the density to transition to He,
+    // where we will be isentropic
+
     amrex::Real rho_he = 0.1_rt * rho_c;
 
     bool mass_converged = false;
 
     amrex::Real mass_wd;
-    amrex::Real mass_wd_old;
     amrex::Real mass_he;
-    amrex::Real mass_he_old;
     amrex::Real max_hse_error;
+
 
     for (int iter_mass = 0; iter_mass < subch::MAX_ITER; ++iter_mass) {
 
-        //amrex::Print() << "mass iter = " << iter_mass << " " << rho_c  << std::endl;
+        amrex::Real tmp;
+
+        amrex::Print() << "mass iter = " << iter_mass << " " << rho_c  << std::endl;
 
         std::tie(mass_wd, mass_he, max_hse_error) = build_star(model_params, dx, rho_c, rho_he);
 
-        if (rho_c_old < 0.0_rt) {
-            // not enough iterations yet -- store the old central
-            // density and mass and pick a new value
+        // have we converged?
 
-            rho_c_old = rho_c;
-            mass_wd_old = mass_wd;
-
-            rho_he_old = rho_he;
-            mass_he_old = mass_he;
-
-            rho_c = 1.01_rt * rho_c_old;
-            rho_he = 0.95_rt * rho_he_old;
-
-        } else {
-            // have we converged
-
-            amrex::Real wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
-            amrex::Real he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
-            if (wd_err < subch::TOL_WD_MASS && he_err < subch::TOL_HE_MASS) {
-                mass_converged = true;
-                break;
-            }
-
-            // do a secant iteration:
-
-            // we'll define 2 expressions:
-            //   F = M_wd(rho_c, rho_he) - M_wd_want
-            //   G = M_he(rho_c, rho_he) - M_he_want
-            //
-            // and then do a 2 variable Newton solve
-
-            Real F0 = mass_wd - model_params.M_tot;
-            Real G0 = mass_he - model_params.M_He;
-
-            Real dF_drhoc = (mass_wd - mass_wd_old) / (rho_c - rho_c_old);
-            Real dF_drhohe = 0.0; // (mass_wd - mass_wd_old) / (rho_he - rho_he_old);
-
-            Real dG_drhoc = 0.0; // (mass_he - mass_he_old) / (rho_c - rho_c_old);
-            Real dG_drhohe = (mass_he - mass_he_old) / (rho_he - rho_he_old);
-
-            Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
-            Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
-
-            rho_c_old = rho_c;
-            mass_wd_old = mass_wd;
-
-            rho_c = amrex::Clamp(rho_c + drho_c,
-                                 0.9_rt * rho_c_old, 1.1_rt * rho_c_old);
-
-            rho_he_old = rho_he;
-            mass_he_old = mass_he;
-
-            rho_he = amrex::Clamp(rho_he + drho_he,
-                                  0.75_rt * rho_he_old, 1.5_rt * rho_he_old);
-
+        amrex::Real wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
+        amrex::Real he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
+        if (wd_err < subch::TOL_WD_MASS && he_err < subch::TOL_HE_MASS) {
+            mass_converged = true;
+            break;
         }
+
+        // perturb rho_c and see how things change
+        const amrex::Real rho_c_pert = (1.0 + 1.e-3) * rho_c;
+        amrex::Real mass_wd_rc;
+        amrex::Real mass_he_rc;
+        std::tie(mass_wd_rc, mass_he_rc, tmp) = build_star(model_params, dx, rho_c_pert, rho_he);
+
+        // perturb rho_he and see how things change
+        const amrex::Real rho_he_pert = (1.0 + 1.e-1) * rho_he;
+        amrex::Real mass_wd_rhe;
+        amrex::Real mass_he_rhe;
+        std::tie(mass_wd_rhe, mass_he_rhe, tmp) = build_star(model_params, dx, rho_c, rho_he_pert);
+
+
+        // we'll define 2 expressions:
+        //   F = M_wd(rho_c, rho_he) - M_wd_want
+        //   G = M_he(rho_c, rho_he) - M_he_want
+        //
+        // and then do a 2 variable Newton solve
+
+        Real F0 = mass_wd - model_params.M_tot;
+        Real G0 = mass_he - model_params.M_He;
+
+        Real dF_drhoc = (mass_wd - mass_wd_rc) / (rho_c - rho_c_pert);
+        Real dF_drhohe = 0.0; // (mass_wd - mass_wd_rhe) / (rho_he - rho_he_pert);
+
+        Real dG_drhoc = 0.0; // (mass_he - mass_he_rc) / (rho_c - rho_c_pert);
+        Real dG_drhohe = (mass_he - mass_he_rhe) / (rho_he - rho_he_pert);
+
+        std::cout << "dF_drhoc = " << dF_drhoc << " dF_drhohe = " << dF_drhohe << std::endl;
+        std::cout << "dG_drhoc = " << dG_drhoc << " dG_drhohe = " << dG_drhohe << std::endl;
+        std::cout << mass_he << " " << mass_he_rhe << " " << rho_he << " " << rho_he_pert << std::endl;
+
+        Real drho_he = -(G0 - dG_drhoc / dF_drhoc * F0) / (dG_drhohe - dG_drhoc * dF_drhohe / dF_drhoc);
+        Real drho_c = -(F0 + dF_drhohe * drho_he) / dF_drhoc;
+
+        rho_c = amrex::Clamp(rho_c + drho_c,
+                             0.9_rt * rho_c, 1.1_rt * rho_c);
+
+        rho_he = amrex::Clamp(rho_he + drho_he,
+                              0.75_rt * rho_he, 1.5_rt * rho_he);
 
     } // end mass constraint loop
 
