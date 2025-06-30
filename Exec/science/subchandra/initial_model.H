@@ -12,7 +12,7 @@ namespace subch {
 
 struct model_t {
 
-    amrex::Real M_tot;
+    amrex::Real M_WD;
     amrex::Real M_He;
 
     amrex::Real delta;
@@ -22,8 +22,8 @@ struct model_t {
     amrex::Real T_fluff;
 
     amrex::Real tol_hse;
-    amrex::Real tol_wd;
-    amrex::Real tol_he;
+    amrex::Real tol_WD;
+    amrex::Real tol_He;
 
     bool isothermal_layer;
 
@@ -523,14 +523,14 @@ generate_initial_model(const int npts_model, const Real xmax,
 
         // have we converged?
 
-        wd_err = std::abs(mass_wd - model_params.M_tot) / model_params.M_tot;
+        wd_err = std::abs(mass_wd - model_params.M_WD) / model_params.M_WD;
         he_err = std::abs(mass_he - model_params.M_He) / model_params.M_He;
 
         amrex::Print() << "mass iter = " << iter_mass
                        << " errors: " << wd_err << " " << he_err << std::endl;
 
 
-        if (wd_err < model_params.tol_wd && he_err < model_params.tol_he) {
+        if (wd_err < model_params.tol_WD && he_err < model_params.tol_He) {
             mass_converged = true;
             break;
         }
@@ -542,7 +542,9 @@ generate_initial_model(const int npts_model, const Real xmax,
         amrex::Real mass_he_rc;
         std::tie(mass_wd_rc, mass_he_rc, tmp) = build_star(model_params, dx, rho_c_pert, rho_he);
 
-        // perturb rho_he and see how things change
+        // perturb rho_he and see how things change -- we can't make
+        // the perturbation too small, since the He density doesn't
+        // affect things as strongly as the central density.
 
         const amrex::Real rho_he_pert = (1.0 + 5.e-2) * rho_he;
         amrex::Real mass_wd_rhe;
@@ -556,7 +558,7 @@ generate_initial_model(const int npts_model, const Real xmax,
         //
         // and then do a 2 variable Newton solve
 
-        Real F0 = mass_wd - model_params.M_tot;
+        Real F0 = mass_wd - model_params.M_WD;
         Real G0 = mass_he - model_params.M_He;
 
         Real dF_drhoc = (mass_wd - mass_wd_rc) / (rho_c - rho_c_pert);
@@ -576,7 +578,7 @@ generate_initial_model(const int npts_model, const Real xmax,
                              0.9_rt * rho_c, 1.1_rt * rho_c);
 
         rho_he = amrex::Clamp(rho_he + drho_he,
-                              0.75_rt * rho_he, 1.5_rt * rho_he);
+                              0.9_rt * rho_he, 1.1_rt * rho_he);
 
     } // end mass constraint loop
 

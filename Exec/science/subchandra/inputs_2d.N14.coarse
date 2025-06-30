@@ -105,7 +105,7 @@ problem.pert_temp_factor = 20.0
 problem.pert_rad_factor = 0.5
 problem.R_pert = 1.e7
 
-problem.M_tot = 1.1
+problem.M_WD = 1.1
 problem.M_He  = 0.05
 
 problem.delta = 5.e6

@@ -35,7 +35,7 @@ second_pert_rad_factor    real           2.0_rt          y
 # domain (to give room for expansion).
 model_r_max          real         4.096e9                y
 
-M_tot                real         0.6                    y
+M_WD                 real         0.6                    y
 
 M_He                 real         0.2                    y
 
@@ -69,12 +69,12 @@ isothermal_layer     int          0                      y
 tol_hse              real         1.e-10                 y
 
 # tol_wd is the tolerance used for root-finding on the WD mass.
-tol_wd               real         1.e-3                  y
+tol_WD               real         1.e-3                  y
 
 # tol_he is the tolerance used for root-finding on the He layer mass.
 # This should not be too small, since the values of the He envelope
 # mass we can achieve will depend on our grid spacing.
-tol_he               real         5.e-3                  y
+tol_He               real         5.e-3                  y
 
 # minimum resolution to use for the model generation.  We'll also look
 # at the grid spacing and take which ever is smaller.  If we make it

@@ -115,7 +115,7 @@ void problem_initialize ()
 
     // convert the envelope and WD mass into CGS
 
-    model_params.M_tot = problem::M_tot * C::M_solar;
+    model_params.M_WD = problem::M_WD * C::M_solar;
     model_params.M_He = problem::M_He * C::M_solar;
 
     model_params.delta = problem::delta;
@@ -127,8 +127,8 @@ void problem_initialize ()
     model_params.isothermal_layer = problem::isothermal_layer;
 
     model_params.tol_hse = problem::tol_hse;
-    model_params.tol_wd = problem::tol_wd;
-    model_params.tol_he = problem::tol_he;
+    model_params.tol_WD = problem::tol_WD;
+    model_params.tol_He = problem::tol_He;
 
     // generate the model
 
