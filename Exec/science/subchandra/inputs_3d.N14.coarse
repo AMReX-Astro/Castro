@@ -36,6 +36,7 @@ castro.react_T_min = 5.e7
 castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
