@@ -74,7 +74,7 @@ tol_WD               real         1.e-3                  y
 # tol_he is the tolerance used for root-finding on the He layer mass.
 # This should not be too small, since the values of the He envelope
 # mass we can achieve will depend on our grid spacing.
-tol_He               real         5.e-3                  y
+tol_He               real         1.e-2                  y
 
 # minimum resolution to use for the model generation.  We'll also look
 # at the grid spacing and take which ever is smaller.  If we make it
