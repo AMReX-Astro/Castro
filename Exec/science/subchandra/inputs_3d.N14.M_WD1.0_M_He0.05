@@ -14,10 +14,6 @@ geometry.prob_hi   =  8.192e9   8.192e9   8.192e9
 
 amr.n_cell         = 1024 1024 1024
 
-amr.max_level      = 1       # maximum level number allowed
-
-amr.subcycling_mode = None
-
 castro.hydro_memory_footprint_ratio = 3
 
 castro.lo_bc       =  2 2 2
@@ -40,6 +36,7 @@ castro.react_T_min = 5.e7
 castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
@@ -77,13 +74,29 @@ castro.max_subcycles = 32
 
 castro.abundance_failure_rho_cutoff = 1.0
 
+amr.v               = 1       # control verbosity in Amr.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
+
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5
+
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
+
+# gridding
+
+amr.max_level      = 1       # maximum level number allowed
+amr.subcycling_mode = None
 
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
+amr.blocking_factor = 32       # block factor in grid generation
+
+# I/O
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 100     # number of timesteps between checkpoints
@@ -91,27 +104,15 @@ amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
 amr.plot_per        = 0.05
 
-amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
-amr.blocking_factor = 32       # block factor in grid generation
-
-amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 1       # control verbosity in Castro.cpp
-
-amr.derive_plot_vars = ALL
-castro.store_burn_weights = 1
-
-castro.small_dens   = 1.e-5
-castro.small_temp   = 1.e5
-
-
 amr.small_plot_file = subch_smallplt        # root name of plotfile
 amr.small_plot_per  = 2.e-3      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 
 amr.derive_small_plot_vars = abar magvel enuc
+amr.derive_plot_vars = ALL
+castro.store_burn_weights = 1
 
 fab.format = NATIVE_32
-
 
 # problem parameters
 
@@ -179,7 +180,7 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 5000
+integrator.ode_max_steps = 20000
 
 integrator.use_burn_retry = 1
 integrator.retry_swap_jacobian = 1
