@@ -19,7 +19,10 @@ using namespace amrex;
 /// take care to match the species available in the model file to
 /// those defined by the network
 ///
-/// the model file is assumed to be of the follow form:
+/// There are 2 different model formats supported.
+///
+/// The old format has a header of the form:
+///
 /// # npts = 896
 /// # num of variables = 6
 /// # density
@@ -30,6 +33,20 @@ using namespace amrex;
 /// # magnesium-24
 /// 195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
 /// 585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+///
+/// Note that the first data column is the coordinate, but that is not
+/// listed as a variable.
+///
+/// The new format has the same `npts` line, but then the next line is
+/// the column heading, including the coordinate.  This format plays
+/// nicely with NumPy genfromtxt to read in the header
+///
+/// # npts = 896
+/// # r density temperature pressure carbon-12 oxygen-16 magnesium-24
+/// 195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+/// 585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+///
+/// The format is detected automatically.
 ///
 /// we read in the number of variables and their order and use this to
 /// map them into the model_state array.  We ignore anything other than
@@ -470,6 +487,9 @@ read_model_file(std::string& model_file, const int model_index=0) {
         amrex::Error("Error opening the initial model");
     }
 
+    amrex::Print() << Font::Bold << FGColor::Green
+                   << "reading initial model" << ResetDisplay << std::endl;
+
     std::string line;
 
     // first the header line -- this tells us the number of points
@@ -482,26 +502,59 @@ read_model_file(std::string& model_file, const int model_index=0) {
         amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
     }
 
-    // next line tells use the number of variables
+    amrex::Print() << Font::Bold << FGColor::Green
+                   << model::npts << " points found in the initial model"
+                   << ResetDisplay << std::endl;
 
-    getline(initial_model_file, line);
-    std::string num_vars_string = line.substr(line.find('=')+1, line.length());
-    int nvars_model_file = std::stoi(num_vars_string);
-
-    // now read in the names of the variables
+    // next line will determine the format.  The "old" format will say
+    // "number of variables = XXX" and tells use the number of variables
+    //
+    // the new format will just give us the variables all in one line.
 
     std::vector<std::string> varnames_stored;
-    for (int n = 0; n < nvars_model_file; n++) {
-        getline(initial_model_file, line);
-        std::string var_string = line.substr(line.find('#')+1, line.length());
-        varnames_stored.push_back(model_string::ltrim(model_string::rtrim(var_string)));
+    int nvars_model_file{-1};
+
+    getline(initial_model_file, line);
+
+    if (line.find("num of variables") != std::string::npos) {
+        // old format
+
+        std::string num_vars_string = line.substr(line.find('=')+1, line.length());
+        nvars_model_file = std::stoi(num_vars_string);
+
+        // now read in the names of the variables
+
+        for (int n = 0; n < nvars_model_file; n++) {
+            getline(initial_model_file, line);
+            std::string var_string = line.substr(line.find('#')+1, line.length());
+            varnames_stored.push_back(model_string::ltrim(model_string::rtrim(var_string)));
+        }
+
+    } else {
+
+        // remove the leading "#"
+        if (!line.empty() && line[0] == '#') {
+            line = line.substr(1);
+        }
+
+        std::istringstream iss(line);
+
+        // in this format, the first column name is the coordinate --
+        // we can skip that
+
+        std::string word;
+        iss >> word;
+
+        while (iss >> word) {
+            varnames_stored.push_back(word);
+        }
+
+        nvars_model_file = static_cast<int>(varnames_stored.size());
+
     }
 
-    // allocate storage for the model data
-
-    amrex::Print() << "reading initial model" << std::endl;
-    amrex::Print() << model::npts << " points found in the initial model" << std::endl;
-    amrex::Print() << nvars_model_file << " variables found in the initial model file" << std::endl;
+    amrex::Print() << nvars_model_file
+                   << " variables found in the initial model file" << std::endl;
 
     // start reading in the data
 
