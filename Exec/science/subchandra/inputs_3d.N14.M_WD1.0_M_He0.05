@@ -115,8 +115,6 @@ fab.format = NATIVE_32
 
 # problem parameters
 
-problem.model_name = "sub_chandra.M_WD-1.00.M_He-0.050.delta100000.00cm.temp_base-2e+08.hse.CO.dx10.00km"
-
 problem.pert_temp_factor = 50.0
 problem.pert_rad_factor = 0.7
 problem.R_pert = 1.e7
