@@ -16,6 +16,12 @@ amr.n_cell         = 512 512 512
 
 amr.max_level      = 2       # maximum level number allowed
 
+# with jumps of 4 can get species interpolation issues in rare
+# instances in the low density regions, so we'll do piecewise-constant
+# interpolation, since we don't really care about the coarse state.
+
+castro.state_interp_order = 0
+
 amr.subcycling_mode = None
 
 castro.hydro_memory_footprint_ratio = 3
@@ -44,6 +50,11 @@ castro.ppm_temp_fix = 0
 castro.use_flattening = 1
 
 castro.riemann_solver = 0
+
+# make sure the thermodynamic state is consistent after doing the
+# transverse updates
+
+castro.transverse_use_eos = 1
 
 # Full self-gravity with the Poisson equation
 gravity.gravity_type = PoissonGrav
