@@ -124,7 +124,7 @@ problem.M_He = 0.05
 
 problem.delta = 1.e5
 
-problem.temp_core = 1.e7
+problem.temp_core = 3.e7
 problem.temp_base = 2.e8
 
 problem.low_density_cutoff = 1.e-4
