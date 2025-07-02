@@ -271,7 +271,7 @@ Two different model formats are allowed:
       # carbon-12
       # oxygen-16
       # magnesium-24
-      195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
       585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
 
   The data begins with the coordinate and then the variables in the
@@ -284,7 +284,7 @@ Two different model formats are allowed:
   ::
 
       # radius  density temperature  pressure  carbon-12  oxygen-16  magnesium-24
-      195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
       585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
 
 .. note::
