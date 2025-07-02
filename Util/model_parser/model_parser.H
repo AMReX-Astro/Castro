@@ -37,11 +37,10 @@ using namespace amrex;
 /// Note that the first data column is the coordinate, but that is not
 /// listed as a variable.
 ///
-/// The new format has the same `npts` line, but then the next line is
-/// the column heading, including the coordinate.  This format plays
-/// nicely with NumPy genfromtxt to read in the header
+/// The new format has a single line header, labeling the columns,
+/// including the coordinate.  This format plays nicely with NumPy
+/// genfromtxt to read in the header
 ///
-/// # npts = 896
 /// # r density temperature pressure carbon-12 oxygen-16 magnesium-24
 /// 195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
 /// 585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
@@ -492,32 +491,25 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
     std::string line;
 
-    // first the header line -- this tells us the number of points
-
-    getline(initial_model_file, line);
-    std::string npts_string = line.substr(line.find('=')+1, line.length());
-    model::npts = std::stoi(npts_string);
-
-    if (model::npts > NPTS_MODEL) {
-        amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
-    }
-
-    amrex::Print() << Font::Bold << FGColor::Green
-                   << model::npts << " points found in the initial model"
-                   << ResetDisplay << std::endl;
-
-    // next line will determine the format.  The "old" format will say
-    // "number of variables = XXX" and tells use the number of variables
-    //
-    // the new format will just give us the variables all in one line.
-
     std::vector<std::string> varnames_stored;
     int nvars_model_file{-1};
 
+    // first the header line -- this will determine the format.  If it
+    // tells us the number of points (npts), then we are the old style.
+
     getline(initial_model_file, line);
 
-    if (line.find("num of variables") != std::string::npos) {
+    if (line.find("npts") != std::string::npos) {
         // old format
+
+        // we'll ignore this line, and detect the number of points
+        // automatically below
+
+        getline(initial_model_file, line);
+
+        if (line.find("num of variables") == std::string::npos) {
+            amrex::Error("Error: missing the number of variables header");
+        }
 
         std::string num_vars_string = line.substr(line.find('=')+1, line.length());
         nvars_model_file = std::stoi(num_vars_string);
@@ -553,19 +545,29 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
     }
 
-    amrex::Print() << nvars_model_file
-                   << " variables found in the initial model file" << std::endl;
+    amrex::Print() << Font::Bold << FGColor::Green
+                   << nvars_model_file
+                   << " variables found in the initial model file"
+                   << ResetDisplay << std::endl;
 
     // start reading in the data
 
     amrex::Vector<Real> vars_stored;
     vars_stored.resize(nvars_model_file);
 
-    for (int i = 0; i < model::npts; i++) {
-        initial_model_file >> model::profile(model_index).r(i);
+    int i{0};
+    while (getline(initial_model_file, line)) {
+
+        if (i > NPTS_MODEL) {
+            amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
+        }
+
+        std::istringstream iss(line);
+
+        iss >> model::profile(model_index).r(i);
 
         for (int j = 0; j < nvars_model_file; j++) {
-            initial_model_file >> vars_stored[j];
+            iss >> vars_stored[j];
         }
 
         for (int j = 0; j < model::nvars; j++) {
@@ -638,8 +640,11 @@ read_model_file(std::string& model_file, const int model_index=0) {
             // yell if we didn't find the current variable
 
             if (!found_model && i == 0) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] variable not found: " << varnames_stored[j] << ResetDisplay << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow
+                               << "[WARNING] variable not found: " << varnames_stored[j]
+                               << ResetDisplay << std::endl;
             }
+
 
         } // end loop over nvars_model_file
 
@@ -647,37 +652,57 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
         if (i == 0) {
             if (!found_dens) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] density not provided in inputs file" << ResetDisplay << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow
+                               << "[WARNING] density not provided in inputs file"
+                               << ResetDisplay << std::endl;
             }
 
             if (!found_temp) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] temperature not provided in inputs file" << ResetDisplay << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow
+                               << "[WARNING] temperature not provided in inputs file"
+                               << ResetDisplay << std::endl;
             }
 
             if (!found_pres) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] pressure not provided in inputs file" << ResetDisplay << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow
+                               << "[WARNING] pressure not provided in inputs file"
+                               << ResetDisplay << std::endl;
             }
 
             if (!found_velr) {
-                amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] velocity not provided in inputs file" << ResetDisplay << std::endl;
+                amrex::Print() << Font::Bold << FGColor::Yellow
+                               << "[WARNING] velocity not provided in inputs file"
+                               << ResetDisplay << std::endl;
             }
 
             for (int comp = 0; comp < NumSpec; comp++) {
                 if (!found_spec[comp]) {
-                    amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] " << spec_names_cxx[comp] << " not provided in inputs file" << ResetDisplay << std::endl;
+                    amrex::Print() << Font::Bold << FGColor::Yellow
+                                   << "[WARNING] " << spec_names_cxx[comp] << " not provided in inputs file"
+                                   << ResetDisplay << std::endl;
                 }
             }
 
 #if NAUX_NET > 0
             for (int comp = 0; comp < NumAux; comp++) {
                 if (!found_aux[comp]) {
-                    amrex::Print() << Font::Bold << FGColor::Yellow << "[WARNING] " << aux_names_cxx[comp] << " not provided in inputs file" << ResetDisplay << std::endl;
+                    amrex::Print() << Font::Bold << FGColor::Yellow
+                                   << "[WARNING] " << aux_names_cxx[comp] << " not provided in inputs file"
+                                   << ResetDisplay << std::endl;
                 }
             }
 #endif
         }
 
+        i++;
+
     }  // end of loop over lines in the model file
+
+    model::npts = i;
+
+    amrex::Print() << Font::Bold << FGColor::Green
+                   << model::npts << " points found in the initial model"
+                   << ResetDisplay << std::endl;
 
     initial_model_file.close();
 
