@@ -37,7 +37,7 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
 #else
     Real yl = 0.0_rt;
 #endif
-    
+
 #if AMREX_SPACEDIM == 3
     Real zl = problo[2] + static_cast<Real>(k) * dx[2];
 #else

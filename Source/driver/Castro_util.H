@@ -22,7 +22,7 @@ constexpr int dg2 = 1;
 #endif
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-int upassmap (int ipassive)
+constexpr int upassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
         // passive is one of the advected quantities
@@ -40,7 +40,7 @@ int upassmap (int ipassive)
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-int qpassmap (int ipassive)
+constexpr int qpassmap (int ipassive)
 {
     if (ipassive < NumAdv) {
         // passive is one of the advected quantities
@@ -71,9 +71,15 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
         if (coord != CoordSys::cartesian) {
             return false;
-        } else {
-            return true;
         }
+        return true;
+
+    } else if (mom_dir == 1 && flux_dir == 1) {
+
+        if (coord == CoordSys::SPHERICAL) {
+            return false;
+        }
+        return true;
 
     } else {
         return (mom_dir == flux_dir);
@@ -97,9 +103,9 @@ void position(int i, int j, int k,
     // Given 3D indices (i,j,k), return the cell-centered spatial position.
     // Optionally we can also be edge-centered in any of the directions.
 
-    int idx[3] = {i, j, k};
+    const int idx[3] = {i, j, k};
 
-    bool cc[3] = {ccx, ccy, ccz};
+    const bool cc[3] = {ccx, ccy, ccz};
 
     Real offset[AMREX_SPACEDIM];
 
@@ -150,6 +156,28 @@ void position(int i, int j, int k,
 
 }
 
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+Real distance(GeometryData const& geomdata, GpuArray<Real, 3>& loc)
+{
+    // Returns the distance from the center provided with loc, the position.
+    // loc is the form of [x, y, z,] in Cartesian, [r, z, phi] in cylindrical
+    // and [r, theta, phi] in spherical
+
+    const auto coord = geomdata.Coord();
+
+    if (coord == CoordSys::cartesian) {
+        return std::sqrt(loc[0]*loc[0] + loc[1]*loc[1] + loc[2]*loc[2]);
+    }
+
+    if (coord == CoordSys::RZ) {
+        return std::sqrt(loc[0]*loc[0] + loc[1]*loc[1]);
+    }
+
+    return std::abs(loc[0]);
+}
+
+
 namespace geometry_util
 {
 
@@ -157,10 +185,12 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real volume(const int& i, const int& j, const int& k,
             const GeometryData& geomdata)
 {
+    //
     // Given 3D cell-centered indices (i,j,k), return the volume of the zone.
-    // Note that Castro has no support for angular coordinates, so
-    // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
-    // in 2D, and Spherical in 1D.
+    // this function only provides Cartesian in 1D/2D/3D,
+    // Cylindrical (R-Z) in 2D,
+    // and Spherical in 1D and 2D (R-THETA).
+    //
 
     amrex::ignore_unused(i);
     amrex::ignore_unused(j);
@@ -187,7 +217,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = M_PI * dx[0] * (rr + rl);
+        vol = std::abs(M_PI * dx[0] * (rr + rl));
 
    } else {
 
@@ -196,7 +226,7 @@ Real volume(const int& i, const int& j, const int& k,
         Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real rr = rl + dx[0];
 
-        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr);
+        vol = std::abs((4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr));
 
     }
 
@@ -210,15 +240,28 @@ Real volume(const int& i, const int& j, const int& k,
 
         vol = dx[0] * dx[1];
 
-    }
-    else {
+    } else if (coord == 1) {
 
         // Cylindrical
 
         Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
         Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
 
-        vol = M_PI * (r_l + r_r) * dx[0] * dx[1];
+        vol = std::abs(M_PI * (r_l + r_r) * dx[0] * dx[1]);
+
+    } else {
+
+        // Spherical
+
+        constexpr Real twoThirdsPi = 2.0_rt * M_PI / 3.0_rt;
+
+        Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
+        Real theta_l = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
+        Real theta_r = geomdata.ProbLo()[1] + static_cast<Real>(j+1) * dx[1];
+
+        vol = std::abs(twoThirdsPi * (std::cos(theta_l) - std::cos(theta_r)) * dx[0] *
+                       (r_r * r_r + r_r * r_l + r_l * r_l));
 
     }
 
@@ -263,7 +306,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = 2.0_rt * M_PI * r;
+        a = std::abs(2.0_rt * M_PI * r);
 
     } else {
 
@@ -271,7 +314,7 @@ Real area(const int& i, const int& j, const int& k,
 
         Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
 
-        a = 4.0_rt * M_PI * r * r;
+        a = std::abs(4.0_rt * M_PI * r * r);
 
     }
 
@@ -290,18 +333,35 @@ Real area(const int& i, const int& j, const int& k,
             a = dx[0];
         }
 
-    }
-    else  {
+    } else  if (coord == 1) {
 
         // Cylindrical
 
         if (idir == 0) {
             Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
-            a = 2.0_rt * M_PI * r * dx[1];
+            a = std::abs(2.0_rt * M_PI * r * dx[1]);
         }
         else {
             Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
-            a = 2.0_rt * M_PI * r * dx[0];
+            a = std::abs(2.0_rt * M_PI * r * dx[0]);
+        }
+
+    } else {
+
+        // Spherical
+
+        if (idir == 0) {
+            Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+            Real theta_l = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
+            Real theta_r = geomdata.ProbLo()[1] + static_cast<Real>(j+1) * dx[1];
+
+            a = std::abs(2.0_rt * M_PI * r * r * (std::cos(theta_l) - std::cos(theta_r)));
+        }
+        else {
+            Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+            Real theta = geomdata.ProbLo()[1] + static_cast<Real>(j) * dx[1];
+
+            a = std::abs(2.0_rt * M_PI * std::sin(theta) * r * dx[0]);
         }
 
     }

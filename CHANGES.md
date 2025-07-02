@@ -1,3 +1,383 @@
+# 25.07
+
+  * display warnings about unused parameters more prominently (#3094)
+
+  * update the comment on `castro.use_pslope` to note it works with
+    PPM (#3091)
+
+  * fix doc building (#3083, #3090)
+
+  * update `xrb_layered` analysis scripts (#2980)
+
+  * for `subchandra`, disable burning in shocks + add a new 3D inputs
+    (#3078), and fix the colormaps in the plot scripts (#3082)
+
+  * for `Detonation`, disable burning in shocks (#3076)
+
+  * docs improvements (#3085)
+
+  * update `flame_wave` with the inputs files used for the recent H/He
+    flame paper (#3087)
+
+  * CI updates to sync with Microphysics (#3081, #3089)
+
+  * update deprecated call in MLMG (#3084)
+
+# 25.06
+
+  * update `subch_planar` `README.md` (#3075)
+
+  * update ``diffusion_test`` with improved documentation for the 2D
+    spherical test (#3072)
+
+  * add protection to the build system that checks to make sure that a
+    `make clean` is done before we try to build with a different
+    network. (#3073)
+
+# 25.05
+
+  * update nova inputs are README (#3066)
+
+  * clang-tidy clean-ups (#3064, #3069)
+
+  * fix some loop initialization and shadowing issues in the diffusion
+    test (#3068, #3070)
+
+  * update Sod analysis scripts for NumPy 2.x (#3065)
+
+  * update `xrb_spherical` analysis scripts (#3013)
+
+  * update scaling numbers for `flame_wave` (#3058)
+
+  * update `massive_star` README file (#3059)
+
+  * add a new analysis script to `Detonation` that shows the structure
+    at a single time, including composition (#3061)
+
+  * fix shadowing in `timestep.cpp` (#3063)
+
+  * update `subch_planar` inputs and README (#3062)
+
+  * have the `job_info` file capture the `EXTRACXXFLAGS` in the build
+    system (#3057)
+
+  * clean up the `flame` problem and make the inputs files clearer +
+    add one for carbon flames.  Also update the analysis scripts
+    (#3056)
+
+  * fix CI test branch issues (#3060)
+
+  * add Bessel-Legendre initial conditions for the 2D diffusion
+    test in spherical geometry (#3054)
+
+  * update the `flame_wave` analysis script to allow for parallel runs,
+    interactivity, and performance (#3030)
+
+  * fix the `divu`, `magvort`, and `diffterm` plot variables for 2D
+    spherical geometry (#3055)
+
+# 25.04
+
+  * for spherical geometry, allow the inner BC to not be at zero for
+    diffusion test problem (#3047) and improve the plotting script
+    (#3041)
+
+  * allow Castro to create the div{k grad{T}} diffusion term instead
+    of using the MLMG routines from AMReX (#3048)
+
+  * fix the spherical boundary check at initialization (#3046)
+
+  * make `NUM_GROW` and `NUM_GROW_SRC` `constexpr` (#3049)
+
+  * fix a NaN in `transverse_use_eos` when running in 3D (#3043)
+
+  * set `USE_SHOCK_VAR=TRUE` by default for the `Detonation`
+    problem. (#3038)
+
+# 25.03
+
+  * nova problem: update the inputs to match Smith Clark & Zingale
+    (2025) and support 3D (#3031, #3040)
+
+  * docs updates (#3039)
+
+  * update the network names for the subchandra and subch_base
+    problems (#3033)
+
+  * update the HIP CI action to support a later runner (#3034)
+
+  * add support for printing from `check_for_name` from GPUs (#3036)
+
+  * remove some old sparse Jacobian stuff from the build system
+    (#3035)
+
+# 25.02
+
+  * docs updates (#3027)
+
+  * add the `simple_convection` problem (#3016)
+
+  * codespell CI updates (#3025)
+
+  * only print mid-timestep `estTimeStep` outputs if relevant (#3023)
+
+  * CI updates to match Microphysics changes (#3021, #3024)
+
+  * remove some old comments related to Fortran (#3022)
+
+  * fix a tiling issue with shock detection on CPUs (#3019)
+
+  * remove unneeded files from problem setups (#3018) and fix comments
+    in problem setup `GNUmakefile`s
+
+# 25.01
+
+  * address rotation source in spherical 2d coordinate (#2967)
+
+  * update scripts and input files for diffusion test  (#3012)
+
+  * update pressure via eos when transverse_use_eos=1 (#3004)
+
+  * update thermal diffusion documentation (#3011)
+
+  * rename `Opacity_dir` -> `OPACITY_DIR` (#3006)
+
+  * sync GPU CI dependencies with AMReX (#3010)
+
+  * wdmerger: update inputs for He mergers to include burn retry
+    and adjust I/O (#3008)
+
+  * fix area/vol factors for spherical when theta is close to 0 or pi
+    (#3007)
+
+# 24.12
+
+  * update clang-tidy CI (#2992, #3002)
+
+  * fix `problo` != 0 in non-Cartesian coords (#3001)
+
+  * fix `apply_av` in spherical (#3000)
+
+  * update `xrb_spherical` analysis (#2999)
+
+  * add spherical support to plm (#2996, #2997)
+
+  * fix coverity issue (#2998)
+
+  * fix geometric source term in ppm tracing for spherical (#2995)
+
+  * fix dloga for non-radial direction in tracing (#2994)
+
+  * fix `scale_flux` in 1d for Cartesian (#2991)
+
+  * add the `xrb_spherical` problem setup (#2972)
+
+  * add a new distance function that works for all geometries (#2990)
+
+  * fix confusing geom name in derive (#2989)
+
+# 24.11
+
+  * a new well-balanced method was added to the CTU PPM solver.  This
+    does the characteristic projection only on the perturbed pressure
+    and then adds back in the hydrostatic pressure. It can be enabled
+    via `castro.ppm_well_balanced` (#2945)
+
+  * fixed a bug in the div{U} calculation for artificial viscosity on
+    symmetry boundaries (#2983)
+
+  * more development on 2D spherical geometry (#2973, #2975, #2981)
+
+  * updates to the massive star plotting scripts (#2979)
+
+  * add some new checks to prevent running unsupported combinations
+    of solvers (#2978)
+
+  * documentation updates (#2977)
+
+  * `flame_wave` can now be run in 1D (#2976)
+
+# 24.10
+
+  * update initial model for `subchandra` when doing ASE NSE (#2970)
+
+  * `massive_star` plot tweaks (#2968)
+
+  * start of work on 2D spherical geometry (#2953, #2954, #2955,
+    #2957, #2958, #2959, #2961, #2962, #2964, #2965)
+
+  * the gresho problem now takes Mach number instead of p0 as input
+    (#2951m #2963)
+
+  * the PPM geometric source terms in the normal predictor are now
+    traced to the interfaces (#2473)
+
+  * `subch_planar` now works in 1D (#2952)
+
+  * remove old `get_const_grav()` function (#2956)
+
+  * clang-tidy fixes to radiation (#2950)
+
+# 24.09
+
+  * Code clean-ups / clang-tidy (#2942, #2949)
+
+  * update the `hse_convergence` readme to reflect current convergence
+    (#2946)
+
+  * update the `bubble_convergence` plotting script (#2947)
+
+  * new Frontier scaling numbers (#2948)
+
+  * more GPU error printing (#2944)
+
+  * science problem updates: `flame_wave` (#2943)
+
+  * documentation updates (#2939)
+
+# 24.08
+
+  * lazy QueueReduction has been enabled for the timing diagnostics
+    (#2926)
+
+  * The `job_info` file output now correctly labels the compute time
+    as GPU-hours instead of CPU-hours when running on GPUs (#2930)
+
+  * We can now output warnings when running on GPUs if you build
+    with `USE_GPU_PRINTF=TRUE`(#2923, #2928)
+
+  * Code clean-ups / sync with Microphysics (#2900, #2901, #2905,
+    #2906, #2909, #2912, #2919, #2922, #2932, #2933, #2936, #2938,
+    #2940)
+
+  * The area weighting in the diagnostics in `subch_planar` was fixed
+    (#2885)
+
+  * A script to produce a resolution study for the `circular_det`
+    problem was added (#2857)
+
+  * science problem updates: `xrb_layered` (#2917), `nova` (#2913),
+    `wdmerger` (#2907, #2918, #2931), `Detonation` (#2902)
+
+  * updated scaling results on Frontier (#2904, #2914, #2915)
+
+  * more exact Riemann solver clean-up (#2896, #2897, #2898)
+    and clean-ups to the two shock solvers (#2895)
+
+  * fix issues with eigenvectors and clang-tidy in the MHD solver
+    (#2880)
+
+# 24.07
+
+  * Reorganizing of the existing 2-shock and HLL Riemann solvers
+    (#2887, #2888, #2889, #2890)
+
+  * Some clean-up, accuracy improvements, and optimization of the
+    exact Riemann solver in preparation for coupling it to simulations
+    (#2868, #2869, #2875)
+
+  * a new problem setup, `subch_planar`, for exploring He detonations
+    (#2870, #2873, #2881, #2883, #2886, #2877, #2878)
+
+  * clean-up the computation of the shock variable for hybrid Riemann
+    solves (#2865)
+
+  * code clean-ups (#2852, #2871, #2891)
+
+  * documentation improvements (#2843, #2879)
+
+  * add an EditorConfig (#2872)
+
+  * add the circular detonation problem to test multidimensional shock
+    algorithms (#2858)
+
+# 24.06
+
+  * Doc updates (#2839, #2842, #2846, #2851, #2854, #2860)
+
+  * Sync problem and Castro runtime parameters to recent Microphysics
+    changes (#2838, #2845, #2861)
+
+  * fix parsing in the `check_params.py` script (#2850)
+
+  * code cleaning (#2840, #2842, #2843)
+
+# 24.05
+
+  * Changed how the shock flag is computed.  It is now computed once,
+    at the start of a timestep.  It also takes into account sources
+    such that the pressure jump is only the pressure that is available
+    to drive a shock.  (#2726, #2728)
+
+  * Fixed a boundary condition check in gravity (#2833)
+
+  * Some coverity and clang-tidy fixes (#2810, #2811, #2835, #2831,
+    #2832)
+
+  * Fix the wdmerger initialization when the two stars are overlapping
+    (#2829)
+
+  * Fixed the Castro retry mechanism when amr.subcycling_mode = None
+    (#2821, #2824, #2826)
+
+  * Added more amr parameters to the `job_info` file (#2828)
+
+  * Added OpenMP to the SDC burn loop (#2770)
+
+# 24.04
+
+  * Some clang-tidy fixes (#2779, #2780, #2781, #2784, #2786, #2787, #2790,
+    #2791, #2792, #2793, #2797, #2798, #2799, #2800, #2801, #2804)
+
+  * Fix species initialization in the Detonation problem (#2806)
+    and let it work with NSE (#2765)
+
+  * Sync up with AMReX changes (#2794)
+
+  * wdmerger now reports composition of initial stars (#2767)
+
+  * flame_wave now checks if the `atm_delta` is too small (#2782)
+    and stores X(ash) (#2773)
+
+  * a bounds issue in the true SDC integration was fixed (#2775)
+
+# 24.03
+
+  * Documentation updates (#2742, #2752, #2753)
+
+  * Fix some code warnings (#2737)
+
+  * Fixed the exact Riemann solver compilation (#2745)
+
+  * Fix an issue with large kernel sizes with ROCm in the reduction code
+    in the reactions (#2749)
+
+# 24.02
+
+  * Lot's of code fixes from coverity and clang-tidy (#2736, #2734,
+    #2735, #2731, #2732, #2733)
+
+  * Fix the boundary condition logic at a wall for Detonation (#2722)
+
+  * Reimplement the shock detection algorithm to account for sources
+    and do a better job in multidimensions (#2711, #2710, #2709, #2704)
+
+  * Start the process of moving the runtime parameters to structs (#2688)
+
+# 24.01
+
+  * An option for unlimited PPM reconstruction was added (#2670)
+
+  * An option allowing for optional passive sources to the conserved
+    state was added (#2678)
+
+  * A script `diag_parser.py` was added to allow for easy parsing of
+    the global diagnostic files output at runtime (#2666, #2667)
+
+# 23.12
+
+  * The radiation solver port to C++ has been completed (#2638, #2648)
+
 # 23.11
 
   * Problem GNUmakefiles have been standardized and now allow for the
@@ -680,7 +1060,7 @@
      the conversion of primitive to conserved variables (#804)
 
    * We've changed how the backup for retries is done.  Presently if
-     use_retry is enabled we make a pre-emptive copy of the StateData
+     use_retry is enabled we make a preemptive copy of the StateData
      right at the beginning of the timestep.  Now we only backup when
      we detect that a retry is needed (#812)
 

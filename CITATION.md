@@ -29,23 +29,23 @@ provides some details on the algorithmic implementations):
 ```
     @ARTICLE{2010ApJ...715.1221A,
        author = {{Almgren}, A.~S. and {Beckner}, V.~E. and {Bell},
-		      J.~B. and {Day}, M.~S. and {Howell}, L.~H. and
-		      {Joggerst}, C.~C. and {Lijewski}, M.~J. and
-		      {Nonaka}, A. and {Singer}, M. and {Zingale}, M.},
-	title = "{CASTRO: A New Compressible Astrophysical
-		      Solver. I. Hydrodynamics and Self-gravity}",
+                      J.~B. and {Day}, M.~S. and {Howell}, L.~H. and
+                      {Joggerst}, C.~C. and {Lijewski}, M.~J. and
+                      {Nonaka}, A. and {Singer}, M. and {Zingale}, M.},
+        title = "{CASTRO: A New Compressible Astrophysical
+                      Solver. I. Hydrodynamics and Self-gravity}",
       journal = {\apj},
     archivePrefix = "arXiv",
        eprint = {1005.0114},
      primaryClass = "astro-ph.IM",
      keywords = {equation of state, gravitation, hydrodynamics, methods:
-		      numerical, nuclear reactions, nucleosynthesis,
-		      abundances},
-	 year = 2010,
-	month = jun,
+                      numerical, nuclear reactions, nucleosynthesis,
+                      abundances},
+         year = 2010,
+        month = jun,
        volume = 715,
-	pages = {1221-1238},
-	  doi = {10.1088/0004-637X/715/2/1221},
+        pages = {1221-1238},
+          doi = {10.1088/0004-637X/715/2/1221},
        adsurl = {http://adsabs.harvard.edu/abs/2010ApJ...715.1221A},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
@@ -64,21 +64,21 @@ cite the following:
 ```
     @ARTICLE{2011ApJS..196...20Z,
        author = {{Zhang}, W. and {Howell}, L. and {Almgren}, A. and
-		      {Burrows}, A. and {Bell}, J.},
-	title = "{CASTRO: A New Compressible Astrophysical
-		      Solver. II. Gray Radiation Hydrodynamics}",
+                      {Burrows}, A. and {Bell}, J.},
+        title = "{CASTRO: A New Compressible Astrophysical
+                      Solver. II. Gray Radiation Hydrodynamics}",
       journal = {\apjs},
     archivePrefix = "arXiv",
        eprint = {1105.2466},
      primaryClass = "astro-ph.IM",
      keywords = {diffusion, hydrodynamics, methods: numerical, radiative
-		      transfer},
-	 year = 2011,
-	month = oct,
+                      transfer},
+         year = 2011,
+        month = oct,
        volume = 196,
-	  eid = {20},
-	pages = {20},
-	  doi = {10.1088/0067-0049/196/2/20},
+          eid = {20},
+        pages = {20},
+          doi = {10.1088/0067-0049/196/2/20},
        adsurl = {http://adsabs.harvard.edu/abs/2011ApJS..196...20Z},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
@@ -87,21 +87,21 @@ cite the following:
 ```
     @ARTICLE{2013ApJS..204....7Z,
        author = {{Zhang}, W. and {Howell}, L. and {Almgren}, A. and
-		      {Burrows}, A. and {Dolence}, J. and {Bell}, J.},
-	title = "{CASTRO: A New Compressible Astrophysical
-		      Solver. III. Multigroup Radiation Hydrodynamics}",
+                      {Burrows}, A. and {Dolence}, J. and {Bell}, J.},
+        title = "{CASTRO: A New Compressible Astrophysical
+                      Solver. III. Multigroup Radiation Hydrodynamics}",
       journal = {\apjs},
     archivePrefix = "arXiv",
        eprint = {1207.3845},
      primaryClass = "astro-ph.IM",
      keywords = {diffusion, hydrodynamics, methods: numerical, radiative
-		      transfer },
-	 year = 2013,
-	month = jan,
+                      transfer },
+         year = 2013,
+        month = jan,
        volume = 204,
-	  eid = {7},
-	pages = {7},
-	  doi = {10.1088/0067-0049/204/1/7},
+          eid = {7},
+        pages = {7},
+          doi = {10.1088/0067-0049/204/1/7},
        adsurl = {http://adsabs.harvard.edu/abs/2013ApJS..204....7Z},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
@@ -116,22 +116,22 @@ hydro and gravity:
 ```
     @ARTICLE{2016ApJ...819...94K,
        author = {{Katz}, M.~P. and {Zingale}, M. and {Calder}, A.~C. and
-		      {Swesty}, F.~D. and {Almgren}, A.~S. and {Zhang},
-		      W.},
-	title = "{White Dwarf Mergers on Adaptive Meshes. I. Methodology
-		      and Code Verification}",
+                      {Swesty}, F.~D. and {Almgren}, A.~S. and {Zhang},
+                      W.},
+        title = "{White Dwarf Mergers on Adaptive Meshes. I. Methodology
+                      and Code Verification}",
       journal = {\apj},
     archivePrefix = "arXiv",
        eprint = {1512.06099},
      primaryClass = "astro-ph.HE",
      keywords = {hydrodynamics, methods: numerical, supernovae: general,
-		      white dwarfs},
-	 year = 2016,
-	month = mar,
+                      white dwarfs},
+         year = 2016,
+        month = mar,
        volume = 819,
-	  eid = {94},
-	pages = {94},
-	  doi = {10.3847/0004-637X/819/2/94},
+          eid = {94},
+        pages = {94},
+          doi = {10.3847/0004-637X/819/2/94},
        adsurl = {http://adsabs.harvard.edu/abs/2016ApJ...819...94K},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }

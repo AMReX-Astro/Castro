@@ -27,6 +27,8 @@ castro.change_max     = 1.25
 castro.dtnuc_e        = 1.e200
 castro.dtnuc_X        = 1.e200
 
+castro.disable_shock_burning = 1
+
 castro.small_temp     = 1.e5
 
 castro.sum_interval   = 0
@@ -51,7 +53,7 @@ amr.refine.dengrad_rel.max_level = 0
 amr.refine.dengrad_rel.relative_gradient = 0.5
 amr.refine.dengrad_rel.field_name = density
 
-amr.refine.dxnucerr.max_level = 20
+amr.refine.dxnucerr.max_level = 15
 amr.refine.dxnucerr.value_greater = 1.e-16
 amr.refine.dxnucerr.field_name = t_sound_t_enuc
 

@@ -1,0 +1,25 @@
+# ROCm 6.3.1
+#
+# build info:
+#
+# EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+# NETWORK: /ccs/home/zingale/Microphysics/networks/he-burn/he-burn-22a
+# CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+# INTEGRATOR: VODE
+# SCREENING: screen5
+#
+# Castro       git describe: 25.04-2-g0b30433d3
+# AMReX        git describe: 25.04-9-g30a9768150
+# Microphysics git describe: 25.04-1-gf32e8dfe
+#
+# the "dirty" on Microphysics is commenting out the EXTRACXXFLAGS
+# that disable inlining with HIP
+#
+# this also has network.use_tables disabled
+#
+# nodes  rocm      mag_grid_size   avg time /   std dev
+ 128      6.3.1          128           78.0106 0.336566
+ 256      6.3.1          128           40.6706 0.116617
+ 512      6.3.1          128           22.9555 0.223842
+1024      6.3.1          128           15.3304 0.0476714
+2048      6.3.1          128           12.4193 0.0378214

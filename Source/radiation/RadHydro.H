@@ -131,7 +131,7 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
 
   if (use_WENO) {
 
-    for (int gg = 2; gg <= NGROUPS+1; gg++) { 
+    for (int gg = 2; gg <= NGROUPS+1; gg++) {
       fg(gg) = ag(gg) * ug(gg);
       ag(gg) = std::abs(ag(gg));
     }

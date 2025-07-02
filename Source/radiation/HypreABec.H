@@ -33,6 +33,10 @@ class HypreABec {
 
   ~HypreABec();
 
+  HypreABec(const HypreABec& a) = delete;
+  HypreABec(const HypreABec&& a) = delete;
+  HypreABec& operator= (const HypreABec& a) = delete;
+  HypreABec& operator= (const HypreABec&& a) = delete;
 
 ///
 /// @param v
@@ -48,10 +52,10 @@ class HypreABec {
 ///
   void setScalars(amrex::Real alpha, amrex::Real beta);
 
-  amrex::Real getAlpha() const {
+  [[nodiscard]] amrex::Real getAlpha() const {
     return alpha;
   }
-  amrex::Real getBeta() const {
+  [[nodiscard]] amrex::Real getBeta() const {
     return beta;
   }
 

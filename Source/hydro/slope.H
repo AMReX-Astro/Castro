@@ -1,3 +1,6 @@
+#ifndef SLOPE_H
+#define SLOPE_H
+
 #include <Castro.H>
 
 #ifdef RADIATION
@@ -239,3 +242,4 @@ pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
   }
 
 }
+#endif

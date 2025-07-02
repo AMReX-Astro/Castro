@@ -14,7 +14,7 @@
 using namespace amrex;
 
 void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_er,
-                                     const MultiFab& Er_new, const MultiFab& Er_pi, 
+                                     const MultiFab& Er_new, const MultiFab& Er_pi,
                                      const MultiFab& kappa_p,
                                      const MultiFab& etaTz,
                                      const MultiFab& temp_new,
@@ -78,15 +78,15 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 }
 
 
-void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab& rhoe_star, 
-                                       const MultiFab& rhoe_step, const MultiFab& Er_new, 
-                                       const MultiFab& temp_new, const MultiFab& temp_star, 
+void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab& rhoe_star,
+                                       const MultiFab& rhoe_step, const MultiFab& Er_new,
+                                       const MultiFab& temp_new, const MultiFab& temp_star,
                                        const MultiFab& rho,
                                        const MultiFab& kappa_p, const MultiFab& jg,
                                        const MultiFab& dedT,
-                                       Real& rel_rhoe, Real& abs_rhoe, 
-                                       Real& rel_FT,   Real& abs_FT, 
-                                       Real& rel_T,    Real& abs_T, 
+                                       Real& rel_rhoe, Real& abs_rhoe,
+                                       Real& rel_FT,   Real& abs_FT,
+                                       Real& rel_T,    Real& abs_T,
                                        Real delta_t)
 {
   ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
@@ -152,7 +152,7 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
 
   ParallelDescriptor::ReduceRealMax(data, ndata);
 
-  rel_rhoe = data[0]; 
+  rel_rhoe = data[0];
   abs_rhoe = data[1];
   rel_FT   = data[2];
   abs_FT   = data[3];
@@ -191,7 +191,7 @@ void Radiation::compute_coupling(MultiFab& coupT,
 }
 
 
-void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz, 
+void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
                              MultiFab& eta1, MultiFab& djdT,
                              const MultiFab& dkdT, const MultiFab& dedT,
                              const MultiFab& Er_star, const MultiFab& rho,
@@ -242,10 +242,10 @@ void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
 }
 
 
-void Radiation::eos_opacity_emissivity(const MultiFab& S_new, 
+void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
                                        const MultiFab& temp_new,
                                        const MultiFab& temp_star,
-                                       MultiFab& kappa_p, MultiFab& kappa_r, MultiFab& jg, 
+                                       MultiFab& kappa_p, MultiFab& kappa_r, MultiFab& jg,
                                        MultiFab& djdT, MultiFab& dkdT, MultiFab& dedT,
                                        int level, int it, int ngrow)
 {
@@ -429,7 +429,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
                                  dkdT_arr(i,j,k,g), jg_arr(i,j,k,g), djdT_arr(i,j,k,g));
           }
       });
-  }    
+  }
 
   if (ngrow == 0 && !lag_opac) {
       kappa_r.FillBoundary(geom.periodicity());
@@ -437,13 +437,13 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 }
 
 
-void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi, 
+void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            MultiFab& kappa_p, MultiFab& kappa_r,
                            MultiFab& etaT, MultiFab& eta1,
                            MultiFab& mugT,
                            Array<MultiFab, AMREX_SPACEDIM>& lambda,
-                           RadSolve* solver, MGRadBndry& mgbd, 
-                           const BoxArray& grids, int level, Real time, 
+                           RadSolve* solver, MGRadBndry& mgbd,
+                           const BoxArray& grids, int level, Real time,
                            Real delta_t, Real ptc_tau)
 {
   const Geometry& geom = parent->Geom(level);
@@ -467,7 +467,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif 
+#endif
   for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
@@ -539,7 +539,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
           acoefs_arr(i,j,k) = H1 * kbar * C::c_light + dt1;
       });
-  }  
+  }
 
   solver->cellCenteredApplyMetrics(level, acoefs);
   solver->setLevelACoeffs(level, acoefs);
@@ -592,7 +592,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                   bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j,k-1) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
               }
           });
-          
+
           if (nGroups > 1) {
               amrex::ParallelFor(bx,
               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -702,7 +702,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
 
 void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
-                            const MultiFab& kappa_p, 
+                            const MultiFab& kappa_p,
                             const MultiFab& etaT,
                             const MultiFab& mugT,
                             Real delta_t, Real ptc_tau)
@@ -745,8 +745,8 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 }
 
 
-void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe, 
-                                    const MultiFab& temp, 
+void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
+                                    const MultiFab& temp,
                                     const BoxArray& grids,
                                     Real& derat, Real& dT, int level)
 {
@@ -767,7 +767,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-      for (MFIter mfi(msk); mfi.isValid(); ++mfi) 
+      for (MFIter mfi(msk); mfi.isValid(); ++mfi)
       {
           msk[mfi].setVal<RunOn::Device>(1.0);
 
@@ -777,7 +777,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
               for (int ii = 0; ii < isects.size(); ii++) {
                   msk[mfi].setVal<RunOn::Device>(0.0, isects[ii].second, 0);
               }
-          } 
+          }
       }
   }
 
@@ -788,7 +788,7 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(state,true); mfi.isValid(); ++mfi) 
+  for (MFIter mfi(state,true); mfi.isValid(); ++mfi)
   {
       const Box& reg  = mfi.tilebox();
 
@@ -826,16 +826,16 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 }
 
 
-void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
+void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                               const MultiFab& Er_new, const MultiFab& Er_pi,
                               const MultiFab& rhoe_star,
                               const MultiFab& rhoe_step,
                               const MultiFab& etaT, const MultiFab& etaTz,
                               const MultiFab& eta1,
                               const MultiFab& coupT,
-                              const MultiFab& kappa_p, const MultiFab& jg, 
+                              const MultiFab& kappa_p, const MultiFab& jg,
                               const MultiFab& mugT,
-                              const MultiFab& S_new, 
+                              const MultiFab& S_new,
                               int level, Real delta_t, Real ptc_tau,
                               int it, bool conservative_update)
 {
@@ -958,14 +958,14 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 re_n(i,j,k) = eos_state.rho * eos_state.e;
             });
         }
-    }  
+    }
 }
 
 // ========================================================================
 // for the hyperbolic solver
 
 void Radiation::compute_limiter(int level, const BoxArray& grids,
-                                const MultiFab &Sborder, 
+                                const MultiFab &Sborder,
                                 const MultiFab &Erborder,
                                 MultiFab &lamborder)
 { // it works for both single- and multi-group
@@ -983,28 +983,28 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
   }
   else {
 
-    MultiFab kpr(grids,dmap,Radiation::nGroups,ngrow);  
+    MultiFab kpr(grids,dmap,Radiation::nGroups,ngrow);
 
     if (do_multigroup) {
-        MGFLD_compute_rosseland(kpr, Sborder); 
+        MGFLD_compute_rosseland(kpr, Sborder);
     }
     else {
-      SGFLD_compute_rosseland(kpr, Sborder); 
+      SGFLD_compute_rosseland(kpr, Sborder);
     }
 
     MultiFab Er_wide(grids, dmap, nGroups, ngrow+1);
     Er_wide.setVal(-1.0);
     MultiFab::Copy(Er_wide, Erborder, 0, 0, nGroups, 0);
-    
+
     Er_wide.FillBoundary(parent->Geom(level).periodicity());
-    
+
     const Real* dx = parent->Geom(level).CellSize();
 
     using namespace filter;
 
 #ifdef _OPENMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(Er_wide,false); mfi.isValid(); ++mfi) {
         FArrayBox lamfilxfab;
 #if AMREX_SPACEDIM >= 2
@@ -1258,7 +1258,7 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 }
 
 
-void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
+void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
                                 FArrayBox& gPr, const Real*dx, const Box& box)
 {
     auto gPr_arr = gPr.array();
@@ -1832,8 +1832,8 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     Gpu::synchronize();
 }
 
-void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
-                              const MultiFab& rhoe_star, const MultiFab& temp_star, 
+void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
+                              const MultiFab& rhoe_star, const MultiFab& temp_star,
                               const MultiFab& S_new, const BoxArray& grids, int level)
 {
   temp_new.plus(temp_star, 0, 1, 0);
@@ -1881,7 +1881,7 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) 
+    for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri)
     {
         const Box& bx = ri.tilebox();
 

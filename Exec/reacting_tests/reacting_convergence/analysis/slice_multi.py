@@ -26,7 +26,7 @@ L_y = ds.domain_right_edge[1] - ds.domain_left_edge[1]
 fig = plt.figure()
 fig.set_size_inches(12.0, 9.0)
 
-grid = ImageGrid(fig, 111, nrows_ncols=(3, 2), axes_pad=0.75, cbar_pad="2%", 
+grid = ImageGrid(fig, 111, nrows_ncols=(3, 2), axes_pad=0.75, cbar_pad="2%",
                  label_mode="L", cbar_mode="each")
 
 

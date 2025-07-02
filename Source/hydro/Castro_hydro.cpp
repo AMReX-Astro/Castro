@@ -12,7 +12,7 @@ Castro::cons_to_prim(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim()");
-    
+
 #ifdef RADIATION
     AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 
@@ -120,7 +120,7 @@ Castro::cons_to_prim_fourth(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim_fourth()");
-    
+
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
@@ -170,7 +170,7 @@ Castro::cons_to_prim_fourth(const Real time)
             auto qaux_bar_arr = qaux_bar.array(mfi);
 
             ctoprim(qbx,
-                    time, 
+                    time,
                     Sborder_arr,
                     q_bar_arr,
                     qaux_bar_arr);
@@ -237,12 +237,20 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
     int cfl_violation = 0;
 
     auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const auto coord = geom.Coord();
+    amrex::ignore_unused(problo, coord);
 
     Real dtdx = dt / dx[0];
 
     Real dtdy = 0.0_rt;
     if (AMREX_SPACEDIM >= 2) {
       dtdy = dt / dx[1];
+      if (coord == 2) {
+          // dx[1] in Spherical2D is just rdtheta, need rdtheta for physical length
+          // Just choose to divide by the smallest r
+          dtdy /= problo[0] + 0.5_rt * dx[0];
+      }
     }
 
     Real dtdz = 0.0_rt;

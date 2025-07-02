@@ -5,7 +5,7 @@ jobs:
   uniform_sphere:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -26,7 +26,7 @@ jobs:
       - name: Compile uniform_sphere
         run: |
           cd Exec/gravity_tests/uniform_sphere
-          make USE_MPI=FALSE -j 2
+          make USE_MPI=FALSE -j 4
 
       - name: Run uniform_sphere
         run: |

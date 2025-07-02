@@ -10,9 +10,8 @@ def find_r_for_rho(r, rho, rho_want):
     return r[idx]
 
 
-#file = "../15m_500_sec.aprox19.hse.6400"
-file = "../15m_500_sec.aprox19.hse.20.0km"
-Lx = 1.6384e10
+file = "../15m_500_sec.aprox19.hse.5.00km"
+Lx = 8.192e9
 
 data = np.loadtxt(file)
 
@@ -46,11 +45,11 @@ iye = names.index("Ye")
 fig = plt.figure()
 ax = fig.add_subplot(211)
 
-l1 = ax.plot(data[:,0], data[:,idens], label="density")
-l2 = ax.plot(data[:,0], data[:,itemp], label="temperature")
+l1 = ax.plot(data[:,0], data[:,idens], label=r"$\rho$")
+l2 = ax.plot(data[:,0], data[:,itemp], label="$T$")
 
-# show where the refinement kicks in 
-rho_refine = 1.e4
+# show where the refinement kicks in
+rho_refine = 2.e4
 
 r_refine = find_r_for_rho(data[:,0], data[:,idens], rho_refine)
 
@@ -65,17 +64,22 @@ ax.set_yscale("log")
 
 ax.set_xlabel("r [cm]")
 ax.set_ylabel(r"$\rho~[\rm{g/cm^3}]$, $T~[K]$")
+
+ax.set_xlim(None, 5.e10)
+ax.grid(color="b", alpha=0.5, ls=":")
+
 ax2 = ax.twinx()
 
 ax2.set_ylabel(r"$Y_e$")
 
-l3 = ax2.plot(data[:,0], data[:,iye], color="C2", label="Ye")
+l3 = ax2.plot(data[:,0], data[:,iye], color="C2", label="$Y_e$")
 
 lns = l1 + l2 + l3
 labs = [l.get_label() for l in lns]
 
-ax.legend(lns, labs, frameon=False)
+ax.legend(lns, labs, frameon=False, loc=6, fontsize="small")
 
+# species plot
 
 ax = fig.add_subplot(212)
 
@@ -92,15 +96,17 @@ for n, var in enumerate(names):
 
     if Xmax > threshold:
         if Xmax > 0.5:
-            lw = 2
+            lw = 3
+            ls = "-"
         else:
             lw = 1
-        ax.plot(data[:,0], data[:,n], label=var, lw=lw)
+            ls = "--"
+        ax.plot(data[:,0], data[:,n], label=var, lw=lw, ls=ls)
 
 
 ax.axvline(r_refine, color="0.25", ls=":")
 
-ax.axvline(Lx, color="0.25", ls="-")
+ax.axvline(Lx, color="0.5", ls="-")
 
 ax.set_xscale("log")
 ax.set_yscale("log")
@@ -108,11 +114,15 @@ ax.set_yscale("log")
 ax.set_xlabel("r [cm]")
 ax.set_ylabel("mass fraction")
 
-ax.legend(frameon=False, fontsize="small", ncol=2)
+ax.set_xlim(None, 5.e10)
+ax.set_ylim(1.e-6, None)
 
-fig.set_size_inches((8, 12))
+ax.grid(color="b", alpha=0.5, ls=":")
+
+ax.legend(frameon=True, edgecolor="w", ncol=1, framealpha=0.5, fontsize="small")
+
+fig.set_size_inches((6, 9))
 
 fig.tight_layout()
 
-fig.savefig("initial_model.png")
-
+fig.savefig("initial_model.pdf")

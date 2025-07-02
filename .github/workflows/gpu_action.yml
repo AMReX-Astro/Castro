@@ -1,11 +1,16 @@
 name: GPU compilation
 
 on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   gpu-compilation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -24,14 +29,7 @@ jobs:
           sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0
 
       - name: Install CUDA
-        # from https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_network
-        run: |
-          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
-          sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
-          sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
-          sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
-          sudo apt-get update
-          sudo apt-get -y install cuda-toolkit-11-8
+        run: .github/workflows/dependencies/dependencies_nvcc.sh 11.8
 
       - name: Install hypre
         run: |
@@ -39,7 +37,7 @@ jobs:
           tar xfz v2.28.0.tar.gz
           cd hypre-2.28.0/src
           CUDA_HOME=/usr/local/cuda HYPRE_CUDA_SM=60 ./configure --with-cxxstandard=17 --with-cuda --enable-unified-memory --without-MPI
-          make -j 2
+          make -j 4
           make install
           cd ../../
 

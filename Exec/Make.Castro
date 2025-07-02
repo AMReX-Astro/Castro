@@ -35,13 +35,7 @@ EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
-# only radiation builds need Fortran
-ifeq ($(USE_RAD), TRUE)
-  BL_NO_FORT := FALSE
-else
-  BL_NO_FORT := TRUE
-endif
-
+BL_NO_FORT := TRUE
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -60,6 +54,9 @@ endif
 
 # Require C++17
 CXXSTD := c++17
+
+# Use Lazy QueueReduction for the timing outputs
+LAZY := TRUE
 
 # default integrator
 INTEGRATOR_DIR ?= VODE
@@ -142,10 +139,14 @@ ifeq ($(USE_GPU),TRUE)
   endif
 endif
 
+ifeq ($(USE_GPU_PRINTF),TRUE)
+  DEFINES += -DALLOW_GPU_PRINTF
+endif
+
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
-all: build_status $(executable)
+all: build_status check_network $(executable)
 	@echo SUCCESS
 
 build_status:
@@ -153,14 +154,16 @@ build_status:
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 
+# If we make and then make again with a different network, undefined
+# behavior may result.  One should always do a `make clean` before
+# changing networks.  This tries to check if there is an inconsistency.
+check_network:
+	$(CASTRO_HOME)/Util/scripts/check_network.py $(NETWORK_DIR) $(CASTRO_AUTO_SOURCE_DIR)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
+	echo $(NETWORK_DIR) > $(CASTRO_AUTO_SOURCE_DIR)/NETWORK_USED
+
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
-
-# OpenACC support
-ifeq ($(USE_ACC), TRUE)
-  DEFINES += -DACC
-endif
-
 
 
 #------------------------------------------------------------------------------
@@ -204,17 +207,6 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-endif
-
-ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
-  DEFINES += -DREACT_SPARSE_JACOBIAN
-
-  # The following is sometimes useful to turn on for debugging sparse J indices
-  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
-  # Otherwise, set/scale do nothing, and get returns 0.
-  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
-    DEFINES += -DSPARSE_STOP_ON_OOB
-  endif
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
@@ -268,6 +260,10 @@ endif
 ifeq ($(USE_ROTATION), TRUE)
   Bdirs += Source/rotation
   DEFINES += -DROTATION
+endif
+
+ifeq ($(USE_SPECIES_SOURCES), TRUE)
+  DEFINES += -DCONS_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_PARTICLES), TRUE)
@@ -359,7 +355,7 @@ include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90 $(CASTRO_AUTO_SOURCE_DIR)/*.cpp
 
 # these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
 # can get rid of explicitly removing them (this is for backwards compatibility)

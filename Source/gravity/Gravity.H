@@ -127,7 +127,7 @@ public:
 /// @param time             Current time
 /// @param multi_level      boolean, do we iterate over all levels or mask off fine grids?
 ///
-  void set_mass_offset(amrex::Real time, bool multi_level=true);
+  void set_mass_offset(amrex::Real time, bool multi_level=true) const;
 
 ///
 /// Return ``grad_phi_prev`` at given level
@@ -242,17 +242,17 @@ public:
 ///
 /// Compute the difference between level and composite solves
 ///
-/// @param level        level index
-/// @param comp_phi     MultiFab containing computed phi
-/// @param comp_gphi    Vector of MultiFabs containing computed grad phi
-/// @param cml_phi      MultiFab, computed minus level phi
-/// @param cml_gphi     Vector of MultiFabs, computed minus level grad phi
+/// @param level                       level index
+/// @param comp_phi                    MultiFab containing computed phi
+/// @param comp_gphi                   Vector of MultiFabs containing computed grad phi
+/// @param comp_minus_level_phi        MultiFab, computed minus level phi
+/// @param comp_minus_level_grad_phi   Vector of MultiFabs, computed minus level grad phi
 ///
   void create_comp_minus_level_grad_phi(int level,
                                         amrex::MultiFab& comp_phi,
                                         const amrex::Vector<amrex::MultiFab*>& comp_gphi,
-                                        amrex::MultiFab& cml_phi,
-                                        amrex::Vector<std::unique_ptr<amrex::MultiFab> >& cml_gphi);
+                                        amrex::MultiFab& comp_minus_level_phi,
+                                        amrex::Vector<std::unique_ptr<amrex::MultiFab> >& comp_minus_level_grad_phi);
 
 
 ///
@@ -348,7 +348,7 @@ public:
 /// @param radial_grav  Radial gravity
 /// @param grav_vector  Gravity vector
 ///
-  void interpolate_monopole_grav(int level, RealVector& radial_grav, amrex::MultiFab& grav_vector);
+  void interpolate_monopole_grav(int level, RealVector& radial_grav, amrex::MultiFab& grav_vector) const;
 
 ///
 /// Integrate radially outward to find radial mass distribution
@@ -368,7 +368,7 @@ public:
 #ifdef GR_GRAV
                            RealVector& radial_pres,
 #endif
-                           int n1d, int level);
+                           int n1d, int level) const;
 
 ///
 /// Implement multipole boundary conditions
@@ -383,7 +383,7 @@ public:
 ///
 /// Initialize multipole gravity
 ///
-  void init_multipole_grav();
+  void init_multipole_grav() const;
 
 #if (AMREX_SPACEDIM == 3)
 
@@ -449,7 +449,6 @@ public:
   amrex::Vector<amrex::MultiFab*> area;
 
   int Density;
-  int finest_level;
   int finest_level_allocated;
 
   amrex::BCRec*       phys_bc;
@@ -481,7 +480,7 @@ public:
 /// @param Rhs      MultiFab
 /// @param coeffs   Vector of MultiFabs
 ///
-  void applyMetricTerms(int level,amrex::MultiFab& Rhs, const amrex::Vector<amrex::MultiFab*>& coeffs);
+  void applyMetricTerms(int level,amrex::MultiFab& Rhs, const amrex::Vector<amrex::MultiFab*>& coeffs) const;
 
 ///
 ///
@@ -489,7 +488,7 @@ public:
 /// @param level    Index of level
 /// @param cc       Cell-centered data
 ///
-  void unweight_cc(int level,amrex::MultiFab& cc);
+  void unweight_cc(int level,amrex::MultiFab& cc) const;
 
 ///
 ///
@@ -497,7 +496,7 @@ public:
 /// @param level    Index of level
 /// @param edges    Edge-based data
 ///
-  void unweight_edges(int level, const amrex::Vector<amrex::MultiFab*>& edges);
+  void unweight_edges(int level, const amrex::Vector<amrex::MultiFab*>& edges) const;
 #endif
 
 ///
@@ -505,7 +504,7 @@ public:
 /// @param phi          Gravitational potential
 /// @param grav_vector  Gravity vector
 ///
-    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector);
+    void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector) const;
 
 ///
 /// Get the rhs
@@ -547,7 +546,7 @@ public:
                                         const amrex::Vector<std::array<amrex::MultiFab*,AMREX_SPACEDIM> >& grad_phi,
                                         const amrex::Vector<amrex::MultiFab*>& res,
                                         const amrex::MultiFab* const crse_bcdata,
-                                        amrex::Real rel_eps, amrex::Real abs_eps);
+                                        amrex::Real rel_eps, amrex::Real abs_eps) const;
 
 
 ///
@@ -567,12 +566,6 @@ public:
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
-
-  static inline amrex::Real
-  get_const_grav() {
-    return gravity::const_grav;
-  }
-
 
 };
 

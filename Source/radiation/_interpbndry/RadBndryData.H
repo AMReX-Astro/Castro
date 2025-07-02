@@ -18,7 +18,7 @@
         type conversion with the Geometry::Geometry(const Box&) constructor.
         This class can easily make a Geometry object, but does not have a
         ProxyGeometry::ProxyGeometry(const Box&) constructor.
-*/      
+*/
 /*@Doc:
         A ProxyGeometry object is, for most purposes, merely a wrapper to the
         Geometry class.  The Geometry class contains a single-argument
@@ -50,7 +50,7 @@ public:
 /*@Memo:
         A BndryData stores and manipulates boundary data
         information on each side of each box in a BoxArray.
-*/      
+*/
 /*@Doc:
         A BndryData contains a BndryRegister about each side of each grid in
         a Boxarray.  These data are used to store information along the
@@ -94,11 +94,25 @@ public:
 //@ManMemo: administrative functions
 //@ManDoc: default constructor
     RadBndryData() : amrex::BndryRegister() {};
+
+    ~RadBndryData() = default;
+
+    //
+    // Disabled!
+    //
+//@ManDoc: copy constructor
+    RadBndryData(const RadBndryData& src) = delete;
+//@ManDoc: copy operator
+    RadBndryData& operator = (const RadBndryData& src) = delete;
+//@ManDoc: move constructor
+    RadBndryData(const RadBndryData&& src) = delete;
+//@ManDoc: move operator
+    RadBndryData& operator = (const RadBndryData&& src) = delete;
+
 //@ManDoc: constructor specifying number of components and box of physical domain (cell-centered)
     RadBndryData(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                  int _ncomp, const ProxyGeometry& geom);
-//@ManDoc: destructor
-    virtual ~RadBndryData();
+
 //@ManDoc: allocate bndry fabs along given face
     void define(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
                 int _ncomp, const ProxyGeometry& geom);
@@ -166,17 +180,8 @@ public:
     amrex::FabSet &operator[](const amrex::Orientation &_face) {
       return amrex::BndryRegister::bndry[_face];
     }
-    
 
-private:
-    //
-    // Disabled!
-    //
-//@ManDoc: copy constructor
-    RadBndryData(const RadBndryData& src);
-//@ManDoc: copy operator
-    RadBndryData& operator = (const RadBndryData& src);
+
 };
 
 #endif
-

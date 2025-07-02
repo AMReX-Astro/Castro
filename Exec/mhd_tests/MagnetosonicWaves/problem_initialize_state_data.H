@@ -46,7 +46,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real pressure = problem::p_0 + problem::rho_0 * problem::c_s * pert;
 
-    // compute the internal energy (erg/cc) 
+    // compute the internal energy (erg/cc)
 
     eos_t eos_state;
     eos_state.rho = problem::rho_0;

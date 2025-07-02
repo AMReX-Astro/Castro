@@ -39,7 +39,7 @@ Castro::volWgtSum (const MultiFab& mf, int comp, bool local, bool finemask)
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
@@ -102,13 +102,13 @@ Castro::locWgtSum (const MultiFab& mf, int comp, int idir, bool local)
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = mf[mfi].array(comp);
         auto const& vol = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         //
@@ -196,14 +196,14 @@ Castro::volProductSum (const MultiFab& mf1,
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab1 = mf1[mfi].array(comp1);
         auto const& fab2 = mf2[mfi].array(comp2);
         auto const& vol  = volume.array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
@@ -251,12 +251,12 @@ Castro::locSquaredSum (const std::string& name,
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
-#endif    
+#endif
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         auto const& fab = (*mf).array(mfi);
         auto const& mask = mask_available ? mask_mf.array(mfi) : Array4<Real>{};
-    
+
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
@@ -314,10 +314,10 @@ Castro::locSquaredSum (const std::string& name,
 #ifdef GRAVITY
 void
 Castro::gwstrain (Real time,
-		  Real& h_plus_1, Real& h_cross_1,
-		  Real& h_plus_2, Real& h_cross_2,
-		  Real& h_plus_3, Real& h_cross_3,
-		  bool local) {
+                  Real& h_plus_1, Real& h_cross_1,
+                  Real& h_plus_2, Real& h_cross_2,
+                  Real& h_plus_3, Real& h_cross_3,
+                  bool local) {
 
     amrex::ignore_unused(time);
 
@@ -400,7 +400,8 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> pos{r};
 #ifdef ROTATION
-            pos = inertial_rotation(r, time);
+            auto omega = get_omega_vec(geomdata, j);
+            pos = inertial_rotation(r, omega, time);
 #endif
 
             // For constructing the velocity in the inertial frame, we need to
@@ -431,7 +432,7 @@ Castro::gwstrain (Real time,
 
             GpuArray<Real, 3> inertial_g{g};
 #ifdef ROTATION
-            inertial_g = inertial_rotation(g, time);
+            inertial_g = inertial_rotation(g, omega, time);
 #endif
 
             // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
@@ -517,7 +518,7 @@ Castro::gwstrain (Real time,
 
     // Standard Kronecker delta.
 
-    Real delta[3][3] = {0.0};
+    Real delta[3][3] = {{0.0}};
 
     for (int i = 0; i < 3; ++i) {
         delta[i][i] = 1.0;
@@ -539,7 +540,7 @@ Castro::gwstrain (Real time,
 
         // Projection operator onto the unit vector n.
 
-        Real proj[3][3][3][3] = {0.0};
+        Real proj[3][3][3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {
@@ -554,7 +555,7 @@ Castro::gwstrain (Real time,
 
         // Now we can calculate the strain tensor.
 
-        Real h[3][3] = {0.0};
+        Real h[3][3] = {{0.0}};
 
         for (int l = 0; l < 3; ++l) {
             for (int k = 0; k < 3; ++k) {

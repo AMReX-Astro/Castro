@@ -32,10 +32,6 @@ RadBndryData::RadBndryData(const BoxArray& _grids, const DistributionMapping& _d
 //     (*this) = src;
 // }
 
-RadBndryData::~RadBndryData()
-{
-}
-
 std::ostream& operator << (std::ostream& os, const RadBndryData &mgb)
 {
     const BoxArray& grds = mgb.boxes();
@@ -111,7 +107,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
                 if (ovlp.ok()) m->setVal<RunOn::Host>(covered,ovlp,0);
             }
             // handle special cases if is periodic
-            if( geom.isAnyPeriodic() && 
+            if( geom.isAnyPeriodic() &&
                 !geom.Domain().contains(face_box) ){
               Vector<IntVect> pshifts(27);
               geom.periodicShift( geom.Domain(), face_box, pshifts);
@@ -129,4 +125,3 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
         }
     }
 }
-

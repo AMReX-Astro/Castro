@@ -107,7 +107,7 @@ amr.refinement_indicators = density
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e2
 amr.refine.density.field_name = density
-amr.refine.density.max_level = 20
+amr.refine.density.max_level = 15
 
 # Avoid tagging near the domain boundary
 castro.max_tagging_radius = 0.75e0
@@ -153,7 +153,7 @@ castro.riemann_solver = 0
 
 # For the CG Riemann solver, we need to tell the solver not to quit when 
 # the iterations don't converge, but instead to do additional bisection iteration.
-castro.cg_blend = 2
+castro.riemann_cg_blend = 2
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1

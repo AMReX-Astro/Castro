@@ -10,32 +10,39 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
-#include <castro_params.H>
+
 #include <exact_riemann.H>
+
+#include <castro_params.H>
+#include <params_type.H>
+
+// a global struct to hold the params
+#include <struct_params.H>
 
 int main(int argc, char *argv[]) {
 
     amrex::Initialize(argc, argv);
 
-  std::cout << "starting the exact Riemann solver..." << std::endl;
-  std::cout << argv[1] << std::endl;
-  std::cout << strlen(argv[1]) << std::endl;
+    std::cout << "starting the exact Riemann solver..." << std::endl;
 
-  // initialize the external runtime parameters in C++
+    // initialize the Castro runtime parameters
 
-  init_prob_parameters();
+    amrex::ParmParse pp("castro");
+#include <castro_queries.H>
 
-  init_extern_parameters();
+    // initialize the external runtime parameters in C++
 
-  // now initialize the C++ Microphysics
+    init_prob_parameters();
+
+    init_extern_parameters();
+
+    // now initialize the C++ Microphysics
 #ifdef REACTIONS
-  network_init();
+    network_init();
 #endif
 
-  Real small_temp = 1.e-200;
-  Real small_dens = 1.e-200;
-  eos_init(small_temp, small_dens);
+    eos_init(castro::small_temp, castro::small_dens);
 
-  exact_riemann();
+    exact_riemann();
 
 }

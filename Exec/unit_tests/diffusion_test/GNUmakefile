@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE
@@ -21,7 +21,7 @@ EOS_DIR     := gamma_law
 
 CONDUCTIVITY_DIR = constant
 
-# This sets the network directory in $(MICROPHYSICS_HOME)/Networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
 NETWORK_INPUTS = gammalaw.net
 

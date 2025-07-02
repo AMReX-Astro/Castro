@@ -18,16 +18,19 @@ void problem_initialize ()
 
     // set center variable
 
-    if (coord_type == 0) {
+    // Note problem::center = 0 by default for 2d spherical geometry.
+    if ((problem::center[0] == 0.0_rt) && (coord_type == 0)) {
         problem::center[0] = 0.5_rt * (problo[0] + probhi[0]);
-    } else if (coord_type >= 1) {
-        problem::center[0] = 0.0;
     }
 #if AMREX_SPACEDIM >= 2
-    problem::center[1] = 0.5_rt * (problo[1] + probhi[1]);
+    if ((problem::center[1] == 0.0_rt) && (coord_type <= 1)) {
+        problem::center[1] = 0.5_rt * (problo[1] + probhi[1]);
+    }
 #endif
 #if AMREX_SPACEDIM == 3
-    problem::center[2] = 0.5_rt * (problo[2] + probhi[2]);
+    if (problem::center[2] == 0.0_rt) {
+        problem::center[2] = 0.5_rt * (problo[2] + probhi[2]);
+    }
 #endif
 
     // the conductivity is the physical quantity that appears in the

@@ -80,7 +80,7 @@ Castro::restart (Amr&     papa,
             if (CastroHeaderFile.good()) {
                 char foo[256];
                 // first line: Checkpoint version: ?
-                CastroHeaderFile.getline(foo, 256, ':');  
+                CastroHeaderFile.getline(foo, 256, ':');
                 CastroHeaderFile >> input_version;
                 CastroHeaderFile.close();
             } else {
@@ -564,8 +564,13 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
 
   jobInfoFile << "\n";
+#ifdef AMREX_USE_GPU
+  jobInfoFile << "GPU time used since start of simulation (GPU-hours): " <<
+    getCPUTime()/3600.0;
+#else
   jobInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
     getCPUTime()/3600.0;
+#endif
 
   jobInfoFile << "\n\n";
 
@@ -574,16 +579,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Plotfile Information\n";
   jobInfoFile << PrettyLine;
 
-  time_t now = time(nullptr);
+  const std::time_t now = time(nullptr);
+  jobInfoFile << "output date / time: "
+              << std::put_time(std::localtime(&now), "%c\n") << "\n";
 
-  // Convert now to tm struct for local timezone
-  tm* localtm = localtime(&now);
-  jobInfoFile   << "output date / time: " << asctime(localtm);
-
-  char currentDir[FILENAME_MAX];
-  if (getcwd(currentDir, FILENAME_MAX) != nullptr) {
-    jobInfoFile << "output dir:         " << currentDir << "\n";
-  }
+  jobInfoFile << "output dir:         " << amrex::FileSystem::CurrentPath() << "\n";
 
   jobInfoFile << "I/O time (s):       " << io_time << "\n";
 
@@ -758,7 +758,38 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   }
   jobInfoFile << "\n";
 
+  jobInfoFile << "     amr.n_error_buf:      ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int errbuf = parent->nErrorBuf(lev-1);
+    jobInfoFile << errbuf << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.regrid_int:       ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    int regridint = parent->regridInt(lev-1);
+    jobInfoFile << regridint << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.blocking_factor:  ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect bf = parent->blockingFactor(lev-1);
+    jobInfoFile << bf[0] << " ";
+  }
+  jobInfoFile << "\n";
+
+  jobInfoFile << "     amr.max_grid_size:    ";
+  for (int lev = 1; lev <= max_level; lev++) {
+    IntVect mgs = parent->maxGridSize(lev-1);
+    jobInfoFile << mgs[0] << " ";
+  }
   jobInfoFile << "\n\n";
+
+  jobInfoFile << "     amr.subcycling_mode: " << parent->subcyclingMode();
+
+  jobInfoFile << "\n\n";
+
 
 
   // species info
@@ -816,8 +847,6 @@ void
 Castro::writeBuildInfo ()
 {
   std::string PrettyLine = std::string(78, '=') + "\n";
-  std::string OtherLine = std::string(78, '-') + "\n";
-  std::string SkipSpace = std::string(8, ' ');
 
   // build information
   std::cout << PrettyLine;
@@ -929,7 +958,7 @@ Castro::plotFileOutput(const std::string& dir,
 
     for (const auto & dd : dlist) {
 
-        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+        if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
             (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1))
         {
 #ifdef AMREX_PARTICLES
@@ -1139,7 +1168,7 @@ Castro::plotFileOutput(const std::string& dir,
     {
         for (const auto & dd : dlist) {
 
-            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) || 
+            if ((parent->isDerivePlotVar(dd.name()) && is_small == 0) ||
                 (parent->isDeriveSmallPlotVar(dd.name()) && is_small == 1)) {
 
                 auto derive_dat = derive(dd.variableName(0), cur_time, nGrow);

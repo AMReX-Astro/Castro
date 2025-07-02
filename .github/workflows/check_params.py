@@ -48,7 +48,7 @@ def doit(castro_dir):
                 # remove comments
                 idx = line.find("#")
                 if idx > 0:
-                    line = line[idx:]
+                    line = line[:idx]
 
                 found_param = pattern.match(line)
                 if not found_param:

@@ -22,14 +22,8 @@ class NGBndry : public RadInterpBndryData
 public:
     NGBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
           int _ncomp, const amrex::Geometry& _geom) :
-
-///
-/// @param _grids
-/// @param _dmap
-/// @param _ncomp
-/// @param _geom
-///
         RadInterpBndryData(_grids,_dmap,_ncomp,_geom) { }
+
 
 
 ///
@@ -51,7 +45,7 @@ public:
 ///
 /// @param _face
 ///
-  virtual int mixedBndry(const amrex::Orientation& _face) const {
+  virtual int mixedBndry(const amrex::Orientation& /* _face */) const {
     return 0;
   }
 
@@ -62,13 +56,6 @@ protected:
 ///
   amrex::Vector< std::unique_ptr<amrex::BaseFab<int> > > bctypearray[2*AMREX_SPACEDIM];
 
-
-///
-/// @param src
-///
-private:
-  NGBndry(const NGBndry& src);
-  NGBndry& operator=(const NGBndry& src);
 };
 
 ///

@@ -1,24 +1,34 @@
 #!/usr/bin/env python3
 
+import argparse
+import os
+
 import matplotlib
+import matplotlib.pyplot as plt
+
+import yt
+from yt.frontends.boxlib.api import CastroDataset
+# assume that our data is in CGS
+from yt.units import cm
+
 matplotlib.use('agg')
 
-import os
-import sys
-import yt
-import matplotlib.pyplot as plt
-import numpy as np
-from functools import reduce
+ANNOTATE_O16 = False
+ANNOTATE_NSE = True
 
-from mpl_toolkits.axes_grid1 import ImageGrid
 
-# assume that our data is in CGS
-from yt.units import cm, amu
-from yt.frontends.boxlib.api import CastroDataset
-
-def make_plot(plotfile, prefix="plot", size=(19.2, 10.8), cbar_location="right"):
+def make_plot(plotfile, prefix="plot", width_frac=0.1,
+              layout=(1, 4),
+              size=(19.2, 10.8), cbar_location="right"):
 
     ds = CastroDataset(plotfile)
+
+    t_drive = 0.0
+    if "[*] castro.drive_initial_convection_tmax" in ds.parameters:
+        t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
+    elif "[*] castro.drive_initial_convection_tmax" in ds.parameters:
+        t_drive = ds.parameters["[*] castro.drive_initial_convection_tmax"]
+    print(t_drive)
 
     xmin = ds.domain_left_edge[0]
     xmax = ds.domain_right_edge[0]
@@ -35,8 +45,6 @@ def make_plot(plotfile, prefix="plot", size=(19.2, 10.8), cbar_location="right")
 
     fig = plt.figure()
     fig.set_size_inches(size)
-
-    width_frac = 0.1
 
     fields = ["MachNumber", "magvort", "abar", "enuc"]
 
@@ -68,24 +76,54 @@ def make_plot(plotfile, prefix="plot", size=(19.2, 10.8), cbar_location="right")
             sp.set_cmap(f, "magma")
             sp.set_zlim(f, 1.e-2, 5)
 
-        if f == "enuc":
-            # now do a contour of NSE
-            sp.annotate_contour("in_nse", ncont=1, clim=(0.5, 0.5), take_log=False,
+
+    # now do a contour of O
+    if ANNOTATE_O16:
+        sp.annotate_contour(("boxlib", "X(O16)"), ncont=1, clim=(0.5, 0.5), factor=32, take_log=False,
+                            plot_args={"colors": "0.5", "linewidths": 2})
+
+    # now do a contour of NSE
+    if ANNOTATE_NSE:
+        if ("boxlib", "in_nse") in ds.derived_field_list:
+            sp.annotate_contour("in_nse", levels=1, clim=(0.5, 0.5), take_log=False,
                                 plot_args={"colors": "k", "linewidths": 2})
+
 
     sp.set_axes_unit("cm")
 
-    fig = sp.export_to_mpl_figure((1, len(fields)), cbar_location=cbar_location, cbar_pad="5%")
+    fig = sp.export_to_mpl_figure((layout[0], layout[1]), axes_pad=(1.0, 0.4),
+                                  cbar_location=cbar_location, cbar_pad="2%")
 
-    fig.subplots_adjust(left=0.05, right=0.95, bottom=0.025, top=0.975)
-    fig.text(0.02, 0.02, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
+    fig.subplots_adjust(left=0.05, right=0.95, bottom=0.035, top=0.975)
+    fig.text(0.02, 0.01, f"$t - \\tau_\\mathrm{{drive}}$ = {float(ds.current_time) - t_drive:6.1f} s",
+             transform=fig.transFigure)
     fig.set_size_inches(size)
+    fig.tight_layout()
+    extra = ""
+    if layout[0] >= layout[1]:
+        extra = "_vertical"
 
-    fig.savefig(f"{prefix}_{os.path.basename(plotfile)}_slice.png", pad_inches=0)
+    fig.savefig(f"{prefix}_{os.path.basename(plotfile)}_w{width_frac:04.2f}{extra}.pdf", pad_inches=0.1) #, bbox_inches="tight")
 
 
 if __name__ == "__main__":
 
-    plotfile = sys.argv[1]
+    p = argparse.ArgumentParser()
+    p.add_argument("--vertical", action="store_true",
+                   help="plot 2x2 or 1x4")
+    p.add_argument("--width-fraction", type=float, default=0.1,
+                   help="fraction of domain to show")
+    p.add_argument("plotfile", type=str, nargs=1,
+                   help="plotfile to plot")
 
-    make_plot(plotfile, "all")
+    args = p.parse_args()
+    plotfile = args.plotfile[0]
+
+    if args.vertical:
+        size = (7.0, 10.0)
+        layout = (2, 2)
+    else:
+        size = (19.2, 8.5)
+        layout = (1, 4)
+
+    make_plot(plotfile, "all", layout=layout, width_frac=args.width_fraction, size=size)

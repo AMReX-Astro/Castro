@@ -13,13 +13,16 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
+
+USE_SIMPLIFIED_SDC = TRUE
+
 USE_NSE_TABLE    = TRUE
 
 BL_NO_FORT := TRUE
 
 USE_MODEL_PARSER = TRUE
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
@@ -27,7 +30,7 @@ NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
 
-MAX_NPTS_MODEL = 32768
+MAX_NPTS_MODEL = 65536
 
 PROBLEM_DIR ?= ./
 

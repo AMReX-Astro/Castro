@@ -1,5 +1,5 @@
 # the name of the initial model
-model_name            character      "model.hse"     y
+model_name            string      "model.hse"     y
 
 # the distance from the base of the He layer star to put the perturbation
 R_pert                real           1.e7_rt         y

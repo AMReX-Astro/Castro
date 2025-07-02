@@ -24,6 +24,7 @@ castro.do_react = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
+castro.disable_shock_burning = 1
 castro.transverse_reset_density = 1
 
 castro.use_flattening = 1
@@ -32,7 +33,7 @@ castro.small_temp     = 1.e7
 
 castro.riemann_solver = 0
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
@@ -104,10 +105,10 @@ integrator.rtol_spec = 1.e-6
 integrator.atol_spec = 1.e-6
 integrator.rtol_enuc = 1.e-6
 
-integrator.jacobian = 1
+integrator.jacobian = 2
 integrator.ode_max_steps = 1500000
 
-nse.nse_molar_independent = 1
+nse.nse_molar_independent = 0
 nse.nse_dx_independent = 1
 nse.ase_tol = 0.1
-nse.nse_skip_molar = 1
+nse.nse_skip_molar = 0

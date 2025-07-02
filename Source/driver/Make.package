@@ -1,7 +1,7 @@
 # these are the files that should be needed for any Castro build
 
 CEXE_sources += Castro.cpp
-CEXE_sources += runparams_defaults.cpp
+CEXE_sources += runtime_params.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)

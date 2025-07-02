@@ -64,7 +64,7 @@ Castro::trans_single(const Box& bx,
 
 
 void
-Castro::actual_trans_single(const Box& bx,
+Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                             int idir_t, int idir_n, int d,
                             Array4<Real const> const& q_arr,
                             Array4<Real> const& qo_arr,
@@ -101,6 +101,8 @@ Castro::actual_trans_single(const Box& bx,
 
 #if AMREX_SPACEDIM == 2
     int coord = geom.Coord();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 #endif
 
     bool reset_density = transverse_reset_density;
@@ -165,8 +167,8 @@ Castro::actual_trans_single(const Box& bx,
         const Real volinv = 1.0_rt / vol(il,jl,kl);
 #endif
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
 #if AMREX_SPACEDIM == 2
             Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
@@ -292,9 +294,17 @@ Castro::actual_trans_single(const Box& bx,
         //
         // in cylindrical coords -- note that the p term is not
         // in a divergence for UMX in the x-direction, so there
-        // are no area factors.  For this geometry, we do not
+        // are no area factors.
+        //
+        // Similarly for Spherical2D geometry, we have:
+        // d(rho u)/dt + d(rho u v)/(rdtheta) = -1/r^2 d(r^2 rho u u)/dr - dp/dr
+        // d(rho v)/dt + d(rho u v)/dr = -1/(r sin(theta)) d(sin(theta) rho v v)/dtheta - 1/r dp/dtheta
+        //
+        // For these non-cartesian geometries, we do not
         // include p in our definition of the flux in the
-        // x-direction, for we need to fix this now.
+        // x-direction for Cylindrical2D or both x- and y-direction for spherical 2D
+        // So we need to fix this now.
+
         Real runewn = run - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMX) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMX)) * volinv;
         if (idir_t == 0 && !mom_flux_has_p(0, idir_t, coord)) {
@@ -302,6 +312,10 @@ Castro::actual_trans_single(const Box& bx,
         }
         Real rvnewn = rvn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMY) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMY)) * volinv;
+        if (idir_t == 1 && !mom_flux_has_p(1, idir_t, coord)) {
+            Real r = problo[0] + static_cast<Real>(il + 0.5_rt) * dx[0];
+            rvnewn = rvnewn - cdtdx / r * (pgp - pgm);
+        }
         Real rwnewn = rwn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMZ) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMZ)) * volinv;
         Real renewn = ren - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEDEN) -
@@ -423,18 +437,41 @@ Castro::actual_trans_single(const Box& bx,
                 qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            // Pretend QREINT has been fixed
+            // We can get pressure update via eos or using p-evolution equation
 
-            // Add the transverse term to the p evolution eq here.
-#if AMREX_SPACEDIM == 2
-            // the divergences here, dup and du, already have area factors
-            Real pnewn = q_arr(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
-#else
-            Real pnewn = q_arr(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
+            if (transverse_use_eos) {
+
+                // With the EOS route:
+                eos_rep_t eos_state;
+                eos_state.rho = rrnewn;
+                eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
+                eos_state.T = T_guess;
+
+                for (int n = 0; n < NumSpec; n++) {
+                    eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; n++) {
+                    eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
+                }
 #endif
-            qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
+                eos(eos_input_re, eos_state);
 
+                Real pnewn = eos_state.p;
+                qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
+
+            } else {
+
+                // Add the transverse term to the p evolution eq here.
+#if AMREX_SPACEDIM == 2
+                // the divergences here, dup and du, already have area factors
+                Real pnewn = q_arr(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
+#else
+                Real pnewn = q_arr(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
+#endif
+                qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
+            }
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
@@ -521,7 +558,7 @@ Castro::trans_final(const Box& bx,
 
 
 void
-Castro::actual_trans_final(const Box& bx,
+Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-functions-to-static)
                            int idir_n, int idir_t1, int idir_t2, int d,
                            Array4<Real const> const& q_arr,
                            Array4<Real> const& qo_arr,
@@ -629,8 +666,8 @@ Castro::actual_trans_final(const Box& bx,
         // transverse terms and convert back to the primitive quantity.
 
         for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-            int n = upassmap(ipassive);
-            int nqp = qpassmap(ipassive);
+            const int n = upassmap(ipassive);
+            const int nqp = qpassmap(ipassive);
 
             Real rrn = q_arr(i,j,k,QRHO);
             Real compn = rrn * q_arr(i,j,k,nqp);
@@ -873,12 +910,35 @@ Castro::actual_trans_final(const Box& bx,
                 qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT);
             }
 
-            // Pretend QREINT has been fixed and transverse_use_eos != 1.
-            // If we are wrong, we will fix it later.
+            // Pretend QREINT has been fixed
+            // We can get pressure update via eos or using p-evolution equation
 
-            // add the transverse term to the p evolution eq here
-            Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
-            qo_arr(i,j,k,QPRES) = pnewn;
+            if (transverse_use_eos) {
+
+                // With the EOS route:
+                eos_rep_t eos_state;
+                eos_state.rho = rrnewn;
+                eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
+                eos_state.T = T_guess;
+
+                for (int n = 0; n < NumSpec; n++) {
+                    eos_state.xn[n] = qo_arr(i,j,k,QFS+n);
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; n++) {
+                    eos_state.aux[n] = qo_arr(i,j,k,QFX+n);
+                }
+#endif
+                eos(eos_input_re, eos_state);
+                qo_arr(i,j,k,QPRES) = eos_state.p;
+
+            } else {
+
+                // add the transverse term to the p evolution eq here
+                Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
+                qo_arr(i,j,k,QPRES) = pnewn;
+            }
+
         }
         else {
             qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);

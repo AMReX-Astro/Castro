@@ -18,6 +18,8 @@ amr.max_level      = 2       # maximum level number allowed
 
 amr.subcycling_mode = None
 
+castro.hydro_memory_footprint_ratio = 3
+
 castro.lo_bc       =  2 2 2
 castro.hi_bc       =  2 2 2
 
@@ -32,15 +34,16 @@ castro.do_grav  = 1
 castro.do_react = 1
 castro.do_sponge = 1
 
-castro.react_rho_min = 1.0
+castro.react_rho_min = 100.0
 castro.react_T_min = 5.e7
 
+castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
 castro.use_flattening = 1
 
-castro.riemann_solver = 1
+castro.riemann_solver = 0
 
 # Full self-gravity with the Poisson equation
 gravity.gravity_type = PoissonGrav
@@ -166,4 +169,7 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 500000
+integrator.ode_max_steps = 5000
+
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1

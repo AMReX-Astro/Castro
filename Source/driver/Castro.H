@@ -6,6 +6,7 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
+#include <Castro_io.H>
 #include <Castro_util.H>
 
 using namespace castro;
@@ -15,10 +16,6 @@ using namespace castro;
 #endif
 
 #include <fundamental_constants.H>
-
-constexpr int HISTORY_SIZE=40;
-constexpr int PSTAR_BISECT_FACTOR = 5;
-
 
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
@@ -47,6 +44,8 @@ constexpr int PSTAR_BISECT_FACTOR = 5;
 
 #include <memory>
 #include <iostream>
+
+#include <params_type.H>
 
 using std::istream;
 using std::ostream;
@@ -110,10 +109,10 @@ enum int_method { CornerTransportUpwind = 0,
 // why an advance failed.
 
 struct advance_status {
-    bool success;
-    Real suggested_dt;
-    std::string reason;
-    advance_status() : success(true), suggested_dt(0.0_rt), reason("") {}
+    bool success{true};
+    Real suggested_dt{};
+    std::string reason{};
+    advance_status() = default;
 };
 
 ///
@@ -224,7 +223,7 @@ public:
     void writeSmallPlotFile (const std::string& dir,
                              ostream&       os,
                              amrex::VisMF::How     how) override;
-  
+
 ///
 /// @param dir      directory to write to
 /// @param os       output stream
@@ -247,7 +246,7 @@ public:
 
 
 ///
-/// Dump build info 
+/// Dump build info
 ///
     static void writeBuildInfo ();
 
@@ -520,7 +519,7 @@ public:
 /// @param state        MultiFab to check
 /// @param check_ghost  do we check the ghost cells?
 ///
-    static void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+    static void check_for_nan(const amrex::MultiFab& state, int check_ghost=0);
 
 
 #include <Castro_sources.H>
@@ -534,7 +533,6 @@ public:
 #ifdef MHD
 #include <Castro_mhd.H>
 #endif
-
 
 ///
 /// Estimate time step.
@@ -813,20 +811,20 @@ public:
 #ifdef MHD
 ///
 /// Add magnetic contribution to energy density
-/// @param Bx       magnetic field in x    
+/// @param Bx       magnetic field in x
 /// @param By       magnetic field in y
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
 ///
-    void add_magnetic_e (
-                         amrex::MultiFab& Bx,
-                         amrex::MultiFab& By,
-                         amrex::MultiFab& Bz,
-                         amrex::MultiFab& state);
+    static void add_magnetic_e (
+        amrex::MultiFab& Bx,
+        amrex::MultiFab& By,
+        amrex::MultiFab& Bz,
+        amrex::MultiFab& state);
 
 ///
 /// Check if divergence of B is zero at initialization
-/// @param Bx       magnetic field in x    
+/// @param Bx       magnetic field in x
 /// @param By       magnetic field in y
 /// @param Bz       magnetic field in z
 /// @param state    the state to operate on
@@ -1002,7 +1000,7 @@ public:
 // Hydrodynamics
 #include <Castro_hydro.H>
 
-// SDC 
+// SDC
 #ifdef TRUE_SDC
 #include <Castro_sdc.H>
 #endif
@@ -1137,7 +1135,7 @@ public:
 /// @param S        Current state
 /// @param time     current time
 ///
-    void define_new_center (amrex::MultiFab& S, amrex::Real time);
+    void define_new_center (const amrex::MultiFab& S, amrex::Real time);
     void write_center ();
 
 ///
@@ -1155,7 +1153,7 @@ public:
 ///
     bool oversubscribing() {    // NOLINT(readability-convert-member-functions-to-static)
 #ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= 
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >=
                 static_cast<Long>(amrex::Gpu::Device::totalGlobalMem()));
 #else
         return false;
@@ -1197,6 +1195,12 @@ public:
 ///
     static Vector<std::unique_ptr<std::fstream> > data_logs;
     static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
+
+///
+/// runtime parameters
+//
+    static params_t params;
+
 
 protected:
 
@@ -1338,7 +1342,7 @@ protected:
 ///
 /// Flag for indicating that we want to save prev_state until the reflux.
 ///
-    bool keep_prev_state;
+    bool keep_prev_state{};
 
 
 #ifdef TRUE_SDC
@@ -1378,9 +1382,10 @@ protected:
 ///
     amrex::MultiFab             volume;
     amrex::Array<amrex::MultiFab,3> area;
-    amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
-
+#if AMREX_SPACEDIM <= 2
+    amrex::Array<amrex::MultiFab,2> dLogArea;
+#endif
 
 ///
 /// For initialization of the C++ values of the runtime parameters
@@ -1402,8 +1407,6 @@ protected:
     static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
-    static int       NUM_GROW;
-    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
@@ -1415,8 +1418,8 @@ protected:
 
 
 ///
-/// for keeping track of the amount of CPU time used -- this will persist
-///     after restarts
+/// for keeping track of the amount of CPU or GPU time used -- this will persist
+/// after restarts
 ///
     static amrex::Real      previousCPUTimeUsed;
     static amrex::Real      startCPUTime;
@@ -1455,11 +1458,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-///
-/// Name of the probin file and its length.
-///
-    static std::string probin_file;
-
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
 
@@ -1485,8 +1483,10 @@ protected:
 /// sdc
 ///
     int sdc_iteration;
-    int current_sdc_node;
 
+#ifdef TRUE_SDC
+    int current_sdc_node;
+#endif
 
 
 /* problem-specific includes */

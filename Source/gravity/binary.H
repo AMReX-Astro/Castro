@@ -67,7 +67,7 @@ void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real
     const Real tolerance = 1.0e-8_rt;
     const int max_iters = 200;
 
-    Real rm, rp;
+    Real rm{}, rp{};
 
     if (r_min == 0.0_rt && r_max == 0.0_rt) {
         amrex::Abort("Lagrange point iteration must have at least one non-zero bound provided.");
@@ -155,7 +155,7 @@ void get_lagrange_points (Real mass_1, Real mass_2, const Real* com_1, const Rea
     r1 = -std::sqrt(com_1[0] * com_1[0] + com_1[1] * com_1[1] + com_1[2] * com_1[2]);
     r2 = std::sqrt(com_2[0] * com_2[0] + com_2[1] * com_2[1] + com_2[2] * com_2[2]);
 
-    // Do a root-find over the quintic equation for L1. 
+    // Do a root-find over the quintic equation for L1.
 
     r = 0.0_rt;
 

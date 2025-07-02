@@ -5,4 +5,4 @@ temp_base       real           1.0_rt       y
 
 pert_width      real           1.0_rt       y
 
-do_pert         logical        .true.       y
+do_pert         bool           true         y

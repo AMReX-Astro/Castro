@@ -58,7 +58,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               'sphinx_rtd_theme',
               'sphinx_copybutton',
-              'sphinx-prompt',
+              'sphinx_prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -82,7 +82,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = 'Castro'
-copyright = '2018-2022, Castro development team'
+copyright = '2018-2024, Castro development team'
 author = 'Castro development team'
 
 html_logo = "castro_logo_hot_200.png"
@@ -114,6 +114,8 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Don't include the extra CSS from sphinx-prompt when using the copy button
+copybutton_exclude = 'style'
 
 # -- Options for MathJax
 # for sphinx-math-dollar
@@ -216,6 +218,12 @@ man_pages = [
     (main_doc, 'Castro', 'Castro Documentation',
      [author], 1)
 ]
+
+
+# -- Options for linkcheck
+
+linkcheck_retries = 3
+linkcheck_timeout = 100
 
 
 # -- Options for Texinfo output -------------------------------------------
