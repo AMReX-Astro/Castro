@@ -24,6 +24,7 @@ castro.do_react = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
+castro.disable_shock_burning = 1
 castro.transverse_reset_density = 1
 
 castro.use_flattening = 1
@@ -32,7 +33,7 @@ castro.small_temp     = 1.e7
 
 castro.riemann_solver = 0
 
-castro.time_integration_method = 0
+castro.time_integration_method = 3
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
