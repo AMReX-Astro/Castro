@@ -50,7 +50,8 @@ gravity.const_grav   = -1.5e14
 # Might want to use a more realistic spinning frequency like 500Hz
 castro.rotational_period = 0.001
 
-# Centrifugal is not important since NS would simply deform to accommodate for it
+# Don't include centrifugal force for now.
+# Since it messes up initial HSE
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
@@ -96,7 +97,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = xrb_spherical_1000Hz_chk        # root name of checkpoint file
-amr.check_int       = 300        # number of timesteps between checkpoints
+amr.check_int       = 700        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = xrb_spherical_1000Hz_plt        # root name of plotfile
