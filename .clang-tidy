@@ -52,3 +52,5 @@ Checks: >
      openmp-*
 
 HeaderFilterRegex: '(/Source/*/|/Util/model_parser|^\./|^tmp_build_dir/castro_sources/*/).*\.H$'
+
+HeaderFileExtensions: ['', "H", 'h', 'hh', 'hpp', 'hxx']

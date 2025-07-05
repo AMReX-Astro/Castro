@@ -95,7 +95,7 @@ Real evaluate_tanh(const Real z) {
 AMREX_INLINE
 void
 generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
-                       const model_t model_params, const int model_num)
+                       const model_t& model_params, const int model_num)
 {
 
 
@@ -114,7 +114,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     // create the grid -- cell centers
 
-    Real dx = (xmax - xmin) / npts_model;
+    Real dx = (xmax - xmin) / static_cast<amrex::Real>(npts_model);
 
     for (int i = 0; i < npts_model; i++) {
         model::profile(model_num).r(i) =
