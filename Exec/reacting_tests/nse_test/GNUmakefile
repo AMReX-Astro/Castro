@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 
@@ -19,8 +19,13 @@ CASTRO_HOME ?= ../../..
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox19
-USE_NSE_TABLE := TRUE
+ifeq ($(USE_NSE_NET), TRUE)
+	NETWORK_DIR := ase
+	SCREEN_METHOD := chabrier1998
+else
+	USE_NSE_TABLE := TRUE
+	NETWORK_DIR := aprox19
+endif
 
 INTEGRATOR_DIR := VODE
 
