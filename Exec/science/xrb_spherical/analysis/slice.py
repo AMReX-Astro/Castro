@@ -153,30 +153,6 @@ def annotate_latitude_lines(sp, center, box_widths, r,
         latitude_radian = math.radians(latitude_theta)
         linewidth = 2.0 if not latitude_theta % 5 else 1.0
 
-        # Label latitude
-        dr = r[2] - r[0]
-        if show_full_star:
-            r_label = r[0] - 3.0*dr
-        else:
-            r_label = r[0] - 0.2*dr
-
-        sp.annotate_text([r_label*np.sin(latitude_radian),
-                          r_label*np.cos(latitude_radian)],
-                         f"{int(90 - latitude_theta)}\u00B0",
-                         text_args={"color": "silver",
-                                    "size": "12",
-                                    "family": "monospace",
-                                    "horizontalalignment": "center",
-                                    "verticalalignment": "center",
-                                    "clip_on": True,
-                                    },
-                         inset_box_args={
-                             "boxstyle": "round,pad=0.1",
-                             "facecolor": "white",
-                             "edgecolor": "white",
-                         },
-                         coord_system="plot")
-
         # Find the upper and lower bound of the latitude lines
         if latitude_radian > 0.5*np.pi:
             rll = max(lobnd_r / np.sin(latitude_radian),
@@ -212,6 +188,32 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                              alpha=0.2,
                              linewidth=linewidth,
                              linestyle="-")
+
+        # Label latitude if we plotted the latitude line
+        if rll < r[0] or rrr > r[2]:
+            dr = r[2] - r[0]
+            if show_full_star:
+                r_label = r[0] - 3.0*dr
+            else:
+                r_label = r[0] - 0.2*dr
+
+            sp.annotate_text([r_label*np.sin(latitude_radian),
+                              r_label*np.cos(latitude_radian)],
+                             f"{int(90 - latitude_theta)}\u00B0",
+                             text_args={"color": "silver",
+                                        "size": "12",
+                                        "family": "monospace",
+                                        "horizontalalignment": "center",
+                                        "verticalalignment": "center",
+                                        "clip_on": True,
+                                        },
+                             inset_box_args={
+                                 "boxstyle": "round,pad=0.1",
+                                 "facecolor": "white",
+                                 "edgecolor": "white",
+                             },
+                             coord_system="plot")
+
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
