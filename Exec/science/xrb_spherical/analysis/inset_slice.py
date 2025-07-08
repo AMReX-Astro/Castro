@@ -224,7 +224,7 @@ if __name__ == "__main__":
             clip_on=True,
             transform=inset_ax.transData,  # Match data coordinates
             bbox=dict(
-                boxstyle="square,pad=0.1",
+                boxstyle="round,pad=0.1",
                 facecolor="white",
                 edgecolor="white",
                 )

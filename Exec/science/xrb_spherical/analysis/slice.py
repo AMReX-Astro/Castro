@@ -147,15 +147,18 @@ def annotate_latitude_lines(sp, center, box_widths, r,
 
     # Now annotate latitude lines and do the labeling.
     for latitude_theta in latitude_thetas:
+        if latitude_theta == 0.0:
+            continue
+
         latitude_radian = math.radians(latitude_theta)
         linewidth = 2.0 if not latitude_theta % 5 else 1.0
 
         # Label latitude
         dr = r[2] - r[0]
         if show_full_star:
-            r_label = r[0] - 3.5*dr
+            r_label = r[0] - 3.0*dr
         else:
-            r_label = r[0] - 0.15*dr
+            r_label = r[0] - 0.2*dr
 
         sp.annotate_text([r_label*np.sin(latitude_radian),
                           r_label*np.cos(latitude_radian)],
@@ -165,16 +168,17 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                                     "family": "monospace",
                                     "horizontalalignment": "center",
                                     "verticalalignment": "center",
+                                    "clip_on": True,
                                     },
                          inset_box_args={
-                             "boxstyle": "square,pad=0.3",
+                             "boxstyle": "round,pad=0.1",
                              "facecolor": "white",
                              "edgecolor": "white",
                          },
                          coord_system="plot")
 
         # Find the upper and lower bound of the latitude lines
-        if latitude_radian >= 0.5*np.pi:
+        if latitude_radian > 0.5*np.pi:
             rll = max(lobnd_r / np.sin(latitude_radian),
                       hibnd_z / np.cos(latitude_radian))
             rrr = min(hibnd_r / np.sin(latitude_radian),
