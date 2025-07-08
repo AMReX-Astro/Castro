@@ -156,7 +156,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
         # Label latitude
         dr = r[2] - r[0]
         if show_full_star:
-            r_label = r[0] - 3*dr
+            r_label = r[0] - 3.5*dr
         else:
             r_label = r[0] - 0.15*dr
 
