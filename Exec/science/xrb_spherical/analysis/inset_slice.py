@@ -25,26 +25,41 @@ def single_slice(fname:str, field:str,
                  annotate_lat_lines: bool = True,
                  show_full_star: bool = True) -> None:
     """
-    A slice plot of the datasets for different field parameters for Spherical2D geometry.
+    A slice plot a single dataset for a single field parameters for Spherical2D geometry.
+    This is mainly a helper function plot to plot the full-star slice plot with another
+    inset zoom-in plot in the center.
 
     Parameters
     ==================================================================================
-    fnames: A list of file names to plot multiple slice plots between different
-            plot files for a given field parameter.
-            Note that either fname or field must be single valued.
+    fname:
+      A single file name for plotting the slice plot
 
-    fields: A list of field parameters to plot multiple slice plots between different
-            field parameters for a given file.
-            Note that either fname or field must be single valued.
+    field:
+      A single field name for plotting the slice plot.
 
-    loc:    preset center location of the domain. {top, mid, bot}
+    loc:
+      preset center location of the domain. {top, mid, bot}
 
-    widthScale: scaling for the domain width of the slice plot
+    widthScale:
+      scaling for the domain width of the slice plot
 
-    dr: user defined distance between lower r to upper r boundary. Assumed in unit km.
-        This is used to change the center and width of the SlicePlot.
+    dr:
+      user defined distance between lower r to upper r boundary. Assumed in unit km.
+      This is used to change the center and width of the SlicePlot.
 
-    theta:  user defined theta center of the slice plot
+    theta:
+      user defined theta center of the slice plot
+
+    displace_theta:
+      When theta is explictely defined, do we want to displace the center
+      of the slice plot by ~0.7. This is helpful when tracking the flame front.
+
+    annotate_vline:
+      do we want to annotate a vertical line at where theta is.
+      This is used to indicate flame front.
+
+    show_full_star:
+      do we want to plot the full star instead of a zoom-in slice plot.
     """
 
     ds = CastroDataset(fname)
@@ -233,4 +248,4 @@ if __name__ == "__main__":
                linestyle="--", linewidth=1.0)
 
     # Save the figure
-    fig.savefig("full_star_slice.png", format='png', bbox_inches='tight')
+    fig.savefig(f"{args.fname}_slice.png", format='png', bbox_inches='tight')

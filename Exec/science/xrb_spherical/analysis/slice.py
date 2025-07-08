@@ -225,32 +225,42 @@ def slice(fnames:List[str], fields:List[str],
 
     Parameters
     ==================================================================================
-    fnames: A list of file names to plot multiple slice plots between different
-            plot files for a given field parameter.
-            Note that either fname or field must be single valued.
+    fnames:
+      A list of file names to plot multiple slice plots between different
+      plot files for a given field parameter.
+      Note that either fname or field must be single valued.
 
-    fields: A list of field parameters to plot multiple slice plots between different
-            field parameters for a given file.
-            Note that either fname or field must be single valued.
+    fields:
+      A list of field parameters to plot multiple slice plots between different
+      field parameters for a given file.
+      Note that either fname or field must be single valued.
 
-    loc:    preset center location of the domain. {top, mid, bot}
+    loc:
+      preset center location of the domain. {top, mid, bot}
 
-    widthScale: scaling for the domain width of the slice plot
+    widthScale:
+      scaling for the domain width of the slice plot
 
-    dr: user defined distance between lower r to upper r boundary. Assumed in unit km.
-        This is used to change the center and width of the SlicePlot.
+    dr:
+      user defined distance between lower r to upper r boundary. Assumed in unit km.
+      This is used to change the center and width of the SlicePlot.
 
-    theta:  user defined theta center of the slice plot
+    theta:
+      user defined theta center of the slice plot
 
-    displace_theta: whether to displace theta so that the vertical lines that represents
-    the flame front is offset by some amount
+    displace_theta:
+      whether to displace theta so that the vertical lines that represents
+      the flame front is offset by some amount
 
-    annotate_vline: whether to plot a vertical line to represent the flame front,
-    which is represented by what theta is.
+    annotate_vline:
+      whether to plot a vertical line to represent the flame front,
+      which is represented by what theta is.
 
-    annotate_lat_lines: whether to annotate latitude lines.
+    annotate_lat_lines:
+      whether to annotate latitude lines.
 
-    show_full_star: whether to plot the full star rather than a zoom-in
+    show_full_star:
+      whether to plot the full star rather than a zoom-in
     """
 
     ts = [CastroDataset(fname) for fname in fnames]
