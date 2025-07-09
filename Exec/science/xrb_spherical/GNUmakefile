@@ -13,7 +13,7 @@ USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
 USE_ROTATION  = TRUE
-USE_DIFFUSION = FALSE
+USE_DIFFUSION = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
@@ -28,7 +28,7 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := he-burn/he-burn-18a
 
-INTEGRATOR_DIR := VODE
+INTEGRATOR_DIR := RKC
 
 CONDUCTIVITY_DIR := stellar
 

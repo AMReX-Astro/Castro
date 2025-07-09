@@ -3,11 +3,11 @@ max_step = 9900000
 stop_time =  3.0
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0       0
+geometry.is_periodic = 0            0
 geometry.coord_sys   = 2                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 1.1e6           0
-geometry.prob_hi     = 1.13072e6       0.17
-amr.n_cell           = 1536            9360  #This achieves 20cm res in both radial and theta dir
+geometry.prob_lo     = 1.1e6        0
+geometry.prob_hi     = 1.13072e6    0.17  # Roughly ~10 deg out.
+amr.n_cell           = 1536         9360  # This achieves 20cm res in both radial and theta dir
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -82,7 +82,7 @@ castro.max_subcycles = 16
 castro.retry_small_density_cutoff = 1.0
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 0       # timesteps between computing mass
+castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
@@ -131,13 +131,14 @@ problem.ash1_frac = 1.0e0
 
 problem.low_density_cutoff = 1.e-4
 
+# Refinement Parameters
+
 problem.cutoff_density = 2.5e4
+problem.cutoff_temp    = 1.e8
 problem.max_hse_tagging_level = 3
 problem.max_base_tagging_level = 2
-
 problem.X_min = 1.e-2
-
-problem.r_refine_distance = 9.216e4
+problem.refine_distance = 9.216e4
 
 # Microphysics
 
