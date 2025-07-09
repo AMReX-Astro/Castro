@@ -126,23 +126,28 @@ def annotate_latitude_lines(sp, center, box_widths, r,
 
         # Now find the RZ position of different latitude thetas
         # and see if they're out of the frame.
-        lo_r = r[0] * np.sin(math.radians(latitude_thetal))
-        lo_z = r[0] * np.cos(math.radians(latitude_thetal))
+        l_r = r[0] * np.sin(math.radians(latitude_thetal))
+        l_z = r[0] * np.cos(math.radians(latitude_thetal))
 
-        hi_r = r[0] * np.sin(math.radians(latitude_thetar))
-        hi_z = r[0] * np.cos(math.radians(latitude_thetar))
+        r_r = r[0] * np.sin(math.radians(latitude_thetar))
+        r_z = r[0] * np.cos(math.radians(latitude_thetar))
 
         # Check if the point is within the frame and append point
-        if (0 <= latitude_thetal < 180 and lo_r >= lobnd_r
-            and lo_z >= lobnd_z and lo_z <= hibnd_z):
+        if (0 <= latitude_thetal < 180 and
+            lobnd_r <= l_r < hibnd_r and
+            lobnd_z <= l_z < hibnd_z):
             latitude_thetas.append(latitude_thetal)
-        if (0 <= latitude_thetar < 180 and hi_r < hibnd_r
-            and hi_z > lobnd_z and hi_z < hibnd_z):
+
+        if (0 <= latitude_thetal < 180 and
+            lobnd_r <= r_r < hibnd_r and
+            lobnd_z <= r_z < hibnd_z):
             latitude_thetas.append(latitude_thetar)
 
         # If outside the frame, then breakout
-        if ((lo_r < lobnd_r or lo_z < lobnd_z or lo_z > hibnd_z) and
-            (hi_r >= hibnd_r or hi_z >= hibnd_z or hi_z <= lobnd_z)):
+        if ((l_r < lobnd_r or l_r >= hibnd_r or
+             l_z < lobnd_z or l_z >= hibnd_z) and
+            (r_r < lobnd_r or r_r >= hibnd_r or
+             r_z < lobnd_z or r_z >= hibnd_z)):
             break
 
     # Now annotate latitude lines and do the labeling.
