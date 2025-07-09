@@ -152,7 +152,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
 
     # Now annotate latitude lines and do the labeling.
     for latitude_theta in latitude_thetas:
-        if latitude_theta == 0.0:
+        if latitude_theta == 0 or latitude_theta == 180:
             continue
 
         latitude_radian = math.radians(latitude_theta)
