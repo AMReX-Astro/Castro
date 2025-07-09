@@ -138,7 +138,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
             lobnd_z <= l_z < hibnd_z):
             latitude_thetas.append(latitude_thetal)
 
-        if (0 <= latitude_thetal < 180 and
+        if (0 <= latitude_thetar < 180 and
             lobnd_r <= r_r < hibnd_r and
             lobnd_z <= r_z < hibnd_z):
             latitude_thetas.append(latitude_thetar)
