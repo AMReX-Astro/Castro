@@ -136,7 +136,7 @@
 
   * update scripts and input files for diffusion test  (#3012)
 
-  * update pressure via eos when transverse_use_eos=1 (#3004)
+  * update pressure via eos when `transverse_use_eos=1` (#3004)
 
   * update thermal diffusion documentation (#3011)
 
