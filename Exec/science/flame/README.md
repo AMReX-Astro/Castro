@@ -16,6 +16,9 @@ The different inputs files setup different fuels or solvers.
 
 * `inputs.H_He` : a mixed H/He flame appropriate for X-ray bursts.
 
+  This flame is very slow, so a very coarse resolution is used (1280 cm).
+  It takes a long time for the flame to develop.
+
   Note: the `NETWORK_DIR` will need to be set for this to include
   a network that has O14, O15, like `CNO_extras`.
 

@@ -1,14 +1,14 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 500000
+max_step = 5000000
 
-stop_time    = 1
+stop_time    = 10.0
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0   
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0   
-geometry.prob_hi     = 8.192e4
-amr.n_cell           = 512
+geometry.prob_hi     = 3.2768e5
+amr.n_cell           = 256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -43,11 +43,11 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 2       # maximum level number allowed
+amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 4 2  2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 64      # block factor in grid generation
-amr.max_grid_size   = 64
+amr.max_grid_size   = 512
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -66,7 +66,7 @@ castro.store_omegadot = 1
 problem.rho_fuel = 2.e6
 problem.T_fuel = 5.e7
 
-problem.T_ash = 2.e9
+problem.T_ash = 2.5e9
 
 problem.fuel1_name = "hydrogen-1"
 problem.X_fuel1 = 0.74
