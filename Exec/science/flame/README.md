@@ -15,9 +15,8 @@ The different inputs files setup different fuels or solvers.
 * `inputs.He` : a pure He flame at a density of 2.e6 g/cc
 
 * `inputs.H_He` : a mixed H/He flame appropriate for X-ray bursts.
-
-  This flame is very slow, so a very coarse resolution is used (1280 cm).
-  It takes a long time for the flame to develop.
+  This has 20% H and 69% He (with the remainder O14/O15).  The
+  more H to He, the slower the flame.
 
   Note: the `NETWORK_DIR` will need to be set for this to include
   a network that has O14, O15, like `CNO_extras`.
