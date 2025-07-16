@@ -32,10 +32,31 @@ The different inputs files setup different fuels or solvers.
   of about 2.e-5 cm.  It takes about 5.e-9 s to get established and has a speed
   of about 6e6 cm/s.
 
-A time series of flame profiles can be made using the
-`analysis/profiles.py` script.  This has options to set the dt to skip
-between plotfiles and to zoom in on the domain.
+## Analysis
 
+There are several scripts in the `analysis/` subdirectory.  These
+include:
+
+* `profiles.py` : plot the flame structure (T, enuc, and velocity)
+  from a sequence of plotfiles, evenly spaced in time.  There are
+  several options---do `./profiles.py -h` to see them.
+
+  To change the interval between plotfiles plotted, use ``--dt``,
+  like:
+
+  ```
+  ./profiles.py --dt 0.01
+  ```
+
+  This will loop over all plotfiles and plot the ones corresponding
+  to 0s, 0.01s, 0.02s, ...
+
+  Other options allow you to zoom in on the structure.
+
+* `snapshot.py` : for a single plotfile, show the temperature,
+  energy generation, and composition as a function of position.
+  This will focus on only the most abundant nuclei.
+  
 # Publications
 
 The SDC inputs files were used for a demonstration of a 4th order

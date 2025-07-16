@@ -1,0 +1,1 @@
+../../Detonation/analysis/snapshot.py
