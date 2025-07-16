@@ -12,18 +12,25 @@ ignites and propagates to the right.
 
 The different inputs files setup different fuels or solvers.
 
-* `inputs.He` : a pure He flame at a density of 2.e6 g/cc
+* `inputs.He` : a pure He flame at a density of 2.e6 g/cc, with 80 cm
+  resolution.  It takes about 0.01 s for the flame to get established
+  and has a speed of about 1.e5 cm/s.
 
 * `inputs.H_He` : a mixed H/He flame appropriate for X-ray bursts.
-  This has 20% H and 69% He (with the remainder O14/O15).  The
-  more H to He, the slower the flame.
+  This has 20% H and 69% He (with the remainder O14/O15).  This uses
+  1280 cm resolution, takes about 0.2 s to get established, and has a
+  speed of about 1.6e5 cm/s.
+
+  Note: The more H relative to He, the slower the flame.
 
   Note: the `NETWORK_DIR` will need to be set for this to include
   a network that has O14, O15, like `CNO_extras`.
 
 * `inputs.C` : a pure C flame at a density of 5.e8 g/cc, appropriate
   for SN Ia.  This is a very small domain and the resolution
-  requirements are very dependent on the density.
+  requirements are very dependent on the density---this uses a resolution
+  of about 2.e-5 cm.  It takes about 5.e-9 s to get established and has a speed
+  of about 6e6 cm/s.
 
 A time series of flame profiles can be made using the
 `analysis/profiles.py` script.  This has options to set the dt to skip
