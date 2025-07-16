@@ -74,7 +74,7 @@ class Detonation:
         # read the meta data
         with open(os.path.join(name, "run.meta")) as mf:
             for line in mf.readlines():
-                k, v = [q.strip() for q in line.split("=")]
+                k, v = (q.strip() for q in line.split("="))
                 if k == "cfl":
                     self.cfl = float(v)
                 elif k == "nzones":

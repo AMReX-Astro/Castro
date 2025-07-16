@@ -63,7 +63,7 @@ def read_diag_file(file_path):
     if filetype not in FIELD_WIDTHS:
         raise ValueError("Unsupported file name")
     widths = FIELD_WIDTHS[filetype]
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         # try getting the number of columns from the first line
         first_line = f.readline().rstrip("\n")
         if filetype == "gravity_diag.out":

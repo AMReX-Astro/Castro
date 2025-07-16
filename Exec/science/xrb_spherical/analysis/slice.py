@@ -12,10 +12,10 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 
-def slice(fnames:List[str], fields:List[str],
+def slice(fnames:list[str], fields:list[str],
           loc: str = "top", widthScale: float = 3.0,
-          dr: Optional[float] = None,
-          theta: Optional[float] = None) -> None:
+          dr: float | None = None,
+          theta: float | None = None) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
 

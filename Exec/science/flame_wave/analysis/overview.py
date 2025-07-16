@@ -77,7 +77,7 @@ for i, f in enumerate(fields):
 
     sp._setup_plots()
 
-fig.text(0.05, 0.05, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
+fig.text(0.05, 0.05, f"time = {float(ds.current_time):8.5f} s", transform=fig.transFigure)
 
 fig.set_size_inches(19.2, 10.8)
 plt.tight_layout()

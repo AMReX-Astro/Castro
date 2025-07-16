@@ -47,7 +47,7 @@ for time in times:
 
     y = profile.x.to("km")
     val = profile[("boxlib", "density")]
-    ax.plot(y, val, label="${:.2f}\,[s]$".format(ds.current_time.value))
+    ax.plot(y, val, label=f"${ds.current_time.value:.2f}\,[s]$")
 
 ax.legend()
 

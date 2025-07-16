@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
 import glob
@@ -39,7 +38,7 @@ def rgba_to_hex(rgba):
     r = int(rgba[0]*255.0)
     g = int(rgba[1]*255.0)
     b = int(rgba[2]*255.0)
-    return '#{:02X}{:02X}{:02X}'.format(r, g, b)
+    return f'#{r:02X}{g:02X}{b:02X}'
 
 def get_Tev_profile(plotfile):
 
@@ -91,7 +90,7 @@ def doit(pfiles, limitlabels, xmin, xmax):
         time, x, T, enuc, velx = get_Tev_profile(pf)
 
         if index % skiplabels == 0:
-            ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
+            ax_T.plot(x, T, label=f"t = {time:6.4g} s")
         else:
             ax_T.plot(x, T)
 

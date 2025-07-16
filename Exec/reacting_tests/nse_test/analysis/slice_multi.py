@@ -84,5 +84,5 @@ for i in range(nrows * ncols):
 
 fig.set_size_inches(12.0, 9.0)
 plt.tight_layout()
-plt.savefig("{}_slice.png".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_slice.png")
 
