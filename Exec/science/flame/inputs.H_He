@@ -8,7 +8,7 @@ geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
 geometry.prob_hi     = 3.2768e5
-amr.n_cell           = 512
+amr.n_cell           = 256
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -66,7 +66,7 @@ castro.store_omegadot = 1
 problem.rho_fuel = 2.e6
 problem.T_fuel = 5.e7
 
-problem.T_ash = 2.5e9
+problem.T_ash = 2.0e9
 
 problem.fuel1_name = "hydrogen-1"
 problem.X_fuel1 = 0.20
