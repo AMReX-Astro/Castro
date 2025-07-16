@@ -5,7 +5,7 @@ DEBUG      = FALSE
 
 DIM        = 1
 
-COMP	   = gnu
+COMP       = gnu
 
 USE_MPI    = TRUE
 
@@ -21,7 +21,7 @@ EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 ifeq ($(USE_NSE_NET), TRUE)
-	NETWORK_DIR := he-burn/he-burn-18a
+	NETWORK_DIR := ase
 	SCREEN_METHOD := chabrier1998
 else
 	NETWORK_DIR := aprox19

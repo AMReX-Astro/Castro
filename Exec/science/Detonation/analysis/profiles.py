@@ -14,6 +14,7 @@ matplotlib.use('agg')
 import math
 
 import matplotlib.pyplot as plt
+from yt.frontends.boxlib.api import CastroDataset
 import yt
 
 
@@ -37,7 +38,7 @@ def nuc_list_filter(nuc):
 
 def get_Te_profile(plotfile, plot_in_nse=False):
 
-    ds = yt.load(plotfile, hint="castro")
+    ds = CastroDataset(plotfile)
 
     time = float(ds.current_time)
     ad = ds.all_data()
