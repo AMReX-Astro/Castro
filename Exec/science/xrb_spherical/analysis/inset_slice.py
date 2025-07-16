@@ -16,7 +16,7 @@ from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 from slice import extract_info, annotate_latitude_lines
 
-def single_slice(fname:str, field:str,
+def single_slice(ds, field:str,
                  loc: str = "top", widthScale: float = 3.0,
                  dr: Optional[float] = None,
                  theta: Optional[float] = None,
@@ -31,8 +31,8 @@ def single_slice(fname:str, field:str,
 
     Parameters
     ==================================================================================
-    fname:
-      A single file name for plotting the slice plot
+    ds:
+      A single Castro dataset for plotting the slice plot
 
     field:
       A single field name for plotting the slice plot.
@@ -61,8 +61,6 @@ def single_slice(fname:str, field:str,
     show_full_star:
       do we want to plot the full star instead of a zoom-in slice plot.
     """
-
-    ds = CastroDataset(fname)
 
     # Process information for the dataset
 
@@ -159,11 +157,14 @@ if __name__ == "__main__":
     if loc not in loc_options:
         parser.error("loc must be one of the three: {top, mid, bot}")
 
+    # First load the data
+    ds = CastroDataset(args.fname)
+
     # First get the slice plot of the full-star.
-    full_star_slice = single_slice(args.fname, args.field, loc=loc,
-                            widthScale=args.width, dr=args.dr, theta=args.theta,
-                            displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                            annotate_lat_lines=args.annotate_lat_lines, show_full_star=True)
+    full_star_slice = single_slice(ds, args.field, loc=loc,
+                                   widthScale=args.width, dr=args.dr, theta=args.theta,
+                                   displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
+                                   annotate_lat_lines=args.annotate_lat_lines, show_full_star=True)
     # full_star_slice.render()
 
     # Extract the figure of the full-star slice and use that as the main figure for plotting.
@@ -174,10 +175,10 @@ if __name__ == "__main__":
     inset_ax = fig.add_axes(rect)
 
     # Get the slice of the zoom-in plot
-    zoom_in_slice = single_slice(args.fname, args.field, loc=loc,
-                            widthScale=args.width, dr=args.dr, theta=args.theta,
-                            displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                            annotate_lat_lines=args.annotate_lat_lines, show_full_star=False)
+    zoom_in_slice = single_slice(ds, args.field, loc=loc,
+                                 widthScale=args.width, dr=args.dr, theta=args.theta,
+                                 displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
+                                 annotate_lat_lines=args.annotate_lat_lines, show_full_star=False)
     zoom_in_slice.hide_colorbar()
     # zoom_in_slice.render()
 
@@ -245,6 +246,15 @@ if __name__ == "__main__":
 
     mark_inset(fig.axes[0], inset_ax, loc1=loc1, loc2=loc2, fc="none", ec="red",
                linestyle="--", linewidth=1.0)
+
+    # Add the current simulation time of the data
+    time = ds.current_time.in_units("ms")
+    if float(time) < 1e-1:
+        time = ds.current_time.in_units("us")
+
+    fig.text(0.9, 0.02, f't = {time:.2f}', fontsize=16,
+             horizontalalignment='right', verticalalignment='bottom',
+             color='black', transform=fig.transFigure)
 
     # Save the figure
     fig.savefig(f"{args.fname}_slice.png", format='png', bbox_inches='tight')
