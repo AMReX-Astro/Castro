@@ -76,5 +76,4 @@ Docs/source/yt_example.rst
 Docs/source/yt_example_files/
 
 
-amr_diag.out
-grid_diag.out
+*_diag.out
