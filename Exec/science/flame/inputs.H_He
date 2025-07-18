@@ -72,7 +72,7 @@ problem.fuel1_name = "hydrogen-1"
 problem.X_fuel1 = 0.20
 
 problem.fuel2_name = "helium-4"
-problem.X_fuel2 = 0.69
+problem.X_fuel2 = 0.79
 
 problem.fuel3_name = "oxygen-14"
 problem.X_fuel3 = 3.5e-3
