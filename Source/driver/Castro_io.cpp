@@ -248,12 +248,14 @@ Castro::restart (Amr&     papa,
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
 
+#if AMREX_SPACEDIM >= 2
              d = 1;
              dlen =  domain.size()[d];
              lo =   dlen/4    ;
              hi = 3*dlen/4 - 1;
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
+#endif
 
           } else {
              for (int d = 0; d < AMREX_SPACEDIM; d++)
