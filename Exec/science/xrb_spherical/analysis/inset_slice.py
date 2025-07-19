@@ -51,7 +51,7 @@ def single_slice(ds, field:str,
       user defined theta center of the slice plot
 
     displace_theta:
-      When theta is explictely defined, do we want to displace the center
+      When theta is explictly defined, do we want to displace the center
       of the slice plot by ~0.7. This is helpful when tracking the flame front.
 
     annotate_vline:
