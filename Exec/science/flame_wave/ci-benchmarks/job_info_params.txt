@@ -248,6 +248,7 @@
     screening.enable_chabrier1998_quantum_corr = 0
     screening.enable_debye_huckel_skip = 0
     screening.debye_huckel_skip_threshold = 1.01
+    neutrino_cooling.include_recomb = 0
     integrator.subtract_internal_energy = 0
     eos.use_eos_coulomb = 1
     eos.eos_input_is_constant = 1

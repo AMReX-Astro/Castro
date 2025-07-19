@@ -3774,7 +3774,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     if (!grad_phi.empty())
     {
         if (!gmv[0].isAllPeriodic()) {
-            mlmg.setAlwaysUseBNorm(true);
+            mlmg.setConvergenceNormType(MLMGNormType::bnorm);
         }
 
         mlmg.setNSolve(gravity::mlmg_nsolve);

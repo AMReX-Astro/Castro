@@ -1,3 +1,39 @@
+# 25.07
+
+  * display warnings about unused parameters more prominently (#3094)
+
+  * update the comment on `castro.use_pslope` to note it works with
+    PPM (#3091)
+
+  * fix doc building (#3083, #3090)
+
+  * update `xrb_layered` analysis scripts (#2980)
+
+  * for `subchandra`, disable burning in shocks + add a new 3D inputs
+    (#3078), and fix the colormaps in the plot scripts (#3082)
+
+  * for `Detonation`, disable burning in shocks (#3076)
+
+  * docs improvements (#3085)
+
+  * update `flame_wave` with the inputs files used for the recent H/He
+    flame paper (#3087)
+
+  * CI updates to sync with Microphysics (#3081, #3089)
+
+  * update deprecated call in MLMG (#3084)
+
+# 25.06
+
+  * update `subch_planar` `README.md` (#3075)
+
+  * update ``diffusion_test`` with improved documentation for the 2D
+    spherical test (#3072)
+
+  * add protection to the build system that checks to make sure that a
+    `make clean` is done before we try to build with a different
+    network. (#3073)
+
 # 25.05
 
   * update nova inputs are README (#3066)
@@ -100,7 +136,7 @@
 
   * update scripts and input files for diffusion test  (#3012)
 
-  * update pressure via eos when transverse_use_eos=1 (#3004)
+  * update pressure via eos when `transverse_use_eos=1` (#3004)
 
   * update thermal diffusion documentation (#3011)
 
