@@ -3,11 +3,13 @@
 import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
+import scipy.optimize import curve_fit
+from uncertainties import unumpy
 
 # Set some fontsize
-SMALL_SIZE = 18
-MEDIUM_SIZE = 20
-BIGGER_SIZE = 22
+SMALL_SIZE = 28
+MEDIUM_SIZE = 30
+BIGGER_SIZE = 32
 
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
@@ -27,6 +29,10 @@ from front_tracker.py to plot the time evolution of flame front θ.
 
 parser.add_argument('tracking_fname', type=str,
                     help='cvs file generated from front_tracker.py to track flame front position')
+parser.add_argument('--tmin', default=0.0, type=float,
+                    help='minimum time for curve fitting. Note that this will not affect plotting')
+parser.add_argument('--tmax', type=float,
+                    help='maximum time for both plotting and curve fitting')
 
 args = parser.parse_args()
 
@@ -34,15 +40,54 @@ args = parser.parse_args()
 # data has columns: fname, time, front_theta, theta_max_avg, max_avg, theta_max, max_val.
 tracking_data = pd.read_csv(args.tracking_fname)
 
-# Get time and theta
+# Get time and theta, these should already be time-sorted
 times = tracking_data['time[ms]']
 front_thetas = tracking_data['front_theta']
 
-# Do plotting
+# Only plot up to tmax
+if args.tmax is not None:
+    cond = times < args.tmax
+
+times = times[cond]
+front_thetas = front_thetas[cond]
+
+# Now do a curve fit to the data.
+# Now apply tmin so that we ignore the transient phase during fitting
+fit_times = times[args.tmin <= times]
+fit_front_thetas = front_thetas[args.tmin <= times]
+
+# Use tanh + quadratic fit
+def tanh_func(t, a0, v0, x0, a, b, c):
+    return 0.5*a0*t**2 + v0*t + x0 + a*np.tanh(t/b + c)
+
+# Another version for error propagation
+def utanh_func(t, a0, v0, x0, a, b, c):
+    return 0.5*a0*t**2 + v0*t + x0 + a*unumpy.tanh(t/b + c)
+
+# Give initial guess and solve for different parameters
+# error is given by the square root of the diagonal of the covariance matrix.
+init_guess = np.array([8.0, 140.0, 91386.0, 17916.0, 10.0, -2.0])
+popt, pcov = curve_fit(tanh_func, fit_times, fit_front_thetas, p0=None, method="lm")
+err = np.sqrt(np.diag(pcov))
+
+# Given the fitted parameters, recreate fitted curve along with error propagation
+# Error propagation is handled by the uncertainties package.
+# create fitted params with error
+fitted_params = unumpy.uarray(popt, err)
+theta_fit = utanh_func(fit_times, *fitted_params)
+theta_nominal = unumpy.nominal_values(theta_fit)
+theta_err = unumpy.std_devs(theta_fit)
+
+# Now do plotting
 fig, ax = plt.subplots()
-ax.plot(times, front_thetas)
+ax.plot(times, front_thetas, 'x', label='data')
+ax.plot(fit_times, theta_nominal, linewidth=4, label='fit')
+ax.fill_between(fit_times, theta_nominal - theta_err, theta_nominal + theta_err,
+                alpha=0.3, label='1σ band')
 ax.set_xlabel("time [ms]")
 ax.set_ylabel("θ")
+ax.set_ylim(0.06, None)
+ax.legend()
 fig.tight_layout()
 fig.set_size_inches(8, 8)
 fig.savefig("flame_position.png", bbox_inches="tight")
