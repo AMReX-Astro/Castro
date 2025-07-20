@@ -79,16 +79,33 @@ theta_fit = utanh_func(fit_times, *fitted_params)
 theta_nominal = unumpy.nominal_values(theta_fit)
 theta_err = unumpy.std_devs(theta_fit)
 
+# Now use the fitted parameter to calculate angular velocity
+# This is the derivative of utanh_func
+def angular_velocity(t, a0, v0, x0, a, b, c):
+    return a0*t + v0 + a*unumpy.sech(t/b + c)**2 / b
+
+w_fit = angular_velocity(fit_times, *fitted_params)
+w_nominal = unumpy.nominal_values(w_fit)
+w_err = unumpy.std_devs(w_fit)
+
 # Now do plotting
 fig, ax = plt.subplots()
-ax.plot(times, front_thetas, 'x', color='k', label='data')
-ax.plot(fit_times, theta_nominal, linewidth=3, linestyle='--', label='fit')
+ax.plot(times, front_thetas, 'x', color='k', label='θ data')
+ax.plot(fit_times, theta_nominal, linewidth=3, linestyle='--', label='θ fit')
 ax.fill_between(fit_times, theta_nominal - theta_err, theta_nominal + theta_err,
-                alpha=0.5, color='b', label='1σ band')
+                alpha=0.5, color='b', label='θ 1σ band')
 ax.set_xlabel("time [ms]")
-ax.set_ylabel("θ")
+ax.set_ylabel("θ [rad]")
 ax.set_ylim(0.06, None)
 ax.legend()
+
+# Create twin ax to plot angular velocity
+ax_twin = ax.twinx()
+ax_twin.plot(fit_times, w_nominal, linewidth=3, color='r', linestyle='-.', label='ω fit')
+ax_twin.fill_between(fit_times, w_nominal - w_err, w_nominal + theta_err,
+                     alpha=0.5, color='purple', label='ω 1σ band')
+ax_twin.set_ylabel("ω [rad/ms]")
+
 fig.tight_layout()
 fig.set_size_inches(8, 8)
 fig.savefig("flame_position.png", bbox_inches="tight")
