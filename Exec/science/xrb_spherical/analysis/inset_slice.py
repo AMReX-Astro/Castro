@@ -18,7 +18,6 @@ from slice import extract_info, annotate_latitude_lines
 
 def single_slice(ds, field:str,
                  loc: str = "top", widthScale: float = 3.0,
-                 dr: Optional[float] = None,
                  theta: Optional[float] = None,
                  displace_theta: bool = True,
                  annotate_vline: bool = True,
@@ -43,10 +42,6 @@ def single_slice(ds, field:str,
     widthScale:
       scaling for the domain width of the slice plot
 
-    dr:
-      user defined distance between lower r to upper r boundary. Assumed in unit km.
-      This is used to change the center and width of the SlicePlot.
-
     theta:
       user defined theta center of the slice plot
 
@@ -67,7 +62,7 @@ def single_slice(ds, field:str,
     # Some geometry properties
     r, box_widths, center = extract_info(ds,
                                          loc=loc, widthScale=widthScale,
-                                         dr=dr,
+                                         widthRatio=1.0,
                                          theta=theta,
                                          displace_theta=displace_theta,
                                          show_full_star=show_full_star)
@@ -136,9 +131,6 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
-    parser.add_argument('-r', '--dr', type=float,
-                        help="""Distance between upper r and lower r shown in the SlicePlot.
-                        Assumed in unit km. This is used to control center and width of the SlicePlot""")
     parser.add_argument('-w', '--width', default=2.0, type=float,
                         help="scaling for the domain width of the slice plot")
     parser.add_argument('--displace_theta', action='store_true',
@@ -162,7 +154,7 @@ if __name__ == "__main__":
 
     # First get the slice plot of the full-star.
     full_star_slice = single_slice(ds, args.field, loc=loc,
-                                   widthScale=args.width, dr=args.dr, theta=args.theta,
+                                   widthScale=args.width, theta=args.theta,
                                    displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
                                    annotate_lat_lines=args.annotate_lat_lines, show_full_star=True)
     # full_star_slice.render()
@@ -176,7 +168,7 @@ if __name__ == "__main__":
 
     # Get the slice of the zoom-in plot
     zoom_in_slice = single_slice(ds, args.field, loc=loc,
-                                 widthScale=args.width, dr=args.dr, theta=args.theta,
+                                 widthScale=args.width, theta=args.theta,
                                  displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
                                  annotate_lat_lines=args.annotate_lat_lines, show_full_star=False)
     zoom_in_slice.hide_colorbar()
