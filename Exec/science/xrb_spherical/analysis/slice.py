@@ -409,7 +409,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
-    parser.add_argument('-r', '--ratio', type=float,
+    parser.add_argument('-r', '--ratio', default=1.0, type=float,
                         help="""The ratio between the horizontal and vertical width of the slice plot.
                         For ratio < 1, horizontal width is larger than vertical.
                         For ratio > 1, vertical width is larger than horizontal.""")
