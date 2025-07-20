@@ -12,24 +12,6 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 
-### Set fontsize
-
-SMALL_SIZE = 28
-MEDIUM_SIZE = 30
-BIGGER_SIZE = 32
-
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
-plt.rc('xtick.major', size=7, width=2)
-plt.rc('xtick.minor', size=5, width=1)
-plt.rc('ytick.major', size=7, width=2)
-plt.rc('ytick.minor', size=5, width=1)
-
 def extract_info(ds,
                  loc: str = "top", widthScale: float = 3.0,
                  widthRatio: float = 1.0,
@@ -312,7 +294,7 @@ def slice(fnames:List[str], fields:List[str],
                                              show_full_star=show_full_star)
         for i, field in enumerate(fields):
             # Plot each field parameter
-            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=16)
+            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=26)
             sp.set_center(center)
 
             sp.set_cmap(field, "viridis")
