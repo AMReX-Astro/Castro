@@ -81,10 +81,10 @@ theta_err = unumpy.std_devs(theta_fit)
 
 # Now do plotting
 fig, ax = plt.subplots()
-ax.plot(times, front_thetas, 'x', label='data')
-ax.plot(fit_times, theta_nominal, linewidth=2, label='fit')
+ax.plot(times, front_thetas, 'x', color='k', label='data')
+ax.plot(fit_times, theta_nominal, linewidth=3, linestyle='--', label='fit')
 ax.fill_between(fit_times, theta_nominal - theta_err, theta_nominal + theta_err,
-                alpha=0.5, label='1σ band')
+                alpha=0.5, color='b', label='1σ band')
 ax.set_xlabel("time [ms]")
 ax.set_ylabel("θ")
 ax.set_ylim(0.06, None)
