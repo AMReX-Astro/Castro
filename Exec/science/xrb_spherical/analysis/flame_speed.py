@@ -82,7 +82,7 @@ theta_err = unumpy.std_devs(theta_fit)
 # Now use the fitted parameter to calculate angular velocity
 # This is the derivative of utanh_func
 def angular_velocity(t, a0, v0, x0, a, b, c):
-    return a0*t + v0 + a*unumpy.sech(t/b + c)**2 / b
+    return a0*t + v0 + a / (b * unumpy.cosh(t/b + c)**2)
 
 w_fit = angular_velocity(fit_times, *fitted_params)
 w_nominal = unumpy.nominal_values(w_fit)
