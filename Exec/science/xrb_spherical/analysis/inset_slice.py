@@ -16,6 +16,24 @@ from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
 from slice import extract_info, annotate_latitude_lines
 
+### Set fontsize
+
+SMALL_SIZE = 18
+MEDIUM_SIZE = 20
+BIGGER_SIZE = 22
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+plt.rc('xtick.major', size=7, width=2)
+plt.rc('xtick.minor', size=5, width=1)
+plt.rc('ytick.major', size=7, width=2)
+plt.rc('ytick.minor', size=5, width=1)
+
 def single_slice(ds, field:str,
                  loc: str = "top", widthScale: float = 3.0,
                  dr: Optional[float] = None,
