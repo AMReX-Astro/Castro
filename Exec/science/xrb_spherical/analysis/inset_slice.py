@@ -69,7 +69,12 @@ def single_slice(ds, field:str,
 
 
     # Plot each field parameter
-    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=28)
+    if show_full_star:
+        fontsize = 28
+    else:
+        fontsize = 22
+
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=fontsize)
     sp.set_center(center)
 
     sp.set_cmap(field, "viridis")
