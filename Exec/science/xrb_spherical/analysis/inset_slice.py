@@ -18,9 +18,9 @@ from slice import extract_info, annotate_latitude_lines
 
 ### Set fontsize
 
-SMALL_SIZE = 18
-MEDIUM_SIZE = 20
-BIGGER_SIZE = 22
+SMALL_SIZE = 28
+MEDIUM_SIZE = 30
+BIGGER_SIZE = 32
 
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
