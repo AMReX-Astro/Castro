@@ -3,7 +3,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
-import scipy.optimize import curve_fit
+from scipy.optimize import curve_fit
 from uncertainties import unumpy
 
 # Set some fontsize
