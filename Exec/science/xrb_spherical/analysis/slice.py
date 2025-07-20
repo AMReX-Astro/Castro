@@ -202,7 +202,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                               r_label*np.cos(latitude_radian)],
                              f"{int(90 - latitude_theta)}\u00B0",
                              text_args={"color": "silver",
-                                        "size": "12",
+                                        "size": "18",
                                         "family": "monospace",
                                         "horizontalalignment": "center",
                                         "verticalalignment": "center",
@@ -294,7 +294,7 @@ def slice(fnames:List[str], fields:List[str],
                                              show_full_star=show_full_star)
         for i, field in enumerate(fields):
             # Plot each field parameter
-            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=26)
+            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=28)
             sp.set_center(center)
 
             sp.set_cmap(field, "viridis")

@@ -74,7 +74,7 @@ def single_slice(ds, field:str,
 
 
     # Plot each field parameter
-    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=26)
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=28)
     sp.set_center(center)
 
     sp.set_cmap(field, "viridis")
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     if float(time) < 1e-1:
         time = ds.current_time.in_units("us")
 
-    fig.text(0.9, 0.02, f't = {time:.2f}', fontsize=16,
+    fig.text(0.9, 0.02, f't = {time:.2f}', fontsize=18,
              horizontalalignment='right', verticalalignment='bottom',
              color='black', transform=fig.transFigure)
 
