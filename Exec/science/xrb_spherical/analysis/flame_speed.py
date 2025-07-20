@@ -8,9 +8,9 @@ from scipy.optimize import curve_fit
 from uncertainties import unumpy
 
 # Set some fontsize
-SMALL_SIZE = 28
-MEDIUM_SIZE = 30
-BIGGER_SIZE = 32
+SMALL_SIZE = 18
+MEDIUM_SIZE = 20
+BIGGER_SIZE = 22
 
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
@@ -67,7 +67,7 @@ def utanh_func(t, a0, v0, x0, a, b, c):
 
 # Give initial guess and solve for different parameters
 # error is given by the square root of the diagonal of the covariance matrix.
-init_guess = np.array([15.0, 3.0, 0.0, 0.15, 0.01, -2.0])
+init_guess = np.array([0.0, 0.0004, 0.0, 0.01, 5, -2.0])
 popt, pcov = curve_fit(tanh_func, fit_times, fit_front_thetas, p0=init_guess, method="lm")
 err = np.sqrt(np.diag(pcov))
 
@@ -82,9 +82,9 @@ theta_err = unumpy.std_devs(theta_fit)
 # Now do plotting
 fig, ax = plt.subplots()
 ax.plot(times, front_thetas, 'x', label='data')
-ax.plot(fit_times, theta_nominal, linewidth=4, label='fit')
+ax.plot(fit_times, theta_nominal, linewidth=2, label='fit')
 ax.fill_between(fit_times, theta_nominal - theta_err, theta_nominal + theta_err,
-                alpha=0.3, label='1σ band')
+                alpha=0.5, label='1σ band')
 ax.set_xlabel("time [ms]")
 ax.set_ylabel("θ")
 ax.set_ylim(0.06, None)
