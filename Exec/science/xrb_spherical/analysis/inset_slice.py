@@ -69,12 +69,7 @@ def single_slice(ds, field:str,
 
 
     # Plot each field parameter
-    if show_full_star:
-        fontsize = 28
-    else:
-        fontsize = 22
-
-    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=fontsize)
+    sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=28)
     sp.set_center(center)
 
     sp.set_cmap(field, "viridis")
@@ -168,7 +163,7 @@ if __name__ == "__main__":
     fig = full_star_slice.plots[args.field].figure
 
     # Add an inset ax in the middle of the star
-    rect = (0.24, 0.35, 0.4, 0.4)  # Left, Bottom, Width, Height
+    rect = (0.31, 0.4, 0.31, 0.31)  # Left, Bottom, Width, Height
     inset_ax = fig.add_axes(rect)
 
     # Get the slice of the zoom-in plot
@@ -193,6 +188,9 @@ if __name__ == "__main__":
         cmap=inset_img.get_cmap(),
         norm=inset_img.norm
     )
+
+    # Increase inset ax tick label size
+    inset_ax.tick_params(labelsize=16)
 
     # Add back annotation lines, i.e. latitude lines
     for line in fig_zoom.axes[0].lines:
@@ -249,8 +247,8 @@ if __name__ == "__main__":
     if float(time) < 1e-1:
         time = ds.current_time.in_units("us")
 
-    fig.text(0.9, 0.02, f't = {time:.2f}', fontsize=18,
-             horizontalalignment='right', verticalalignment='bottom',
+    fig.text(0.9, 0.05, f't = {time:.2f}', fontsize=18,
+             horizontalalignment='center', verticalalignment='center',
              color='black', transform=fig.transFigure)
 
     # Save the figure
