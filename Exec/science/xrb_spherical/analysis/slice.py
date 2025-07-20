@@ -14,7 +14,7 @@ from yt.units import km
 
 def extract_info(ds,
                  loc: str = "top", widthScale: float = 3.0,
-                 dr: Optional[float] = None,
+                 widthRatio: float = 1.0,
                  theta: Optional[float] = None,
                  displace_theta: bool = True,
                  show_full_star: bool = True):
@@ -23,12 +23,8 @@ def extract_info(ds,
     '''
     # Some geometry properties
     rl = ds.domain_left_edge[0].in_units("km")
-    if dr is None:
-        rr = ds.domain_right_edge[0].in_units("km")
-        dr = rr - rl
-    else:
-        dr = dr * rl.units
-        rr = rl + dr
+    rr = ds.domain_right_edge[0].in_units("km")
+    dr = rr - rl
 
     if show_full_star:
         r_center = 0.5 * rr
@@ -43,7 +39,7 @@ def extract_info(ds,
 
     # Domain width of the slice plot
     width = widthScale * dr
-    box_widths = (width, width)
+    box_widths = (width, widthRatio * width)
 
     # Now determine center of the frame
     if show_full_star:
@@ -222,7 +218,7 @@ def annotate_latitude_lines(sp, center, box_widths, r,
 
 def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
-          dr: Optional[float] = None,
+          widthRatio: float = 1.0,
           theta: Optional[float] = None,
           displace_theta: bool = True,
           annotate_vline: bool = True,
@@ -249,9 +245,11 @@ def slice(fnames:List[str], fields:List[str],
     widthScale:
       scaling for the domain width of the slice plot
 
-    dr:
-      user defined distance between lower r to upper r boundary. Assumed in unit km.
-      This is used to change the center and width of the SlicePlot.
+    widthRatio:
+      Ratio between the horizontal and vertical slice plot width.
+      Default is 1, i.e. a square slice plot.
+      For widthRatio < 1, the horizontal width is larger than vertical.
+      For widthRatio > 1, the vertical width is larger than horizontal.
 
     theta:
       user defined theta center of the slice plot
@@ -290,7 +288,7 @@ def slice(fnames:List[str], fields:List[str],
         # Process information for each dataset
         r, box_widths, center = extract_info(ds,
                                              loc=loc, widthScale=widthScale,
-                                             dr=dr,
+                                             widthRatio=widthRatio,
                                              theta=theta,
                                              displace_theta=displace_theta,
                                              show_full_star=show_full_star)
@@ -393,9 +391,10 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
-    parser.add_argument('-r', '--dr', type=float,
-                        help="""Distance between upper r and lower r shown in the SlicePlot.
-                        Assumed in unit km. This is used to control center and width of the SlicePlot""")
+    parser.add_argument('-r', '--ratio', type=float,
+                        help="""The ratio between the horizontal and vertical width of the slice plot.
+                        For ratio < 1, horizontal width is larger than vertical.
+                        For ratio > 1, vertical width is larger than horizontal.""")
     parser.add_argument('-w', '--width', default=3.0, type=float,
                         help="scaling for the domain width of the slice plot")
     parser.add_argument('--displace_theta', action='store_true',
@@ -420,6 +419,6 @@ if __name__ == "__main__":
         parser.error("loc must be one of the three: {top, mid, bot}")
 
     slice(args.fnames, args.fields, loc=loc,
-          widthScale=args.width, dr=args.dr, theta=args.theta,
+          widthScale=args.width, widthRatio=args.ratio, theta=args.theta,
           displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
           annotate_lat_lines=args.annotate_lat_lines, show_full_star=args.show_full_star)
