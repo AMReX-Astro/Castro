@@ -9,8 +9,8 @@ from uncertainties import unumpy
 
 # Set some fontsize
 SMALL_SIZE = 18
-MEDIUM_SIZE = 20
-BIGGER_SIZE = 22
+MEDIUM_SIZE = 24
+BIGGER_SIZE = 28
 
 plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
@@ -101,9 +101,9 @@ ax.set_ylim(0.06, None)
 
 # Create twin ax to plot angular velocity
 ax_twin = ax.twinx()
-ax_twin.plot(fit_times, w_nominal, linewidth=3, color='r', linestyle='-.', label='ω fit')
+ax_twin.plot(fit_times, w_nominal, linewidth=3, color='r', linestyle='-.', label='ω: fit')
 ax_twin.fill_between(fit_times, w_nominal - w_err, w_nominal + w_err,
-                     alpha=0.5, color='purple', label='ω 1σ band')
+                     alpha=0.5, color='purple', label='ω: 1σ band')
 ax_twin.set_ylabel("ω [rad/s]")
 
 # Combine legend
