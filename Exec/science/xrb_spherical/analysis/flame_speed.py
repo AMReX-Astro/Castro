@@ -92,18 +92,18 @@ w_err = unumpy.std_devs(w_fit)
 # Now do plotting
 fig, ax = plt.subplots()
 ax.plot(times, front_thetas, 'x', color='k', label='θ: data')
-ax.plot(fit_times, theta_nominal, linewidth=3, color='skyblue', linestyle='--', label='θ: fit')
+ax.plot(fit_times, theta_nominal, linewidth=3, color='blue', linestyle='--', label='θ: fit')
 ax.fill_between(fit_times, theta_nominal - theta_err, theta_nominal + theta_err,
-                alpha=0.5, color='skyblue', label='θ: 1σ band')
+                alpha=0.3, color='skyblue', label='θ: 1σ band')
 ax.set_xlabel("time [ms]")
 ax.set_ylabel("θ [rad]")
 ax.set_ylim(0.06, None)
 
 # Create twin ax to plot angular velocity
 ax_twin = ax.twinx()
-ax_twin.plot(fit_times, w_nominal, linewidth=3, color='salmon', linestyle='-.', label='ω: fit')
+ax_twin.plot(fit_times, w_nominal, linewidth=3, color='red', linestyle='-.', label='ω: fit')
 ax_twin.fill_between(fit_times, w_nominal - w_err, w_nominal + w_err,
-                     alpha=0.5, color='salmon', label='ω: 1σ band')
+                     alpha=0.3, color='salmon', label='ω: 1σ band')
 ax_twin.set_ylabel("ω [rad/s]")
 
 # Combine legend
