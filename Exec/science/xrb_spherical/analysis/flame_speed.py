@@ -67,8 +67,8 @@ def utanh_func(t, a0, v0, x0, a, b, c):
 
 # Give initial guess and solve for different parameters
 # error is given by the square root of the diagonal of the covariance matrix.
-init_guess = np.array([8.0, 140.0, 91386.0, 17916.0, 10.0, -2.0])
-popt, pcov = curve_fit(tanh_func, fit_times, fit_front_thetas, p0=None, method="lm")
+init_guess = np.array([15.0, 3.0, 0.0, 0.15, 0.01, -2.0])
+popt, pcov = curve_fit(tanh_func, fit_times, fit_front_thetas, p0=init_guess, method="lm")
 err = np.sqrt(np.diag(pcov))
 
 # Given the fitted parameters, recreate fitted curve along with error propagation
