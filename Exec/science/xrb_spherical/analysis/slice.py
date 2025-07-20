@@ -347,16 +347,16 @@ def slice(fnames:List[str], fields:List[str],
             time = ts[0].current_time.in_units("us")
 
         # Determine position of the text on grid
-        xyPositions = {(1, 1): (0.9, 0.1),
+        xyPositions = {(1, 1): (0.9, 0.08),
                        (1, 2): (0.95, 0.075),
                        (2, 2): (0.78, 0.02),
                        (2, 3): (0.9, 0.02),
                        (3, 3): (0.78, 0.02)
                        }
-        xPosition, yPosition = xyPositions.get((nx, ny), (0.9, 0.1))
+        xPosition, yPosition = xyPositions.get((nx, ny), (0.9, 0.08))
 
-        fig.text(xPosition, yPosition, f"t = {time:.3f}", fontsize=18,
-                 horizontalalignment='right', verticalalignment='bottom',
+        fig.text(xPosition, yPosition, f"t = {time:.2f}", fontsize=18,
+                 horizontalalignment='center', verticalalignment='center',
                  color="black", transform=fig.transFigure)
 
         outName = f"{ts[0]}_slice.png"
