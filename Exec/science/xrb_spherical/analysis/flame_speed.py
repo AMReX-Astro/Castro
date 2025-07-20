@@ -35,7 +35,7 @@ args = parser.parse_args()
 tracking_data = pd.read_csv(args.tracking_fname)
 
 # Get time and theta
-times = tracking_data['time']
+times = tracking_data['time[ms]']
 front_thetas = tracking_data['front_theta']
 
 # Do plotting
@@ -44,5 +44,5 @@ ax.plot(times, front_thetas)
 ax.set_xlabel("time [ms]")
 ax.set_ylabel("θ")
 fig.tight_layout()
-fig.set_inch_sizes(8, 8)
+fig.set_size_inches(8, 8)
 fig.savefig("flame_position.png", bbox_inches="tight")
