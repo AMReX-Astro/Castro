@@ -60,7 +60,7 @@ def get_weight_fields(fnames, field_list=['Temp', 'enuc'],
     avg_weighted_fields = avg_weighted_fields[:, sort_ind]
 
     # Append time array
-    data = np.vstack((avg_weighted_fields, time))
+    data = np.vstack((avg_weighted_fields, times))
 
     # Save data
     np.savetxt(output, data, delimiter=',')
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     parser.add_argument('fnames', nargs='+', type=str,
                         help='''data file names for generating the plot''')
-    parser.add_argument('-q', '--quantile', type=float, default=0.99
+    parser.add_argument('-q', '--quantile', type=float, default=0.99,
                         help='''Only consider zones that have values above
                         this quantile. Default is 0.99, i.e. only zones
                         above 99% quantile is considered for the average''')
