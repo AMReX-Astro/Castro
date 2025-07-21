@@ -162,6 +162,10 @@ if __name__ == '__main__':
                         help='''output name containing relevant data''')
     parser.add_argument('-j', '--jobs', default=1, type=int,
                         help="""Number of workers to plot in parallel""")
+    parser.add_argument('-d', '--data', type=str,
+                        help='''If the average density weighted Temp and enuc
+                        are already pre-computed, pass in the data file here.
+                        Then the calculation is skipped.''')
     # parser.add_argument('-f', '--fields', nargs='+', type=str,
     #                     default=['Temp', 'enuc'],
     #                     help='''Different field names for plotting''')
@@ -177,11 +181,14 @@ if __name__ == '__main__':
     #                          output=args.output,
     #                          cutoff_quantile=args.quantile)
 
-    data = get_weight_fields_concurrent(args.fnames, field_list=['Temp', 'enuc'],
-                                        weighted_field='density',
-                                        output=args.output,
-                                        cutoff_quantile=args.quantile,
-                                        max_workers=args.jobs)
+    if args.data is None:
+        data = get_weight_fields_concurrent(args.fnames, field_list=['Temp', 'enuc'],
+                                            weighted_field='density',
+                                            output=args.output,
+                                            cutoff_quantile=args.quantile,
+                                            max_workers=args.jobs)
+    else:
+        data = np.loadtxt(args.data, delimiter=',')
 
     t_array = data[-1, :]
 
@@ -198,7 +205,8 @@ if __name__ == '__main__':
     # Combine legend
     lines1, labels1 = ax.get_legend_handles_labels()
     lines2, labels2 = ax_twin.get_legend_handles_labels()
-    ax.legend(lines1 + lines2, labels1 + labels2, frameon=False)
+    ax.legend(lines1 + lines2, labels1 + labels2,
+              loc='lower right', frameon=False)
 
     fig.tight_layout()
     fig.set_size_inches(8, 8)
