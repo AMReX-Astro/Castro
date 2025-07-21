@@ -100,12 +100,12 @@ if __name__ == '__main__':
 
     # Do Plotting
     fig, ax = plt.subplots()
-    ax.plot(t_array, data[0, :], color='blue', linewidth=3)
+    ax.plot(t_array, data[0, :], color='blue', linewidth=3, label=r'$\left<T\right>$')
     ax.set_xlabel('time [ms]')
     ax.set_ylabel(r'$\left<T \right>$ [GK]')
 
     ax_twin = ax.twinx()
-    ax_twin.plot(t_array, data[1, :] * 1e-19, color='red', linewidth=3)
+    ax_twin.plot(t_array, data[1, :] * 1e-19, color='red', linewidth=3, label=r'$\left<\dot{e}_{nuc}\right>$')
     ax_twin.set_ylabel(r'$\left<\dot{e}_{nuc}\right>$ [$10^{19}$erg/g/s]')
 
     # Combine legend
