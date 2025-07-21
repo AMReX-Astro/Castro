@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import numpy as np
+import yt
 import argparse
 import matplotlib.pyplot as plt
 from yt.frontends.boxlib.api import CastroDataset
-import numpy as np
-import yt
+from functools import partial
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Set some fontsize
 SMALL_SIZE = 18
@@ -22,6 +24,83 @@ plt.rc('xtick.major', size=7, width=2)
 plt.rc('xtick.minor', size=5, width=1)
 plt.rc('ytick.major', size=7, width=2)
 plt.rc('ytick.minor', size=5, width=1)
+
+### Parallelization is done using Claude ###
+
+def process_single_file(fname, field_list, weighted_field, cutoff_quantile):
+    """Process a single file and return results for all fields"""
+    ds = CastroDataset(fname)
+    time = ds.current_time.in_units('ms')
+
+    field_results = []
+    for f in field_list:
+        ad = ds.all_data()
+        f_array = ad[f].to_ndarray()
+        cutoff = np.quantile(f_array, cutoff_quantile)
+        f_cutoff = ad.exclude_below(f, cutoff)
+        avg_weighted_field = f_cutoff.quantities.weighted_average_quantity(f, weighted_field)
+        field_results.append(avg_weighted_field)
+
+    return time, field_results
+
+
+def get_weight_fields_concurrent(fnames, field_list=['Temp', 'enuc'],
+                                weighted_field='density',
+                                output='profile.dat',
+                                cutoff_quantile=0.99,
+                                max_workers=None):
+    """
+    Version using concurrent.futures for better control and error handling
+    """
+
+    process_func = partial(process_single_file,
+                          field_list=field_list,
+                          weighted_field=weighted_field,
+                          cutoff_quantile=cutoff_quantile)
+
+    results = []
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_fname = {executor.submit(process_func, fname): fname
+                          for fname in fnames}
+
+        # Collect results as they complete
+        try:
+            for future in as_completed(future_to_fname):
+                fname = future_to_fname[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as exc:
+                    print(f'File {fname} generated an exception: {exc}')
+                    raise
+        except KeyboardInterrupt:
+            print(
+                "\n*** got ctrl-c, cancelling remaining tasks and waiting for existing ones to finish...\n",
+                flush=True,
+            )
+            executor.shutdown(wait=True, cancel_futures=True)
+            sys.exit(1)
+
+    # Rest of the processing is the same as above
+    times = [result[0] for result in results]
+    all_field_results = [result[1] for result in results]
+
+    avg_weighted_fields = [[] for _ in range(len(field_list))]
+    for field_results in all_field_results:
+        for i, field_result in enumerate(field_results):
+            avg_weighted_fields[i].append(field_result)
+
+    times = np.array(times)
+    sort_ind = np.argsort(times)
+    avg_weighted_fields = np.array(avg_weighted_fields)
+    avg_weighted_fields = avg_weighted_fields[:, sort_ind]
+    times = times[sort_ind]
+
+    data = np.vstack((avg_weighted_fields, times))
+    np.savetxt(output, data, delimiter=',')
+    return data
+
 
 def get_weight_fields(fnames, field_list=['Temp', 'enuc'],
                       weighted_field='density',
@@ -81,6 +160,8 @@ if __name__ == '__main__':
                         above 99% quantile is considered for the average''')
     parser.add_argument('-o', '--output', type=str, default='profile.dat',
                         help='''output name containing relevant data''')
+    parser.add_argument('-j', '--jobs', default=1, type=int,
+                        help="""Number of workers to plot in parallel""")
     # parser.add_argument('-f', '--fields', nargs='+', type=str,
     #                     default=['Temp', 'enuc'],
     #                     help='''Different field names for plotting''')
@@ -91,10 +172,16 @@ if __name__ == '__main__':
 
     # Find the data points
     # Right now just find average Temp and enuc weighted by density
-    data = get_weight_fields(args.fnames, field_list=['Temp', 'enuc'],
-                             weighted_field='density',
-                             output=args.output,
-                             cutoff_quantile=args.quantile)
+    # data = get_weight_fields(args.fnames, field_list=['Temp', 'enuc'],
+    #                          weighted_field='density',
+    #                          output=args.output,
+    #                          cutoff_quantile=args.quantile)
+
+    data = get_weight_fields_concurrent(args.fnames, field_list=['Temp', 'enuc'],
+                                        weighted_field='density',
+                                        output=args.output,
+                                        cutoff_quantile=args.quantile,
+                                        max_workers=args.jobs)
 
     t_array = data[-1, :]
 
