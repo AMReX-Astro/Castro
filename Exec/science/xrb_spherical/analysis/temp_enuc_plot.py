@@ -8,27 +8,28 @@ from yt.frontends.boxlib.api import CastroDataset
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-# Set some fontsize
+# Set some fontsize settings
 SMALL_SIZE = 18
 MEDIUM_SIZE = 24
 BIGGER_SIZE = 28
 
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+plt.rc('font', size=SMALL_SIZE)
+plt.rc('axes', titlesize=SMALL_SIZE)
+plt.rc('axes', labelsize=MEDIUM_SIZE)
+plt.rc('xtick', labelsize=SMALL_SIZE)
+plt.rc('ytick', labelsize=SMALL_SIZE)
+plt.rc('legend', fontsize=SMALL_SIZE)
+plt.rc('figure', titlesize=BIGGER_SIZE)
 plt.rc('xtick.major', size=7, width=2)
 plt.rc('xtick.minor', size=5, width=1)
 plt.rc('ytick.major', size=7, width=2)
 plt.rc('ytick.minor', size=5, width=1)
 
-### Parallelization is done using Claude ###
-
 def process_single_file(fname, field_list, weighted_field, cutoff_quantile):
-    """Process a single file and return results for all fields"""
+    """Process a single file and return results for all fields.
+    This calculates the field_list weighted by weighted_field for values
+    above cutoff_quantile"""
+
     ds = CastroDataset(fname)
     time = ds.current_time.in_units('ms')
 
@@ -36,8 +37,14 @@ def process_single_file(fname, field_list, weighted_field, cutoff_quantile):
     for f in field_list:
         ad = ds.all_data()
         f_array = ad[f].to_ndarray()
+
+        # Get cutoff value
         cutoff = np.quantile(f_array, cutoff_quantile)
+
+        # Find values above the cutoff value
         f_cutoff = ad.exclude_below(f, cutoff)
+
+        # Get the weighted field
         avg_weighted_field = f_cutoff.quantities.weighted_average_quantity(f, weighted_field)
         field_results.append(avg_weighted_field)
 
@@ -50,7 +57,8 @@ def get_weight_fields_concurrent(fnames, field_list=['Temp', 'enuc'],
                                 cutoff_quantile=0.99,
                                 max_workers=None):
     """
-    Version using concurrent.futures for better control and error handling
+    using concurrent.futures for parallelization over reading
+    different data files. Then save and return the data.
     """
 
     process_func = partial(process_single_file,
@@ -82,7 +90,7 @@ def get_weight_fields_concurrent(fnames, field_list=['Temp', 'enuc'],
             executor.shutdown(wait=True, cancel_futures=True)
             sys.exit(1)
 
-    # Rest of the processing is the same as above
+    # Get the time and all fields as arrays
     times = [result[0] for result in results]
     all_field_results = [result[1] for result in results]
 
@@ -91,59 +99,18 @@ def get_weight_fields_concurrent(fnames, field_list=['Temp', 'enuc'],
         for i, field_result in enumerate(field_results):
             avg_weighted_fields[i].append(field_result)
 
+    # Sort results by time
     times = np.array(times)
     sort_ind = np.argsort(times)
     avg_weighted_fields = np.array(avg_weighted_fields)
     avg_weighted_fields = avg_weighted_fields[:, sort_ind]
     times = times[sort_ind]
 
-    data = np.vstack((avg_weighted_fields, times))
-    np.savetxt(output, data, delimiter=',')
-    return data
-
-
-def get_weight_fields(fnames, field_list=['Temp', 'enuc'],
-                      weighted_field='density',
-                      output='profile.dat',
-                      cutoff_quantile=0.99):
-
-    avg_weighted_fields = [[] for _ in range(len(field_list))]
-    times = []
-
-    # Loop over different data files, each represent different time
-    for fname in fnames:
-        ds = CastroDataset(fname)
-        times.append(ds.current_time.in_units('ms'))
-
-        # loop over different desired fields
-        for i, f in enumerate(field_list):
-            ad = ds.all_data()
-            f_array = ad[f].to_ndarray()
-
-            # Get the cutoff value corresponding to whatever quantile
-            cutoff = np.quantile(f_array, cutoff_quantile)
-
-            # Get yt data container that excludes value below the cutoff
-            f_cutoff = ad.exclude_below(f, cutoff)
-
-            # Get the weighted average using the weighted_field
-            avg_weighted_field = f_cutoff.quantities.weighted_average_quantity(f, weighted_field)
-
-            avg_weighted_fields[i].append(avg_weighted_field)
-
-    # Sort by time just in case:
-    times = np.array(times)
-    sort_ind = np.argsort(times)
-
-    avg_weighted_fields = np.array(avg_weighted_fields)
-    avg_weighted_fields = avg_weighted_fields[:, sort_ind]
-
-    # Append time array
+    # Append time to weighted_fields result
     data = np.vstack((avg_weighted_fields, times))
 
-    # Save data
+    # Save data and return
     np.savetxt(output, data, delimiter=',')
-
     return data
 
 if __name__ == '__main__':
