@@ -127,29 +127,7 @@ Castro::ppm_mhd(const Box& bx,
 
       int v = cvars[n];
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,v);
-        s[im1] = q_arr(i-1,j,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i+1,j,k,v);
-        s[ip2] = q_arr(i+2,j,k,v);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,v);
-        s[im1] = q_arr(i,j-1,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j+1,k,v);
-        s[ip2] = q_arr(i,j+2,k,v);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,v);
-        s[im1] = q_arr(i,j,k-1,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j,k+1,v);
-        s[ip2] = q_arr(i,j,k+2,v);
-
-      }
-
+      load_stencil(q_arr, idir, i, j, k, v, s);
       ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
 
       Real Ipt = 0.0;
@@ -364,29 +342,6 @@ Castro::ppm_mhd(const Box& bx,
 
       int v = QFS+n;
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,v);
-        s[im1] = q_arr(i-1,j,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i+1,j,k,v);
-        s[ip2] = q_arr(i+2,j,k,v);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,v);
-        s[im1] = q_arr(i,j-1,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j+1,k,v);
-        s[ip2] = q_arr(i,j+2,k,v);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,v);
-        s[im1] = q_arr(i,j,k-1,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j,k+1,v);
-        s[ip2] = q_arr(i,j,k+2,v);
-
-      }
-
       Real Ips;
       Real Ims;
 
@@ -402,6 +357,7 @@ Castro::ppm_mhd(const Box& bx,
         un = q_arr(i,j,k,QW);
       }
 
+      load_stencil(q_arr, idir, i, j, k, v, s);
       ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
       ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ips, Ims);
 
