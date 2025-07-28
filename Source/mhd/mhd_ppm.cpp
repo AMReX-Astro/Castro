@@ -111,7 +111,7 @@ Castro::ppm_mhd(const Box& bx,
 
     // do the parabolic reconstruction and compute the integrals under
     // the characteristic waves
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn(i,j,k);
     Real sm;
     Real sp;

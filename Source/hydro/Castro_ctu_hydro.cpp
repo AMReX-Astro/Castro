@@ -201,7 +201,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       // the conserved variables.
 
       const Box& qbx = amrex::grow(bx, NUM_GROW);
-      const Box& qbx3 = amrex::grow(bx, 3);
 
 #ifdef RADIATION
       q.resize(qbx, NQ);
