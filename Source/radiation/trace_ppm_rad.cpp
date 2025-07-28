@@ -59,6 +59,16 @@ Castro::trace_ppm_rad(const Box& bx,
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
+  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
+
 #ifndef AMREX_USE_GPU
 
   // if we're on the CPU, we preprocess the sources over the whole
@@ -207,7 +217,7 @@ Castro::trace_ppm_rad(const Box& bx,
       if (n == QTEMP) continue;
 
       load_stencil(q_arr, idir, i, j, k, n, s);
-      ppm_reconstruct(s, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -220,7 +230,7 @@ Castro::trace_ppm_rad(const Box& bx,
       const int nc = upassmap(ipassive);
 
       load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
-      ppm_reconstruct(s, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -264,7 +274,7 @@ Castro::trace_ppm_rad(const Box& bx,
       if (do_trace) {
 
           load_stencil(srcQ, idir, i, j, k, n, s);
-          ppm_reconstruct(s, flat, sm, sp);
+          ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
           ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
