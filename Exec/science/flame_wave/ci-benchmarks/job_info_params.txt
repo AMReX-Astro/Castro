@@ -49,6 +49,7 @@
     castro.hybrid_hydro = 0
     castro.ppm_type = 1
     castro.ppm_do_limiting = 1
+    castro.ppm_one_sided_stencils = 0
     castro.mhd_limit_characteristic = 1
     castro.ppm_temp_fix = 0
     castro.plm_iorder = 2
