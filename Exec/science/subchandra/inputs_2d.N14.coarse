@@ -14,8 +14,6 @@ geometry.prob_hi   =  5.12e9 1.024e10
 
 amr.n_cell         = 640 1280
 
-amr.max_level      = 2       # maximum level number allowed
-
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
 
@@ -36,6 +34,7 @@ castro.react_T_min = 5.e7
 castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
@@ -73,13 +72,28 @@ castro.max_subcycles = 32
 
 castro.abundance_failure_rho_cutoff = 1.0
 
+amr.v               = 1       # control verbosity in Amr.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
+
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5
+
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
+
+# gridding
+
+amr.max_level      = 2       # maximum level number allowed
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
+amr.blocking_factor = 32       # block factor in grid generation
+
+# I/O
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 50     # number of timesteps between checkpoints
@@ -87,26 +101,31 @@ amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
 amr.plot_per        = 2.e-3
 
-amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
-amr.blocking_factor = 32       # block factor in grid generation
-
-amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 1       # control verbosity in Castro.cpp
-
 amr.derive_plot_vars = ALL
 castro.store_burn_weights = 1
 
-castro.small_dens   = 1.e-5
-castro.small_temp   = 1.e5
-
 # problem parameters
-
-problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.CO.N14.10.00km"
 
 problem.pert_temp_factor = 20.0
 problem.pert_rad_factor = 0.5
 problem.R_pert = 1.e7
 
+problem.M_WD = 1.1
+problem.M_He  = 0.05
+
+problem.delta = 5.e6
+
+problem.temp_core = 1.e7
+problem.temp_base = 1.75e8
+
+problem.mixed_co_wd = 1
+
+problem.X_N14 = 0.01
+
+problem.low_density_cutoff = 1.e-4
+problem.temp_fluff = 7.5e7
+
+problem.model_min_res = 5.e5
 
 # tagging
 
@@ -155,5 +174,7 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 1000000
+integrator.ode_max_steps = 20000
 
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
