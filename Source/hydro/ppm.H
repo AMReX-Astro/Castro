@@ -133,7 +133,7 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sm = std::clamp(sm, std::min(s[i0], s[im1]), std::max(s[i0], s[im1]));
+            sm = amrex::Clamp(sm, std::min(s[i0], s[im1]), std::max(s[i0], s[im1]));
 
         }
 
@@ -204,7 +204,7 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sp = std::clamp(sp, std::min(s[ip1], s[i0]), std::max(s[ip1], s[i0]));
+            sp = amrex::Clamp(sp, std::min(s[ip1], s[i0]), std::max(s[ip1], s[i0]));
 
         }
 

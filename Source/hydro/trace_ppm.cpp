@@ -58,8 +58,6 @@ Castro::trace_ppm(const Box& bx,
   const auto problo = geom.ProbLoArray();
   const int coord = geom.Coord();
 
-  bool is_axisymmetric = geom.Coord() == 1;
-
   Real hdt = 0.5_rt * dt;
 
 #ifndef AMREX_USE_GPU
@@ -282,8 +280,6 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, QREINT, s);
     ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
-    sm = amrex::max(lsmall_pres, sm);
-    sp = amrex::max(lsmall_pres, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_rhoe, Im_rhoe);
 
     // reconstruct transverse velocities
