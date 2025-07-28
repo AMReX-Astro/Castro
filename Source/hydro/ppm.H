@@ -65,9 +65,10 @@ ppm_reconstruct(const amrex::Real* s,
 
     if (ppm_do_limiting) {
 
-        if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
-                           (idir == 1 && j == domlo[1]) ||
-                           (idir == 2 && k == domlo[2]))) {
+        if (ppm_one_sided_stencils && lo_bc_test &&
+            ((idir == 0 && i == domlo[0]) ||
+             (idir == 1 && j == domlo[1]) ||
+             (idir == 2 && k == domlo[2]))) {
 
             // use a stencil for when the current zone is on the left
             // physical boundary.  Then the left interface is on the
@@ -75,9 +76,10 @@ ppm_reconstruct(const amrex::Real* s,
 
             sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
 
-        } else if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
-                                  (idir == 1 && j == domlo[1]+1) ||
-                                  (idir == 2 && k == domlo[2]+1))) {
+        } else if (ppm_one_sided_stencils && lo_bc_test &&
+                   ((idir == 0 && i == domlo[0]+1) ||
+                    (idir == 1 && j == domlo[1]+1) ||
+                    (idir == 2 && k == domlo[2]+1))) {
 
             // use a stencil for when the current zone is one zone
             // away from the left physical boundary, and then the left
@@ -87,12 +89,12 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+            sm = amrex::Clamp(sm, amrex::min(s[i0], s[im1]), amrex::max(s[i0], s[im1]));
 
-        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
-                                  (idir == 1 && j == domhi[1]) ||
-                                  (idir == 2 && k == domhi[2]))) {
+        } else if (ppm_one_sided_stencils && hi_bc_test &&
+                   ((idir == 0 && i == domhi[0]) ||
+                    (idir == 1 && j == domhi[1]) ||
+                    (idir == 2 && k == domhi[2]))) {
 
             // use a stencil for when the current zone is on the right
             // physical boundary then the left interface is one zone
@@ -101,8 +103,7 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-            sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+            sm = amrex::Clamp(sm, amrex::min(s[i0], s[im1]), amrex::max(s[i0], s[im1]));
 
         } else {
 
@@ -139,9 +140,10 @@ ppm_reconstruct(const amrex::Real* s,
 
         // now we compute s_{i+1/2} -- the right interface value for zone i
 
-        if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
-                           (idir == 1 && j == domlo[1]) ||
-                           (idir == 2 && k == domlo[2]))) {
+        if (ppm_one_sided_stencils && lo_bc_test &&
+            ((idir == 0 && i == domlo[0]) ||
+             (idir == 1 && j == domlo[1]) ||
+             (idir == 2 && k == domlo[2]))) {
 
             // use a stencil for when the current zone is on the left physical
             // boundary.  Then the right interface is one zone away from the
@@ -151,20 +153,21 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+            sp = amrex::Clamp(sp, amrex::min(s[ip1], s[i0]), amrex::max(s[ip1], s[i0]));
 
-        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
-                                  (idir == 1 && j == domhi[1]) ||
-                                  (idir == 2 && k == domhi[2]))) {
+        } else if (ppm_one_sided_stencils && hi_bc_test &&
+                   ((idir == 0 && i == domhi[0]) ||
+                    (idir == 1 && j == domhi[1]) ||
+                    (idir == 2 && k == domhi[2]))) {
 
             // use a stencil for when the current zone is on the right physical boundary
             // then the right interface is on the physical boundary
             sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] + 13.0_rt*s[im2] - 3.0_rt*s[im3]);
 
-        } else if (hi_bc_test && ((idir == 0 && i == domhi[0]-1) ||
-                                  (idir == 1 && j == domhi[1]-1) ||
-                                  (idir == 2 && k == domhi[2]-1))) {
+        } else if (ppm_one_sided_stencils && hi_bc_test &&
+                   ((idir == 0 && i == domhi[0]-1) ||
+                    (idir == 1 && j == domhi[1]-1) ||
+                    (idir == 2 && k == domhi[2]-1))) {
 
             // use a stencil for when the current zone is one zone away from
             // the right physical boundary, and then the right interface is one
@@ -173,8 +176,7 @@ ppm_reconstruct(const amrex::Real* s,
 
             // Make sure sedge lies in between adjacent cell-centered values
 
-            sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-            sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+            sp = amrex::Clamp(sp, amrex::min(s[ip1], s[i0]), amrex::max(s[ip1], s[i0]));
 
         } else {
 
