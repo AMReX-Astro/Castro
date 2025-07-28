@@ -6,9 +6,9 @@ import glob
 import sys
 
 import matplotlib
-from matplotlib import ticker
 import numpy as np
 from cycler import cycler
+from matplotlib import ticker
 
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ def find_files(plist, times):
                 continue
             if ds.current_time >= t:
                 files_to_plot.append(pfile)
-                print(f"plotting {pfile} at t = {t}")
+                print(f"plotting {pfile} at t = {float(ds.current_time):7.3g}")
                 mask[k] = 1.0
                 break
 
