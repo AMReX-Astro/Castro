@@ -19,7 +19,7 @@ constexpr int NUM_GROW_SRC{6};
 #elif TRUE_SDC
 constexpr int NUM_GROW_SRC{NUM_GROW};
 #else
-constexpr int NUM_GROW_SRC{3};
+constexpr int NUM_GROW_SRC{4};
 #endif
 
 #endif

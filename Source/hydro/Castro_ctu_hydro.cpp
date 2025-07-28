@@ -272,14 +272,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx3, NQSRC);
+      src_q.resize(qbx, NQSRC);
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
       Array4<Real> const old_src_arr = old_source.array(mfi);
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      amrex::ParallelFor(qbx3,
+      amrex::ParallelFor(qbx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
