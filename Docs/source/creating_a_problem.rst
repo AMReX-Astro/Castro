@@ -254,24 +254,45 @@ be set in the makefile to control the initial model storage:
     like ``flame_wave`` use 2, applied to different portions of the
     domain.
 
-The general form of the initial model is::
+Two different model formats are allowed:
 
-    # npts = 896
-    # num of variables = 6
-    # density
-    # temperature
-    # pressure
-    # carbon-12
-    # oxygen-16
-    # magnesium-24
-    195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
-    585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+* *"Old" model format*:  This has two header lines at the top giving
+  the number of points in the model and number of variables, and
+  then the name of each variable (excluding the coordinate) is
+  given separately on the next lines:
 
-The first line gives the number of points in the initial model, the
-next gives the number of variables, followed by the variable names
-(one per line), and then the data.  The data begins with the
-coordinate and then the variables in the model, with one data point
-per line.
+  ::
+
+      # npts = 896
+      # num of variables = 6
+      # density
+      # temperature
+      # pressure
+      # carbon-12
+      # oxygen-16
+      # magnesium-24
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
+      585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+  The data begins with the coordinate and then the variables in the
+  model, with one data point per line.
+
+* *New model format*: This has a single header line that gives the column
+  names, including the coordinate (first column), followed by the
+  data.  For example:
+
+  ::
+
+      # radius  density temperature  pressure  carbon-12  oxygen-16  magnesium-24
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
+      585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+.. note::
+
+   For both formats, the variable names should be the same as the
+   names used by Castro.  You can see the names in the `_variables
+   <https://github.com/AMReX-Astro/Castro/blob/main/Source/driver/_variables>`_
+   file.
 
 When the model is read, the variables listed in the file are matched
 to the ones that Castro knows about.  If the variable is recognized,
