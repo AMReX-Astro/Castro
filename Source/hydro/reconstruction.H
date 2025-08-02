@@ -4,17 +4,64 @@
 #include <state_indices.H>
 
 namespace reconstruction {
-   enum slope_indices {
-       im3 = 0,
-       im2,
-       im1,
-       i0,
-       ip1,
-       ip2,
-       ip3,
-       nslp
-   };
+    enum slope_indices : std::uint8_t {
+        im3 = 0,
+        im2,
+        im1,
+        i0,
+        ip1,
+        ip2,
+        ip3,
+        nslp
+    };
+
+    enum class Centering : std::uint8_t {
+        zone_on_left_bndry=0,
+        zone_one_from_left_bndry,
+        zone_centered,
+        zone_one_from_right_bndry,
+        zone_on_right_bndry
+    };
+
 }
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+reconstruction::Centering
+get_centering(const int i, const int j, const int k, const int idir,
+              const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
+              const bool lo_bc_test, const bool hi_bc_test) {
+
+    reconstruction::Centering centering{reconstruction::Centering::zone_centered};
+
+    if (ppm_one_sided_stencils && lo_bc_test &&
+        ((idir == 0 && i == domlo[0]) ||
+         (idir == 1 && j == domlo[1]) ||
+         (idir == 2 && k == domlo[2]))) {
+        centering = reconstruction::Centering::zone_on_left_bndry;
+
+    } else if (ppm_one_sided_stencils && lo_bc_test &&
+                   ((idir == 0 && i == domlo[0]+1) ||
+                    (idir == 1 && j == domlo[1]+1) ||
+                    (idir == 2 && k == domlo[2]+1))) {
+        centering = reconstruction::Centering::zone_one_from_left_bndry;
+
+    } else if (ppm_one_sided_stencils && hi_bc_test &&
+               ((idir == 0 && i == domhi[0]-1) ||
+                (idir == 1 && j == domhi[1]-1) ||
+                (idir == 2 && k == domhi[2]-1))) {
+        centering = reconstruction::Centering::zone_one_from_right_bndry;
+
+    } else if (ppm_one_sided_stencils && hi_bc_test &&
+               ((idir == 0 && i == domhi[0]) ||
+                (idir == 1 && j == domhi[1]) ||
+                (idir == 2 && k == domhi[2]))) {
+        centering = reconstruction::Centering::zone_on_right_bndry;
+    }
+
+    return centering;
+
+}
+
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void

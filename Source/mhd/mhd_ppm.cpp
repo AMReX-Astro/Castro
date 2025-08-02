@@ -128,7 +128,7 @@ Castro::ppm_mhd(const Box& bx,
       int v = cvars[n];
 
       load_stencil(q_arr, idir, i, j, k, v, s);
-      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
 
       Real Ipt = 0.0;
       Real Imt = 0.0;
@@ -358,7 +358,7 @@ Castro::ppm_mhd(const Box& bx,
       }
 
       load_stencil(q_arr, idir, i, j, k, v, s);
-      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ips, Ims);
 
       if (idir == 0) {

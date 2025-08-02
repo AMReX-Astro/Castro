@@ -217,7 +217,7 @@ Castro::trace_ppm_rad(const Box& bx,
       if (n == QTEMP) continue;
 
       load_stencil(q_arr, idir, i, j, k, n, s);
-      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -230,7 +230,7 @@ Castro::trace_ppm_rad(const Box& bx,
       const int nc = upassmap(ipassive);
 
       load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
-      ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }

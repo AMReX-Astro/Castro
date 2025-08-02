@@ -57,49 +57,43 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const amrex::Real* s,
                 const int i, const int j, const int k, const int idir,
-                const bool lo_bc_test, const bool hi_bc_test,
-                const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
+                reconstruction::Centering centering,
                 const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp) {
 
     // first we compute s_{i-1/2} -- the left interface value for zone i
 
     if (ppm_do_limiting) {
 
-        if (ppm_one_sided_stencils && lo_bc_test &&
-            ((idir == 0 && i == domlo[0]) ||
-             (idir == 1 && j == domlo[1]) ||
-             (idir == 2 && k == domlo[2]))) {
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
 
             // use a stencil for when the current zone is on the left
             // physical boundary.  Then the left interface is on the
             // physical boundary, MC Eq. 21
 
-            sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+            sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] +
+                                   13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
 
-        } else if (ppm_one_sided_stencils && lo_bc_test &&
-                   ((idir == 0 && i == domlo[0]+1) ||
-                    (idir == 1 && j == domlo[1]+1) ||
-                    (idir == 2 && k == domlo[2]+1))) {
+        } else if (centering == reconstruction::Centering::zone_one_from_left_bndry) {
 
             // use a stencil for when the current zone is one zone
             // away from the left physical boundary, and then the left
             // interface is one zone away from the boundary, MC Eq. 22
 
-            sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
+            sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] -
+                                    5.0_rt*s[ip1] + s[ip2]);
 
             // Make sure sedge lies in between adjacent cell-centered values
 
             sm = amrex::Clamp(sm, amrex::min(s[i0], s[im1]), amrex::max(s[i0], s[im1]));
 
-        } else if (ppm_one_sided_stencils && hi_bc_test &&
-                   ((idir == 0 && i == domhi[0]) ||
-                    (idir == 1 && j == domhi[1]) ||
-                    (idir == 2 && k == domhi[2]))) {
+        } else if (centering == reconstruction::Centering::zone_on_right_bndry) {
 
             // use a stencil for when the current zone is on the right
             // physical boundary then the left interface is one zone
             // away from the physical boundary
-            sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
+
+            sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] -
+                                   5.0_rt*s[im2] + s[im3]);
 
             // Make sure sedge lies in between adjacent cell-centered values
 
@@ -140,39 +134,35 @@ ppm_reconstruct(const amrex::Real* s,
 
         // now we compute s_{i+1/2} -- the right interface value for zone i
 
-        if (ppm_one_sided_stencils && lo_bc_test &&
-            ((idir == 0 && i == domlo[0]) ||
-             (idir == 1 && j == domlo[1]) ||
-             (idir == 2 && k == domlo[2]))) {
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
 
             // use a stencil for when the current zone is on the left physical
             // boundary.  Then the right interface is one zone away from the
             // physical boundary,
 
-            sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
+            sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] -
+                                   5.0_rt*s[ip2] + s[ip3]);
 
             // Make sure sedge lies in between adjacent cell-centered values
 
             sp = amrex::Clamp(sp, amrex::min(s[ip1], s[i0]), amrex::max(s[ip1], s[i0]));
 
-        } else if (ppm_one_sided_stencils && hi_bc_test &&
-                   ((idir == 0 && i == domhi[0]) ||
-                    (idir == 1 && j == domhi[1]) ||
-                    (idir == 2 && k == domhi[2]))) {
+        } else if (centering == reconstruction::Centering::zone_on_right_bndry) {
 
             // use a stencil for when the current zone is on the right physical boundary
             // then the right interface is on the physical boundary
-            sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] + 13.0_rt*s[im2] - 3.0_rt*s[im3]);
 
-        } else if (ppm_one_sided_stencils && hi_bc_test &&
-                   ((idir == 0 && i == domhi[0]-1) ||
-                    (idir == 1 && j == domhi[1]-1) ||
-                    (idir == 2 && k == domhi[2]-1))) {
+            sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] +
+                                   13.0_rt*s[im2] - 3.0_rt*s[im3]);
+
+        } else if (centering == reconstruction::Centering::zone_one_from_right_bndry) {
 
             // use a stencil for when the current zone is one zone away from
             // the right physical boundary, and then the right interface is one
             // zone away from the boundary
-            sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] - 5.0_rt*s[im1] + s[im2]);
+
+            sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] -
+                                    5.0_rt*s[im1] + s[im2]);
 
             // Make sure sedge lies in between adjacent cell-centered values
 
@@ -265,8 +255,7 @@ bool
 ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src,
                        const amrex::Real dx,
                        const int i, const int j, const int k, const int idir,
-                       bool lo_bc_test, bool hi_bc_test,
-                       const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
+                       reconstruction::Centering centering,
                        const amrex::Real flatn,
                        amrex::Real& sm, amrex::Real& sp) {
 
@@ -323,7 +312,7 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
         tp[ip3] = p[ip3];
     }
 
-    ppm_reconstruct(tp, i, j, k, idir, lo_bc_test, hi_bc_test, domlo, domhi, flatn, sm, sp);
+    ppm_reconstruct(tp, i, j, k, idir, centering, flatn, sm, sp);
 
 
     // now correct sm and sp to be back to the full pressure by

@@ -176,7 +176,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
     load_stencil(q_arr, idir, i, j, k, n, s);
     ppm_reconstruct(s, i, j, k, idir,
-                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    reconstruction::Centering::zone_centered,
                     flat, sm, sp);
 
     if (idir == 0) {
