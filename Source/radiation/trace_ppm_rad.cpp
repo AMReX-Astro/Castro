@@ -274,7 +274,7 @@ Castro::trace_ppm_rad(const Box& bx,
       if (do_trace) {
 
           load_stencil(srcQ, idir, i, j, k, n, s);
-          ppm_reconstruct(s, i, j, k, idir, lo_symm, hi_symm, domlo, domhi, flat, sm, sp);
+          ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
           ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
