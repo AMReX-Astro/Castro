@@ -425,7 +425,9 @@
 #endif
 #if AMREX_SPACEDIM <= 2
                     amrex::Array4<amrex::Real const> const& q0,
+#if AMREX_SPACEDIM == 2
                     amrex::Array4<amrex::Real const> const& q1,
+#endif
 #endif
                     amrex::Array4<amrex::Real const> const& vol);
 
