@@ -222,8 +222,8 @@ Castro::trace_ppm(const Box& bx,
 
     load_stencil(q_arr, centering, idir, i, j, k, QRHO, s);
     ppm_reconstruct(s, centering, flat, sm, sp);
-    sm = amrex::max(lsmall_dens, sm);
-    sp = amrex::max(lsmall_dens, sp);
+    //sm = amrex::max(lsmall_dens, sm);
+    //sp = amrex::max(lsmall_dens, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_rho, Im_rho);
 
     // reconstruct normal velocity

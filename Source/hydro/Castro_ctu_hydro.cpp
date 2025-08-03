@@ -483,7 +483,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                           shk_arr,
                           0, false);
 
-      enforce_reflect_states(xbx, 0, qxm_arr, qxp_arr);
+      //enforce_reflect_states(xbx, 0, qxm_arr, qxp_arr);
 
 #endif // 1-d
 
@@ -600,7 +600,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 #endif
 
-      enforce_reflect_states(xbx, 0, ql_arr, qr_arr);
+      //enforce_reflect_states(xbx, 0, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
@@ -646,7 +646,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #endif
 #endif
 
-      enforce_reflect_states(ybx, 1, ql_arr, qr_arr);
+      //enforce_reflect_states(ybx, 1, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
