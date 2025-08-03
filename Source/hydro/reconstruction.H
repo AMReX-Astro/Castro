@@ -87,18 +87,12 @@ load_stencil(amrex::Array4<amrex::Real const> const& q_arr,
             s[ip3] = q_arr(i+3,j,k,ncomp);
 
         } else if (idir == 1) {
-            s[im3] = q_arr(i,j-3,k,ncomp);
-            s[im2] = q_arr(i,j-2,k,ncomp);
-            s[im1] = q_arr(i,j-1,k,ncomp);
             s[i0]  = q_arr(i,j,k,ncomp);
             s[ip1] = q_arr(i,j+1,k,ncomp);
             s[ip2] = q_arr(i,j+2,k,ncomp);
             s[ip3] = q_arr(i,j+3,k,ncomp);
 
         } else {
-            s[im3] = q_arr(i,j,k-3,ncomp);
-            s[im2] = q_arr(i,j,k-2,ncomp);
-            s[im1] = q_arr(i,j,k-1,ncomp);
             s[i0]  = q_arr(i,j,k,ncomp);
             s[ip1] = q_arr(i,j,k+1,ncomp);
             s[ip2] = q_arr(i,j,k+2,ncomp);
