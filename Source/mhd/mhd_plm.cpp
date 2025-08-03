@@ -57,34 +57,34 @@ Castro::plm(const Box& bx,
     // the velocity is
     int QUN;
 
-    load_stencil(s, idir, i, j, k, QRHO, Q[IEIGN_RHO]);
-    load_stencil(s, idir, i, j, k, QU, Q[IEIGN_U]);
-    load_stencil(s, idir, i, j, k, QV, Q[IEIGN_V]);
-    load_stencil(s, idir, i, j, k, QW, Q[IEIGN_W]);
-    load_stencil(s, idir, i, j, k, QPRES, Q[IEIGN_P]);
+    load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QRHO, Q[IEIGN_RHO]);
+    load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QU, Q[IEIGN_U]);
+    load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QV, Q[IEIGN_V]);
+    load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QW, Q[IEIGN_W]);
+    load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QPRES, Q[IEIGN_P]);
 
     if (idir == 0) {
         QUN = IEIGN_U;
 
         // component (Bx) is omitted
-        load_stencil(s, idir, i, j, k, QMAGY, Q[IEIGN_BT]);
-        load_stencil(s, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGY, Q[IEIGN_BT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
 
     } else if (idir == 1) {
 
         QUN = IEIGN_V;
 
         // component (By) is omitted
-        load_stencil(s, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
-        load_stencil(s, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
 
     } else {
 
         QUN = IEIGN_W;
 
         // component (Bz) is omitted
-        load_stencil(s, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
-        load_stencil(s, idir, i, j, k, QMAGY, Q[IEIGN_BTT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
+        load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QMAGY, Q[IEIGN_BTT]);
 
     }
 
