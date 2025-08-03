@@ -65,40 +65,157 @@ get_centering(const int i, const int j, const int k, const int idir,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-load_stencil(amrex::Array4<amrex::Real const> const& q_arr, const int idir,
+load_stencil(amrex::Array4<amrex::Real const> const& q_arr,
+             reconstruction::Centering centering, const int idir,
              const int i, const int j, const int k, const int ncomp,
              amrex::Real* s) {
 
     using namespace reconstruction;
 
-    if (idir == 0) {
-        s[im3] = q_arr(i-3,j,k,ncomp);
-        s[im2] = q_arr(i-2,j,k,ncomp);
-        s[im1] = q_arr(i-1,j,k,ncomp);
-        s[i0]  = q_arr(i,j,k,ncomp);
-        s[ip1] = q_arr(i+1,j,k,ncomp);
-        s[ip2] = q_arr(i+2,j,k,ncomp);
-        s[ip3] = q_arr(i+3,j,k,ncomp);
+    switch (centering) {
+    case Centering::zone_on_left_bndry:
 
-      } else if (idir == 1) {
-        s[im3] = q_arr(i,j-3,k,ncomp);
-        s[im2] = q_arr(i,j-2,k,ncomp);
-        s[im1] = q_arr(i,j-1,k,ncomp);
-        s[i0]  = q_arr(i,j,k,ncomp);
-        s[ip1] = q_arr(i,j+1,k,ncomp);
-        s[ip2] = q_arr(i,j+2,k,ncomp);
-        s[ip3] = q_arr(i,j+3,k,ncomp);
+        // --- | --- | --- | --- | --- | --- | --- |
+        // i-3   i-2   i-1 ^  i    i+1   i+2   i+3
+        //                 ^
+        //              boundary
 
-      } else {
-        s[im3] = q_arr(i,j,k-3,ncomp);
-        s[im2] = q_arr(i,j,k-2,ncomp);
-        s[im1] = q_arr(i,j,k-1,ncomp);
-        s[i0]  = q_arr(i,j,k,ncomp);
-        s[ip1] = q_arr(i,j,k+1,ncomp);
-        s[ip2] = q_arr(i,j,k+2,ncomp);
-        s[ip3] = q_arr(i,j,k+3,ncomp);
+        if (idir == 0) {
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i+1,j,k,ncomp);
+            s[ip2] = q_arr(i+2,j,k,ncomp);
+            s[ip3] = q_arr(i+3,j,k,ncomp);
 
-      }
+        } else if (idir == 1) {
+            s[im3] = q_arr(i,j-3,k,ncomp);
+            s[im2] = q_arr(i,j-2,k,ncomp);
+            s[im1] = q_arr(i,j-1,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j+1,k,ncomp);
+            s[ip2] = q_arr(i,j+2,k,ncomp);
+            s[ip3] = q_arr(i,j+3,k,ncomp);
+
+        } else {
+            s[im3] = q_arr(i,j,k-3,ncomp);
+            s[im2] = q_arr(i,j,k-2,ncomp);
+            s[im1] = q_arr(i,j,k-1,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j,k+1,ncomp);
+            s[ip2] = q_arr(i,j,k+2,ncomp);
+            s[ip3] = q_arr(i,j,k+3,ncomp);
+
+        }
+        break;
+
+    case Centering::zone_one_from_left_bndry:
+
+        // --- | --- | --- | --- | --- | --- | --- |
+        // i-3   i-2 ^ i-1    i    i+1   i+2   i+3
+        //           ^
+        //        boundary
+
+        if (idir == 0) {
+            s[im1] = q_arr(i-1,j,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i+1,j,k,ncomp);
+            s[ip2] = q_arr(i+2,j,k,ncomp);
+
+        } else if (idir == 1) {
+            s[im1] = q_arr(i,j-1,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j+1,k,ncomp);
+            s[ip2] = q_arr(i,j+2,k,ncomp);
+
+        } else {
+            s[im1] = q_arr(i,j,k-1,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j,k+1,ncomp);
+            s[ip2] = q_arr(i,j,k+2,ncomp);
+
+        }
+        break;
+
+    case Centering::zone_centered:
+        if (idir == 0) {
+            s[im2] = q_arr(i-2,j,k,ncomp);
+            s[im1] = q_arr(i-1,j,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i+1,j,k,ncomp);
+            s[ip2] = q_arr(i+2,j,k,ncomp);
+
+        } else if (idir == 1) {
+            s[im2] = q_arr(i,j-2,k,ncomp);
+            s[im1] = q_arr(i,j-1,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j+1,k,ncomp);
+            s[ip2] = q_arr(i,j+2,k,ncomp);
+
+        } else {
+            s[im2] = q_arr(i,j,k-2,ncomp);
+            s[im1] = q_arr(i,j,k-1,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j,k+1,ncomp);
+            s[ip2] = q_arr(i,j,k+2,ncomp);
+
+        }
+        break;
+
+    case Centering::zone_one_from_right_bndry:
+
+        // --- | --- | --- | --- | --- | --- | --- |
+        // i-3   i-2   i-1    i    i+1 ^ i+2   i+3
+        //                             ^
+        //                          boundary
+
+        if (idir == 0) {
+            s[im2] = q_arr(i-2,j,k,ncomp);
+            s[im1] = q_arr(i-1,j,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i+1,j,k,ncomp);
+
+        } else if (idir == 1) {
+            s[im2] = q_arr(i,j-2,k,ncomp);
+            s[im1] = q_arr(i,j-1,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j+1,k,ncomp);
+
+        } else {
+            s[im2] = q_arr(i,j,k-2,ncomp);
+            s[im1] = q_arr(i,j,k-1,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+            s[ip1] = q_arr(i,j,k+1,ncomp);
+
+        }
+        break;
+
+    case Centering::zone_on_right_bndry:
+
+        // --- | --- | --- | --- | --- | --- | --- |
+        // i-3   i-2   i-1    i  ^ i+1   i+2   i+3
+        //                       ^
+        //                    boundary
+
+        if (idir == 0) {
+            s[im3] = q_arr(i-3,j,k,ncomp);
+            s[im2] = q_arr(i-2,j,k,ncomp);
+            s[im1] = q_arr(i-1,j,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+
+        } else if (idir == 1) {
+            s[im3] = q_arr(i,j-3,k,ncomp);
+            s[im2] = q_arr(i,j-2,k,ncomp);
+            s[im1] = q_arr(i,j-1,k,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+
+        } else {
+            s[im3] = q_arr(i,j,k-3,ncomp);
+            s[im2] = q_arr(i,j,k-2,ncomp);
+            s[im1] = q_arr(i,j,k-1,ncomp);
+            s[i0]  = q_arr(i,j,k,ncomp);
+
+        }
+        break;
+    }
 
 }
 

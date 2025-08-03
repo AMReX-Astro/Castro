@@ -55,7 +55,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     Real s[nslp];
     Real flat = flatn_arr(i,j,k);
 
-    load_stencil(q_arr, idir, i, j, k, n, s);
+    load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, n, s);
 
     // normal velocity?
     bool vtest = n == QU+idir;
@@ -83,9 +83,9 @@ Castro::mol_plm_reconstruct(const Box& bx,
                                     (idir == 1 && j == domhi[1]) ||
                                     (idir == 2 && k == domhi[2]));
 
-      load_stencil(q_arr, idir, i, j, k, QPRES, s);
-      load_stencil(q_arr, idir, i, j, k, QRHO, trho);
-      load_stencil(src_q_arr, idir, i, j, k, QU+idir, src);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, QPRES, s);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, QRHO, trho);
+      load_stencil(src_q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, QU+idir, src);
 
       Real dp = dq(i,j,k,QPRES);
       pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
@@ -164,7 +164,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sm;
     Real sp;
 
-    load_stencil(q_arr, idir, i, j, k, n, s);
+    load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, n, s);
     ppm_reconstruct(s, reconstruction::Centering::zone_centered,
                     flat, sm, sp);
 
