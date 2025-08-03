@@ -620,7 +620,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 #if AMREX_SPACEDIM <= 2
                    qe[0].array(),
+#if AMREX_SPACEDIM == 2
                    qe[1].array(),
+#endif
 #endif
                    volume.array(mfi));
 
