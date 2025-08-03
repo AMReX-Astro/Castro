@@ -56,7 +56,6 @@ check_trace_source(amrex::Array4<amrex::Real const> const& srcQ, const int idir,
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const amrex::Real* s,
-                const int i, const int j, const int k, const int idir,
                 reconstruction::Centering centering,
                 const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp) {
 
@@ -254,7 +253,6 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool
 ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src,
                        const amrex::Real dx,
-                       const int i, const int j, const int k, const int idir,
                        reconstruction::Centering centering,
                        const amrex::Real flatn,
                        amrex::Real& sm, amrex::Real& sp) {
@@ -312,7 +310,7 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
         tp[ip3] = p[ip3];
     }
 
-    ppm_reconstruct(tp, i, j, k, idir, centering, flatn, sm, sp);
+    ppm_reconstruct(tp, centering, flatn, sm, sp);
 
 
     // now correct sm and sp to be back to the full pressure by

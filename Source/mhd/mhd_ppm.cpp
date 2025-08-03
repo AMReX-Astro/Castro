@@ -27,16 +27,6 @@ Castro::ppm_mhd(const Box& bx,
 
   Real dtdx = dt/dx[idir];
 
-  // special care for reflecting BCs
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
-  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
-
   // these are the characteristic variables for this direction
   int cvars[NEIGN];
 
@@ -128,7 +118,7 @@ Castro::ppm_mhd(const Box& bx,
       int v = cvars[n];
 
       load_stencil(q_arr, idir, i, j, k, v, s);
-      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
 
       Real Ipt = 0.0;
       Real Imt = 0.0;
@@ -358,7 +348,7 @@ Castro::ppm_mhd(const Box& bx,
       }
 
       load_stencil(q_arr, idir, i, j, k, v, s);
-      ppm_reconstruct(s, i, j, k, idir, reconstruction::Centering::zone_centered, flat, sm, sp);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ips, Ims);
 
       if (idir == 0) {

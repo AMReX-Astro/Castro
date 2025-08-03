@@ -155,16 +155,6 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const& qm,
                             Array4<Real> const& qp) {
 
-  // special care for reflecting BCs
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  bool lo_bc_test = lo_bc[idir] == amrex::PhysBCType::symmetry;
-  bool hi_bc_test = hi_bc[idir] == amrex::PhysBCType::symmetry;
-;
   amrex::ParallelFor(bx, NQ,
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
@@ -175,8 +165,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
     Real sp;
 
     load_stencil(q_arr, idir, i, j, k, n, s);
-    ppm_reconstruct(s, i, j, k, idir,
-                    reconstruction::Centering::zone_centered,
+    ppm_reconstruct(s, reconstruction::Centering::zone_centered,
                     flat, sm, sp);
 
     if (idir == 0) {
