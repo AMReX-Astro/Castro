@@ -390,7 +390,7 @@ Castro::compute_flux_from_q(const Box& bx,
     // Compute fluxes, order as conserved state (not q)
     F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
 
-    F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu);
+    F(i,j,k,imx1) = F(i,j,k,URHO)*qint(i,j,k,iu);
     if (mom_check) {
       F(i,j,k,imx1) += qint(i,j,k,QPRES);
     }
