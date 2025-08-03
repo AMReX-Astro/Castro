@@ -17,13 +17,13 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 
-    Real y = 0.0;
 #if AMREX_SPACEDIM >= 2
+    Real y = 0.0;
     y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
 
-    Real z = 0.0;
 #if AMREX_SPACEDIM == 3
+    Real z = 0.0;
     z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
 
