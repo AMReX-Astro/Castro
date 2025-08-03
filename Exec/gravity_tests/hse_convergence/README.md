@@ -170,15 +170,95 @@ the PLM solver.
 
 ## SDC
 
-  * convergence_sdc.sh :
+This uses the true SDC solver, looking at both 2nd- and 4th-order
+solvers.
 
-    this uses the `TRUE_SDC` integration, with the following variations:
-    1. SDC-2 + PLM and reflecting BCs
-    2. SDC-2 + PPM and reflecting BCs
-    3. SDC-2 + PLM with HSE BCs
-    4. SDC-2 + PPM with HSE BCs
-    5. SDC-4 + reflect
+Build as:
 
-    These tests show that the PLM + reflect (which uses the
-    well-balanced `use_pslope`) and the SDC-4 + reflect give the lowest
-    errors and expected (or better) convergence.
+```
+make USE_TRUE_SDC=TRUE
+```
+
+run the suite as:
+
+```
+./convergence_sdc.sh
+```
+
+The following variations are explored:
+
+  * SDC-2 + PLM with `use_pslope` and reflecting BCs -- results are in
+    `sdc2-reflect.converge.out `
+
+    The maximum velocity for different zoning is:
+
+    ```
+     64         0.00048049855069
+    128         0.0017153949315
+    256         0.0003098853472
+    512         2.4050544423e-05
+    ```
+
+    This looks better than second-order, and almost the same as
+    CTU + PPM with well-balancing.
+
+  * SDC-2 + PPM and reflecting BCs -- results are in
+    `sdc2-ppm-reflect.converge.out`
+
+    The maximum velocity for different zoning is:
+
+    ```
+     64   1970628.8788
+    128    987751.15483
+    256    494405.42935
+    512    247328.03663
+    ```
+
+    This looks first-order.
+
+  * SDC-2 + PLM with `use_pslope` and HSE BCs -- results are in
+    `sdc2.converge.out`
+
+    The maximum velocity for different zoning is:
+
+    ```
+     64     39132.815939
+    128      9770.7837714
+    256      2441.4880416
+    512       610.27386207
+    ```
+
+    This looks second-order.
+
+  * SDC-2 + PPM with HSE BCs -- results are in `sdc2-ppm.converge.out`
+
+    The maximum velocity for different zoning is:
+
+    ```
+     64      8004.7751989
+    128      9770.7837714
+    256      2441.4880416
+    512       610.27386207
+    ```
+
+    This looks second-order.
+
+  * SDC-4 with reflecting BCs -- results are in
+    `sdc4-reflect.converge.out`
+
+    The maximum velocity for different zoning is:
+
+    ```
+     64         0.018841266999
+    128         0.0011894966175
+    256         8.7006924189e-05
+    512         1.2416964741e-05
+    ```
+
+    This looks like it gets down to roundoff, but converges almost 4th
+    order until then.
+
+
+These tests show that the PLM + reflect (which uses the well-balanced
+`use_pslope`) and the SDC-4 + reflect give the lowest errors and
+expected (or better) convergence.
