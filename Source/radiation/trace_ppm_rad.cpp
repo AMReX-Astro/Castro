@@ -219,7 +219,7 @@ Castro::trace_ppm_rad(const Box& bx,
       const int n = qpassmap(ipassive);
       const int nc = upassmap(ipassive);
 
-      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
+      load_passive_stencil(U_arr, rho_inv_arr, reconstruction::Centering::zone_centered, idir, i, j, k, nc, s);
       ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
