@@ -346,7 +346,7 @@ Castro::compute_flux_from_q(const Box& bx,
   //
 
   int iu, iv1, iv2;
-  int im1, im2, im3;
+  int imx1, imx2, imx3;
 
   auto coord = geom.Coord();
   auto mom_check = mom_flux_has_p(idir, idir, coord);
@@ -355,25 +355,25 @@ Castro::compute_flux_from_q(const Box& bx,
     iu = QU;
     iv1 = QV;
     iv2 = QW;
-    im1 = UMX;
-    im2 = UMY;
-    im3 = UMZ;
+    imx1 = UMX;
+    imx2 = UMY;
+    imx3 = UMZ;
 
   } else if (idir == 1) {
     iu = QV;
     iv1 = QU;
     iv2 = QW;
-    im1 = UMY;
-    im2 = UMX;
-    im3 = UMZ;
+    imx1 = UMY;
+    imx2 = UMX;
+    imx3 = UMZ;
 
   } else {
     iu = QW;
     iv1 = QU;
     iv2 = QV;
-    im1 = UMZ;
-    im2 = UMX;
-    im3 = UMY;
+    imx1 = UMZ;
+    imx2 = UMX;
+    imx3 = UMY;
   }
 
 #ifdef HYBRID_MOMENTUM
@@ -392,10 +392,10 @@ Castro::compute_flux_from_q(const Box& bx,
 
     F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu);
     if (mom_check) {
-      F(i,j,k,im1) += qint(i,j,k,QPRES);
+      F(i,j,k,imx1) += qint(i,j,k,QPRES);
     }
-    F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
-    F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
+    F(i,j,k,imx2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
+    F(i,j,k,imx3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
 
     Real rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
       (qint(i,j,k,iu)*qint(i,j,k,iu) +
