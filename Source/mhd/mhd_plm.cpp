@@ -164,11 +164,11 @@ Castro::plm(const Box& bx,
         // construct the ii-th primitive variables
         Real W[5] = {};
         for (int n = 0; n < NEIGN; n++) {
-          W[0] += leig(ii,n) * Q[n][im2];
-          W[1] += leig(ii,n) * Q[n][im1];
-          W[2] += leig(ii,n) * Q[n][i0];
-          W[3] += leig(ii,n) * Q[n][ip1];
-          W[4] += leig(ii,n) * Q[n][ip2];
+          W[im2] += leig(ii,n) * Q[n][im2];
+          W[im1] += leig(ii,n) * Q[n][im1];
+          W[i0] += leig(ii,n) * Q[n][i0];
+          W[ip1] += leig(ii,n) * Q[n][ip1];
+          W[ip2] += leig(ii,n) * Q[n][ip2];
         }
 
         // now limit
