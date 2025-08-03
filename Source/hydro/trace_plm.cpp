@@ -355,7 +355,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // get the slope
 
-      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
+      load_passive_stencil(U_arr, rho_inv_arr, reconstruction::Centering::zone_centered, idir, i, j, k, nc, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state

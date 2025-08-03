@@ -460,7 +460,7 @@ Castro::trace_ppm(const Box& bx,
         const int nc = upassmap(ipassive);
         const int n = qpassmap(ipassive);
 
-        load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
+        load_passive_stencil(U_arr, rho_inv_arr, centering, idir, i, j, k, nc, s);
         ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_passive, Im_passive);
 

@@ -217,40 +217,131 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 load_passive_stencil(amrex::Array4<amrex::Real const> const& U_arr,
                      amrex::Array4<amrex::Real const> const& rho_inv_arr,
-                     const int idir,
+                     reconstruction::Centering centering, const int idir,
                      const int i, const int j, const int k, const int ncomp,
                      amrex::Real* s) {
 
     using namespace reconstruction;
 
-    if (idir == 0) {
-        s[im3] = U_arr(i-3,j,k,ncomp) * rho_inv_arr(i-3,j,k);
-        s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
-        s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
-        s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
-        s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
-        s[ip3] = U_arr(i+3,j,k,ncomp) * rho_inv_arr(i+3,j,k);
+    switch (centering) {
+    case Centering::zone_on_left_bndry:
 
-      } else if (idir == 1) {
-        s[im3] = U_arr(i,j-3,k,ncomp) * rho_inv_arr(i,j-3,k);
-        s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
-        s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
-        s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
-        s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
-        s[ip3] = U_arr(i,j+3,k,ncomp) * rho_inv_arr(i,j+3,k);
+        if (idir == 0) {
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
+            s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
+            s[ip3] = U_arr(i+3,j,k,ncomp) * rho_inv_arr(i+3,j,k);
 
-      } else {
-        s[im3] = U_arr(i,j,k-3,ncomp) * rho_inv_arr(i,j,k-3);
-        s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
-        s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
-        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
-        s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
-        s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
-        s[ip3] = U_arr(i,j,k+3,ncomp) * rho_inv_arr(i,j,k+3);
+        } else if (idir == 1) {
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
+            s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
+            s[ip3] = U_arr(i,j+3,k,ncomp) * rho_inv_arr(i,j+3,k);
 
-      }
+        } else {
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
+            s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
+            s[ip3] = U_arr(i,j,k+3,ncomp) * rho_inv_arr(i,j,k+3);
+
+        }
+        break;
+
+    case Centering::zone_one_from_left_bndry:
+
+        if (idir == 0) {
+            s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
+            s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
+
+        } else if (idir == 1) {
+            s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
+            s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
+
+        } else {
+            s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
+            s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
+
+        }
+        break;
+
+    case Centering::zone_centered:
+
+        if (idir == 0) {
+            s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
+            s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
+            s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
+
+        } else if (idir == 1) {
+            s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
+            s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
+            s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
+
+        } else {
+            s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
+            s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
+            s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
+
+        }
+        break;
+
+    case Centering::zone_one_from_right_bndry:
+
+        if (idir == 0) {
+            s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
+            s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
+
+        } else if (idir == 1) {
+            s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
+            s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
+
+        } else {
+            s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
+            s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+            s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
+
+        }
+        break;
+
+    case Centering::zone_on_right_bndry:
+
+        if (idir == 0) {
+            s[im3] = U_arr(i-3,j,k,ncomp) * rho_inv_arr(i-3,j,k);
+            s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
+            s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+
+        } else if (idir == 1) {
+            s[im3] = U_arr(i,j-3,k,ncomp) * rho_inv_arr(i,j-3,k);
+            s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
+            s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+
+        } else {
+            s[im3] = U_arr(i,j,k-3,ncomp) * rho_inv_arr(i,j,k-3);
+            s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
+            s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
+            s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+
+        }
+        break;
+    }
 
 }
 
