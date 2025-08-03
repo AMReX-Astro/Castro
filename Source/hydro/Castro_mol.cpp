@@ -241,7 +241,9 @@ Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-function
 #if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
   auto coord = geom.Coord();
+#if AMREX_SPACEDIM == 2
   auto prob_lo = geom.ProbLoArray();
+#endif
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
