@@ -280,28 +280,16 @@ Castro::plm(const Box& bx,
 
     // species
     for (int n = 0; n < NumSpec; n++) {
-      Real un;
-      Real X[5];
+      Real un{};
+      Real X[nslp];
+
+      load_stencil(s, idir, i, j, k, QFS+n, X);
 
       if (idir == 0) {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i+offset,j,k,QFS+n);
-        }
         un = s(i,j,k,QU);
-
       } else if (idir == 1) {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i,j+offset,k,QFS+n);
-        }
         un = s(i,j,k,QV);
-
       } else {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i,j,k+offset,QFS+n);
-        }
         un = s(i,j,k,QW);
       }
 
