@@ -31,30 +31,31 @@ get_centering(const int i, const int j, const int k, const int idir,
               const amrex::GpuArray<int, 3>& domlo, const amrex::GpuArray<int, 3>& domhi,
               const bool lo_bc_test, const bool hi_bc_test) {
 
+    // look at the location of the zone we are reconstructing and
+    // return a Centering that tells us if it is near the boundary
+    // (for specific boundary conditions).  These are cases where we
+    // might want to use one-sided stencils.
+
     reconstruction::Centering centering{reconstruction::Centering::zone_centered};
 
-    if (ppm_one_sided_stencils && lo_bc_test &&
-        ((idir == 0 && i == domlo[0]) ||
-         (idir == 1 && j == domlo[1]) ||
-         (idir == 2 && k == domlo[2]))) {
+    if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
+                       (idir == 1 && j == domlo[1]) ||
+                       (idir == 2 && k == domlo[2]))) {
         centering = reconstruction::Centering::zone_on_left_bndry;
 
-    } else if (ppm_one_sided_stencils && lo_bc_test &&
-                   ((idir == 0 && i == domlo[0]+1) ||
-                    (idir == 1 && j == domlo[1]+1) ||
-                    (idir == 2 && k == domlo[2]+1))) {
+    } else if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
+                              (idir == 1 && j == domlo[1]+1) ||
+                              (idir == 2 && k == domlo[2]+1))) {
         centering = reconstruction::Centering::zone_one_from_left_bndry;
 
-    } else if (ppm_one_sided_stencils && hi_bc_test &&
-               ((idir == 0 && i == domhi[0]-1) ||
-                (idir == 1 && j == domhi[1]-1) ||
-                (idir == 2 && k == domhi[2]-1))) {
+    } else if (hi_bc_test && ((idir == 0 && i == domhi[0]-1) ||
+                              (idir == 1 && j == domhi[1]-1) ||
+                              (idir == 2 && k == domhi[2]-1))) {
         centering = reconstruction::Centering::zone_one_from_right_bndry;
 
-    } else if (ppm_one_sided_stencils && hi_bc_test &&
-               ((idir == 0 && i == domhi[0]) ||
-                (idir == 1 && j == domhi[1]) ||
-                (idir == 2 && k == domhi[2]))) {
+    } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
+                              (idir == 1 && j == domhi[1]) ||
+                              (idir == 2 && k == domhi[2]))) {
         centering = reconstruction::Centering::zone_on_right_bndry;
     }
 

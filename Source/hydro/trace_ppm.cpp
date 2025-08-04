@@ -160,9 +160,12 @@ Castro::trace_ppm(const Box& bx,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
-  bool lo_symm = lo_bc[idir] == amrex::PhysBCType::symmetry;
-  bool hi_symm = hi_bc[idir] == amrex::PhysBCType::symmetry;
-
+  bool lo_bc_test =
+      ((lo_bc[idir] == amrex::PhysBCType::symmetry && ppm_one_sided_stencils) ||
+       (lo_bc[idir] == amrex::PhysBCType::inflow));
+  bool hi_bc_test =
+      ((hi_bc[idir] == amrex::PhysBCType::symmetry && ppm_one_sided_stencils) ||
+       (hi_bc[idir] == amrex::PhysBCType::inflow));
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
@@ -173,7 +176,8 @@ Castro::trace_ppm(const Box& bx,
 
     // we might be using a one-sided stencil in some places, so get
     // the centering
-    auto centering = get_centering(i, j, k, idir, domlo, domhi, lo_symm, hi_symm);
+    auto centering = get_centering(i, j, k, idir, domlo, domhi,
+                                   lo_bc_test, hi_bc_test);
 
     // Want dt/(rdtheta) instead of dt/dtheta for 2d Spherical
     if (coord == 2 && idir == 1) {
