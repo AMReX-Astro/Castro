@@ -201,6 +201,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       // the conserved variables.
 
       const Box& qbx = amrex::grow(bx, NUM_GROW);
+      const Box& qbx3 = amrex::grow(bx, 3);
 
 #ifdef RADIATION
       q.resize(qbx, NQ);
@@ -218,11 +219,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       Array4<Real const> const U_old_arr = Sborder.array(mfi);
 
-      rho_inv.resize(qbx, 1);
+      rho_inv.resize(qbx3, 1);
       fab_size += rho_inv.nBytes();
       Array4<Real> const rho_inv_arr = rho_inv.array();
 
-      amrex::ParallelFor(qbx,
+      amrex::ParallelFor(qbx3,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           rho_inv_arr(i,j,k) = 1.0 / U_old_arr(i,j,k,URHO);
@@ -271,14 +272,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx, NQSRC);
+      src_q.resize(qbx3, NQSRC);
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
       Array4<Real> const old_src_arr = old_source.array(mfi);
       Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      amrex::ParallelFor(qbx,
+      amrex::ParallelFor(qbx3,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           hydro::src_to_prim(i, j, k, dt, U_old_arr, q_arr, old_src_arr, src_corr_arr, src_q_arr);
@@ -483,8 +484,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                           shk_arr,
                           0, false);
 
-      //enforce_reflect_states(xbx, 0, qxm_arr, qxp_arr);
-
 #endif // 1-d
 
 
@@ -600,8 +599,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
 #endif
 
-      //enforce_reflect_states(xbx, 0, ql_arr, qr_arr);
-
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
                           flux0_arr,
@@ -645,8 +642,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                                ql_arr, qr_arr, sdc_src_arr);
 #endif
 #endif
-
-      //enforce_reflect_states(ybx, 1, ql_arr, qr_arr);
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
