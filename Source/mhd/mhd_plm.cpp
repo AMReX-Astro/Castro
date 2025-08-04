@@ -283,7 +283,7 @@ Castro::plm(const Box& bx,
       Real un{};
       Real X[nslp];
 
-      load_stencil(s, idir, i, j, k, QFS+n, X);
+      load_stencil(s, reconstruction::Centering::zone_centered, idir, i, j, k, QFS+n, X);
 
       if (idir == 0) {
         un = s(i,j,k,QU);
