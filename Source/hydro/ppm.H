@@ -265,21 +265,32 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
 
     amrex::Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
     amrex::Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
-    amrex::Real pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
+    amrex::Real pp3_hse{};
+    if (centering == reconstruction::Centering::zone_on_left_bndry) {
+        pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
+    }
 
     amrex::Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
     amrex::Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
-    amrex::Real pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
+    amrex::Real pm3_hse{};
+    if (centering == reconstruction::Centering::zone_on_right_bndry) {
+        pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
+    }
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
                  pp1_hse < 0.0 ||
                  pp2_hse < 0.0 ||
-                 pp3_hse < 0.0 ||
                  pm1_hse < 0.0 ||
-                 pm2_hse < 0.0 ||
-                 pm3_hse < 0.0;
+                 pm2_hse < 0.0;
 
+    if (centering == reconstruction::Centering::zone_on_left_bndry) {
+        ptest = ptest || (pp3_hse < 0.0);
+    }
+
+    if (centering == reconstruction::Centering::zone_on_right_bndry) {
+        ptest = ptest || (pm3_hse < 0.0);
+    }
 
     bool do_hse = !ptest && rho[i0] >= pslope_cutoff_density;
 
@@ -291,23 +302,31 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
 
         tp[ip1] = p[ip1] - pp1_hse;
         tp[ip2] = p[ip2] - pp2_hse;
-        tp[ip3] = p[ip3] - pp3_hse;
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
+            tp[ip3] = p[ip3] - pp3_hse;
+        }
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
-        tp[im3] = p[im3] - pm3_hse;
+        if (centering == reconstruction::Centering::zone_on_right_bndry) {
+            tp[im3] = p[im3] - pm3_hse;
+        }
 
     } else {
 
         // don't subtract off HSE
 
-        tp[im3] = p[im3];
+        if (centering == reconstruction::Centering::zone_on_right_bndry) {
+            tp[im3] = p[im3];
+        }
         tp[im2] = p[im2];
         tp[im1] = p[im1];
         tp[i0] = p[i0];
         tp[ip1]= p[ip1];
         tp[ip2] = p[ip2];
-        tp[ip3] = p[ip3];
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
+            tp[ip3] = p[ip3];
+        }
     }
 
     ppm_reconstruct(tp, centering, flatn, sm, sp);

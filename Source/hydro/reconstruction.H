@@ -72,6 +72,14 @@ load_stencil(amrex::Array4<amrex::Real const> const& q_arr,
 
     using namespace reconstruction;
 
+    // care needs to be done when filling the stencil here, since we
+    // might be passing in the source for q_arr, which has
+    // NUM_GROW_SRC < NUM_GROW ghost cells.  But we know that we only
+    // need the one-sided stencils when we are at a physical boundary,
+    // and we also know that extra zones are all inside the domain, so
+    // we don't access any cells we shouldn't if we fill according to
+    // the centering.
+
     switch (centering) {
     case Centering::zone_on_left_bndry:
 
@@ -366,21 +374,29 @@ add_geometric_rho_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
+    // note, we know that dloga and q_arr all have NUM_GROW ghost
+    // cells, so we can fill the entire stencil and not worry about
+    // the centering.
+
     if (ncomp == QU) {
 
+        s[im3] += -dloga(i-3,j,k) * q_arr(i-3,j,k,QRHO) * q_arr(i-3,j,k,ncomp);
         s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QRHO) * q_arr(i-2,j,k,ncomp);
         s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QRHO) * q_arr(i-1,j,k,ncomp);
         s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QRHO) * q_arr(i+1,j,k,ncomp);
         s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QRHO) * q_arr(i+2,j,k,ncomp);
+        s[ip3] += -dloga(i+3,j,k) * q_arr(i+3,j,k,QRHO) * q_arr(i+3,j,k,ncomp);
 
     } else if (ncomp == QV) {
 
+        s[im3] += -dloga(i,j-3,k) * q_arr(i,j-3,k,QRHO) * q_arr(i,j-3,k,ncomp);
         s[im2] += -dloga(i,j-2,k) * q_arr(i,j-2,k,QRHO) * q_arr(i,j-2,k,ncomp);
         s[im1] += -dloga(i,j-1,k) * q_arr(i,j-1,k,QRHO) * q_arr(i,j-1,k,ncomp);
         s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QRHO) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i,j+1,k) * q_arr(i,j+1,k,QRHO) * q_arr(i,j+1,k,ncomp);
         s[ip2] += -dloga(i,j+2,k) * q_arr(i,j+2,k,QRHO) * q_arr(i,j+2,k,ncomp);
+        s[ip3] += -dloga(i,j+3,k) * q_arr(i,j+3,k,QRHO) * q_arr(i,j+3,k,ncomp);
 
     }
 
@@ -407,21 +423,29 @@ add_geometric_rhoe_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
+    // note, we know that dloga and q_arr all have NUM_GROW ghost
+    // cells, so we can fill the entire stencil and not worry about
+    // the centering.
+
     if (ncomp == QU) {
 
+        s[im3] += -dloga(i-3,j,k) * (q_arr(i-3,j,k,QREINT) + q_arr(i-3,j,k,QPRES)) * q_arr(i-3,j,k,ncomp);
         s[im2] += -dloga(i-2,j,k) * (q_arr(i-2,j,k,QREINT) + q_arr(i-2,j,k,QPRES)) * q_arr(i-2,j,k,ncomp);
         s[im1] += -dloga(i-1,j,k) * (q_arr(i-1,j,k,QREINT) + q_arr(i-1,j,k,QPRES)) * q_arr(i-1,j,k,ncomp);
         s[i0] += -dloga(i,j,k) * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i+1,j,k) * (q_arr(i+1,j,k,QREINT) + q_arr(i+1,j,k,QPRES)) * q_arr(i+1,j,k,ncomp);
         s[ip2] += -dloga(i+2,j,k) * (q_arr(i+2,j,k,QREINT) + q_arr(i+2,j,k,QPRES)) * q_arr(i+2,j,k,ncomp);
+        s[ip3] += -dloga(i+3,j,k) * (q_arr(i+3,j,k,QREINT) + q_arr(i+3,j,k,QPRES)) * q_arr(i+3,j,k,ncomp);
 
     } else if (ncomp == QV) {
 
+        s[im3] += -dloga(i,j-3,k) * (q_arr(i,j-3,k,QREINT) + q_arr(i,j-3,k,QPRES)) * q_arr(i,j-3,k,ncomp);
         s[im2] += -dloga(i,j-2,k) * (q_arr(i,j-2,k,QREINT) + q_arr(i,j-2,k,QPRES)) * q_arr(i,j-2,k,ncomp);
         s[im1] += -dloga(i,j-1,k) * (q_arr(i,j-1,k,QREINT) + q_arr(i,j-1,k,QPRES)) * q_arr(i,j-1,k,ncomp);
         s[i0] += -dloga(i,j,k) * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i,j+1,k) * (q_arr(i,j+1,k,QREINT) + q_arr(i,j+1,k,QPRES)) * q_arr(i,j+1,k,ncomp);
         s[ip2] += -dloga(i,j+2,k) * (q_arr(i,j+2,k,QREINT) + q_arr(i,j+2,k,QPRES)) * q_arr(i,j+2,k,ncomp);
+        s[ip3] += -dloga(i,j+3,k) * (q_arr(i,j+3,k,QREINT) + q_arr(i,j+3,k,QPRES)) * q_arr(i,j+3,k,ncomp);
 
     }
 
@@ -449,22 +473,29 @@ add_geometric_p_source(amrex::Array4<amrex::Real const> const& q_arr,
 
     // ncomp should be QU for idir == 0 and QV for idir == 1
 
+    // note, we know that dloga, q_arr, and qaux_arr all have NUM_GROW
+    // ghost cells, so we can fill the entire stencil and not worry
+    // about the centering.
 
     if (ncomp == QU) {
 
+        s[im3] += -dloga(i-3,j,k) * q_arr(i-3,j,k,QPRES) * qaux_arr(i-3,j,k,QGAMC) * q_arr(i-3,j,k,ncomp);
         s[im2] += -dloga(i-2,j,k) * q_arr(i-2,j,k,QPRES) * qaux_arr(i-2,j,k,QGAMC) * q_arr(i-2,j,k,ncomp);
         s[im1] += -dloga(i-1,j,k) * q_arr(i-1,j,k,QPRES) * qaux_arr(i-1,j,k,QGAMC) * q_arr(i-1,j,k,ncomp);
         s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i+1,j,k) * q_arr(i+1,j,k,QPRES) * qaux_arr(i+1,j,k,QGAMC) * q_arr(i+1,j,k,ncomp);
         s[ip2] += -dloga(i+2,j,k) * q_arr(i+2,j,k,QPRES) * qaux_arr(i+2,j,k,QGAMC) * q_arr(i+2,j,k,ncomp);
+        s[ip3] += -dloga(i+3,j,k) * q_arr(i+3,j,k,QPRES) * qaux_arr(i+3,j,k,QGAMC) * q_arr(i+3,j,k,ncomp);
 
     } else if (ncomp == QV) {
 
+        s[im2] += -dloga(i,j-3,k) * q_arr(i,j-3,k,QPRES) * qaux_arr(i,j-3,k,QGAMC) * q_arr(i,j-3,k,ncomp);
         s[im2] += -dloga(i,j-2,k) * q_arr(i,j-2,k,QPRES) * qaux_arr(i,j-2,k,QGAMC) * q_arr(i,j-2,k,ncomp);
         s[im1] += -dloga(i,j-1,k) * q_arr(i,j-1,k,QPRES) * qaux_arr(i,j-1,k,QGAMC) * q_arr(i,j-1,k,ncomp);
         s[i0] += -dloga(i,j,k) * q_arr(i,j,k,QPRES) * qaux_arr(i,j,k,QGAMC) * q_arr(i,j,k,ncomp);
         s[ip1] += -dloga(i,j+1,k) * q_arr(i,j+1,k,QPRES) * qaux_arr(i,j+1,k,QGAMC) * q_arr(i,j+1,k,ncomp);
         s[ip2] += -dloga(i,j+2,k) * q_arr(i,j+2,k,QPRES) * qaux_arr(i,j+2,k,QGAMC) * q_arr(i,j+2,k,ncomp);
+        s[ip3] += -dloga(i,j+3,k) * q_arr(i,j+3,k,QPRES) * qaux_arr(i,j+3,k,QGAMC) * q_arr(i,j+3,k,ncomp);
     }
 
 }
