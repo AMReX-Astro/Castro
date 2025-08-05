@@ -1018,7 +1018,7 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto &name : derive_names)
+        for (const auto &name : derive_names)
         {
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {

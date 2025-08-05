@@ -40,7 +40,7 @@ void problem_initialize ()
         species_defined = false;
     }
 
-    int ifuel2;
+    int ifuel2{-1};
     if (!problem::fuel2_name.empty()) {
         ifuel2 = network_spec_index(problem::fuel2_name);
         if (ifuel2 < 0) {
@@ -48,7 +48,7 @@ void problem_initialize ()
         }
     }
 
-    int ifuel3;
+    int ifuel3{-1};
     if (!problem::fuel3_name.empty()) {
         ifuel3 = network_spec_index(problem::fuel3_name);
         if (ifuel3 < 0) {
@@ -56,7 +56,7 @@ void problem_initialize ()
         }
     }
 
-    int ifuel4;
+    int ifuel4{-1};
     if (!problem::fuel4_name.empty()) {
         ifuel4 = network_spec_index(problem::fuel4_name);
         if (ifuel4 < 0) {
@@ -69,7 +69,7 @@ void problem_initialize ()
         species_defined = false;
     }
 
-    int iash2;
+    int iash2{-1};
     if (!problem::ash2_name.empty()) {
         iash2 = network_spec_index(problem::ash2_name);
         if (iash2 < 0) {
@@ -77,7 +77,7 @@ void problem_initialize ()
         }
     }
 
-    int iash3;
+    int iash3{-1};
     if (!problem::ash3_name.empty()) {
         iash3 = network_spec_index(problem::ash3_name);
         if (iash3 < 0) {

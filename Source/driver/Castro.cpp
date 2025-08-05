@@ -1482,7 +1482,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    auto* oldlev = (Castro*) &old;
+    auto* oldlev = dynamic_cast<Castro*>(&old);
 
     //
     // Create new grid data by fillpatching from old.
@@ -2188,7 +2188,7 @@ Castro::post_restart ()
 
             if (moving_center == 1)
             {
-               MultiFab&  S_new = get_new_data(State_Type);
+               const MultiFab& S_new = get_new_data(State_Type);
                define_new_center(S_new,cur_time);
             }
 
