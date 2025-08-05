@@ -150,7 +150,7 @@ This explores a similar set of conditions as the PLM:
 
     This looks second-order.
 
-  * reflecting BCs + `ppm_well_balanced`` -- results are in
+  * reflecting BCs + `ppm_well_balanced` -- results are in
     `ppm-reflect-wellbalanced.converge.out`
 
     The maximum velocity for different zoning is:
@@ -188,7 +188,7 @@ run the suite as:
 The following variations are explored:
 
   * SDC-2 + PLM with `use_pslope` and reflecting BCs -- results are in
-    `sdc2-reflect.converge.out `
+    `sdc2-reflect.converge.out`
 
     The maximum velocity for different zoning is:
 
