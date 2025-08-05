@@ -48,7 +48,7 @@ check_trace_source(amrex::Array4<amrex::Real const> const& srcQ, const int idir,
 /// Compute the coefficients of a parabolic reconstruction of the data in a zone.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
 ///
-/// @param s      Real[nslp] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
+/// @param s      Real[nslp] the state to be reconstructed in zones i-3, i-2, i-1, i, i+1, i+2, i+3
 /// @param flatn  The flattening coefficient
 /// @param sm     The value of the parabola on the left edge of the zone
 /// @param sp     The value of the parabola on the right edge of the zone
@@ -56,67 +56,148 @@ check_trace_source(amrex::Array4<amrex::Real const> const& srcQ, const int idir,
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const amrex::Real* s,
+                reconstruction::Centering centering,
                 const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp) {
 
+    // first we compute s_{i-1/2} -- the left interface value for zone i
 
     if (ppm_do_limiting) {
 
-        // Compute van Leer slopes
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
 
-        amrex::Real dsl = 2.0_rt * (s[im1] - s[im2]);
-        amrex::Real dsr = 2.0_rt * (s[i0] - s[im1]);
+            // use a stencil for when the current zone is on the left
+            // physical boundary.  Then the left interface is on the
+            // physical boundary, MC Eq. 21
 
-        amrex::Real dsvl_l = 0.0_rt;
-        if (dsl*dsr > 0.0_rt) {
-          amrex::Real dsc = 0.5_rt * (s[i0] - s[im2]);
-          dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
+            sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] +
+                                   13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+
+        } else if (centering == reconstruction::Centering::zone_one_from_left_bndry) {
+
+            // use a stencil for when the current zone is one zone
+            // away from the left physical boundary, and then the left
+            // interface is one zone away from the boundary, MC Eq. 22
+
+            sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] -
+                                    5.0_rt*s[ip1] + s[ip2]);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sm = amrex::Clamp(sm, amrex::min(s[i0], s[im1]), amrex::max(s[i0], s[im1]));
+
+        } else if (centering == reconstruction::Centering::zone_on_right_bndry) {
+
+            // use a stencil for when the current zone is on the right
+            // physical boundary then the left interface is one zone
+            // away from the physical boundary
+
+            sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] -
+                                   5.0_rt*s[im2] + s[im3]);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sm = amrex::Clamp(sm, amrex::min(s[i0], s[im1]), amrex::max(s[i0], s[im1]));
+
+        } else {
+
+
+            // Compute van Leer slopes
+
+            amrex::Real dsl = 2.0_rt * (s[im1] - s[im2]);
+            amrex::Real dsr = 2.0_rt * (s[i0] - s[im1]);
+
+            amrex::Real dsvl_l = 0.0_rt;
+            if (dsl*dsr > 0.0_rt) {
+                amrex::Real dsc = 0.5_rt * (s[i0] - s[im2]);
+                dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
+            }
+
+            dsl = 2.0_rt * (s[i0] - s[im1]);
+            dsr = 2.0_rt * (s[ip1] - s[i0]);
+
+            amrex::Real dsvl_r = 0.0_rt;
+            if (dsl*dsr > 0.0_rt) {
+                amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
+            }
+
+            // Interpolate s to edges
+
+            sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sm = amrex::Clamp(sm, std::min(s[i0], s[im1]), std::max(s[i0], s[im1]));
+
         }
 
-        dsl = 2.0_rt * (s[i0] - s[im1]);
-        dsr = 2.0_rt * (s[ip1] - s[i0]);
+        // now we compute s_{i+1/2} -- the right interface value for zone i
 
-        amrex::Real dsvl_r = 0.0_rt;
-        if (dsl*dsr > 0.0_rt) {
-          amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-          dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl),std::abs(dsr));
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
+
+            // use a stencil for when the current zone is on the left physical
+            // boundary.  Then the right interface is one zone away from the
+            // physical boundary,
+
+            sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] -
+                                   5.0_rt*s[ip2] + s[ip3]);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sp = amrex::Clamp(sp, amrex::min(s[ip1], s[i0]), amrex::max(s[ip1], s[i0]));
+
+        } else if (centering == reconstruction::Centering::zone_on_right_bndry) {
+
+            // use a stencil for when the current zone is on the right physical boundary
+            // then the right interface is on the physical boundary
+
+            sp = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[im1] +
+                                   13.0_rt*s[im2] - 3.0_rt*s[im3]);
+
+        } else if (centering == reconstruction::Centering::zone_one_from_right_bndry) {
+
+            // use a stencil for when the current zone is one zone away from
+            // the right physical boundary, and then the right interface is one
+            // zone away from the boundary
+
+            sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] -
+                                    5.0_rt*s[im1] + s[im2]);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sp = amrex::Clamp(sp, amrex::min(s[ip1], s[i0]), amrex::max(s[ip1], s[i0]));
+
+        } else {
+
+            // Compute van Leer slopes
+
+            amrex::Real dsl = 2.0_rt * (s[i0] - s[im1]);
+            amrex::Real dsr = 2.0_rt * (s[ip1] - s[i0]);
+
+            amrex::Real dsvl_l = 0.0_rt;
+            if (dsl*dsr > 0.0_rt) {
+                amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+                dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
+            }
+
+            dsl = 2.0_rt * (s[ip1] - s[i0]);
+            dsr = 2.0_rt * (s[ip2] - s[ip1]);
+
+            amrex::Real dsvl_r = 0.0_rt;
+            if (dsl*dsr > 0.0_rt) {
+                amrex::Real dsc = 0.5_rt * (s[ip2] - s[i0]);
+                dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
+            }
+
+            // Interpolate s to edges
+
+            sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+            // Make sure sedge lies in between adjacent cell-centered values
+
+            sp = amrex::Clamp(sp, std::min(s[ip1], s[i0]), std::max(s[ip1], s[i0]));
+
         }
-
-        // Interpolate s to edges
-
-        sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
-
-        // Make sure sedge lies in between adjacent cell-centered values
-
-        sm = amrex::Clamp(sm, std::min(s[i0], s[im1]), std::max(s[i0], s[im1]));
-
-        // Compute van Leer slopes
-
-        dsl = 2.0_rt * (s[i0] - s[im1]);
-        dsr = 2.0_rt * (s[ip1] - s[i0]);
-
-        dsvl_l = 0.0_rt;
-        if (dsl*dsr > 0.0_rt) {
-            amrex::Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-            dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
-        }
-
-        dsl = 2.0_rt * (s[ip1] - s[i0]);
-        dsr = 2.0_rt * (s[ip2] - s[ip1]);
-
-        dsvl_r = 0.0_rt;
-        if (dsl*dsr > 0.0_rt) {
-            amrex::Real dsc = 0.5_rt * (s[ip2] - s[i0]);
-            dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), std::abs(dsl), std::abs(dsr));
-        }
-
-        // Interpolate s to edges
-
-        sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
-
-        // Make sure sedge lies in between adjacent cell-centered values
-
-        sp = amrex::Clamp(sp, std::min(s[ip1], s[i0]), std::max(s[ip1], s[i0]));
-
 
         // Flatten the parabola
 
@@ -127,14 +208,14 @@ ppm_reconstruct(const amrex::Real* s,
         // from Colella and Sekora (2008), not the original PPM paper.
 
         if ((sp - s[i0]) * (s[i0] - sm) <= 0.0_rt) {
-          sp = s[i0];
-          sm = s[i0];
+            sp = s[i0];
+            sm = s[i0];
 
         } else if (std::abs(sp - s[i0]) >= 2.0_rt * std::abs(sm - s[i0])) {
-          sp = 3.0_rt * s[i0] - 2.0_rt * sm;
+            sp = 3.0_rt * s[i0] - 2.0_rt * sm;
 
         } else if (std::abs(sm - s[i0]) >= 2.0_rt * std::abs(sp - s[i0])) {
-          sm = 3.0_rt * s[i0] - 2.0_rt * sp;
+            sm = 3.0_rt * s[i0] - 2.0_rt * sp;
         }
 
     } else {
@@ -170,8 +251,10 @@ ppm_reconstruct(const amrex::Real* s,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool
-ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src, const amrex::Real flatn,
+ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src,
                        const amrex::Real dx,
+                       reconstruction::Centering centering,
+                       const amrex::Real flatn,
                        amrex::Real& sm, amrex::Real& sp) {
 
     amrex::Real tp[nslp];
@@ -182,9 +265,17 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
 
     amrex::Real pp1_hse = p0_hse + 0.25_rt*dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]);
     amrex::Real pp2_hse = pp1_hse + 0.25_rt*dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]);
+    amrex::Real pp3_hse{};
+    if (centering == reconstruction::Centering::zone_on_left_bndry) {
+        pp3_hse = pp2_hse + 0.25_rt*dx * (rho[ip2] + rho[ip3]) * (src[ip2] + src[ip3]);
+    }
 
     amrex::Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
     amrex::Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
+    amrex::Real pm3_hse{};
+    if (centering == reconstruction::Centering::zone_on_right_bndry) {
+        pm3_hse = pm2_hse - 0.25_rt*dx * (rho[im2] + rho[im3]) * (src[im2] + src[im3]);
+    }
 
     // this only makes sense if the pressures are positive
     bool ptest = p0_hse < 0.0 ||
@@ -193,6 +284,13 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
                  pm1_hse < 0.0 ||
                  pm2_hse < 0.0;
 
+    if (centering == reconstruction::Centering::zone_on_left_bndry) {
+        ptest = ptest || (pp3_hse < 0.0);
+    }
+
+    if (centering == reconstruction::Centering::zone_on_right_bndry) {
+        ptest = ptest || (pm3_hse < 0.0);
+    }
 
     bool do_hse = !ptest && rho[i0] >= pslope_cutoff_density;
 
@@ -204,22 +302,34 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
 
         tp[ip1] = p[ip1] - pp1_hse;
         tp[ip2] = p[ip2] - pp2_hse;
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
+            tp[ip3] = p[ip3] - pp3_hse;
+        }
 
         tp[im1] = p[im1] - pm1_hse;
         tp[im2] = p[im2] - pm2_hse;
+        if (centering == reconstruction::Centering::zone_on_right_bndry) {
+            tp[im3] = p[im3] - pm3_hse;
+        }
 
     } else {
 
         // don't subtract off HSE
 
+        if (centering == reconstruction::Centering::zone_on_right_bndry) {
+            tp[im3] = p[im3];
+        }
         tp[im2] = p[im2];
         tp[im1] = p[im1];
         tp[i0] = p[i0];
         tp[ip1]= p[ip1];
         tp[ip2] = p[ip2];
+        if (centering == reconstruction::Centering::zone_on_left_bndry) {
+            tp[ip3] = p[ip3];
+        }
     }
 
-    ppm_reconstruct(tp, flatn, sm, sp);
+    ppm_reconstruct(tp, centering, flatn, sm, sp);
 
 
     // now correct sm and sp to be back to the full pressure by
@@ -262,7 +372,7 @@ ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc
 
   // compute x-component of Ip and Im
 
-  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+  amrex::Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
 
   // Ip/m is the integral under the parabola for the extent
   // that a wave can travel over a timestep
@@ -271,8 +381,8 @@ ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc
   // Im integrates to the left edge of a cell
 
   // u-c wave
-  Real speed = u - c;
-  Real sigma = std::abs(speed) * dtdx;
+  amrex::Real speed = u - c;
+  amrex::Real sigma = std::abs(speed) * dtdx;
 
   // if speed == ZERO, then either branch is the same
   if (speed <= 0.0_rt) {
@@ -323,15 +433,15 @@ ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
-                       const Real lam, const Real dtdx,
-                       Real& Ip, Real& Im) {
+ppm_int_profile_single(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,
+                       const amrex::Real lam, const amrex::Real dtdx,
+                       amrex::Real& Ip, amrex::Real& Im) {
 
   // Integrate the parabolic profile to the edge of the cell.
   // This is the MHD version.  We come in already with the eigenvalues.
 
   // compute x-component of Ip and Im
-  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+  amrex::Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
 
   // Ip/m is the integral under the parabola for the extent
   // that a wave can travel over a timestep
@@ -339,7 +449,7 @@ ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
   // Ip integrates to the right edge of a cell
   // Im integrates to the left edge of a cell
 
-  Real sigma = std::abs(lam) * dtdx;
+  amrex::Real sigma = std::abs(lam) * dtdx;
 
   if (lam <= 0.0_rt) {
     Ip = sp;

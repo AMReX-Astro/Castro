@@ -26,37 +26,37 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     // given a primitive state, compute the flux in direction idir
     //
 
-    int im1, im2, im3;
+    int imx1, imx2, imx3;
 
     auto coord = geomdata.Coord();
     auto mom_check = mom_flux_has_p(idir, idir, coord);
 
     if (idir == 0) {
-        im1 = UMX;
-        im2 = UMY;
-        im3 = UMZ;
+        imx1 = UMX;
+        imx2 = UMY;
+        imx3 = UMZ;
 
     } else if (idir == 1) {
-        im1 = UMY;
-        im2 = UMX;
-        im3 = UMZ;
+        imx1 = UMY;
+        imx2 = UMX;
+        imx3 = UMZ;
 
     } else {
-        im1 = UMZ;
-        im2 = UMX;
-        im3 = UMY;
+        imx1 = UMZ;
+        imx2 = UMX;
+        imx3 = UMY;
     }
 
     // Compute fluxes, order as conserved state (not q)
     F(i,j,k,URHO) = qint.rho * qint.un;
 
-    F(i,j,k,im1) = F(i,j,k,URHO) * qint.un;
-    F(i,j,k,im2) = F(i,j,k,URHO) * qint.ut;
-    F(i,j,k,im3) = F(i,j,k,URHO) * qint.utt;
+    F(i,j,k,imx1) = F(i,j,k,URHO) * qint.un;
+    F(i,j,k,imx2) = F(i,j,k,URHO) * qint.ut;
+    F(i,j,k,imx3) = F(i,j,k,URHO) * qint.utt;
 
 #ifndef RADIATION
     if (mom_check) {
-      F(i,j,k,im1) += qint.p;
+      F(i,j,k,imx1) += qint.p;
     }
 
     Real rhoetot = qint.rhoe + 0.5_rt * qint.rho *
@@ -68,7 +68,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     F(i,j,k,UEINT) = qint.un * qint.rhoe;
 #else
     if (mom_check) {
-      F(i,j,k,im1) += qint.p_g;
+      F(i,j,k,imx1) += qint.p_g;
     }
 
     Real rhoetot = qint.rhoe_g + 0.5_rt * qint.rho *

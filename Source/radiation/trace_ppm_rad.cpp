@@ -206,8 +206,8 @@ Castro::trace_ppm_rad(const Box& bx,
     for (int n = 0; n < NQTHERM; n++) {
       if (n == QTEMP) continue;
 
-      load_stencil(q_arr, idir, i, j, k, n, s);
-      ppm_reconstruct(s, flat, sm, sp);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, n, s);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -219,8 +219,8 @@ Castro::trace_ppm_rad(const Box& bx,
       const int n = qpassmap(ipassive);
       const int nc = upassmap(ipassive);
 
-      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
-      ppm_reconstruct(s, flat, sm, sp);
+      load_passive_stencil(U_arr, rho_inv_arr, reconstruction::Centering::zone_centered, idir, i, j, k, nc, s);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -263,8 +263,8 @@ Castro::trace_ppm_rad(const Box& bx,
 
       if (do_trace) {
 
-          load_stencil(srcQ, idir, i, j, k, n, s);
-          ppm_reconstruct(s, flat, sm, sp);
+          load_stencil(srcQ, reconstruction::Centering::zone_centered, idir, i, j, k, n, s);
+          ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
           ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {

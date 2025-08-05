@@ -101,7 +101,7 @@ Castro::ppm_mhd(const Box& bx,
 
     // do the parabolic reconstruction and compute the integrals under
     // the characteristic waves
-    Real s[5];
+    Real s[nslp];
     Real flat = flatn(i,j,k);
     Real sm;
     Real sp;
@@ -117,30 +117,8 @@ Castro::ppm_mhd(const Box& bx,
 
       int v = cvars[n];
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,v);
-        s[im1] = q_arr(i-1,j,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i+1,j,k,v);
-        s[ip2] = q_arr(i+2,j,k,v);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,v);
-        s[im1] = q_arr(i,j-1,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j+1,k,v);
-        s[ip2] = q_arr(i,j+2,k,v);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,v);
-        s[im1] = q_arr(i,j,k-1,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j,k+1,v);
-        s[ip2] = q_arr(i,j,k+2,v);
-
-      }
-
-      ppm_reconstruct(s, flat, sm, sp);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, v, s);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
 
       Real Ipt = 0.0;
       Real Imt = 0.0;
@@ -354,29 +332,6 @@ Castro::ppm_mhd(const Box& bx,
 
       int v = QFS+n;
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,v);
-        s[im1] = q_arr(i-1,j,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i+1,j,k,v);
-        s[ip2] = q_arr(i+2,j,k,v);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,v);
-        s[im1] = q_arr(i,j-1,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j+1,k,v);
-        s[ip2] = q_arr(i,j+2,k,v);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,v);
-        s[im1] = q_arr(i,j,k-1,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j,k+1,v);
-        s[ip2] = q_arr(i,j,k+2,v);
-
-      }
-
       Real Ips;
       Real Ims;
 
@@ -392,7 +347,8 @@ Castro::ppm_mhd(const Box& bx,
         un = q_arr(i,j,k,QW);
       }
 
-      ppm_reconstruct(s, flat, sm, sp);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, v, s);
+      ppm_reconstruct(s, reconstruction::Centering::zone_centered, flat, sm, sp);
       ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ips, Ims);
 
       if (idir == 0) {

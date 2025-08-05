@@ -153,12 +153,31 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_bc_test =
+      ((lo_bc[idir] == amrex::PhysBCType::symmetry && ppm_one_sided_stencils) ||
+       (lo_bc[idir] == amrex::PhysBCType::inflow));
+  bool hi_bc_test =
+      ((hi_bc[idir] == amrex::PhysBCType::symmetry && ppm_one_sided_stencils) ||
+       (hi_bc[idir] == amrex::PhysBCType::inflow));
+
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     Real dtdL = dt / dx[idir];
     Real dL = dx[idir];
+
+    // we might be using a one-sided stencil in some places, so get
+    // the centering
+    auto centering = get_centering(i, j, k, idir, domlo, domhi,
+                                   lo_bc_test, hi_bc_test);
 
     // Want dt/(rdtheta) instead of dt/dtheta for 2d Spherical
     if (coord == 2 && idir == 1) {
@@ -200,14 +219,15 @@ Castro::trace_ppm(const Box& bx,
     Real sm;
     Real sp;
 
-
     // reconstruct density
 
     Real Ip_rho[3];
     Real Im_rho[3];
 
-    load_stencil(q_arr, idir, i, j, k, QRHO, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(q_arr, centering, idir, i, j, k, QRHO, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
+    //sm = amrex::max(lsmall_dens, sm);
+    //sp = amrex::max(lsmall_dens, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_rho, Im_rho);
 
     // reconstruct normal velocity
@@ -217,8 +237,8 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_un_2;
     Real Im_un_2;
 
-    load_stencil(q_arr, idir, i, j, k, QUN, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(q_arr, centering, idir, i, j, k, QUN, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdL, Ip_un_0, Im_un_0);
     ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdL, Ip_un_2, Im_un_2);
 
@@ -227,7 +247,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_p[3];
     Real Im_p[3];
 
-    load_stencil(q_arr, idir, i, j, k, QPRES, s);
+    load_stencil(q_arr, centering, idir, i, j, k, QPRES, s);
 
     bool in_hse{};
 
@@ -241,10 +261,10 @@ Castro::trace_ppm(const Box& bx,
         Real trho[nslp];
         Real src[nslp];
 
-        load_stencil(q_arr, idir, i, j, k, QRHO, trho);
-        load_stencil(srcQ, idir, i, j, k, QUN, src);
+        load_stencil(q_arr, centering, idir, i, j, k, QRHO, trho);
+        load_stencil(srcQ, centering, idir, i, j, k, QUN, src);
 
-        in_hse = ppm_reconstruct_pslope(trho, s, src, flat, dL, sm, sp);
+        in_hse = ppm_reconstruct_pslope(trho, s, src, dL, centering, flat, sm, sp);
 
         if (in_hse && castro::ppm_well_balanced) {
             // we are working with the perturbational pressure
@@ -257,7 +277,7 @@ Castro::trace_ppm(const Box& bx,
         }
 
     } else {
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_p, Im_p);
     }
 
@@ -266,8 +286,8 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_rhoe[3];
     Real Im_rhoe[3];
 
-    load_stencil(q_arr, idir, i, j, k, QREINT, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(q_arr, centering, idir, i, j, k, QREINT, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_rhoe, Im_rhoe);
 
     // reconstruct transverse velocities
@@ -277,12 +297,12 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_utt_1;
     Real Im_utt_1;
 
-    load_stencil(q_arr, idir, i, j, k, QUT, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(q_arr, centering, idir, i, j, k, QUT, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_ut_1, Im_ut_1);
 
-    load_stencil(q_arr, idir, i, j, k, QUTT, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(q_arr, centering, idir, i, j, k, QUTT, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_utt_1, Im_utt_1);
 
     // gamma_c
@@ -292,8 +312,8 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_gc_2;
     Real Im_gc_2;
 
-    load_stencil(qaux_arr, idir, i, j, k, QGAMC, s);
-    ppm_reconstruct(s, flat, sm, sp);
+    load_stencil(qaux_arr, centering, idir, i, j, k, QGAMC, s);
+    ppm_reconstruct(s, centering, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdL, Ip_gc_0, Im_gc_0);
     ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdL, Ip_gc_2, Im_gc_2);
 
@@ -317,13 +337,13 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QRHO, s);
+        load_stencil(srcQ, centering, idir, i, j, k, QRHO, s);
 #if AMREX_SPACEDIM <= 2
         if (coord == 2 || (idir == 0 && coord == 1)) {
             add_geometric_rho_source(q_arr, dloga, i, j, k, QUN, s);
         }
 #endif
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_src_rho, Im_src_rho);
     }
 
@@ -341,8 +361,8 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QUN, s);
-        ppm_reconstruct(s, flat, sm, sp);
+        load_stencil(srcQ, centering, idir, i, j, k, QUN, s);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdL, Ip_src_un_0, Im_src_un_0);
         ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdL, Ip_src_un_2, Im_src_un_2);
     }
@@ -363,13 +383,13 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QPRES, s);
+        load_stencil(srcQ, centering, idir, i, j, k, QPRES, s);
 #if AMREX_SPACEDIM <= 2
         if (coord == 2 || (idir == 0 && coord == 1)) {
             add_geometric_p_source(q_arr, qaux_arr, dloga, i, j, k, QUN, s);
         }
 #endif
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_src_p, Im_src_p);
     }
 
@@ -389,13 +409,13 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QREINT, s);
+        load_stencil(srcQ, centering, idir, i, j, k, QREINT, s);
 #if AMREX_SPACEDIM <= 2
         if (coord == 2 || (idir == 0 && coord == 1)) {
             add_geometric_rhoe_source(q_arr, dloga, i, j, k, QUN, s);
         }
 #endif
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdL, Ip_src_rhoe, Im_src_rhoe);
     }
 
@@ -411,8 +431,8 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QUT, s);
-        ppm_reconstruct(s, flat, sm, sp);
+        load_stencil(srcQ, centering, idir, i, j, k, QUT, s);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_ut_1, Im_src_ut_1);
     }
 
@@ -426,8 +446,8 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_stencil(srcQ, idir, i, j, k, QUTT, s);
-        ppm_reconstruct(s, flat, sm, sp);
+        load_stencil(srcQ, centering, idir, i, j, k, QUTT, s);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_src_utt_1, Im_src_utt_1);
     }
 
@@ -444,8 +464,8 @@ Castro::trace_ppm(const Box& bx,
         const int nc = upassmap(ipassive);
         const int n = qpassmap(ipassive);
 
-        load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
-        ppm_reconstruct(s, flat, sm, sp);
+        load_passive_stencil(U_arr, rho_inv_arr, centering, idir, i, j, k, nc, s);
+        ppm_reconstruct(s, centering, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdL, Ip_passive, Im_passive);
 
         // Plus state on face i
