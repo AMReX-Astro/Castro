@@ -206,7 +206,7 @@ Castro::initialize_do_advance (Real time, Real dt)
 
     // Check for NaN's.
 
-    MultiFab& S_old = get_old_data(State_Type);
+    const MultiFab& S_old = get_old_data(State_Type);
 
     check_for_nan(S_old);
 

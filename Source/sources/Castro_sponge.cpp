@@ -21,7 +21,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+Castro::construct_new_sponge_source(MultiFab& source, const MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {
 

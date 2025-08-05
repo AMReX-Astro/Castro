@@ -158,7 +158,7 @@ void position(int i, int j, int k,
 
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-Real distance(GeometryData const& geomdata, GpuArray<Real, 3>& loc)
+Real distance(GeometryData const& geomdata, const GpuArray<Real, 3>& loc)
 {
     // Returns the distance from the center provided with loc, the position.
     // loc is the form of [x, y, z,] in Cartesian, [r, z, phi] in cylindrical
