@@ -19,7 +19,7 @@
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script src="_static/copybutton.js?v=eaa7b67c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -266,6 +266,13 @@ be processed with gprof by running:</p>
 </pre></div></div><p>where <em>exec-name</em> is the name of the executable. More detailed
 line-by-line information can be obtained by passing the -l
 argument to gprof.</p>
+</li>
+<li><p><em>How can I use AMReX’s profiling to see which functions dominate when
+running in parallel?</em></p>
+<p>You can compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1"><span class="nv">TINY_PROFILE</span><span class="o">=</span>TRUE</span>
+</pre></div></div><p>then at the end of the simulation, a table of profiling information will
+be produced.  See <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/AMReX_Profiling_Tools.html">AMReX Profiling Tools</a> for more information.</p>
 </li>
 </ol>
 </section>
