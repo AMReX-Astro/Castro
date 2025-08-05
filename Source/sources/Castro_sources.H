@@ -292,7 +292,7 @@
 /// @param dt           timestep
 ///
     void construct_new_thermo_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
-                                     const amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+                                     amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -301,7 +301,7 @@
 /// @param state_in    input state
 /// @param thermo_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
+    void fill_thermo_source(const amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
 
 
 ///

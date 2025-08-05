@@ -1,4 +1,3 @@
-#include <Castro.H>
 
 #ifdef TRUE_SDC
 ///

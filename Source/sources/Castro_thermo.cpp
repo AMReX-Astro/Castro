@@ -49,7 +49,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 
 
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-Castro::construct_new_thermo_source(MultiFab& source, const MultiFab& state_old, const MultiFab& state_new,
+Castro::construct_new_thermo_source(MultiFab& source, const MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {
 
@@ -117,7 +117,7 @@ Castro::construct_new_thermo_source(MultiFab& source, const MultiFab& state_old,
 
 
 void
-Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
+Castro::fill_thermo_source (const MultiFab& state_in, MultiFab& thermo_src)
 {
 
   // Compute thermodynamic sources for the internal energy equation.
