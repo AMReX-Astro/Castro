@@ -1,5 +1,13 @@
 # 25.08
 
+  * `hse_convergence`: the `README.md` now has details on the
+    convergence rate (#3113)
+
+  * fix some compiler warnings when building in 1D without gravity
+    or reactions (#3114)
+
+  * fix the true SDC compilation (#3112)
+
   * `flame_wave`: update the enuc plot scripts to deal with negative
     values well. (#3108)
 
