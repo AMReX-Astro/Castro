@@ -88,20 +88,6 @@ protected:
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
   std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
 
-#if (AMREX_SPACEDIM < 3)
-///
-/// @param level
-/// @param cc
-///
-  void   weight_cc(int level,amrex::MultiFab& cc);
-
-///
-/// @param level
-/// @param cc
-///
-  void unweight_cc(int level,amrex::MultiFab& cc);
-#endif
-
 
 ///
 /// @param level
