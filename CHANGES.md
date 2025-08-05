@@ -1,7 +1,7 @@
 # 25.08
 
   * `hse_convergence`: the `README.md` now has details on the
-    convergence rate (#3113)
+    convergence rate (#3113, #3115)
 
   * fix some compiler warnings when building in 1D without gravity
     or reactions (#3114)
