@@ -2884,47 +2884,6 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
     }
 }
 
-void
-Gravity::unweight_cc(int level, MultiFab& cc) const
-{
-    BL_PROFILE("Gravity::unweight_cc()");
-
-    auto dx = parent->Geom(level).CellSizeArray();
-    const int coord_type = parent->Geom(level).Coord();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        do_unweight_cc(bx, cc.array(mfi), dx, coord_type);
-    }
-}
-
-void
-Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges) const
-{
-    BL_PROFILE("Gravity::unweight_edges()");
-
-    auto dx = parent->Geom(level).CellSizeArray();
-    const int coord_type = parent->Geom(level).Coord();
-
-    for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(*edges[idir], TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
-            const Box& bx = mfi.tilebox();
-
-            do_unweight_edges(bx, (*edges[idir]).array(mfi), idir, dx, coord_type);
-        }
-
-    }
-}
 #endif
 
 void
