@@ -481,22 +481,6 @@ public:
 /// @param coeffs   Vector of MultiFabs
 ///
   void applyMetricTerms(int level,amrex::MultiFab& Rhs, const amrex::Vector<amrex::MultiFab*>& coeffs) const;
-
-///
-///
-///
-/// @param level    Index of level
-/// @param cc       Cell-centered data
-///
-  void unweight_cc(int level,amrex::MultiFab& cc) const;
-
-///
-///
-///
-/// @param level    Index of level
-/// @param edges    Edge-based data
-///
-  void unweight_edges(int level, const amrex::Vector<amrex::MultiFab*>& edges) const;
 #endif
 
 ///

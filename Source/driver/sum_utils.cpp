@@ -536,7 +536,7 @@ Castro::gwstrain (Real time,
 
         Real r = std::sqrt(dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2]);
 
-        Real n[3] = {dist[0] / r, dist[1] / r, dist[2] / r};
+        const Real n[3] = {dist[0] / r, dist[1] / r, dist[2] / r};
 
         // Projection operator onto the unit vector n.
 

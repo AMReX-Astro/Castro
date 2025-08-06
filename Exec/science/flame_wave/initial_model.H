@@ -276,12 +276,12 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
        // start off the Newton loop by saying that the zone has not converged
 
-       bool converged_hse = false;
-
        Real pres_zone;
        Real entropy;
 
        if (!fluff) {
+
+           bool converged_hse = false;
 
            Real p_want;
            Real drho;
