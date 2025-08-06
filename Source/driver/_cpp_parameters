@@ -89,6 +89,9 @@ ppm_type                     int           1
 # do we limit the ppm parabola?
 ppm_do_limiting              bool           1
 
+# do we use one-sided stencils at reflecting boundaries?
+ppm_one_sided_stencils       bool           0
+
 # For MHD + PLM, do we limit on characteristic or primitive variables
 mhd_limit_characteristic     bool           1
 

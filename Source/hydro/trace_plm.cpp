@@ -159,7 +159,7 @@ Castro::trace_plm(const Box& bx, const int idir,
     for (int n = 0; n < NEIGN; n++) {
       int v = cvars[n];
 
-      load_stencil(q_arr, idir, i, j, k, v, s);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, v, s);
 
       bool vtest = v == QUN;
       dq[n] = uslope(s, flat, lo_bc_test && vtest, hi_bc_test && vtest);
@@ -171,9 +171,9 @@ Castro::trace_plm(const Box& bx, const int idir,
       Real trho[nslp];
       Real src[nslp];
 
-      load_stencil(q_arr, idir, i, j, k, QPRES, s);
-      load_stencil(q_arr, idir, i, j, k, QRHO, trho);
-      load_stencil(srcQ, idir, i, j, k, QUN, src);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, QPRES, s);
+      load_stencil(q_arr, reconstruction::Centering::zone_centered, idir, i, j, k, QRHO, trho);
+      load_stencil(srcQ, reconstruction::Centering::zone_centered, idir, i, j, k, QUN, src);
 
       Real dp = dq[IEIGN_P];
       pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dL, dp);
@@ -355,7 +355,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // get the slope
 
-      load_passive_stencil(U_arr, rho_inv_arr, idir, i, j, k, nc, s);
+      load_passive_stencil(U_arr, rho_inv_arr, reconstruction::Centering::zone_centered, idir, i, j, k, nc, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state
