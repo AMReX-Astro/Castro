@@ -1,5 +1,5 @@
 ## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
-## with 12.5 km resolution using simplified sdc
+## with 25 km resolution
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -29,7 +29,7 @@ geometry.is_periodic = 0 0 0
 #endif
 
 # Upper boundary limits in physical space
-geometry.prob_hi =  1.024e10  1.024e10  1.024e10
+geometry.prob_hi = 1.024e10 1.024e10 1.024e10
 
 ############################################################################################
 # Boundary conditions
@@ -94,6 +94,7 @@ castro.max_subcycles = 16
 # Switching to simplified SDC
 castro.time_integration_method = 3
 
+
 ############################################################################################
 # Resolution, gridding and AMR
 ############################################################################################
@@ -126,7 +127,7 @@ castro.use_post_step_regrid = 0
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
 
 # Maximum grid size at each level
-amr.max_grid_size = 64
+amr.max_grid_size = 64 64 64 64 64 64 64 64
 
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 32
@@ -382,16 +383,16 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-amr.check_per = -1
+amr.check_per = 0.1
 
 # Number of timesteps between checkpoints
-amr.check_int = 50
+amr.check_int = -1
 
 # Root name of plot files
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = 2.0
+amr.plot_per = 5.0
 
 # Number of timesteps between plotfiles
 amr.plot_int = -1
@@ -400,7 +401,7 @@ amr.plot_int = -1
 amr.small_plot_file = smallplt
 
 # Simulation time between small plotfiles
-amr.small_plot_per = 0.1
+amr.small_plot_per = 1.0
 
 # Number of timesteps between small plotfiles
 amr.small_plot_int = -1
