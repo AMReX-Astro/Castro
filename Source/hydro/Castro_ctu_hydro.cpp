@@ -53,7 +53,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
   MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef REACTIONS
-  MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+  MultiFab tmp_SDC_mf;
+  MultiFab& SDC_react_source = castro::time_integration_method == SimplifiedSpectralDeferredCorrections ?
+                               get_new_data(Simplified_SDC_React_Type) : tmp_SDC_mf;
 #endif
 
   // we will treat the hydro source as any other source term
