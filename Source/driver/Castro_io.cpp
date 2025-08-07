@@ -522,14 +522,12 @@ Castro::setPlotVariables ()
     parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
   }
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
           parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
       }
   }
-#endif
 #endif
 
 }

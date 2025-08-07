@@ -52,10 +52,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
   MultiFab& S_new = get_new_data(State_Type);
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
-#endif
 #endif
 
   // we will treat the hydro source as any other source term
@@ -456,19 +454,18 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       fab_size += pradial.nBytes();
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      Array4<Real> const sdc_src_arr = SDC_react_source.array(mfi);
-#endif
+      auto sdc_src_arr = castro::time_integration_method == SimplifiedSpectralDeferredCorrections ?
+                         SDC_react_source.array(mfi) : Array4<Real const>{};
 #endif
 
 #if AMREX_SPACEDIM == 1
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(xbx, 0, dt,
-                               qxm_arr, qxp_arr, sdc_src_arr);
-#endif
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(xbx, 0, dt,
+                                   qxm_arr, qxp_arr, sdc_src_arr);
+      }
 #endif
 
       // compute the fluxes through the x-interface
@@ -591,12 +588,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       // solve the final Riemann problem axross the x-interfaces
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(xbx, 0, dt,
-                               ql_arr, qr_arr, sdc_src_arr);
-#endif
-
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, sdc_src_arr);
+      }
 #endif
 
       cmpflx_plus_godunov(xbx,
@@ -636,11 +632,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       // solve the final Riemann problem axross the y-interfaces
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(ybx, 1, dt,
-                               ql_arr, qr_arr, sdc_src_arr);
-#endif
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, sdc_src_arr);
+      }
 #endif
 
       cmpflx_plus_godunov(ybx,
@@ -954,11 +950,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(xbx, qr_arr);
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(xbx, 0, dt,
-                               ql_arr, qr_arr, sdc_src_arr);
-#endif
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, sdc_src_arr);
+      }
 #endif
 
 
@@ -1033,11 +1029,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(ybx, qr_arr);
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(ybx, 1, dt,
-                               ql_arr, qr_arr, sdc_src_arr);
-#endif
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, sdc_src_arr);
+      }
 #endif
 
 
@@ -1114,11 +1110,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 
       reset_edge_state_thermo(zbx, qr_arr);
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-      add_sdc_source_to_states(zbx, 2, dt,
-                               ql_arr, qr_arr, sdc_src_arr);
-#endif
+      if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          add_sdc_source_to_states(zbx, 2, dt,
+                                   ql_arr, qr_arr, sdc_src_arr);
+      }
 #endif
 
       // compute the final z fluxes F^z

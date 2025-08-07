@@ -937,14 +937,15 @@ Castro::initMFs()
 
 #ifdef REACTIONS
     if (store_burn_weights) {
-#ifdef STRANG
-        // we have 2 components: first half and second half
-        burn_weights.define(grids, dmap, 2, 0);
-#endif
-#ifdef SIMPLIFIED_SDC
-        // we have a component for each sdc iteration + 1 extra for retries
-        burn_weights.define(grids, dmap, sdc_iters+1, 0);
-#endif
+        if (castro::time_integration_method == CornerTransportUpwind) {
+            // we have 2 components: first half and second half
+            burn_weights.define(grids, dmap, 2, 0);
+        }
+        else if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            // we have a component for each sdc iteration + 1 extra for retries
+            burn_weights.define(grids, dmap, sdc_iters+1, 0);
+        }
+
         burn_weights.setVal(0.0);
     }
 #endif
@@ -1077,13 +1078,11 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, react_src_new.nGrow());
    }
-#endif
 #endif
 
 #ifdef MAESTRO_INIT
@@ -4233,14 +4232,12 @@ Castro::swap_state_time_levels(const Real dt)
         // this because we never need the old data, so we
         // don't want to allocate memory for it.
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
                 state[k].swapTimeLevels(0.0);
             }
         }
-#endif
 #endif
 
 #ifdef TRUE_SDC
