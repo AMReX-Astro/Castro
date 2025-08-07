@@ -349,13 +349,37 @@ Castro::estdt_burning (int is_new)
 
     auto const& ua = stateMF.const_arrays();
 
+    // If we're not subcycling, we only need to do the burn on leaf cells.
+
+    bool mask_covered_zones = false;
+
+    if (level < parent->finestLevel() && parent->subcyclingMode() == "None") {
+        mask_covered_zones = true;
+    }
+
+    MultiFab tmp_mask_mf;
+    const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
+
+    MultiArray4<Real const> empty_arr{};
+    const auto& ma = mask_covered_zones ? mask_mf.const_arrays() : empty_arr;
+
     auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
     [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
     {
+        Real dt_tmp = 1.e200_rt;
 
         Array4<Real const> const& S = ua[box_no];
+        Array4<Real const> const& mask = ma[box_no];
 
         IntVect idx(AMREX_D_DECL(i,j,k));
+
+        // Don't consider zones that are masked out.
+
+        if (mask_covered_zones && mask.contains(i,j,k)) {
+            if (mask(i,j,k) == 0.0_rt) {
+                return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
+            }
+        }
 
         // Set a floor on the minimum size of a derivative. This floor
         // is small enough such that it will result in no timestep limiting.
@@ -413,9 +437,11 @@ Castro::estdt_burning (int is_new)
         }
 #endif
 
+        // Don't consider zones that are outside our burning criteria.
+
         if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
             burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
-            return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
+            return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
         }
 
         Real e = burn_state.e;
@@ -450,8 +476,6 @@ Castro::estdt_burning (int is_new)
                 dXdt[n] = derivative_floor;
             }
         }
-
-        Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
 
