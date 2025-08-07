@@ -46,8 +46,8 @@ void problem_initialize ()
 
     // set the default mass fractions
 
-    for (int n = 0; n < NumSpec; n++) {
-        problem::xn[n] = problem::smallx;
+    for (auto& X : problem::xn) {
+        X = problem::smallx;
     }
 
     problem::xn[problem::ic12] = amrex::max(problem::cfrac, problem::smallx);

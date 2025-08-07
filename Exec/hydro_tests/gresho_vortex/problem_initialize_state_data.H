@@ -17,7 +17,6 @@ void problem_initialize_state_data (int i, int j, int k,
 {
 
     const Real* problo = geomdata.ProbLo();
-    const Real* probhi = geomdata.ProbHi();
 
     const Real* dx = geomdata.CellSize();
 

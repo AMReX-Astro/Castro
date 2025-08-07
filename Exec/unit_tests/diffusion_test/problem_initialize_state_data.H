@@ -17,16 +17,18 @@ void problem_initialize_state_data (int i, int j, int k,
     int coord_type = geomdata.Coord();
 
     Real r[3] = {0.0_rt};
-
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
-
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
+    if (coord_type <= 1) {
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+            r[n] -= problem::center[n];
+        }
+    }
 
     // set the composition
 

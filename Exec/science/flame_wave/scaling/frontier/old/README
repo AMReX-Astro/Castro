@@ -1,0 +1,12 @@
+Scaling tests on Frontier.  These use the same setup as done with Summit.
+We can build as:
+
+```
+make USE_HIP=TRUE DIM=3 -j 6 TINY_PROFILE=TRUE NETWORK_DIR=iso7
+```
+
+Note: between ROCm 5.3 and ROCm 6, we changed Microphysics to no
+longer inline everything automatically, since HIP generates bad code
+when we do (it has trouble with large kernels).  This may be responsible
+for some of the slowdown observed from the 2003 numbers to the 2004 numbers.
+

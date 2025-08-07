@@ -31,6 +31,8 @@ castro.riemann_solver = 0
 
 castro.small_temp     = 1.e7
 
+castro.time_integration_method = 3
+
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
@@ -42,7 +44,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid

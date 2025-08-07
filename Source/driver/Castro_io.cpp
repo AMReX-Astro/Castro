@@ -248,12 +248,14 @@ Castro::restart (Amr&     papa,
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
 
+#if AMREX_SPACEDIM >= 2
              d = 1;
              dlen =  domain.size()[d];
              lo =   dlen/4    ;
              hi = 3*dlen/4 - 1;
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
+#endif
 
           } else {
              for (int d = 0; d < AMREX_SPACEDIM; d++)
@@ -1016,7 +1018,7 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto &name : derive_names)
+        for (const auto &name : derive_names)
         {
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {

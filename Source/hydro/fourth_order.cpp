@@ -68,6 +68,7 @@ Castro::fourth_interfaces(const Box& bx,
       }
     });
 
+#if AMREX_SPACEDIM >= 2
   } else if (idir == 1) {
 
     // this loop is over interfaces
@@ -109,7 +110,9 @@ Castro::fourth_interfaces(const Box& bx,
       }
 
     });
+#endif
 
+#if AMREX_SPACEDIM == 3
   } else if (idir == 2) {
 
     // this loop is over interfaces
@@ -151,6 +154,8 @@ Castro::fourth_interfaces(const Box& bx,
       }
 
     });
+#endif
+
   }
 }
 
@@ -348,6 +353,7 @@ Castro::states(const Box& bx,
 
     }
 
+#if AMREX_SPACEDIM >= 2
   } else if (idir == 1) {
 
     if (limit_fourth_order == 0) {
@@ -512,7 +518,9 @@ Castro::states(const Box& bx,
       });
 
     }
+#endif
 
+#if AMREX_SPACEDIM == 3
   } else if (idir == 2) {
 
     if (limit_fourth_order == 0) {
@@ -674,6 +682,7 @@ Castro::states(const Box& bx,
       });
 
     }
+#endif
 
   }
 

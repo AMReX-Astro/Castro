@@ -22,6 +22,7 @@ Checks: >
        -misc-use-internal-linkage,
        -misc-non-private-member-variables-in-classes,
        -misc-no-recursion,
+       -misc-redundant-expression,
      modernize-*,
        -modernize-avoid-c-arrays,
        -modernize-use-trailing-return-type,
@@ -50,3 +51,5 @@ Checks: >
      openmp-*
 
 HeaderFilterRegex: '(/Source/*/|/Util/model_parser|^\./|^tmp_build_dir/castro_sources/*/).*\.H$'
+
+HeaderFileExtensions: ['', "H", 'h', 'hh', 'hpp', 'hxx']

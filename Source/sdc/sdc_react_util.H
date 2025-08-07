@@ -35,7 +35,7 @@ single_zone_react_source(burn_t& burn_state,
     eos(eos_input_re, burn_state);
 
     // eos_get_small_temp(&small_temp);
-    burn_state.T = std::clamp(burn_state.T, small_temp, integrator_rp::MAX_TEMP);
+    burn_state.T = amrex::Clamp(burn_state.T, small_temp, integrator_rp::MAX_TEMP);
 
     Array1D<Real, 1, neqs> ydot;
 

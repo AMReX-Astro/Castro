@@ -152,6 +152,8 @@ plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
 conditions instead of a simple symmetry boundary is essential when
 using the standard CTU PPM solver.
 
+.. index:: castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel
+
 A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the ``model_parser``
 module to fill the ghost cells at the upper boundary with the initial
@@ -232,6 +234,8 @@ each of these in the main source tree.
 Model Parser
 ------------
 
+.. index:: USE_MODEL_PARSER, MAX_NPTS_MODEL
+
 Many problem setups begin with a 1-d initial model that is mapped onto
 the grid.  The ``model_parser.H`` provides the functions that read in
 the initial model and map it on the Castro grid.  To enable this, add::
@@ -250,24 +254,45 @@ be set in the makefile to control the initial model storage:
     like ``flame_wave`` use 2, applied to different portions of the
     domain.
 
-The general form of the initial model is::
+Two different model formats are allowed:
 
-    # npts = 896
-    # num of variables = 6
-    # density
-    # temperature
-    # pressure
-    # carbon-12
-    # oxygen-16
-    # magnesium-24
-    195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
-    585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+* *"Old" model format*:  This has two header lines at the top giving
+  the number of points in the model and number of variables, and
+  then the name of each variable (excluding the coordinate) is
+  given separately on the next lines:
 
-The first line gives the number of points in the initial model, the
-next gives the number of variables, followed by the variable names
-(one per line), and then the data.  The data begins with the
-coordinate and then the variables in the model, with one data point
-per line.
+  ::
+
+      # npts = 896
+      # num of variables = 6
+      # density
+      # temperature
+      # pressure
+      # carbon-12
+      # oxygen-16
+      # magnesium-24
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
+      585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+  The data begins with the coordinate and then the variables in the
+  model, with one data point per line.
+
+* *New model format*: This has a single header line that gives the column
+  names, including the coordinate (first column), followed by the
+  data.  For example:
+
+  ::
+
+      # radius  density temperature  pressure  carbon-12  oxygen-16  magnesium-24
+      195312.5000  5437711139.  8805500.952  0.4695704813E+28  0.3  0.7  0
+      585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+.. note::
+
+   For both formats, the variable names should be the same as the
+   names used by Castro.  You can see the names in the `_variables
+   <https://github.com/AMReX-Astro/Castro/blob/main/Source/driver/_variables>`_
+   file.
 
 When the model is read, the variables listed in the file are matched
 to the ones that Castro knows about.  If the variable is recognized,
@@ -282,5 +307,3 @@ This fills ``dens`` with the density at the position ``height``.  In
 addition to density, you can specify temperature (``model::itemp``),
 pressure (``model::ipres``), species (indexed from ``model::ispec``),
 or an auxiliary quantity (indexed from ``model::iaux``).
-
-

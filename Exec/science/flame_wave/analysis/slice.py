@@ -31,6 +31,8 @@ for f in fields:
         sp.set_zlim(f, 5.e7, 1.5e9)
     elif f == "enuc":
         sp.set_zlim(f, 1.e18, 1.e20)
+        # set the background color to the bottom value of the colormap
+        sp.set_background_color("enuc", None)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":
