@@ -1634,7 +1634,7 @@ Castro::estTimeStep (int is_new)
 #ifdef MHD
           auto hydro_dt = timestep::estdt<timestep::mhd>(geomdata, maskMF, stateMF, Bx, By, Bz);
 #else
-          auto hydro_dt = timestep::estdt<timestep::cfl>(geomdata, maskMF, stateMF);
+          auto hydro_dt = timestep::estdt<timestep::hydro>(geomdata, maskMF, stateMF);
 #endif
 
           amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);

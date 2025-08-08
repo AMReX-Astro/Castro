@@ -7,8 +7,6 @@
 #include <AMReX_Reduce.H>
 #include <AMReX_MultiFab.H>
 
-#include <global.H>
-
 #include <eos.H>
 
 #ifdef DIFFUSION
@@ -32,13 +30,9 @@
 #endif
 #endif
 
-#ifdef RADIATION
-#include <Radiation.H>
-#endif
-
 namespace timestep {
 
-    enum estdt_type { cfl = 0,
+    enum estdt_type { hydro = 0,
                       mhd,
                       burning,
                       radiation,
@@ -55,7 +49,7 @@ namespace timestep {
            const amrex::MultiFab& stateMF,
            const MFs&... mfs)
     {
-        amrex::ignore_unused(maskMF);
+        amrex::ignore_unused(maskMF, mfs...);
 
         constexpr std::size_t N_mfs = sizeof...(MFs);
 
@@ -71,7 +65,7 @@ namespace timestep {
         MultiArray4<Real const> empty_arr{};
         const auto& ma = mask_covered_zones ? maskMF.const_arrays() : empty_arr;
 
-        if constexpr (T == cfl) {
+        if constexpr (T == hydro) {
 
             // Validate we don't have any extra MultiFabs.
             static_assert(N_mfs == 0);
@@ -158,7 +152,7 @@ namespace timestep {
 
             return r;
 
-        } // cfl
+        } // hydro
 #ifdef MHD
         else if constexpr (T == mhd) {
 

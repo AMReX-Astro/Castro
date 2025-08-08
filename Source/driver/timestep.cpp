@@ -115,7 +115,7 @@ timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const Geome
 
     ReduceTuple hv = reduce_data.value();
     Real estdt = amrex::get<0>(hv);
-    estdt = std::min(estdt, max_dt / cfl);
+    estdt = std::min(estdt, max_dt / castro::cfl);
 
     return estdt;
 }
