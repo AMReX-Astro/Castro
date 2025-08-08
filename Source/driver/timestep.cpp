@@ -1,4 +1,5 @@
 #include <Castro.H>
+#include <global.H>
 #include <timestep.H>
 
 #ifdef DIFFUSION
@@ -520,7 +521,7 @@ timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const Geome
 
         FArrayBox gPr;
         gPr.resize(tbox);
-        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), vbox);
+        global::the_radiation_ptr->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 
         auto u = stateMF[mfi].array();
         auto gPr_arr = gPr.array();
