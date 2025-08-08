@@ -182,11 +182,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">finalize_do_advance()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro11estTimeStepEi"><code class="docutils literal notranslate"><span class="pre">estTimeStep()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro9estdt_cflEi"><code class="docutils literal notranslate"><span class="pre">estdt_cfl()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro9estdt_mhdEi"><code class="docutils literal notranslate"><span class="pre">estdt_mhd()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro20estdt_temp_diffusionEi"><code class="docutils literal notranslate"><span class="pre">estdt_temp_diffusion()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro13estdt_burningEi"><code class="docutils literal notranslate"><span class="pre">estdt_burning()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro9estdt_radEi"><code class="docutils literal notranslate"><span class="pre">estdt_rad()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro15initialTimeStepEv"><code class="docutils literal notranslate"><span class="pre">initialTimeStep()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">computeInitialDt()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">computeNewDt()</span></code></a></li>
@@ -321,6 +316,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -984,36 +980,6 @@
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro11estTimeStepEi">
 <span id="_CPPv3N6Castro11estTimeStepEi"></span><span id="_CPPv2N6Castro11estTimeStepEi"></span><span id="Castro::estTimeStep__i"></span><span class="target" id="classCastro_1a508a9e48dca962b5b06652afd2a1cfcc"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estTimeStep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Estimate time step. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro9estdt_cflEi">
-<span id="_CPPv3N6Castro9estdt_cflEi"></span><span id="_CPPv2N6Castro9estdt_cflEi"></span><span id="Castro::estdt_cfl__i"></span><span class="target" id="classCastro_1a6e12e8ca0c8249e7044a55cefeccb5ae"></span><span class="n"><span class="pre">ValLocPair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">IntVect</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_cfl</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Compute the CFL timestep </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro9estdt_mhdEi">
-<span id="_CPPv3N6Castro9estdt_mhdEi"></span><span id="_CPPv2N6Castro9estdt_mhdEi"></span><span id="Castro::estdt_mhd__i"></span><span class="target" id="classCastro_1ab0708457800eff509d772bff557d4a2d"></span><span class="n"><span class="pre">ValLocPair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">IntVect</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_mhd</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Compute the CFL timestep </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro20estdt_temp_diffusionEi">
-<span id="_CPPv3N6Castro20estdt_temp_diffusionEi"></span><span id="_CPPv2N6Castro20estdt_temp_diffusionEi"></span><span id="Castro::estdt_temp_diffusion__i"></span><span class="target" id="classCastro_1a8cad5d35eb29138651ca2c32e17ff313"></span><span class="n"><span class="pre">ValLocPair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">IntVect</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_temp_diffusion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Diffusion-limited timestep </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro13estdt_burningEi">
-<span id="_CPPv3N6Castro13estdt_burningEi"></span><span id="_CPPv2N6Castro13estdt_burningEi"></span><span id="Castro::estdt_burning__i"></span><span class="target" id="classCastro_1ac84c0108988b24bca0978a02e10836fe"></span><span class="n"><span class="pre">ValLocPair</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">IntVect</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_burning</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Reactions-limited timestep </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N6Castro9estdt_radEi">
-<span id="_CPPv3N6Castro9estdt_radEi"></span><span id="_CPPv2N6Castro9estdt_radEi"></span><span id="Castro::estdt_rad__i"></span><span class="target" id="classCastro_1ae315edb91d084e20a8d86fd1b196d4df"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_rad</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">is_new</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><p><a class="reference internal" href="Radiation_8H.html#classRadiation"><span class="std std-ref">Radiation</span></a> hydro timestep </p>
 </dd></dl>
 
 <dl class="cpp function">
