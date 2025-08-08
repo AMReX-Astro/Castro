@@ -1,4 +1,6 @@
 #include <Castro.H>
+#include <global.H>
+#include <timestep.H>
 
 #ifdef DIFFUSION
 #include <conductivity.H>
@@ -29,17 +31,15 @@
 using namespace amrex;
 
 ValLocPair<Real, IntVect>
-Castro::estdt_cfl (int is_new)
+timestep::estdt_cfl (const MultiFab& stateMF, const GeometryData& geomdata)
 {
 
   // Courant-condition limited timestep
 
-  const auto dx = geom.CellSizeArray();
-  const auto problo = geom.ProbLoArray();
-  const auto coord = geom.Coord();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
+  const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
-
-  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   auto const& ua = stateMF.const_arrays();
 
@@ -130,20 +130,16 @@ Castro::estdt_cfl (int is_new)
 
 #ifdef MHD
 ValLocPair<Real, IntVect>
-Castro::estdt_mhd (int is_new)
+timestep::estdt_mhd (const MultiFab& U_state, const MultiFab& bx,
+                     const MultiFab& by, const MultiFab& bz,
+                     const GeometryData& geomdata)
 {
 
   // MHD timestep limiter
-  const auto dx = geom.CellSizeArray();
-  const auto problo = geom.ProbLoArray();
-  const auto coord = geom.Coord();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
+  const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
-
-  const MultiFab& U_state = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
-
-  const MultiFab& bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
-  const MultiFab& by = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
-  const MultiFab& bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
 
   auto const& ua = U_state.const_arrays();
 
@@ -243,7 +239,7 @@ Castro::estdt_mhd (int is_new)
 #ifdef DIFFUSION
 
 ValLocPair<Real, IntVect>
-Castro::estdt_temp_diffusion (int is_new)
+timestep::estdt_temp_diffusion (const MultiFab& stateMF, const GeometryData& geomdata)
 {
 
   // Diffusion-limited timestep
@@ -251,12 +247,10 @@ Castro::estdt_temp_diffusion (int is_new)
   // dt < 0.5 dx**2 / D
   // where D = k/(rho c_v), and k is the conductivity
 
-  const auto dx = geom.CellSizeArray();
-  const auto problo = geom.ProbLoArray();
-  const auto coord = geom.Coord();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
+  const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
-
-  const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
   const Real ldiffuse_cutoff_density = diffuse_cutoff_density;
   const Real lmax_dt = max_dt;
@@ -332,7 +326,7 @@ Castro::estdt_temp_diffusion (int is_new)
 
 #ifdef REACTIONS
 ValLocPair<Real, IntVect>
-Castro::estdt_burning (int is_new)
+timestep::estdt_burning (const MultiFab& stateMF, const MultiFab& maskMF, const GeometryData& geomdata)
 {
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) {
@@ -340,28 +334,17 @@ Castro::estdt_burning (int is_new)
         return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
     }
 
-    const auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
-    const auto coord = geom.Coord();
+    const auto* dx = geomdata.CellSize();
+    const auto* problo = geomdata.ProbLo();
+    const auto coord = geomdata.Coord();
     amrex::ignore_unused(problo, coord);
-
-    MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
 
     auto const& ua = stateMF.const_arrays();
 
-    // If we're not subcycling, we only need to do the burn on leaf cells.
-
-    bool mask_covered_zones = false;
-
-    if (level < parent->finestLevel() && parent->subcyclingMode() == "None") {
-        mask_covered_zones = true;
-    }
-
-    MultiFab tmp_mask_mf;
-    const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
+    bool mask_covered_zones = maskMF.isDefined();
 
     MultiArray4<Real const> empty_arr{};
-    const auto& ma = mask_covered_zones ? mask_mf.const_arrays() : empty_arr;
+    const auto& ma = mask_covered_zones ? maskMF.const_arrays() : empty_arr;
 
     auto r = amrex::ParReduce(TypeList<ReduceOpMin>{}, TypeList<ValLocPair<Real, IntVect>>{}, stateMF,
     [=] AMREX_GPU_DEVICE (int box_no, int i, int j, int k) -> GpuTuple<ValLocPair<Real, IntVect>>
@@ -515,15 +498,12 @@ Castro::estdt_burning (int is_new)
 
 #ifdef RADIATION
 Real
-Castro::estdt_rad (int is_new)
+timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const GeometryData& geomdata)
 {
-    auto dx = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
-    const auto coord = geom.Coord();
+    const auto* dx = geomdata.CellSize();
+    const auto* problo = geomdata.ProbLo();
+    const auto coord = geomdata.Coord();
     amrex::ignore_unused(problo, coord);
-
-    const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
-    const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
 
     // Compute radiation + hydro limited timestep.
 
@@ -541,7 +521,7 @@ Castro::estdt_rad (int is_new)
 
         FArrayBox gPr;
         gPr.resize(tbox);
-        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), vbox);
+        global::the_radiation_ptr->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
 
         auto u = stateMF[mfi].array();
         auto gPr_arr = gPr.array();
