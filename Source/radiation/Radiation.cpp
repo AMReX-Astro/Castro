@@ -2669,13 +2669,6 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
     dcf.FillBoundary(geom.periodicity());
 }
 
-void Radiation::EstTimeStep(Real & estdt, int level)
-{
-  Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const Geometry& geom = parent->Geom(level);
-  Real time = castro->get_state_data(Rad_Type).curTime();
-}
-
 void Radiation::set_current_group(int igroup)
 {
   current_group_number = igroup;

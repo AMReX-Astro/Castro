@@ -1740,10 +1740,6 @@ Castro::estTimeStep (int is_new)
     }
 #endif
 
-#ifdef RADIATION
-    if (do_radiation) radiation->EstTimeStep(estdt, level);
-#endif
-
     if (verbose) {
         amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n' << std::endl;
     }
