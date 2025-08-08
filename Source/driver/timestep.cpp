@@ -36,8 +36,8 @@ timestep::estdt_cfl (const MultiFab& stateMF, const GeometryData& geomdata)
 
   // Courant-condition limited timestep
 
-  const auto dx = geomdata.CellSize();
-  const auto problo = geomdata.ProbLo();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
   const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
 
@@ -136,8 +136,8 @@ timestep::estdt_mhd (const MultiFab& U_state, const MultiFab& bx,
 {
 
   // MHD timestep limiter
-  const auto dx = geomdata.CellSize();
-  const auto problo = geomdata.ProbLo();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
   const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
 
@@ -247,8 +247,8 @@ timestep::estdt_temp_diffusion (const MultiFab& stateMF, const GeometryData& geo
   // dt < 0.5 dx**2 / D
   // where D = k/(rho c_v), and k is the conductivity
 
-  const auto dx = geomdata.CellSize();
-  const auto problo = geomdata.ProbLo();
+  const auto* dx = geomdata.CellSize();
+  const auto* problo = geomdata.ProbLo();
   const auto coord = geomdata.Coord();
   amrex::ignore_unused(problo, coord);
 
@@ -334,8 +334,8 @@ timestep::estdt_burning (const MultiFab& stateMF, const MultiFab& maskMF, const 
         return {ValLocPair<Real, IntVect>{1.e200_rt, idx}};
     }
 
-    const auto dx = geomdata.CellSize();
-    const auto problo = geomdata.ProbLo();
+    const auto* dx = geomdata.CellSize();
+    const auto* problo = geomdata.ProbLo();
     const auto coord = geomdata.Coord();
     amrex::ignore_unused(problo, coord);
 
@@ -500,8 +500,8 @@ timestep::estdt_burning (const MultiFab& stateMF, const MultiFab& maskMF, const 
 Real
 timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const GeometryData& geomdata)
 {
-    auto dx = geomdata.CellSize();
-    const auto problo = geomdata.ProbLo();
+    const auto* dx = geomdata.CellSize();
+    const auto* problo = geomdata.ProbLo();
     const auto coord = geomdata.Coord();
     amrex::ignore_unused(problo, coord);
 
