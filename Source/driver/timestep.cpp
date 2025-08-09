@@ -49,7 +49,7 @@ timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const Geome
 
         FArrayBox gPr;
         gPr.resize(tbox);
-        global::the_radiation_ptr->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
+        global::the_radiation_ptr->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, geomdata.CellSize(), vbox);
 
         auto u = stateMF[mfi].array();
         auto gPr_arr = gPr.array();
