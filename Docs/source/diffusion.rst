@@ -112,7 +112,7 @@ The timestep limiter for this is:
 
 .. math:: \Delta t_\mathrm{diff} \le \frac{1}{2} \frac{\Delta x^2}{D}
 
-This is implemented in ``estdt_temp_diffusion``.
+This is implemented in the ``diffusion`` branch of ``estdt``.
 
 
 Runtime Parameters

@@ -51,6 +51,8 @@ for i, f in enumerate(fields):
         sp.set_cmap(f, "magma_r")
     elif f == "enuc":
         sp.set_zlim(f, 1.e14, 3.e17)
+        # set the background color to the bottom value of the colormap
+        sp.set_background_color("enuc", None)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":

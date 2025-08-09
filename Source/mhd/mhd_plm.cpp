@@ -48,7 +48,7 @@ Castro::plm(const Box& bx,
 
     // compute the 1-sided differences used for the slopes
 
-    Real Q[NEIGN][5];
+    Real Q[NEIGN][nslp];
 
     // we use a reduced eigensystem, the normal B field component is
     // omitted
@@ -57,58 +57,34 @@ Castro::plm(const Box& bx,
     // the velocity is
     int QUN;
 
+    load_stencil(s, idir, i, j, k, QRHO, Q[IEIGN_RHO]);
+    load_stencil(s, idir, i, j, k, QU, Q[IEIGN_U]);
+    load_stencil(s, idir, i, j, k, QV, Q[IEIGN_V]);
+    load_stencil(s, idir, i, j, k, QW, Q[IEIGN_W]);
+    load_stencil(s, idir, i, j, k, QPRES, Q[IEIGN_P]);
+
     if (idir == 0) {
+        QUN = IEIGN_U;
 
-      QUN = IEIGN_U;
-
-      // component (Bx) is omitted
-
-      for (int n=0; n < 5; n++) {
-        int offset = n - 2;
-        Q[IEIGN_RHO][n] = s(i+offset,j,k,QRHO);
-        Q[IEIGN_U][n] = s(i+offset,j,k,QU);
-        Q[IEIGN_V][n] = s(i+offset,j,k,QV);
-        Q[IEIGN_W][n] = s(i+offset,j,k,QW);
-        Q[IEIGN_P][n] = s(i+offset,j,k,QPRES);
-        Q[IEIGN_BT][n] = s(i+offset,j,k,QMAGY);
-        Q[IEIGN_BTT][n] = s(i+offset,j,k,QMAGZ);
-      }
+        // component (Bx) is omitted
+        load_stencil(s, idir, i, j, k, QMAGY, Q[IEIGN_BT]);
+        load_stencil(s, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
 
     } else if (idir == 1) {
 
-      QUN = IEIGN_V;
+        QUN = IEIGN_V;
 
-      // component (By) is omitted
-
-      for (int n=0; n < 5; n++) {
-        int offset = n - 2;
-
-        Q[IEIGN_RHO][n] = s(i,j+offset,k,QRHO);
-        Q[IEIGN_U][n] = s(i,j+offset,k,QU);
-        Q[IEIGN_V][n] = s(i,j+offset,k,QV);
-        Q[IEIGN_W][n] = s(i,j+offset,k,QW);
-        Q[IEIGN_P][n] = s(i,j+offset,k,QPRES);
-        Q[IEIGN_BT][n] = s(i,j+offset,k,QMAGX);
-        Q[IEIGN_BTT][n] = s(i,j+offset,k,QMAGZ);
-      }
+        // component (By) is omitted
+        load_stencil(s, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
+        load_stencil(s, idir, i, j, k, QMAGZ, Q[IEIGN_BTT]);
 
     } else {
 
-      QUN = IEIGN_W;
+        QUN = IEIGN_W;
 
-      // component (Bz) is omitted
-
-      for (int n=0; n < 5; n++) {
-        int offset = n - 2;
-
-        Q[IEIGN_RHO][n] = s(i,j,k+offset,QRHO);
-        Q[IEIGN_U][n] = s(i,j,k+offset,QU);
-        Q[IEIGN_V][n] = s(i,j,k+offset,QV);
-        Q[IEIGN_W][n] = s(i,j,k+offset,QW);
-        Q[IEIGN_P][n] = s(i,j,k+offset,QPRES);
-        Q[IEIGN_BT][n] = s(i,j,k+offset,QMAGX);
-        Q[IEIGN_BTT][n] = s(i,j,k+offset,QMAGY);
-      }
+        // component (Bz) is omitted
+        load_stencil(s, idir, i, j, k, QMAGX, Q[IEIGN_BT]);
+        load_stencil(s, idir, i, j, k, QMAGY, Q[IEIGN_BTT]);
 
     }
 
@@ -186,13 +162,11 @@ Castro::plm(const Box& bx,
       for (int ii = 0; ii < NEIGN; ii++) {
 
         // construct the ii-th primitive variables
-        Real W[5] = {};
+        Real W[nslp] = {};
         for (int n = 0; n < NEIGN; n++) {
-          W[0] += leig(ii,n) * Q[n][0];
-          W[1] += leig(ii,n) * Q[n][1];
-          W[2] += leig(ii,n) * Q[n][2];
-          W[3] += leig(ii,n) * Q[n][3];
-          W[4] += leig(ii,n) * Q[n][4];
+            for (int idx = 0; idx < nslp; ++idx) {
+                W[idx] += leig(ii, n) * Q[n][idx];
+            }
         }
 
         // now limit
@@ -304,28 +278,16 @@ Castro::plm(const Box& bx,
 
     // species
     for (int n = 0; n < NumSpec; n++) {
-      Real un;
-      Real X[5];
+      Real un{};
+      Real X[nslp];
+
+      load_stencil(s, idir, i, j, k, QFS+n, X);
 
       if (idir == 0) {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i+offset,j,k,QFS+n);
-        }
         un = s(i,j,k,QU);
-
       } else if (idir == 1) {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i,j+offset,k,QFS+n);
-        }
         un = s(i,j,k,QV);
-
       } else {
-        for (int m = 0; m < 5; m++) {
-          int offset = m - 2;
-          X[m] = s(i,j,k+offset,QFS+n);
-        }
         un = s(i,j,k,QW);
       }
 
