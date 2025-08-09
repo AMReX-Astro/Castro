@@ -28,6 +28,7 @@
 #else
 #include <actual_rhs.H>
 #endif
+#include <burner.H>
 #endif
 
 namespace timestep {
