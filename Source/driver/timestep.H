@@ -75,10 +75,10 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
-		const auto* dx = geomdata.CellSize();
+                const auto* dx = geomdata.CellSize();
 #if AMREX_SPACEDIM >= 2
-		const auto* problo = geomdata.ProbLo();
-		const auto coord = geomdata.Coord();
+                const auto* problo = geomdata.ProbLo();
+                const auto coord = geomdata.Coord();
 #endif
 
                 Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -182,10 +182,10 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
-		const auto* dx = geomdata.CellSize();
+                const auto* dx = geomdata.CellSize();
 #if AMREX_SPACEDIM >= 2
-		const auto* problo = geomdata.ProbLo();
-		const auto coord = geomdata.Coord();
+                const auto* problo = geomdata.ProbLo();
+                const auto coord = geomdata.Coord();
 #endif
 
                 Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
@@ -283,10 +283,10 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
-		const auto* dx = geomdata.CellSize();
+                const auto* dx = geomdata.CellSize();
 #if AMREX_SPACEDIM >= 2
-		const auto* problo = geomdata.ProbLo();
-		const auto coord = geomdata.Coord();
+                const auto* problo = geomdata.ProbLo();
+                const auto coord = geomdata.Coord();
 #endif
 
                 if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
@@ -365,10 +365,10 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
-		const auto* dx = geomdata.CellSize();
+                const auto* dx = geomdata.CellSize();
 #if AMREX_SPACEDIM >= 2
-		const auto* problo = geomdata.ProbLo();
-		const auto coord = geomdata.Coord();
+                const auto* problo = geomdata.ProbLo();
+                const auto coord = geomdata.Coord();
 #endif
 
                 // Don't consider zones that are masked out.

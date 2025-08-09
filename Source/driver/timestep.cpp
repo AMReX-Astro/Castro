@@ -63,10 +63,10 @@ timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const Geome
         {
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-	    const auto* dx = geomdata.CellSize();
+            const auto* dx = geomdata.CellSize();
 #if AMREX_SPACEDIM >= 2
-	    const auto* problo = geomdata.ProbLo();
-	    const auto coord = geomdata.Coord();
+            const auto* problo = geomdata.ProbLo();
+            const auto coord = geomdata.Coord();
 #endif
 
             eos_t eos_state;
