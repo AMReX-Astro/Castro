@@ -1632,9 +1632,9 @@ Castro::estTimeStep (int is_new)
 #endif
 
 #ifdef MHD
-          auto hydro_dt = timestep::estdt_mhd(stateMF, Bx, By, Bz, geomdata);
+          auto hydro_dt = timestep::estdt<timestep::mhd>(geomdata, maskMF, stateMF, Bx, By, Bz);
 #else
-          auto hydro_dt = timestep::estdt_cfl(stateMF, geomdata);
+          auto hydro_dt = timestep::estdt<timestep::hydro>(geomdata, maskMF, stateMF);
 #endif
 
           amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
@@ -1676,7 +1676,7 @@ Castro::estTimeStep (int is_new)
 
     if (diffuse_temp)
     {
-        auto diffuse_dt = timestep::estdt_temp_diffusion(stateMF, geomdata);
+        auto diffuse_dt = timestep::estdt<timestep::diffusion>(geomdata, maskMF, stateMF);
         ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
         estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
 
@@ -1712,7 +1712,7 @@ Castro::estTimeStep (int is_new)
 
         // Compute burning-limited timestep.
 
-        auto burn_dt = timestep::estdt_burning(stateMF, maskMF, geomdata);
+        auto burn_dt = timestep::estdt<timestep::burning>(geomdata, maskMF, stateMF);
 
         ParallelAllReduce::Min(burn_dt, MPI_COMM_WORLD);
         estdt_burn = amrex::min(estdt_burn, burn_dt.value);
