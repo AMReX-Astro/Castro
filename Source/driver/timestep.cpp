@@ -33,11 +33,6 @@ using namespace amrex;
 Real
 timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const GeometryData& geomdata)
 {
-    const auto* dx = geomdata.CellSize();
-    const auto* problo = geomdata.ProbLo();
-    const auto coord = geomdata.Coord();
-    amrex::ignore_unused(problo, coord);
-
     // Compute radiation + hydro limited timestep.
 
     ReduceOps<ReduceOpMin> reduce_op;
@@ -67,6 +62,12 @@ timestep::estdt_rad (const MultiFab& stateMF, const MultiFab& radMF, const Geome
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+	    const auto* dx = geomdata.CellSize();
+#if AMREX_SPACEDIM >= 2
+	    const auto* problo = geomdata.ProbLo();
+	    const auto coord = geomdata.Coord();
+#endif
 
             eos_t eos_state;
             eos_state.rho = u(i,j,k,URHO);

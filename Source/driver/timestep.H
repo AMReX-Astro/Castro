@@ -53,11 +53,6 @@ namespace timestep {
 
         constexpr std::size_t N_mfs = sizeof...(MFs);
 
-        const auto* dx = geomdata.CellSize();
-        const auto* problo = geomdata.ProbLo();
-        const auto coord = geomdata.Coord();
-        amrex::ignore_unused(problo, coord);
-
         auto const& ua = stateMF.const_arrays();
 
         bool mask_covered_zones = maskMF.isDefined();
@@ -78,6 +73,12 @@ namespace timestep {
                 Array4<Real const> const& u = ua[box_no];
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
+
+		const auto* dx = geomdata.CellSize();
+#if AMREX_SPACEDIM >= 2
+		const auto* problo = geomdata.ProbLo();
+		const auto coord = geomdata.Coord();
+#endif
 
                 Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
@@ -180,6 +181,12 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
+		const auto* dx = geomdata.CellSize();
+#if AMREX_SPACEDIM >= 2
+		const auto* problo = geomdata.ProbLo();
+		const auto coord = geomdata.Coord();
+#endif
+
                 Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
                 Real bcx = 0.5_rt * (bx_arr(i+1,j,k) + bx_arr(i,j,k));
                 Real bcy = 0.5_rt * (by_arr(i,j+1,k) + by_arr(i,j,k));
@@ -275,6 +282,12 @@ namespace timestep {
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
+		const auto* dx = geomdata.CellSize();
+#if AMREX_SPACEDIM >= 2
+		const auto* problo = geomdata.ProbLo();
+		const auto coord = geomdata.Coord();
+#endif
+
                 if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
 
                     Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
@@ -350,6 +363,12 @@ namespace timestep {
                 Array4<Real const> const& mask = ma[box_no];
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
+
+		const auto* dx = geomdata.CellSize();
+#if AMREX_SPACEDIM >= 2
+		const auto* problo = geomdata.ProbLo();
+		const auto coord = geomdata.Coord();
+#endif
 
                 // Don't consider zones that are masked out.
 
