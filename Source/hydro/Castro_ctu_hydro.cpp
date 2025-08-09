@@ -466,7 +466,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
       fab_size += ptheta.nBytes();
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
       auto sdc_src_arr = castro::time_integration_method == SimplifiedSpectralDeferredCorrections ?
                          SDC_react_source.array(mfi) : Array4<Real const>{};
