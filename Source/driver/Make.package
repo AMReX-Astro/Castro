@@ -47,4 +47,5 @@ ifdef NEED_MGUTIL
   CEXE_headers += MGutils.H
 endif
 
+CEXE_headers += timestep.H
 CEXE_sources += timestep.cpp

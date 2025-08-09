@@ -25,7 +25,7 @@
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    static void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
+    static void apply_source_to_state (amrex::MultiFab& state, const amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -210,7 +210,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    void construct_new_sponge_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
@@ -238,7 +238,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    void construct_old_ext_source(amrex::MultiFab& source, const amrex::MultiFab& state,
                                   amrex::Real time, amrex::Real dt);
 
 
@@ -252,7 +252,7 @@
 /// @param dt           timestep
 ///
     void construct_new_ext_source(amrex::MultiFab& source,
-                                  amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                                  const amrex::MultiFab& state_old, const amrex::MultiFab& state_new,
                                   amrex::Real time, amrex::Real dt);
 
 
@@ -291,7 +291,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    void construct_new_thermo_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
@@ -301,7 +301,7 @@
 /// @param state_in    input state
 /// @param thermo_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
+    void fill_thermo_source(const amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
 
 
 ///

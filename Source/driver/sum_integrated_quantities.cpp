@@ -57,7 +57,7 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
-        MultiFab& S_new = ca_lev.get_new_data(State_Type);
+        const MultiFab& S_new = ca_lev.get_new_data(State_Type);
 #ifdef GRAVITY
         MultiFab& phi_new = ca_lev.get_new_data(PhiGrav_Type);
 #endif

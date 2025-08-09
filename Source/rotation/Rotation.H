@@ -141,7 +141,7 @@ rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega,
       r_vec[2] = 0.0_rt;
   }
 
-  if (rotation_include_centrifugal == 1) {
+  if (castro::rotation_include_centrifugal == 1) {
 
       GpuArray<Real, 3> omega_cross_r;
       cross_product(omega, r, omega_cross_r);
