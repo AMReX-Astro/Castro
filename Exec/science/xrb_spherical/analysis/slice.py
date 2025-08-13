@@ -220,10 +220,10 @@ def slice(fnames:List[str], fields:List[str],
           loc: str = "top", widthScale: float = 3.0,
           widthRatio: float = 1.0,
           theta: Optional[float] = None,
-          displace_theta: bool = True,
-          annotate_vline: bool = True,
+          displace_theta: bool = False,
+          annotate_vline: bool = False,
           annotate_lat_lines: bool = True,
-          show_full_star: bool = True) -> None:
+          show_full_star: bool = False) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
 
@@ -402,8 +402,8 @@ if __name__ == "__main__":
                         This is useful when theta represents the flame front position.""")
     parser.add_argument('--annotate_vline', action='store_true',
                         help="whether to annotate a vertical line along the given theta")
-    parser.add_argument('--annotate_lat_lines', action='store_true',
-                        help="whether to annotate latitude lines")
+    parser.add_argument('--disable_lat_lines', action='store_false',
+                        help="whether to disable latitude lines")
     parser.add_argument('--show_full_star', action='store_true',
                         help="whether show the full star in the background")
 
