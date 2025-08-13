@@ -161,7 +161,7 @@ if __name__ == '__main__':
 
     # Do Plotting
     fig, ax = plt.subplots()
-    ax.plot(t_array, data[0, :], color='blue', linewidth=3, label=r'$\left<T\right>$')
+    ax.plot(t_array, data[0, :] * 1e-9, color='blue', linewidth=3, label=r'$\left<T\right>$')
     ax.set_xlabel('time [ms]')
     ax.set_ylabel(r'$\left<T \right>$ [GK]')
 
