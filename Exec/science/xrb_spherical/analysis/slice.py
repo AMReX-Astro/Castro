@@ -294,7 +294,7 @@ def slice(fnames:List[str], fields:List[str],
                                              show_full_star=show_full_star)
         for i, field in enumerate(fields):
             # Plot each field parameter
-            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=22)
+            sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=21)
             sp.set_center(center)
 
             sp.set_cmap(field, "viridis")
