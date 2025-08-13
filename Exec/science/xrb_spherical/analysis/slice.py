@@ -402,8 +402,6 @@ if __name__ == "__main__":
                         This is useful when theta represents the flame front position.""")
     parser.add_argument('--annotate_vline', action='store_true',
                         help="whether to annotate a vertical line along the given theta")
-    parser.add_argument('--disable_lat_lines', action='store_false',
-                        help="whether to disable latitude lines")
     parser.add_argument('--show_full_star', action='store_true',
                         help="whether show the full star in the background")
 
@@ -421,4 +419,4 @@ if __name__ == "__main__":
     slice(args.fnames, args.fields, loc=loc,
           widthScale=args.width, widthRatio=args.ratio, theta=args.theta,
           displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-          annotate_lat_lines=args.annotate_lat_lines, show_full_star=args.show_full_star)
+          annotate_lat_lines=True, show_full_star=args.show_full_star)

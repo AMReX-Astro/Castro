@@ -27,8 +27,6 @@ parser.add_argument('--displace_theta', action='store_true',
                         This is useful when theta represents the flame front position.""")
 parser.add_argument('--annotate_vline', action='store_true',
                     help="whether to annotate a vertical line along the given theta")
-parser.add_argument('--annotate_lat_lines', action='store_true',
-                    help="whether to annotate latitude lines")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
@@ -48,7 +46,7 @@ with ProcessPoolExecutor(max_workers=args.jobs) as executor:
         executor.submit(slice, [fname], args.fields, widthScale=args.width,
                         widthRatio=args.ratio, theta=front_thetas[i],
                         displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                        annotate_lat_lines=args.annotate_lat_lines): i
+                        annotate_lat_lines=True): i
         for i, fname in enumerate(fnames)
     }
     try:

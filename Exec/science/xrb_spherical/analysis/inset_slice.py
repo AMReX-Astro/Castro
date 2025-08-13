@@ -138,8 +138,6 @@ if __name__ == "__main__":
                         This is useful when theta represents the flame front position.""")
     parser.add_argument('--annotate_vline', action='store_true',
                         help="whether to annotate a vertical line along the given theta")
-    parser.add_argument('--annotate_lat_lines', action='store_true',
-                        help="whether to annotate latitude lines")
 
     args = parser.parse_args()
 
@@ -156,7 +154,7 @@ if __name__ == "__main__":
     full_star_slice = single_slice(ds, args.field, loc=loc,
                                    widthScale=args.width, theta=args.theta,
                                    displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                                   annotate_lat_lines=args.annotate_lat_lines, show_full_star=True)
+                                   annotate_lat_lines=True, show_full_star=True)
     # full_star_slice.render()
 
     # Extract the figure of the full-star slice and use that as the main figure for plotting.
@@ -170,7 +168,7 @@ if __name__ == "__main__":
     zoom_in_slice = single_slice(ds, args.field, loc=loc,
                                  widthScale=args.width, theta=args.theta,
                                  displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                                 annotate_lat_lines=args.annotate_lat_lines, show_full_star=False)
+                                 annotate_lat_lines=True, show_full_star=False)
     zoom_in_slice.hide_colorbar()
     # zoom_in_slice.render()
 
