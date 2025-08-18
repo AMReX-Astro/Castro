@@ -22,6 +22,8 @@ jobs:
           echo '::group::build tool versions'
           clang++ --version
           python --version
+          echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
+          echo "LIBRARY_PATH=$LIBRARY_PATH"
           echo '::endgroup::'
 
       - name: Get submodules
@@ -45,6 +47,6 @@ jobs:
         run: |
           cd Exec/science/flame_wave
           export SDKROOT="`xcrun --show-sdk-path`"
-          make DEBUG=TRUE USE_MPI=FALSE COMP=llvm
+          make DEBUG=TRUE USE_MPI=FALSE COMP=llvm EXTRACXXFLAGS="-stdlib=libc++"
 
 
