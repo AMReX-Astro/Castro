@@ -43,6 +43,6 @@ jobs:
       - name: Compile flame_wave
         run: |
           cd Exec/science/flame_wave
-          gmake DEBUG=TRUE USE_MPI=FALSE COMP=llvm
+          gmake DEBUG=TRUE USE_MPI=FALSE COMP=llvm -j 3
 
 
