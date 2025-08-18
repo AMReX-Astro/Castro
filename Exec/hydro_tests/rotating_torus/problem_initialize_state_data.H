@@ -3,7 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
-#include <math.H>
+#include <Castro_math.H>
 #include <Rotation.H>
 #include <Castro_util.H>
 
