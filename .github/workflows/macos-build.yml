@@ -8,7 +8,7 @@ concurrency:
 
 jobs:
   macos-build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
         with:
@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
+          brew install make
 
       - name: Print system info
         run: |
@@ -36,10 +37,7 @@ jobs:
           xcode-select -p
           clang++ --version
           python --version
-          echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
-          echo "LIBRARY_PATH=$LIBRARY_PATH"
-          echo "checking C++ standard"
-          clang++ -std=c++17 -dM -E -x c++ /dev/null | grep __cplusplus
+          make --version | head -1
           echo '::endgroup::'
 
       - name: Compile flame_wave
