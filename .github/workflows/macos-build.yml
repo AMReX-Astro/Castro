@@ -38,6 +38,8 @@ jobs:
           python --version
           echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
           echo "LIBRARY_PATH=$LIBRARY_PATH"
+          echo "checking C++ standard"
+          clang++ -std=c++17 -dM -E -x c++ /dev/null | grep __cplusplus
           echo '::endgroup::'
 
       - name: Compile flame_wave
