@@ -14,18 +14,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Print system info
-        run: |
-          echo '::group::CPU info'
-          sysctl -a | grep machdep.cpu
-          echo '::endgroup::'
-          echo '::group::build tool versions'
-          clang++ --version
-          python --version
-          echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
-          echo "LIBRARY_PATH=$LIBRARY_PATH"
-          echo '::endgroup::'
-
       - name: Get submodules
         run: |
           git submodule update --init
@@ -38,10 +26,18 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install gfortran || true
-          brew install libomp || true
-          brew install open-mpi || true
-          brew install ccache || true
+
+      - name: Print system info
+        run: |
+          echo '::group::CPU info'
+          sysctl -a | grep machdep.cpu
+          echo '::endgroup::'
+          echo '::group::build tool versions'
+          clang++ --version
+          python --version
+          echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
+          echo "LIBRARY_PATH=$LIBRARY_PATH"
+          echo '::endgroup::'
 
       - name: Compile flame_wave
         run: |
