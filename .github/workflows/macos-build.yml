@@ -44,6 +44,6 @@ jobs:
         run: |
           cd Exec/science/flame_wave
           export SDKROOT="`xcrun --show-sdk-path`"
-          make DEBUG=TRUE USE_MPI=FALSE COMP=llvm EXTRACXXFLAGS="-stdlib=libc++ -Wc++17-extensions"
+          gmake DEBUG=TRUE USE_MPI=FALSE COMP=llvm EXTRACXXFLAGS="-stdlib=libc++ -Wc++17-extensions"
 
 
