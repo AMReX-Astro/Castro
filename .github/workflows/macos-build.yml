@@ -36,11 +36,14 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install make || true
+          brew install gfortran || true
+          brew install libomp || true
           brew install open-mpi || true
+          brew install ccache || true
 
       - name: Compile flame_wave
         run: |
           cd Exec/science/flame_wave
-          make DEBUG=TRUE USE_MPI=FALSE COMP=armclang
+          make DEBUG=TRUE USE_MPI=FALSE COMP=llvm
+
 
