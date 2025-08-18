@@ -33,6 +33,7 @@ jobs:
           sysctl -a | grep machdep.cpu
           echo '::endgroup::'
           echo '::group::build tool versions'
+          xcode-select -p
           clang++ --version
           python --version
           echo "CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH"
