@@ -1,0 +1,35 @@
+name: macos-build
+
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install make || true
+          brew install open-mpi || true
+
+      - name: Compile flame_wave
+        run: |
+          cd Exec/science/flame_wave
+          make DEBUG=TRUE USE_MPI=FALSE COMP=clang -j 4
