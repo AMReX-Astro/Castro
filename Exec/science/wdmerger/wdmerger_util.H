@@ -3,7 +3,7 @@
 
 #include <AMReX.H>
 
-#include <math.H>
+#include <Castro_math.H>
 #include <fundamental_constants.H>
 
 #ifdef ROTATION
