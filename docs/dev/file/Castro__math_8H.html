@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File hybrid.H &mdash; Castro  documentation</title>
+  <title>File Castro_math.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File mhd_eigen.H" href="mhd__eigen_8H.html" />
-    <link rel="prev" title="File global.H" href="global_8H.html" /> 
+    <link rel="next" title="File Castro_mhd.H" href="Castro__mhd_8H.html" />
+    <link rel="prev" title="File Castro_io.H" href="Castro__io_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/hybrid_8H.html">main</a> | <a href="../file/hybrid_8H.html">development</a>
+        Branch: <a href="../../file/Castro__math_8H.html">main</a> | <a href="../file/Castro__math_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -104,7 +104,10 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Castro__math_8H.html">File Castro_math.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_math.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">amrex::literals</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -147,7 +150,7 @@
 <li class="toctree-l2"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
@@ -201,9 +204,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File hybrid.H</li>
+      <li class="breadcrumb-item active">File Castro_math.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/hybrid_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__math_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -211,84 +214,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-hybrid-h">
-<h1>File hybrid.H<a class="headerlink" href="#file-hybrid-h" title="Link to this heading"></a></h1>
+  <section id="file-castro-math-h">
+<h1>File Castro_math.H<a class="headerlink" href="#file-castro-math-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="hybrid_8H_1a6d370358f779d78740c8813552a15e43"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">linear_to_hybrid</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom)</span></span></dt>
-<dd><p>For hybrid momentum advection, convert the linear momentum into the hybrid / angular momentum components</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loc</strong> – spatial location </p></li>
-<li><p><strong>linear_mom</strong> – linear momentum </p></li>
-<li><p><strong>hybrid_mom</strong> – hybrid / angular momentum </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
+<span class="target" id="Castro__math_8H_1a6e87e9055817d83655ddeaa0188dc703"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">cross_product</span> <span class="pre">(amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;a,</span> <span class="pre">amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;b,</span> <span class="pre">amrex::GpuArray&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;c)</span></span></dt>
+<dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="hybrid_8H_1a17a4a79407b4406a49695b7be2c5b0fa"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">hybrid_to_linear</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom)</span></span></dt>
-<dd><p>Convert the hybrid / angular momentum back to linear momentum</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loc</strong> – spatial location </p></li>
-<li><p><strong>hybrid_mom</strong> – hybrid / angular momentum </p></li>
-<li><p><strong>linear_mom</strong> – linear momentum </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="hybrid_8H_1a149cd9ca74e5e070548945a44ec4c421"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">set_hybrid_momentum_source</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_source,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_source)</span></span></dt>
-<dd><p>Create the hydrodynamic source term for the hybrid momenta based on the input linear momentum source term</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loc</strong> – spatial location </p></li>
-<li><p><strong>linear_source</strong> – linear momentum source term </p></li>
-<li><p><strong>hybrid_source</strong> – hybrid / angular momentum source term </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="hybrid_8H_1a46008e8cf94a0e92f02053e4b68fff93"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_hybrid_flux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NGDNV</span> <span class="pre">&gt;</span> <span class="pre">&amp;state,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux,</span> <span class="pre">bool</span> <span class="pre">cell_centered=false)</span></span></dt>
-<dd><p>Compute and store the flux of the hybrid momentum components</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> – the Godunov state </p></li>
-<li><p><strong>geomdata</strong> – the <a class="reference internal" href="Castro_8H.html#classCastro"><span class="std std-ref">Castro</span></a> geometry data object </p></li>
-<li><p><strong>idir</strong> – coordinate direction for flux computation (0 = x, 1 = y, 2 = z) </p></li>
-<li><p><strong>i</strong> – x zone index </p></li>
-<li><p><strong>j</strong> – y zone index </p></li>
-<li><p><strong>k</strong> – z zone indxe </p></li>
-<li><p><strong>flux</strong> – hydrodynamic flux in direction idir </p></li>
-<li><p><strong>cell_centered</strong> – is this a cell-centered flux or an interface flux? </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
+<span class="target" id="Castro__math_8H_1a557a1f46ca2b38e4e251198f5b447bde"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">amrex::Real</span> <span class="pre">cot</span> <span class="pre">(amrex::Real</span> <span class="pre">x)</span></span></dt>
+<dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N5amrex8literalsE">
+<span id="_CPPv3N5amrex8literalsE"></span><span id="_CPPv2N5amrex8literalsE"></span><span id="amrex::literals"></span><span class="target" id="namespaceamrex_1_1literals"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">literals</span></span></span><a class="headerlink" href="#_CPPv4N5amrex8literalsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="global_8H.html" class="btn btn-neutral float-left" title="File global.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mhd__eigen_8H.html" class="btn btn-neutral float-right" title="File mhd_eigen.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Castro__io_8H.html" class="btn btn-neutral float-left" title="File Castro_io.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Castro__mhd_8H.html" class="btn btn-neutral float-right" title="File Castro_mhd.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
