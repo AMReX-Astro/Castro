@@ -33,7 +33,7 @@ xs[:, 1] = r * np.sin(theta)
 xs[:, :] += 0.5 * (problo + probhi)[np.newaxis, :]
 
 with open(outfile_name, 'w') as outfile:
-    outfile.write("{}\n".format(n_particles))
+    outfile.write(f"{n_particles}\n")
 
     for pos in xs:
-        outfile.write("{} {}\n".format(pos[0], pos[1]))
+        outfile.write(f"{pos[0]} {pos[1]}\n")

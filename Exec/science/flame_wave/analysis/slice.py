@@ -46,7 +46,7 @@ for f in fields:
 
     sp.set_axes_unit("cm")
 
-    sp.annotate_text((0.05, 0.05), "{:8.5f} s".format(float(ds.current_time.in_cgs())),
+    sp.annotate_text((0.05, 0.05), f"{float(ds.current_time.in_cgs()):8.5f} s",
                      coord_system="figure", text_args={"color": "black"})
 
-    sp.save("{}_{}_slice.png".format(os.path.basename(plotfile), f))
+    sp.save(f"{os.path.basename(plotfile)}_{f}_slice.png")
