@@ -1,3 +1,32 @@
+# 25.09
+
+  * clang-tidy fixes (#3111)
+
+  * modernize python scripts (#3103)
+
+  * add MacOS CI build (#3128)
+
+  * update CI checkout action (#3127)
+
+  * always display the burning timestep limiter (#3126)
+
+  * refactor the timestep estimators into a single template function
+    (#3122, #3124, #3125) and remove old, unused stubs (#3123)
+
+  * remove some unneeded SIMPLIFIED_SDC ifdefs (#3120)
+
+  * `wdmerger`: update the inputs to the latest science run
+
+  * only consider the leaf nodes in the burning timestep limiter
+    when we are not subcycling (#3119)
+
+  * switch MHD to use the `load_stencil` routines to reconstruction
+    (#3109)
+
+  * remove old `weight_cc` and `unweight_cc` functions (#3118)
+
+  * fix some cppcheck issues (#3117)
+
 # 25.08
 
   * `hse_convergence`: the `README.md` now has details on the
