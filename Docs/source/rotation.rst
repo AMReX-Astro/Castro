@@ -59,18 +59,11 @@ The main parameters that affect rotation are:
 -  ``castro.rotational_period`` : period (s) of rotation
    (default: 0.0)
 
--  ``castro.rotational_dPdt`` : d(period) / dt for rotation
-   (default: 0.0)
-
 -  ``castro.rotation_include_centrifugal`` : whether to
    include the centrifugal forcing (default: 1)
 
 -  ``castro.rotation_include_coriolis`` : whether to
    include the Coriolis forcing (default: 1)
-
--  ``castro.rotation_include_domegadt`` : whether to
-   include the forcing from the time derivative of the rotation
-   frequency (default: 1)
 
 -  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
@@ -327,15 +320,15 @@ in how the energy update is done:
   – only indirectly through things like shocks.
 
 * ``castro.rot_source_type = 4`` : the energy update is done in a
-   “conservative” fashion. The previous methods all evaluate the value
-   of the source term at the cell center, but this method evaluates
-   the change in energy at cell edges, using the hydrodynamical mass
-   fluxes, permitting total energy to be conserved (excluding possible
-   losses at open domain boundaries). Additionally, the velocity
-   update is slightly different—for the corrector step, we note that
-   there is an implicit coupling between the velocity components, and
-   we directly solve this coupled equation, which results in a
-   slightly better coupling and a more accurate evolution.
+  “conservative” fashion. The previous methods all evaluate the value
+  of the source term at the cell center, but this method evaluates
+  the change in energy at cell edges, using the hydrodynamical mass
+  fluxes, permitting total energy to be conserved (excluding possible
+  losses at open domain boundaries). Additionally, the velocity
+  update is slightly different—for the corrector step, we note that
+  there is an implicit coupling between the velocity components, and
+  we directly solve this coupled equation, which results in a
+  slightly better coupling and a more accurate evolution.
 
 The other major option is ``castro.implicit_rotation_update``.
 This does the update of the Coriolis term in the momentum equation
