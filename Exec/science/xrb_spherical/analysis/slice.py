@@ -216,10 +216,10 @@ def annotate_latitude_lines(sp, center, box_widths, r,
                              coord_system="plot")
 
 
-def slice(fnames:List[str], fields:List[str],
+def slice(fnames:list[str], fields:list[str],
           loc: str = "top", widthScale: float = 3.0,
           widthRatio: float = 1.0,
-          theta: Optional[float] = None,
+          theta: float | None = None,
           displace_theta: bool = False,
           annotate_vline: bool = False,
           annotate_lat_lines: bool = True,

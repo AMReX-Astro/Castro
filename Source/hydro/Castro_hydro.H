@@ -9,16 +9,6 @@
 #endif
 
 ///
-/// Calculate primitive variables from given conserved variables
-///
-/// @param u        MultiFab of conserved variables
-/// @param q        MultiFab to save primitive variables to
-/// @param qaux     MultiFab of auxiliary variables
-/// @param time     Current time
-///
-    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux, const amrex::Real time);
-
-///
 /// convert the conservative state cell averages to primitive cell
 /// averages with 4th order accuracy
 ///
@@ -425,7 +415,9 @@
 #endif
 #if AMREX_SPACEDIM <= 2
                     amrex::Array4<amrex::Real const> const& q0,
+#if AMREX_SPACEDIM == 2
                     amrex::Array4<amrex::Real const> const& q1,
+#endif
 #endif
                     amrex::Array4<amrex::Real const> const& vol);
 

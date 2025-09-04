@@ -10,7 +10,7 @@ jobs:
   clang_tidy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Get submodules
         run: |
@@ -25,12 +25,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          .github/workflows/dependencies/dependencies_clang-tidy-apt-llvm.sh 19
+          .github/workflows/dependencies/dependencies_clang-tidy-apt-llvm.sh 20
 
       - name: Compile flame_wave
         run: |
           echo $AMREX_HOME
           echo $MICROPHYSICS_HOME
           cd Exec/science/subchandra
-          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-19 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-20 CLANG_TIDY_WARN_ERROR=TRUE -j 4
 

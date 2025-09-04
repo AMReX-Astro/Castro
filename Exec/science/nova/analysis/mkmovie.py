@@ -11,11 +11,11 @@ from typing import Union
 
 
 # routines for natural/human sorting
-def atoi(text: str) -> Union[str, int]:
+def atoi(text: str) -> str | int:
     return int(text) if text.isdigit() else text
 
 
-def natural_keys(text: str) -> tuple[Union[str, int], ...]:
+def natural_keys(text: str) -> tuple[str | int, ...]:
     # list.sort(key=natural_keys) will sort according
     # to human sorting (or natural sorting)
     return tuple(atoi(c) for c in re.split(r"(\d+)", text))

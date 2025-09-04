@@ -27,7 +27,7 @@ class Transform(Enum):
 
 def lookup_datasets():
     plotfile_paths = {}
-    with open("ftime.out", "r") as f:
+    with open("ftime.out") as f:
         for line in f:
             pltfile, time_str = line.rstrip("\n").split()
             if Path(pltfile).exists():
@@ -203,7 +203,7 @@ def parse_args():
     # Then we would just return a point in 2D or 3D space
 
     transformed = sum(args.transform.values(), [])
-    (args.axis,) = [ax for ax in range(3) if ax not in transformed]
+    (args.axis,) = (ax for ax in range(3) if ax not in transformed)
 
     args.axis_name = ds.coordinates.axis_order[args.axis]
 
@@ -586,7 +586,7 @@ def show_plots(args):
     globmax = {}
     if isinstance(args.show_plots, str):
         # parse out global maxes from a previous run
-        with open(args.show_plots, "r") as f:
+        with open(args.show_plots) as f:
             reader = csv.DictReader(f, delimiter=" ", quotechar='"')
             for k in reader.fieldnames:
                 field = k.removeprefix("max_")

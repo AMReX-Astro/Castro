@@ -7,7 +7,7 @@
 using namespace amrex;
 
 void
-Castro::apply_source_to_state(MultiFab& target_state, MultiFab& source, Real dt, int ng)
+Castro::apply_source_to_state(MultiFab& target_state, const MultiFab& source, Real dt, int ng)
 {
     BL_PROFILE("Castro::apply_source_to_state()");
 
@@ -515,7 +515,7 @@ Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, const
 void
 Castro::print_all_source_changes(Real dt, bool is_new)
 {
-    MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
+    const MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
 
     std::string source_name = is_new? "new-time sources" : "old-time sources";
 
@@ -640,15 +640,15 @@ Castro::pre_hydro_operators (Real time, Real dt)  // NOLINT(readability-convert-
 
     advance_status status {};
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
     // The SDC reactive source ghost cells on coarse levels might not
     // be in sync due to any average down done, so fill them here.
 
-    MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
+    if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        MultiFab& react_src = get_new_data(Simplified_SDC_React_Type);
 
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time + dt, Simplified_SDC_React_Type, 0, react_src.nComp());
-#endif
+        AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time + dt, Simplified_SDC_React_Type, 0, react_src.nComp());
+    }
 #endif
 
     return status;
