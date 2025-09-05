@@ -4,7 +4,7 @@
 #include <state_indices.H>
 
 namespace reconstruction {
-   enum slope_indices {
+   enum slope_indices : std::uint8_t {
        im2 = 0,
        im1,
        i0,

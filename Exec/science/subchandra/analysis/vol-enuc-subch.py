@@ -80,7 +80,7 @@ def doit(plotfile):
     cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_enuc_annotated.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_enuc_annotated.png",
                       label_fontsize="18",
                       sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),

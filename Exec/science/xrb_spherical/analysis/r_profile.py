@@ -44,7 +44,7 @@ for i, f in enumerate(fields):
 
         # sort by "t", which goes from 0 to 1 representing the spatial order.
         isrt = np.argsort(ray["t"])
-        axes[i].plot(ray['r'][isrt], ray[f][isrt], label=r"$\theta$ = {:.4f}".format(float(theta)))
+        axes[i].plot(ray['r'][isrt], ray[f][isrt], label=fr"$\theta$ = {float(theta):.4f}")
 
     axes[i].set_xlabel(r"$r$ (cm)")
     axes[i].set_ylabel(nice_names[i])
@@ -55,4 +55,4 @@ for i, f in enumerate(fields):
 
 #fig.set_size_inches(10.0, 9.0)
 plt.tight_layout()
-plt.savefig("{}_profiles.png".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_profiles.png")

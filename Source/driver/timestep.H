@@ -33,11 +33,11 @@
 
 namespace timestep {
 
-    enum estdt_type { hydro = 0,
-                      mhd,
-                      burning,
-                      radiation,
-                      diffusion
+    enum estdt_type : std::uint8_t { hydro = 0,
+                                     mhd,
+                                     burning,
+                                     radiation,
+                                     diffusion
     };
 
     // Estimate timestep given various constraints

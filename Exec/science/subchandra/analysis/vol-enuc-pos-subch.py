@@ -118,10 +118,10 @@ def doit(plotfile):
     cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_enuc_pos_annotated.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_enuc_pos_annotated.png",
                       sigma_clip=5.0,
                       text_annotate=[[(0.05, 0.05),
-                                      "t = {}".format(ds.current_time.d),
+                                      f"t = {ds.current_time.d}",
                                       dict(horizontalalignment="left")],
                                      [(0.5,0.95),
                                       "Castro simulation of double detonation SN Ia",

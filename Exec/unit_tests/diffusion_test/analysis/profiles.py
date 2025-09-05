@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
 import sys
@@ -64,13 +63,13 @@ def doit(prefix, nums, skip, limitlabels, xmin, xmax):
     index = 0
 
     for n in range(0, len(nums), skip):
-        pfile = "{}{}".format(prefix, nums[n])
+        pfile = f"{prefix}{nums[n]}"
         i = int(n / skip)
         time, x, T, analytic_T = get_T_profile(pfile)
 
         if index % skiplabels == 0:
-            ax_T.plot(x, T, "-", color=colors[i], label="simulation: t = {:7.5f} s".format(time))
-            ax_T.plot(x, analytic_T, "--", color=colors[i], label="analytic: t = {:7.5f} s".format(time))
+            ax_T.plot(x, T, "-", color=colors[i], label=f"simulation: t = {time:7.5f} s")
+            ax_T.plot(x, analytic_T, "--", color=colors[i], label=f"analytic: t = {time:7.5f} s")
         else:
             ax_T.plot(x, T, "-", color=colors[i])
             ax_T.plot(x, analytic_T, "--", color=colors[i])

@@ -1723,7 +1723,7 @@ Castro::estTimeStep (int is_new)
         ParallelAllReduce::Min(burn_dt, MPI_COMM_WORLD);
         estdt_burn = amrex::min(estdt_burn, burn_dt.value);
 
-        if (verbose && estdt_burn < max_dt) {
+        if (verbose) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
             std::string idx_str = "(i";
 #if AMREX_SPACEDIM >= 2
