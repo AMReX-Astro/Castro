@@ -10,6 +10,8 @@ nfrac                real          0.0_rt         y
 
 ofrac                real          0.0_rt         y
 
+nefrac               real          0.0_rt         y
+
 w_T                  real          5.e-4_rt       y
 
 center_T             real          0.3_rt         y
@@ -29,6 +31,8 @@ ic12                 integer       -1
 in14                 integer       -1
 
 io16                 integer       -1
+
+ine20                integer       -1
 
 xn                   real          0.0_rt         n     nspec
 
