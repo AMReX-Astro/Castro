@@ -1,5 +1,7 @@
 # 25.09
 
+  * rotation docs improvements (#3133)
+
   * clang-tidy fixes (#3111)
 
   * modernize python scripts (#3103)
