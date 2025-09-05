@@ -42,7 +42,7 @@ void problem_tagging(int i, int j, int k,
             // Allow higher level refinement to better resolve
             // the initial burning phase which is at the pole of the NS.
             if (dist < problem::refine_distance &&
-                state(i,j,k,UFS+1) / state(i,j,k,URHO) >  problem::X_min &&
+                state(i,j,k,UFS+1) >  problem::X_min * state(i,j,k,URHO) &&
                 level < problem::max_hse_tagging_level) {
                 tag(i,j,k) = TagBox::SET;
             }
