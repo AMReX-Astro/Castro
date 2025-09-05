@@ -104,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__math_8H.html">File Castro_math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -156,7 +157,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation6refluxEi"><code class="docutils literal notranslate"><span class="pre">reflux()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15compute_limiterEiRKN5amrex8BoxArrayERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">compute_limiter()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation15estimate_gamrPrERKN5amrex9FArrayBoxERKN5amrex9FArrayBoxERN5amrex9FArrayBoxEPKN5amrex4RealERKN5amrex3BoxE"><code class="docutils literal notranslate"><span class="pre">estimate_gamrPr()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11EstTimeStepERN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">EstTimeStep()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11filter_primEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">filter_prim()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation16compute_exchangeERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">compute_exchange()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Radiation11compute_etaERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEii"><code class="docutils literal notranslate"><span class="pre">compute_eta()</span></code></a></li>
@@ -299,7 +299,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
@@ -327,6 +326,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -674,19 +674,6 @@
 <li><p><strong>gPr</strong> – </p></li>
 <li><p><strong>dx</strong> – </p></li>
 <li><p><strong>box</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9Radiation11EstTimeStepERN5amrex4RealEi">
-<span id="_CPPv3N9Radiation11EstTimeStepERN5amrex4RealEi"></span><span id="_CPPv2N9Radiation11EstTimeStepERN5amrex4RealEi"></span><span id="Radiation::EstTimeStep__amrex::RealR.i"></span><span class="target" id="classRadiation_1aea7350b586f0fe6ff49c0a87263d4b16"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EstTimeStep</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">estdt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>estdt</strong> – </p></li>
-<li><p><strong>level</strong> – </p></li>
 </ul>
 </dd>
 </dl>

@@ -191,15 +191,10 @@ to the spherical coordinate, i.e.
 term (0 or 1; default: 0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rotational_period</span></code> : period (s) of rotation
 (default: 0.0)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotational_dPdt</span></code> : d(period) / dt for rotation
-(default: 0.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_centrifugal</span></code> : whether to
 include the centrifugal forcing (default: 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_coriolis</span></code> : whether to
 include the Coriolis forcing (default: 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_domegadt</span></code> : whether to
-include the forcing from the time derivative of the rotation
-frequency (default: 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span></code> : method of updating the
 energy during a rotation update (default: 4)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.implicit_rotation_update</span></code> : for the Coriolis
@@ -312,8 +307,8 @@ multiplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</
 <div class="math notranslate nohighlight" id="equation-eq-ekin-rot-total">
 <span class="eqno">(23)<a class="headerlink" href="#equation-eq-ekin-rot-total" title="Link to this equation"></a></span>\[\begin{split}\begin{align}
     \rho\vbt\cdot\frac{D\vbt}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
-    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
+    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right] \nonumber \\
+    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right].
   \end{align}\end{split}\]</div>
 <p>The internal energy is simply advected, and, from the first law of
 thermodynamics, can change due to <span class="math notranslate nohighlight">\(pdV\)</span> work:</p>
@@ -325,13 +320,13 @@ get the evolution of the total specific energy in the rotating frame,
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
     \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p \\
-                  &amp; + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
-    \frac{D\left(\rho \widetilde{E}\right)}{Dt} &amp;= -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
+                  &amp; + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right]\nonumber \\
+    \frac{D\left(\rho \widetilde{E}\right)}{Dt} &amp;= -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right] \label{eq:etot-rot-total}
   \end{align}\end{split}\]</div>
 <p>or</p>
 <div class="math notranslate nohighlight">
 \[\label{eq:etot-rot}
-    \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].\]</div>
+    \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right].\]</div>
 </section>
 <section id="switching-to-the-rotating-reference-frame">
 <h2>Switching to the rotating reference frame<a class="headerlink" href="#switching-to-the-rotating-reference-frame" title="Link to this heading"></a></h2>
@@ -385,8 +380,8 @@ kinetic energy to the old internal energy to determine the final
 total gas energy. The physical motivation is that work should be
 done on the velocity, and should not directly update the temperature
 – only indirectly through things like shocks.</p></li>
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">4</span></code><span class="classifier">the energy update is done in a</span></dt><dd><p>“conservative” fashion. The previous methods all evaluate the value
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">4</span></code> : the energy update is done in a
+“conservative” fashion. The previous methods all evaluate the value
 of the source term at the cell center, but this method evaluates
 the change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
@@ -394,10 +389,7 @@ losses at open domain boundaries). Additionally, the velocity
 update is slightly different—for the corrector step, we note that
 there is an implicit coupling between the velocity components, and
 we directly solve this coupled equation, which results in a
-slightly better coupling and a more accurate evolution.</p>
-</dd>
-</dl>
-</li>
+slightly better coupling and a more accurate evolution.</p></li>
 </ul>
 <p>The other major option is <code class="docutils literal notranslate"><span class="pre">castro.implicit_rotation_update</span></code>.
 This does the update of the Coriolis term in the momentum equation

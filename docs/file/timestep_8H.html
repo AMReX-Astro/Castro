@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File sdc_cons_to_burn.H &mdash; Castro  documentation</title>
+  <title>File timestep.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,8 +23,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File sdc_newton_solve.H" href="sdc__newton__solve_8H.html" />
-    <link rel="prev" title="File runtime_parameters.H" href="runtime__parameters_8H.html" /> 
+    <link rel="next" title="File vode_rhs_true_sdc.H" href="vode__rhs__true__sdc_8H.html" />
+    <link rel="prev" title="File slope.H" href="slope_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +48,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../file/sdc__cons__to__burn_8H.html">main</a> | <a href="../dev/file/sdc__cons__to__burn_8H.html">development</a>
+        Branch: <a href="../file/timestep_8H.html">main</a> | <a href="../dev/file/timestep_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -171,11 +171,18 @@
 <li class="toctree-l2"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="riemann__type_8H.html">File riemann_type.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_cons_to_burn.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File timestep.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv48timestep"><code class="docutils literal notranslate"><span class="pre">timestep</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8timestep10estdt_typeE"><code class="docutils literal notranslate"><span class="pre">estdt_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE"><code class="docutils literal notranslate"><span class="pre">estdt_rad()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -201,9 +208,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File sdc_cons_to_burn.H</li>
+      <li class="breadcrumb-item active">File timestep.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/sdc__cons__to__burn_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/timestep_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -211,29 +218,69 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-sdc-cons-to-burn-h">
-<h1>File sdc_cons_to_burn.H<a class="headerlink" href="#file-sdc-cons-to-burn-h" title="Link to this heading"></a></h1>
+  <section id="file-timestep-h">
+<h1>File timestep.H<a class="headerlink" href="#file-timestep-h" title="Link to this heading"></a></h1>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv48timestep">
+<span id="_CPPv38timestep"></span><span id="_CPPv28timestep"></span><span id="timestep"></span><span class="target" id="namespacetimestep"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">timestep</span></span></span><a class="headerlink" href="#_CPPv48timestep" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_typeE">
+<span id="_CPPv3N8timestep10estdt_typeE"></span><span id="_CPPv2N8timestep10estdt_typeE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_type</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_typeE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_type5hydroE">
+<span id="_CPPv3N8timestep10estdt_type5hydroE"></span><span id="_CPPv2N8timestep10estdt_type5hydroE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00a020b80b2dd7f851f6e160111a9ae7dd4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hydro</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_type5hydroE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_type3mhdE">
+<span id="_CPPv3N8timestep10estdt_type3mhdE"></span><span id="_CPPv2N8timestep10estdt_type3mhdE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00a96329ff20a7cca570db944d9f218c50e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mhd</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_type3mhdE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_type7burningE">
+<span id="_CPPv3N8timestep10estdt_type7burningE"></span><span id="_CPPv2N8timestep10estdt_type7burningE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00ac169305a4c0ebe0ff4507860fc4a0459"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">burning</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_type7burningE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_type9radiationE">
+<span id="_CPPv3N8timestep10estdt_type9radiationE"></span><span id="_CPPv2N8timestep10estdt_type9radiationE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00a465437b2ff52497b211ca8e22f9fb192"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">radiation</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_type9radiationE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep10estdt_type9diffusionE">
+<span id="_CPPv3N8timestep10estdt_type9diffusionE"></span><span id="_CPPv2N8timestep10estdt_type9diffusionE"></span><span class="target" id="namespacetimestep_1a22f7c46f8cf814ed9318ff63580e9c00a57a47d56249bec0fc5e0825835d97c10"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">diffusion</span></span></span><a class="headerlink" href="#_CPPv4N8timestep10estdt_type9diffusionE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="sdc__cons__to__burn_8H_1a7eab6a6bdadf1f9f09bd9f036a1acb1e"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">copy_cons_to_burn_type</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
+<span class="target" id="namespacetimestep_1ad2bcd7f76d390b0aed7d648440a990cb"></span><span class="sig-name descname"><span class="pre">template&lt;estdt_type</span> <span class="pre">T,</span> <span class="pre">typename...</span> <span class="pre">MFs&gt;</span> <span class="pre">AMREX_INLINE</span> <span class="pre">amrex::ValLocPair&lt;</span> <span class="pre">amrex::Real,</span> <span class="pre">amrex::IntVect</span> <span class="pre">&gt;</span> <span class="pre">estdt</span> <span class="pre">(const</span> <span class="pre">amrex::GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">amrex::MultiFab</span> <span class="pre">&amp;maskMF,</span> <span class="pre">const</span> <span class="pre">amrex::MultiFab</span> <span class="pre">&amp;stateMF,</span> <span class="pre">const</span> <span class="pre">MFs</span> <span class="pre">&amp;...</span> <span class="pre">mfs)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="sdc__cons__to__burn_8H_1ad777ab784e589d9154ce84d5c54f6d28"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">copy_cons_to_burn_type</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></span></dt>
-<dd></dd></dl>
+<dt class="sig sig-object cpp" id="_CPPv4N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE">
+<span id="_CPPv3N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE"></span><span id="_CPPv2N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE"></span><span id="timestep::estdt_rad__amrex::MultiFabCR.amrex::MultiFabCR.amrex::GeometryDataCR"></span><span class="target" id="namespacetimestep_1a78a5f19b01a9697f8817013c9577aec7"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">estdt_rad</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stateMF</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radMF</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">GeometryData</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">geomdata</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="Radiation_8H.html#classRadiation"><span class="std std-ref">Radiation</span></a> hydro timestep </p>
+</dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="runtime__parameters_8H.html" class="btn btn-neutral float-left" title="File runtime_parameters.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sdc__newton__solve_8H.html" class="btn btn-neutral float-right" title="File sdc_newton_solve.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="slope_8H.html" class="btn btn-neutral float-left" title="File slope.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="vode__rhs__true__sdc_8H.html" class="btn btn-neutral float-right" title="File vode_rhs_true_sdc.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

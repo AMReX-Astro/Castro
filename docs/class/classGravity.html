@@ -143,8 +143,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_direct_sum_BCs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">make_mg_bc()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">applyMetricTerms()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7Gravity11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">unweight_cc()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">unweight_edges()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4NK7Gravity24add_pointmass_to_gravityEiRN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">add_pointmass_to_gravity()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity7get_rhsEiii"><code class="docutils literal notranslate"><span class="pre">get_rhs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N7Gravity12sanity_checkEi"><code class="docutils literal notranslate"><span class="pre">sanity_check()</span></code></a></li>
@@ -682,32 +680,6 @@
 <li><p><strong>level</strong> – Level index </p></li>
 <li><p><strong>Rhs</strong> – MultiFab </p></li>
 <li><p><strong>coeffs</strong> – Vector of MultiFabs </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK7Gravity11unweight_ccEiRN5amrex8MultiFabE">
-<span id="_CPPv3NK7Gravity11unweight_ccEiRN5amrex8MultiFabE"></span><span id="_CPPv2NK7Gravity11unweight_ccEiRN5amrex8MultiFabE"></span><span id="Gravity::unweight_cc__i.amrex::MultiFabRC"></span><span class="target" id="classGravity_1a9c7b7825a5f54cc6744622303631dc00"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unweight_cc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7Gravity11unweight_ccEiRN5amrex8MultiFabE" title="Link to this definition"></a><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>level</strong> – Index of level </p></li>
-<li><p><strong>cc</strong> – Cell-centered data </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE">
-<span id="_CPPv3NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="_CPPv2NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="Gravity::unweight_edges__i.amrex::Vector:amrex::MultiFabP:CRC"></span><span class="target" id="classGravity_1ac4372882ee98eaaf36472e55eef0b636"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unweight_edges</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">edges</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE" title="Link to this definition"></a><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>level</strong> – Index of level </p></li>
-<li><p><strong>edges</strong> – Edge-based data </p></li>
 </ul>
 </dd>
 </dl>

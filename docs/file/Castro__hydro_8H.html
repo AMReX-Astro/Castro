@@ -104,7 +104,6 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_hydro.H</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv412cons_to_primKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv419cons_to_prim_fourthKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim_fourth()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv423check_for_cfl_violationRKN5amrex8MultiFabEKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">check_for_cfl_violation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv426construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_ctu_hydro_source()</span></code></a></li>
@@ -161,6 +160,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__math_8H.html">File Castro_math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -204,7 +204,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
@@ -232,6 +231,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -278,22 +278,6 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>time</strong> – current time </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE">
-<span id="_CPPv312cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE"></span><span id="_CPPv212cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE"></span><span id="cons_to_prim__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::RealC"></span><span class="target" id="Castro__hydro_8H_1a9f0c6b3dcfe37487f2b27006c1186818"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cons_to_prim</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">u</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">q</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">qaux</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE" title="Link to this definition"></a><br /></dt>
-<dd><p>Calculate primitive variables from given conserved variables</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>u</strong> – MultiFab of conserved variables </p></li>
-<li><p><strong>q</strong> – MultiFab to save primitive variables to </p></li>
-<li><p><strong>qaux</strong> – MultiFab of auxiliary variables </p></li>
-<li><p><strong>time</strong> – Current time </p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>

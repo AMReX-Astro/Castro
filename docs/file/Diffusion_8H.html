@@ -104,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__math_8H.html">File Castro_math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -126,8 +127,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">applyop()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">make_mg_bc()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion22output_job_info_paramsERNSt7ostreamE"><code class="docutils literal notranslate"><span class="pre">output_job_info_params()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9weight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">weight_cc()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">unweight_cc()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">applyop_mlmg()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion6parentE"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N9Diffusion9LevelDataE"><code class="docutils literal notranslate"><span class="pre">LevelData</span></code></a></li>
@@ -174,7 +173,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
@@ -202,6 +200,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -342,32 +341,6 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-functions">Protected Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9Diffusion9weight_ccEiRN5amrex8MultiFabE">
-<span id="_CPPv3N9Diffusion9weight_ccEiRN5amrex8MultiFabE"></span><span id="_CPPv2N9Diffusion9weight_ccEiRN5amrex8MultiFabE"></span><span id="Diffusion::weight_cc__i.amrex::MultiFabR"></span><span class="target" id="classDiffusion_1a5495ec4181da7070fd6fd5de2ba1de67"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">weight_cc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cc</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>level</strong> – </p></li>
-<li><p><strong>cc</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N9Diffusion11unweight_ccEiRN5amrex8MultiFabE">
-<span id="_CPPv3N9Diffusion11unweight_ccEiRN5amrex8MultiFabE"></span><span id="_CPPv2N9Diffusion11unweight_ccEiRN5amrex8MultiFabE"></span><span id="Diffusion::unweight_cc__i.amrex::MultiFabR"></span><span class="target" id="classDiffusion_1a7d4432e5388a54aa38fef36bf4c11cb1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unweight_cc</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cc</span></span><span class="sig-paren">)</span><br /></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>level</strong> – </p></li>
-<li><p><strong>cc</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">
 <span id="_CPPv3N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="_CPPv2N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="Diffusion::applyop_mlmg__i.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Vector:std::unique_ptr:amrex::MultiFab::R"></span><span class="target" id="classDiffusion_1a418756e46e6ed71df1ed7202cd221250"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">applyop_mlmg</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">level</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Temperature</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">CrseTemp</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">DiffTerm</span></span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unique_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">MultiFab</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">temp_cond_coef</span></span><span class="sig-paren">)</span><br /></dt>

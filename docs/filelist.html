@@ -104,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__math_8H.html">File Castro_math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__react__util_8H.html">File Castro_react_util.H</a></li>
@@ -147,7 +148,6 @@
 <li class="toctree-l2"><a class="reference internal" href="file/fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/global_8H.html">File global.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/math_8H.html">File math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/mhd__sizes_8H.html">File mhd_sizes.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/mhd__util_8H.html">File mhd_util.H</a></li>
@@ -175,6 +175,7 @@
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/slope_8H.html">File slope.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/timestep_8H.html">File timestep.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
@@ -298,11 +299,6 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">finalize_do_advance()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro11estTimeStepEi"><code class="docutils literal notranslate"><span class="pre">estTimeStep()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro9estdt_cflEi"><code class="docutils literal notranslate"><span class="pre">estdt_cfl()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro9estdt_mhdEi"><code class="docutils literal notranslate"><span class="pre">estdt_mhd()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro20estdt_temp_diffusionEi"><code class="docutils literal notranslate"><span class="pre">estdt_temp_diffusion()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro13estdt_burningEi"><code class="docutils literal notranslate"><span class="pre">estdt_burning()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro9estdt_radEi"><code class="docutils literal notranslate"><span class="pre">estdt_rad()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro15initialTimeStepEv"><code class="docutils literal notranslate"><span class="pre">initialTimeStep()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">computeInitialDt()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html#_CPPv4N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">computeNewDt()</span></code></a></li>
@@ -388,7 +384,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__hydro_8H.html">File Castro_hydro.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html#_CPPv412cons_to_primKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html#_CPPv412cons_to_primRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html#_CPPv419cons_to_prim_fourthKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">cons_to_prim_fourth()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html#_CPPv423check_for_cfl_violationRKN5amrex8MultiFabEKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">check_for_cfl_violation()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__hydro_8H.html#_CPPv426construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_ctu_hydro_source()</span></code></a></li>
@@ -460,6 +455,10 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="file/Castro__math_8H.html">File Castro_math.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__math_8H.html#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">amrex::literals</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__mhd_8H.html">File Castro_mhd.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__mhd_8H.html#_CPPv424construct_ctu_mhd_sourceN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_ctu_mhd_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__mhd_8H.html#_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">plm()</span></code></a></li>
@@ -520,7 +519,7 @@
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv411source_flagi"><code class="docutils literal notranslate"><span class="pre">source_flag()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv413apply_sourcesv"><code class="docutils literal notranslate"><span class="pre">apply_sources()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424get_output_at_completionv"><code class="docutils literal notranslate"><span class="pre">get_output_at_completion()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv421apply_source_to_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">apply_source_to_state()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv421apply_source_to_stateRN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">apply_source_to_state()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv414do_old_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEb"><code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv414do_old_sourcesN5amrex4RealEN5amrex4RealEb"><code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv420construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_source()</span></code></a></li>
@@ -533,14 +532,14 @@
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv432evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealERKNSt6stringE"><code class="docutils literal notranslate"><span class="pre">evaluate_and_print_source_change()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">time_center_source_terms()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_old_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_sponge_source()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_new_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_sponge_source()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_new_sponge_sourceRN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_sponge_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv412apply_spongeRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">apply_sponge()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_ext_source()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_ext_source()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424construct_old_ext_sourceRN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_ext_source()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv424construct_new_ext_sourceRN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_ext_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv415fill_ext_sourceKN5amrex4RealEKN5amrex4RealERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_ext_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_thermo_source()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_new_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_thermo_source()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv418fill_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_thermo_source()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv427construct_new_thermo_sourceRN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_thermo_source()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv418fill_thermo_sourceRKN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_thermo_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv425construct_old_geom_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_old_geom_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv425construct_new_geom_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"><code class="docutils literal notranslate"><span class="pre">construct_new_geom_source()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/Castro__sources_8H.html#_CPPv419fill_RZ_geom_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_RZ_geom_source()</span></code></a></li>
@@ -611,8 +610,6 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">applyop()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">make_mg_bc()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion22output_job_info_paramsERNSt7ostreamE"><code class="docutils literal notranslate"><span class="pre">output_job_info_params()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion9weight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">weight_cc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">unweight_cc()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion12applyop_mlmgEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"><code class="docutils literal notranslate"><span class="pre">applyop_mlmg()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion6parentE"><code class="docutils literal notranslate"><span class="pre">parent</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Diffusion_8H.html#_CPPv4N9Diffusion9LevelDataE"><code class="docutils literal notranslate"><span class="pre">LevelData</span></code></a></li>
@@ -667,8 +664,6 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">fill_direct_sum_BCs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4N7Gravity10make_mg_bcEv"><code class="docutils literal notranslate"><span class="pre">make_mg_bc()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4NK7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">applyMetricTerms()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4NK7Gravity11unweight_ccEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">unweight_cc()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4NK7Gravity14unweight_edgesEiRKN5amrex6VectorIPN5amrex8MultiFabEEE"><code class="docutils literal notranslate"><span class="pre">unweight_edges()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4NK7Gravity24add_pointmass_to_gravityEiRN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">add_pointmass_to_gravity()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4N7Gravity7get_rhsEiii"><code class="docutils literal notranslate"><span class="pre">get_rhs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html#_CPPv4N7Gravity12sanity_checkEi"><code class="docutils literal notranslate"><span class="pre">sanity_check()</span></code></a></li>
@@ -844,9 +839,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/MGutils_8H.html">File MGutils.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/MGutils_8H.html#_CPPv412apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3Box8GpuArrayI4Real14AMREX_SPACEDIMEKi"><code class="docutils literal notranslate"><span class="pre">apply_metric()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGutils_8H.html#_CPPv412do_weight_ccRK3BoxK6Array4I4RealE8GpuArrayI4Real14AMREX_SPACEDIMEKi"><code class="docutils literal notranslate"><span class="pre">do_weight_cc()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGutils_8H.html#_CPPv414do_unweight_ccRK3BoxK6Array4I4RealE8GpuArrayI4Real14AMREX_SPACEDIMEKi"><code class="docutils literal notranslate"><span class="pre">do_unweight_cc()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGutils_8H.html#_CPPv417do_unweight_edgesRK3BoxK6Array4I4RealEKi8GpuArrayI4Real14AMREX_SPACEDIMEKi"><code class="docutils literal notranslate"><span class="pre">do_unweight_edges()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/NGBndry_8H.html">File NGBndry.H</a><ul>
@@ -1014,7 +1006,6 @@
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation6refluxEi"><code class="docutils literal notranslate"><span class="pre">reflux()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation15compute_limiterEiRKN5amrex8BoxArrayERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">compute_limiter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation15estimate_gamrPrERKN5amrex9FArrayBoxERKN5amrex9FArrayBoxERN5amrex9FArrayBoxEPKN5amrex4RealERKN5amrex3BoxE"><code class="docutils literal notranslate"><span class="pre">estimate_gamrPr()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation11EstTimeStepERN5amrex4RealEi"><code class="docutils literal notranslate"><span class="pre">EstTimeStep()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation11filter_primEiRN5amrex8MultiFabE"><code class="docutils literal notranslate"><span class="pre">filter_prim()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation16compute_exchangeERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi"><code class="docutils literal notranslate"><span class="pre">compute_exchange()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html#_CPPv4N9Radiation11compute_etaERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEii"><code class="docutils literal notranslate"><span class="pre">compute_eta()</span></code></a></li>
@@ -1202,10 +1193,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/math_8H.html">File math.H</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/math_8H.html#_CPPv4N5amrex8literalsE"><code class="docutils literal notranslate"><span class="pre">amrex::literals</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/mhd__sizes_8H.html">File mhd_sizes.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/mhd__sizes_8H.html#_CPPv45UMAGX"><code class="docutils literal notranslate"><span class="pre">UMAGX</span></code></a></li>
@@ -1307,6 +1294,21 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__react__util_8H.html">File sdc_react_util.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/slope_8H.html">File slope.H</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/timestep_8H.html">File timestep.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/timestep_8H.html#_CPPv48timestep"><code class="docutils literal notranslate"><span class="pre">timestep</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_typeE"><code class="docutils literal notranslate"><span class="pre">estdt_type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_type5hydroE"><code class="docutils literal notranslate"><span class="pre">hydro</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_type3mhdE"><code class="docutils literal notranslate"><span class="pre">mhd</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_type7burningE"><code class="docutils literal notranslate"><span class="pre">burning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_type9radiationE"><code class="docutils literal notranslate"><span class="pre">radiation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep10estdt_type9diffusionE"><code class="docutils literal notranslate"><span class="pre">diffusion</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="file/timestep_8H.html#_CPPv4N8timestep9estdt_radERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex12GeometryDataE"><code class="docutils literal notranslate"><span class="pre">estdt_rad()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="file/vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </div>
