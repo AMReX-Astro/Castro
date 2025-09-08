@@ -226,7 +226,9 @@ Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-function
 #endif
 #if AMREX_SPACEDIM <= 2
                    Array4<Real const> const& q0,
+#if AMREX_SPACEDIM == 2
                    Array4<Real const> const& q1,
+#endif
 #endif
                    Array4<Real const> const& vol) {
 
@@ -239,7 +241,9 @@ Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-function
 #if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
   auto coord = geom.Coord();
+#if AMREX_SPACEDIM == 2
   auto prob_lo = geom.ProbLoArray();
+#endif
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
@@ -267,11 +271,13 @@ Castro::mol_consup(const Box& bx,  // NOLINT(readability-convert-member-function
 
             update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
 
+#if AMREX_SPACEDIM == 2
         } else if (n == UMY && !mom_flux_has_p(1, 1, coord)) {
             // Add gradp term to polar(theta) momentum equation for Spherical 2D geometry
 
             Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             update(i,j,k,UMY) -= (q1(i,j+1,k,GDPRES) - q1(i,j,k,GDPRES)) / (r * dx[1]);
+#endif
         }
     }
 #endif

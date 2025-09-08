@@ -121,7 +121,7 @@ def doit(plotfile):
     sc.annotate_axes(alpha=0.005, thickness=6)
 
     sc.save(f"{plotfile}_abar_top.png", sigma_clip=3.0)
-    sc.save_annotated("{}_abar_annotated_top.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_abar_annotated_top.png",
                       sigma_clip=3.0, label_fmt="%.2f",
                       text_annotate=[[(0.05, 0.05),
                                       f"t = {ds.current_time.d:7.5f} s",

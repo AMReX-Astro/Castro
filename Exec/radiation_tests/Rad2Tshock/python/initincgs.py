@@ -38,7 +38,7 @@ def main():
         elif o == "-mu":
             mu = float(a)
 
-    print "In Lowrie-Edwards units and shock frame: (Here sigma is \kappa_P and kappa is c\lambda/\Chi)"
+    print r"In Lowrie-Edwards units and shock frame: (Here sigma is \kappa_P and kappa is c\lambda/\Chi)"
     print 'P0=', P0, 'gamma=', gamma, 'mu=', mu, 'sigma=', sigma, 'kappa=', kappa, 'M0=', M0
     print ''
 

@@ -30,7 +30,7 @@ def process(castro_exec_dir, plotfile):
                 analysis_routine = full_dir+"/"+f
                 break
 
-    print("analysis_routine = {}".format(analysis_routine))
+    print(f"analysis_routine = {analysis_routine}")
 
     shutil.copy(analysis_routine, run_dir)
 

@@ -77,11 +77,10 @@ Castro::trace_ppm(const Box& bx,
   // working on, since the PPM reconstruction and integration done
   // here is only local to this tile.
 
-  GpuArray<int, NQSRC> do_source_trace;
+  GpuArray<int, NQSRC> do_source_trace{};
 
 
   for (int n = 0; n < NQSRC; n++) {
-    do_source_trace[n] = 0;
 
     // geometric source terms in r-direction for nonCartesian coordinate
     // or theta-direction in spherical coordinate need tracing

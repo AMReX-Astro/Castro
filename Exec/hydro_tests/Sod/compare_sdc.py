@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
 
 import argparse
 import matplotlib
@@ -110,11 +109,11 @@ if __name__ == "__main__":
 
     ppm_prefix = args.ppm[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.ppm], key=int)
-    last_ppm_file = "{}{}".format(ppm_prefix, plot_nums[-1])
+    last_ppm_file = f"{ppm_prefix}{plot_nums[-1]}"
 
     sdc_prefix = args.sdc[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.sdc], key=int)
-    last_sdc_file = "{}{}".format(sdc_prefix, plot_nums[-1])
+    last_sdc_file = f"{sdc_prefix}{plot_nums[-1]}"
 
     doit(last_ppm_file, last_sdc_file, args.exact, args.o)
 

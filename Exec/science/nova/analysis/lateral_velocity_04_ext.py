@@ -82,7 +82,7 @@ for time in times:
     val /= 1.0e6
 
     time = (ds_m.current_time.value + ds_c.current_time.value + ds_p.current_time.value)/3
-    ax.plot(x, val, label="${:.2f}\,[s]$".format(time))
+    ax.plot(x, val, label=f"${time:.2f}\,[s]$")
 
 ax.legend(loc="upper left")
 plt.axvline(x = 225.8, color='k', linestyle='--')

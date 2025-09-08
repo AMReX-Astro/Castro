@@ -17,23 +17,4 @@ apply_metric(const Box& bx,
              GpuArray<Real, AMREX_SPACEDIM> dx,
              const int coord_type);
 
-void
-do_weight_cc(const Box& bx,
-             Array4<Real> const cc,
-             GpuArray<Real, AMREX_SPACEDIM> dx,
-             const int coord_type);
-
-void
-do_unweight_cc(const Box& bx,
-               Array4<Real> const cc,
-               GpuArray<Real, AMREX_SPACEDIM> dx,
-               const int coord_type);
-
-void
-do_unweight_edges(const Box& bx,
-                  Array4<Real> const ec,
-                  const int idir,
-                  GpuArray<Real, AMREX_SPACEDIM> dx,
-                  const int coord_type);
-
 #endif
