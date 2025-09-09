@@ -103,7 +103,7 @@ Run with:
 ```
 where the Gaussian wave is initialized at r=0.6 and θ=0.
 
-We again get 2nd order accuracy with AMR:
+We again get 2nd order accuracy against analytic solution, this time with AMR.
 ```
  base resolution      L-inf error
  (64 ,  64)          0.004210716769
