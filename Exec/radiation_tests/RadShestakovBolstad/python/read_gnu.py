@@ -5,7 +5,7 @@ from numpy import *
 def read_gnu_file(filenm):
     x = []
     y = []
-    f = open(filenm, 'r')
+    f = open(filenm)
     line = f.readline()
     t = float(line.split('"')[1].split('=')[2])
     for line in f.readlines():

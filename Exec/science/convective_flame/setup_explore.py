@@ -23,23 +23,23 @@ def write_files(odir, param_dict):
 
     if os.path.exists(odir) == False:
         os.mkdir(odir)
-    with open("{}/inputs.2d".format(odir), "w") as in_file:
+    with open(f"{odir}/inputs.2d", "w") as in_file:
         for line in inputs_lines:
             for key in param_dict:
-                line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
+                line = line.replace(f"@@{key}@@", f"{param_dict[key]}")
             in_file.write(line)
 
-    with open("{}/probin".format(odir), "w") as prob_file:
+    with open(f"{odir}/probin", "w") as prob_file:
         for line in probin_lines:
             for key in param_dict:
-                line = line.replace("@@{}@@".format(key), "{}".format(param_dict[key]))
+                line = line.replace(f"@@{key}@@", f"{param_dict[key]}")
             prob_file.write(line)
 
 # read in the templates
-with open(inputs_file, "r") as in_file:
+with open(inputs_file) as in_file:
     inputs_lines = in_file.readlines()
 
-with open(probin_file, "r") as prob_file:
+with open(probin_file) as prob_file:
     probin_lines = prob_file.readlines()
 
 # values to be replaced in the template files.

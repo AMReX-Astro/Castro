@@ -143,8 +143,8 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     v0_eps = M0 / rho0_eps
     M0_eps = v0_eps / np.sqrt(T0_eps)
     print('       %10s %10s %10s %10s %10s' % ('rho', 'v', 'M', 'T', 'theta'))
-    print('0    : %.8f %.8f %.8f %.8f %.8f' % (rho0, v0, M0, T0, theta0))
-    print('0,eps: %.8f %.8f %.8f %.8f %.8f' % (rho0_eps, v0_eps, M0_eps, T0_eps, theta0_eps))
+    print('0    : {:.8f} {:.8f} {:.8f} {:.8f} {:.8f}'.format(rho0, v0, M0, T0, theta0))
+    print('0,eps: {:.8f} {:.8f} {:.8f} {:.8f} {:.8f}'.format(rho0_eps, v0_eps, M0_eps, T0_eps, theta0_eps))
 
     # Step 2b
     x0_eps = 0.0
@@ -173,8 +173,8 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=5):
     M1_eps = v1_eps / np.sqrt(T1_eps)
     print('')
     print('       %10s %10s %10s %10s %10s' % ('rho', 'v', 'M', 'T', 'theta'))
-    print('1    : %.8f %.8f %.8f %.8f %.8f' % (rho1, v1, M1, T1, theta1))
-    print('1,eps: %.8f %.8f %.8f %.8f %.8f' % (rho1_eps, v1_eps, M1_eps, T1_eps, theta1_eps))
+    print('1    : {:.8f} {:.8f} {:.8f} {:.8f} {:.8f}'.format(rho1, v1, M1, T1, theta1))
+    print('1,eps: {:.8f} {:.8f} {:.8f} {:.8f} {:.8f}'.format(rho1_eps, v1_eps, M1_eps, T1_eps, theta1_eps))
 
     # Step 3b
     x1_eps = 0.0
@@ -315,7 +315,7 @@ if __name__ == "__main__":
         plt.plot(x1,temp1, '.', label="Simulation")
         plt.plot(x_sol*1e5, T_sol*100, '-', label="Solution")
         plt.legend()
-        plt.savefig("{}_Temp_Test.png".format(os.path.basename(args.plotfile)))
+        plt.savefig(f"{os.path.basename(args.plotfile)}_Temp_Test.png")
 
 
         t1, x1, rho1 = get_x_var(args.plotfile, "density")
@@ -324,4 +324,4 @@ if __name__ == "__main__":
         plt.plot(x1, rho1, '.', label='Simulation')
         plt.plot(x_sol*1e5, rho_sol*5.459690277750901e-13,'-',label='Solution')
         plt.legend()
-        plt.savefig("{}_Density_Test.png".format(os.path.basename(args.plotfile)))
+        plt.savefig(f"{os.path.basename(args.plotfile)}_Density_Test.png")

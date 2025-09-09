@@ -15,8 +15,9 @@ void problem_initialize ()
     problem::ic12 = network_spec_index("carbon-12");
     problem::in14 = network_spec_index("nitrogen-14");
     problem::io16 = network_spec_index("oxygen-16");
+    problem::ine20 = network_spec_index("neon-20");
 
-    if (problem::ihe4 < 0 || problem::ic12 < 0 || problem::io16 < 0) {
+    if (problem::ihe4 < 0 || problem::ic12 < 0 || problem::io16 < 0 || problem::ine20 < 0) {
         amrex::Error("ERROR: species indices not found");
     }
 
@@ -38,10 +39,16 @@ void problem_initialize ()
         amrex::Error("ERROR: ofrac must fall between 0 and 1");
     }
 
-    // make sure that the C/O fraction sums to no more than 1
+    // make sure that the neon fraction falls between 0 and 1
 
-    if (problem::cfrac + problem::nfrac + problem::ofrac > 1.0_rt) {
-        amrex::Error("ERROR: cfrac + nfrac + ofrac cannot exceed 1.");
+    if (problem::nefrac > 1.0_rt || problem::nefrac < 0.0_rt) {
+        amrex::Error("ERROR: nefrac must fall between 0 and 1");
+    }
+
+    // make sure that the C/N/O/Ne fraction sums to no more than 1
+
+    if (problem::cfrac + problem::nfrac + problem::ofrac + problem::nefrac > 1.0_rt) {
+        amrex::Error("ERROR: cfrac + nfrac + ofrac + nefrac cannot exceed 1.");
     }
 
     // set the default mass fractions
@@ -52,18 +59,21 @@ void problem_initialize ()
 
     problem::xn[problem::ic12] = amrex::max(problem::cfrac, problem::smallx);
     problem::xn[problem::io16] = amrex::max(problem::ofrac, problem::smallx);
+    problem::xn[problem::ine20] = amrex::max(problem::nefrac, problem::smallx);
 
     if (problem::in14 >= 0) {
        problem::xn[problem::in14] = amrex::max(problem::nfrac, problem::smallx);
        problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
                                            - problem::xn[problem::in14]
                                            - problem::xn[problem::io16]
-                                           - (NumSpec - 4) * problem::smallx;
+                                           - problem::xn[problem::ine20]
+                                           - (NumSpec - 5) * problem::smallx;
     }
     else {
        problem::xn[problem::ihe4] = 1.0_rt - problem::xn[problem::ic12]
                                            - problem::xn[problem::io16]
-                                           - (NumSpec - 3) * problem::smallx;
+                                           - problem::xn[problem::ine20]
+                                           - (NumSpec - 4) * problem::smallx;
     }
 
     // Set the ambient material

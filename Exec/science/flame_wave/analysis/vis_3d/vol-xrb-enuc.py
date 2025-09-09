@@ -77,7 +77,7 @@ def doit(plotfile):
     cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_Hnuc_annotated_side.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_Hnuc_annotated_side.png",
                       text_annotate=[[(0.05, 0.05),
                                       f"t = {ds.current_time.d:7.5f} s",
                                       dict(horizontalalignment="left")]])
@@ -102,7 +102,7 @@ def doit(plotfile):
     cam.zoom(0.6)
     sc.camera = cam
 
-    sc.save_annotated("{}_Hnuc_annotated_top.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_Hnuc_annotated_top.png",
                       text_annotate=[[(0.05, 0.05),
                                       f"t = {ds.current_time.d:7.5f} s",
                                       dict(horizontalalignment="left")]])
