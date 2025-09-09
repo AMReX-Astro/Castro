@@ -68,6 +68,9 @@ analytic solution, giving:
 An analytic convergence test with 2D spherical geometry is done
 using the initial condition constructed with spherical-bessel function
 and legendre polynomial, which tests both radial and theta dependence.
+This test runs without AMR because the spherical-bessel function
+oscillates in temperature, so its hard to have a well-defined
+refinement criteria.
 Run with:
 
 ```
@@ -84,6 +87,28 @@ shows 2nd order accuracy:
  (64 ,  64)          0.0008168088258
  (128, 128)          0.0002035772451
  (256, 256)          5.109916938e-05
+```
+
+
+## 2-d Spherical Geometry with AMR
+To test AMR against analytic solution, use the Gaussian wave.
+Note that since 2D spherical geometry assumes symmetry in azimuthal direction,
+the Gaussian wave must be initialized along the symmetry axis.
+To test θ dependence, it needs to be initialized off from the center.
+Run with:
+```
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.n_cell=64 64   problem.center=0.6 0 0
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.n_cell=128 128 problem.center=0.6 0 0
+./Castro2d.gnu.MPI.ex inputs.2d.sph.gaussian amr.n_cell=256 256 problem.center=0.6 0 0
+```
+where the Gaussian wave is initialized at r=0.6 and θ=0.
+
+We again get 2nd order accuracy with AMR:
+```
+ base resolution      L-inf error
+ (64 ,  64)          0.004210716769
+ (128, 128)          0.001066007998
+ (256, 256)          0.0002660267405
 ```
 
 
@@ -277,10 +302,11 @@ Temp&         1.770452e-06 & 3.966033724 & 1.132894e-07 \\
 e.g. we see fourth-order convergence in the temperature
 
 
-## 2-d spherical geometry (with AMR)
+## 2-d spherical geometry with AMR and non-constant conductivity
 
 We use a non-center Gaussian initial condition to test
-resolution convergence and AMR for 2D spherical geometry.
+resolution convergence when using a non-constant conductivity
+for 2D spherical geometry.
 
 First compile with power law conductivity:
 
