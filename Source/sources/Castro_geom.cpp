@@ -26,7 +26,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
       return;
   }
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
   const Real strt_time = ParallelDescriptor::second();
 
   MultiFab geom_src(grids, dmap, source.nComp(), 0);
@@ -83,7 +83,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old,
       return;
   }
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM <= 2
   const Real strt_time = ParallelDescriptor::second();
 
   MultiFab geom_src(grids, dmap, source.nComp(), 0);
