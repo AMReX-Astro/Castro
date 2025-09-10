@@ -232,6 +232,10 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   endif
 endif
 
+ifeq ($(USE_REACT), TRUE)
+  USE_SHOCK_VAR = TRUE
+endif
+
 ifeq ($(USE_SHOCK_VAR), TRUE)
   DEFINES += -DSHOCK_VAR
 endif
