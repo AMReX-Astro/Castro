@@ -806,3 +806,34 @@ Castro::enforce_reflect_states(const Box& bx, const int idir,
 
     }
 }
+
+
+void
+Castro::enforce_species_sum(const Box& bx,
+                            Array4<Real> const& qm,
+                            Array4<Real> const& qp) {
+
+    // this is a loop over interfaces
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+        Real sum_xm{0.0};
+        Real sum_xp{0.0};
+
+        for (int n = 0; n < NumSpec; ++n) {
+            qm(i,j,k,QFS+n) = std::max(0.0, std::min(1.0, qm(i,j,k,QFS+n)));
+            sum_xm += qm(i,j,k,QFS+n);
+
+            qp(i,j,k,QFS+n) = std::max(0.0, std::min(1.0, qp(i,j,k,QFS+n)));
+            sum_xp += qp(i,j,k,QFS+n);
+        }
+
+        for (int n = 0; n < NumSpec; ++n) {
+            qm(i,j,k,QFS+n) /= sum_xm;
+            qp(i,j,k,QFS+n) /= sum_xp;
+        }
+
+    });
+
+}
