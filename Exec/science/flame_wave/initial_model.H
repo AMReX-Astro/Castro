@@ -1,6 +1,8 @@
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 
+#include <AMReX_REAL.H>
+
 //  Create a 1-d hydrostatic, atmosphere with an isothermal region
 //  (T_star) representing the NS, a hyperbolic tangent rise to a
 //  peak temperature (T_hi) representing the base of an accreted
@@ -95,7 +97,7 @@ Real evaluate_tanh(const Real z) {
 AMREX_INLINE
 void
 generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
-                       const model_t model_params, const int model_num)
+                       const model_t& model_params, const int model_num)
 {
 
 
@@ -114,7 +116,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     // create the grid -- cell centers
 
-    Real dx = (xmax - xmin) / npts_model;
+    Real dx = (xmax - xmin) / static_cast<amrex::Real>(npts_model);
 
     for (int i = 0; i < npts_model; i++) {
         model::profile(model_num).r(i) =
@@ -274,12 +276,12 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
        // start off the Newton loop by saying that the zone has not converged
 
-       bool converged_hse = false;
-
        Real pres_zone;
        Real entropy;
 
        if (!fluff) {
+
+           bool converged_hse = false;
 
            Real p_want;
            Real drho;

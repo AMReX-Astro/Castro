@@ -50,7 +50,7 @@ for i, f in enumerate(fields):
 
     if f == "Temp":
         sp.set_zlim(f, 5.e7, 4e9)
-        sp.set_cmap(f, "magma_r")
+        sp.set_cmap(f, "magma")
     elif f == "enuc":
         sp.set_log(f, True, linthresh=1.e18)
         sp.set_zlim(f, -1.e22, 1.e22)
@@ -85,8 +85,8 @@ for i, f in enumerate(fields):
 
     sp._setup_plots()
 
-fig.text(0.02, 0.02, "time = {:8.5f} s".format(float(ds.current_time)), transform=fig.transFigure)
+fig.text(0.02, 0.02, f"time = {float(ds.current_time):8.5f} s", transform=fig.transFigure)
 
 fig.set_size_inches(19.2, 10.8)
 plt.tight_layout()
-plt.savefig("{}_slice.png".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_slice.png")

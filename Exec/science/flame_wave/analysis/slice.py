@@ -31,6 +31,8 @@ for f in fields:
         sp.set_zlim(f, 5.e7, 1.5e9)
     elif f == "enuc":
         sp.set_zlim(f, 1.e18, 1.e20)
+        # set the background color to the bottom value of the colormap
+        sp.set_background_color("enuc", None)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":
@@ -44,7 +46,7 @@ for f in fields:
 
     sp.set_axes_unit("cm")
 
-    sp.annotate_text((0.05, 0.05), "{:8.5f} s".format(float(ds.current_time.in_cgs())),
+    sp.annotate_text((0.05, 0.05), f"{float(ds.current_time.in_cgs()):8.5f} s",
                      coord_system="figure", text_args={"color": "black"})
 
-    sp.save("{}_{}_slice.png".format(os.path.basename(plotfile), f))
+    sp.save(f"{os.path.basename(plotfile)}_{f}_slice.png")

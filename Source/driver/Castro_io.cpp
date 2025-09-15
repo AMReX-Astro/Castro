@@ -248,12 +248,14 @@ Castro::restart (Amr&     papa,
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
 
+#if AMREX_SPACEDIM >= 2
              d = 1;
              dlen =  domain.size()[d];
              lo =   dlen/4    ;
              hi = 3*dlen/4 - 1;
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
+#endif
 
           } else {
              for (int d = 0; d < AMREX_SPACEDIM; d++)
@@ -520,14 +522,12 @@ Castro::setPlotVariables ()
     parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
   }
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
           parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
       }
   }
-#endif
 #endif
 
 }
@@ -1016,7 +1016,7 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto &name : derive_names)
+        for (const auto &name : derive_names)
         {
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {

@@ -156,13 +156,13 @@ dual_energy_eta1             Real          1.0e0
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4
 
-# for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?  This is a well-balanced method that
-# does well with HSE
+# for the piecewise linear or piecewise parabolic reconstruction, do
+# we subtract off :math:`(\rho g)` from the pressure before limiting?
+# This is a well-balanced method that does well with HSE.
 use_pslope                   bool           0
 
 # for PPM, do we only use the perturbational pressure in the characteristic
-# tracing?  This is more indepth than the simple `use_pslope` approach.
+# tracing?  This is more in-depth than the simple `use_pslope` approach.
 ppm_well_balanced            bool           0
 
 # if we are using pslope, below what density to we turn off the well-balanced

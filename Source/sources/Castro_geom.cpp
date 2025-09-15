@@ -1,5 +1,5 @@
 #include <Castro.H>
-#include <math.H>
+#include <Castro_math.H>
 
 using namespace amrex;
 

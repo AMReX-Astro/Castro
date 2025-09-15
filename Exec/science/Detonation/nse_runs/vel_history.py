@@ -76,7 +76,7 @@ if __name__ == "__main__":
     print(run_dir)
 
     # get all the plotfiles
-    pfiles = glob.glob("{}/*plt?????".format(run_dir))
+    pfiles = glob.glob(f"{run_dir}/*plt?????")
     pfiles.sort()
 
     profiles = []

@@ -72,6 +72,17 @@ void problem_initialize ()
         sum_Xf += problem::xn_fuel[n];
         sum_Xa += problem::xn_ash[n];
     }
+
+    if (std::abs(sum_Xf - 1.0) > 0.01) {
+        std::cout << "sum_Xf = " << sum_Xf << std::endl;
+        amrex::Error("fuel mass fractions don't sum to 1");
+    }
+
+    if (std::abs(sum_Xa - 1.0) > 0.01) {
+        std::cout << "sum_Xa = " << sum_Xa << std::endl;
+        amrex::Error("ash mass fractions don't sum to 1");
+    }
+
     for (int n = 0; n < NumSpec; n++) {
         problem::xn_fuel[n] /= sum_Xf;
         problem::xn_ash[n] /= sum_Xa;

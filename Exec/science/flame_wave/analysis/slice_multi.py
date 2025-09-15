@@ -43,6 +43,8 @@ for i, f in enumerate(fields):
         sp.set_cmap(f, "magma_r")
     elif f == "enuc":
         sp.set_zlim(f, 1.e18, 1.e20)
+        # set the background color to the bottom value of the colormap
+        sp.set_background_color("enuc", None)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":
@@ -71,5 +73,5 @@ for i, f in enumerate(fields):
 
 fig.set_size_inches(10.0, 9.0)
 plt.tight_layout()
-plt.savefig("{}_slice.png".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_slice.png")
 

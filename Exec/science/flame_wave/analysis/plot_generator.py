@@ -151,7 +151,7 @@ ts.sort(key=key, reverse=desc)
 
 tf = lambda file: yt.load(file.rstrip('/'))
 ts = list(map(tf, ts))
-print("Successfully loaded the following files: {}\n".format(ts))
+print(f"Successfully loaded the following files: {ts}\n")
 
 # Generate plots
 func = getattr(yt, args.func)
@@ -238,7 +238,7 @@ for ds in ts:
 
     if args.time:
 
-        time_format = 't = {{time:.{}f}}{{units}}'.format(args.time)
+        time_format = f't = {{time:.{args.time}f}}{{units}}'
 
         plot.annotate_timestamp(corner='upper_left', time_format=time_format,
                 time_unit='s', draw_inset_box=True, inset_box_args={'alpha': 0.0})
@@ -267,7 +267,7 @@ for ds in ts:
         plot.annotate_cell_edges()
 
     suffix = args.func.replace('Plot', '').lower()
-    plot.save(os.path.join(args.out, '{}_{}_{}.{}'.format(ds, field, suffix, args.ext)))
+    plot.save(os.path.join(args.out, f'{ds}_{field}_{suffix}.{args.ext}'))
     print()
 
 print("Task completed.")

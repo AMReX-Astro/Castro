@@ -30,7 +30,7 @@ CEXE_sources += Castro_generic_fill.cpp
 
 CEXE_headers += Castro_util.H
 CEXE_headers += global.H
-CEXE_headers += math.H
+CEXE_headers += Castro_math.H
 
 NEED_MGUTIL =
 
@@ -47,4 +47,5 @@ ifdef NEED_MGUTIL
   CEXE_headers += MGutils.H
 endif
 
+CEXE_headers += timestep.H
 CEXE_sources += timestep.cpp
