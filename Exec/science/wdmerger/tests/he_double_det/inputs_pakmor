@@ -53,7 +53,7 @@ geometry.prob_hi =  5.12e9  5.12e9  5.12e9
 # Boundary conditions on hi x, y, and z edges
 castro.hi_bc = 2 2 2
 
-############################################################################################ 
+############################################################################################
 # Timestepping
 ############################################################################################
 
@@ -92,7 +92,7 @@ castro.abundance_failure_rho_cutoff = 1.0e0
 castro.max_subcycles = 16
 
 
-############################################################################################ 
+############################################################################################
 # Resolution, gridding and AMR
 ############################################################################################
 
@@ -149,7 +149,7 @@ amr.refine.density.max_level = 1
 # Density2 refinement criterion
 amr.refine.density2.value_greater = 1.0e5
 amr.refine.density2.field_name = density
-amr.refine.density2.max_level = 20
+amr.refine.density2.max_level = 15
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 5.0e8
@@ -198,7 +198,7 @@ castro.ppm_temp_fix = 0
 # 2 = HLL
 castro.riemann_solver = 0
 
-# For the CG Riemann solver, we need to tell the solver not to quit when 
+# For the CG Riemann solver, we need to tell the solver not to quit when
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.riemann_cg_blend = 2
 
@@ -420,7 +420,7 @@ amr.plot_vars = ALL
 amr.derive_plot_vars = pressure
 
 # State variables to add to small plot files
-amr.small_plot_vars = density Temp 
+amr.small_plot_vars = density Temp
 
 # Derived variables to add to small plot files
 amr.derive_small_plot_vars = enuc X(He4) X(C12) X(O16)
