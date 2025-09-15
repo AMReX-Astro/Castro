@@ -41,13 +41,13 @@ NEEDED_TRUE_SDC_FILES = [TRUE_SDC_EXEC] + COMMON_FILES
 
 def setup_runs():
 
-    with open("inputs.template.simple_sdc", "r") as tf:
+    with open("inputs.template.simple_sdc") as tf:
         simple_sdc_template = tf.readlines()
 
-    with open("inputs.template.true_sdc", "r") as tf:
+    with open("inputs.template.true_sdc") as tf:
         true_sdc_template = tf.readlines()
 
-    with open("inputs.template.strang", "r") as tf:
+    with open("inputs.template.strang") as tf:
         strang_template = tf.readlines()
 
     job_list = []

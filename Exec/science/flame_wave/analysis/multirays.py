@@ -58,7 +58,7 @@ ts.sort(key=key, reverse=desc)
 
 tf = lambda file: yt.load(file.rstrip('/'))
 ts = list(map(tf, ts))
-print("Successfully loaded the following files: {}\n".format(ts))
+print(f"Successfully loaded the following files: {ts}\n")
 
 # Generate plots
 field = args.var
@@ -71,7 +71,7 @@ print("Generating...")
 # Loop and generate
 for i in range(0, len(ts)):
 
-    print("Progress: {}%\r".format(int(100 * i / len(ts))), end='', flush=True)
+    print(f"Progress: {int(100 * i / len(ts))}%\r", end='', flush=True)
     ds = ts[i]
     ad = ds.all_data()
     rmean, rmax = ad.mean('r'), ad.max('r')
@@ -83,14 +83,14 @@ for i in range(0, len(ts)):
         plt.plot(z[iz].d, ray[field][iz].d, label=label, color=color)
 
     plt.xlabel('z (cm)')
-    plt.ylabel('{} ({})'.format(field, ad[field].units))
+    plt.ylabel(f'{field} ({ad[field].units})')
     plt.legend()
 
     plt.gca().set_yscale('log')
     if bounds is not None:
         plt.ylim(bounds)
 
-    plt.savefig('{}/{}_{}_ray.{}'.format(args.out, ds, field, args.ext))
+    plt.savefig(f'{args.out}/{ds}_{field}_ray.{args.ext}')
     plt.clf()
 
 print("Task completed.")

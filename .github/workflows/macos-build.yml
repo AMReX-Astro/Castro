@@ -1,0 +1,48 @@
+name: macos-build
+
+on: [pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  macos-build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install make
+
+      - name: Print system info
+        run: |
+          echo '::group::CPU info'
+          sysctl -a | grep machdep.cpu
+          echo '::endgroup::'
+          echo '::group::build tool versions'
+          xcode-select -p
+          clang++ --version
+          python --version
+          make --version | head -1
+          echo '::endgroup::'
+
+      - name: Compile flame_wave
+        run: |
+          cd Exec/science/flame_wave
+          gmake DEBUG=TRUE USE_MPI=FALSE COMP=llvm -j 3
+
+
