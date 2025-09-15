@@ -27,7 +27,7 @@ jobs:
         run: |
           .github/workflows/dependencies/dependencies_clang-tidy-apt-llvm.sh 20
 
-      - name: Compile flame_wave
+      - name: Compile subchandra
         run: |
           echo $AMREX_HOME
           echo $MICROPHYSICS_HOME
