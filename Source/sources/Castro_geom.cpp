@@ -212,7 +212,10 @@ Castro::fill_RTheta_geom_source (Real time, Real dt, MultiFab& cons_state, Multi
 
       // Cell-centered Spherical Radius and Theta
       Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt)*dx[0];
-      Real theta = prob_lo[1] + (static_cast<Real>(j) + 0.5_rt)*dx[1];
+      Real theta{};
+#if AMREX_SPACEDIM >= 2
+      theta = prob_lo[1] + (static_cast<Real>(j) + 0.5_rt)*dx[1];
+#endif
 
       // radial momentum: F = rho (v_theta**2 + v_phi**2) / r
       src(i,j,k,UMX) = (U_arr(i,j,k,UMY) * U_arr(i,j,k,UMY) +
