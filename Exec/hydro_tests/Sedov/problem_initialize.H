@@ -22,6 +22,15 @@ void problem_initialize ()
         }
     }
 
+#if AMREX_SPACEDIM == 2
+    // If dealing with spherical 2d,
+    // then reset the center theta to be on the z-axis.
+    if (coord_type == 2) {
+        problem::center[0] = 0.5_rt * (problo[0] + probhi[0]);
+        problem::center[1] = 0.0_rt;
+    }
+#endif
+
     Real xn_zone[NumSpec] = {0.0};
     xn_zone[0] = 1.0_rt;
 
@@ -100,12 +109,12 @@ void problem_initialize ()
     else if (coord_type == 2) {
 
 
-#if AMREX_SPACEDIM == 1
-        // Must have AMREX_SPACEDIM == 1 for this coord_type.
+#if AMREX_SPACEDIM <= 2
+        // Must have AMREX_SPACEDIM == 1 or 2 for this coord_type.
 
         vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
 #else
-        amrex::Abort("Sedov problem unsupported in 2-D or 3-D spherical geometry.");
+        amrex::Abort("Sedov problem unsupported in 3-D spherical geometry.");
 #endif
 
     }

@@ -56,10 +56,16 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
             for (int ii = 0; ii <= nsubx-1; ++ii) {
                 Real xx = xmin + ds[0] * (static_cast<Real>(ii) + 0.5_rt);
 
+                // This is distance squared away from the blast wave center.
                 Real dist = (problem::center[0] - xx) * (problem::center[0] - xx) +
                             (problem::center[1] - yy) * (problem::center[1] - yy) +
                             (problem::center[2] - zz) * (problem::center[2] - zz);
-
+#if AMREX_SPACEDIM ==2
+                if (coord_type == 2) {
+                    Real dist = xx*xx - 2.0*xx*problem::center[0]*std::cos(yy - problem::center[1]) +
+                        problem::center[0]*problem::center[0];
+                }
+#endif
                 bool pert = false;
 
                 if (dist <= problem::r_init * problem::r_init) {
@@ -94,12 +100,18 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
                     // the volume of a subzone is (4/3) pi (xr^3 - xl^3).
                     // we can factor this as: (4/3) pi dr (xr^2 + xl*xr + xl^2)
                     // The (4/3) pi dr factor is common, so we can neglect it.
-
+#if AMREX_SPACEDIM == 1
+                    Real vol = xr * xr + xl * xr + xl * xl;
+#elif AMREX_SPACEDIM == 2
+                    Real yl = yy - 0.5_rt * ds[1];
+                    Real yr = yy + 0.5_rt * ds[1];
+                    Real vol = (std::cos(yr) - std::cos(yl)) * (xr * xr + xl * xr + xl * xl);
+#endif
                     if (pert) {
-                        vol_pert = vol_pert + (xr * xr + xl * xr + xl * xl);
+                        vol_pert = vol_pert + vol;
                     }
                     else {
-                        vol_ambient = vol_ambient + (xr * xr + xl * xr + xl * xl);
+                        vol_ambient = vol_ambient + vol;
                     }
 
                 }
