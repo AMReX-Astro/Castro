@@ -13,7 +13,10 @@ void problem_initialize ()
     const Geometry& dgeom = DefaultGeometry();
 
     const Real* problo = dgeom.ProbLo();
+
+#if AMREX_SPACEDIM >= 2
     const Real* probhi = dgeom.ProbHi();
+#endif
 
     // Read in the initial model
 
@@ -95,5 +98,3 @@ void problem_initialize ()
 }
 
 #endif
-
-
