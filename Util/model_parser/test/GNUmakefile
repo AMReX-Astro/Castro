@@ -23,7 +23,7 @@ NUM_MODELS := 2
 EOS_DIR     := helmholtz
 
 # This sets the network directory in Castro/Networks
-NETWORK_DIR := he-burn/he-burn-19a
+NETWORK_DIR := he-burn/he-burn-19am
 
 EXTERN_SEARCH += .
 
