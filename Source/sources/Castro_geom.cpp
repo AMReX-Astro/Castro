@@ -215,7 +215,7 @@ Castro::fill_RTheta_geom_source (Real time, Real dt, MultiFab& cons_state, Multi
       Real cottheta{};
 #if AMREX_SPACEDIM >= 2
       Real theta = prob_lo[1] + (static_cast<Real>(j) + 0.5_rt)*dx[1];
-      cottheta = std::cot(theta);
+      cottheta = cot(theta);
 #endif
 
       // radial momentum: F = rho (v_theta**2 + v_phi**2) / r
