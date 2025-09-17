@@ -1364,7 +1364,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                 Array4<Real> ptheta_fab = ptheta.array();
                 Array4<Real> P_theta_fab = P_theta.array(mfi);
 
-                amrex::ParallelFor(mfi.nodaltilebox(0),
+                amrex::ParallelFor(mfi.nodaltilebox(1),
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     P_theta_fab(i,j,k,0) += ptheta_fab(i,j,k,0);

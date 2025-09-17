@@ -752,7 +752,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> P_theta_fab = P_theta.array(mfi);
             const Real scale = stage_weight;
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(1), 1, i, j, k, n,
             {
                 P_theta_fab(i,j,k,0) += scale * ptheta_fab(i,j,k,0);
             });

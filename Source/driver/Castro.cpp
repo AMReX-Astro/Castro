@@ -2976,7 +2976,6 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
         }
 #endif
 
-
 #ifdef RADIATION
 
         // This follows the same logic as the pure hydro fluxes; see above for details.
