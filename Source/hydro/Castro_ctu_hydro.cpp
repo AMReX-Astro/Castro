@@ -179,6 +179,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial(The_Async_Arena());
 #endif
+#if AMREX_SPACEDIM == 2
+    FArrayBox ptheta(The_Async_Arena());
+#endif
 #if AMREX_SPACEDIM == 3
     FArrayBox qmyx(The_Async_Arena()), qpyx(The_Async_Arena());
     FArrayBox qmzx(The_Async_Arena()), qpzx(The_Async_Arena());
@@ -454,6 +457,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
           pradial.resize(xbx, 1);
       }
       fab_size += pradial.nBytes();
+#endif
+
+#if AMREX_SPACEDIM == 2
+      if (Geom().IsSPHERICAL()) {
+          ptheta.resize(ybx, 1);
+      }
+      fab_size += ptheta.nBytes();
 #endif
 
 #ifdef REACTIONS
@@ -1285,10 +1295,25 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+                pradial_fab(i,j,k) = area_arr(i,j,k) * qex_arr(i,j,k,GDPRES) * dt;
             });
         }
 #endif
+
+#if AMREX_SPACEDIM == 2
+        // get the scaled pressure in the theta direction
+
+        if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+            Array4<Real> ptheta_fab = ptheta.array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ptheta_fab(i,j,k) = area_arr(i,j,k) * qey_arr(i,j,k,GDPRES) * dt;
+            });
+        }
+#endif
+
         // Store the fluxes from this advance. For simplified SDC integration we
         // only need to do this on the last iteration.
 
@@ -1332,7 +1357,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)  // NOLINT(readability-co
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
             }
+#endif
 
+#if AMREX_SPACEDIM == 2
+            if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+                Array4<Real> ptheta_fab = ptheta.array();
+                Array4<Real> P_theta_fab = P_theta.array(mfi);
+
+                amrex::ParallelFor(mfi.nodaltilebox(1),
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                {
+                    P_theta_fab(i,j,k,0) += ptheta_fab(i,j,k,0);
+                });
+            }
 #endif
 
         } // add_fluxes
