@@ -212,18 +212,22 @@ Castro::fill_RTheta_geom_source (Real time, Real dt, MultiFab& cons_state, Multi
 
       // Cell-centered Spherical Radius and Theta
       Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt)*dx[0];
+      Real cottheta{};
+#if AMREX_SPACEDIM >= 2
       Real theta = prob_lo[1] + (static_cast<Real>(j) + 0.5_rt)*dx[1];
+      cottheta = cot(theta);
+#endif
 
       // radial momentum: F = rho (v_theta**2 + v_phi**2) / r
       src(i,j,k,UMX) = (U_arr(i,j,k,UMY) * U_arr(i,j,k,UMY) +
                         U_arr(i,j,k,UMZ) * U_arr(i,j,k,UMZ)) / (U_arr(i,j,k,URHO) * r);
 
       // Theta momentum F = rho v_phi**2 cot(theta) / r - rho v_r v_theta / r
-      src(i,j,k,UMY) = (U_arr(i,j,k,UMZ) * U_arr(i,j,k,UMZ) * cot(theta) -
+      src(i,j,k,UMY) = (U_arr(i,j,k,UMZ) * U_arr(i,j,k,UMZ) * cottheta -
                         U_arr(i,j,k,UMX) * U_arr(i,j,k,UMY)) / (U_arr(i,j,k,URHO) * r);
 
       // Phi momentum: F = - rho v_r v_phi / r - rho v_theta v_phi cot(theta) / r
-      src(i,j,k,UMZ) = (- U_arr(i,j,k,UMY) * U_arr(i,j,k,UMZ) * cot(theta) -
+      src(i,j,k,UMZ) = (- U_arr(i,j,k,UMY) * U_arr(i,j,k,UMZ) * cottheta -
                         U_arr(i,j,k,UMX) * U_arr(i,j,k,UMZ)) / (U_arr(i,j,k,URHO) * r);
 
     });
