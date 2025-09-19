@@ -235,8 +235,8 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
     // don't do this until after the characteristic tracing
 
     if (do_hse && !castro::ppm_well_balanced) {
-        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
-        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
+        sp += p_p_hse;
+        sm += p_m_hse;
     }
 
     return do_hse;
