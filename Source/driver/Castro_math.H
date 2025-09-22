@@ -26,6 +26,10 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 amrex::Real cot(amrex::Real x) {
 
     AMREX_ASSERT(x != 0.0_rt || x != M_PI);
+    // we want to reflect outside of x in [0, pi]
+    if (x < 0.0_rt || x > M_PI) {
+        x = M_PI - x;
+    }
     return std::cos(x) / std::sin(x);
 }
 #endif
