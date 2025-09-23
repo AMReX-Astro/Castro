@@ -3,6 +3,7 @@
 
 set term post eps color solid enhanced
 set output 'sedov_sph.eps'
+set colorsequence classic
 
 set multiplot;
 
