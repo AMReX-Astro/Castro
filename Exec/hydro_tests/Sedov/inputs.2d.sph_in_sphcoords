@@ -7,9 +7,9 @@ geometry.is_periodic = 0    0
 geometry.coord_sys   = 2       # 2 => Spherical R-θ
 
 # put the blast wave on the symmetry axis, z-axis
-geometry.prob_lo     = 1.0    0
-geometry.prob_hi     = 3.0    0.4
-amr.n_cell           = 32     32
+geometry.prob_lo     = 1.5    0
+geometry.prob_hi     = 2.5    0.25
+amr.n_cell           = 32     16
 
 castro.allow_non_unit_aspect_zones = 1
 
@@ -44,7 +44,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 4       # maximum level number allowed
+amr.max_level       = 3       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
