@@ -1,6 +1,9 @@
 #ifndef problem_bc_fill_H
 #define problem_bc_fill_H
 
+#include <AMReX_REAL.H>
+
+
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_bc_fill(int i, int j, int k,
                      Array4<Real> const& state,
@@ -9,6 +12,8 @@ void problem_bc_fill(int i, int j, int k,
                      const GeometryData& geomdata)
 {
     // Set the velocity to zero at the top physical boundary.
+
+    amrex::ignore_unused(time);
 
     const int* domhi = geomdata.Domain().hiVect();
 
