@@ -80,7 +80,7 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
                     // The volume of a cell is a annular cylindrical region.
                     // The main thing that matters is the distance from the
                     // symmetry axis.
-                    //   V = pi*dy*(x_r**2 - x_l**2) = pi*dy*dx*0.5*xx
+                    //   V = pi*dy*(x_r**2 - x_l**2) = 2*pi*dy*dx*xx
                     // (where x_r is the coordinate of the x right edge,
                     //        x_l is the coordinate of the x left edge,
                     //    and xx  is the coordinate of the x center of the cell)

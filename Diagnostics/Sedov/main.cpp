@@ -40,17 +40,22 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
     Real vol = std::numeric_limits<Real>::quiet_NaN();
 
 #if AMREX_SPACEDIM == 1
-    // 1-d spherical geometry / spherical Sedov explosion
-
-    AMREX_ASSERT(coord == 2);
+    AMREX_ASSERT(coord == 1 || coord == 2);
 
     r_zone = p[0] - center[0];
 
-    Real r_r = p[0] + 0.5_rt * dx_level[0];
-    Real r_l = p[0] - 0.5_rt * dx_level[0];
-    vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
-        (r_r*r_r + r_l*r_r + r_l*r_l);
+    if (coord == 1) {
+        //1-d cylindrical geometry / cylindrical Sedov explosion
 
+        vol = 2.0_rt * M_PI * dx_level[0] * p[0];
+    } else if (coord == 2) {
+        // 1-d spherical geometry / spherical Sedov explosion
+
+        Real r_r = p[0] + 0.5_rt * dx_level[0];
+        Real r_l = p[0] - 0.5_rt * dx_level[0];
+        vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
+              (r_r*r_r + r_l*r_r + r_l*r_l);
+    }
 #elif AMREX_SPACEDIM == 2
     if (coord == 1) {
         // 2-d axisymmetry RZ geometry / spherical Sedov explosion
@@ -98,20 +103,12 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
 
     vol = dx_level[0] * dx_level[1] * dx_level[2];
 
-    if (sphr) {
-        // 3-d Cartesian geometry / spherical Sedov explosion
+    // 3-d Cartesian geometry / spherical Sedov explosion
 
-        r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
-                           (p[1] - center[1]) * (p[1] - center[1]) +
-                           (p[2] - center[2]) * (p[2] - center[2]));
+    r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
+                       (p[1] - center[1]) * (p[1] - center[1]) +
+                       (p[2] - center[2]) * (p[2] - center[2]));
 
-    } else {
-        // 3-d Cartesian geometry / cylindrical Sedov explosion
-
-        r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
-                           (p[1] - center[1]) * (p[1] - center[1]));
-
-    }
 #endif
 
     return {r_zone, vol};
@@ -404,10 +401,6 @@ void GetInputArgs ( const int argc, char** argv,
         {
             slcfile = argv[++i];
         }
-        else if ( !strcmp(argv[i],"--sphr") )
-        {
-            sphr = true;
-        }
         else
         {
             std::cout << "\n\nOption " << argv[i] << " not recognized" << std::endl;
@@ -425,16 +418,7 @@ void GetInputArgs ( const int argc, char** argv,
         Abort("Missing input file");
     }
 
-#if (AMREX_SPACEDIM == 1)
-    Print() << "Extracting slice from 1d problem" << std::endl;
-#elif (AMREX_SPACEDIM >= 2)
-    if (sphr) {
-        Print() << "Extracting slice from " << AMREX_SPACEDIM << "d spherical problem" << std::endl;
-    } else {
-        Print() << "Extracting slice from " << AMREX_SPACEDIM << "d cylindrical problem" << std::endl;
-    }
-#endif
-
+    Print() << "Extracting slice from " << AMREX_SPACEDIM << "d Sedov problem" << std::endl;
     Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
     Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
     Print() << std::endl;
@@ -491,9 +475,6 @@ void PrintHelp ()
     Print() << "\nusage: executable_name args"
             << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
             << "\n     [-s|--slicefile] slice file : slice file          (required)"
-#if AMREX_SPACEDIM >= 2
-            << "\n     [--sphr]          spherical : spherical problem"
-#endif
             << "\n\n" << std::endl;
 
 }

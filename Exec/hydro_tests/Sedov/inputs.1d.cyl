@@ -58,11 +58,11 @@ amr.refine.pressgrad.gradient = 0.01
 amr.refine.pressgrad.field_name = pressure
 
 # CHECKPOINT FILES
-amr.check_file      = chk     # root name of checkpoint file
+amr.check_file      = sedov_1d_cyl_in_cyl_chk     # root name of checkpoint file
 amr.check_int       = 1000     # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = plt
+amr.plot_file       = sedov_1d_cyl_in_cyl_plt
 amr.plot_int        = 1000
 amr.derive_plot_vars=ALL
 
@@ -75,3 +75,4 @@ problem.nsub = 10
 
 # EOS
 eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4
