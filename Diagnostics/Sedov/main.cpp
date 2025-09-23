@@ -40,22 +40,25 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
     Real vol = std::numeric_limits<Real>::quiet_NaN();
 
 #if AMREX_SPACEDIM == 1
-    // 1-d spherical geometry / spherical Sedov explosion
-
-    AMREX_ASSERT(coord == 2);
+    AMREX_ASSERT(coord == 1 || coord == 2);
 
     r_zone = p[0] - center[0];
 
-    Real r_r = p[0] + 0.5_rt * dx_level[0];
-    Real r_l = p[0] - 0.5_rt * dx_level[0];
-    vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
-        (r_r*r_r + r_l*r_r + r_l*r_l);
+    if (coord == 1) {
+        //1-d cylindrical geometry / cylindrical Sedov explosion
 
+        vol = 2.0_rt * M_PI * dx_level[0] * p[0];
+    } else if (coord == 2) {
+        // 1-d spherical geometry / spherical Sedov explosion
+
+        Real r_r = p[0] + 0.5_rt * dx_level[0];
+        Real r_l = p[0] - 0.5_rt * dx_level[0];
+        vol = (4.0_rt/3.0_rt) * M_PI * dx_level[0] *
+              (r_r*r_r + r_l*r_r + r_l*r_l);
+    }
 #elif AMREX_SPACEDIM == 2
-    if (sphr) {
-        // 2-d axisymmetric geometry / spherical Sedov explosion
-
-        AMREX_ASSERT(coord == 1);
+    if (coord == 1) {
+        // 2-d axisymmetry RZ geometry / spherical Sedov explosion
 
         // axisymmetric V = pi (r_r**2 - r_l**2) * dz
         //                = pi dr * dz * (r_r + r_l)
@@ -63,8 +66,26 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
 
         r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
                            (p[1] - center[1]) * (p[1] - center[1]));
-        vol = 2 * M_PI * p[0] * dx_level[0] * dx_level[1];
+        vol = 2.0_rt * M_PI * p[0] * dx_level[0] * dx_level[1];
+    } else if (coord == 2) {
+        // 2-d axisymmetric Rθ geometry / spherical Sedov explosion
 
+        // Convert to distance away from blast center:
+        // dist2 = r^2 + r_0^2 - 2 r r_0 cos(θ - θ_0)
+        // Volume of the cell in spherical 2D:
+        // V = 2/3 pi (cos(θ_l) - cos(θ_r)) (r_r**3 - r_l**3)
+        //   = 2/3 pi (cos(θ_l) - cos(θ_r)) dr (r_r**2 + r_r*r_l + r_l**2)
+
+        r_zone = std::sqrt(p[0]*p[0] + center[0] * center[0] -
+                           2.0_rt * p[0] * center[0] *
+                           std::cos(p[1] - center[1]));
+        Real r_r = p[0] + 0.5_rt * dx_level[0];
+        Real r_l = p[0] - 0.5_rt * dx_level[0];
+        Real theta_r = p[1] + 0.5_rt * dx_level[1];
+        Real theta_l = p[1] - 0.5_rt * dx_level[1];
+        vol = std::abs(2.0_rt / 3.0_rt * M_PI *
+                       (std::cos(theta_l) - std::cos(theta_r)) * dx_level[0] *
+                       (r_r * r_r + r_r * r_l + r_l * r_l));
     } else {
         // 2-d Cartesian geometry / cylindrical Sedov explosion
 
@@ -82,20 +103,12 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
 
     vol = dx_level[0] * dx_level[1] * dx_level[2];
 
-    if (sphr) {
-        // 3-d Cartesian geometry / spherical Sedov explosion
+    // 3-d Cartesian geometry / spherical Sedov explosion
 
-        r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
-                           (p[1] - center[1]) * (p[1] - center[1]) +
-                           (p[2] - center[2]) * (p[2] - center[2]));
+    r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
+                       (p[1] - center[1]) * (p[1] - center[1]) +
+                       (p[2] - center[2]) * (p[2] - center[2]));
 
-    } else {
-        // 3-d Cartesian geometry / cylindrical Sedov explosion
-
-        r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
-                           (p[1] - center[1]) * (p[1] - center[1]));
-
-    }
 #endif
 
     return {r_zone, vol};
@@ -131,6 +144,7 @@ int main(int argc, char* argv[])
     auto dx = pf.cellSize(fine_level);
     auto problo = pf.probLo();
     auto probhi = pf.probHi();
+    int coord = pf.coordSys();
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
@@ -146,6 +160,14 @@ int main(int argc, char* argv[])
     double maxdist = std::sqrt(x_maxdist*x_maxdist +
                                y_maxdist*y_maxdist);
 
+    // For spherical 2D, the max distance away from blast center
+    // always happens at max(θ - θ_0) for 0 < θ < π.
+    if (coord == 2) {
+        Real theta_maxdist = amrex::max(std::abs(problo[1] - yctr),
+                                        std::abs(probhi[1] - yctr));
+        maxdist = probhi[0] * probhi[0] + xctr * xctr -
+                  2.0_rt * probhi[0] * xctr * std::cos(theta_maxdist);
+    }
 #else
     double x_maxdist = amrex::max(std::abs(probhi[0] - xctr),
                                   std::abs(problo[0] - xctr));
@@ -165,8 +187,9 @@ int main(int argc, char* argv[])
     // radial coordinate
     Vector<Real> r(nbins);
 
-    for (auto i = 0; i < nbins; i++)
+    for (auto i = 0; i < nbins; i++) {
         r[i] = (i + 0.5) * dx_fine;
+    }
 
     // find variable indices
     const Vector<std::string>& var_names_pf = pf.varNames();
@@ -188,8 +211,6 @@ int main(int argc, char* argv[])
 
     int rhoe_comp = std::distance(var_names_pf.cbegin(),
                               std::find(var_names_pf.cbegin(), var_names_pf.cend(), "rho_e"));
-
-    int coord = pf.coordSys();
 
     // allocate storage for data
     Vector<Real> dens_bin(nbins, 0.);
@@ -240,19 +261,21 @@ int main(int argc, char* argv[])
 
                                     // add to the bin, weighting by the size
 
-                                    dens_bin[index] += fab(i,j,k,dens_comp) * vol;
+                                    if (index < nbins) {
+                                        dens_bin[index] += fab(i,j,k,dens_comp) * vol;
 
-                                    vel_bin[index] +=
-                                        std::sqrt(std::pow(fab(i,j,k,xmom_comp), 2) +
-                                                  std::pow(fab(i,j,k,ymom_comp), 2) +
-                                                  std::pow(fab(i,j,k,zmom_comp), 2)) /
-                                        fab(i,j,k,dens_comp) * vol;
+                                        vel_bin[index] +=
+                                            std::sqrt(std::pow(fab(i,j,k,xmom_comp), 2) +
+                                                      std::pow(fab(i,j,k,ymom_comp), 2) +
+                                                      std::pow(fab(i,j,k,zmom_comp), 2)) /
+                                            fab(i,j,k,dens_comp) * vol;
 
-                                    pres_bin[index] += fab(i,j,k,pres_comp) * vol;
+                                        pres_bin[index] += fab(i,j,k,pres_comp) * vol;
 
-                                    e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
+                                        e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
 
-                                    volcount[index] += vol;
+                                        volcount[index] += vol;
+                                    }
 
                                 } // mask
 
@@ -379,10 +402,6 @@ void GetInputArgs ( const int argc, char** argv,
         {
             slcfile = argv[++i];
         }
-        else if ( !strcmp(argv[i],"--sphr") )
-        {
-            sphr = true;
-        }
         else
         {
             std::cout << "\n\nOption " << argv[i] << " not recognized" << std::endl;
@@ -400,16 +419,7 @@ void GetInputArgs ( const int argc, char** argv,
         Abort("Missing input file");
     }
 
-#if (AMREX_SPACEDIM == 1)
-    Print() << "Extracting slice from 1d problem" << std::endl;
-#elif (AMREX_SPACEDIM >= 2)
-    if (sphr) {
-        Print() << "Extracting slice from " << AMREX_SPACEDIM << "d spherical problem" << std::endl;
-    } else {
-        Print() << "Extracting slice from " << AMREX_SPACEDIM << "d cylindrical problem" << std::endl;
-    }
-#endif
-
+    Print() << "Extracting slice from " << AMREX_SPACEDIM << "d Sedov problem" << std::endl;
     Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
     Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
     Print() << std::endl;
@@ -466,9 +476,6 @@ void PrintHelp ()
     Print() << "\nusage: executable_name args"
             << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
             << "\n     [-s|--slicefile] slice file : slice file          (required)"
-#if AMREX_SPACEDIM >= 2
-            << "\n     [--sphr]          spherical : spherical problem"
-#endif
             << "\n\n" << std::endl;
 
 }
