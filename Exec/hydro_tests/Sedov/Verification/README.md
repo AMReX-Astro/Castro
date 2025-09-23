@@ -18,13 +18,13 @@ respectively.
 
 For the 2-d Cylindrical explosion in Cartesian coordinates:
   * compile program:
-   ```
-   make DIM=2
-   ```
+    ```
+    make DIM=2
+    ```
   * run:
-   ```
-   ./Castro2d.gnu.MPI.ex inputs.2d.cyl_in_cartcoords
-   ```
+    ```
+    ./Castro2d.gnu.MPI.ex inputs.2d.cyl_in_cartcoords
+    ```
 
   * create the angle-averaged profile:
 
@@ -34,7 +34,7 @@ For the 2-d Cylindrical explosion in Cartesian coordinates:
     ```
     and then run it as:
     ```
-    ./sedov_2d.ex -p ../sedov_2d_cyl_in_cart_plt00159 -s sedov_2d_in_cart.out
+    ./sedov_2d.ex -p ../sedov_2d_cyl_in_cart_plt00159 -s sedov_2d_cyl_in_cart.out
     ```
 
   * plot:
