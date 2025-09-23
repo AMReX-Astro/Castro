@@ -186,12 +186,19 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
     amrex::Real pm1_hse = p0_hse - 0.25_rt*dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]);
     amrex::Real pm2_hse = pm1_hse - 0.25_rt*dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]);
 
+    // compute hydrostatic pressure at the interface
+
+    amrex::Real p_p_hse = p0_hse + 0.5_rt*dx * rho[i0] * src[i0];
+    amrex::Real p_m_hse = p0_hse - 0.5_rt*dx * rho[i0] * src[i0];
+
     // this only makes sense if the pressures are positive
-    bool ptest = p0_hse < 0.0 ||
+    bool ptest =  p0_hse < 0.0 ||
                  pp1_hse < 0.0 ||
                  pp2_hse < 0.0 ||
                  pm1_hse < 0.0 ||
-                 pm2_hse < 0.0;
+                 pm2_hse < 0.0 ||
+                 p_p_hse < 0.0 ||
+                 p_m_hse < 0.0;
 
 
     bool do_hse = !ptest && rho[i0] >= pslope_cutoff_density;
@@ -228,8 +235,8 @@ ppm_reconstruct_pslope(const amrex::Real* rho, const amrex::Real* p, const amrex
     // don't do this until after the characteristic tracing
 
     if (do_hse && !castro::ppm_well_balanced) {
-        sp += p[i0] + 0.5 * dx * rho[i0] * src[i0];
-        sm += p[i0] - 0.5 * dx * rho[i0] * src[i0];
+        sp += p_p_hse;
+        sm += p_m_hse;
     }
 
     return do_hse;
