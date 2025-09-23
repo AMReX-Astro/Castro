@@ -52,10 +52,8 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
         (r_r*r_r + r_l*r_r + r_l*r_l);
 
 #elif AMREX_SPACEDIM == 2
-    if (sphr) {
-        // 2-d axisymmetric geometry / spherical Sedov explosion
-
-        AMREX_ASSERT(coord == 1);
+    if (coord == 1) {
+        // 2-d axisymmetry RZ geometry / spherical Sedov explosion
 
         // axisymmetric V = pi (r_r**2 - r_l**2) * dz
         //                = pi dr * dz * (r_r + r_l)
@@ -63,8 +61,26 @@ std::pair<Real, Real> get_coord_info(const Array<Real, AMREX_SPACEDIM>& p,
 
         r_zone = std::sqrt((p[0] - center[0]) * (p[0] - center[0]) +
                            (p[1] - center[1]) * (p[1] - center[1]));
-        vol = 2 * M_PI * p[0] * dx_level[0] * dx_level[1];
+        vol = 2.0_rt * M_PI * p[0] * dx_level[0] * dx_level[1];
+    } else if (coord == 2) {
+        // 2-d axisymmetric Rθ geometry / spherical Sedov explosion
 
+        // Convert to distance away from blast center:
+        // dist2 = r^2 + r_0^2 - 2 r r_0 cos(θ - θ_0)
+        // Volume of the cell in spherical 2D:
+        // V = 2/3 pi (cos(θ_l) - cos(θ_r)) (r_r**3 - r_l**3)
+        //   = 2/3 pi (cos(θ_l) - cos(θ_r)) dr (r_r**2 + r_r*r_l + r_l**2)
+
+        r_zone = std::sqrt(p[0]*p[0] + center[0] * center[0] -
+                           2.0_rt * p[0] * center[0] *
+                           std::cos(p[1] - center[1]));
+        Real r_r = p[0] + 0.5_rt * dx_level[0];
+        Real r_l = p[0] - 0.5_rt * dx_level[0];
+        Real theta_r = p[1] + 0.5_rt * dx_level[1];
+        Real theta_l = p[1] - 0.5_rt * dx_level[1];
+        vol = std::abs(2.0_rt / 3.0_rt * M_PI *
+                       (std::cos(theta_l) - std::cos(theta_r)) * dx_level[0] *
+                       (r_r * r_r + r_r * r_l + r_l * r_l));
     } else {
         // 2-d Cartesian geometry / cylindrical Sedov explosion
 
@@ -131,6 +147,7 @@ int main(int argc, char* argv[])
     auto dx = pf.cellSize(fine_level);
     auto problo = pf.probLo();
     auto probhi = pf.probHi();
+    int coord = pf.coordSys();
 
     // compute the size of the radially-binned array -- we'll do it to
     // the furtherest corner of the domain
@@ -146,6 +163,15 @@ int main(int argc, char* argv[])
     double maxdist = std::sqrt(x_maxdist*x_maxdist +
                                y_maxdist*y_maxdist);
 
+    // For spherical 2D, blast wave center is assumed to be on z-axis,
+    // the max distance away from blast center always happens at
+    // max(θ - θ_0) for 0 < θ < π
+    if (coord == 2) {
+        Real theta_maxdist = amrex::max(std::abs(problo[1] - yctr),
+                                   std::abs(probhi[1] - yctr));
+        maxdist = probhi[0] * probhi[0] + xctr * xctr -
+                  2.0_rt * probhi[0] * xctr * std::cos(theta_maxdist);
+    }
 #else
     double x_maxdist = amrex::max(std::abs(probhi[0] - xctr),
                                   std::abs(problo[0] - xctr));
@@ -165,8 +191,9 @@ int main(int argc, char* argv[])
     // radial coordinate
     Vector<Real> r(nbins);
 
-    for (auto i = 0; i < nbins; i++)
+    for (auto i = 0; i < nbins; i++) {
         r[i] = (i + 0.5) * dx_fine;
+    }
 
     // find variable indices
     const Vector<std::string>& var_names_pf = pf.varNames();
@@ -188,8 +215,6 @@ int main(int argc, char* argv[])
 
     int rhoe_comp = std::distance(var_names_pf.cbegin(),
                               std::find(var_names_pf.cbegin(), var_names_pf.cend(), "rho_e"));
-
-    int coord = pf.coordSys();
 
     // allocate storage for data
     Vector<Real> dens_bin(nbins, 0.);

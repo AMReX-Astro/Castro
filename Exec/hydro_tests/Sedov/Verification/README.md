@@ -4,7 +4,7 @@ http://www.cococubed.com/codes/sedov/sedov3.f
 
 To compare Castro output, we need to radially bin the plotfile data to
 get density, total velocity, and pressure as a function of radius.
-This can be accomplished using fsedov*.f90 routines in
+This can be accomplished using main.cpp routine in
 Castro/Diagnostics/Sedov
 
 For the 2-d Cylindrical explosion in Cartesian coordinates:
