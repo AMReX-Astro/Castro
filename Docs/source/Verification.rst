@@ -262,7 +262,7 @@ volume, driving a spherical or cylindrical blast wave.
 Analytic solutions were found by Sedov :cite:`sedov:1959`.
 
 A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
-be modeled in 1-d cylindrical coordiante or 2-d Cartesian coordinates.
+be modeled in 1-d cylindrical coordinate or 2-d Cartesian coordinates.
 A spherical blast wave can be modeled in 1-d spherical, 2-d axisymmetric
 (cylindrical :math:`r`-:math:`z`), 2-d axisymmetric
 (spherical :math:`r`-:math:`\theta`),or 3-d Cartesian coordinates.
