@@ -160,12 +160,11 @@ int main(int argc, char* argv[])
     double maxdist = std::sqrt(x_maxdist*x_maxdist +
                                y_maxdist*y_maxdist);
 
-    // For spherical 2D, blast wave center is assumed to be on z-axis,
-    // the max distance away from blast center always happens at
-    // max(θ - θ_0) for 0 < θ < π
+    // For spherical 2D, the max distance away from blast center
+    // always happens at max(θ - θ_0) for 0 < θ < π.
     if (coord == 2) {
         Real theta_maxdist = amrex::max(std::abs(problo[1] - yctr),
-                                   std::abs(probhi[1] - yctr));
+                                        std::abs(probhi[1] - yctr));
         maxdist = probhi[0] * probhi[0] + xctr * xctr -
                   2.0_rt * probhi[0] * xctr * std::cos(theta_maxdist);
     }
@@ -262,19 +261,21 @@ int main(int argc, char* argv[])
 
                                     // add to the bin, weighting by the size
 
-                                    dens_bin[index] += fab(i,j,k,dens_comp) * vol;
+                                    if (index < nbins) {
+                                        dens_bin[index] += fab(i,j,k,dens_comp) * vol;
 
-                                    vel_bin[index] +=
-                                        std::sqrt(std::pow(fab(i,j,k,xmom_comp), 2) +
-                                                  std::pow(fab(i,j,k,ymom_comp), 2) +
-                                                  std::pow(fab(i,j,k,zmom_comp), 2)) /
-                                        fab(i,j,k,dens_comp) * vol;
+                                        vel_bin[index] +=
+                                            std::sqrt(std::pow(fab(i,j,k,xmom_comp), 2) +
+                                                      std::pow(fab(i,j,k,ymom_comp), 2) +
+                                                      std::pow(fab(i,j,k,zmom_comp), 2)) /
+                                            fab(i,j,k,dens_comp) * vol;
 
-                                    pres_bin[index] += fab(i,j,k,pres_comp) * vol;
+                                        pres_bin[index] += fab(i,j,k,pres_comp) * vol;
 
-                                    e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
+                                        e_bin[index] += (fab(i,j,k,rhoe_comp) / fab(i,j,k,dens_comp)) * vol;
 
-                                    volcount[index] += vol;
+                                        volcount[index] += vol;
+                                    }
 
                                 } // mask
 
