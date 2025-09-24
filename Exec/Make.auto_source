@@ -149,6 +149,8 @@ ifeq ($(USE_CUDA), TRUE)
    CUDA_FLAGS := --CUDA_VERSION "$(nvcc_version)"
 endif
 
+clean_flags := $(filter-out --jobserver%,$(MAKEFLAGS))
+
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
@@ -158,7 +160,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
           $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
-	  --make_flags "$(MAKEFLAGS)" \
+	  --make_flags "$(clean_flags)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) AMReX_buildInfo.cpp -o $(objEXETempDir)/AMReX_buildInfo.o
