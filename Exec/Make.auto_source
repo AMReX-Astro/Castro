@@ -158,6 +158,7 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
           $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
+	  --make_flags "$(MAKEFLAGS)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) AMReX_buildInfo.cpp -o $(objEXETempDir)/AMReX_buildInfo.o

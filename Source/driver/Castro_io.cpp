@@ -615,6 +615,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << "\n";
 
+  jobInfoFile << "make flags:    " << buildInfoGetMakeFlags() << "\n";
+
+  jobInfoFile << "\n";
+
   jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
