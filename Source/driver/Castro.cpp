@@ -4323,10 +4323,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
+#if AMREX_SPACEDIM >= 2
     int mi[3] = {0};
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       mi[i] = max_index[i];
     }
+#endif
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
