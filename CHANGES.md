@@ -1,3 +1,38 @@
+# 25.10
+
+  * bump up python version for codespell CI (#3147)
+
+  * store the "make" flags in the job_info file (#3144)
+
+  * `flame_wave`: the refinement criteria were updated to better
+    capture the ash (#3145)
+
+  * `Sedov`: the inputs files were consolidated and the analysis
+    tool was cleaned up.  Support for a 2D spherical geometry
+    test was also added (#3143)
+
+  * updated the check on geometry sources to allow it to work for 1D
+    spherical (#2993, #3140)
+
+  * added an addition check for the well-balanaced PPM reconstruction
+    to make sure that the interface pressure is positive (#3142)
+
+  * updated CI to match Microphysics changes (#3141)
+
+  * `flame_wave`: the analysis tools were updated (#3131)
+
+  * `diffusion_test`: the `README.md` was updated with information for
+    spherical coordinates (#3137)
+
+  * `Detonation`: Ne is allowed as a fuel composition (#3134)
+
+  * update CI due to AMReX changes (#3135)
+
+  * CI action dependency version updates (#3136)
+
+  * `xrb_spherical`: added new analysis scripts and inputs files
+    (#3074)
+
 # 25.09
 
   * rotation docs improvements (#3133)
