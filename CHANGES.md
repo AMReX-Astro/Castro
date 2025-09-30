@@ -1,5 +1,9 @@
 # 25.10
 
+  * bump up python version for codespell CI (#3147)
+
+  * store the "make" flags in the job_info file (#3144)
+
   * `flame_wave`: the refinement criteria were updated to better
     capture the ash (#3145)
 
