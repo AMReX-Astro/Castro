@@ -135,12 +135,15 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax, plot_in_nse=False):
         if plot_in_nse:
             ax_nse.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+
+    max_enuc = np.abs(enuc).max()
+
+    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
     ax_e.set_xlabel("x (cm)")
 
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    #cur_lims = ax_e.get_ylim()
+    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
     if plot_in_nse:
         ax_nse.set_ylabel("IN NSE")
