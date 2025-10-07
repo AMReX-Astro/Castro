@@ -75,8 +75,8 @@ for i, f in enumerate(fields):
         sp.set_cmap(f, "magma")
     elif f == "enuc":
         sp.set_zlim(f, 1.e15, 3.e19)
-        # set the background color to be white to show no burning
-        sp.set_background_color("enuc", "white")
+        # set the background color to be None to show no burning
+        sp.set_background_color("enuc", None)
     elif f == "density":
         sp.set_zlim(f, 1.e-3, 5.e8)
     elif f == "z_velocity":
@@ -91,6 +91,14 @@ for i, f in enumerate(fields):
         sp.set_zlim(f, 1.e-2, 1e6)
         sp.set_log(f, True)
         sp.set_cmap(f, "plasma_r")
+
+    if f == "enuc":
+        # now do a contour of density
+        sp.annotate_contour("density", levels=3, factor=8, clim=(2.e2, 2.e6),
+                            take_log=True,
+                            plot_args={"colors": "0.75", "linewidths": 1, "linestyles": ":"})
+
+
 
     sp.set_axes_unit("cm")
 
