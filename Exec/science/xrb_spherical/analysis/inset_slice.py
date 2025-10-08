@@ -224,10 +224,21 @@ if __name__ == "__main__":
 
     ### Now annotate inset box lines ###
     # loc1 and loc2: corners to connect (1: upper right, 2: upper left, 3: lower left, 4: lower right)
-    if args.theta < np.pi/3.0 or (args.theta is None and loc=="top"):
+    if args.theta is None:
+        if loc == "top":
+            loc1 = 1
+            loc2 = 2
+        elif loc == "bot":
+            loc1 = 3
+            loc2 = 4
+        else:
+            # mid
+            loc1 = 1
+            loc2 = 4
+    elif args.theta < np.pi/3.0:
         loc1 = 1
         loc2 = 2
-    elif args.theta > 2.0*np.pi/3.0 or (args.theta is None and loc=="bot"):
+    elif args.theta > 2.0*np.pi/3.0:
         loc1 = 3
         loc2 = 4
     else:
