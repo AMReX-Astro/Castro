@@ -220,9 +220,8 @@ def slice(fnames:list[str], fields:list[str],
           loc: str = "top", widthScale: float = 3.0,
           widthRatio: float = 1.0,
           theta: float | None = None,
+          position: float | None = None,
           displace_theta: bool = False,
-          annotate_vline: bool = False,
-          annotate_lat_lines: bool = True,
           show_full_star: bool = False) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
@@ -252,18 +251,14 @@ def slice(fnames:list[str], fields:list[str],
       For widthRatio > 1, the vertical width is larger than horizontal.
 
     theta:
-      user defined theta center of the slice plot
+      user defined theta (in radian) center of the slice plot
+
+    position:
+      draw a vertical line on user defined front position in theta (in radian)
 
     displace_theta:
       whether to displace theta so that the vertical lines that represents
       the flame front is offset by some amount
-
-    annotate_vline:
-      whether to plot a vertical line to represent the flame front,
-      which is represented by what theta is.
-
-    annotate_lat_lines:
-      whether to annotate latitude lines.
 
     show_full_star:
       whether to plot the full star rather than a zoom-in
@@ -321,18 +316,17 @@ def slice(fnames:list[str], fields:list[str],
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
             # Plot a vertical to indicate flame front
-            if theta is not None and annotate_vline:
-                sp.annotate_line([r[0]*np.sin(theta), r[0]*np.cos(theta)],
-                                 [r[2]*np.sin(theta), r[2]*np.cos(theta)],
+            if position is not None:
+                sp.annotate_line([r[0]*np.sin(position), r[0]*np.cos(position)],
+                                 [r[2]*np.sin(position), r[2]*np.cos(position)],
                                  coord_system="plot",
                                  color="k",
                                  linewidth=1.5,
                                  linestyle="-.")
 
             ### Annotate Latitude Lines
-            if annotate_lat_lines:
-                annotate_latitude_lines(sp, center, box_widths, r,
-                                        show_full_star=show_full_star)
+            annotate_latitude_lines(sp, center, box_widths, r,
+                                    show_full_star=show_full_star)
 
             plot = sp.plots[field]
             plot.figure = fig
@@ -391,6 +385,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
+    parser.add_argument('-p', '--position', type=float,
+                        help="""user defined front position in theta,
+                        this will draw a vertical line to annotate the front position""")
     parser.add_argument('-r', '--ratio', default=1.0, type=float,
                         help="""The ratio between the horizontal and vertical width of the slice plot.
                         For ratio < 1, horizontal width is larger than vertical.
@@ -400,8 +397,6 @@ if __name__ == "__main__":
     parser.add_argument('--displace_theta', action='store_true',
                         help="""whether to displace the theta that defines the center of the frame.
                         This is useful when theta represents the flame front position.""")
-    parser.add_argument('--annotate_vline', action='store_true',
-                        help="whether to annotate a vertical line along the given theta")
     parser.add_argument('--show_full_star', action='store_true',
                         help="whether show the full star in the background")
 
@@ -417,6 +412,7 @@ if __name__ == "__main__":
         parser.error("loc must be one of the three: {top, mid, bot}")
 
     slice(args.fnames, args.fields, loc=loc,
-          widthScale=args.width, widthRatio=args.ratio, theta=args.theta,
-          displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-          annotate_lat_lines=True, show_full_star=args.show_full_star)
+          widthScale=args.width, widthRatio=args.ratio,
+          theta=args.theta, position=args.position,
+          displace_theta=args.displace_theta,
+          show_full_star=args.show_full_star)
