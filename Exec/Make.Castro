@@ -177,10 +177,11 @@ endif
 
 MAX_NPTS_MODEL ?= 10000
 NUM_MODELS ?= 1
+DIM_MODEL ?= 1
 
 ifeq ($(USE_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser
-  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS) -DDIM_MODEL=$(DIM_MODEL)
 endif
 
 ifeq ($(USE_RNG_STATE_INIT), TRUE)
@@ -195,7 +196,7 @@ ifeq ($(USE_MHD), TRUE)
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity Source/scf 
+  Bdirs += Source/gravity Source/scf
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
 endif
