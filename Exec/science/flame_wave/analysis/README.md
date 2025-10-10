@@ -96,4 +96,4 @@ same reference location for all times to visualize the evolution of
 the composition through the network.
 
 You need to have MICROPHYSICS_HOME set and the script needs to be
-editted to indicate which network you are using.
+edited to indicate which network you are using.
