@@ -86,3 +86,14 @@ Create a stacked plot of abar at a sequence of time points.
 ## `schlieren.py`
 
 Make a Schlieren plot (a plot of ln{(∇^2 ρ) / ρ}) of a dataset.
+
+## `netflow.py``
+
+Plot the enuc slice and the flow through the network at a particular
+point.  This requires defining a reference plotfile, from which we
+find the location of the maximum enuc.  The idea is that we use that
+same reference location for all times to visualize the evolution of
+the composition through the network.
+
+You need to have MICROPHYSICS_HOME set and the script needs to be
+editted to indicate which network you are using.
