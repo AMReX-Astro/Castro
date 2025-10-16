@@ -20,13 +20,14 @@ CASTRO_HOME  ?= ../../..
 
 USE_JACOBIAN_CACHING = TRUE
 USE_MODEL_PARSER = TRUE
-NUM_MODELS := 2
+NUM_MODELS := 1
+DIM_MODEL := 2
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := he-burn/he-burn-18a
+NETWORK_DIR := he-burn/ase
 
 INTEGRATOR_DIR := RKC
 

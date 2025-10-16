@@ -151,10 +151,12 @@ void problem_initialize ()
 
     auto dx = fine_geom.CellSizeArray();
     auto dx_model = dx[0];
+    auto dy_model = dx[1];
 
     int nx_model = static_cast<int>((probhi[0] - problo[0]) /
                                     dx_model);
-
+    int ny_model = static_cast<int>((probhi[1] - problo[1]) /
+                                    dy_model);
     int ng = 4;
 
     // now generate the initial models
@@ -172,32 +174,35 @@ void problem_initialize ()
     generate_initial_model(nx_model + ng,
                            problo[0] - ng * dx_model,
                            probhi[0],
+                           ny_model + ng,
+                           problo[1] - ng * dy_model,
+                           probhi[1],
                            model_params, 0);
 
     // now create a perturbed model -- we want the same base conditions
     // a hotter temperature
 
-    model_params.T_hi = model_params.T_hi + problem::dtemp;
+    // model_params.T_hi = model_params.T_hi + problem::dtemp;
 
-    generate_initial_model(nx_model + ng,
-                           problo[0] - ng * dx_model,
-                           probhi[0],
-                           model_params, 1);
+    // generate_initial_model(nx_model + ng,
+    //                        problo[0] - ng * dx_model,
+    //                        probhi[0],
+    //                        model_params, 1);
 
     // set center
 
     for (int d = 0; d < AMREX_SPACEDIM; d++) {
-        // problem::center[d] = 0.5_rt * (problo[d] + probhi[d]);
         problem::center[d] = 0.0_rt;
     }
 
-    // set the ambient state for the upper boundary condition
+    // set the ambient state for the upper boundary condition using upper most r zone at θ=0
 
-    ambient::ambient_state[URHO] = model::profile(0).state(model::npts-1, model::idens);
-    ambient::ambient_state[UTEMP] = model::profile(0).state(model::npts-1, model::itemp);
+    ambient::ambient_state[URHO] = model::profile(0).state(model::npts-1, ng, model::idens);
+
+    ambient::ambient_state[UTEMP] = model::profile(0).state(model::npts-1, ng, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
         ambient::ambient_state[UFS+n] =
-            ambient::ambient_state[URHO] * model::profile(0).state(model::npts-1, model::ispec+n);
+            ambient::ambient_state[URHO] * model::profile(0).state(model::npts-1, ng, model::ispec+n);
     }
 
     ambient::ambient_state[UMX] = 0.0_rt;
