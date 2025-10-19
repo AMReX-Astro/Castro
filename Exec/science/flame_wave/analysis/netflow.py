@@ -135,7 +135,7 @@ def doit(plotfile, reference):
     net.plot(rho, T, comp,
              screen_func=pyna.screening.screen.screen5,
              rotated=True, hide_xp=True, hide_xalpha=True,
-             curved_edges=True,
+             use_net_rate=True,
              color_nodes_by_abundance=True,
              node_size=500, node_font_size="9",
              grid_spec=gs_flow)
