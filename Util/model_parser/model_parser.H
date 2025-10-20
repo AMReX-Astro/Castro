@@ -37,7 +37,6 @@ using namespace amrex;
 /// Note that the first data column is the coordinate, but that is not
 /// listed as a variable.
 ///
-///
 /// The new format has a single line header, labeling the columns,
 /// including the coordinate.  This format plays nicely with NumPy
 /// genfromtxt to read in the header
