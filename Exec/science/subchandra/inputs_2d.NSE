@@ -115,7 +115,7 @@ problem.temp_base = 1.75e8
 
 problem.mixed_co_wd = 1
 
-problem.X_N14 = 0.01
+problem.X_N14 = 0.0
 
 problem.low_density_cutoff = 1.e-4
 problem.temp_fluff = 7.5e7
@@ -159,7 +159,8 @@ integrator.use_jacobian_caching = 0
 
 integrator.ode_max_steps = 500000
 
-nse.nse_dx_independent = 1
+nse.nse_dx_independent = 0
 nse.nse_molar_independent = 0
 nse.ase_tol = 0.1
 nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 2
