@@ -303,6 +303,7 @@ interpolate(const amrex::Real x, const amrex::Real y,
 }
 #endif
 
+#if DIM_MODEL == 1
 ///
 /// Subsample the interpolation to get an averaged profile. For this we need to know the
 /// 3D coordinate (relative to the model center) and cell size.
@@ -616,6 +617,8 @@ void establish_hse (amrex::Real& mass_want, amrex::Real& central_density_want, a
     model::initialized = true;
     model::npts = NPTS_MODEL;
 }
+#endif
+
 
 AMREX_INLINE
 void
