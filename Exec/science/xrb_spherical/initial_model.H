@@ -400,13 +400,14 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
     // we actually require that the number of points is the same for each
     // model, so we'll just set it each time
 
-    model::npts = npts_model_x < npts_model_y ? npts_model_x : npts_model_y;
+    model::npts_x = npts_model_x;
+    model::npts_y = npts_model_y;
     model::initialized = true;
 
-    if (npts_model_x > NPTS_MODEL) {
+    if (npts_model_x > NPTS_X_MODEL) {
         amrex::Error("Error: model has more than NPTS_MODEL points in x-dir,  Increase MAX_NPTS_MODEL");
     }
-    if (npts_model_y > NPTS_MODEL) {
+    if (npts_model_y > NPTS_Y_MODEL) {
         amrex::Error("Error: model has more than NPTS_MODEL points in y-dir,  Increase MAX_NPTS_MODEL");
     }
 
