@@ -293,6 +293,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 burn_state.T_fixed = interpolate(dist, model::itemp);
 #elif DIM_MODEL == 2
                 burn_state.T_fixed = interpolate(rr[0], rr[1], model::itemp);
+#endif
             }
 #endif
 
@@ -646,6 +647,7 @@ Castro::react_state(Real time, Real dt)
                 burn_state.T_fixed = interpolate(dist, model::itemp);
 #elif DIM_MODEL == 2
                 burn_state.T_fixed = interpolate(rr[0], rr[1], model::itemp);
+#endif
             }
 #endif
 
