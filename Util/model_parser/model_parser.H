@@ -52,9 +52,18 @@ using namespace amrex;
 /// density, temperature, pressure and composition.
 ///
 /// composition is assumed to be in terms of mass fractions
+///
+/// For 2D initial models the second column data is assumed to be
+/// the other coordinate. It is assumed that the first coordinate
+/// repeats and the cycles through the second coordinate. i.e.
+///
+/// 195312.5000  140523.5000 5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+/// 195312.5000  531148.5000 5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+///    ...       921773.5000 5410153244.  8826843.234  0.4621245962E+28  0.3  0.7  0
+/// 585937.5000  140523.5000 5423405349.  8813452.123   .4682340123E+28  0.3  0.7  0
+///
 
 // remove whitespace -- from stackoverflow
-
 
 namespace model_string
 {
@@ -79,7 +88,7 @@ namespace model_string
     }
 }
 
-
+#if DIM_MODEL == 1
 ///
 /// return the index into the model coordinate, loc, such that
 /// model::profile(model_index).r(loc) < r < model::profile(model_index).r(loc+1)
@@ -89,20 +98,20 @@ namespace model_string
 ///
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
-locate(const Real r, const int model_index) {
+locate(const amrex::Real r, const int model_index) {
 
     int loc;
 
     if (r <= model::profile(model_index).r(0)) {
        loc = 0;
 
-    } else if (r > model::profile(model_index).r(model::npts-2)) {
-       loc = model::npts-2;
+    } else if (r > model::profile(model_index).r(model::npts - 2)) {
+       loc = model::npts - 2;
 
     } else {
 
         int ilo = 0;
-        int ihi = model::npts-2;
+        int ihi = model::npts - 2;
 
         while (ilo+1 != ihi) {
             int imid = (ilo + ihi) / 2;
@@ -120,17 +129,88 @@ locate(const Real r, const int model_index) {
     return loc;
 }
 
+#elif DIM_MODEL == 2
+AMREX_INLINE AMREX_GPU_HOST_DEVICE
+int
+locate_x(const amrex::Real x, const int model_index) {
+    int loc;
+
+    if (x <= model::profile(model_index).x(0)) {
+       loc = 0;
+
+    } else if (x > model::profile(model_index).x(model::npts_x - 2)) {
+       loc = model::npts_x - 2;
+
+    } else {
+
+        int ilo = 0;
+        int ihi = model::npts_x - 2;
+
+        while (ilo+1 != ihi) {
+            int imid = (ilo + ihi) / 2;
+
+            if (x <= model::profile(model_index).x(imid)) {
+                ihi = imid;
+            } else {
+                ilo = imid;
+            }
+        }
+
+        loc = ilo;
+    }
+
+    return loc;
+}
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
-Real
-interpolate(const Real r, const int var_index, const int model_index=0) {
+int
+locate_y(const amrex::Real y, const int model_index) {
+
+    int loc;
+
+    if (y <= model::profile(model_index).y(0)) {
+       loc = 0;
+
+    } else if (y > model::profile(model_index).y(model::npts_y - 2)) {
+       loc = model::npts_y - 2;
+
+    } else {
+
+        int ilo = 0;
+        int ihi = model::npts_y - 2;
+
+        while (ilo+1 != ihi) {
+            int imid = (ilo + ihi) / 2;
+
+            if (x <= model::profile(model_index).y(imid)) {
+                ihi = imid;
+            } else {
+                ilo = imid;
+            }
+        }
+
+        loc = ilo;
+    }
+
+    return loc;
+}
+#endif
+
+
+#if DIM_MODEL == 1
+//
+// Linear 1D interpolation
+//
+AMREX_INLINE AMREX_GPU_HOST_DEVICE
+amrex::Real
+interpolate(const amrex::Real r, const int var_index, const int model_index=0) {
 
     // this gives us an index such that profile.r(id) < r < profile.r(id+1)
 
     int id = locate(r, model_index);
 
-    Real slope;
-    Real interp;
+    amrex::Real slope;
+    amrex::Real interp;
 
     slope = (model::profile(model_index).state(id+1, var_index) -
              model::profile(model_index).state(id, var_index)) /
@@ -141,10 +221,10 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
     // safety check to make sure interp lies within the bounding points.  We don't
     // do this at the lower boundary, which usually corresponds to the center of the star.
     if (r >= model::profile(model_index).r(0)) {
-        Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
-                               model::profile(model_index).state(id, var_index));
-        Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
-                               model::profile(model_index).state(id, var_index));
+        amrex::Real minvar = std::min(model::profile(model_index).state(id+1, var_index),
+                                      model::profile(model_index).state(id, var_index));
+        amrex::Real maxvar = std::max(model::profile(model_index).state(id+1, var_index),
+                                      model::profile(model_index).state(id, var_index));
         interp = amrex::Clamp(interp, minvar, maxvar);
     }
 
@@ -152,13 +232,83 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
 
 }
 
+#elif DIM_MODEL == 2
+//
+// Linear 2D interpolation
+//
+AMREX_INLINE AMREX_GPU_HOST_DEVICE
+amrex::Real
+interpolate(const amrex::Real x, const amrex::Real y,
+            const int var_index, const int model_index=0) {
+
+    // this gives us an index such that profile.x(id) < x < profile.x(id+1)
+
+    int idx = locate_x(x, model_index);
+    int idy = locate_y(y, model_index);
+
+    amrex::Real dx = model::profile(model_index).x(idx+1) -
+        model::profile(model_index).x(idx);
+
+    amrex::Real dy = model::profile(model_index).y(idy+1) -
+        model::profile(model_index).y(idy);
+
+    amrex::Real D = model::profile(model_index).state(idx, idy, var_index);
+    amrex::Real C = (model::profile(model_index).state(idx, idy+1, var_index) -
+                     model::profile(model_index).state(idx, idy, var_index)) / dy;
+    amrex::Real B = (model::profile(model_index).state(idx+1, idy, var_index) -
+                     model::profile(model_index).state(idx, idy, var_index)) / dx;
+    amrex::Real A = (model::profile(model_index).state(idx+1, idy+1, var_index) -
+                     B * dx - C * dy - D) / (dx * dy);
+
+    amrex::Real interp = A * (x - model::profile(model_index).x(idx)) * (y - model::profile(model_index).y(idy)) +
+        B * (x - model::profile(model_index).x(idx)) + C * (y - model::profile(model_index).y(idy)) + D;
+
+    // safety check to make sure interp lies within the bounding points.  We don't
+    // do this at the lower boundary, which usually corresponds to the center of the star.
+    if (x >= model::profile(model_index).x(0) && y >= model::profile(model_index).y(0)) {
+        amrex::Real minvar = amrex::min(model::profile(model_index).state(idx+1, idy+1, var_index)
+                                        model::profile(model_index).state(idx+1, idy  , var_index),
+                                        model::profile(model_index).state(idx  , idy+1, var_index),
+                                        model::profile(model_index).state(idx  , idy  , var_index));
+
+        amrex::Real maxvar = amrex::max(model::profile(model_index).state(idx+1, idy+1, var_index)
+                                        model::profile(model_index).state(idx+1, idy  , var_index),
+                                        model::profile(model_index).state(idx  , idy+1, var_index),
+                                        model::profile(model_index).state(idx  , idy  , var_index));
+
+        interp = amrex::Clamp(interp, minvar, maxvar);
+
+    } else if (x >= model::profile(model_index).x(0)) {
+        amrex::Real minvar = amrex::min(model::profile(model_index).state(idx+1, idy, var_index),
+                                        model::profile(model_index).state(idx  , idy, var_index));
+
+        amrex::Real maxvar = amrex::max(model::profile(model_index).state(idx+1, idy, var_index),
+                                        model::profile(model_index).state(idx  , idy, var_index));
+
+        interp = amrex::Clamp(interp, minvar, maxvar);
+
+    } else if (y >= model::profile(model_index).y(0)) {
+        amrex::Real minvar = amrex::min(model::profile(model_index).state(idx, idy+1, var_index),
+                                        model::profile(model_index).state(idx, idy  , var_index));
+
+        amrex::Real maxvar = amrex::max(model::profile(model_index).state(idx, idy+1, var_index),
+                                        model::profile(model_index).state(idx, idy  , var_index));
+
+        interp = amrex::Clamp(interp, minvar, maxvar);
+
+    }
+
+    return interp;
+
+}
+#endif
 
 ///
 /// Subsample the interpolation to get an averaged profile. For this we need to know the
 /// 3D coordinate (relative to the model center) and cell size.
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 1, int model_index = 0)
+amrex::Real interpolate_3d (const amrex::Real* loc, const amrex::Real* dx, int var_index, int nsub = 1, int model_index = 0)
 {
     // We perform a sub-grid-scale interpolation, where
     // nsub determines the number of intervals we split the zone into.
@@ -168,18 +318,18 @@ Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 
     // k = 1 --> z = loc(3)               (halfway between left and right edge)
     // k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
 
-    Real interp = 0.0_rt;
+    amrex::Real interp = 0.0_rt;
 
     for (int k = 0; k < nsub; ++k) {
-        Real z = loc[2] + (static_cast<Real>(k) + 0.5_rt * (1 - nsub)) * dx[2] / nsub;
+        amrex::Real z = loc[2] + (static_cast<amrex::Real>(k) + 0.5_rt * (1 - nsub)) * dx[2] / nsub;
 
         for (int j = 0; j < nsub; ++j) {
-            Real y = loc[1] + (static_cast<Real>(j) + 0.5_rt * (1 - nsub)) * dx[1] / nsub;
+            amrex::Real y = loc[1] + (static_cast<amrex::Real>(j) + 0.5_rt * (1 - nsub)) * dx[1] / nsub;
 
             for (int i = 0; i < nsub; ++i) {
-                Real x = loc[0] + (static_cast<Real>(i) + 0.5_rt * (1 - nsub)) * dx[0] / nsub;
+                amrex::Real x = loc[0] + (static_cast<amrex::Real>(i) + 0.5_rt * (1 - nsub)) * dx[0] / nsub;
 
-                Real dist = std::sqrt(x * x + y * y + z * z);
+                amrex::Real dist = std::sqrt(x * x + y * y + z * z);
 
                 interp += interpolate(dist, var_index, model_index);
             }
@@ -205,9 +355,9 @@ Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 
 // we switch from the initial model to ambient material.
 
 AMREX_INLINE
-void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
-                    const Real core_comp[NumSpec], Real temperature, Real dx,
-                    Real envelope_mass, const Real envelope_comp[NumSpec], int model_index = 0)
+void establish_hse (amrex::Real& mass_want, amrex::Real& central_density_want, amrex::Real& radius,
+                    const amrex::Real core_comp[NumSpec], amrex::Real temperature, amrex::Real dx,
+                    amrex::Real envelope_mass, const amrex::Real envelope_comp[NumSpec], int model_index = 0)
 {
     // Note that if central_density > 0, then this initial model generator will use it in calculating
     // the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of
@@ -231,9 +381,9 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
     const int max_hse_iter = 250;
     int max_mass_iter;
 
-    Real rho_c, rho_c_old, drho_c;
-    Real mass, mass_old;
-    Real p_want, drho;
+    amrex::Real rho_c, rho_c_old, drho_c;
+    amrex::Real mass, mass_old;
+    amrex::Real p_want, drho;
 
     if (central_density_want > 0.0_rt) {
 
@@ -307,10 +457,10 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
 
         // Keep track of the mass enclosed below the current zone.
 
-        Real rl = 0.0_rt;
-        Real rr = rl + dx;
+        amrex::Real rl = 0.0_rt;
+        amrex::Real rr = rl + dx;
 
-        Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.state(0, model::idens);
+        amrex::Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.state(0, model::idens);
         mass = M_enclosed;
 
         //-------------------------------------------------------------------------
@@ -341,7 +491,7 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
             set_aux_comp_from_X(eos_state);
 #endif
 
-            Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
+            amrex::Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
 
 
             //----------------------------------------------------------------------
@@ -366,7 +516,7 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
                 // We difference HSE about the interface between the current
                 // zone and the one just inside.
 
-                Real rho_avg = 0.5_rt * (model.state(i, model::idens) + model.state(i-1, model::idens));
+                amrex::Real rho_avg = 0.5_rt * (model.state(i, model::idens) + model.state(i-1, model::idens));
                 p_want = model.state(i-1, model::ipres) + dx * rho_avg * g;
 
                 eos(eos_input_rt, eos_state);
@@ -412,7 +562,7 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
 
             // Discretize the mass enclosed as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
-            Real dM = (4.0_rt / 3.0_rt) * M_PI * model.state(i, model::idens) * dx *
+            amrex::Real dM = (4.0_rt / 3.0_rt) * M_PI * model.state(i, model::idens) * dx *
                       (rr * rr + rl * rr + rl * rl);
             M_enclosed += dM;
 
@@ -470,6 +620,7 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
 AMREX_INLINE
 void
 read_model_file(std::string& model_file, const int model_index=0) {
+    // This is assumed to work with 1D initial model only for now.
 
     bool found_model, found_dens, found_temp, found_pres, found_velr;
     bool found_spec[NumSpec];
@@ -537,6 +688,11 @@ read_model_file(std::string& model_file, const int model_index=0) {
         std::string word;
         iss >> word;
 
+#if DIM_MODEL == 2
+        // For 2D model, second column name is also coordinate -- skip
+        iss >> word;
+#endif
+
         while (iss >> word) {
             varnames_stored.push_back(word);
         }
@@ -552,26 +708,62 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
     // start reading in the data
 
-    amrex::Vector<Real> vars_stored;
+    amrex::Vector<amrex::Real> vars_stored;
     vars_stored.resize(nvars_model_file);
 
     int i{0};
+#if DIM_MODEL == 2
+    int j{0};
+#endif
+
+    // To track whether we read the first line.
+    // relevant to keep track of indices for DIM_MODEL==2
+    bool firstLineRead = false;
+
     while (getline(initial_model_file, line)) {
+
+        std::istringstream iss(line);
 
         if (i > NPTS_MODEL) {
             amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
         }
-
-        std::istringstream iss(line);
-
         iss >> model::profile(model_index).r(i);
 
-        for (int j = 0; j < nvars_model_file; j++) {
-            iss >> vars_stored[j];
+#if DIM_MODEL == 2
+        // Reset index if the current index corresponds to position at index=0
+        if (firstLineRead) {
+            if (iss == model::profile(model_index).x(0)) {
+                i = 0;
+            }
+        } else {
+            if (i > NPTS_X_MODEL) {
+                amrex::Error("Error: model has more than NPTS_X_MODEL points,  Increase MAX_NPTS_X_MODEL");
+            }
+            iss >> model::profile(model_index).x(i);
         }
 
-        for (int j = 0; j < model::nvars; j++) {
-            model::profile(model_index).state(i,j) = 0.0_rt;
+        if (firstLineRead) {
+            if (model::profile(model_index).y(j) == model::profile(model_index).y(0)) {
+                j = 0;
+            }
+        } else {
+            if (j > NPTS_Y_MODEL) {
+                amrex::Error("Error: model has more than NPTS_Y_MODEL points,  Increase MAX_NPTS_Y_MODEL");
+            }
+            iss >> model::profile(model_index).y(j);
+        }
+#endif
+
+        for (int n = 0; n < nvars_model_file; n++) {
+            iss >> vars_stored[n];
+        }
+
+        for (int n = 0; n < model::nvars; n++) {
+#if DIM_MODEL == 1
+            model::profile(model_index).state(i, n) = 0.0_rt;
+#elif DIM_MODEL == 2
+            model::profile(model_index).state(i, j, n) = 0.0_rt;
+#endif
         }
 
         // make sure that each of the variables we care about is found
@@ -588,36 +780,56 @@ read_model_file(std::string& model_file, const int model_index=0) {
         }
 #endif
 
-        for (int j = 0; j < nvars_model_file; j++) {
+        for (int n = 0; n < nvars_model_file; n++) {
 
             // keep track of whether the current variable from the model
             // file is one that we care about
             found_model = false;
 
-            if (varnames_stored[j] == "density") {
-                model::profile(model_index).state(i,model::idens) = vars_stored[j];
+            if (varnames_stored[n] == "density") {
+#if DIM_MODEL == 1
+                model::profile(model_index).state(i,model::idens) = vars_stored[n];
+#elif DIM_MODEL == 2
+                model::profile(model_index).state(i,j,model::idens) = vars_stored[n];
+#endif
                 found_model = true;
                 found_dens = true;
 
-            } else if (varnames_stored[j] == "temperature") {
-                model::profile(model_index).state(i,model::itemp) = vars_stored[j];
+            } else if (varnames_stored[n] == "temperature") {
+#if DIM_MODEL == 1
+                model::profile(model_index).state(i,model::itemp) = vars_stored[n];
+#elif DIM_MODEL == 2
+                model::profile(model_index).state(i,j,model::itemp) = vars_stored[n];
+#endif
                 found_model = true;
                 found_temp = true;
 
-            } else if (varnames_stored[j] == "pressure") {
-                model::profile(model_index).state(i,model::ipres) = vars_stored[j];
+            } else if (varnames_stored[n] == "pressure") {
+#if DIM_MODEL == 1
+                model::profile(model_index).state(i,model::ipres) = vars_stored[n];
+#elif DIM_MODEL == 2
+                model::profile(model_index).state(i,j,model::ipres) = vars_stored[n];
+#endif
                 found_model = true;
                 found_pres = true;
 
-            } else if (varnames_stored[j] == "velocity") {
-                model::profile(model_index).state(i,model::ivelr) = vars_stored[j];
+            } else if (varnames_stored[n] == "velocity") {
+#if DIM_MODEL == 1
+                model::profile(model_index).state(i,model::ivelr) = vars_stored[n];
+#elif DIM_MODEL == 2
+                model::profile(model_index).state(i,j,model::ivelr) = vars_stored[n];
+#endif
                 found_model = true;
                 found_velr = true;
 
             } else {
                 for (int comp = 0; comp < NumSpec; comp++) {
-                    if (varnames_stored[j] == spec_names_cxx[comp]) {
-                        model::profile(model_index).state(i,model::ispec+comp) = vars_stored[j];
+                    if (varnames_stored[n] == spec_names_cxx[comp]) {
+#if DIM_MODEL == 1
+                        model::profile(model_index).state(i,model::ispec+comp) = vars_stored[n];
+#elif DIM_MODEL == 2
+                        model::profile(model_index).state(i,j,model::ispec+comp) = vars_stored[n];
+#endif
                         found_model = true;
                         found_spec[comp] = true;
                         break;
@@ -626,8 +838,12 @@ read_model_file(std::string& model_file, const int model_index=0) {
 #if NAUX_NET > 0
                 if (!found_model) {
                     for (int comp = 0; comp < NumAux; comp++) {
-                        if (varnames_stored[j] == aux_names_cxx[comp]) {
-                            model::profile(model_index).state(i,model::iaux+comp) = vars_stored[j];
+                        if (varnames_stored[n] == aux_names_cxx[comp]) {
+#if DIM_MODEL == 1
+                            model::profile(model_index).state(i,model::iaux+comp) = vars_stored[n];
+#elif DIM_MODEL == 2
+                            model::profile(model_index).state(i,j,model::iaux+comp) = vars_stored[n];
+#endif
                             found_model = true;
                             found_aux[comp] = true;
                             break;
@@ -639,9 +855,10 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
             // yell if we didn't find the current variable
 
-            if (!found_model && i == 0) {
+            if (!found_model && !firstLineRead
+                ) {
                 amrex::Print() << Font::Bold << FGColor::Yellow
-                               << "[WARNING] variable not found: " << varnames_stored[j]
+                               << "[WARNING] variable not found: " << varnames_stored[n]
                                << ResetDisplay << std::endl;
             }
 
@@ -650,7 +867,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
         //  were all the variables we care about provided?
 
-        if (i == 0) {
+        if (!firstLineRead) {
             if (!found_dens) {
                 amrex::Print() << Font::Bold << FGColor::Yellow
                                << "[WARNING] density not provided in inputs file"
@@ -694,14 +911,35 @@ read_model_file(std::string& model_file, const int model_index=0) {
 #endif
         }
 
+#if DIM_MODEL == 1
         i++;
+#elif DIM_MODEL == 2
+        // update index if current position is different from last position
+        if (model::profile(model_index).x(i) != model::profile(model_index).x(i-1)) {
+            i++;
+        }
+        if (model::profile(model_index).y(j) != model::profile(model_index).y(j-1)) {
+            j++;
+        }
+#endif
 
+        firstLineRead = true;
     }  // end of loop over lines in the model file
 
+#if DIM_MODEL == 1
     model::npts = i;
+#elif DIM_MODEL == 2
+    model::npts_x = i;
+    model::npts_y = j;
+#endif
 
     amrex::Print() << Font::Bold << FGColor::Green
+#if DIM_MODEL == 1
                    << model::npts << " points found in the initial model"
+#elif DIM_MODEL == 2
+                   << model::npts_x << " x-points found in the initial model"
+                   << model::npts_y << " y-points found in the initial model"
+#endif
                    << ResetDisplay << std::endl;
 
     initial_model_file.close();
