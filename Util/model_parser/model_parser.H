@@ -182,7 +182,7 @@ locate_y(const amrex::Real y, const int model_index) {
         while (ilo+1 != ihi) {
             int imid = (ilo + ihi) / 2;
 
-            if (x <= model::profile(model_index).y(imid)) {
+            if (y <= model::profile(model_index).y(imid)) {
                 ihi = imid;
             } else {
                 ilo = imid;
@@ -266,12 +266,12 @@ interpolate(const amrex::Real x, const amrex::Real y,
     // safety check to make sure interp lies within the bounding points.  We don't
     // do this at the lower boundary, which usually corresponds to the center of the star.
     if (x >= model::profile(model_index).x(0) && y >= model::profile(model_index).y(0)) {
-        amrex::Real minvar = amrex::min(model::profile(model_index).state(idx+1, idy+1, var_index)
+        amrex::Real minvar = amrex::min(model::profile(model_index).state(idx+1, idy+1, var_index),
                                         model::profile(model_index).state(idx+1, idy  , var_index),
                                         model::profile(model_index).state(idx  , idy+1, var_index),
                                         model::profile(model_index).state(idx  , idy  , var_index));
 
-        amrex::Real maxvar = amrex::max(model::profile(model_index).state(idx+1, idy+1, var_index)
+        amrex::Real maxvar = amrex::max(model::profile(model_index).state(idx+1, idy+1, var_index),
                                         model::profile(model_index).state(idx+1, idy  , var_index),
                                         model::profile(model_index).state(idx  , idy+1, var_index),
                                         model::profile(model_index).state(idx  , idy  , var_index));
@@ -727,33 +727,38 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
         std::istringstream iss(line);
 
-        if (i > NPTS_MODEL) {
+#if DIM_MODEL == 1
+        if (i >= NPTS_MODEL) {
             amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
         }
         iss >> model::profile(model_index).r(i);
+#elif DIM_MODEL == 2
+        amrex::Real temp;
+        iss >> temp;
 
-#if DIM_MODEL == 2
         // Reset index if the current index corresponds to position at index=0
         if (firstLineRead) {
-            if (iss == model::profile(model_index).x(0)) {
+            if (temp == model::profile(model_index).x(0)) {
                 i = 0;
             }
         } else {
-            if (i > NPTS_X_MODEL) {
+            if (i >= NPTS_X_MODEL) {
                 amrex::Error("Error: model has more than NPTS_X_MODEL points,  Increase MAX_NPTS_X_MODEL");
             }
-            iss >> model::profile(model_index).x(i);
+            model::profile(model_index).x(i) = temp;
         }
 
+        iss >> temp;
+
         if (firstLineRead) {
-            if (model::profile(model_index).y(j) == model::profile(model_index).y(0)) {
+            if (temp == model::profile(model_index).y(0)) {
                 j = 0;
             }
         } else {
-            if (j > NPTS_Y_MODEL) {
+            if (j >= NPTS_Y_MODEL) {
                 amrex::Error("Error: model has more than NPTS_Y_MODEL points,  Increase MAX_NPTS_Y_MODEL");
             }
-            iss >> model::profile(model_index).y(j);
+            model::profile(model_index).y(j) = temp;
         }
 #endif
 
