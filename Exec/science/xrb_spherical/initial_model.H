@@ -98,7 +98,7 @@ AMREX_INLINE
 void HSE_integrate(const int i, const int j,
                    const amrex::Real dx, const amrex::Real dy,
                    const int idir,
-                   const bool isentropic, bool& fluff,
+                   bool& isentropic, bool& fluff,
                    const amrex::Real entropy_base,
                    const model_t& model_params, const int model_num) {
     //
@@ -284,21 +284,28 @@ void HSE_integrate(const int i, const int j,
             dens_zone = amrex::Clamp(dens_zone + drho , 0.9_rt * dens_zone, 1.1_rt * dens_zone);
             temp_zone = amrex::Clamp(temp_zone + dtemp, 0.9_rt * temp_zone, 1.1_rt * temp_zone);
 
+            // if (A < TOL .and. B < ETOL) then
+            if (std::abs(drho) < fw::TOL * dens_zone && std::abs(dtemp) < fw::TOL * temp_zone) {
+                converged_hse = true;
+                break;
+            }
+
+            // Check if we entered isothermal region when integrating upward
+            if (temp_zone < model_params.T_lo && idir == 0) {
+                temp_zone = model_params.T_lo;
+                isentropic = false;
+            }
+
             // check if the density falls below our minimum cut-off --
             // if so, floor it
             // Also detect whether we've entered the fluff region.
+            // Note that, its only possible when integrating upward.
 
-            if (dens_zone < model_params.low_density_cutoff) {
+            if (dens_zone < model_params.low_density_cutoff && idir == 0) {
                 dens_zone = model_params.low_density_cutoff;
                 temp_zone = model_params.T_lo;
                 converged_hse = true;
                 fluff = true;
-                break;
-            }
-
-            // if (A < TOL .and. B < ETOL) then
-            if (std::abs(drho) < fw::TOL * dens_zone && std::abs(dtemp) < fw::TOL * temp_zone) {
-                converged_hse = true;
                 break;
             }
 
@@ -338,16 +345,17 @@ void HSE_integrate(const int i, const int j,
 
             dens_zone = amrex::Clamp(dens_zone + drho , 0.9_rt * dens_zone, 1.1_rt * dens_zone);
 
-            if (dens_zone < model_params.low_density_cutoff) {
+            if (std::abs(drho) < fw::TOL * dens_zone) {
+                converged_hse = true;
+                break;
+            }
+
+            // fluff region only possible when integrate upward
+            if (dens_zone < model_params.low_density_cutoff && idir == 0) {
                 dens_zone = model_params.low_density_cutoff;
                 temp_zone = model_params.T_lo;
                 converged_hse = true;
                 fluff = true;
-                break;
-            }
-
-            if (std::abs(drho) < fw::TOL * dens_zone) {
-                converged_hse = true;
                 break;
             }
 
@@ -397,18 +405,15 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
     // Create a 2-d uniform grid that is identical to the mesh that we are
     // mapping onto, and then we want to force it into HSE on that mesh.
 
-    // we actually require that the number of points is the same for each
-    // model, so we'll just set it each time
-
     model::npts_x = npts_model_x;
     model::npts_y = npts_model_y;
     model::initialized = true;
 
     if (npts_model_x > NPTS_X_MODEL) {
-        amrex::Error("Error: model has more than NPTS_MODEL points in x-dir,  Increase MAX_NPTS_MODEL");
+        amrex::Error("Error: model has more than NPTS_MODEL points in x-dir,  Increase MAX_NPTS_X_MODEL");
     }
     if (npts_model_y > NPTS_Y_MODEL) {
-        amrex::Error("Error: model has more than NPTS_MODEL points in y-dir,  Increase MAX_NPTS_MODEL");
+        amrex::Error("Error: model has more than NPTS_MODEL points in y-dir,  Increase MAX_NPTS_Y_MODEL");
     }
 
     // create the grid -- cell centers
@@ -520,6 +525,8 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
 
     // make the base thermodynamics consistent for this base point,
     // this is assumed to be on θ=0 -- that is what we will integrate from!
+    // here 0-index is actually not θ=0, due to extra ghost cell,
+    // we might need to determine the actual index.
 
     eos_state.rho = model::profile(model_num).state(index_base, 0, model::idens);
     eos_state.T = model::profile(model_num).state(index_base, 0, model::itemp);
@@ -544,7 +551,7 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
     // First integrate to the right from θ=0 at the base layer.
     // The base layer is isothermal.
 
-    for (int j = 0; j < npts_model_y; ++j) {
+    for (int j = 1; j < npts_model_y; ++j) {
         HSE_integrate(index_base, j, dx, dy, 2,
                       isentropic, fluff,
                       entropy_base,
