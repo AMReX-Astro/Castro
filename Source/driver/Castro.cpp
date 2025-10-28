@@ -1353,7 +1353,7 @@ Castro::initData ()
                eos_re_t eos_state;
                eos_state.rho = S_arr(i,j,k,URHO);
                eos_state.T = S_arr(i,j,k,UTEMP);
-               eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
+               eos_state.e = S_arr(i,j,k,UEDEN) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
                for (int n = 0; n < NumSpec; n++) {
                  eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
                }
