@@ -95,6 +95,100 @@ amrex::Real evaluate_tanh(const amrex::Real z) {
 
 
 AMREX_INLINE
+void set_initial_condition(const int index_base,
+                           const int npts_model_x, const amrex::Real xmin,
+                           const int npts_model_y, const amrex::Real ymin,
+                           const model_t& model_params, const int model_num) {
+
+    // Set the initial condition of the mesh
+
+    eos_t eos_state;
+    eos_state.T = model_params.T_star;
+    eos_state.rho = model_params.dens_base;
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = model_params.xn_star[n];
+    }
+
+    eos(eos_input_rt, eos_state);
+
+    // store the conditions at the base -- we'll use the entropy later
+    // to constrain the isentropic layer
+
+    amrex::Real pres_base = eos_state.p;
+
+    // set an initial temperature profile and composition for the 2D grid
+
+    for (int i = 0; i < npts_model_x; i++) {
+
+        amrex::Real xc = model::profile(model_num).x(i) -
+            (xmin + model_params.H_star) - 1.5_rt * model_params.atm_delta;
+
+        for (int j = 0; j < npts_model_y; j++) {
+
+            // vertical hyperbolic tangent transition
+
+            for (int n = 0; n < NumSpec; n++) {
+                model::profile(model_num).state(i, j, model::ispec+n) =
+                    model_params.xn_star[n] +
+                    0.5_rt * (model_params.xn_base[n] - model_params.xn_star[n]) *
+                    (1.0_rt + evaluate_tanh(xc / (0.5_rt * model_params.atm_delta)));
+            }
+
+            // force them to sum to 1
+
+            amrex::Real sumX = 0.0_rt;
+            for (int n = 0; n < NumSpec; n++) {
+                sumX += model::profile(model_num).state(i, j, model::ispec+n);
+            }
+            for (int n = 0; n < NumSpec; n++) {
+                model::profile(model_num).state(i, j, model::ispec+n) /= sumX;
+            }
+
+            // temperature profile -- it is constant below the base
+            // It follows the hyperbolic tangent transition above the base
+
+            if (i <= index_base) {
+                model::profile(model_num).state(i, j, model::itemp) = model_params.T_star;
+            } else {
+                model::profile(model_num).state(i, j, model::itemp) =
+                    model_params.T_star +
+                    0.5_rt * (model_params.T_hi - model_params.T_star) *
+                    (1.0_rt + evaluate_tanh(xc / (0.5_rt * model_params.atm_delta)));
+            }
+
+            //
+            // We will also have a hyperbolic tangent transition in the theta dir
+            // but for now just assume theres is no hot/cold model.
+            //
+
+
+
+            // the density and pressure will be determined via HSE,
+            // for now, set them to the base conditions as initial guess
+
+            model::profile(model_num).state(i, j, model::idens) = model_params.dens_base;
+            model::profile(model_num).state(i, j, model::ipres) = pres_base;
+        }
+    }
+
+    // make the base thermodynamics consistent for this base point,
+    // this is assumed to be on θ=0 -- that is what we will integrate from!
+    // here 0-index is actually not θ=0, due to extra ghost cell,
+    // we might need to determine the actual index.
+
+    eos_state.rho = model::profile(model_num).state(index_base, 0, model::idens);
+    eos_state.T = model::profile(model_num).state(index_base, 0, model::itemp);
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = model::profile(model_num).state(index_base, 0, model::ispec+n);
+    }
+
+    eos(eos_input_rt, eos_state);
+
+    model::profile(model_num).state(index_base, 0, model::ipres) = eos_state.p;
+}
+
+
+AMREX_INLINE
 void HSE_integrate(const int i, const int j,
                    const amrex::Real dx, const amrex::Real dy,
                    const int idir,
@@ -451,93 +545,10 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
     // This is the initial guess conditions.
     //
 
-    // determine the conditions at the base -- this is below the atmosphere
-    // this point is assumed to be at the rotating pole, θ=0
-
-    eos_t eos_state;
-    eos_state.T = model_params.T_star;
-    eos_state.rho = model_params.dens_base;
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = model_params.xn_star[n];
-    }
-
-    eos(eos_input_rt, eos_state);
-
-    // store the conditions at the base -- we'll use the entropy later
-    // to constrain the isentropic layer
-
-    amrex::Real pres_base = eos_state.p;
-
-    // set an initial temperature profile and composition for the 2D grid
-
-    for (int i = 0; i < npts_model_x; i++) {
-
-        amrex::Real xc = model::profile(model_num).x(i) -
-            (xmin + model_params.H_star) - 1.5_rt * model_params.atm_delta;
-
-        for (int j = 0; j < npts_model_y; j++) {
-
-            // vertical hyperbolic tangent transition
-
-            for (int n = 0; n < NumSpec; n++) {
-                model::profile(model_num).state(i, j, model::ispec+n) =
-                    model_params.xn_star[n] +
-                    0.5_rt * (model_params.xn_base[n] - model_params.xn_star[n]) *
-                    (1.0_rt + evaluate_tanh(xc / (0.5_rt * model_params.atm_delta)));
-            }
-
-            // force them to sum to 1
-
-            amrex::Real sumX = 0.0_rt;
-            for (int n = 0; n < NumSpec; n++) {
-                sumX += model::profile(model_num).state(i, j, model::ispec+n);
-            }
-            for (int n = 0; n < NumSpec; n++) {
-                model::profile(model_num).state(i, j, model::ispec+n) /= sumX;
-            }
-
-            // temperature profile -- it is constant below the base
-            // It follows the hyperbolic tangent transition above the base
-
-            if (i <= index_base) {
-                model::profile(model_num).state(i, j, model::itemp) = model_params.T_star;
-            } else {
-                model::profile(model_num).state(i, j, model::itemp) =
-                    model_params.T_star +
-                    0.5_rt * (model_params.T_hi - model_params.T_star) *
-                    (1.0_rt + evaluate_tanh(xc / (0.5_rt * model_params.atm_delta)));
-            }
-
-            //
-            // We will also have a hyperbolic tangent transition in the theta dir
-            // but for now just assume theres is no hot/cold model.
-            //
-
-
-
-            // the density and pressure will be determined via HSE,
-            // for now, set them to the base conditions
-
-            model::profile(model_num).state(i, j, model::idens) = model_params.dens_base;
-            model::profile(model_num).state(i, j, model::ipres) = pres_base;
-        }
-    }
-
-    // make the base thermodynamics consistent for this base point,
-    // this is assumed to be on θ=0 -- that is what we will integrate from!
-    // here 0-index is actually not θ=0, due to extra ghost cell,
-    // we might need to determine the actual index.
-
-    eos_state.rho = model::profile(model_num).state(index_base, 0, model::idens);
-    eos_state.T = model::profile(model_num).state(index_base, 0, model::itemp);
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = model::profile(model_num).state(index_base, 0, model::ispec+n);
-    }
-
-    eos(eos_input_rt, eos_state);
-
-    model::profile(model_num).state(index_base, 0, model::ipres) = eos_state.p;
-
+    set_initial_condition(index_base,
+                          npts_model_x, xmin,
+                          npts_model_y, ymin,
+                          model_params, model_num);
 
     //
     // 2D HSE + entropy solve
@@ -613,6 +624,7 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
 
                     // now we need to know the entropy we are confining ourselves to
 
+                    eos_t eos_state;
                     eos_state.rho = model::profile(model_num).state(i-1, j, model::idens);
                     eos_state.T = model::profile(model_num).state(i-1, j, model::itemp);
                     for (int n = 0; n < NumSpec; n++) {
