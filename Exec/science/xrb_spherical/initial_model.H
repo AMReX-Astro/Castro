@@ -189,6 +189,76 @@ void set_initial_condition(const int index_base,
 
 
 AMREX_INLINE
+amrex::Real HSE_pressure(const int i, const int j, const int idir,
+                         const amrex::Real dx, const amrex::Real dy,
+                         const amrex::Real dens_zone, const amrex::Real Omega2,
+                         const int model_num) {
+    // Evaluate the HSE pressure given density of the current zone
+    // using information of the surrounding zones.
+
+    amrex::Real hse_p;
+
+    if (idir == 0 || idir == 1) {
+
+        amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+        amrex::Real oneMinusCosTwoThetac = 1.0_rt - std::cos(twoThetac);
+
+        if (idir == 0) {
+            // Integrate upward
+
+            amrex::Real rm = model::profile(model_num).x(i) - 0.5_rt * dx;
+            amrex::Real dens_im = 0.5_rt *
+                (dens_zone + model::profile(model_num).state(i-1, j, model::idens));
+            amrex::Real dp_im1 = -dens_im * dx * (gravity::const_grav +
+                                                  0.5_rt * Omega2 * rm * oneMinusCosTwoThetac);
+
+            hse_p = model::profile(model_num).state(i-1, j, model::ipres) - dp_im1;
+
+        } else {
+            // Integrate downward
+
+            amrex::Real rp = model::profile(model_num).x(i) + 0.5_rt * dx;
+            amrex::Real dens_ip = 0.5_rt *
+                (dens_zone + model::profile(model_num).state(i+1, j, model::idens));
+            amrex::Real dp_ip1 = dens_ip * dx * (gravity::const_grav +
+                                                 0.5_rt * Omega2 * rp * oneMinusCosTwoThetac);
+
+            hse_p = model::profile(model_num).state(i+1, j, model::ipres) - dp_ip1;
+        }
+
+        // Do an average between zone from bottom and left if not along the pole
+        if (j != 0) {
+            amrex::Real rc = model::profile(model_num).x(i);
+            amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+            amrex::Real dens_jm = 0.5_rt *
+                    (dens_zone + model::profile(model_num).state(i, j-1, model::idens));
+            amrex::Real dp_jm1 = -0.5_rt * dy * dens_jm * Omega2 * rc * rc * sinTwoThetam;
+
+            hse_p = 0.5_rt * (hse_p + model::profile(model_num).state(i, j-1, model::ipres) - dp_jm1);
+        }
+
+    } else if (idir == 2) {
+        // Integrate to the right
+
+        amrex::Real rc = model::profile(model_num).x(i);
+        amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+        amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+
+        amrex::Real dens_jm = 0.5_rt *
+            (dens_zone + model::profile(model_num).state(i, j-1, model::idens));
+        amrex::Real dp_jm1 = -0.5_rt * dy * dens_jm * Omega2 * rc * rc * sinTwoThetam;
+
+        hse_p = model::profile(model_num).state(i, j-1, model::ipres) - dp_jm1;
+
+    } else {
+        amrex::Error("Invalid integrate direction");
+    }
+
+    return hse_p;
+}
+
+
+AMREX_INLINE
 void HSE_integrate(const int i, const int j,
                    const amrex::Real dx, const amrex::Real dy,
                    const int idir,
@@ -254,25 +324,10 @@ void HSE_integrate(const int i, const int j,
     amrex::Real drho;
     amrex::Real dtemp = 0.0_rt;
 
-    // Set index offset based on integration direction
-
-    int i0;
-    int j0;
-
-    if (idir == 0) {
-        // Integrate upward
-        i0 = -1;
-        j0 = 0;
-    } else if (idir == 1) {
-        // Integrate downward
-        i0 = +1;
-        j0 = 0;
-    } else if (idir == 2) {
-        // integrate to the right
-        i0 = 0;
-        j0 = -1;
-    } else {
-        amrex::Error("Invalid integration direction!");
+    amrex::Real Omega2 = 0.0_rt;
+    if (castro::rotational_period > 0.0_rt &&
+        castro::rotation_include_centrifugal) {
+        Omega2 = std::pow(2.0_rt * M_PI / castro::rotational_period, 2);
     }
 
     // Do Newton solve
@@ -296,35 +351,9 @@ void HSE_integrate(const int i, const int j,
         // We assumed integration is always in the right dir,
         // hence reference state is always from left {i, j-1}
 
-        // First just try integrate either in vertical or horizontal direction
+        // Get HSE pressure based on integration direction
 
-        amrex::Real r = model::profile(model_num).x(i) + static_cast<amrex::Real>(i0) * 0.5_rt * dx;
-        amrex::Real twoTheta = 2.0_rt * (model::profile(model_num).y(j) +
-                                         static_cast<amrex::Real>(j0) * 0.5_rt * dy);
-        amrex::Real Omega = 0.0_rt;
-        if (castro::rotational_period > 0.0_rt &&
-            castro::rotation_include_centrifugal) {
-            Omega = 2.0_rt * M_PI / castro::rotational_period;
-        }
-
-        if (idir == 0 || idir == 1) {
-
-            // integrating in vertical direction
-
-            p_want = model::profile(model_num).state(i+i0, j, model::ipres) -
-                static_cast<amrex::Real>(i0) * 0.5_rt * dx *
-                (dens_zone + model::profile(model_num).state(i+i0, j, model::idens)) *
-                (gravity::const_grav + 0.5_rt * Omega * Omega * r * (1.0_rt - std::cos(twoTheta)));
-
-        } else if (idir == 2) {
-
-            // integrating in to the right
-
-            p_want = model::profile(model_num).state(i, j+j0, model::ipres) -
-                static_cast<amrex::Real>(j0) * 0.25_rt * dy *
-                (dens_zone + model::profile(model_num).state(i, j+j0, model::idens)) *
-                Omega * Omega * r * r * std::sin(twoTheta);
-        }
+        amrex::Real p_want = HSE_pressure(i, j, idir, dx, dy, dens_zone, Omega2, model_num);
 
         //
         // We can either have isentropic or isothermal case.
@@ -357,16 +386,46 @@ void HSE_integrate(const int i, const int j,
             amrex::Real B = entropy_base - entropy_zone;
 
             amrex::Real dAdT = -eos_state.dpdT;
-            amrex::Real dAdrho = - eos_state.dpdr;
+            amrex::Real dAdrho = 0.0_rt;
+
+            // Add d HSE_p / drho contribution
             if (idir == 0 || idir == 1) {
-                // integrate vertically
-                dAdrho += -static_cast<amrex::Real>(i0) * 0.5_rt * dx *
-                    (gravity::const_grav + 0.5_rt * Omega * Omega * r * (1.0_rt - std::cos(twoTheta)));
+
+                amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+                amrex::Real oneMinusCosTwoThetac = 1.0_rt - std::cos(twoThetac);
+
+                if (idir == 0) {
+                    // Integrate upward
+
+                    amrex::Real rm = model::profile(model_num).x(i) - 0.5_rt * dx;
+                    dAdrho += 0.5_rt * dx * (gravity::const_grav + 0.5_rt * Omega2 * rm * oneMinusCosTwoThetac);
+
+                } else {
+                    // Integrate downward
+
+                    amrex::Real rp = model::profile(model_num).x(i) + 0.5_rt * dx;
+                    dAdrho += -0.5_rt * dx * (gravity::const_grav + 0.5_rt * Omega2 * rp * oneMinusCosTwoThetac);
+                }
+
+                // Do an average between zone from bottom and left if not along the pole
+                if (j != 0) {
+                    amrex::Real rc = model::profile(model_num).x(i);
+                    amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+
+                    dAdrho += 0.5_rt * (dAdrho + 0.25_rt * dy * Omega2 * rc * rc * sinTwoThetam);
+                }
+
             } else if (idir == 2) {
-                // integrate horizontally
-                dAdrho += -static_cast<amrex::Real>(j0) * 0.25_rt * dy *
-                    Omega * Omega * r * r * std::sin(twoTheta);
+                // Integrate to the right
+
+                amrex::Real rc = model::profile(model_num).x(i);
+                amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+                amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+
+                dAdrho += 0.25_rt * dy * Omega2 * rc * rc * sinTwoThetam;
             }
+
+            dAdrho += - eos_state.dpdr;
             amrex::Real dBdT = -eos_state.dsdT;
             amrex::Real dBdrho = -eos_state.dsdr;
 
@@ -423,17 +482,46 @@ void HSE_integrate(const int i, const int j,
             pres_zone = eos_state.p;
 
             amrex::Real A = p_want - pres_zone;
-            amrex::Real dAdrho = - eos_state.dpdr;
+            amrex::Real dAdrho = 0.0_rt;
 
+            // Add d HSE_p / drho contribution
             if (idir == 0 || idir == 1) {
-                // integrate vertically
-                dAdrho += -static_cast<amrex::Real>(i0) * 0.5_rt * dx *
-                    (gravity::const_grav + 0.5_rt * Omega * Omega * r * (1.0_rt - std::cos(twoTheta)));
+
+                amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+                amrex::Real oneMinusCosTwoThetac = 1.0_rt - std::cos(twoThetac);
+
+                if (idir == 0) {
+                    // Integrate upward
+
+                    amrex::Real rm = model::profile(model_num).x(i) - 0.5_rt * dx;
+                    dAdrho += 0.5_rt * dx * (gravity::const_grav + 0.5_rt * Omega2 * rm * oneMinusCosTwoThetac);
+
+                } else {
+                    // Integrate downward
+
+                    amrex::Real rp = model::profile(model_num).x(i) + 0.5_rt * dx;
+                    dAdrho += -0.5_rt * dx * (gravity::const_grav + 0.5_rt * Omega2 * rp * oneMinusCosTwoThetac);
+                }
+
+                // Do an average between zone from bottom and left if not along the pole
+                if (j != 0) {
+                    amrex::Real rc = model::profile(model_num).x(i);
+                    amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+
+                    dAdrho += 0.5_rt * (dAdrho + 0.25_rt * dy * Omega2 * rc * rc * sinTwoThetam);
+                }
+
             } else if (idir == 2) {
-                // integrate horizontally
-                dAdrho += -static_cast<amrex::Real>(j0) * 0.25_rt * dy *
-                    Omega * Omega * r * r * std::sin(twoTheta);
+                // Integrate to the right
+
+                amrex::Real rc = model::profile(model_num).x(i);
+                amrex::Real twoThetac = 2.0_rt * model::profile(model_num).y(j);
+                amrex::Real sinTwoThetam = std::sin(twoThetac - dy);
+
+                dAdrho += 0.25_rt * dy * Omega2 * rc * rc * sinTwoThetam;
             }
+
+            dAdrho += - eos_state.dpdr;
 
             drho = - A / dAdrho;
 
@@ -554,13 +642,13 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
     // 2D HSE + entropy solve
     //
 
+    // First integrate to the right from θ=0 at the base layer.
+    // The base layer is isothermal.
+
     bool fluff = false;
     bool isentropic = false;
     bool flipped = false;
     amrex::Real entropy_base = -1.0_rt;
-
-    // First integrate to the right from θ=0 at the base layer.
-    // The base layer is isothermal.
 
     for (int j = 1; j < npts_model_y; ++j) {
         HSE_integrate(index_base, j, dx, dy, 2,
@@ -648,20 +736,6 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
         }
 
     }
-
-
-
-
-
-    // Start from the base layer at θ=0 and integrate upward and integrate to the right
-
-    // Now we go through the intersection regions, and integrate upward.
-    // Since the integrated result should be the same regardless of the direction,
-    // we do an average from both direction
-
-    // Start from the base layer at θ=0 and integrate downward
-
-    // Now go through the intersection regions and integrate downward.
 
 }
 #endif
