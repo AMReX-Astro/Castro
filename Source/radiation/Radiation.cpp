@@ -7,6 +7,7 @@
 
 #include <opacity.H>
 
+#include <format>
 #include <iostream>
 
 #ifdef _OPENMP
