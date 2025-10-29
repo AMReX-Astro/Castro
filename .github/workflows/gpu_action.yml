@@ -56,5 +56,5 @@ jobs:
       - name: Compile problems for GPU
         run: |
           export PATH=$PATH:/usr/local/cuda/bin
-          export AMREX_HYPRE_HOME=${PWD}/hypre-2.28.0/src/hypre
+          export AMREX_HYPRE_HOME=${PWD}/hypre-2.33.0/src/hypre
           python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" -gpu

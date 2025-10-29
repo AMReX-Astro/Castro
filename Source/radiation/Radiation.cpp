@@ -14,8 +14,6 @@
 #include <omp.h>
 #endif
 
-#include <sstream>
-
 using namespace amrex;
 
 Radiation::Solver_Type Radiation::SolverType = Radiation::InvalidSolver;
