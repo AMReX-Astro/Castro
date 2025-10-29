@@ -227,7 +227,7 @@ Gravity::read_params ()
 
         }
 
-        int n_rel_tol = pp.countval(rel_tol_name.c_str());
+        int n_rel_tol = pp.countval(rel_tol_name);
 
         if (n_rel_tol <= 1) {
 
@@ -235,7 +235,7 @@ Gravity::read_params ()
 
             if (n_rel_tol == 1) {
 
-                pp.get(rel_tol_name.c_str(), tol);
+                pp.get(rel_tol_name, tol);
 
             } else {
 
@@ -249,7 +249,7 @@ Gravity::read_params ()
 
         } else if (n_rel_tol >= nlevs) {
 
-            pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
+            pp.getarr(rel_tol_name, rel_tol, 0, nlevs);
 
         } else {
 

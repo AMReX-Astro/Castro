@@ -490,11 +490,9 @@ Castro::variableSetUp ()
 
   for (int i=0; i<NumAdv; ++i)
     {
-      char buf[64];
-      sprintf(buf, "adv_%d", i);
       set_scalar_bc(bc, phys_bc);
       bcs[UFA+i] = bc;
-      name[UFA+i] = string(buf);
+      name[UFA+i] = "adv_" + std::to_string(i);
     }
 
 
@@ -652,12 +650,12 @@ Castro::variableSetUp ()
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < NQ; ++i) {
-          char buf[64];
-          sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
 
-          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
+          desc_lst.setComponent(Simplified_SDC_React_Type, i,
+                                "sdc_react_source_" + std::to_string(i),
+                                bc, genericBndryFunc);
       }
   }
 #endif
