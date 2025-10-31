@@ -1,6 +1,5 @@
 # due to Unicode, this requires python 3+
 
-from __future__ import print_function
 
 import parser
 
@@ -8,10 +7,10 @@ papers = parser.parse_bibfile("papers.bib")
 
 
 # sorted by topic
-tf = open("papers.template", "r")
+tf = open("papers.template")
 dh = open("papers.html", "w")
 
-subs = list(set([p.subject for p in papers]))
+subs = list({p.subject for p in papers})
 print(subs)
 subs.sort(key=str.lower)
 
@@ -31,7 +30,7 @@ for s in sorted(papers_by_subj, key=str.lower):
     ps = papers_by_subj[s]
     ps.sort(reverse=True)
 
-    ostr += "<header class='major'>\n<h3>{}</h3>\n</header>\n".format(s)
+    ostr += f"<header class='major'>\n<h3>{s}</h3>\n</header>\n"
 
     ostr += "<div class='table-wrapper'>\n"
     ostr += "  <table>\n"
@@ -41,11 +40,11 @@ for s in sorted(papers_by_subj, key=str.lower):
         t, o, l = p.jstring()
         ostr += "<tr><td>"
         if not l == "":
-            ostr += "<a href='{}'>{}</a><br>\n".format(l, t)
+            ostr += f"<a href='{l}'>{t}</a><br>\n"
         else:
-            ostr += "{}<br>\n".format(t)
+            ostr += f"{t}<br>\n"
 
-        ostr += "{}</td></tr>\n".format(o)
+        ostr += f"{o}</td></tr>\n"
 
     ostr += "  </table>\n"
     ostr += "</div>\n"

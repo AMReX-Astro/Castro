@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.customization import *
@@ -23,7 +21,7 @@ replace_str = {
 
 mdash1 = "-{2,3}"
 
-class Paper(object):
+class Paper:
     def __init__(self, authors, title, year, journal,
                  month=None, booktitle=None, editors=None,
                  volume=None, pages=None, link=None, note=None,
@@ -58,25 +56,25 @@ class Paper(object):
         t_str = re.sub(mdash1, "&mdash;", t_str)
 
         out_str = name_string(self.authors) + " "
-        out_str += "{}, ".format(self.year)
+        out_str += f"{self.year}, "
 
         if not self.journal == None:
-            out_str += "{}, ".format(self.journal)
+            out_str += f"{self.journal}, "
 
         if not self.booktitle == None:
-            out_str += "in {}, ".format(self.booktitle)
+            out_str += f"in {self.booktitle}, "
 
         if not self.editors == None:
-            out_str += "ed. {}, ".format(name_string(self.editors))
+            out_str += f"ed. {name_string(self.editors)}, "
 
         if not self.volume == None:
-            out_str += "{}, ".format(self.volume)
+            out_str += f"{self.volume}, "
 
         if not self.pages == None:
-            out_str += "p. {}, ".format(self.pages)
+            out_str += f"p. {self.pages}, "
 
         if not self.note == None:
-            out_str += "{}, ".format(self.note)
+            out_str += f"{self.note}, "
 
         out_str = out_str.strip()
 
@@ -85,7 +83,7 @@ class Paper(object):
                 out_str = out_str[:len(out_str)-1]
 
         if not self.link == None:
-            l_str = "{}".format(self.link)
+            l_str = f"{self.link}"
         else:
             l_str = ""
 
@@ -95,7 +93,7 @@ class Paper(object):
 def name_string(names):
     nm_str = ""
     if len(names) == 1:
-        nm_str = "{}".format(names[0])
+        nm_str = f"{names[0]}"
     else:
         for n, a in enumerate(names):
             if n < len(names)-1:
@@ -236,7 +234,7 @@ def parse_urlfile(url_file):
 
             # for the ADS bibtex URL, lop off the paper_id
             paper_id = url.strip().split("/")[-1]
-            bibtex_url = "http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode={}&data_type=BIBTEX".format(paper_id)
+            bibtex_url = f"http://adsabs.harvard.edu/cgi-bin/nph-bib_query?bibcode={paper_id}&data_type=BIBTEX"
 
             # get the bibtex in html -- this is a little tricky, since
             # urlopen gives us a byte object that we need to decode
@@ -266,7 +264,7 @@ def parse_urlfile(url_file):
             print(bibtex)
             # parse the bibtex string
             # we need to ensure that the month string is quoted
-            new_str = u""
+            new_str = ""
             for line in bibtex.splitlines():
                 if line.strip().startswith("month"):
                     fields = line.strip().split("=")
