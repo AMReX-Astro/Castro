@@ -13,7 +13,7 @@
     scaling for energy generation rate (#3153)
 
   * update `subchandra` analysis scripts to show `lap_rho`
-    and the contour for NSE.
+    and the contour for NSE. (#3155)
 
   * fix an issue with the makefile flag capturing (#3148)
 
