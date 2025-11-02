@@ -203,7 +203,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</p></li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <span id="id1">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">19</a>]</span>. Briefly:</p>
+the discussion in <span id="id1">[<a class="reference internal" href="zreferences.html#id4" title="A. S. Almgren, V. E. Beckner, J. B. Bell, M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski, A. Nonaka, M. Singer, and M. Zingale. CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics and Self-gravity. ApJ, 715:1221-1238, June 2010. doi:10.1088/0004-637X/715/2/1221.">20</a>]</span>. Briefly:</p>
 <ul>
 <li><p>At the beginning of a simulation, we do a multilevel composite
 solve.</p>
@@ -413,7 +413,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Link to this heading"></a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <span id="id2">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">50</a>]</span>.</p>
+is <span id="id2">[<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">51</a>]</span>.</p>
 <ul>
 <li><p><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -539,8 +539,8 @@ GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<span id="id4">[<a class="reference internal" href="zreferences.html#id47" title="R. Kippenhahn and A. Weigert. Stellar Structure and Evolution. Springer, 1990.">52</a>]</span>. For detailed physics, please refer to
-<span id="id5">[<a class="reference internal" href="zreferences.html#id48" title="Y. B. Zeldovich and D. Novikov. Relativistic astrophysics. Vol.1: Stars and relativity. University of Chicago Press, 1971.">71</a>]</span>. For describing very strong gravitational
+<span id="id4">[<a class="reference internal" href="zreferences.html#id47" title="R. Kippenhahn and A. Weigert. Stellar Structure and Evolution. Springer, 1990.">53</a>]</span>. For detailed physics, please refer to
+<span id="id5">[<a class="reference internal" href="zreferences.html#id48" title="Y. B. Zeldovich and D. Novikov. Relativistic astrophysics. Vol.1: Stars and relativity. University of Chicago Press, 1971.">72</a>]</span>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Link to this equation"></a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -659,7 +659,7 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<span id="id6">[<a class="reference internal" href="zreferences.html#id19" title="M. P. Katz. White Dwarf Mergers on Adaptive Meshes. PhD thesis, State University of New York at Stony Brook, 2016.">49</a>]</span> for some more details.</p></li>
+<span id="id6">[<a class="reference internal" href="zreferences.html#id19" title="M. P. Katz. White Dwarf Mergers on Adaptive Meshes. PhD thesis, State University of New York at Stony Brook, 2016.">50</a>]</span> for some more details.</p></li>
 </ul>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id7" role="doc-footnote">
