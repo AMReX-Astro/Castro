@@ -143,7 +143,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>Castro implements a constrained transport (CT) corner transport upwind
 (CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
-<span id="id1">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">7</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id50" title="Francesco Miniati and Daniel F. Martin. CONSTRAINED-TRANSPORT MAGNETOHYDRODYNAMICS WITH ADAPTI VE MESH REFINEMENT IN CHARM. The Astrophysical Journal Supplement Series, 195(1):5, July 2011. URL: https://iopscience.iop.org/article/10.1088/0067-0049/195/1/5 (visited on 2020-05-01), doi:10.1088/0067-0049/195/1/5.">8</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
 the source terms supported by the hydrodynamics solver are also
@@ -235,7 +235,7 @@ characteristic variables (the default) or the primitive variables.</p>
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Link to this heading"></a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">40</a>]</span>.  The updated electric field then
+first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51" title="Thomas A. Gardiner and James M. Stone. An unsplit Godunov method for ideal MHD via constrained transport. Journal of Computational Physics, 205(2):509-539, May 2005. arXiv:astro-ph/0501557, doi:10.1016/j.jcp.2004.11.016.">41</a>]</span>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </section>

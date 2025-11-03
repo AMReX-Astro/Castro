@@ -166,10 +166,10 @@ shock tube. The left and right primitive-variable states are specified
 and the solution evolves until a user-specified end time. For a simple
 discontinuity, the exact solution can be found from an exact Riemann
 solver. For this problem, the exact solutions were computed with the
-exact Riemann solver from Toro <span id="id1">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 4.</p>
+exact Riemann solver from Toro <span id="id1">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">14</a>]</span>, Chapter 4.</p>
 <section id="sods-problem">
 <h4>Sod’s Problem<a class="headerlink" href="#sods-problem" title="Link to this heading"></a></h4>
-<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">63</a>]</span> is a simple shock tube problem that
+<p>The Sod problem <span id="id2">[<a class="reference internal" href="zreferences.html#id40" title="G. A. Sod. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation la ws. Journal of Computational Physics, 27:1-31, April 1978. doi:10.1016/0021-9991(78)90023-2.">64</a>]</span> is a simple shock tube problem that
 exhibits a shock, contact discontinuity, and a rarefaction wave.
 The initial conditions are:</p>
 <div class="math notranslate nohighlight">
@@ -268,7 +268,7 @@ through the output:</p>
 <section id="double-rarefaction">
 <h4>Double Rarefaction<a class="headerlink" href="#double-rarefaction" title="Link to this heading"></a></h4>
 <p>The double rarefaction is the “Test 2” problem described by Toro
-<span id="id3">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 6. In this test, the center of the domain
+<span id="id3">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">14</a>]</span>, Chapter 6. In this test, the center of the domain
 is evacuated as two rarefaction waves propagate in each direction, outward
 from the center. It is difficult to get the internal energy to
 behave at the center of the domain because we are creating a vacuum.
@@ -332,7 +332,7 @@ fextract named test2x.out, test2y.out, and test2z.out.</p>
 <section id="strong-shock">
 <h4>Strong Shock<a class="headerlink" href="#strong-shock" title="Link to this heading"></a></h4>
 <p>The strong shock test is the “Test 3” problem described by Toro
-<span id="id4">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">13</a>]</span>, Chapter 6. In this test, a large pressure jump
+<span id="id4">[<a class="reference internal" href="zreferences.html#id39" title="E. F. Toro. Riemann Solvers and Numerical Methods for Fluid Dynamics. Springer, 1997.">14</a>]</span>, Chapter 6. In this test, a large pressure jump
 at the initial interface creates a very strong rightward moving
 shock, followed very closely by a contact discontinuity.
 The initial conditions are:</p>
@@ -398,7 +398,7 @@ fextract named test3x.out, test3y.out, and test3z.out.</p>
 <p>The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem. A large amount of energy is placed into a very small
 volume, driving a spherical or cylindrical blast wave.
-Analytic solutions were found by Sedov <span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">62</a>]</span>.</p>
+Analytic solutions were found by Sedov <span id="id5">[<a class="reference internal" href="zreferences.html#id41" title="L. I. Sedov. Similarity and Dimensional Methods in Mechanics. Academic Press, 1959. translated from the 4th Russian Ed.">63</a>]</span>.</p>
 <p>A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
 be modeled in 1-d cylindrical coordinate or 2-d Cartesian coordinates.
 A spherical blast wave can be modeled in 1-d spherical, 2-d axisymmetric
@@ -406,7 +406,7 @@ A spherical blast wave can be modeled in 1-d spherical, 2-d axisymmetric
 (spherical <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(\theta\)</span>),or 3-d Cartesian coordinates.
 This provides a good test on the geometric factors in the hydrodynamics solver.
 We use a publicly available code, <code class="docutils literal notranslate"><span class="pre">sedov3.f</span></code>
-<span id="id6">[<a class="reference internal" href="zreferences.html#id42" title="J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.com/research_pages/sedov.shtml. URL: http://cococubed.com/papers/la-ur-07-2849.pdf.">48</a>]</span>, to generate the analytic solutions.</p>
+<span id="id6">[<a class="reference internal" href="zreferences.html#id42" title="J. R. Kamm and F. X. Timmes. On Efficient Generation of Numerically Robust Sedov Solutions. Retrieved from http://cococubed.com/research_pages/sedov.shtml. URL: http://cococubed.com/papers/la-ur-07-2849.pdf.">49</a>]</span>, to generate the analytic solutions.</p>
 <p>The Castro implementation of the Sedov problem is <code class="docutils literal notranslate"><span class="pre">in</span>
 <span class="pre">Exec/hydro_tests/Sedov/</span></code>.  A number of different inputs files
 are provided, corresponding to different Sedov/Castro geometries. The
@@ -453,7 +453,7 @@ is to be deposited into a single point, in a medium of uniform ambient
 density, <span class="math notranslate nohighlight">\(\rho_\mathrm{ambient}\)</span>, and pressure, <span class="math notranslate nohighlight">\(p_\mathrm{ambient}\)</span>.
 Initializing the problem can be difficult because the small volume is
 typically only a cell in extent. This can lead to grid imprinting in
-the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">59</a>]</span>
+the solution. A standard solution (see for example <span id="id7">[<a class="reference internal" href="zreferences.html#id43" title="M. Omang, S. Børve, and J. Trulsen. SPH in spherical and cylindrical coordinates. Journal of Computational Physics, 213:391-412, March 2006. doi:10.1016/j.jcp.2005.08.023.">60</a>]</span>
 and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, <span class="math notranslate nohighlight">\(V_\mathrm{init}\)</span>, of radius <span class="math notranslate nohighlight">\(r_\mathrm{init}\)</span> as</p>
@@ -578,7 +578,7 @@ linear, old PPM, and new PPM. CFL=0.9. See <a class="reference internal" href="#
 <h2>Radiation Test Problems<a class="headerlink" href="#radiation-test-problems" title="Link to this heading"></a></h2>
 <p>There are two photon radiation solvers in Castro—a gray solver and a
 multigroup solver. The gray solver follows the algorithm outlined
-in <span id="id8">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">44</a>]</span>. We use the notation described in that
+in <span id="id8">[<a class="reference internal" href="zreferences.html#id44" title="L. H. Howell and J. A. Greenough. Radiation diffusion for multi-fluid Eulerian hydrodynamics with adaptive mesh refinement. Journal of Computational Physics, 184:53-78, January 2003. doi:10.1016/S0021-9991(02)00015-3.">45</a>]</span>. We use the notation described in that
 paper. In particular, the radiation energy equation takes the form
 of:</p>
 <div class="math notranslate nohighlight">
@@ -621,7 +621,7 @@ heat it. If the gas is too hot, then it will radiate and cool. In
 each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
-<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>.</p>
+<span id="id9">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">67</a>]</span>.</p>
 <figure class="align-center" id="id20">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" />
 </a>
@@ -642,11 +642,11 @@ frequency-dependent opacity makes the domain optically thin for high
 frequencies and optically thick for low frequency. At long times, the
 solution will be a combination of the blackbody radiation from the
 ambient medium plus the radiation that propagated from the hot sphere.
-An analytic solution exists <span id="id10">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">41</a>]</span> which gives the
+An analytic solution exists <span id="id10">[<a class="reference internal" href="zreferences.html#id46" title="F. Graziani. The prompt spectrum of a radiating sphere: benchmark solutions for diffusion and transport. In F. Graziani, editor, Computational Methods in Transport: Verification and Validation, number 62 in Lecture Notes in Computational Science and Engineering, pages 151-167. Springer, 2008.">42</a>]</span> which gives the
 radiation energy as a function of energy group at a specified time and
 distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
-follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">66</a>]</span>. The routine that computes
+follows that of <span id="id11">[<a class="reference internal" href="zreferences.html#id45" title="F. D. Swesty and E. S. Myra. A Numerical Algorithm for Modeling Multigroup Neutrino-Radiation Hydrodynamics in Two Spatial Dimensions. Astrophysical Journal Supplement, 181:1-52, March 2009. doi:10.1088/0067-0049/181/1/1.">67</a>]</span>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
 <figure class="align-default" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" />
