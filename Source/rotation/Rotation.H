@@ -93,14 +93,11 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
 
   bool c2 = (castro::rotation_include_coriolis == 1 && coriolis) ? true : false;
 
-  auto r_vec = r;
-
-  GpuArray<Real, 3> omega_cross_v;
-  cross_product(omega, v, omega_cross_v);
-
   if (c1) {
       // For Spherical coordinate, the physical position vector is just r rhat,
       // but the input r will be in the format of (r,theta,0). So change it to (r,0,0)
+
+      auto r_vec = r;
 
       if (coord == 2) {
           r_vec[1] = 0.0_rt;
@@ -118,6 +115,8 @@ rotational_acceleration(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& v,
   }
 
   if (c2) {
+      GpuArray<Real, 3> omega_cross_v;
+      cross_product(omega, v, omega_cross_v);
       for (int idir = 0; idir < 3; idir++) {
           Sr[idir] -= 2.0_rt * omega_cross_v[idir];
       }
@@ -134,14 +133,14 @@ rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega,
   //
 
   Real phi = 0.0_rt;
-  auto r_vec = r;
-
-  if (coord == 2) {
-      r_vec[1] = 0.0_rt;
-      r_vec[2] = 0.0_rt;
-  }
 
   if (castro::rotation_include_centrifugal == 1) {
+
+      auto r_vec = r;
+      if (coord == 2) {
+          r_vec[1] = 0.0_rt;
+          r_vec[2] = 0.0_rt;
+      }
 
       GpuArray<Real, 3> omega_cross_r;
       cross_product(omega, r, omega_cross_r);

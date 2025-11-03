@@ -10,42 +10,49 @@
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
-                                    Array4<Real> const& state,
+                                    amrex::Array4<amrex::Real> const& state,
                                     const GeometryData& geomdata)
 {
 
-    const Real* dx = geomdata.CellSize();
-    const Real* problo = geomdata.ProbLo();
+    const amrex::Real* dx = geomdata.CellSize();
+    const amrex::Real* problo = geomdata.ProbLo();
 
-    Real r = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
-    Real theta = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
+    amrex::Real r = problo[0] + dx[0] * (static_cast<amrex::Real>(i) + 0.5_rt) - problem::center[0];
+    amrex::Real theta = problo[1] + dx[1] * (static_cast<amrex::Real>(j) + 0.5_rt) - problem::center[1];
 
     // blending factor
 
-    Real f;
+    // amrex::Real f;
 
-    if (theta < problem::theta_half_max) {
-        f = 1.0_rt;
+    // if (theta < problem::theta_half_max) {
+    //     f = 1.0_rt;
 
-    } else if (theta > problem::theta_half_max + problem::theta_half_width) {
-        f = 0.0_rt;
+    // } else if (theta > problem::theta_half_max + problem::theta_half_width) {
+    //     f = 0.0_rt;
 
-    } else {
-        f = -(theta - problem::theta_half_max) / problem::theta_half_width + 1.0_rt;
-    }
+    // } else {
+    //     f = -(theta - problem::theta_half_max) / problem::theta_half_width + 1.0_rt;
+    // }
 
-    state(i,j,k,URHO) = f * interpolate(r, model::idens, 1) +
-             (1.0_rt - f) * interpolate(r, model::idens, 0);
+    // state(i,j,k,URHO) = f * interpolate(r, model::idens, 1) +
+    //          (1.0_rt - f) * interpolate(r, model::idens, 0);
 
-    state(i,j,k,UTEMP) = f * interpolate(r, model::itemp, 1) +
-              (1.0_rt - f) * interpolate(r, model::itemp, 0);
+    // state(i,j,k,UTEMP) = f * interpolate(r, model::itemp, 1) +
+    //           (1.0_rt - f) * interpolate(r, model::itemp, 0);
 
-    Real temppres = f * interpolate(r, model::ipres, 1) +
-         (1.0_rt - f) * interpolate(r, model::ipres, 0);
+    // amrex::Real temppres = f * interpolate(r, model::ipres, 1) +
+    //      (1.0_rt - f) * interpolate(r, model::ipres, 0);
 
+    // for (int n = 0; n < NumSpec; n++) {
+    //     state(i,j,k,UFS+n) = f * interpolate(r, model::ispec+n, 1) +
+    //               (1.0_rt - f) * interpolate(r, model::ispec+n, 0);
+    // }
+
+    state(i,j,k,URHO) = interpolate(r, theta, model::idens, 0);
+    state(i,j,k,UTEMP) = interpolate(r, theta, model::itemp, 0);
+    amrex::Real temppres = interpolate(r, theta, model::ipres, 0);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = f * interpolate(r, model::ispec+n, 1) +
-                  (1.0_rt - f) * interpolate(r, model::ispec+n, 0);
+        state(i,j,k,UFS+n) = interpolate(r, theta, model::ispec+n, 0);
     }
 
     eos_t eos_state;
