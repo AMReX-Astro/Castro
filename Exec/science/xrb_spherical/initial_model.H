@@ -467,9 +467,8 @@ set_boundary_condition(const int npts_model_x, const int npts_model_y,
       or the initial guess for the smoothing procedure.
      */
 
-    //
-    // integrate along r_min from θ_min (bottom boundary)
-    //
+
+    // Integrate horizontally along the base
 
     bool fluff = false;
     bool isentropic = false;
@@ -483,7 +482,7 @@ set_boundary_condition(const int npts_model_x, const int npts_model_y,
         fluff_mask[index_base][j] = fluff;
     }
 
-    // Integrate horizontally
+    // Integrate vertically
 
     for (int j = 0; j < npts_model_y; ++j) {
 
@@ -515,6 +514,7 @@ set_boundary_condition(const int npts_model_x, const int npts_model_y,
             fluff_mask[i][j] = fluff;
         }
     }
+
 
     //
     // integrate along θ_min from r_base (left boundary)
@@ -731,10 +731,10 @@ amrex::Real compute_relative_error(const int npts_model_x, const int npts_model_
             amrex::Real residual = f - d2p;
 
             // Do L1 norm
-            if (std::abs(residual) > std::abs(f)) {
-                std::cout << "f in " << i << " " << j << " is " << f << std::endl;
-                std::cout << "d2p in " << i << " " << j << " is " << d2p << std::endl;
-            }
+            // if (std::abs(residual) > std::abs(f)) {
+            //     std::cout << "f in " << i << " " << j << " is " << f << std::endl;
+            //     std::cout << "d2p in " << i << " " << j << " is " << d2p << std::endl;
+            // }
             f_norm += std::abs(f);
             residual_norm += std::abs(residual);
         }
@@ -903,8 +903,10 @@ void HSE_smooth(const int i, const int j,
         amrex::Real f = (rp2 * rhoip * psi_rp - rm2 * rhoim * psi_rm) * rc2i * dxi +
             (sinThetap * rhojp * psi_tp - sinThetam * rhojm * psi_tm) * rci * dySinThetaci;
 
-        amrex::Real dHSEp_drho = 0.5_rt * ((rp2 * psi_rp - rm2 * psi_rm) * rc2i * dxi +
-                                           (sinThetap * psi_tp - sinThetam * psi_tm) * rci * dySinThetaci);
+        amrex::Real df_drho = 0.5_rt * ((rp2 * psi_rp - rm2 * psi_rm) * rc2i * dxi +
+                                        (sinThetap * psi_tp - sinThetam * psi_tm) * rci * dySinThetaci);
+        amrex::Real dHSEp_drho = - rc2 * dx2 * dy2sinThetac * df_drho /
+            (dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap + sinThetam));
 
         p_want = (
                   dy2sinThetac * (rp2 * model::profile(model_num).state(i+1, j  , model::ipres)  +
