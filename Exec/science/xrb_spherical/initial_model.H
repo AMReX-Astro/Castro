@@ -717,6 +717,12 @@ amrex::Real compute_relative_error(const int npts_model_x, const int npts_model_
             amrex::Real rhojm = 0.5_rt * (model::profile(model_num).state(i  , j  , model::idens) +
                                           model::profile(model_num).state(i  , j-1, model::idens));
 
+            if (j == 0) {
+                rhojm = model::profile(model_num).state(i  , j  , model::idens);
+            } else if (j == model::npts_y - 1) {
+                rhojp = model::profile(model_num).state(i  , j  , model::idens);
+            }
+
             amrex::Real f = (rp2 * rhoip * psi_rp - rm2 * rhoim * psi_rm) * rc2i * dxi +
                             (sinThetap * rhojp * psi_tp - sinThetam * rhojm * psi_tm) * rci * dySinThetaci;
 
@@ -727,6 +733,28 @@ amrex::Real compute_relative_error(const int npts_model_x, const int npts_model_
   dy2sinThetaci * (sinThetap * model::profile(model_num).state(i  , j+1, model::ipres) +
                    sinThetam * model::profile(model_num).state(i  , j-1, model::ipres) -
      (sinThetap + sinThetam) * model::profile(model_num).state(i  , j  , model::ipres)));
+
+            if (j == 0) {
+                d2p = rc2i *
+                (
+                 dx2i * (rp2 * (model::profile(model_num).state(i+1, j  , model::ipres) -
+                                model::profile(model_num).state(i  , j  , model::ipres)) -
+                         rm2 * (model::profile(model_num).state(i  , j  , model::ipres) -
+                                model::profile(model_num).state(i-1, j  , model::ipres))) +
+   dy2sinThetaci * sinThetap * (model::profile(model_num).state(i  , j+1, model::ipres) -
+                                model::profile(model_num).state(i  , j  , model::ipres))
+                 );
+            } else if (j == model::npts_y - 1){
+                d2p = rc2i *
+                (
+                 dx2i * (rp2 * (model::profile(model_num).state(i+1, j  , model::ipres) -
+                                model::profile(model_num).state(i  , j  , model::ipres)) -
+                         rm2 * (model::profile(model_num).state(i  , j  , model::ipres) -
+                                model::profile(model_num).state(i-1, j  , model::ipres))) -
+   dy2sinThetaci * sinThetam * (model::profile(model_num).state(i  , j  , model::ipres) -
+                                model::profile(model_num).state(i  , j-1, model::ipres))
+                 );
+            }
 
             amrex::Real residual = f - d2p;
 
@@ -900,21 +928,59 @@ void HSE_smooth(const int i, const int j,
         amrex::Real rhojm = 0.5_rt * (model::profile(model_num).state(i  , j  , model::idens) +
                                       model::profile(model_num).state(i  , j-1, model::idens));
 
+        if (j == 0) {
+            rhojm = model::profile(model_num).state(i  , j  , model::idens);
+        } else if (j == model::npts_y - 1) {
+            rhojp = model::profile(model_num).state(i  , j  , model::idens);
+        }
+
         amrex::Real f = (rp2 * rhoip * psi_rp - rm2 * rhoim * psi_rm) * rc2i * dxi +
             (sinThetap * rhojp * psi_tp - sinThetam * rhojm * psi_tm) * rci * dySinThetaci;
 
         amrex::Real df_drho = 0.5_rt * ((rp2 * psi_rp - rm2 * psi_rm) * rc2i * dxi +
                                         (sinThetap * psi_tp - sinThetam * psi_tm) * rci * dySinThetaci);
+        if (j == 0){
+            df_drho = 0.5_rt * ((rp2 * psi_rp - rm2 * psi_rm) * rc2i * dxi +
+                                        (sinThetap * psi_tp - 2.0_rt * sinThetam * psi_tm) * rci * dySinThetaci);
+        } else if (j == model::npts_y - 1) {
+            df_drho = 0.5_rt * ((rp2 * psi_rp - 2.0_rt * rm2 * psi_rm) * rc2i * dxi +
+                                (2.0_rt * sinThetap * psi_tp - sinThetam * psi_tm) * rci * dySinThetaci);
+        }
+
+        if (j == 0) {
+            p_want = (
+                      dy2sinThetac * (rp2 * model::profile(model_num).state(i+1, j  , model::ipres)  +
+                                      rm2 * model::profile(model_num).state(i-1, j  , model::ipres)) +
+                         dx2 * (sinThetap * model::profile(model_num).state(i  , j+1, model::ipres)) -
+                         rc2 * dx2 * dy2sinThetac * f
+                      ) / ( dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap) );
+        } else if (j == model::npts_y - 1) {
+            p_want = (
+                      dy2sinThetac * (rp2 * model::profile(model_num).state(i+1, j  , model::ipres)  +
+                                      rm2 * model::profile(model_num).state(i-1, j  , model::ipres)) +
+                         dx2 * (sinThetam * model::profile(model_num).state(i  , j-1, model::ipres)) -
+                         rc2 * dx2 * dy2sinThetac * f
+                      ) / ( dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetam) );
+
+        } else {
+            p_want = (
+                      dy2sinThetac * (rp2 * model::profile(model_num).state(i+1, j  , model::ipres)  +
+                                      rm2 * model::profile(model_num).state(i-1, j  , model::ipres)) +
+                         dx2 * (sinThetap * model::profile(model_num).state(i  , j+1, model::ipres)  +
+                                sinThetam * model::profile(model_num).state(i  , j-1, model::ipres)) -
+                      rc2 * dx2 * dy2sinThetac * f
+                      ) / ( dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap + sinThetam) );
+        }
+
         amrex::Real dHSEp_drho = - rc2 * dx2 * dy2sinThetac * df_drho /
             (dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap + sinThetam));
-
-        p_want = (
-                  dy2sinThetac * (rp2 * model::profile(model_num).state(i+1, j  , model::ipres)  +
-                                  rm2 * model::profile(model_num).state(i-1, j  , model::ipres)) +
-                     dx2 * (sinThetap * model::profile(model_num).state(i  , j+1, model::ipres)  +
-                            sinThetam * model::profile(model_num).state(i  , j-1, model::ipres)) -
-                  rc2 * dx2 * dy2sinThetac * f
-                  ) / ( dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap + sinThetam) );
+        if (j == 0) {
+            dHSEp_drho = - rc2 * dx2 * dy2sinThetac * df_drho /
+                (dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetap));
+        } else if (j == model::npts_y - 1) {
+            dHSEp_drho = - rc2 * dx2 * dy2sinThetac * df_drho /
+                (dy2sinThetac * (rp2 + rm2) + dx2 * (sinThetam));
+        }
 
         amrex::Real A = p_want - pres_zone;
         amrex::Real dAdT = -eos_state.dpdT;
@@ -1085,16 +1151,32 @@ generate_initial_model(const int npts_model_x, const amrex::Real xmin, const amr
         // Do smoothing over the interior grid
 
         for (int i = 1; i < npts_model_x-1; ++i) {
-            for (int j = 1; j < npts_model_y-1; ++j) {
+            for (int j = 0; j < npts_model_y; ++j) {
 
-            // Ignore current zone if:
-            // 1) the surrounding zone is fluff then we're at the top boundary interface
-            // 2) the current zone is fluff
-            if (fluff_mask[i][j] ||
-                fluff_mask[i+1][j] || fluff_mask[i-1][j] ||
-                fluff_mask[i][j-1] || fluff_mask[i][j+1]) {
-                continue;
-            }
+                // Ignore current zone if:
+                // 1) the surrounding zone is fluff then we're at the top boundary interface
+                // 2) the current zone is fluff
+
+                if (j == 0) {
+                    if (fluff_mask[i][j] ||
+                        fluff_mask[i+1][j] || fluff_mask[i-1][j] ||
+                        fluff_mask[i][j+1]) {
+                        continue;
+                    }
+                } else if (j == npts_model_y - 1) {
+                    if (fluff_mask[i][j] ||
+                        fluff_mask[i+1][j] || fluff_mask[i-1][j] ||
+                        fluff_mask[i][j-1]) {
+                        continue;
+                    }
+                } else {
+                    if (fluff_mask[i][j] ||
+                        fluff_mask[i+1][j] || fluff_mask[i-1][j] ||
+                        fluff_mask[i][j-1] || fluff_mask[i][j+1]) {
+                        continue;
+                    }
+                }
+
                 HSE_smooth(i, j, dx, dy,
                            fluff_mask,
                            model_params, model_num);
