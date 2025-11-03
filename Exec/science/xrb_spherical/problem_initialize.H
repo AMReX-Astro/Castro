@@ -174,8 +174,8 @@ void problem_initialize ()
     generate_initial_model(nx_model + ng,
                            problo[0] - ng * dx_model,
                            probhi[0],
-                           ny_model + ng,
-                           problo[1] - ng * dy_model,
+                           ny_model,
+                           problo[1],
                            probhi[1],
                            model_params, 0);
 
@@ -197,12 +197,12 @@ void problem_initialize ()
 
     // set the ambient state for the upper boundary condition using upper most r zone at θ=0
 
-    ambient::ambient_state[URHO] = model::profile(0).state(model::npts_x-1, ng, model::idens);
+    ambient::ambient_state[URHO] = model::profile(0).state(model::npts_x-1, 0, model::idens);
 
-    ambient::ambient_state[UTEMP] = model::profile(0).state(model::npts_x-1, ng, model::itemp);
+    ambient::ambient_state[UTEMP] = model::profile(0).state(model::npts_x-1, 0, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
         ambient::ambient_state[UFS+n] =
-            ambient::ambient_state[URHO] * model::profile(0).state(model::npts_x-1, ng, model::ispec+n);
+            ambient::ambient_state[URHO] * model::profile(0).state(model::npts_x-1, 0, model::ispec+n);
     }
 
     ambient::ambient_state[UMX] = 0.0_rt;
