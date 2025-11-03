@@ -1,5 +1,7 @@
 # 25.11
 
+  * update shock burning docs (#3165)
+
   * update github CI actions (#3161)
 
   * fix indexing error in 4th order SDC initial energy derivation
