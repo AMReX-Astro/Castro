@@ -9,7 +9,7 @@
 
   * sync up with latest AMReX API (#3157)
 
-  * replace `sprinf`s with safer constructions (#3152)
+  * replace `sprintf`s with safer constructions (#3152)
 
   * update the `Detonation` analysis scripts to use symlog
     scaling for energy generation rate (#3153)
