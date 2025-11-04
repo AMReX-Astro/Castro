@@ -93,7 +93,10 @@ compiled with::
 
 in the ``GNUmakefile``.  This will allocate storage for a shock flag in the conserved
 state array.  This flag is computed via a multidimensional shock detection algorithm
-described in :cite:`doubledet2024`.  A zone is tagged as a shock if the following
+described in :cite:`doubledet2024`.  A test problem demonstrating the effect of
+this flag is also shown in :cite:`brady:2025`.
+
+A zone is tagged as a shock if the following
 conditions are true:
 
 .. math::
@@ -355,5 +358,3 @@ In ``Castro_react.cpp``, the flow is:
     * $U(\mu_p) = \mathtt{burn\_state.mu\_p}$
 
     * $U(\mu_n) = \mathtt{burn\_state.mu\_n}$
-
-
