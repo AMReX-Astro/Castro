@@ -61,15 +61,24 @@ void problem_initialize ()
     int ihe4 = network_spec_index("helium-4");
     int ic12 = network_spec_index("carbon-12");
     int io16 = network_spec_index("oxygen-16");
+    int ine20 = network_spec_index("neon-20");
 
     int in14 = network_spec_index("nitrogen-14");
 
-    if (ihe4 < 0 || ic12 < 0 || io16 < 0) {
+    if (ihe4 < 0 || ic12 < 0 || io16 < 0 || ine20 < 0) {
         amrex::Error("ERROR: species not defined");
     }
 
     if (in14 < 0 && problem::X_N14 > 0.0_rt) {
         amrex::Error("ERROR: N14 not defined");
+    }
+
+    // core mass fractions should sum to 1
+    if (std::abs(problem::core_XC12 +
+                 problem::core_XO16 +
+                 problem::core_XNe20 - 1.0_rt) > 1.e-10) {
+        std::cout << problem::core_XC12 << " " << problem::core_XO16 << " " << problem::core_XNe20 << std::endl;
+        amrex::Error("ERROR: core mass fractions should sum to 1");
     }
 
     for (auto& X : model_params.xn_core) {
@@ -79,12 +88,27 @@ void problem_initialize ()
         X = network_rp::small_x;
     }
 
-    if (problem::mixed_co_wd) {
-        model_params.xn_core[ic12] = 0.5_rt - 0.5_rt * (NumSpec - 1) * network_rp::small_x;
-        model_params.xn_core[io16] = 0.5_rt - 0.5_rt * (NumSpec - 1) * network_rp::small_x;
-    } else {
-        model_params.xn_core[ic12] = 1.0_rt - (NumSpec - 1) * network_rp::small_x;
+    int ncore = 0;
+    if (problem::core_XC12 > 0.0) {
+        ncore++;
     }
+
+    if (problem::core_XO16 > 0.0) {
+        ncore++;
+    }
+
+    if (problem::core_XNe20 > 0.0) {
+        ncore++;
+    }
+
+    // we need to initialize the core to be 1 - other_xn * small_x.
+    // We'll distribute this remainder over the core nuclei
+
+    int other_xn = NumSpec - ncore;
+
+    model_params.xn_core[ic12] = problem::core_XC12 - other_xn * network_rp::small_x / ncore;
+    model_params.xn_core[io16] = problem::core_XO16 - other_xn * network_rp::small_x / ncore;;
+    model_params.xn_core[ine20] = problem::core_XNe20 - other_xn * network_rp::small_x / ncore;;
 
     if (problem::X_N14 > 0.0_rt) {
         model_params.xn_he[in14] = problem::X_N14;
@@ -108,6 +132,7 @@ void problem_initialize ()
     model_params.ic12 = ic12;
     model_params.in14 = in14;
     model_params.io16 = io16;
+    model_params.ine20 = ine20;
 
     model_params.X_N14 = problem::X_N14;
     model_params.X_C12 = problem::X_C12;

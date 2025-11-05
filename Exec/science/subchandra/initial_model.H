@@ -34,10 +34,12 @@ struct model_t {
     int ic12;
     int in14;
     int io16;
+    int ine20;
 
     amrex::Real X_N14;
     amrex::Real X_C12;
     amrex::Real X_O16;
+    amrex::Real X_Ne20;
 };
 
 
@@ -428,7 +430,8 @@ build_star(const model_t& model_params, const Real dx,
             (model::profile(0).state(i, model::ispec+model_params.ihe4) <=
              network_rp::small_x)) {
             core_X += model::profile(0).state(i, model::ispec+model_params.ic12) +
-                model::profile(0).state(i, model::ispec+model_params.io16);
+                      model::profile(0).state(i, model::ispec+model_params.io16) +
+                      model::profile(0).state(i, model::ispec+model_params.ine20);
         }
 
         mass_he += vol * model::profile(0).state(i, model::idens) * layer_X;
