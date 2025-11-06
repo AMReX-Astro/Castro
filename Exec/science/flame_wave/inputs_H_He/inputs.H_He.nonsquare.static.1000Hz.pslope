@@ -155,7 +155,7 @@ problem.ash1_frac = 1.0
 problem.low_density_cutoff = 1.e-4
 
 problem.tag_by_density = 0
-problem.refine_height = 3600.0
+problem.refine_height = 7200.0
 problem.max_base_tagging_level = 3
 
 # Microphysics

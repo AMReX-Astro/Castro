@@ -1,6 +1,3 @@
-# the name of the initial model
-model_name            string      "model.hse"     y
-
 # the distance from the base of the He layer star to put the perturbation
 R_pert                real           1.e7_rt         y
 
@@ -28,3 +25,65 @@ second_R_pert             real           1.e7_rt         y
 second_pert_temp_factor   real           10.0_rt         y
 
 second_pert_rad_factor    real           2.0_rt          y
+
+
+####### initial model construction
+
+# maximum radius for the model construction.  We use this instead
+# of the domain size to keep the number of points in the model
+# small, since our start typically occupys a small fraction of the
+# domain (to give room for expansion).
+model_r_max          real         4.096e9                y
+
+M_WD                 real         0.6                    y
+
+M_He                 real         0.2                    y
+
+# mass fraction of N14 to put in the accreted envelope
+X_N14                real         0.00                   y
+
+# mass fraction of C12 to put in the accreted envelope
+X_C12                real         0.00                   y
+
+# mass fraction of O16 to put in the accreted envelope
+X_O16                real         0.00                   y
+
+delta                real         1.e-6                  y
+
+temp_core            real         1.e7                   y
+
+temp_base            real         4.e8                   y
+
+# mass fraction of C12 to put in the core
+core_XC12            real         0.5                    y
+
+# mass fraction of O16 to put in the core
+core_XO16            real         0.5                    y
+
+# mass fraction of Ne20 to put in the core
+core_XNe20           real         0.0                    y
+
+low_density_cutoff   real         1.e-4                  y
+
+temp_fluff           real         1.e5                   y
+
+isothermal_layer     int          0                      y
+
+# tol_hse is the tolerance used when iterating over a zone to
+# force it into HSE by adjusting the current density (and
+# possibly temperature).  TOL_HSE should be very small (~
+# 1.e-10).
+tol_hse              real         1.e-10                 y
+
+# tol_wd is the tolerance used for root-finding on the WD mass.
+tol_WD               real         1.e-3                  y
+
+# tol_he is the tolerance used for root-finding on the He layer mass.
+# This should not be too small, since the values of the He envelope
+# mass we can achieve will depend on our grid spacing.
+tol_He               real         1.e-2                  y
+
+# minimum resolution to use for the model generation.  We'll also look
+# at the grid spacing and take which ever is smaller.  If we make it
+# too coarse, we can run into convergence problems.
+model_min_res        real         1.e6                   y

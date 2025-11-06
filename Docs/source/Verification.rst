@@ -258,15 +258,15 @@ Sedov Problem
 
 The Sedov (or Sedov-Taylor) blast wave is a standard hydrodynamics
 test problem. A large amount of energy is placed into a very small
-volume, driving a spherical (or cylindrical in 2-d Cartesian
-coordinates) blast wave. Analytic solutions were found by Sedov
-:cite:`sedov:1959`.
+volume, driving a spherical or cylindrical blast wave.
+Analytic solutions were found by Sedov :cite:`sedov:1959`.
 
 A cylindrical blast wave (e.g. a point explosion in a 2-d plane) can
-be modeled in 2-d Cartesian coordinates. A spherical blast wave can
-be modeled in 1-d spherical, 2-d axisymmetric (cylindrical :math:`r`-:math:`z`), or 3-d
-Cartesian coordinates. This provides a good test on the geometric
-factors in the hydrodynamics solver.
+be modeled in 1-d cylindrical coordinate or 2-d Cartesian coordinates.
+A spherical blast wave can be modeled in 1-d spherical, 2-d axisymmetric
+(cylindrical :math:`r`-:math:`z`), 2-d axisymmetric
+(spherical :math:`r`-:math:`\theta`),or 3-d Cartesian coordinates.
+This provides a good test on the geometric factors in the hydrodynamics solver.
 We use a publicly available code, ``sedov3.f``
 :cite:`timmes_sedov_code`, to generate the analytic solutions.
 
@@ -282,11 +282,18 @@ main ones are:
      +---------------------------------+---------------------------------------------+
      | inputs file                     | description                                 |
      +=================================+=============================================+
+     | ``inputs.1d.cyl``               |  Spherical Sedov explosion modeled          |
+     |                                 |  in 1-d cylindrical coordinates             |
+     +---------------------------------+---------------------------------------------+
      | ``inputs.1d.sph``               |  Spherical Sedov explosion modeled          |
      |                                 |  in 1-d spherical coordinates               |
      +---------------------------------+---------------------------------------------+
      | ``inputs.2d.sph_in_cylcoords``  |  Spherical Sedov explosion modeled          |
      |                                 |  in 2-d cylindrical (axisymmetric)          |
+     |                                 |  coordinates.                               |
+     +---------------------------------+---------------------------------------------+
+     | ``inputs.2d.sph_in_sphcoords``  |  Spherical Sedov explosion modeled          |
+     |                                 |  in 2-d spherical (axisymmetric)            |
      |                                 |  coordinates.                               |
      +---------------------------------+---------------------------------------------+
      | ``inputs.2d.cyl_in_cartcoords`` |  Cylindrical Sedov explosion modeled in     |
@@ -331,35 +338,42 @@ An analysis routines for the Sedov problem is provided in
 can specify the dimensionality with the ``DIM`` variable in the
 build).
 
-
 A spherical Sedov explosion can be modeled in 1-d spherical, 2-d
-cylindrical (axisymmetric), or 3-d Cartesian coordinates, using the
-inputs files described in :numref:`table:sedov_inputs`. A 1-d radial
-profile can be extracted using the analysis routine. For example, to run and process
-the 2-d cylindrical Sedov explosion, one would do:
+cylindrical (axisymmetric), 2-d spherical (axisymmetric), or
+3-d Cartesian coordinates, using the inputs files described in
+:numref:`table:sedov_inputs`. A 1-d radial profile can be extracted
+using the analysis routine. For example, to run and process
+the 2-d spherical Sedov explosion in cylindrical coordinates, one would do:
 
-#. in ``Exec/hydro_tests/Sedov``, build the Castro executable in 2-d
+#. in ``Exec/hydro_tests/Sedov``, build the Castro executable in 2-d::
+
+     make DIM=2
 
 #. run the spherical Sedov problem with Castro in 2-d cylindrical coordinates::
 
-    ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords
+     ./Castro2d.gnu.MPI.ex inputs.2d.sph_in_cylcoords
 
-#. build the ``sedov_2d_ex`` tool in
-   ``Castro/Diagnostics/Sedov``.
+#. build the ``sedov_2d.ex`` tool in ``Castro/Diagnostics/Sedov``::
+
+     make DIM=2
 
 #. run the analysis script  on the Castro output to generate 1-d radial
    profiles::
 
-      ./sedov_2d.ex --sphr --yctr 0.5 -s sedov_2d_sph_in_cyl.out \
-          -p sedov_2d_sph_in_cyl_plt00246
+     ./sedov_2d.ex -s sedov_2d_sph_in_cyl.out \
+          -p ../sedov_2d_sph_in_cyl_plt00130
 
-A similar procedure can be used for the 1-d and 3-d spherical Sedov
-explosions (with the output named ``sedov_1d_sph.out`` and
-``sedov_3d_sph.out`` respectively). Once this is done, the
-``sedov_sph.gp`` gnuplot script can be used to make a plot comparing
-the 3 solutions to the analytic solution, ``spherical_sedov.dat``.
+A similar procedure can be used for the spherical and cylindrical
+Sedov explosions in other geometries and dimensions. Once this is done,
+the ``sedov_sph.gp`` and ``sedov_cyl.gp`` gnuplot script can be used to
+make a plot comparing the numerical solutions to the analytic solution
+for spherical and cylindrical Sedov explosions, which are contained
+in ``spherical_sedov.dat`` and ``cylindrical_sedov.dat``, respectively.
+Note that the file containing the 1-d radial profiles of the numerical
+solution has the same name as the one specified in the gnuplot script.
 
-:numref:`fig:sedov_sph` shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
+:numref:`fig:sedov_sph` shows the comparison of the 3 Castro spherical
+        Sedov explosion simulations to the analytic solution.
 
 .. _fig:sedov_sph:
 .. figure:: sedov_sph.png
@@ -367,9 +381,9 @@ the 3 solutions to the analytic solution, ``spherical_sedov.dat``.
    :align: center
    :width: 5in
 
-   Castro solution for the Sedov blast wave problem run in 1-d
-   spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
-   of these geometries produces a spherical Sedov explosion.
+   Castro solution for the Sedov blast wave problem run in 1-d spherical,
+   2-d cylindrical, 2-d spherical, and 3-d Cartesian coordinates.
+   Each of these geometries produces a spherical Sedov explosion.
 
 Cylindrical Blast Wave
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -379,8 +393,8 @@ Cylindrical Blast Wave
    :align: center
    :width: 5in
 
-   Castro solution for the Sedov blast wave problem run in 2-d
-   Cartesian coordinates. This corresponds to a cylindrical Sedov
+   Castro solution for the Sedov blast wave problem run in 1-d cylindrical and
+   2-d Cartesian coordinates. This corresponds to a cylindrical Sedov
    explosion.
 
 Rayleigh-Taylor
@@ -519,4 +533,3 @@ Regression Testing
 
 An automated regression test suite for Castro (or any AMReX-based
 code) written in Python exists in the AMReX-Codes github organization.
-

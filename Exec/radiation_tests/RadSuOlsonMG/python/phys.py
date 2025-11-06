@@ -1,4 +1,3 @@
-
 # physical constants in cgs
 
 # Fundamental constants taken from NIST's 2010 CODATA recommended values

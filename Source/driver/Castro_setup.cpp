@@ -425,7 +425,6 @@ Castro::variableSetUp ()
                          interp, state_data_extrap, store_in_checkpoint);
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
   // these are not traced, so we only need a single ghost cell
@@ -441,7 +440,6 @@ Castro::variableSetUp ()
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
-#endif
 #endif
 
   Vector<BCRec>       bcs(NUM_STATE);
@@ -492,11 +490,9 @@ Castro::variableSetUp ()
 
   for (int i=0; i<NumAdv; ++i)
     {
-      char buf[64];
-      sprintf(buf, "adv_%d", i);
       set_scalar_bc(bc, phys_bc);
       bcs[UFA+i] = bc;
-      name[UFA+i] = string(buf);
+      name[UFA+i] = "adv_" + std::to_string(i);
     }
 
 
@@ -639,31 +635,29 @@ Castro::variableSetUp ()
 
   if (store_burn_weights) {
 
-#ifdef STRANG
-      burn_weight_names.emplace_back("burn_weights_firsthalf");
-      burn_weight_names.emplace_back("burn_weights_secondhalf");
-#endif
-#ifdef SIMPLIFIED_SDC
-      for (int n = 0; n < sdc_iters+1; n++) {
-          burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
+      if (castro::time_integration_method == CornerTransportUpwind) {
+          burn_weight_names.emplace_back("burn_weights_firsthalf");
+          burn_weight_names.emplace_back("burn_weights_secondhalf");
       }
-#endif
+      else if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+          for (int n = 0; n < sdc_iters+1; n++) {
+              burn_weight_names.emplace_back("burn_weights_iter_" + std::to_string(n+1));
+          }
+      }
   }
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < NQ; ++i) {
-          char buf[64];
-          sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
           replace_inflow_bc(bc);
 
-          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,genericBndryFunc);
+          desc_lst.setComponent(Simplified_SDC_React_Type, i,
+                                "sdc_react_source_" + std::to_string(i),
+                                bc, genericBndryFunc);
       }
   }
-#endif
 #endif
 
 #ifdef RADIATION

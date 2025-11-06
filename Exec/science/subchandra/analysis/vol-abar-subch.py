@@ -67,7 +67,7 @@ def doit(plotfile):
     cam.zoom(3.0)
     sc.camera = cam
 
-    sc.save_annotated("{}_abar_annotated.png".format(plotfile),
+    sc.save_annotated(f"{plotfile}_abar_annotated.png",
                       label_fontsize="18", label_fmt="%.1f",
                       sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),

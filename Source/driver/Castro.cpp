@@ -937,14 +937,15 @@ Castro::initMFs()
 
 #ifdef REACTIONS
     if (store_burn_weights) {
-#ifdef STRANG
-        // we have 2 components: first half and second half
-        burn_weights.define(grids, dmap, 2, 0);
-#endif
-#ifdef SIMPLIFIED_SDC
-        // we have a component for each sdc iteration + 1 extra for retries
-        burn_weights.define(grids, dmap, sdc_iters+1, 0);
-#endif
+        if (castro::time_integration_method == CornerTransportUpwind) {
+            // we have 2 components: first half and second half
+            burn_weights.define(grids, dmap, 2, 0);
+        }
+        else if (castro::time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            // we have a component for each sdc iteration + 1 extra for retries
+            burn_weights.define(grids, dmap, sdc_iters+1, 0);
+        }
+
         burn_weights.setVal(0.0);
     }
 #endif
@@ -1077,13 +1078,11 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, react_src_new.nGrow());
    }
-#endif
 #endif
 
 #ifdef MAESTRO_INIT
@@ -1354,7 +1353,7 @@ Castro::initData ()
                eos_re_t eos_state;
                eos_state.rho = S_arr(i,j,k,URHO);
                eos_state.T = S_arr(i,j,k,UTEMP);
-               eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
+               eos_state.e = S_arr(i,j,k,UEDEN) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
                for (int n = 0; n < NumSpec; n++) {
                  eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
                }
@@ -1482,7 +1481,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    auto* oldlev = (Castro*) &old;
+    auto* oldlev = dynamic_cast<Castro*>(&old);
 
     //
     // Create new grid data by fillpatching from old.
@@ -1584,6 +1583,28 @@ Castro::estTimeStep (int is_new)
 
     Real estdt = max_dt;
 
+    const MultiFab& stateMF = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+#ifdef MHD
+    const MultiFab& Bx = is_new ? get_new_data(Mag_Type_x) : get_old_data(Mag_Type_x);
+    const MultiFab& By = is_new ? get_new_data(Mag_Type_y) : get_old_data(Mag_Type_y);
+    const MultiFab& Bz = is_new ? get_new_data(Mag_Type_z) : get_old_data(Mag_Type_z);
+#endif
+#ifdef RADIATION
+    const MultiFab& radMF = is_new ? get_new_data(Rad_Type) : get_old_data(Rad_Type);
+#endif
+    const auto geomdata = geom.data();
+
+    // If we're not subcycling, we only need to do timestep estimation on leaf cells.
+
+    bool mask_covered_zones = false;
+
+    if (level < parent->finestLevel() && parent->subcyclingMode() == "None") {
+        mask_covered_zones = true;
+    }
+
+    MultiFab tmp_maskMF;
+    const MultiFab& maskMF = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_maskMF;
+
     std::string limiter = "castro.max_dt";
 
     // Start the hydro with the max_dt value, but divide by CFL
@@ -1599,7 +1620,7 @@ Castro::estTimeStep (int is_new)
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
 
-            Real lestdt_hydro = estdt_rad(is_new);
+            Real lestdt_hydro = timestep::estdt_rad(stateMF, radMF, geomdata);
             ParallelDescriptor::ReduceRealMin(lestdt_hydro);
             estdt_hydro = amrex::min(estdt_hydro, lestdt_hydro) * cfl;
             if (verbose) {
@@ -1611,9 +1632,9 @@ Castro::estTimeStep (int is_new)
 #endif
 
 #ifdef MHD
-          auto hydro_dt = estdt_mhd(is_new);
+          auto hydro_dt = timestep::estdt<timestep::mhd>(geomdata, maskMF, stateMF, Bx, By, Bz);
 #else
-          auto hydro_dt = estdt_cfl(is_new);
+          auto hydro_dt = timestep::estdt<timestep::hydro>(geomdata, maskMF, stateMF);
 #endif
 
           amrex::ParallelAllReduce::Min(hydro_dt, MPI_COMM_WORLD);
@@ -1655,7 +1676,7 @@ Castro::estTimeStep (int is_new)
 
     if (diffuse_temp)
     {
-        auto diffuse_dt = estdt_temp_diffusion(is_new);
+        auto diffuse_dt = timestep::estdt<timestep::diffusion>(geomdata, maskMF, stateMF);
         ParallelAllReduce::Min(diffuse_dt, MPI_COMM_WORLD);
         estdt_diffusion = amrex::min(estdt_diffusion, diffuse_dt.value) * cfl;
 
@@ -1691,12 +1712,12 @@ Castro::estTimeStep (int is_new)
 
         // Compute burning-limited timestep.
 
-        auto burn_dt = estdt_burning(is_new);
+        auto burn_dt = timestep::estdt<timestep::burning>(geomdata, maskMF, stateMF);
 
         ParallelAllReduce::Min(burn_dt, MPI_COMM_WORLD);
         estdt_burn = amrex::min(estdt_burn, burn_dt.value);
 
-        if (verbose && estdt_burn < max_dt) {
+        if (verbose) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
             std::string idx_str = "(i";
 #if AMREX_SPACEDIM >= 2
@@ -1717,10 +1738,6 @@ Castro::estTimeStep (int is_new)
             estdt = estdt_burn;
         }
     }
-#endif
-
-#ifdef RADIATION
-    if (do_radiation) radiation->EstTimeStep(estdt, level);
 #endif
 
     if (verbose) {
@@ -2188,7 +2205,7 @@ Castro::post_restart ()
 
             if (moving_center == 1)
             {
-               MultiFab&  S_new = get_new_data(State_Type);
+               const MultiFab& S_new = get_new_data(State_Type);
                define_new_center(S_new,cur_time);
             }
 
@@ -4233,14 +4250,12 @@ Castro::swap_state_time_levels(const Real dt)
         // this because we never need the old data, so we
         // don't want to allocate memory for it.
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
                 state[k].swapTimeLevels(0.0);
             }
         }
-#endif
 #endif
 
 #ifdef TRUE_SDC
@@ -4308,10 +4323,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
+#if AMREX_SPACEDIM >= 2
     int mi[3] = {0};
     for (int i = 0; i < AMREX_SPACEDIM; i++) {
       mi[i] = max_index[i];
     }
+#endif
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import yt
 from yt.mods import *
@@ -189,10 +188,10 @@ for i in profilefilelist:
     plt.ylabel(r'$\Delta T\/[\mathrm{K}]$')
     plt.xlim(0.001,2000)
     plt.ylim(-50,50)
-    plt.figtext(0.5,0.3,'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
+    plt.figtext(0.5,0.3,r'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
     plt.xscale('log')
     #plt.yscale('log')
-    plt.title('<$\Delta$ T> vs <P> (average up to t)')
+    plt.title(r'<$\Delta$ T> vs <P> (average up to t)')
     plt.savefig("figure_T_P_diff_average.png")
 
   j=j+1
@@ -306,7 +305,7 @@ for i in profilefilelist:
   filename_time=str(int(time))
   if time>=old_time+time_difference_x_opacity and time<max_time:
     old_time=time
-    print('Adding lines at t='+filename_time+'s for $\kappa$-height plot')
+    print('Adding lines at t='+filename_time+r's for $\kappa$-height plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
 
@@ -332,7 +331,7 @@ for i in profilefilelist:
     plt.legend()
     plt.ylabel(r'$\kappa$ [$\mathrm{cm}^{2}\mathrm{g}^{-1}$]')
     plt.xlabel(r'$y\/[\mathrm{km}]$')
-    plt.title('Opacity $\kappa$ vs height')
+    plt.title(r'Opacity $\kappa$ vs height')
     #plt.legend(loc=3)
     #plt.yscale('linear')
     plt.savefig("figure_x_opacity.png")
@@ -353,7 +352,7 @@ for i in profilefilelist:
   filename_time=str(int(time))
   if time>=old_time+time_difference_x_Mach and time<max_time:
     old_time=time
-    print('Adding lines at t='+filename_time+'s for $\mathca{M}$-height plot')
+    print('Adding lines at t='+filename_time+r's for $\mathca{M}$-height plot')
     kappa=0.18*1e-9
     SB_constant=5.6704*1e-5
 
@@ -391,7 +390,7 @@ for i in profilefilelist:
     plt.ylim(0,5)
     plt.yscale('linear')
     plt.xscale('log')
-    plt.title('Mach number \mathcal{M} vs height')
+    plt.title(r'Mach number \mathcal{M} vs height')
     plt.savefig("figure_P_Mach.png")
 
 
@@ -411,7 +410,7 @@ for i in profilefilelist:
   filename_time=str(int(time))
   if time>=old_time+time_difference_x_opacity and time<max_time:
     old_time=time
-    print('Adding lines at t='+filename_time+'s for $\kappa$-T plot')
+    print('Adding lines at t='+filename_time+r's for $\kappa$-T plot')
     location1=ds.find_max('Temp')
     location2=ds.find_min('Temp')
 
@@ -442,7 +441,7 @@ for i in profilefilelist:
     plt.yscale('log')
     plt.xlim(400,10000)
     plt.ylim(-100,1000)
-    plt.title('Opacity $\kappa $vs T')
+    plt.title(r'Opacity $\kappa $vs T')
     plt.savefig("figure_T_opacity.png")
 
 
@@ -535,7 +534,7 @@ for i in profilefilelist:
     plt.xlabel(r'$y\/[\mathrm{km}]$')
     #plt.legend(loc=3)
     #plt.yscale('linear')
-    plt.figtext(0.5,0.3,'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
+    plt.figtext(0.5,0.3,r'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
     plt.title('Radiation energy density $U$ vs height')
     plt.savefig("figure_x_radiation.png")
 
@@ -614,7 +613,7 @@ for i in profilefilelist:
   filename_time=str(int(time))
   if time>=old_time+time_difference_T_P and time<max_time:
     old_time=time
-    print('Adding lines at t='+filename_time+'s for $\Delta T - P$ plot')
+    print('Adding lines at t='+filename_time+r's for $\Delta T - P$ plot')
 
 
     kappa=0.18*1e-9
@@ -650,8 +649,8 @@ for i in profilefilelist:
     plt.ylabel(r'$\Delta T\/[\mathrm{K}]$')
     plt.xlim(0.001,2000)
     plt.ylim(-200,200)
-    plt.figtext(0.5,0.3,'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
-    plt.title('$\Delta$ T vs P')
+    plt.figtext(0.5,0.3,r'$\Delta t_{\mathrm{damp}}=7000$s', fontsize=20)
+    plt.title(r'$\Delta$ T vs P')
     plt.xscale('log')
     #plt.yscale('log')
 

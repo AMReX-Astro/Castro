@@ -296,13 +296,6 @@ public:
 
 
 ///
-/// @param estdt
-/// @param level
-///
-  void EstTimeStep(amrex::Real& estdt, int level);
-
-
-///
 /// @param level
 /// @param State
 ///

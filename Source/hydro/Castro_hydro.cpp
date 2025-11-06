@@ -60,59 +60,6 @@ Castro::cons_to_prim(const Real time)
 }
 #endif
 
-// Convert a MultiFab with conservative state data u to a primitive MultiFab q.
-void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
-{
-
-    BL_PROFILE("Castro::cons_to_prim()");
-
-    BL_ASSERT(u.nComp() == NUM_STATE);
-    BL_ASSERT(q_in.nComp() == NQ);
-    BL_ASSERT(u.nGrow() >= q_in.nGrow());
-
-    int ng = q_in.nGrow();
-
-#ifdef RADIATION
-    AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
-
-    MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
-    if (radiation->pure_hydro) {
-      lamborder.setVal(0.0, NUM_GROW);
-    }
-    else {
-      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
-    }
-#endif
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(u, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-        const Box& bx = mfi.growntilebox(ng);
-
-        auto u_arr = u.array(mfi);
-#ifdef RADIATION
-        auto Erborder_arr = Erborder.array(mfi);
-        auto lamborder_arr = lamborder.array(mfi);
-#endif
-        auto q_in_arr = q_in.array(mfi);
-        auto qaux_in_arr = qaux_in.array(mfi);
-
-        ctoprim(bx,
-                time,
-                u_arr,
-#ifdef RADIATION
-                Erborder_arr,
-                lamborder_arr,
-#endif
-                q_in_arr,
-                qaux_in_arr);
-
-    }
-
-}
 
 #ifdef TRUE_SDC
 void

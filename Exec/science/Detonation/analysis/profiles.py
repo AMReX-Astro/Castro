@@ -14,6 +14,7 @@ matplotlib.use('agg')
 import math
 
 import matplotlib.pyplot as plt
+from yt.frontends.boxlib.api import CastroDataset
 import yt
 
 
@@ -37,7 +38,7 @@ def nuc_list_filter(nuc):
 
 def get_Te_profile(plotfile, plot_in_nse=False):
 
-    ds = yt.load(plotfile, hint="castro")
+    ds = CastroDataset(plotfile)
 
     time = float(ds.current_time)
     ad = ds.all_data()
@@ -134,12 +135,15 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax, plot_in_nse=False):
         if plot_in_nse:
             ax_nse.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+
+    max_enuc = np.abs(enuc).max()
+
+    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
     ax_e.set_xlabel("x (cm)")
 
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    #cur_lims = ax_e.get_ylim()
+    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
     if plot_in_nse:
         ax_nse.set_ylabel("IN NSE")

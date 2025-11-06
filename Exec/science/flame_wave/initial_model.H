@@ -1,6 +1,8 @@
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 
+#include <AMReX_REAL.H>
+
 //  Create a 1-d hydrostatic, atmosphere with an isothermal region
 //  (T_star) representing the NS, a hyperbolic tangent rise to a
 //  peak temperature (T_hi) representing the base of an accreted
@@ -274,12 +276,12 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
        // start off the Newton loop by saying that the zone has not converged
 
-       bool converged_hse = false;
-
        Real pres_zone;
        Real entropy;
 
        if (!fluff) {
+
+           bool converged_hse = false;
 
            Real p_want;
            Real drho;
