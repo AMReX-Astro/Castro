@@ -29,7 +29,7 @@ problem.central_density_S = -1.0e0
 
 ### Desired compositions
 
-Inspired by Dan et al. 2012, we classify the WDs using their masses and the maximum values that they can hold, and set their compositions accordingly. 
+Inspired by Dan et al. 2012, we classify the WDs using their masses and the maximum values that they can hold, and set their compositions accordingly.
 
 Stars with masses less than 0.45 $M_{\odot}$ are given a pure He composition. This maximum limit can be changed using:
 ```
@@ -40,7 +40,7 @@ To simulate stars with pure CO cores and a thin He shell between 0.45 $M_{\odot}
 
 ```
 problem.max_he_wd_mass =  0.45e0
-problem.max_hybrid_wd_mass = 0.6e0 
+problem.max_hybrid_wd_mass = 0.6e0
 
 problem.hybrid_wd_c_frac = 0.50e0
 problem.hybrid_wd_o_frac = 0.50e0
@@ -55,10 +55,16 @@ problem.co_wd_c_frac = 0.40e0
 problem.co_wd_o_frac = 0.60e0
 problem.co_wd_he_shell_mass = 0.0e0
 ```
-**NOTE:** To create stars with masses higher than the default maximum values, we need too increase the limits otherwise the conditions will not be satisfied and hence, we won't get the desired compositions. 
+**NOTE:** To create stars with masses higher than the default maximum values, we need too increase the limits otherwise the conditions will not be satisfied and hence, we won't get the desired compositions.
 
 ### Stellar temperature
-We can set the initial stellar temperature to the desired value using 
+We can set the initial stellar temperature to the desired value using
 ```
 problem.stellar_temp = 1.0e7
+```
+
+### Reactions/Network
+In general, we want to disable burning in shocks, especially for the case of double-detonations (Ref: https://iopscience.iop.org/article/10.3847/2515-5172/add686). We use the make variable `USE_SHOCK_VAR = TRUE` and additionally the input parameter
+```
+castro.disable_shock_burning = 1
 ```
