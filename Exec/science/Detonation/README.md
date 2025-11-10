@@ -46,6 +46,9 @@ Some important inputs files
 * `inputs-collision` : this is the inputs file used for the 1D collision
   simulations from Katz & Zingale, 2019, ApJ, 874, 169
 
+* `inputs-det-x.ONe` : this creates an O-Ne detonation.  It should be
+  build with `USE_NSE_NET=TRUE NETWORK_DIR=he-burn/ase-iron`
+
 Inputs files used in the regression test suite:
 
 * `inputs-det-x.test`
