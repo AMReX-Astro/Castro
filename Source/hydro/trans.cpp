@@ -118,7 +118,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
         // the y- and z- directions.
 
         int il = i;
-        int jl = j;
+        int jl = j;  // NOLINT(misc-confusable-identifiers)
         int kl = k;
 
         int ir = i;
