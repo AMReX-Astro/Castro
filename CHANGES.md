@@ -1,3 +1,24 @@
+# 25.11
+
+  * update shock burning docs (#3165)
+
+  * update github CI actions (#3161)
+
+  * fix indexing error in 4th order SDC initial energy derivation
+    (#3160)
+
+  * sync up with latest AMReX API (#3157)
+
+  * replace `sprintf`s with safer constructions (#3152)
+
+  * update the `Detonation` analysis scripts to use symlog
+    scaling for energy generation rate (#3153)
+
+  * update `subchandra` analysis scripts to show `lap_rho`
+    and the contour for NSE. (#3155)
+
+  * fix an issue with the makefile flag capturing (#3148)
+
 # 25.10
 
   * bump up python version for codespell CI (#3147)
