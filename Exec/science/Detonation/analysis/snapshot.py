@@ -86,6 +86,12 @@ def doit(pf, xmin, xmax, nuc_thresh):
     ax_e = f.add_subplot(312)
     ax_X = f.add_subplot(313)
 
+    for ax in [ax_T, ax_e, ax_X]:
+        ax.xaxis.label.set_size(18)
+        ax.yaxis.label.set_size(18)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.tick_params(axis='both', which='minor', labelsize=10)
+
     time, x, T, enuc = get_Te_profile(pf)
 
     _, __, mass_fractions, nuc_names = get_nuc_profile(pf)
@@ -106,8 +112,18 @@ def doit(pf, xmin, xmax, nuc_thresh):
             nplot += 1
 
     ax_T.set_ylabel("T (K)")
+    ax_T.set_xlabel("x (cm)")
     ax_T.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
     ax_T.yaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
+
+    # Make the scientific notation text larger
+    ax_T.xaxis.offsetText.set_fontsize(16)
+    ax_T.yaxis.offsetText.set_fontsize(16)
+    ax_e.xaxis.offsetText.set_fontsize(16)
+    ax_e.yaxis.offsetText.set_fontsize(16)
+    ax_X.xaxis.offsetText.set_fontsize(16)
+    ax_X.yaxis.offsetText.set_fontsize(16)
+
 
     if xmax > 0:
         ax_T.set_xlim(xmin, xmax)
@@ -117,8 +133,7 @@ def doit(pf, xmin, xmax, nuc_thresh):
     max_enuc = np.abs(enuc).max()
     ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    #cur_lims = ax_e.get_ylim()
-    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    ax_e.set_xlabel("x (cm)")
     ax_e.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     ax_X.set_yscale("log")
@@ -130,10 +145,10 @@ def doit(pf, xmin, xmax, nuc_thresh):
     if nplot >= 5:
         ncol = 2
 
-    ax_X.legend(ncol=ncol, fontsize="small") #, loc="upper left")
+    ax_X.legend(ncol=ncol, fontsize=12) #, loc="upper left")
     ax_X.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
-    f.text(0.02, 0.02, f"t = {float(time):8.3f} s", transform=f.transFigure)
+    f.text(0.02, 0.02, f"t = {float(time):8.3f} s", transform=f.transFigure, fontsize=16)
     f.tight_layout()
 
     prefix = os.getcwd().split("/")[-1]
