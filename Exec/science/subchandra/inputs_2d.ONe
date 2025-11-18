@@ -1,4 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
@@ -11,9 +12,7 @@ geometry.coord_sys = 1         # r-z coordinates
 geometry.prob_lo   =  0.    0.
 geometry.prob_hi   =  5.12e9 1.024e10
 
-amr.n_cell         = 1280 2560
-
-amr.max_level      = 1       # maximum level number allowed
+amr.n_cell         = 640 1280
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -29,7 +28,7 @@ castro.do_grav  = 1
 castro.do_react = 1
 castro.do_sponge = 1
 
-castro.react_rho_min = 1.0
+castro.react_rho_min = 100.0
 castro.react_T_min = 5.e7
 
 castro.disable_shock_burning = 1
@@ -63,7 +62,7 @@ castro.sponge_timescale     = 1.e-3
 castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.05     # scale back initial timestep by this factor
 castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
-castro.sum_interval   = 0       # timesteps between computing and printing volume averages
+castro.sum_interval   = 5       # timesteps between computing and printing volume averages
 castro.update_sources_after_reflux = 0
 castro.time_integration_method = 3
 
@@ -73,13 +72,28 @@ castro.max_subcycles = 32
 
 castro.abundance_failure_rho_cutoff = 1.0
 
+amr.v               = 1       # control verbosity in Amr.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
+
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5
+
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
+
+# gridding
+
+amr.max_level      = 2       # maximum level number allowed
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
+amr.blocking_factor = 32       # block factor in grid generation
+
+# I/O
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 50     # number of timesteps between checkpoints
@@ -87,17 +101,8 @@ amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
 amr.plot_per        = 2.e-3
 
-amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
-amr.blocking_factor = 32       # block factor in grid generation
-
-amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 1       # control verbosity in Castro.cpp
-
 amr.derive_plot_vars = ALL
 castro.store_burn_weights = 1
-
-castro.small_dens   = 1.e-5
-castro.small_temp   = 1.e5
 
 # problem parameters
 
@@ -113,8 +118,9 @@ problem.delta = 5.e6
 problem.temp_core = 1.e7
 problem.temp_base = 1.75e8
 
-problem.core_XC12 = 0.5
-problem.core_XO16 = 0.5
+problem.core_XC12 = 0.0
+problem.core_XO16 = 0.7
+problem.core_XNe20 = 0.3
 
 problem.X_N14 = 0.0
 
@@ -123,24 +129,36 @@ problem.temp_fluff = 7.5e7
 
 problem.model_min_res = 5.e5
 
-problem.mu_p = -5.0
-problem.mu_n = -12.0
-
 # tagging
 
-amr.refinement_indicators = tempgrad denerr temperr
+amr.refinement_indicators = tempgrad denerr dencore temperr dencutoff
 
-amr.refine.tempgrad.relative_gradient = 2.0
 amr.refine.tempgrad.field_name = Temp
-amr.refine.tempgrad.max_level = 1
+amr.refine.tempgrad.relative_gradient = 2.0
+amr.refine.tempgrad.max_level = 2
 
-amr.refine.denerr.value_greater = 1.0
 amr.refine.denerr.field_name = density
-amr.refine.denerr.max_level = 1
+amr.refine.denerr.value_greater = 1.0
+amr.refine.denerr.max_level = 2
 
-amr.refine.temperr.value_greater = 1.e8
+# this just refines the very center to capture the convergence of the
+# compression wave
+
+amr.refine.dencore.field_name = density
+amr.refine.dencore.value_greater = 7.5e7
+amr.refine.dencore.max_level = 3
+
+# now we want to refine regions where T > 2.e8 up to the maximum
+# level, but only if rho > 1.e3 -- otherwise, we don't care about
+# following things
+
 amr.refine.temperr.field_name = Temp
+amr.refine.temperr.value_greater = 1.e8
 amr.refine.temperr.max_level = 3
+
+amr.refine.dencutoff.derefine = 1
+amr.refine.dencutoff.field_name = density
+amr.refine.dencutoff.value_less = 1.e4
 
 # Microphysics
 
@@ -150,7 +168,7 @@ integrator.SMALL_X_SAFE = 1.e-10
 integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
-integrator.atol_enuc = 1.e-8
+integrator.atol_enuc = 1.e-5
 integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
@@ -158,10 +176,7 @@ integrator.X_reject_buffer = 4.0
 # disable jacobian caching in VODE
 integrator.use_jacobian_caching = 0
 
-integrator.ode_max_steps = 500000
+integrator.ode_max_steps = 20000
 
-nse.nse_dx_independent = 0
-nse.nse_molar_independent = 0
-nse.ase_tol = 0.1
-nse.nse_skip_molar = 0
-nse.solve_nse_e_mode = 2
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
