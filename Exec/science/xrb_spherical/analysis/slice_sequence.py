@@ -39,7 +39,7 @@ fnames = tracking_data["fname"]
 front_thetas = tracking_data["front_theta"]
 
 # Process front_thetas with moving average so that frame doesn't jitter
-window = 5
+window = 10
 smooth_thetas = tracking_data['front_theta'].rolling(window, center=True).mean()
 
 # Parallelize the plotting
