@@ -38,16 +38,15 @@ tracking_data = pd.read_csv(args.tracking_fname)
 fnames = tracking_data["fname"]
 front_thetas = tracking_data["front_theta"]
 
-# Process front_thetas to increase monotonically so that movie doesn't jitter
-thetas = [front_thetas[0]]
-for theta in front_thetas[1:]:
-    thetas.append(max(theta, thetas[-1]))
+# Process front_thetas with moving average so that frame doesn't jitter
+window = 5
+smooth_thetas = tracking_data['front_theta'].rolling(window, center=True).mean()
 
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(slice, [fname], args.fields, widthScale=args.width,
-                        widthRatio=args.ratio, theta=thetas[i], position=front_thetas[i],
+                        widthRatio=args.ratio, theta=smooth_thetas[i], position=front_thetas[i],
                         displace_theta=args.displace_theta): i
         for i, fname in enumerate(fnames)
     }
