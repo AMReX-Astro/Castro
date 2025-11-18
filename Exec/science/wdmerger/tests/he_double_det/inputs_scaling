@@ -53,7 +53,7 @@ geometry.prob_hi =  5.12e9  5.12e9  5.12e9
 # Boundary conditions on hi x, y, and z edges
 castro.hi_bc = 2 2 2
 
-############################################################################################ 
+############################################################################################
 # Timestepping
 ############################################################################################
 
@@ -92,7 +92,7 @@ castro.abundance_failure_rho_cutoff = 1.0e0
 castro.max_subcycles = 16
 
 
-############################################################################################ 
+############################################################################################
 # Resolution, gridding and AMR
 ############################################################################################
 
@@ -112,7 +112,7 @@ castro.max_subcycles = 16
 amr.max_level = 1
 
 # Refinement ratio
-amr.ref_ratio = 4 
+amr.ref_ratio = 4
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -201,7 +201,7 @@ castro.ppm_temp_fix = 0
 # 2 = HLL
 castro.riemann_solver = 0
 
-# For the CG Riemann solver, we need to tell the solver not to quit when 
+# For the CG Riemann solver, we need to tell the solver not to quit when
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.riemann_cg_blend = 2
 
@@ -300,6 +300,9 @@ integrator.MAX_TEMP = 1.0e10
 
 # Use tabular rate evaluation when available
 network.use_tables = 1
+
+# Disable burning in shocks
+castro.disable_shock_burning = 1
 
 ############################################################################################
 # Gravity

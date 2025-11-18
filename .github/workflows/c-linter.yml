@@ -60,7 +60,7 @@ jobs:
           -run-linter
 
       - name: Archive clang tidy report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: clang-tidy-report
           path: clang-tidy-report.txt
