@@ -40,7 +40,7 @@ args = parser.parse_args()
 all_data = []
 
 # Loop over all tracking files and append them
-for fname in args.tracking_fname:
+for fname in args.tracking_fnames:
     df = pd.read_csv(fname)
     all_data.append(df)
 
