@@ -28,7 +28,7 @@ parser = argparse.ArgumentParser(description='''This script uses output
 from front_tracker.py to plot the time evolution of flame front θ.
 ''')
 
-parser.add_argument('tracking_fname', type=str,
+parser.add_argument('tracking_fnames', nargs='+', type=str,
                     help='cvs file generated from front_tracker.py to track flame front position')
 parser.add_argument('--tmin', default=0.0, type=float,
                     help='minimum time for curve fitting. Note that this will not affect plotting')
@@ -37,10 +37,20 @@ parser.add_argument('--tmax', type=float,
 
 args = parser.parse_args()
 
-# Read in data
-# data has columns: fname, time, front_theta, theta_max_avg, max_avg, theta_max, max_val.
-tracking_data = pd.read_csv(args.tracking_fname)
+all_data = []
 
+# Loop over all tracking files and append them
+for fname in args.tracking_fname:
+    df = pd.read_csv(fname)
+    all_data.append(df)
+
+# concatenate all files together
+tracking_data = pd.concat(all_data, ignore_index=True)
+
+# sort by the time
+tracking_data = tracking_data.sort_values(by='time[ms]')
+
+# data has columns: fname, time, front_theta, theta_max_avg, max_avg, theta_max, max_val.
 # Get time and theta, these should already be time-sorted
 times = tracking_data['time[ms]']
 front_thetas = tracking_data['front_theta']
@@ -48,9 +58,8 @@ front_thetas = tracking_data['front_theta']
 # Only plot up to tmax
 if args.tmax is not None:
     cond = times < args.tmax
-
-times = times[cond]
-front_thetas = front_thetas[cond]
+    times = times[cond]
+    front_thetas = front_thetas[cond]
 
 # Now do a curve fit to the data.
 # Now apply tmin so that we ignore the transient phase during fitting
