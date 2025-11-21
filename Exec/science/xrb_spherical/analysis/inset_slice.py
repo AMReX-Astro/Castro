@@ -19,9 +19,8 @@ from slice import extract_info, annotate_latitude_lines
 def single_slice(ds, field:str,
                  loc: str = "top", widthScale: float = 3.0,
                  theta: Optional[float] = None,
+                 position: float | None = None,
                  displace_theta: bool = True,
-                 annotate_vline: bool = True,
-                 annotate_lat_lines: bool = True,
                  show_full_star: bool = True) -> None:
     """
     A slice plot a single dataset for a single field parameters for Spherical2D geometry.
@@ -45,13 +44,12 @@ def single_slice(ds, field:str,
     theta:
       user defined theta center of the slice plot
 
+    position:
+      draw a vertical line on user defined front position in theta (in radian)
+
     displace_theta:
       When theta is explicitly defined, do we want to displace the center
       of the slice plot by ~0.7. This is helpful when tracking the flame front.
-
-    annotate_vline:
-      do we want to annotate a vertical line at where theta is.
-      This is used to indicate flame front.
 
     show_full_star:
       do we want to plot the full star instead of a zoom-in slice plot.
@@ -96,18 +94,17 @@ def single_slice(ds, field:str,
     # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
     # Plot a vertical to indicate flame front
-    if theta is not None and annotate_vline:
-        sp.annotate_line([r[0]*np.sin(theta), r[0]*np.cos(theta)],
-                         [r[2]*np.sin(theta), r[2]*np.cos(theta)],
+    if position is not None:
+        sp.annotate_line([r[0]*np.sin(position), r[0]*np.cos(position)],
+                         [r[2]*np.sin(position), r[2]*np.cos(position)],
                          coord_system="plot",
                          color="k",
                          linewidth=1.5,
                          linestyle="-.")
 
     ### Annotate Latitude Lines
-    if annotate_lat_lines:
-        annotate_latitude_lines(sp, center, box_widths, r,
-                                show_full_star=show_full_star)
+    annotate_latitude_lines(sp, center, box_widths, r,
+                            show_full_star=show_full_star)
 
     sp._setup_plots()
     return sp
@@ -131,13 +128,14 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
+    parser.add_argument('-p', '--position', type=float,
+                        help="""user defined front position in theta,
+                        this will draw a vertical line to annotate the front position""")
     parser.add_argument('-w', '--width', default=2.0, type=float,
                         help="scaling for the domain width of the slice plot")
     parser.add_argument('--displace_theta', action='store_true',
                         help="""whether to displace the theta that defines the center of the frame.
                         This is useful when theta represents the flame front position.""")
-    parser.add_argument('--annotate_vline', action='store_true',
-                        help="whether to annotate a vertical line along the given theta")
 
     args = parser.parse_args()
 
@@ -152,9 +150,9 @@ if __name__ == "__main__":
 
     # First get the slice plot of the full-star.
     full_star_slice = single_slice(ds, args.field, loc=loc,
-                                   widthScale=args.width, theta=args.theta,
-                                   displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                                   annotate_lat_lines=True, show_full_star=True)
+                                   widthScale=args.width, theta=args.theta, position=args.position,
+                                   displace_theta=args.displace_theta,
+                                   show_full_star=True)
     # full_star_slice.render()
 
     # Extract the figure of the full-star slice and use that as the main figure for plotting.
@@ -166,9 +164,9 @@ if __name__ == "__main__":
 
     # Get the slice of the zoom-in plot
     zoom_in_slice = single_slice(ds, args.field, loc=loc,
-                                 widthScale=args.width, theta=args.theta,
-                                 displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                                 annotate_lat_lines=True, show_full_star=False)
+                                 widthScale=args.width, theta=args.theta, position=args.position,
+                                 displace_theta=args.displace_theta,
+                                 show_full_star=False)
     zoom_in_slice.hide_colorbar()
     # zoom_in_slice.render()
 
@@ -226,10 +224,21 @@ if __name__ == "__main__":
 
     ### Now annotate inset box lines ###
     # loc1 and loc2: corners to connect (1: upper right, 2: upper left, 3: lower left, 4: lower right)
-    if args.theta < np.pi/3.0 or (args.theta is None and loc=="top"):
+    if args.theta is None:
+        if loc == "top":
+            loc1 = 1
+            loc2 = 2
+        elif loc == "bot":
+            loc1 = 3
+            loc2 = 4
+        else:
+            # mid
+            loc1 = 1
+            loc2 = 4
+    elif args.theta < np.pi/3.0:
         loc1 = 1
         loc2 = 2
-    elif args.theta > 2.0*np.pi/3.0 or (args.theta is None and loc=="bot"):
+    elif args.theta > 2.0*np.pi/3.0:
         loc1 = 3
         loc2 = 4
     else:

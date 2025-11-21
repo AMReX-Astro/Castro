@@ -107,7 +107,9 @@ amr.derive_plot_vars = ALL
 amr.small_plot_file         = xrb_spherical_1000Hz_smallplt        # root name of plotfile
 amr.small_plot_per          = 1.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
-amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc
+amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity enuc X(ash)
+
+amr.file_name_digits = 7
 
 # problem initialization
 
