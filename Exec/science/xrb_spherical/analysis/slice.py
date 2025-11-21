@@ -7,10 +7,40 @@ import argparse
 import math
 from typing import List, Optional
 import numpy as np
+import pynucastro as pyna
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
+
+def _ash(field, data):
+    '''
+    Computes the rho X_ash.
+    Here ash is anything heavier than Oxygen, but exclude Fe and Ni
+    '''
+
+    ds = data.ds
+    field_list = ds.field_list
+
+    # If X(ash) is directly stored, then just use that
+    if ("boxlib", "X(ash)") in field_list:
+        return data["boxlib", "X(ash)"] * data["boxlib", "density"]
+
+    # If we cannot find X(ash) as a available  field then compute manually
+    rhoAsh = 0
+    for f in field_list:
+        # If the first two letters are "X(", then we're dealing with species massfractions
+        if f[1][:2] == "X(":
+            # Then extract out what species we have, assuming the format is "X(...)"
+            speciesName = f[1][2:-1]
+            nuc = pyna.Nucleus(speciesName)
+
+            # Include elements beyond oxygen but don't include Ni56
+            if nuc.Z > 8.0 and nuc.Z != 56:
+                rhoAsh += data["boxlib", "density"] * data[f]
+
+    return rhoAsh
+
 
 def extract_info(ds,
                  loc: str = "top", widthScale: float = 3.0,
@@ -287,6 +317,12 @@ def slice(fnames:list[str], fields:list[str],
                                              theta=theta,
                                              displace_theta=displace_theta,
                                              show_full_star=show_full_star)
+
+        #add rhoX_ash as a derived field
+        ds.add_field(("gas", "ash"), function=_ash,
+                     display_name=r"\rho X\left(ash\right)",
+                     units="auto", sampling_type="cell")
+
         for i, field in enumerate(fields):
             # Plot each field parameter
             sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=20)
@@ -305,6 +341,10 @@ def slice(fnames:list[str], fields:list[str],
                 sp.set_zlim(field, 4, 8)
                 sp.set_log(field, False)
                 sp.set_cmap(field, "plasma_r")
+            elif f == "ash":
+                sp.set_zlim(f, 1.e-2, 1e6)
+                sp.set_log(f, True)
+                sp.set_cmap(f, "plasma_r")
             elif field == "enuc":
                 sp.set_zlim(field, 1.e15, 1.e20)
                 sp.set_log(field, linthresh=1.e11)
