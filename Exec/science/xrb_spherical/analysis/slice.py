@@ -341,10 +341,10 @@ def slice(fnames:list[str], fields:list[str],
                 sp.set_zlim(field, 4, 8)
                 sp.set_log(field, False)
                 sp.set_cmap(field, "plasma_r")
-            elif f == "ash":
-                sp.set_zlim(f, 1.e-2, 1e6)
-                sp.set_log(f, True)
-                sp.set_cmap(f, "plasma_r")
+            elif field == "ash":
+                sp.set_zlim(field, 1.e-2, 1e6)
+                sp.set_log(field, True)
+                sp.set_cmap(field, "plasma_r")
             elif field == "enuc":
                 sp.set_zlim(field, 1.e15, 1.e20)
                 sp.set_log(field, linthresh=1.e11)
