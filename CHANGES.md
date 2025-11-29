@@ -1,3 +1,21 @@
+# 25.12
+
+  * `flame_wave` : add a new plot script to show the flow through the
+    network (#3150)
+
+  * `subchandra` : assert on a potential divide-by-zero (#3171)
+
+  * `Detonation` : update the O/Ne inputs to use a more robust set of
+    NSE parameters (#3170)
+
+  * `subchandra` : allow for the core mass fractions to be set (#3166)
+
+  * remove unused declare in radiation (#3167)
+
+  * `wdmerger` : disable burning in shocks (#3169)
+
+  * fix `CHANGES.md` typo (#3168)
+
 # 25.11
 
   * update shock burning docs (#3165)
