@@ -186,7 +186,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
     MultiFab tmp_mask_mf;
     const MultiFab& mask_mf = mask_covered_zones ? getLevel(level+1).build_fine_mask() : tmp_mask_mf;
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
     Gpu::Buffer<int> d_num_failed({0});
     auto* p_num_failed = d_num_failed.data();
 #endif
@@ -212,7 +212,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
         const auto geomdata = geom.data();
 #endif
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
         LoopOnCpu(bx, [&] (int i, int j, int k)
@@ -406,7 +406,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
             }
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
             if (burn_failed) {
                 Gpu::Atomic::Add(p_num_failed, burn_failed);
             }
@@ -415,7 +415,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 #endif
         });
 
-#if defined(AMREX_USE_HIP)
+#ifdef AMREX_USE_HIP
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
 
@@ -425,7 +425,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
 
     }
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
     num_failed = *(d_num_failed.copyToHost());
 #endif
 
@@ -536,7 +536,7 @@ Castro::react_state(Real time, Real dt)
 
     int burn_success = 1;
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
     Gpu::Buffer<int> d_num_failed({0});
     auto* p_num_failed = d_num_failed.data();
 #endif
@@ -570,7 +570,7 @@ Castro::react_state(Real time, Real dt)
         const auto geomdata = geom.data();
 #endif
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
         ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
 #else
         LoopOnCpu(bx, [&] (int i, int j, int k)
@@ -811,7 +811,7 @@ Castro::react_state(Real time, Real dt)
                 }
             }
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
             if (burn_failed) {
                 Gpu::Atomic::Add(p_num_failed, burn_failed);
             }
@@ -820,7 +820,7 @@ Castro::react_state(Real time, Real dt)
 #endif
         });
 
-#if defined(AMREX_USE_HIP)
+#ifdef AMREX_USE_HIP
         Gpu::streamSynchronize(); // otherwise HIP may fail to allocate the necessary resources.
 #endif
 
@@ -830,7 +830,7 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-#if defined(AMREX_USE_GPU)
+#ifdef AMREX_USE_GPU
     num_failed = *(d_num_failed.copyToHost());
 #endif
 

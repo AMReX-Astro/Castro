@@ -3,6 +3,7 @@
 
 #include <AMReX.H>
 
+#include <Castro.H>
 #include <Castro_math.H>
 #include <fundamental_constants.H>
 
