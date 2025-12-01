@@ -1,5 +1,7 @@
 # 25.12
 
+  * make some state arguments const in geometry sources (#3174)
+
   * `flame_wave` : add a new plot script to show the flow through the
     network (#3150)
 
