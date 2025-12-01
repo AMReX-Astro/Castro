@@ -10,7 +10,7 @@ using namespace amrex;
 ///
 
 void
-Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
+Castro::construct_old_geom_source(MultiFab& source, const MultiFab& state_in, Real time, Real dt)
 {
 
   amrex::ignore_unused(source);
@@ -65,8 +65,8 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
 
 
 void
-Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old,
-                                  MultiFab& state_new, Real time, Real dt)
+Castro::construct_new_geom_source(MultiFab& source, const MultiFab& state_old,
+                                  const MultiFab& state_new, Real time, Real dt)
 {
 
   amrex::ignore_unused(source);
@@ -139,7 +139,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old,
 
 
 void
-Castro::fill_RZ_geom_source (Real time, Real dt, MultiFab& cons_state, MultiFab& geom_src)
+Castro::fill_RZ_geom_source (Real time, Real dt, const MultiFab& cons_state, MultiFab& geom_src)
 {
 
   // Compute the geometric source for axisymmetric coordinates (R-Z)
@@ -183,7 +183,7 @@ Castro::fill_RZ_geom_source (Real time, Real dt, MultiFab& cons_state, MultiFab&
 
 
 void
-Castro::fill_RTheta_geom_source (Real time, Real dt, MultiFab& cons_state, MultiFab& geom_src)
+Castro::fill_RTheta_geom_source (Real time, Real dt, const MultiFab& cons_state, MultiFab& geom_src)
 {
 
   // Compute the geometric source resulting from taking the divergence of (rho U U)
