@@ -312,7 +312,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_geom_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    void construct_old_geom_source(amrex::MultiFab& source, const amrex::MultiFab& state,
                                    amrex::Real time, amrex::Real dt);
 
 
@@ -325,8 +325,8 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_geom_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
-                                   amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+    void construct_new_geom_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
+                                   const amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -338,7 +338,7 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_RZ_geom_source(amrex::Real time, amrex::Real dt,
-                             amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+                             const amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
 
 
 ///
@@ -350,7 +350,7 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_RTheta_geom_source(amrex::Real time, amrex::Real dt,
-                                 amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+                                 const amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
 
 
 ///
