@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
