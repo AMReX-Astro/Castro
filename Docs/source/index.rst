@@ -29,6 +29,7 @@ https://github.com/amrex-astro/Castro
    regridding
    visualization
    faq
+   performance
 
 .. toctree::
    :maxdepth: 1
@@ -76,4 +77,3 @@ Indices and tables
 .. * :ref:`modindex`
 
 * :ref:`search`
-
