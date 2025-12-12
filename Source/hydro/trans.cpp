@@ -165,22 +165,25 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
 #if AMREX_SPACEDIM == 2
         const Real volinv = 1.0_rt / vol(il,jl,kl);
+        Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+                                                area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
+#else
+        Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
 #endif
+        Real rrnew_inv = 1.0_rt / rrnew;
+
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
             const int n = upassmap(ipassive);
             const int nqp = qpassmap(ipassive);
-
 #if AMREX_SPACEDIM == 2
-            Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                                area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
-                                                               area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
-            qo_arr(i,j,k,nqp) = compu / rrnew;
+            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
+                hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
+                       area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
 #else
-            Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
-            qo_arr(i,j,k,nqp) = compu / rrnew;
+            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
+                cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
 #endif
+            qo_arr(i,j,k,nqp) = compu * rrnew_inv;
         }
 
         Real pgp  = q_t(ir,jr,kr,GDPRES);
@@ -284,8 +287,8 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
 #if AMREX_SPACEDIM == 2
         // Add transverse predictor
-        Real rrnewn = rrn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                   area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
+
+        Real rrnewn = rrnew;
 
         // Note that pressure may be treated specially here, depending on
         // the geometry.  Our y-interface equation for (rho u) is:
@@ -344,7 +347,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
 #else
         // Add transverse predictor
-        Real rrnewn = rrn - cdtdx * (flux_t(ir,jr,kr,URHO)  - flux_t(il,jl,kl,URHO));
+        Real rrnewn = rrnew;
         Real runewn = run - cdtdx * (flux_t(ir,jr,kr,UMX)   - flux_t(il,jl,kl,UMX));
         Real rvnewn = rvn - cdtdx * (flux_t(ir,jr,kr,UMY)   - flux_t(il,jl,kl,UMY));
         Real rwnewn = rwn - cdtdx * (flux_t(ir,jr,kr,UMZ)   - flux_t(il,jl,kl,UMZ));
@@ -403,9 +406,11 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             }
         }
 
-        // Convert back to primitive form
+        // Convert back to primitive form -- recompute the inverse
+        // here because we may have reset
         qo_arr(i,j,k,QRHO) = rrnewn;
         Real rhoinv = 1.0_rt / rrnewn;
+
         qo_arr(i,j,k,QU) = runewn * rhoinv;
         qo_arr(i,j,k,QV) = rvnewn * rhoinv;
         qo_arr(i,j,k,QW) = rwnewn * rhoinv;
@@ -445,7 +450,7 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
                 // With the EOS route:
                 eos_rep_t eos_state;
                 eos_state.rho = rrnewn;
-                eos_state.e = qo_arr(i,j,k,QREINT) / rrnewn;
+                eos_state.e = qo_arr(i,j,k,QREINT) * rhoinv;
                 eos_state.T = T_guess;
 
                 for (int n = 0; n < NumSpec; n++) {
@@ -665,22 +670,24 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
         // Update all of the passively-advected quantities with the
         // transverse terms and convert back to the primitive quantity.
 
+        Real rrn = q_arr(i,j,k,QRHO);
+        Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
+                                        flux_t1(il_t1,jl_t1,kl_t1,URHO))
+                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
+                                        flux_t2(il_t2,jl_t2,kl_t2,URHO));
+        Real rrnewn_inv = 1.0_rt / rrnewn;
+
         for (int ipassive = 0; ipassive < npassive; ++ipassive) {
             const int n = upassmap(ipassive);
             const int nqp = qpassmap(ipassive);
 
-            Real rrn = q_arr(i,j,k,QRHO);
             Real compn = rrn * q_arr(i,j,k,nqp);
-            Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
-                                            flux_t1(il_t1,jl_t1,kl_t1,URHO))
-                              - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
-                                            flux_t2(il_t2,jl_t2,kl_t2,URHO));
             Real compnn = compn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,n) -
                                               flux_t1(il_t1,jl_t1,kl_t1,n))
                                 - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,n) -
                                               flux_t2(il_t2,jl_t2,kl_t2,n));
 
-            qo_arr(i,j,k,nqp) = compnn / rrnewn;
+            qo_arr(i,j,k,nqp) = compnn * rrnewn_inv;
         }
 
         // Add the transverse differences to the normal states for the
@@ -777,7 +784,6 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
 #endif
 
         // Convert to conservation form
-        Real rrn = q_arr(i,j,k,QRHO);
         Real run = rrn * q_arr(i,j,k,QU);
         Real rvn = rrn * q_arr(i,j,k,QV);
         Real rwn = rrn * q_arr(i,j,k,QW);
@@ -791,10 +797,6 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
 #endif
 
         // Add transverse predictor
-        Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
-                                        flux_t1(il_t1,jl_t1,kl_t1,URHO))
-                          - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
-                                        flux_t2(il_t2,jl_t2,kl_t2,URHO));
         Real runewn = run - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UMX) -
                                         flux_t1(il_t1,jl_t1,kl_t1,UMX))
                           - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UMX) -
@@ -881,13 +883,16 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
             }
         }
 
+        // recompute the inverse since we may have reset rho
         qo_arr(i,j,k,QRHO) = rrnewn;
-        qo_arr(i,j,k,QU) = runewn / rrnewn;
-        qo_arr(i,j,k,QV) = rvnewn / rrnewn;
-        qo_arr(i,j,k,QW) = rwnewn / rrnewn;
+        rrnewn_inv = 1.0_rt / rrnewn;
+
+        qo_arr(i,j,k,QU) = runewn * rrnewn_inv;
+        qo_arr(i,j,k,QV) = rvnewn / rrnewn_inv;
+        qo_arr(i,j,k,QW) = rwnewn / rrnewn_inv;
 
         // note: we run the risk of (rho e) being negative here
-        Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) / rrnewn;
+        Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) * rrnewn_inv;
         qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
 
         if (!reset_state) {
