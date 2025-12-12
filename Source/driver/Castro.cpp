@@ -3143,8 +3143,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 
     Real lsmall_x = network_rp::small_x;
 
-    ReduceOps<ReduceOpMin, ReduceOpMax> reduce_op;
-    ReduceData<Real, Real> reduce_data(reduce_op);
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<int> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef AMREX_USE_OMP
@@ -3160,35 +3160,34 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // then normalize them so that they sum to 1.
 
         reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
             Real rhoX_sum = 0.0_rt;
-            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+            Real rho = u(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
 
-            Real minX = 1.0_rt;
-            Real maxX = 0.0_rt;
+            int failed{};
 
             for (int n = 0; n < NumSpec; ++n) {
                 // Abort if X is unphysically large.
                 Real X = u(i,j,k,UFS+n) * rhoInv;
 
                 // Only do the abort check if the density is greater than a user-defined cutoff.
-                if (u(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
-                    minX = amrex::min(minX, X);
-                    maxX = amrex::max(maxX, X);
-
+                if (rho >= castro::abundance_failure_rho_cutoff) {
                     if (X < -castro::abundance_failure_tolerance ||
                         X > 1.0_rt + castro::abundance_failure_tolerance) {
 #ifndef AMREX_USE_GPU
-                        std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << "  (density here is: " << u(i,j,k,URHO) << ")" << std::endl;
+                        std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X
+                                  << "  (density here is: " << rho << ")" << std::endl;
 #elif defined(ALLOW_GPU_PRINTF)
                         AMREX_DEVICE_PRINTF("(i, j, k) = %d %d %d, X[%d] = %g  (density here is: %g)\n",
-                                            i, j, k, n, X, u(i,j,k,URHO));
+                                            i, j, k, n, X, rho);
 #endif
+                        failed = 1;
                     }
                 }
 
-                u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
+                u(i,j,k,UFS+n) = amrex::Clamp(u(i,j,k,UFS+n), lsmall_x * rho, rho);
                 rhoX_sum += u(i,j,k,UFS+n);
             }
 
@@ -3198,16 +3197,14 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                 u(i,j,k,UFS+n) *= fac;
             }
 
-            return {minX, maxX};
+            return {failed};
         });
     }
 
     ReduceTuple hv = reduce_data.value();
-    Real minX = amrex::get<0>(hv);
-    Real maxX = amrex::get<1>(hv);
+    int num_failed = amrex::get<0>(hv);
 
-    if (minX < -castro::abundance_failure_tolerance ||
-        maxX > 1.0_rt + castro::abundance_failure_tolerance) {
+    if (num_failed > 0) {
         amrex::Error("Invalid mass fraction in Castro::normalize_species()");
     }
 }
