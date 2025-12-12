@@ -39,6 +39,17 @@ which is controlled by ``amr.subcycling_mode``, as described
 in :ref:`sec:subcycling`.
 
 
+Global Diagnostics
+------------------
+
+.. index:: castro.sum_interval
+
+:ref:`sec:global_diag` are output at regular intervals.  These can
+require reduction operations across all processors, which can be
+expensive for big calculations.  Often we don't need the diagnostics
+every step, so setting ``castro.sum_interval`` to a larger value (like
+``10``) could improve performance.
+
 Metrics
 =======
 
