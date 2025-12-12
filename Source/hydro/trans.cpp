@@ -888,8 +888,8 @@ Castro::actual_trans_final(const Box& bx,  // NOLINT(readability-convert-member-
         rrnewn_inv = 1.0_rt / rrnewn;
 
         qo_arr(i,j,k,QU) = runewn * rrnewn_inv;
-        qo_arr(i,j,k,QV) = rvnewn / rrnewn_inv;
-        qo_arr(i,j,k,QW) = rwnewn / rrnewn_inv;
+        qo_arr(i,j,k,QV) = rvnewn * rrnewn_inv;
+        qo_arr(i,j,k,QW) = rwnewn * rrnewn_inv;
 
         // note: we run the risk of (rho e) being negative here
         Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) * rrnewn_inv;
