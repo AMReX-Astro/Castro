@@ -84,6 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Tips</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
 <ul>
@@ -279,8 +280,8 @@ for these values in the literature are <span class="math notranslate nohighlight
 </section>
 </section>
 <section id="subcycling">
-<h2>Subcycling<a class="headerlink" href="#subcycling" title="Link to this heading"></a></h2>
-<p>Subcycling with AMR means that coarser grids can take a larger timestep
+<span id="sec-subcycling"></span><h2>Subcycling<a class="headerlink" href="#subcycling" title="Link to this heading"></a></h2>
+<p id="index-0">Subcycling with AMR means that coarser grids can take a larger timestep
 than finer grids.
 Castro supports a number of different modes for subcycling in time,
 set via <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code>.</p>
@@ -315,8 +316,8 @@ level-1 step, and take 2 timesteps at level-3 for each level-2 step.</p>
 <p>which will subcycle twice at every level (except level 0).</p>
 </section>
 <section id="retry-mechanism">
-<span id="ch-retry"></span><span id="index-0"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Link to this heading"></a></h2>
-<p id="index-1">Castro’s Strang CTU solver has a retry mechanism that can discard a
+<span id="ch-retry"></span><span id="index-1"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Link to this heading"></a></h2>
+<p id="index-2">Castro’s Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
 It is enabled by setting:</p>
