@@ -39,6 +39,18 @@ which is controlled by ``amr.subcycling_mode``, as described
 in :ref:`sec:subcycling`.
 
 
+.. index:: gravity.max_multipole_order
+
+For isolated systems, we use a multipole expansion for constructing
+the Dirichlet boundary conditions for the Poisson solve.  The
+construction of the multipole expansion can be expensive.  If the
+system is roughly spherical and the boundaries are far from the mass,
+then you probably can get away with fewer multipole moments.  For
+reference, for the white dwarf mergers in :cite:t:`katz:2016`,
+$l_\mathrm{max} = 6$ was used.  The maximum multipole moment is
+set by ``gravity.max_multipole_order``.
+
+
 Global Diagnostics
 ------------------
 
