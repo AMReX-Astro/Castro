@@ -3162,15 +3162,17 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
+
+            auto U_cell = u.cellData(i, j, k);
             Real rhoX_sum = 0.0_rt;
-            Real rho = u(i,j,k,URHO);
+            Real rho = U_cell[URHO];
             Real rhoInv = 1.0_rt / rho;
 
             int failed{};
 
             for (int n = 0; n < NumSpec; ++n) {
                 // Abort if X is unphysically large.
-                Real X = u(i,j,k,UFS+n) * rhoInv;
+                Real X = U_cell[UFS+n] * rhoInv;
 
                 // Only do the abort check if the density is greater than a user-defined cutoff.
                 if (rho >= castro::abundance_failure_rho_cutoff) {
@@ -3187,15 +3189,15 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                     }
                 }
 
-                u(i,j,k,UFS+n) = amrex::Clamp(u(i,j,k,UFS+n), lsmall_x * rho, rho);
-                rhoX_sum += u(i,j,k,UFS+n);
+                U_cell[UFS+n] = amrex::Clamp(U_cell[UFS+n], lsmall_x * rho, rho);
+                rhoX_sum += U_cell[UFS+n];
             }
 
-            Real fac = u(i,j,k,URHO) / rhoX_sum;
+            Real fac = rho / rhoX_sum;
 
-            for (int n = 0; n < NumSpec; ++n) {
-                u(i,j,k,UFS+n) *= fac;
-            }
+            amrex::constexpr_for<0, NumSpec>([&] (auto n) {
+                U_cell[UFS+n] *= fac;
+            });
 
             return {failed};
         });
