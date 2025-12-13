@@ -3162,7 +3162,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-            Real rhoX_sum = 0.0_rt;
+            Real sum = 0.0_rt;
             Real rho = u(i,j,k,URHO);
             Real rhoInv = 1.0_rt / rho;
 
@@ -3187,15 +3187,15 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                     }
                 }
 
-                u(i,j,k,UFS+n) = amrex::Clamp(u(i,j,k,UFS+n), lsmall_x * rho, rho);
-                rhoX_sum += u(i,j,k,UFS+n);
+                X = amrex::Clamp(X, lsmall_x, 1.0_rt);
+                sum += X;
             }
 
-            Real fac = u(i,j,k,URHO) / rhoX_sum;
+            Real fac = 1.0_rt / sum;
 
-            for (int n = 0; n < NumSpec; ++n) {
+            amrex::constexpr_for<0, NumSpec>([&] (auto n) {
                 u(i,j,k,UFS+n) *= fac;
-            }
+            });
 
             return {failed};
         });
