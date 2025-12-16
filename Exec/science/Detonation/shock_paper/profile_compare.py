@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Take a sequence of plotfiles and plot T and enuc vs. position
 
