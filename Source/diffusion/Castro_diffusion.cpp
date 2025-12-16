@@ -206,7 +206,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
            {
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
                    int il = i;
-                   int jl = j;
+                   int jl = j;  // NOLINT(misc-confusable-identifiers)
                    int kl = k;
 
                    int ir = i;

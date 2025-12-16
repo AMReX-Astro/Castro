@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # this script is meant to be run from the test suite.  It will read in
 # the plotfile data from the RadSphere problem (using the fradsphere
