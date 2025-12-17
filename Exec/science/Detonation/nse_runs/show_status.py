@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/env python
 
 import glob
 import tqdm

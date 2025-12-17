@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Plot the structure of a single plotfile, including the most abundance nuclei
 
