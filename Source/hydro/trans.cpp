@@ -165,31 +165,30 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
 
 #if AMREX_SPACEDIM == 2
         const Real volinv = 1.0_rt / vol(il,jl,kl);
-        Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+        const Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
                                                 area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
 #else
-        Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
+        const Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
 #endif
-        Real rrnew_inv = 1.0_rt / rrnew;
 
         for (int ipassive = 0; ipassive < npassive; ipassive++) {
             const int n = upassmap(ipassive);
             const int nqp = qpassmap(ipassive);
 #if AMREX_SPACEDIM == 2
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
+            const Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
                 hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
                        area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
 #else
-            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
+            const Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) -
                 cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
 #endif
-            qo_arr(i,j,k,nqp) = compu * rrnew_inv;
+            qo_arr(i,j,k,nqp) = compu / rrnew;
         }
 
-        Real pgp  = q_t(ir,jr,kr,GDPRES);
-        Real pgm  = q_t(il,jl,kl,GDPRES);
-        Real ugp  = q_t(ir,jr,kr,GDU+idir_t);
-        Real ugm  = q_t(il,jl,kl,GDU+idir_t);
+        const Real pgp  = q_t(ir,jr,kr,GDPRES);
+        const Real pgm  = q_t(il,jl,kl,GDPRES);
+        const Real ugp  = q_t(ir,jr,kr,GDU+idir_t);
+        const Real ugm  = q_t(il,jl,kl,GDU+idir_t);
 
 #ifdef RADIATION
         Real lambda[NGROUPS];
@@ -406,10 +405,9 @@ Castro::actual_trans_single(const Box& bx,  // NOLINT(readability-convert-member
             }
         }
 
-        // Convert back to primitive form -- recompute the inverse
-        // here because we may have reset
+        // Convert back to primitive form
         qo_arr(i,j,k,QRHO) = rrnewn;
-        Real rhoinv = 1.0_rt / rrnewn;
+        const Real rhoinv = 1.0_rt / rrnewn;
 
         qo_arr(i,j,k,QU) = runewn * rhoinv;
         qo_arr(i,j,k,QV) = rvnewn * rhoinv;
