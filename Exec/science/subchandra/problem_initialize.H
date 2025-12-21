@@ -101,6 +101,8 @@ void problem_initialize ()
         ncore++;
     }
 
+    AMREX_ALWAYS_ASSERT(ncore > 0);
+
     // we need to initialize the core to be 1 - other_xn * small_x.
     // We'll distribute this remainder over the core nuclei
 
