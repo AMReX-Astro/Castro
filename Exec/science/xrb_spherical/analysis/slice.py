@@ -303,7 +303,7 @@ def slice(fnames:list[str], fields:list[str],
     nx = math.ceil(num/ny)
 
     grid = ImageGrid(fig, 111, nrows_ncols=(nx, ny),
-                     axes_pad=1, label_mode="L", cbar_location="right",
+                     axes_pad=1.1, label_mode="L", cbar_location="right",
                      cbar_mode="each", cbar_size="2.5%", cbar_pad="0%")
 
     # Output plot file name
