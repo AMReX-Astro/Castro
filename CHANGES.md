@@ -1,3 +1,79 @@
+# 25.12
+
+  * make some state arguments const in geometry sources (#3174)
+
+  * `flame_wave` : add a new plot script to show the flow through the
+    network (#3150)
+
+  * `subchandra` : assert on a potential divide-by-zero (#3171)
+
+  * `Detonation` : update the O/Ne inputs to use a more robust set of
+    NSE parameters (#3170)
+
+  * `subchandra` : allow for the core mass fractions to be set (#3166)
+
+  * remove unused declare in radiation (#3167)
+
+  * `wdmerger` : disable burning in shocks (#3169)
+
+  * fix `CHANGES.md` typo (#3168)
+
+# 25.11
+
+  * update shock burning docs (#3165)
+
+  * update github CI actions (#3161)
+
+  * fix indexing error in 4th order SDC initial energy derivation
+    (#3160)
+
+  * sync up with latest AMReX API (#3157)
+
+  * replace `sprintf`s with safer constructions (#3152)
+
+  * update the `Detonation` analysis scripts to use symlog
+    scaling for energy generation rate (#3153)
+
+  * update `subchandra` analysis scripts to show `lap_rho`
+    and the contour for NSE. (#3155)
+
+  * fix an issue with the makefile flag capturing (#3148)
+
+# 25.10
+
+  * bump up python version for codespell CI (#3147)
+
+  * store the "make" flags in the job_info file (#3144)
+
+  * `flame_wave`: the refinement criteria were updated to better
+    capture the ash (#3145)
+
+  * `Sedov`: the inputs files were consolidated and the analysis
+    tool was cleaned up.  Support for a 2D spherical geometry
+    test was also added (#3143)
+
+  * updated the check on geometry sources to allow it to work for 1D
+    spherical (#2993, #3140)
+
+  * added an addition check for the well-balanaced PPM reconstruction
+    to make sure that the interface pressure is positive (#3142)
+
+  * updated CI to match Microphysics changes (#3141)
+
+  * `flame_wave`: the analysis tools were updated (#3131)
+
+  * `diffusion_test`: the `README.md` was updated with information for
+    spherical coordinates (#3137)
+
+  * `Detonation`: Ne is allowed as a fuel composition (#3134)
+
+  * update CI due to AMReX changes (#3135)
+
+  * CI action dependency version updates (#3136)
+
+  * `xrb_spherical`: added new analysis scripts and inputs files
+    (#3074)
+
 # 25.09
 
   * rotation docs improvements (#3133)

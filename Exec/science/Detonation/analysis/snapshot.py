@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Plot the structure of a single plotfile, including the most abundance nuclei
 
@@ -6,6 +6,7 @@ import argparse
 import os
 import re
 import sys
+
 
 import matplotlib
 import matplotlib.ticker as mticker
@@ -113,10 +114,11 @@ def doit(pf, xmin, xmax, nuc_thresh):
         ax_e.set_xlim(xmin, xmax)
         ax_X.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+    max_enuc = np.abs(enuc).max()
+    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    #cur_lims = ax_e.get_ylim()
+    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
     ax_e.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     ax_X.set_yscale("log")
