@@ -3739,9 +3739,9 @@ Castro::extern_init ()
 void
 Castro::reset_internal_energy(const Box& bx,
 #ifdef MHD
-                              Array4<Real> const Bx, Array4<Real> const By, Array4<Real> const Bz,
+                              Array4<Real> const& Bx, Array4<Real> const& By, Array4<Real> const& Bz,
 #endif
-                              Array4<Real> const u)
+                              Array4<Real> const& u)
 {
     BL_PROFILE("Castro::reset_internal_energy(Fab)");
 
@@ -3751,53 +3751,56 @@ Castro::reset_internal_energy(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-        Real rhoInv = 1.0_rt / u(i,j,k,URHO);
-        Real Up = u(i,j,k,UMX) * rhoInv;
-        Real Vp = u(i,j,k,UMY) * rhoInv;
-        Real Wp = u(i,j,k,UMZ) * rhoInv;
-        Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
+
+        auto U_cell = u.cellData(i, j, k);
+
+        const Real rhoInv = 1.0_rt / U_cell[URHO];
+        const Real Up = U_cell[UMX] * rhoInv;
+        const Real Vp = U_cell[UMY] * rhoInv;
+        const Real Wp = U_cell[UMZ] * rhoInv;
+        const Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
 
         eos_re_t eos_state;
 
-        eos_state.rho = u(i,j,k,URHO);
+        eos_state.rho = U_cell[URHO];
         eos_state.T   = lsmall_temp;
         for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+            eos_state.xn[n] = U_cell[UFS+n] * rhoInv;
         }
 #if NAUX_NET > 0
         for (int n = 0; n < NumAux; ++n) {
-            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+            eos_state.aux[n] = U_cell[UFX+n] * rhoInv;
         }
 #endif
 
         eos(eos_input_rt, eos_state);
 
-        Real small_e = eos_state.e;
+        const Real small_e = eos_state.e;
 
 #ifdef MHD
-        Real bx_cell_c = 0.5_rt * (Bx(i,j,k) + Bx(i+1,j,k));
-        Real by_cell_c = 0.5_rt * (By(i,j,k) + By(i,j+1,k));
-        Real bz_cell_c = 0.5_rt * (Bz(i,j,k) + Bz(i,j,k+1));
+        const Real bx_cell_c = 0.5_rt * (Bx(i,j,k) + Bx(i+1,j,k));
+        const Real by_cell_c = 0.5_rt * (By(i,j,k) + By(i,j+1,k));
+        const Real bz_cell_c = 0.5_rt * (Bz(i,j,k) + Bz(i,j,k+1));
 
-        Real B_ener = 0.5_rt * (bx_cell_c*bx_cell_c +
-                                by_cell_c*by_cell_c +
-                                bz_cell_c*bz_cell_c);
+        const Real B_ener = 0.5_rt * (bx_cell_c*bx_cell_c +
+                                      by_cell_c*by_cell_c +
+                                      bz_cell_c*bz_cell_c);
 #else
-        Real B_ener = 0.0_rt;
+        const Real B_ener = 0.0_rt;
 #endif
 
         // Ensure the internal energy is at least as large as this minimum
         // from the EOS; the same holds true for the total energy.
 
-        u(i,j,k,UEINT) = amrex::max(u(i,j,k,UEINT), u(i,j,k,URHO) * small_e);
-        u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke) + B_ener);
+        U_cell[UEINT] = amrex::max(U_cell[UEINT], U_cell[URHO] * small_e);
+        U_cell[UEDEN] = amrex::max(U_cell[UEDEN], U_cell[URHO] * (small_e + ke) + B_ener);
 
         // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
 
-        Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke - B_ener;
+        const Real rho_eint = U_cell[UEDEN] - U_cell[URHO] * ke - B_ener;
 
-        if (rho_eint > ldual_energy_eta2 * u(i,j,k,UEDEN)) {
-            u(i,j,k,UEINT) = rho_eint;
+        if (rho_eint > ldual_energy_eta2 * U_cell[UEDEN]) {
+            U_cell[UEINT] = rho_eint;
         }
     });
 }
