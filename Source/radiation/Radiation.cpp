@@ -7,13 +7,12 @@
 
 #include <opacity.H>
 
+#include <format>
 #include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <sstream>
 
 using namespace amrex;
 
@@ -647,27 +646,23 @@ void Radiation::checkPoint(int level,
   //
   if (ParallelDescriptor::IOProcessor()) {
     int oldprec = os.precision(20);
-    sprintf(buf, "delta_e_rat_level[%d]= ", level);
-    std::string DeltaString = buf;
+    auto DeltaString = std::format("delta_e_rat_level[{}]= ", level);
     os << DeltaString << delta_e_rat_level[level] << '\n';
-    sprintf(buf, "delta_T_rat_level[%d]= ", level);
-    DeltaString = buf;
+    DeltaString = std::format("delta_T_rat_level[{}]= ", level);
     os << DeltaString << delta_T_rat_level[level] << '\n';
     os.precision(oldprec);
   }
 
   // Path name construction stolen from AmrLevel::checkPoint
 
-  sprintf(buf, "Level_%d", level);
-  std::string Level = buf;
+  std::string Level = std::format("Level_{}", level);
 
   //
   // Write name of conservation flux register to header.
   //
-  sprintf(buf, "/RadFlux");
 
   std::string PathNameInHeader = Level;
-  PathNameInHeader += buf;
+  PathNameInHeader += "/RadFlux";
   if (ParallelDescriptor::IOProcessor()) {
     os << PathNameInHeader;
   }
@@ -691,7 +686,7 @@ void Radiation::checkPoint(int level,
       FullPathName += '/';
     }
     FullPathName += Level;
-    FullPathName += buf;
+    FullPathName += "/RadFlux";
     //
     // Output conservation flux register.
     //
