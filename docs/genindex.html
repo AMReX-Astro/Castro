@@ -67,6 +67,7 @@
 <li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Tips</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
 <ul>
@@ -195,6 +196,8 @@
 </li>
       <li><a href="file/Castro__bc__fill__nd_8H.html#_CPPv412ambient_fillRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex8GeometryERKN5amrex6VectorIN5amrex5BCRecEEE">ambient_fill (C++ function)</a>
 </li>
+      <li><a href="performance.html#index-0">amr.blocking_factor</a>
+</li>
       <li><a href="io.html#index-0">amr.check_file</a>
 </li>
       <li><a href="io.html#index-0">amr.check_int</a>
@@ -209,10 +212,10 @@
 </li>
       <li><a href="io.html#index-6">amr.derive_plot_vars</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-4">amr.plot_file</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="io.html#index-3">amr.plot_files_output</a>
 </li>
       <li><a href="io.html#index-4">amr.plot_int</a>
@@ -233,11 +236,17 @@
 </li>
       <li><a href="io.html#index-7">amr.small_plot_vars</a>
 </li>
+      <li><a href="performance.html#index-1">amr.subcycling_mode</a>, <a href="timestepping.html#index-0">[1]</a>
+</li>
       <li><a href="io.html#index-3">amr.write_plotfile_with_checkpoint</a>
 </li>
       <li><a href="io.html#index-9">amr_diag.out</a>
 </li>
       <li><a href="file/Castro__util_8H.html#_CPPv45amrex">amrex (C++ type)</a>
+</li>
+      <li><a href="mpi_plus_x.html#index-0">amrex.abort_on_out_of_gpu_memory</a>
+</li>
+      <li><a href="mpi_plus_x.html#index-0">amrex.the_arena_is_managed</a>
 </li>
       <li><a href="file/Castro__math_8H.html#_CPPv4N5amrex8literalsE">amrex::literals (C++ type)</a>
 </li>
@@ -447,9 +456,9 @@
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.abort_on_invalid_params</a>
 </li>
-      <li><a href="faq.html#index-0">castro.abundance_failure_rho_cutoff</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-1">[2]</a>
+      <li><a href="faq.html#index-0">castro.abundance_failure_rho_cutoff</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-2">[2]</a>
 </li>
-      <li><a href="faq.html#index-0">castro.abundance_failure_tolerance</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-1">[2]</a>
+      <li><a href="faq.html#index-0">castro.abundance_failure_tolerance</a>, <a href="runtime_parameters.html#index-2">[1]</a>, <a href="timestepping.html#index-2">[2]</a>
 </li>
       <li><a href="Hydrodynamics.html#index-1">castro.add_ext_src</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
@@ -565,7 +574,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.hybrid_riemann</a>
 </li>
-      <li><a href="mpi_plus_x.html#index-0">castro.hydro_memory_footprint_ratio</a>, <a href="runtime_parameters.html#index-1">[1]</a>
+      <li><a href="mpi_plus_x.html#index-1">castro.hydro_memory_footprint_ratio</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.implicit_rotation_update</a>
 </li>
@@ -635,7 +644,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.reset_checkpoint_time</a>
 </li>
-      <li><a href="runtime_parameters.html#index-2">castro.retry_small_density_cutoff</a>, <a href="timestepping.html#index-1">[1]</a>
+      <li><a href="runtime_parameters.html#index-2">castro.retry_small_density_cutoff</a>, <a href="timestepping.html#index-2">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.retry_subcycle_factor</a>
 </li>
@@ -685,7 +694,7 @@
 </li>
       <li><a href="reactions.html#index-3">castro.shock_detection_threshold</a>, <a href="runtime_parameters.html#index-3">[1]</a>
 </li>
-      <li><a href="Hydrodynamics.html#index-2">castro.small_dens</a>, <a href="Hydrodynamics.html#index-6">[1]</a>, <a href="runtime_parameters.html#index-1">[2]</a>, <a href="timestepping.html#index-1">[3]</a>
+      <li><a href="Hydrodynamics.html#index-2">castro.small_dens</a>, <a href="Hydrodynamics.html#index-6">[1]</a>, <a href="runtime_parameters.html#index-1">[2]</a>, <a href="timestepping.html#index-2">[3]</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.small_ener</a>
 </li>
@@ -739,7 +748,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.store_omegadot</a>
 </li>
-      <li><a href="io.html#index-9">castro.sum_interval</a>, <a href="runtime_parameters.html#index-11">[1]</a>
+      <li><a href="io.html#index-9">castro.sum_interval</a>, <a href="performance.html#index-3">[1]</a>, <a href="runtime_parameters.html#index-11">[2]</a>
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.sum_per</a>
 </li>
@@ -767,7 +776,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.use_reconstructed_gamma1</a>
 </li>
-      <li><a href="runtime_parameters.html#index-2">castro.use_retry</a>, <a href="timestepping.html#index-1">[1]</a>
+      <li><a href="runtime_parameters.html#index-2">castro.use_retry</a>, <a href="timestepping.html#index-2">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-11">castro.v</a>
 </li>
@@ -907,7 +916,7 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13removeOldDataEv">Castro::removeOldData (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13removeOldDataEv">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE">Castro::reset_internal_energy (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi">[3]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">Castro::reset_internal_energy (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi">[3]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro7restartERN5amrex3AmrER7istreamb">Castro::restart (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7restartERN5amrex3AmrER7istreamb">[1]</a>
 </li>
@@ -1211,6 +1220,8 @@
 </li>
       <li><a href="file/global_8H.html#_CPPv46global">global (C++ type)</a>
 </li>
+      <li><a href="io.html#index-9">global diagnostics</a>
+</li>
       <li><a href="class/classGradPhiPhysBCFunct.html#_CPPv418GradPhiPhysBCFunct">GradPhiPhysBCFunct (C++ class)</a>
 
       <ul>
@@ -1231,7 +1242,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-15">gravity.gravity_type</a>
 </li>
-      <li><a href="runtime_parameters.html#index-15">gravity.max_multipole_order</a>
+      <li><a href="performance.html#index-2">gravity.max_multipole_order</a>, <a href="runtime_parameters.html#index-15">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-15">gravity.max_solve_level</a>
 </li>
@@ -1297,10 +1308,10 @@
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity13grad_phi_currE">Gravity::grad_phi_curr (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity13grad_phi_currE">[1]</a>
 </li>
-      <li><a href="class/classGravity.html#_CPPv4N7Gravity13grad_phi_prevE">Gravity::grad_phi_prev (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity13grad_phi_prevE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classGravity.html#_CPPv4N7Gravity13grad_phi_prevE">Gravity::grad_phi_prev (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity13grad_phi_prevE">[1]</a>
+</li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">Gravity::Gravity (C++ function)</a>, <a href="class/classGravity.html#_CPPv4N7Gravity7GravityERK7Gravity">[1]</a>, <a href="class/classGravity.html#_CPPv4N7Gravity7GravityERR7Gravity">[2]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityEPN5amrex3AmrEiPN5amrex5BCRecEi">[3]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityERK7Gravity">[4]</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7GravityERR7Gravity">[5]</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE">Gravity::gravity_sync (C++ function)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity12gravity_syncEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEE">[1]</a>
@@ -1589,10 +1600,10 @@
 </li>
       <li><a href="file/mhd__sizes_8H.html#_CPPv47IEIGN_W">IEIGN_W (C++ member)</a>
 </li>
-      <li><a href="creating_a_problem.html#index-1">initialize_problem</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="creating_a_problem.html#index-1">initialize_problem</a>
+</li>
       <li><a href="file/Castro__io_8H.html#_CPPv411inputs_name">inputs_name (C++ member)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv410int_method">int_method (C++ enum)</a>
@@ -1604,8 +1615,6 @@
       <li><a href="file/Castro_8H.html#_CPPv4N10int_method27SpectralDeferredCorrectionsE">int_method::SpectralDeferredCorrections (C++ enumerator)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv4N10int_method21UnusedTimeIntegrationE">int_method::UnusedTimeIntegration (C++ enumerator)</a>
-</li>
-      <li><a href="io.html#index-9">integral diagnostics</a>
 </li>
       <li><a href="build_system.html#index-8">INTEGRATOR_DIR</a>
 </li>
@@ -2281,7 +2290,7 @@
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv423reset_edge_state_thermoRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEE">reset_edge_state_thermo (C++ function)</a>
 </li>
-      <li><a href="FlowChart.html#index-3">retry</a>, <a href="timestepping.html#index-0">[1]</a>
+      <li><a href="FlowChart.html#index-3">retry</a>, <a href="timestepping.html#index-1">[1]</a>
 </li>
       <li><a href="file/riemann__constants_8H.html#_CPPv417riemann_constants">riemann_constants (C++ type)</a>
 </li>
@@ -2471,7 +2480,7 @@
 </li>
       <li><a href="build_system.html#index-7">USE_DIFFUSION</a>
 </li>
-      <li><a href="mpi_plus_x.html#index-1">USE_GPU_PRINTF</a>
+      <li><a href="mpi_plus_x.html#index-2">USE_GPU_PRINTF</a>
 </li>
       <li><a href="build_system.html#index-5">USE_GR</a>
 </li>

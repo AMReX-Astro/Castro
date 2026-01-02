@@ -24,10 +24,15 @@ kernels themselves.  See `MFIter with Tiling
 for more information.
 
 The optimal number of OpenMP threads depends on the computer
-architecture, and some experimentation is needed.  Tiling works best
-with larger boxes, so increasing ``amr.max_grid_size`` can benefit
-performance.
+architecture, and some experimentation is needed.
 
+.. tip::
+
+   Tiling works best with larger boxes, so increasing
+   ``amr.max_grid_size`` can benefit performance.
+
+
+.. _sec:running_on_gpus:
 
 Running on GPUs
 ===============
@@ -47,11 +52,14 @@ GPU thread, to take advantage of the massive parallelism.  The
 Microphysics routines (EOS, nuclear reaction networks, etc.) also take
 advantage of GPUs, so entire simulations can be run on the GPU.
 
-Best performance is obtained with bigger boxes, so setting
-``amr.max_grid_size = 128`` and ``amr.blocking_factor = 32`` can give
-good performance.
+.. tip::
+
+   Best performance is obtained with bigger boxes, so setting
+   ``amr.max_grid_size = 128`` and ``amr.blocking_factor = 32`` can
+   give good performance.
 
 
+.. index:: amrex.the_arena_is_managed, amrex.abort_on_out_of_gpu_memory
 
 Castro / AMReX have an option to use managed memory for the GPU --
 this means that the data will automatically be migrated from host to

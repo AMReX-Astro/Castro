@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performance Tips &mdash; Castro  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=2e394b92" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=eaa7b67c"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]], "macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Build System Overview" href="build_system.html" />
+    <link rel="prev" title="Frequently Asked Questions" href="faq.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Castro
+              <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+    <div class="branch">
+        Branch: <a href="./performance.html">main</a> | <a href="./dev/performance.html">development</a>
+    </div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU Programming Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance Tips</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parallel-efficiency">Parallel Efficiency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#load-balancing">Load Balancing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gravity-multigrid">Gravity / Multigrid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#global-diagnostics">Global Diagnostics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#metrics">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpus">GPUs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reactions">Reactions</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hse.html">Hydrostatic Equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOS.html">Equation of State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactions.html">Reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Thermal Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Performance Tips</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/performance.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="performance-tips">
+<h1>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading"></a></h1>
+<p>Getting good performance is a mix of single-processor performance and
+parallel efficiency.</p>
+<section id="parallel-efficiency">
+<h2>Parallel Efficiency<a class="headerlink" href="#parallel-efficiency" title="Link to this heading"></a></h2>
+<section id="load-balancing">
+<h3>Load Balancing<a class="headerlink" href="#load-balancing" title="Link to this heading"></a></h3>
+<p>Good parallel performance occurs when there are the same number of boxes
+on each MPI task.  If too many MPI tasks are used, then there will not be
+enough work to go around.</p>
+<p>Use a large <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> and aim for one box per MPI task one
+each level.</p>
+<p>Usually it’s a good idea to do a small scaling study before running a
+large simulation to find the optimal number of nodes to run your
+problem.</p>
+</section>
+<section id="gravity-multigrid">
+<h3>Gravity / Multigrid<a class="headerlink" href="#gravity-multigrid" title="Link to this heading"></a></h3>
+<p id="index-0">Multigrid performance is best when the grid can be coarsened down to
+the smallest possible size.  This means that the number of zones in
+each dimension of a box should be a power-of-two.  This can be controlled
+by <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>.  See also the <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/LinearSolvers.html#">AMReX docs on linear solvers</a>.</p>
+<p id="index-1">It can also be faster to run without subcycling in some instances,
+which is controlled by <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code>, as described
+in <a class="reference internal" href="timestepping.html#sec-subcycling"><span class="std std-ref">Subcycling</span></a>.</p>
+<p id="index-2">For isolated systems, we use a multipole expansion for constructing
+the Dirichlet boundary conditions for the Poisson solve.  The
+construction of the multipole expansion can be expensive.  If the
+system is roughly spherical and the boundaries are far from the mass,
+then you probably can get away with fewer multipole moments.  For
+reference, for the white dwarf mergers in <span id="id1">Katz <em>et al.</em> [<a class="reference internal" href="zreferences.html#id18" title="M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty, A. S. Almgren, and W. Zhang. White Dwarf Mergers on Adaptive Meshes. I. Methodology and Code Verification. APJ, 819:94, March 2016. arXiv:1512.06099, doi:10.3847/0004-637X/819/2/94.">51</a>]</span>,
+<span class="math notranslate nohighlight">\(l_\mathrm{max} = 6\)</span> was used.  The maximum multipole moment is
+set by <code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code>.</p>
+</section>
+<section id="global-diagnostics">
+<h3>Global Diagnostics<a class="headerlink" href="#global-diagnostics" title="Link to this heading"></a></h3>
+<p id="index-3"><a class="reference internal" href="io.html#sec-global-diag"><span class="std std-ref">Global Diagnostics</span></a> are output at regular intervals.  These can
+require reduction operations across all processors, which can be
+expensive for big calculations.  Often we don’t need the diagnostics
+every step, so setting <code class="docutils literal notranslate"><span class="pre">castro.sum_interval</span></code> to a larger value (like
+<code class="docutils literal notranslate"><span class="pre">10</span></code>) could improve performance.</p>
+</section>
+</section>
+<section id="metrics">
+<h2>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h2>
+<p>To understand where the simulation is spending the most time, it is suggested
+to run using the <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/AMReX_Profiling_Tools.html#tiny-profiling">AMReX Tiny Profiler</a>.</p>
+<p>Simply build as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><style type="text/css">
+span.prompt1:before {
+  content: "$ ";
+}
+</style><span class="prompt1">make<span class="w"> </span><span class="nv">TINY_PROFILE</span><span class="o">=</span>TRUE</span>
+</pre></div></div><p>and then run your simulation (any number of processors, CPU or GPU).  Typically
+running for 10–100 steps is enough to get a sense of where the time is spent.
+Upon completion, a detailed report will be output to stdout showing which
+functions / kernels are using the most time.</p>
+<p>This can help you determine where to focus your optimization efforts.</p>
+<p>Alternately, you can use the GNU Profiler on CPUs to get line-by-line
+performance details.  This can be enabled by building with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_GPROF</span><span class="o">=</span>TRUE</span>
+</pre></div></div><p>running, and then using the <code class="docutils literal notranslate"><span class="pre">gprof</span></code> command line tool.</p>
+</section>
+<section id="gpus">
+<h2>GPUs<a class="headerlink" href="#gpus" title="Link to this heading"></a></h2>
+<p>For GPU performance, see the discussion in <a class="reference internal" href="mpi_plus_x.html#sec-running-on-gpus"><span class="std std-ref">Running on GPUs</span></a>.</p>
+<p>The main parameter to explore when running on GPUs is
+<code class="docutils literal notranslate"><span class="pre">castro.hydro_memory_footprint_ratio</span></code>, which can use tiling in the
+hydrodynamics solver to prevent oversubscription of GPU memory.</p>
+</section>
+<section id="reactions">
+<h2>Reactions<a class="headerlink" href="#reactions" title="Link to this heading"></a></h2>
+<p>Reactions are often the most time-consuming part of a simulation.  The
+following are some things to try to improve the performance:</p>
+<ul>
+<li><p>Try using the Runge-Kutta-Chebyshev integrator (see the Microphysics
+<a class="reference external" href="https://amrex-astro.github.io/Microphysics/docs/ode_integrators.html">ODE integrators docs</a>.</p>
+<p>This is an explicit integrator that can work with moderately-stiff
+networks.  Experience shows that it can work well with flames
+(sometimes being twice as fast as the VODE integrator), but probably
+not very efficiently with detonations.</p>
+</li>
+<li><p>Use the analytic Jacobian (selected via <code class="docutils literal notranslate"><span class="pre">integrator.jacobian=1</span></code>).</p>
+<p>The analytic Jacobian is faster to evaluate than the
+difference-approximation.  Note that if the integration fails in a zone,
+by default Castro will record this failure and reject the step
+triggering the Castro <a class="reference internal" href="timestepping.html#ch-retry"><span class="std std-ref">Retry Mechanism</span></a>.  This can be expensive, so
+something to try instead is to catch the failure in the burner and
+retry the burn with the alternate Jacobian (e.g., numerical differencing),
+since sometimes that helps the integrator get through.  This can
+be enabled via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">integrator</span><span class="o">.</span><span class="n">use_burn_retry</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">integrator</span><span class="o">.</span><span class="n">retry_swap_jacobian</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>sometimes it can be advantageous to force a burn failure if the first
+pass it taking too many integration steps.  This can be done by setting
+<code class="docutils literal notranslate"><span class="pre">integrator.ode_max_steps</span></code> to a small value (like <code class="docutils literal notranslate"><span class="pre">5000</span></code> instead of
+the default <code class="docutils literal notranslate"><span class="pre">150000</span></code>).</p>
+</li>
+<li><p>Try a single-precision Jacobian.</p>
+<p>On GPUs, the Jacobian can consume a lot of memory, and the linear algebra
+solve is often the most expensive part of the ODE integration.  Since the
+role of the Jacobian is simply to point the nonlinear solver in the right
+direction for computing the correction, we can sometimes benefit from using
+a single-precision Jacobian.  This needs to be set at compile time
+by building as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span class="prompt1">make<span class="w"> </span><span class="nv">USE_SINGLE_PRECISION_JACOBIAN</span><span class="o">=</span>TRUE</span>
+</pre></div></div></li>
+<li><p>Disable burning where it is not needed.</p>
+<p>The parameters <code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>,
+<code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code>, and <code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code> can be used to
+control the density and temperature where we burn.  Disabling
+reactions in low density regions (where you don’t expect appreciable
+energy generation) can help with performance.</p>
+</li>
+<li><p>Experiment with SDC</p>
+<p>For explosive flows, the simplified-SDC solver can be more
+efficient, since it eliminates some stiffness from the system.  See
+<a class="reference internal" href="FlowChart.html#sec-flowchart"><span class="std std-ref">Flowchart</span></a> for information on how to enable the SDC
+solver.</p>
+</li>
+<li><p>Use self-consistent NSE</p>
+<p>For explosive flows, when the temperature reaches 5 GK or more, the
+nuclei can enter nuclear statistical equilibrium.  The cancellation
+of the forward and reverse rates can be challenging for the reaction
+integrator to handle.  Instead, we can detect that we are entering
+NSE and use the NSE solution instead of integration in these cases.
+This is described in the <a class="reference external" href="https://amrex-astro.github.io/Microphysics/docs/nse_net.html">Microphysics self-consistent NSE docs</a>.</p>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="faq.html" class="btn btn-neutral float-left" title="Frequently Asked Questions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="build_system.html" class="btn btn-neutral float-right" title="Build System Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2024, Castro development team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>  
+
+
+</body>
+</html>

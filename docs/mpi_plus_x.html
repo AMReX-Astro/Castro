@@ -80,6 +80,7 @@
 <li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Tips</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Castro reference</span></p>
 <ul>
@@ -156,12 +157,15 @@ level – no OpenMP directives need to be present in the compute
 kernels themselves.  See <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/Basics.html#sec-basics-mfiter-tiling">MFIter with Tiling</a>
 for more information.</p>
 <p>The optimal number of OpenMP threads depends on the computer
-architecture, and some experimentation is needed.  Tiling works best
-with larger boxes, so increasing <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> can benefit
-performance.</p>
+architecture, and some experimentation is needed.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Tiling works best with larger boxes, so increasing
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> can benefit performance.</p>
+</div>
 </section>
 <section id="running-on-gpus">
-<h2>Running on GPUs<a class="headerlink" href="#running-on-gpus" title="Link to this heading"></a></h2>
+<span id="sec-running-on-gpus"></span><h2>Running on GPUs<a class="headerlink" href="#running-on-gpus" title="Link to this heading"></a></h2>
 <p>Castro’s compute kernels can run on GPUs and this is the preferred way
 to run on supercomputers with GPUs.  The exact same compute kernels
 are used on GPUs as on CPUs.</p>
@@ -175,10 +179,13 @@ the <code class="docutils literal notranslate"><span class="pre">MFIter</span></
 GPU thread, to take advantage of the massive parallelism.  The
 Microphysics routines (EOS, nuclear reaction networks, etc.) also take
 advantage of GPUs, so entire simulations can be run on the GPU.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
 <p>Best performance is obtained with bigger boxes, so setting
-<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">128</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span></code> can give
-good performance.</p>
-<p>Castro / AMReX have an option to use managed memory for the GPU –
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">128</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span></code> can
+give good performance.</p>
+</div>
+<p id="index-0">Castro / AMReX have an option to use managed memory for the GPU –
 this means that the data will automatically be migrated from host to
 device (and vice versa) as needed, whenever a page fault is
 encountered.  This can be enabled via:
@@ -189,7 +196,7 @@ with running with managed memory, this can allow the memory to be
 swapped off of the GPU to make more room available.  This is not
 recommended – oversubscribing the GPU memory will severely impact
 performance.</p>
-<p id="index-0">The CTU hydrodynamics scheme creates a lot of temporary <code class="docutils literal notranslate"><span class="pre">FAB</span></code> ‘s
+<p id="index-1">The CTU hydrodynamics scheme creates a lot of temporary <code class="docutils literal notranslate"><span class="pre">FAB</span></code> ‘s
 when doing the update.  This can lead to the code oversubscribing the
 GPU memory during the hydro advance.  To alleviate this, Castro can
 break a box into tiles and work on one tile at a time (this is the
@@ -247,7 +254,7 @@ To enable this, compile with:</p>
 </section>
 <section id="printing-warnings-from-gpu-kernels">
 <h2>Printing Warnings from GPU Kernels<a class="headerlink" href="#printing-warnings-from-gpu-kernels" title="Link to this heading"></a></h2>
-<p id="index-1">Castro will output warnings if several assumptions are violated (often
+<p id="index-2">Castro will output warnings if several assumptions are violated (often
 triggering a retry in the process).  On GPUs, printing from a kernel
 (using <code class="docutils literal notranslate"><span class="pre">printf()</span></code>) can increase the number of registers a kernel needs,
 causing performance problems.  As a result, warnings are disabled by
