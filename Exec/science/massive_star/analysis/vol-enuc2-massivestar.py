@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# render enuc for the subchandra problem setup
+# render a enuc using 2 separate transfer functions to better
+# show positive and negative
 
 import sys
 
@@ -14,7 +15,6 @@ from yt.visualization.volume_rendering.api import Scene, create_volume_source
 
 matplotlib.use('agg')
 
-
 def _enuc_symlog(field, data):
     f = np.log10(np.abs(data["boxlib", "enuc"]))
     f[f < 10] = 0.0
@@ -22,7 +22,7 @@ def _enuc_symlog(field, data):
 
 yt.add_field(
     name = ("boxlib", "enuc_symlog"),
-    display_name = r"\mathrm{log}_{10}(\epsilon_\mathrm{nuc})~ [\mathrm{erg/g/s}]",
+    display_name = "", #r"\mathrm{log}_{10}(\epsilon_\mathrm{nuc})~ [\mathrm{erg/g/s}]",
     function = _enuc_symlog,
     sampling_type = "local",
     units = None
@@ -34,7 +34,7 @@ def doit(plotfile):
     ds = CastroDataset(plotfile)
     ds._periodicity = (True, True, True)
 
-    zoom = 5
+    zoom = 1.5
 
     t_drive = 0.0
     if "[*] castro.drive_initial_convection_tmax" in ds.parameters:
@@ -43,33 +43,54 @@ def doit(plotfile):
         t_drive = ds.parameters["castro.drive_initial_convection_tmax"]
     print(t_drive)
 
-    field = ('boxlib', 'enuc_symlog')
-    ds._get_field_info(field).take_log = False
-
     sc = Scene()
 
+    field = ("boxlib", "enuc_symlog")
+    ds._get_field_info(field).take_log = False
 
-    vol = create_volume_source(ds.all_data(), field=field)
-    sc.add_source(vol)
+    vals = [12, 13, 14, 15, 15.5, 16, 16.5, 17]
+    sigma = 0.15
+    alpha = [0.025, 0.05, 0.1, 0.125, 0.15, 0.2, 0.3, 0.4]
 
+    # negative values of enuc
 
-    # transfer function
-    vals = [-20, -19.5, -19, -18.5, -18, -17, -16, -15, -14,
-            14, 15, 16, 17, 18, 18.5, 19, 19.5, 20]
-    alpha = [0.5, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05,
-             0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5]
-    sigma = 0.1
+    vol2 = create_volume_source(ds.all_data(), field=field)
+    #vol2.use_ghost_zones = True
 
-    tf =  yt.ColorTransferFunction((min(vals), max(vals)))
+    vals_r = [-v for v in reversed(vals)]
+    alpha_r = [a for a in reversed(alpha)]
 
+    cmap = "Blues_r"
+
+    tf =  yt.ColorTransferFunction((min(vals_r), max(vals_r)))
     tf.clear()
 
-    cmap = "coolwarm"
+    for v, a in zip(vals_r, alpha_r):
+        tf.sample_colormap(v, sigma**2, alpha=a, colormap=cmap)
+
+    vol2.set_transfer_function(tf)
+
+    sc.add_source(vol2)
+
+    # positive values of enuc
+
+    vol = create_volume_source(ds.all_data(), field=field)
+    #vol.use_ghost_zones = True
+
+    cmap = "Reds"
+
+    tf =  yt.ColorTransferFunction((min(vals), max(vals)))
+    tf.clear()
 
     for v, a in zip(vals, alpha):
         tf.sample_colormap(v, sigma**2, alpha=a, colormap=cmap)
 
-    sc.get_source(0).transfer_function = tf
+    vol.set_transfer_function(tf)
+
+    sc.add_source(vol)
+
+
+    # camera
 
     cam = sc.add_camera(ds, lens_type="perspective")
     cam.resolution = (1920, 1280)
@@ -94,7 +115,7 @@ def doit(plotfile):
 
     sc.save_annotated(f"{plotfile}_enuc_zoom{zoom}.png",
                       label_fontsize="18",
-                      label_fmt="%.1f",
+                      label_fmt="%.3f",
                       sigma_clip=3,
                       text_annotate=[[(0.05, 0.05),
                                       f"$t - \\tau_\\mathrm{{drive}}$ = {float(ds.current_time) - t_drive:6.1f} s",
@@ -106,8 +127,9 @@ if __name__ == "__main__":
     # Choose a field
     plotfile = ""
 
-
-    try: plotfile = sys.argv[1]
-    except: sys.exit("ERROR: no plotfile specified")
+    try:
+        plotfile = sys.argv[1]
+    except:
+        sys.exit("ERROR: no plotfile specified")
 
     doit(plotfile)
