@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# render enuc for the subchandra problem setup
+# render enuc for the massive star problem setup
 
 import sys
 

@@ -159,8 +159,12 @@ the timestep constraint. and are set to
 a large number by default, effectively disabling them. Typical choices
 for these values in the literature are :math:`\sim 0.1`.
 
+.. _sec:subcycling:
+
 Subcycling
 ----------
+
+.. index:: amr.subcycling_mode
 
 Subcycling with AMR means that coarser grids can take a larger timestep
 than finer grids.

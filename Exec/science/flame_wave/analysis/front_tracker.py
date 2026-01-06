@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # pylint: disable=too-many-branches, too-many-locals, too-many-statements
 # pylint: disable=protected-access
 

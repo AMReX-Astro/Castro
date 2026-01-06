@@ -9,23 +9,24 @@ copy_cons_to_burn_type(const int i, const int j, const int k,
                        Array4<const Real> const& state,
                        burn_t& burn_state) {
 
-    burn_state.y[SRHO] = state(i,j,k,URHO);
-    burn_state.y[SMX] = state(i,j,k,UMX);
-    burn_state.y[SMY] = state(i,j,k,UMY);
-    burn_state.y[SMZ] = state(i,j,k,UMZ);
-    burn_state.y[SEDEN] = state(i,j,k,UEDEN);
-    burn_state.y[SEINT] = state(i,j,k,UEINT);
-    for (int n = 0; n < NumSpec; n++) {
-        burn_state.y[SFS+n] = state(i,j,k,UFS+n);
-    }
+    const auto U_cell = state.cellData(i,j,k);
+    burn_state.y[SRHO] = U_cell[URHO];
+    burn_state.y[SMX] = U_cell[UMX];
+    burn_state.y[SMY] = U_cell[UMY];
+    burn_state.y[SMZ] = U_cell[UMZ];
+    burn_state.y[SEDEN] = U_cell[UEDEN];
+    burn_state.y[SEINT] = U_cell[UEINT];
+    amrex::constexpr_for<0, NumSpec>([&] (auto n) {
+        burn_state.y[SFS+n] = U_cell[UFS+n];
+    });
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
         burn_state.y[SFX+n] = state(i,j,k,UFX+n);
     }
 #endif
 
-    burn_state.T = state(i,j,k,UTEMP);
-    burn_state.rho = state(i,j,k,URHO);
+    burn_state.T = U_cell[UTEMP];
+    burn_state.rho = burn_state.y[SRHO];
 
 }
 
