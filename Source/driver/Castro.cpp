@@ -3325,17 +3325,17 @@ Castro::check_for_negative_density ()
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-        auto S_old_arr = S_old.array(mfi);
-        auto S_new_arr = S_new.array(mfi);
+        const auto S_old_arr = S_old.array(mfi);
+        const auto S_new_arr = S_new.array(mfi);
 
         reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
             int rho_check_failed = 0;
             int X_check_failed = 0;
 
-            Real rho = S_new_arr(i,j,k,URHO);
-            Real rhoInv = 1.0_rt / rho;
+            const Real rho = S_new_arr(i,j,k,URHO);
+            const Real rhoInv = 1.0_rt / rho;
 
             // Optionally, the user can ignore this if the starting
             // density is lower than a certain threshold. This is useful
@@ -3349,7 +3349,7 @@ Castro::check_for_negative_density ()
                 rho_check_failed = 1;
             }
 
-            if (S_new_arr(i,j,k,URHO) >= castro::abundance_failure_rho_cutoff) {
+            if (rho >= castro::abundance_failure_rho_cutoff) {
 
                 for (int n = 0; n < NumSpec; ++n) {
                     Real X = S_new_arr(i,j,k,UFS+n) * rhoInv;
@@ -3383,17 +3383,17 @@ Castro::check_for_negative_density ()
     int rho_check_failed = amrex::get<0>(hv);
     int X_check_failed = amrex::get<1>(hv);
 
-    ParallelDescriptor::ReduceIntMax(rho_check_failed);
-    ParallelDescriptor::ReduceIntMax(X_check_failed);
+    int fails[] = {rho_check_failed, X_check_failed};
+    ParallelDescriptor::ReduceIntMax(fails, 2);
 
     advance_status status {};
 
-    if (rho_check_failed == 1) {
+    if (fails[0] == 1) {
         status.success = false;
         status.reason = "invalid density";
     }
 
-    if (X_check_failed == 1) {
+    if (fails[1] == 1) {
         status.success = false;
         status.reason = "invalid X";
     }
