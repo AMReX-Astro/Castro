@@ -54,7 +54,14 @@ temp_core            real         1.e7                   y
 
 temp_base            real         4.e8                   y
 
-mixed_co_wd          int          1                      y
+# mass fraction of C12 to put in the core
+core_XC12            real         0.5                    y
+
+# mass fraction of O16 to put in the core
+core_XO16            real         0.5                    y
+
+# mass fraction of Ne20 to put in the core
+core_XNe20           real         0.0                    y
 
 low_density_cutoff   real         1.e-4                  y
 

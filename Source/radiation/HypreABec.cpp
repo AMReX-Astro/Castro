@@ -259,7 +259,6 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 #pragma omp parallel
 #endif
     {
-        Real foo=1.e200;
 
         for (MFIter si(Soln); si.isValid(); ++si) {
             int i = si.index();

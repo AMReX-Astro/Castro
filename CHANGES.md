@@ -1,3 +1,46 @@
+# 26.01
+
+  * `massive_star` : add volume-rendering scripts (#3186)
+
+  * optimize `normalize_species` (#3179, #3183)
+
+  * optimize `copy_cons_to_burn` (#3184)
+
+  * `xrb_spherical` : update the plotting script (#3154)
+
+  * `flame_wave` : update the plotting script to fix sizing
+    and add "ash" (#3151)
+
+  * clang-tidy 21 fixes (#3163)
+
+  * eliminate circular include in `Rotation.H` (#3162)
+
+  * switch `python3` -> `python` in scripts (#3178)
+
+  * github CI action updates (#3185)
+
+  * add documentation on performance (#3177)
+
+# 25.12
+
+  * make some state arguments const in geometry sources (#3174)
+
+  * `flame_wave` : add a new plot script to show the flow through the
+    network (#3150)
+
+  * `subchandra` : assert on a potential divide-by-zero (#3171)
+
+  * `Detonation` : update the O/Ne inputs to use a more robust set of
+    NSE parameters (#3170)
+
+  * `subchandra` : allow for the core mass fractions to be set (#3166)
+
+  * remove unused declare in radiation (#3167)
+
+  * `wdmerger` : disable burning in shocks (#3169)
+
+  * fix `CHANGES.md` typo (#3168)
+
 # 25.11
 
   * update shock burning docs (#3165)

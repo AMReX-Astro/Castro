@@ -2,10 +2,9 @@
 #define ROTATION_H
 
 #include <AMReX_Array.H>
-#include <Castro.H>
 #include <Castro_math.H>
 #include <Castro_util.H>
-
+#include <castro_params.H>
 
 ///
 /// Return the magnitude of omega along the rotating axis.

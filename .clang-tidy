@@ -16,6 +16,7 @@ Checks: >
        -cppcoreguidelines-non-private-member-variables-in-classes,
        -cppcoreguidelines-owning-memory,
        -cppcoreguidelines-pro-*,
+       -cppcoreguidelines-use-enum-class,
      misc-*,
        -misc-const-correctness,
        -misc-include-cleaner,
