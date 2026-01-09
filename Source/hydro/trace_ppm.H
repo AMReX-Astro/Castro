@@ -44,7 +44,9 @@ trace_ppm(const Box& bx,
           Array4<Real const> const& srcQ,
           Array4<Real> const& qm,
           Array4<Real> const& qp,
-          const GeometryData& geom,
+          const GpuArray<Real, AMREX_SPACEDIM>& dx,
+          const GpuArray<Real, AMREX_SPACEDIM>& problo,
+          int coord,
 #if (AMREX_SPACEDIM < 3)
           Array4<Real const> const& dloga,
 #endif
@@ -72,10 +74,6 @@ trace_ppm(const Box& bx,
     // for pure hydro, we will only consider:
     //    rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-
-    const auto dx = geom.CellSize();
-    const auto problo = geom.ProbLo();
-    const int coord = geom.Coord();
 
     const Real hdt = 0.5_rt * dt;
 

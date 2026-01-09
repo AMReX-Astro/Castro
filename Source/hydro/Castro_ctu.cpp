@@ -23,6 +23,7 @@ Castro::consup_hydro(const Box& bx,
 #endif
                      const Real dt)
 {
+
   auto geomdata = geom.data();
 
   amrex::ParallelFor(bx, NUM_STATE,
@@ -114,7 +115,9 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
   // and doing characteristic tracing.  We do not apply the
   // transverse terms here.
 
-  auto geomdata = geom.data();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const int coord = geom.Coord();
 
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
@@ -122,7 +125,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
       trace_ppm<0>(bx,
                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                    qxm, qxp,
-                   geomdata,
+                   dx, problo, coord,
 #if AMREX_SPACEDIM <= 2
                    dlogaX,
 #endif
@@ -135,7 +138,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
       trace_ppm<1>(bx,
                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                    qym, qyp,
-                   geomdata,
+                   dx, problo, coord,
 #if AMREX_SPACEDIM <= 2
                    dlogaY,
 #endif
@@ -150,7 +153,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
       trace_ppm<2>(bx,
                    U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
                    qzm, qzp,
-                   geomdata,
+                   dx, problo, coord,
                    vbx, dt);
 
       enforce_reflect_states(bx, 2, qzm, qzp);
