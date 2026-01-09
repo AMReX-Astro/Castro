@@ -169,14 +169,14 @@ trace_ppm(const Box& bx,
     Real lsmall_dens = small_dens;
     Real lsmall_pres = small_pres;
 
+    CellData<amrex::Real> cell_tmp(nullptr, 0, 0);
+
     // Trace to left and right edges using upwind PPM
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
         Real dtdL = dt / dx[idir];
         Real dL = dx[idir];
-
-        CellData<amrex::Real> cell_tmp(nullptr, 0, 0);
 
         int ioff{};
         int idx_check;
