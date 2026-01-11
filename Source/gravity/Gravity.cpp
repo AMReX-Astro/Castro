@@ -1771,7 +1771,7 @@ Gravity::init_multipole_grav() const
         maxWidth = amrex::max(maxWidth, probhi[2] - problo[2]);
     }
 
-    multipole::rmax = 0.5_rt * maxWidth * std::sqrt(static_cast<Real>(AMREX_SPACEDIM));
+    multipole::rmax = 0.5_rt * maxWidth * std::sqrt(static_cast<Real>(AMREX_SPACEDIM));  // NOLINT(modernize-use-std-numbers)
 }
 
 void
