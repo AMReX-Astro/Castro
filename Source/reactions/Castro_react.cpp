@@ -744,17 +744,17 @@ Castro::react_state(Real time, Real dt)
                     // part.
 
                     // rho enuc
-                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - burn_state.ydot_a[SEINT];
+                    react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) * dtInv - burn_state.ydot_a[SEINT];
 
                     if (store_omegadot) {
                         // rho omegadot_k
                         for (int n = 0; n < NumSpec; ++n) {
-                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - burn_state.ydot_a[SFS+n];
+                            react_src(i,j,k,1+n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) * dtInv - burn_state.ydot_a[SFS+n];
                         }
 #if NAUX_NET > 0
                         // rho auxdot_k
                         for (int n = 0; n < NumAux; ++n) {
-                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - burn_state.ydot_a[SFX+n];
+                            react_src(i,j,k,1+n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) * dtInv - burn_state.ydot_a[SFX+n];
                         }
 #endif
                     }
