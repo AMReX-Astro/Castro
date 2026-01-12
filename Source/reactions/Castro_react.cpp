@@ -882,7 +882,7 @@ Castro::react_state(Real time, Real dt)
 
 
 bool
-Castro::valid_zones_to_burn(MultiFab& State)
+Castro::valid_zones_to_burn(const MultiFab& State)
 {
 
     // The default values of the limiters are 0 and 1.e200, respectively.

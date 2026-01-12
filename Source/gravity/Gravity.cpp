@@ -1434,7 +1434,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 
 void
 Gravity::compute_radial_mass(const Box& bx,
-                             Array4<Real const> const u,
+                             Array4<Real const> const& u,
                              RealVector& radial_mass_local,
                              RealVector& radial_vol_local,
 #ifdef GR_GRAV
@@ -3258,7 +3258,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 ratio *= parent->refRatio(lev)[0];
             }
 
-            Real* const lev_mass = radial_mass[lev].dataPtr();
+            const Real* const lev_mass = radial_mass[lev].dataPtr();
 
             amrex::ParallelFor(n1d/ratio,
             [=] AMREX_GPU_DEVICE (int i) noexcept

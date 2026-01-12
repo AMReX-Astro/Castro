@@ -362,7 +362,7 @@ public:
 /// @param level        Level index
 ///
   void compute_radial_mass(const amrex::Box& bx,
-                           amrex::Array4<amrex::Real const> const u,
+                           amrex::Array4<amrex::Real const> const& u,
                            RealVector& radial_mass,
                            RealVector& radial_vol,
 #ifdef GR_GRAV

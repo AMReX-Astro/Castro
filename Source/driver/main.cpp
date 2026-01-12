@@ -126,7 +126,7 @@ main (int   argc,
 
     time_t time_type;
 
-    struct tm* time_pointer = nullptr;
+    const struct tm* time_pointer = nullptr;
 
     time(&time_type);
 
