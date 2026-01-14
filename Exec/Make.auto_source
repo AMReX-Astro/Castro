@@ -150,6 +150,9 @@ ifeq ($(USE_CUDA), TRUE)
 endif
 
 clean_flags := $(filter-out --jobserver%,$(MAKEFLAGS))
+ifeq ($(strip $(clean_flags)),)
+  clean_flags = $(MAKEOVERRIDES)
+endif
 
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
