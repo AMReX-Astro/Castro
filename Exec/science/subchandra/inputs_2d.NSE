@@ -145,7 +145,8 @@ amr.refine.temperr.max_level = 3
 # Microphysics
 
 network.small_x = 1.e-10
-integrator.SMALL_X_SAFE = 1.e-10
+integrator.SMALL_X_SAFE = 1.e-30
+integrator.do_species_clip = 0
 
 integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
