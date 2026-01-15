@@ -26,8 +26,17 @@ def _ash(field, data):
     if ("boxlib", "X(ash)") in field_list:
         return data["boxlib", "X(ash)"] * data["boxlib", "density"]
 
-    # If we cannot find X(ash) as a available  field then compute manually
-    rhoAsh = 0
+    # If we cannot find X(ash) as a available field then compute manually.
+    # First check if the plotfile has massfractions -- i.e. using plt not smallplt
+    has_species = any(f[1].startswith("X(") for f in field_list)
+    if not has_species:
+        raise RuntimeError(
+            "Derived field 'ash' requires species mass fractions X(nuc), "
+            "but no X(...) fields were found in this plotfile."
+        )
+
+    rho = data["boxlib", "density"]
+    rhoAsh = rho * 0.0
     for f in field_list:
         # If the first two letters are "X(", then we're dealing with species massfractions
         if f[1][:2] == "X(":
@@ -36,8 +45,8 @@ def _ash(field, data):
             nuc = pyna.Nucleus(speciesName)
 
             # Include elements beyond oxygen but don't include Ni56
-            if nuc.Z > 8.0 and nuc.Z != 56:
-                rhoAsh += data["boxlib", "density"] * data[f]
+            if nuc.Z > 8.0 and nuc.Z != 28:
+                rhoAsh += rho * data[f]
 
     return rhoAsh
 
@@ -319,9 +328,10 @@ def slice(fnames:list[str], fields:list[str],
                                              show_full_star=show_full_star)
 
         #add rhoX_ash as a derived field
-        ds.add_field(("gas", "ash"), function=_ash,
-                     display_name=r"\rho X\left(ash\right)",
-                     units="auto", sampling_type="cell")
+        if "ash" in fields:
+            ds.add_field(("gas", "ash"), function=_ash,
+                         display_name=r"\rho X\left(ash\right)",
+                         units="auto", sampling_type="cell")
 
         for i, field in enumerate(fields):
             # Plot each field parameter
