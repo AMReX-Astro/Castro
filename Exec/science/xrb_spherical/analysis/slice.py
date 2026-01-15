@@ -27,7 +27,8 @@ def _ash(field, data):
         return data["boxlib", "X(ash)"] * data["boxlib", "density"]
 
     # If we cannot find X(ash) as a available  field then compute manually
-    rhoAsh = 0
+    rho = data["boxlib", "density"]
+    rhoAsh = rho * 0.0
     for f in field_list:
         # If the first two letters are "X(", then we're dealing with species massfractions
         if f[1][:2] == "X(":
@@ -37,7 +38,7 @@ def _ash(field, data):
 
             # Include elements beyond oxygen but don't include Ni56
             if nuc.Z > 8.0 and nuc.Z != 56:
-                rhoAsh += data["boxlib", "density"] * data[f]
+                rhoAsh += rho * data[f]
 
     return rhoAsh
 
