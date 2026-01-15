@@ -37,7 +37,7 @@ def _ash(field, data):
             nuc = pyna.Nucleus(speciesName)
 
             # Include elements beyond oxygen but don't include Ni56
-            if nuc.Z > 8.0 and nuc.Z != 56:
+            if nuc.Z > 8.0 and nuc.Z != 28:
                 rhoAsh += rho * data[f]
 
     return rhoAsh
