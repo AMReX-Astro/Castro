@@ -770,11 +770,11 @@ public:
 ///
     static void reset_internal_energy (const amrex::Box& bx,
 #ifdef MHD
-                                amrex::Array4<amrex::Real> const Bx,
-                                amrex::Array4<amrex::Real> const By,
-                                amrex::Array4<amrex::Real> const Bz,
+                                amrex::Array4<amrex::Real> const& Bx,
+                                amrex::Array4<amrex::Real> const& By,
+                                amrex::Array4<amrex::Real> const& Bz,
 #endif
-                                amrex::Array4<amrex::Real> const u);
+                                amrex::Array4<amrex::Real> const& u);
 
 
 #ifdef MHD

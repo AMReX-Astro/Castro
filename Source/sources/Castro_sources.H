@@ -223,8 +223,8 @@
 /// @param dt           timestep
 ///
     void apply_sponge(const amrex::Box& bx,
-                      amrex::Array4<amrex::Real const> const state,
-                      amrex::Array4<amrex::Real> const source,
+                      amrex::Array4<amrex::Real const> const& state,
+                      amrex::Array4<amrex::Real> const& source,
                       amrex::Real dt);
 
 #endif

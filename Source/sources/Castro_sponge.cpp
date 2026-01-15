@@ -65,8 +65,8 @@ Castro::construct_new_sponge_source(MultiFab& source, const MultiFab& state_old,
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state_in,
-                     Array4<Real> const source,
+                     Array4<Real const> const& state_in,
+                     Array4<Real> const& source,
                      Real dt) {
 
   // alpha is a dimensionless measure of the timestep size; if
