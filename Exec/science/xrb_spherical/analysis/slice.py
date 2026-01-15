@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import sys
 import os
@@ -7,10 +7,49 @@ import argparse
 import math
 from typing import List, Optional
 import numpy as np
+import pynucastro as pyna
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 from yt.frontends.boxlib.api import CastroDataset
 from yt.units import km
+
+def _ash(field, data):
+    '''
+    Computes the rho X_ash.
+    Here ash is anything heavier than Oxygen, but exclude Fe and Ni
+    '''
+
+    ds = data.ds
+    field_list = ds.field_list
+
+    # If X(ash) is directly stored, then just use that
+    if ("boxlib", "X(ash)") in field_list:
+        return data["boxlib", "X(ash)"] * data["boxlib", "density"]
+
+    # If we cannot find X(ash) as a available field then compute manually.
+    # First check if the plotfile has massfractions -- i.e. using plt not smallplt
+    has_species = any(f[1].startswith("X(") for f in field_list)
+    if not has_species:
+        raise RuntimeError(
+            "Derived field 'ash' requires species mass fractions X(nuc), "
+            "but no X(...) fields were found in this plotfile."
+        )
+
+    rho = data["boxlib", "density"]
+    rhoAsh = rho * 0.0
+    for f in field_list:
+        # If the first two letters are "X(", then we're dealing with species massfractions
+        if f[1][:2] == "X(":
+            # Then extract out what species we have, assuming the format is "X(...)"
+            speciesName = f[1][2:-1]
+            nuc = pyna.Nucleus(speciesName)
+
+            # Include elements beyond oxygen but don't include Ni56
+            if nuc.Z > 8.0 and nuc.Z != 28:
+                rhoAsh += rho * data[f]
+
+    return rhoAsh
+
 
 def extract_info(ds,
                  loc: str = "top", widthScale: float = 3.0,
@@ -220,9 +259,8 @@ def slice(fnames:list[str], fields:list[str],
           loc: str = "top", widthScale: float = 3.0,
           widthRatio: float = 1.0,
           theta: float | None = None,
+          position: float | None = None,
           displace_theta: bool = False,
-          annotate_vline: bool = False,
-          annotate_lat_lines: bool = True,
           show_full_star: bool = False) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
@@ -252,18 +290,14 @@ def slice(fnames:list[str], fields:list[str],
       For widthRatio > 1, the vertical width is larger than horizontal.
 
     theta:
-      user defined theta center of the slice plot
+      user defined theta (in radian) center of the slice plot
+
+    position:
+      draw a vertical line on user defined front position in theta (in radian)
 
     displace_theta:
       whether to displace theta so that the vertical lines that represents
       the flame front is offset by some amount
-
-    annotate_vline:
-      whether to plot a vertical line to represent the flame front,
-      which is represented by what theta is.
-
-    annotate_lat_lines:
-      whether to annotate latitude lines.
 
     show_full_star:
       whether to plot the full star rather than a zoom-in
@@ -278,7 +312,7 @@ def slice(fnames:list[str], fields:list[str],
     nx = math.ceil(num/ny)
 
     grid = ImageGrid(fig, 111, nrows_ncols=(nx, ny),
-                     axes_pad=1, label_mode="L", cbar_location="right",
+                     axes_pad=1.1, label_mode="L", cbar_location="right",
                      cbar_mode="each", cbar_size="2.5%", cbar_pad="0%")
 
     # Output plot file name
@@ -292,6 +326,13 @@ def slice(fnames:list[str], fields:list[str],
                                              theta=theta,
                                              displace_theta=displace_theta,
                                              show_full_star=show_full_star)
+
+        #add rhoX_ash as a derived field
+        if "ash" in fields:
+            ds.add_field(("gas", "ash"), function=_ash,
+                         display_name=r"\rho X\left(ash\right)",
+                         units="auto", sampling_type="cell")
+
         for i, field in enumerate(fields):
             # Plot each field parameter
             sp = yt.SlicePlot(ds, 'phi', field, width=box_widths, fontsize=20)
@@ -310,6 +351,10 @@ def slice(fnames:list[str], fields:list[str],
                 sp.set_zlim(field, 4, 8)
                 sp.set_log(field, False)
                 sp.set_cmap(field, "plasma_r")
+            elif field == "ash":
+                sp.set_zlim(field, 1.e-2, 1e6)
+                sp.set_log(field, True)
+                sp.set_cmap(field, "plasma_r")
             elif field == "enuc":
                 sp.set_zlim(field, 1.e15, 1.e20)
                 sp.set_log(field, linthresh=1.e11)
@@ -321,18 +366,17 @@ def slice(fnames:list[str], fields:list[str],
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
             # Plot a vertical to indicate flame front
-            if theta is not None and annotate_vline:
-                sp.annotate_line([r[0]*np.sin(theta), r[0]*np.cos(theta)],
-                                 [r[2]*np.sin(theta), r[2]*np.cos(theta)],
+            if position is not None:
+                sp.annotate_line([r[0]*np.sin(position), r[0]*np.cos(position)],
+                                 [r[2]*np.sin(position), r[2]*np.cos(position)],
                                  coord_system="plot",
                                  color="k",
                                  linewidth=1.5,
                                  linestyle="-.")
 
             ### Annotate Latitude Lines
-            if annotate_lat_lines:
-                annotate_latitude_lines(sp, center, box_widths, r,
-                                        show_full_star=show_full_star)
+            annotate_latitude_lines(sp, center, box_widths, r,
+                                    show_full_star=show_full_star)
 
             plot = sp.plots[field]
             plot.figure = fig
@@ -391,6 +435,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--theta', type=float,
                         help="""user defined theta center location of the plot domain.
                         Alternative way of defining plotting center""")
+    parser.add_argument('-p', '--position', type=float,
+                        help="""user defined front position in theta,
+                        this will draw a vertical line to annotate the front position""")
     parser.add_argument('-r', '--ratio', default=1.0, type=float,
                         help="""The ratio between the horizontal and vertical width of the slice plot.
                         For ratio < 1, horizontal width is larger than vertical.
@@ -400,8 +447,6 @@ if __name__ == "__main__":
     parser.add_argument('--displace_theta', action='store_true',
                         help="""whether to displace the theta that defines the center of the frame.
                         This is useful when theta represents the flame front position.""")
-    parser.add_argument('--annotate_vline', action='store_true',
-                        help="whether to annotate a vertical line along the given theta")
     parser.add_argument('--show_full_star', action='store_true',
                         help="whether show the full star in the background")
 
@@ -417,6 +462,7 @@ if __name__ == "__main__":
         parser.error("loc must be one of the three: {top, mid, bot}")
 
     slice(args.fnames, args.fields, loc=loc,
-          widthScale=args.width, widthRatio=args.ratio, theta=args.theta,
-          displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-          annotate_lat_lines=True, show_full_star=args.show_full_star)
+          widthScale=args.width, widthRatio=args.ratio,
+          theta=args.theta, position=args.position,
+          displace_theta=args.displace_theta,
+          show_full_star=args.show_full_star)

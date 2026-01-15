@@ -5,6 +5,8 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <ranges>
+
 #include <network.H>
 #include <model_parser_data.H>
 #include <AMReX_Print.H>
@@ -60,20 +62,16 @@ namespace model_string
 {
     inline std::string& ltrim(std::string& s)
     {
-        auto it = std::find_if(s.begin(), s.end(),
-                               [](int c) {
-                                   return !std::isspace(c);
-                               });
+        auto it = std::ranges::find_if(s,
+                                       [] (int c) {return !std::isspace(c);});
         s.erase(s.begin(), it);
         return s;
     }
 
     inline std::string& rtrim(std::string& s)
     {
-        auto it = std::find_if(s.rbegin(), s.rend(),
-                               [](int c) {
-                                   return !std::isspace(c);
-                               });
+        auto it = std::ranges::find_if(std::ranges::reverse_view(s),
+                                       [] (int c) {return !std::isspace(c);});
         s.erase(it.base(), s.end());
         return s;
     }

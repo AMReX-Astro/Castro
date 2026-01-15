@@ -38,6 +38,6 @@
 ///
 /// @param State    State MultiFab
 ///
-    static bool valid_zones_to_burn(amrex::MultiFab& State);
+    static bool valid_zones_to_burn(const amrex::MultiFab& State);
 
 #endif
