@@ -936,6 +936,20 @@ Castro::plotFileOutput(const std::string& dir,
                        VisMF::How how,
                        const int is_small)
 {
+    // We have nothing to do if we're on a level that
+    // we are not plotting.
+
+    if (is_small) {
+        if (level > parent->smallplotMaxLevel()) {
+            return;
+        }
+    }
+    else {
+        if (level > parent->plotMaxLevel()) {
+            return;
+        }
+    }
+
 #ifdef AMREX_PARTICLES
   ParticlePlotFile(dir);
 #endif
@@ -1052,6 +1066,13 @@ Castro::plotFileOutput(const std::string& dir,
         os << AMREX_SPACEDIM << '\n';
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
+        if (is_small) {
+            f_lev = std::min(f_lev, parent->smallplotMaxLevel());
+        }
+        else {
+            f_lev = std::min(f_lev, parent->plotMaxLevel());
+        }
+
         os << f_lev << '\n';
         for (int i = 0; i < AMREX_SPACEDIM; i++) {
             os << geom.ProbLo(i) << ' ';
