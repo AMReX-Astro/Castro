@@ -786,6 +786,14 @@
                                amrex::Array4<amrex::Real> const& qm,
                                amrex::Array4<amrex::Real> const& qp);
 
+///
+/// Clip the mass fractions to lie between [0, 1] and renormalize
+/// so they sum to 1.  This operates on interfaces.
+///
+   void enforce_species_sum(const amrex::Box& bx,
+                            amrex::Array4<amrex::Real> const& qm,
+                            amrex::Array4<amrex::Real> const& qp);
+
 
     void scale_flux(const amrex::Box& bx,
                     amrex::Array4<amrex::Real> const& flux,
