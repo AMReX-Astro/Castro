@@ -174,14 +174,14 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
 
     nuc_list = [f[1] for f in ds.field_list if f[1].startswith("X")]
     nuc_list.sort(key=nuc_list_filter)
-    N = len(nuc_list)
+    N_SPECIES = len(nuc_list)
 
-    nrows = math.ceil(math.sqrt(N))
-    ncols = math.ceil(math.sqrt(N))
+    nrows = math.ceil(math.sqrt(N_SPECIES))
+    ncols = math.ceil(math.sqrt(N_SPECIES))
 
     # create axes
     axes = []
-    for i in range(N):
+    for i in range(N_SPECIES):
         ax = f.add_subplot(nrows, ncols, i + 1)
         ax.set_prop_cycle(cycler('color', hexclist))
         ax.set_ylabel(nuc_list[i])
