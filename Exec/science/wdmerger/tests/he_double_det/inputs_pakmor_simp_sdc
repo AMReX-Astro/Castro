@@ -1,5 +1,5 @@
-## Latest inputs file being used to reproduce initial conditions from Pakmor et al. 2022
-## with 12 km resolution
+# 50 km with burning in shock disabled, clipping off, w/ SDC, on GPUs.
+# Updated: Jan 29, 2026
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -73,7 +73,7 @@ castro.fixed_dt = -1.0
 castro.init_shrink = 0.1
 
 # Factor by which dt is allowed to change each timestep
-castro.change_max = 1.20
+castro.change_max = 1.2 # default was initially 1.30 but we did tests and agreed to do 1.2 !kb
 
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
@@ -92,8 +92,7 @@ castro.abundance_failure_rho_cutoff = 1.0e0
 castro.max_subcycles = 16
 
 # Switching to simplified SDC
-castro.time_integration_method = 3
-
+castro.time_integration_method = 3 ## my main goal is to test SDC for DD !kb
 
 ############################################################################################
 # Resolution, gridding and AMR
@@ -115,7 +114,7 @@ castro.time_integration_method = 3
 amr.max_level = 3
 
 # Refinement ratio
-amr.ref_ratio = 4 4 4
+amr.ref_ratio = 4 2 2
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -142,7 +141,7 @@ castro.state_interp_order = 0
 castro.lin_limit_state_interp = 1
 
 # Add refinement indicators
-amr.refinement_indicators = density density2 temperature
+amr.refinement_indicators = density density2 temperature ## added a second density criteria for better refinement !kb
 
 # Density refinement criterion
 amr.refine.density.value_greater = 1.0e0
@@ -152,7 +151,7 @@ amr.refine.density.max_level = 1
 # Density2 refinement criterion
 amr.refine.density2.value_greater = 1.0e4
 amr.refine.density2.field_name = density
-amr.refine.density2.max_level = 20
+amr.refine.density2.max_level = 14 ## only for debugging
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 3.0e8
@@ -163,10 +162,13 @@ amr.refine.temperature.max_level = 3
 castro.max_tagging_radius = 0.75e0
 
 # Whether or not to use AMR subcycling
-amr.subcycling_mode = None
+amr.subcycling_mode = None ## we do not want AMR subcycling because it is faster this way !kb
 
 # GPU option
-castro.hydro_memory_footprint_ratio = 3
+castro.hydro_memory_footprint_ratio = 3 ## this was added !kb
+
+## debug only
+#amrex.fpe_trap_invalid=1
 
 ############################################################################################
 # Physics to include
@@ -308,10 +310,13 @@ network.use_tables = 0
 # reactions go faster
 integrator.use_burn_retry = 1
 integrator.retry_swap_jacobian = 1
-integrator.ode_max_steps = 10000
+integrator.ode_max_steps = 100000
 
 # Disable burning in shocks
-castro.disable_shock_burning = 1
+castro.disable_shock_burning = 1 ## in general this is better for DD so I want to run with this !kb
+
+# Turn off clipping to make work easy for integrator
+integrator.do_species_clip = 0 ## MZ suggested this should be done !kb
 
 ############################################################################################
 # Gravity
@@ -374,7 +379,7 @@ castro.gw_dist = 10.0
 castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
-amr.plot_files_output = 1
+amr.plot_files_output = 0
 
 # Whether or not to output checkpoints
 amr.checkpoint_files_output = 1
