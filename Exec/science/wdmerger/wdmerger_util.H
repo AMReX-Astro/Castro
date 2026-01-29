@@ -3,7 +3,8 @@
 
 #include <AMReX.H>
 
-#include <math.H>
+#include <Castro.H>
+#include <Castro_math.H>
 #include <fundamental_constants.H>
 
 #ifdef ROTATION
@@ -89,7 +90,9 @@ Real stellar_mask (int i, int j, int k,
         loc[iloc] -= problem::center[iloc];
     }
 
-    Real phi_rot = rotational_potential(loc);
+    auto omega = get_omega_vec(geomdata, j);
+
+    Real phi_rot = rotational_potential(loc, omega, geomdata.Coord());
 
     Real phi_p = -C::Gconst * problem::mass_P / r_P + phi_rot;
     Real phi_s = -C::Gconst * problem::mass_S / r_S + phi_rot;

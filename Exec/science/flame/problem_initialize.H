@@ -72,6 +72,17 @@ void problem_initialize ()
         sum_Xf += problem::xn_fuel[n];
         sum_Xa += problem::xn_ash[n];
     }
+
+    if (std::abs(sum_Xf - 1.0) > 0.01) {
+        std::cout << "sum_Xf = " << sum_Xf << std::endl;
+        amrex::Error("fuel mass fractions don't sum to 1");
+    }
+
+    if (std::abs(sum_Xa - 1.0) > 0.01) {
+        std::cout << "sum_Xa = " << sum_Xa << std::endl;
+        amrex::Error("ash mass fractions don't sum to 1");
+    }
+
     for (int n = 0; n < NumSpec; n++) {
         problem::xn_fuel[n] /= sum_Xf;
         problem::xn_ash[n] /= sum_Xa;
@@ -114,7 +125,7 @@ void problem_initialize ()
 
         Castro::problem_data_logs.resize(1);
 
-        Castro::problem_data_logs[0].reset(new std::fstream);
+        Castro::problem_data_logs[0] = std::make_unique<std::fstream>();
         Castro::problem_data_logs[0]->open("toy_flame.log", std::ios::out | std::ios::app);
         if (!Castro::problem_data_logs[0]->good()) {
             amrex::FileOpenFailed("toy_flame.log");

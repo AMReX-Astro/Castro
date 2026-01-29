@@ -2,6 +2,7 @@
 #include <new>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <iostream>
 #include <iomanip>
 
@@ -125,7 +126,7 @@ main (int   argc,
 
     time_t time_type;
 
-    struct tm* time_pointer = nullptr;
+    const struct tm* time_pointer = nullptr;
 
     time(&time_type);
 
@@ -255,14 +256,8 @@ main (int   argc,
         //
         // It's actually the high water mark of heap space required by FABs.
         //
-        char buf[256];
-
-        sprintf(buf,
-                "CPU(%d): Heap Space (bytes) used by Coalescing FAB Arena: %ld",
-                ParallelDescriptor::MyProc(),
-                arena->heap_space_used());
-
-        std::cout << buf << std::endl;
+        std::cout << std::format("CPU({}): Heap Space (bytes) used by Coalescing FAB Arena: {}\n",
+                                 ParallelDescriptor::MyProc(), arena->heap_space_used());
     }
 
     BL_PROFILE_VAR_STOP(pmain);

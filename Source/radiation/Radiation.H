@@ -111,8 +111,6 @@ public:
 /// @param restart
 ///
   Radiation(amrex::Amr* Parent, class Castro* castro, int restart = 0);
-  ~Radiation() { }
-
 
 ///
 /// @param level
@@ -193,11 +191,11 @@ public:
     return delta_T_rat_level[lev];
   }
 
-  amrex::Real deltaEnergyTol() {
+  [[nodiscard]] amrex::Real deltaEnergyTol() const {
     return delta_e_rat_dt_tol;
   }
 
-  amrex::Real deltaTTol() {
+  [[nodiscard]] amrex::Real deltaTTol() const {
     return delta_T_rat_dt_tol;
   }
 
@@ -295,13 +293,6 @@ public:
 ///
   void estimate_gamrPr(const amrex::FArrayBox& state, const amrex::FArrayBox& Er,
                        amrex::FArrayBox& gPr, const amrex::Real* dx, const amrex::Box& box);
-
-
-///
-/// @param estdt
-/// @param level
-///
-  void EstTimeStep(amrex::Real& estdt, int level);
 
 
 ///

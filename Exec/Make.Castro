@@ -52,8 +52,8 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
   $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
 endif
 
-# Require C++17
-CXXSTD := c++17
+# Require C++20
+CXXSTD := c++20
 
 # Use Lazy QueueReduction for the timing outputs
 LAZY := TRUE
@@ -146,13 +146,21 @@ endif
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 
 
-all: build_status $(executable)
+all: build_status check_network $(executable)
 	@echo SUCCESS
 
 build_status:
 	$(AMREX_HOME)/Tools/C_scripts/describe_sources.py \
           --git_names "Castro AMReX Microphysics" \
           --git_dirs "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
+
+# If we make and then make again with a different network, undefined
+# behavior may result.  One should always do a `make clean` before
+# changing networks.  This tries to check if there is an inconsistency.
+check_network:
+	$(CASTRO_HOME)/Util/scripts/check_network.py $(NETWORK_DIR) $(CASTRO_AUTO_SOURCE_DIR)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
+	echo $(NETWORK_DIR) > $(CASTRO_AUTO_SOURCE_DIR)/NETWORK_USED
 
 # The default is to include the sponge functionality
 DEFINES += -DSPONGE
@@ -199,17 +207,6 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-endif
-
-ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
-  DEFINES += -DREACT_SPARSE_JACOBIAN
-
-  # The following is sometimes useful to turn on for debugging sparse J indices
-  # (if a get/set/scale is called with (row, col) not in the sparse J, stop)
-  # Otherwise, set/scale do nothing, and get returns 0.
-  ifeq ($(USE_SPARSE_STOP_ON_OOB), TRUE)
-    DEFINES += -DSPARSE_STOP_ON_OOB
-  endif
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)

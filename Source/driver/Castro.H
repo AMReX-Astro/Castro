@@ -6,7 +6,9 @@
 // runtime parameters
 #include <castro_params.H>
 #include <prob_parameters.H>
+#include <Castro_io.H>
 #include <Castro_util.H>
+#include <timestep.H>
 
 using namespace castro;
 
@@ -49,33 +51,33 @@ using namespace castro;
 using std::istream;
 using std::ostream;
 
-enum StateType { State_Type = 0,
+enum StateType : std::uint8_t {
+               State_Type = 0,
 #ifdef RADIATION
-                 Rad_Type,
+               Rad_Type,
 #endif
 #ifdef GRAVITY
-                 PhiGrav_Type,
-                 Gravity_Type,
+               PhiGrav_Type,
+               Gravity_Type,
 #endif
-                 Source_Type,
+               Source_Type,
 #ifdef REACTIONS
-                 Reactions_Type,
+               Reactions_Type,
 #endif
 #ifdef MHD
                Mag_Type_x,
                Mag_Type_y,
                Mag_Type_z,
 #endif
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-                 Simplified_SDC_React_Type
-#endif
+               Simplified_SDC_React_Type
 #endif
 };
 
 // Create storage for all source terms.
 
-enum sources { thermo_src = 0,
+enum sources : std::uint8_t {
+               thermo_src = 0,
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -98,11 +100,12 @@ enum sources { thermo_src = 0,
 
 // time integration method
 
-enum int_method { CornerTransportUpwind = 0,
-                  UnusedTimeIntegration,
-                  SpectralDeferredCorrections,
-                  SimplifiedSpectralDeferredCorrections
-                };
+enum int_method : std::uint8_t {
+    CornerTransportUpwind = 0,
+    UnusedTimeIntegration,
+    SpectralDeferredCorrections,
+    SimplifiedSpectralDeferredCorrections
+};
 
 // Struct that returns information about
 // why an advance failed.
@@ -538,39 +541,6 @@ public:
 ///
     amrex::Real estTimeStep (int is_new = 1);
 
-
-///
-/// Compute the CFL timestep
-///
-    ValLocPair<amrex::Real, IntVect> estdt_cfl (int is_new = 1);
-
-
-#ifdef MHD
-///
-/// Compute the CFL timestep
-///
-    ValLocPair<amrex::Real, IntVect>  estdt_mhd (int is_new = 1);
-#endif
-
-///
-/// Diffusion-limited timestep
-///
-    ValLocPair<amrex::Real, IntVect> estdt_temp_diffusion (int is_new = 1);
-
-#ifdef REACTIONS
-///
-/// Reactions-limited timestep
-///
-    ValLocPair<amrex::Real, IntVect> estdt_burning (int is_new = 1);
-#endif
-
-#ifdef RADIATION
-///
-/// Radiation hydro timestep
-///
-    amrex::Real estdt_rad (int is_new = 1);
-#endif
-
 ///
 /// Compute initial time step.
 ///
@@ -800,11 +770,11 @@ public:
 ///
     static void reset_internal_energy (const amrex::Box& bx,
 #ifdef MHD
-                                amrex::Array4<amrex::Real> const Bx,
-                                amrex::Array4<amrex::Real> const By,
-                                amrex::Array4<amrex::Real> const Bz,
+                                amrex::Array4<amrex::Real> const& Bx,
+                                amrex::Array4<amrex::Real> const& By,
+                                amrex::Array4<amrex::Real> const& Bz,
 #endif
-                                amrex::Array4<amrex::Real> const u);
+                                amrex::Array4<amrex::Real> const& u);
 
 
 #ifdef MHD
@@ -1381,9 +1351,10 @@ protected:
 ///
     amrex::MultiFab             volume;
     amrex::Array<amrex::MultiFab,3> area;
-    amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
-
+#if AMREX_SPACEDIM <= 2
+    amrex::Array<amrex::MultiFab,2> dLogArea;
+#endif
 
 ///
 /// For initialization of the C++ values of the runtime parameters
@@ -1405,8 +1376,6 @@ protected:
     static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
-    static int       NUM_GROW;
-    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;

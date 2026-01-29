@@ -22,6 +22,8 @@ castro.do_hydro = 1
 castro.do_react = 1
 castro.ppm_type = 1
 
+castro.disable_shock_burning = 1
+
 # TIME STEP CONTROL
 castro.cfl            = 0.25     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep

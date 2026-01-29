@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # vertical profiles at fixed r
 
@@ -89,7 +89,7 @@ for i, f in enumerate(fields):
     for r in rvals:
         ray = ds.ray((r, 0, 0), (r, 1.5e4, 0))
         isrt = np.argsort(ray["t"])
-        axes[i].plot(ray['z'][isrt], ray[f][isrt], label="r = {} cm".format(r))
+        axes[i].plot(ray['z'][isrt], ray[f][isrt], label=f"r = {r} cm")
 
     axes[i].set_xlabel(r"$z$ (cm)")
     axes[i].set_ylabel(nice_names[i])
@@ -105,5 +105,5 @@ for i, f in enumerate(fields):
 
 #fig.set_size_inches(10.0, 9.0)
 plt.tight_layout()
-plt.savefig("{}_profiles.png".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_profiles.png")
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Take a sequence of plotfiles and plot T and enuc vs. position
 
@@ -14,6 +14,7 @@ matplotlib.use('agg')
 import math
 
 import matplotlib.pyplot as plt
+from yt.frontends.boxlib.api import CastroDataset
 import yt
 
 
@@ -37,7 +38,7 @@ def nuc_list_filter(nuc):
 
 def get_Te_profile(plotfile, plot_in_nse=False):
 
-    ds = yt.load(plotfile, hint="castro")
+    ds = CastroDataset(plotfile)
 
     time = float(ds.current_time)
     ad = ds.all_data()
@@ -134,12 +135,15 @@ def plot_Te(prefix, nums, skip, limitlabels, xmin, xmax, plot_in_nse=False):
         if plot_in_nse:
             ax_nse.set_xlim(xmin, xmax)
 
-    ax_e.set_yscale("log")
+
+    max_enuc = np.abs(enuc).max()
+
+    ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
     ax_e.set_xlabel("x (cm)")
 
-    cur_lims = ax_e.get_ylim()
-    ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    #cur_lims = ax_e.get_ylim()
+    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
     if plot_in_nse:
         ax_nse.set_ylabel("IN NSE")
@@ -152,7 +156,7 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
     f = plt.figure()
     f.set_size_inches(32.0, 20.0)
 
-    # Get set of colors to use and apply to plot
+    # color setup
     numplots = int(len(nums) / skip)
     cm = plt.get_cmap('nipy_spectral')
     clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
@@ -161,45 +165,53 @@ def plot_nuc_frac(prefix, nums, skip, limitlabels, xmin, xmax):
     if limitlabels > 1:
         skiplabels = int(numplots / limitlabels)
     elif limitlabels < 0:
-        print("Illegal value for limitlabels: %.0f" % limitlabels)
-        sys.exit()
+        raise ValueError("Illegal value for limitlabels")
     else:
         skiplabels = 1
 
-    pfile = f"{prefix}{nums[1]}"
-    ds = yt.load(pfile, hint="castro")
+    # load a dataset to discover species
+    ds = yt.load(f"{prefix}{nums[0]}", hint="castro")
 
-    nuc_list = [f[1] for f in ds.field_list if f[1][0] == "X"]
+    nuc_list = [f[1] for f in ds.field_list if f[1].startswith("X")]
     nuc_list.sort(key=nuc_list_filter)
-    N = len(nuc_list)
+    N_SPECIES = len(nuc_list)
 
-    nrows = math.ceil(math.sqrt(N))
-    ncols = math.ceil(math.sqrt(N))
+    nrows = math.ceil(math.sqrt(N_SPECIES))
+    ncols = math.ceil(math.sqrt(N_SPECIES))
 
-    for i in range(N):
-        ax = f.add_subplot(nrows, ncols, i+1)
+    # create axes
+    axes = []
+    for i in range(N_SPECIES):
+        ax = f.add_subplot(nrows, ncols, i + 1)
         ax.set_prop_cycle(cycler('color', hexclist))
+        ax.set_ylabel(nuc_list[i])
+        ax.set_yscale("log")
+        if xmax > 0:
+            ax.set_xlim(xmin, xmax)
+        axes.append(ax)
 
-        index = 0
-        for n in range(0, len(nums), skip):
+    # Loop over different plot files
+    index = 0
+    for n in range(0, len(nums), skip):
 
-            pfile = f"{prefix}{nums[n]}"
+        pfile = f"{prefix}{nums[n]}"
+        time, x, nuc_prof = get_nuc_profile(pfile)
 
-            time, x, nuc_prof = get_nuc_profile(pfile)
+        label = None
+        if index % skiplabels == 0:
+            label = f"t = {time:6.4g} s"
 
-            if i == 0 and index % skiplabels == 0:
-                ax.plot(x, nuc_prof[i], label=f"t = {time:6.4g} s")
+        # For each plot file, loop over axes to
+        # plot the species
+        for i, ax in enumerate(axes):
+            if label is not None and i == 0:
+                ax.plot(x, nuc_prof[i], label=label)
             else:
                 ax.plot(x, nuc_prof[i])
 
-            index = index + 1
+        index += 1
 
-            ax.legend(frameon=False)
-            ax.set_ylabel(nuc_list[i])
-            ax.set_yscale("log")
-
-            if xmax > 0:
-                ax.set_xlim(xmin, xmax)
+    axes[0].legend(frameon=False)
 
     f.tight_layout()
     f.savefig("det_nuc.png")

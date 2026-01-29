@@ -8,9 +8,9 @@ concurrency:
 
 jobs:
   hip-compile:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -24,7 +24,7 @@ jobs:
           cd ../..
 
       - name: Dependencies
-        run: .github/workflows/dependencies_hip.sh
+        run: .github/workflows/dependencies/dependencies_hip.sh 6.3.2
 
       - name: compile flame_wave
         run: |

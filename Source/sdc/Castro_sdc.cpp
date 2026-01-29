@@ -25,8 +25,10 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     // for 4th order reactive SDC, we need to first compute the source, C
     // and do a ghost cell fill on it
 
+#ifdef REACTIONS
     auto domain_lo = geom.Domain().loVect3d();
     auto domain_hi = geom.Domain().hiVect3d();
+#endif
 
     // the timestep from m to m+1
     Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
@@ -130,9 +132,10 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     {
 
         const Box& bx = mfi.tilebox();
-        const Box& bx1 = mfi.growntilebox(1);
 
 #ifdef REACTIONS
+        const Box& bx1 = mfi.growntilebox(1);
+
         // advection + reactions
         if (sdc_order == 2)
         {

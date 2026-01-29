@@ -21,7 +21,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in,
 }
 
 void
-Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+Castro::construct_new_sponge_source(MultiFab& source, const MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {
 
@@ -65,8 +65,8 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state_in,
-                     Array4<Real> const source,
+                     Array4<Real const> const& state_in,
+                     Array4<Real> const& source,
                      Real dt) {
 
   // alpha is a dimensionless measure of the timestep size; if
@@ -81,6 +81,7 @@ Castro::apply_sponge(const Box& bx,
 
   auto dx = geom.CellSizeArray();
   auto problo = geom.ProbLoArray();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -124,7 +125,7 @@ Castro::apply_sponge(const Box& bx,
     Real sponge_factor = 0.0_rt;
 
     if (sponge_lower_radius >= 0.0_rt && sponge_upper_radius > sponge_lower_radius) {
-      Real rad = std::sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+      Real rad = distance(geomdata, r);
 
       if (rad < sponge_lower_radius) {
         sponge_factor = sponge_lower_factor;

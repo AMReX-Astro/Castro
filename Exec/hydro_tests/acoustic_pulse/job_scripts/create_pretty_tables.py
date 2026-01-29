@@ -10,7 +10,7 @@ def sci_not(num):
         mant *= 10.0
         exp -= 1
 
-    return r"${:5.3f} \times 10^{{{}}}$".format(round(mant, 3), exp)
+    return fr"${round(mant, 3):5.3f} \times 10^{{{exp}}}$"
 
 class Variable():
     def __init__(self, name, lo, o1, med, o2, hi):
@@ -41,7 +41,7 @@ def read_convergence(file_lo, file_hi):
 
     lines_lo = []
     found_l1 = False
-    with open(file_lo, "r") as flo:
+    with open(file_lo) as flo:
         for line in flo:
             # skip everything until we see the L1 norm
             if line.find("L1 norm") > 0:
@@ -64,7 +64,7 @@ def read_convergence(file_lo, file_hi):
 
     lines_hi = []
     found_l1 = False
-    with open(file_hi, "r") as fhi:
+    with open(file_hi) as fhi:
         for line in fhi:
             # skip everything until we see the L1 norm
             if line.find("L1 norm") > 0:
@@ -92,7 +92,7 @@ def read_convergence(file_lo, file_hi):
         vhi, emed2, o2, ehi = lhi.split("&")
 
         if "---" in o1 or "---" in o2:
-            print("skipping {}".format(vlo))
+            print(f"skipping {vlo}")
             continue
 
         if vlo != vhi:

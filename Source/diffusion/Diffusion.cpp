@@ -59,41 +59,6 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
 
-#if (AMREX_SPACEDIM < 3)
-void
-Diffusion::weight_cc(int level, MultiFab& cc)
-{
-    auto dx = parent->Geom(level).CellSizeArray();
-    const int coord_type = parent->Geom(level).Coord();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        do_weight_cc(bx, cc.array(mfi), dx, coord_type);
-    }
-}
-
-void
-Diffusion::unweight_cc(int level, MultiFab& cc)
-{
-    auto dx = parent->Geom(level).CellSizeArray();
-    const int coord_type = parent->Geom(level).Coord();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.tilebox();
-
-        do_unweight_cc(bx, cc.array(mfi), dx, coord_type);
-    }
-}
-#endif
 
 void
 Diffusion::make_mg_bc ()
@@ -119,7 +84,8 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
+    const auto* problo = geom.ProbLo();
+    if ((geom.IsSPHERICAL() || geom.IsRZ()) && problo[0] == 0.0_rt) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 

@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/env python
 
 import glob
 import tqdm
@@ -16,8 +16,8 @@ if __name__ == "__main__":
     for det in sorted(dets):
 
         if det.crashed:
-            print("{:55} : crashed".format(det.name))
+            print(f"{det.name:55} : crashed")
         elif det.has_started:
-            print("{:55} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(det.name, det.end_time, det.nsteps, det.v, det.v_sigma))
+            print(f"{det.name:55} : t = {det.end_time:8.5f}, # of steps = {det.nsteps:5}, v = {det.v:15.8g} +/- {det.v_sigma:15.8g}")
         else:
-            print("{:55} : has not started".format(det.name))
+            print(f"{det.name:55} : has not started")

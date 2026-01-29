@@ -3908,8 +3908,6 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-        Real foo=1.e200;
-
         for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
             int i = mfi.index();
             const Box &reg = grids[level][i];

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os
 import sys
@@ -78,5 +78,5 @@ for i, f in enumerate(fields):
 
 fig.set_size_inches(8.0, 10.0)
 plt.tight_layout()
-plt.savefig("{}_slice.pdf".format(os.path.basename(plotfile)))
+plt.savefig(f"{os.path.basename(plotfile)}_slice.pdf")
 

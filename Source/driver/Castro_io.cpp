@@ -248,12 +248,14 @@ Castro::restart (Amr&     papa,
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
 
+#if AMREX_SPACEDIM >= 2
              d = 1;
              dlen =  domain.size()[d];
              lo =   dlen/4    ;
              hi = 3*dlen/4 - 1;
              orig_domain.setSmall(d,lo);
              orig_domain.setBig(d,hi);
+#endif
 
           } else {
              for (int d = 0; d < AMREX_SPACEDIM; d++)
@@ -520,14 +522,12 @@ Castro::setPlotVariables ()
     parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
   }
 
-#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
           parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
       }
   }
-#endif
 #endif
 
 }
@@ -612,6 +612,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "build machine: " << buildInfoGetBuildMachine() << "\n";
   jobInfoFile << "build dir:     " << buildInfoGetBuildDir() << "\n";
   jobInfoFile << "AMReX dir:     " << buildInfoGetAMReXDir() << "\n";
+
+  jobInfoFile << "\n";
+
+  jobInfoFile << "make flags:    " << buildInfoGetMakeFlags() << "\n";
 
   jobInfoFile << "\n";
 
@@ -1016,7 +1020,7 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-        for (auto &name : derive_names)
+        for (const auto &name : derive_names)
         {
             const DeriveRec* rec = derive_lst.get(name);
             if (rec->numDerive() > 1) {
@@ -1096,9 +1100,7 @@ Castro::plotFileOutput(const std::string& dir,
     // The name is relative to the directory containing the Header file.
     //
     static const std::string BaseName = "/Cell";
-    char buf[64];
-    sprintf(buf, "Level_%d", level);
-    std::string Level = buf;
+    std::string Level = "Level_" + std::to_string(level);
     //
     // Now for the full pathname of that directory.
     //

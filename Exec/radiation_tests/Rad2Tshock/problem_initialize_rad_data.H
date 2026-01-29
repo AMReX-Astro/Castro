@@ -12,6 +12,9 @@ void problem_initialize_rad_data (int i, int j, int k,
                                   const GeometryData& geomdata)
 {
 
+    amrex::ignore_unused(nugroup);
+    amrex::ignore_unused(dnugroup);
+
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 

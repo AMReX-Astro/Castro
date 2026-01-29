@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # run as: ./test2-helm.py castro_exec_dir plotfle
 
@@ -69,8 +69,10 @@ def process(castro_exec_dir, plotfile):
         if n == "ymom" or n == "zmom": d += 1
 
     dim = "xmom"
-    if d >= 2 and data["ymom"].ptp() > data["xmom"].ptp(): dim = "ymom"
-    if d == 3 and data["zmom"].ptp() > data[dim].ptp(): dim = "zmom"
+    if d >= 2 and np.ptp(data["ymom"]) > np.ptp(data["xmom"]):
+        dim = "ymom"
+    if d == 3 and np.ptp(data["zmom"]) > np.ptp(data[dim]):
+        dim = "zmom"
 
     plt.plot(analytic_data[:,1], analytic_data[:,3])
     plt.scatter(data["x"], data[dim]/data["density"], marker="+", color="r")

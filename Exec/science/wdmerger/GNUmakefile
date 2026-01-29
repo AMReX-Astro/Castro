@@ -17,6 +17,9 @@ USE_ROTATION ?= TRUE
 USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
+# Disable burning in shocksa
+USE_SHOCK_VAR = TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
 
@@ -34,7 +37,7 @@ INTEGRATOR_DIR ?= VODE
 
 COMP ?= gnu
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 
 EOS_DIR ?= helmholtz
 

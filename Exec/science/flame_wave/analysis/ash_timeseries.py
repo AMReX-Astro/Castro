@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import os
@@ -81,7 +81,7 @@ def doit(plotfiles):
 
         sp.set_axes_unit("cm")
 
-        sp.annotate_text((0.85, 0.8), "{:5.2f} ms".format(1000.0*float(ds.current_time.in_cgs())),
+        sp.annotate_text((0.85, 0.8), f"{1000.0*float(ds.current_time.in_cgs()):5.2f} ms",
                          coord_system="axis", text_args={"color": "black", "size": 10})
 
         plot = sp.plots[field]
@@ -113,6 +113,6 @@ if __name__ == "__main__":
 
     plotfiles = []
     for n in range(0, len(plot_nums), args.skip):
-        plotfiles.append("{}{}".format(plot_prefix, plot_nums[n]))
+        plotfiles.append(f"{plot_prefix}{plot_nums[n]}")
 
     doit(plotfiles)

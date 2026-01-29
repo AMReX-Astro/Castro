@@ -21,11 +21,11 @@ USE_SIMPLIFIED_SDC = TRUE
 
 CASTRO_HOME ?= ../../..
 
-# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := subch_simple
+NETWORK_DIR := he-burn/he-burn-22a
 
 PROBLEM_DIR ?= ./
 

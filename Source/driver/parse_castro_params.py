@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """This script parses the list of C++ runtime parameters and writes
 the necessary header and source files to make them available in
@@ -274,7 +274,7 @@ def write_headers_and_source(params, out_directory, struct_name, without_castro_
         print("namespace = ", nm)
         for ifdef in ifdefs:
             params_if = [q for q in params_nm if q.ifdef == ifdef]
-            types = sorted(set(q.dtype for q in params_if))
+            types = sorted({q.dtype for q in params_if})
 
             if ifdef is None:
                 for tt in types:

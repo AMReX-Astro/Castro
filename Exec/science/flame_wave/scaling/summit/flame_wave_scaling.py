@@ -12,7 +12,7 @@ plt.rc("lines", markeredgewidth=1.5)
 # we need this for normalization
 nsteps = 25
 
-class ScalingRun(object):
+class ScalingRun:
     def __init__(self, nodes=1, max_grid=1,
                  time=0.0, std=0.0, coarse_timestep=0.0,
                  react=0.0, parallelcopy=0.0, diffusion=0.0, ctu_hydro=0.0):

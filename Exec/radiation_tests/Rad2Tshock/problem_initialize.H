@@ -14,8 +14,8 @@ void problem_initialize ()
 
     eos_state.rho = problem::rho0;
     eos_state.T = problem::T0;
-    for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = 0.0_rt;
+    for (auto & X : eos_state.xn) {
+        X = 0.0_rt;
     }
     eos_state.xn[0]  = 1.0_rt;
 

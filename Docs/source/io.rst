@@ -507,11 +507,12 @@ simulation time, and “0.005” is the level-0 time step. This file
 can be plotted very easily to monitor the time step.
 
 
+.. _sec:global_diag:
 
-Integral Diagnostics
---------------------
+Global Diagnostics
+-------------------
 
-.. index:: castro.sum_interval, integral diagnostics, amr_diag.out, gravity_diag.out, grid_diag.out, species_diag.out
+.. index:: castro.sum_interval, global diagnostics, amr_diag.out, gravity_diag.out, grid_diag.out, species_diag.out
 
 Castro can calculate integrals of quantities on the grid and other
 global quantities and output them to both the screen and to a runtime

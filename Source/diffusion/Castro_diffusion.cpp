@@ -121,7 +121,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 #pragma omp parallel
 #endif
        {
-           FArrayBox coeff_cc;
+           FArrayBox coeff_cc(The_Async_Arena());;
 
            for (MFIter mfi(grown_state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
            {
@@ -133,9 +133,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
                const Box& obx = amrex::grow(bx, 1);
                coeff_cc.resize(obx, 1);
-               Elixir elix_coeff_cc = coeff_cc.elixir();
-               Array4<Real> const coeff_arr = coeff_cc.array();
 
+               Array4<Real> const coeff_arr = coeff_cc.array();
                Array4<Real const> const U_arr = grown_state.array(mfi);
 
                fill_temp_cond(obx, U_arr, coeff_arr);
@@ -146,16 +145,16 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
                    Array4<Real> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
 
-                   AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                   amrex::ParallelFor(nbx,
+                   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                    {
-
-                     if (idir == 0) {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
-                     } else if (idir == 1) {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
-                     } else {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
-                     }
+                       if (idir == 0) {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+                       } else if (idir == 1) {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+                       } else {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+                       }
                    });
                }
            }
@@ -165,14 +164,125 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
    MultiFab CrseTemp;
 
-   if (level > 0) {
-       // Fill temperature at next coarser level, if it exists.
-       const BoxArray& crse_grids = getLevel(level-1).boxArray();
-       const DistributionMapping& crse_dmap = getLevel(level-1).DistributionMap();
-       CrseTemp.define(crse_grids,crse_dmap,1,1);
-       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,UTEMP,1);
+   if (diffuse_use_amrex_mlmg) {
+
+       if (level > 0) {
+           // Fill temperature at next coarser level, if it exists.
+           const BoxArray& crse_grids = getLevel(level-1).boxArray();
+           const DistributionMapping& crse_dmap = getLevel(level-1).DistributionMap();
+           CrseTemp.define(crse_grids,crse_dmap,1,1);
+           FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,UTEMP,1);
+       }
+
+       // Evaluates ∇ ⋅(k_th ∇T) using AMReX
+       diffusion->applyop(level, Temperature, CrseTemp, TempDiffTerm, coeffs);
+
+   } else {
+       // Evaluates ∇ ⋅(k_th ∇T) without using AMReX
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+       for (MFIter mfi(Temperature, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+       {
+           const auto dx = geom.CellSizeArray();
+           const auto dxinv = geom.InvCellSizeArray();
+           const auto problo = geom.ProbLoArray();
+           const int coord = geom.Coord();
+
+           const Box& bx = mfi.tilebox();
+           Array4<Real const> const& Temp_array = Temperature.array(mfi);
+           Array4<Real> const & TempDiff_array = TempDiffTerm.array(mfi);
+
+           // edged based k_th in different averaging direction.
+           Array4<const Real> const edge_coeff_x = (*coeffs[0]).array(mfi);
+#if AMREX_SPACEDIM >= 2
+           Array4<const Real> const edge_coeff_y = (*coeffs[1]).array(mfi);
+#endif
+#if AMREX_SPACEDIM == 3
+           Array4<const Real> const edge_coeff_z = (*coeffs[2]).array(mfi);
+#endif
+
+           ParallelFor(bx,
+           [=] AMREX_GPU_DEVICE (int i, int j, int k)
+           {
+               for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+                   int il = i;
+                   int jl = j;  // NOLINT(misc-confusable-identifiers)
+                   int kl = k;
+
+                   int ir = i;
+                   int jr = j;
+                   int kr = k;
+
+                   Real dxinv2 = dxinv[idir]*dxinv[idir];
+                   Real kth_r;
+                   Real kth_l;
+
+                   if (idir == 0) {
+                       il = i - 1;
+                       ir = i + 1;
+                       kth_r = edge_coeff_x(ir,jr,kr);
+                       kth_l = edge_coeff_x(i ,j ,k);
+                   }
+#if AMREX_SPACEDIM >= 2
+                   else if (idir == 1) {
+                       jl = j - 1;
+                       jr = j + 1;
+                       kth_r = edge_coeff_y(ir,jr,kr);
+                       kth_l = edge_coeff_y(i ,j ,k);
+                   }
+#endif
+#if AMREX_SPACEDIM == 3
+                   else {
+                       kl = k - 1;
+                       kr = k + 1;
+                       kth_r = edge_coeff_z(ir,jr,kr);
+                       kth_l = edge_coeff_z(i ,j ,k);
+                   }
+#endif
+
+#if AMREX_SPACEDIM < 3
+                   // Apply geometric terms for curvilinear coordinates
+
+                   if ((coord != 0) && (idir == 0)) {
+                       // In curilinear radial direction
+
+                       Real rr = problo[idir] + static_cast<Real>(ir) * dx[idir];
+                       Real rl = problo[idir] + static_cast<Real>(i) * dx[idir];
+                       Real rc = problo[idir] + (static_cast<Real>(i) + 0.5_rt) * dx[idir];
+
+                       if (coord == 1) {
+                           // Cylindrical radial equation looks like: 1/r d(r kth dT/dr)/dr
+
+                           kth_r *= rr;
+                           kth_l *= rl;
+                           dxinv2 *= 1.0_rt / rc;
+                       } else {
+                           // Spherical radial equation looks like: 1/r^2 d(r^2 kth dT/dr)/dr
+
+                           kth_r *= rr * rr;
+                           kth_l *= rl * rl;
+                           dxinv2 *= 1.0_rt / (rc * rc) ;
+                       }
+                   } else if ((coord == 2) && (idir == 1)) {
+                       // In spherical theta direction
+                       // Spherical theta equation looks like: 1/r^2 sin(θ) d(sin(θ) kth dT/dθ)/dθ
+
+                       Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+                       Real thetar = problo[idir] + static_cast<Real>(jr) * dx[idir];
+                       Real thetal = problo[idir] + static_cast<Real>(j) * dx[idir];
+                       Real thetac = problo[idir] + (static_cast<Real>(j) + 0.5_rt) * dx[idir];
+
+                       kth_r *= std::sin(thetar);
+                       kth_l *= std::sin(thetal);
+                       dxinv2 *= 1.0_rt / (rc * rc * std::sin(thetac));
+                   }
+#endif
+                   TempDiff_array(i,j,k) += dxinv2 *
+                       (kth_r * (Temp_array(ir,jr,kr) - Temp_array(i ,j ,k )) -
+                        kth_l * (Temp_array(i ,j ,k ) - Temp_array(il,jl,kl)));
+               }
+           });
+       }
    }
-
-   diffusion->applyop(level, Temperature, CrseTemp, TempDiffTerm, coeffs);
-
 }

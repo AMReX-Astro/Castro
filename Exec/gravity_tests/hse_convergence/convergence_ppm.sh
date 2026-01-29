@@ -50,12 +50,13 @@ pfile=`ls -t | grep -i hse_512_plt | head -1`
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
 
-## ppm + grav_source_type = 4
+## ppm + reflect
 
-ofile=ppm-grav4.converge.out
+ofile=ppm-reflect.converge.out
 
 RUNPARAMS="
-castro.grav_source_type=4
+castro.lo_bc=3
+castro.hi_bc=3
 """
 
 ${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
@@ -75,13 +76,41 @@ pfile=`ls -t | grep -i hse_512_plt | head -1`
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
 
-## ppm + reflect
+## ppm + reflect + pslope
 
-ofile=ppm-reflect.converge.out
+ofile=ppm-reflect-pslope.converge.out
 
 RUNPARAMS="
 castro.lo_bc=3
 castro.hi_bc=3
+castro.use_pslope=1
+"""
+
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
+pfile=`ls -t | grep -i hse_64_plt | head -1`
+fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
+
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
+pfile=`ls -t | grep -i hse_128_plt | head -1`
+fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
+
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
+pfile=`ls -t | grep -i hse_256_plt | head -1`
+fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
+
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
+pfile=`ls -t | grep -i hse_512_plt | head -1`
+fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
+
+
+## ppm + reflect + well-balanced
+
+ofile=ppm-reflect-wellbalanced.converge.out
+
+RUNPARAMS="
+castro.lo_bc=3
+castro.hi_bc=3
+castro.ppm_well_balanced=1
 """
 
 ${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out

@@ -12,6 +12,9 @@ void problem_source (int i, int j, int k,
                      Array4<Real> const& src,
                      const Real dt, const Real time)
 {
+
+    amrex::ignore_unused(dt);
+
     using namespace problem;
 
     const Real H_0 = heating_peak;

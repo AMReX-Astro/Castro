@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
@@ -58,7 +58,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.githubpages',
               'sphinx_rtd_theme',
               'sphinx_copybutton',
-              'sphinx-prompt',
+              'sphinx_prompt',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
@@ -114,6 +114,8 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Don't include the extra CSS from sphinx-prompt when using the copy button
+copybutton_exclude = 'style'
 
 # -- Options for MathJax
 # for sphinx-math-dollar

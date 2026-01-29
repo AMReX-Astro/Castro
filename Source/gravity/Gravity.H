@@ -362,7 +362,7 @@ public:
 /// @param level        Level index
 ///
   void compute_radial_mass(const amrex::Box& bx,
-                           amrex::Array4<amrex::Real const> const u,
+                           amrex::Array4<amrex::Real const> const& u,
                            RealVector& radial_mass,
                            RealVector& radial_vol,
 #ifdef GR_GRAV
@@ -481,22 +481,6 @@ public:
 /// @param coeffs   Vector of MultiFabs
 ///
   void applyMetricTerms(int level,amrex::MultiFab& Rhs, const amrex::Vector<amrex::MultiFab*>& coeffs) const;
-
-///
-///
-///
-/// @param level    Index of level
-/// @param cc       Cell-centered data
-///
-  void unweight_cc(int level,amrex::MultiFab& cc) const;
-
-///
-///
-///
-/// @param level    Index of level
-/// @param edges    Edge-based data
-///
-  void unweight_edges(int level, const amrex::Vector<amrex::MultiFab*>& edges) const;
 #endif
 
 ///
@@ -566,12 +550,6 @@ public:
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
-
-  static inline amrex::Real
-  get_const_grav() {
-    return gravity::const_grav;
-  }
-
 
 };
 

@@ -149,15 +149,21 @@ ifeq ($(USE_CUDA), TRUE)
    CUDA_FLAGS := --CUDA_VERSION "$(nvcc_version)"
 endif
 
+clean_flags := $(filter-out --jobserver%,$(MAKEFLAGS))
+ifeq ($(strip $(clean_flags)),)
+  clean_flags = $(MAKEOVERRIDES)
+endif
+
 $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
 	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
           --amrex_home "$(AMREX_HOME)" \
           --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
+          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(EXTRACXXFLAGS) $(CPPFLAGS) $(includes)" \
           --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
           $(CUDA_FLAGS) \
           --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
+          --make_flags="$(clean_flags)" \
           --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
           --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
 	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) AMReX_buildInfo.cpp -o $(objEXETempDir)/AMReX_buildInfo.o

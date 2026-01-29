@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # this script is meant to be run from the test suite.  It will read in
 # the plotfile data from the RadSphere problem (using the fradsphere
@@ -55,13 +55,13 @@ def process(castro_dir, plotfile):
 
     variable = "rad"
 
-    cmd = "./{} -p {} -r 0.06 -g {} -v {}".format(analysis_routine, plotfile, group_file, variable)
+    cmd = f"./{analysis_routine} -p {plotfile} -r 0.06 -g {group_file} -v {variable}"
     print(cmd)
     os.system(cmd)
 
     group = []
     rad_energy = []
-    with open("rad_sphere.out", "r") as of:
+    with open("rad_sphere.out") as of:
         lines = of.readlines()
         for line in lines:
             if line.strip().startswith("#"):
@@ -74,12 +74,12 @@ def process(castro_dir, plotfile):
 
     variable = "rad_analytic_"
 
-    cmd = "./{} -p {} -r 0.06 -g {} -v {}".format(analysis_routine, plotfile, group_file, variable)
+    cmd = f"./{analysis_routine} -p {plotfile} -r 0.06 -g {group_file} -v {variable}"
     print(cmd)
     os.system(cmd)
 
     rad_energy_analytic = []
-    with open("rad_sphere.out", "r") as of:
+    with open("rad_sphere.out") as of:
         lines = of.readlines()
         for line in lines:
             if line.strip().startswith("#"):

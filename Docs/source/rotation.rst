@@ -40,6 +40,10 @@ The "vertical direction" is defined as follows:
 
   * ``coord_sys = 1``, (r,z): along the z-axis
 
+  * ``coord_sys = 2``, (r, :math:`\theta`): along the z-axis after converting
+    to the spherical coordinate, i.e.
+    :math:`\hat{z} = \cos{\theta} \hat{r} = \sin{\theta} \hat{\theta}`.
+
 * 3D
 
   * ``coord_sys = 0``, (x,y,z): along the z-axis
@@ -55,18 +59,11 @@ The main parameters that affect rotation are:
 -  ``castro.rotational_period`` : period (s) of rotation
    (default: 0.0)
 
--  ``castro.rotational_dPdt`` : d(period) / dt for rotation
-   (default: 0.0)
-
 -  ``castro.rotation_include_centrifugal`` : whether to
    include the centrifugal forcing (default: 1)
 
 -  ``castro.rotation_include_coriolis`` : whether to
    include the Coriolis forcing (default: 1)
-
--  ``castro.rotation_include_domegadt`` : whether to
-   include the forcing from the time derivative of the rotation
-   frequency (default: 1)
 
 -  ``castro.rot_source_type`` : method of updating the
    energy during a rotation update (default: 4)
@@ -76,7 +73,9 @@ The main parameters that affect rotation are:
    solve for the update implicitly (default: 1)
 
 -  ``castro.rot_axis`` : rotation axis (default: 3
-   (Cartesian); 2 (cylindrical))
+   (Cartesian); 2 (cylindrical)). This parameter doesn't affect
+   spherical coordinate since rotation axis is automatically set
+   to z-axis.
 
 For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
@@ -229,8 +228,8 @@ multiplying by :math:`\rho\vbt`:
 .. math::
    \begin{align}
        \rho\vbt\cdot\frac{D\vbt}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right] \nonumber \\
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right].
      \end{align}
    :label: eq:ekin-rot-total
 
@@ -250,8 +249,8 @@ get the evolution of the total specific energy in the rotating frame,
 
    \begin{align}
        \frac{D\left(\rho e\right)}{Dt} + \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\left(\rho e + p + \frac{1}{2}\rho\vbt\cdot\vbt\right)\nablab\cdot\vbt - \vbt\cdot\nablab p \\
-                     & + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]\nonumber \\
-       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &= -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \label{eq:etot-rot-total}
+                     & + \rho\vbt\cdot\gb -\rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right]\nonumber \\
+       \frac{D\left(\rho \widetilde{E}\right)}{Dt} &= -\rho\widetilde{E}\nablab\cdot\vbt - \nablab\cdot\left(p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right] \label{eq:etot-rot-total}
      \end{align}
 
 or
@@ -259,7 +258,7 @@ or
 .. math::
 
    \label{eq:etot-rot}
-       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
+       \frac{\partial\left(\rho\widetilde{E}\right)}{\partial t} = -\nablab\cdot\left(\rho\widetilde{E}\vbt + p\vbt\right) + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \omega^2\rbt\right].
 
 Switching to the rotating reference frame
 =========================================
@@ -321,15 +320,15 @@ in how the energy update is done:
   – only indirectly through things like shocks.
 
 * ``castro.rot_source_type = 4`` : the energy update is done in a
-   “conservative” fashion. The previous methods all evaluate the value
-   of the source term at the cell center, but this method evaluates
-   the change in energy at cell edges, using the hydrodynamical mass
-   fluxes, permitting total energy to be conserved (excluding possible
-   losses at open domain boundaries). Additionally, the velocity
-   update is slightly different—for the corrector step, we note that
-   there is an implicit coupling between the velocity components, and
-   we directly solve this coupled equation, which results in a
-   slightly better coupling and a more accurate evolution.
+  “conservative” fashion. The previous methods all evaluate the value
+  of the source term at the cell center, but this method evaluates
+  the change in energy at cell edges, using the hydrodynamical mass
+  fluxes, permitting total energy to be conserved (excluding possible
+  losses at open domain boundaries). Additionally, the velocity
+  update is slightly different—for the corrector step, we note that
+  there is an implicit coupling between the velocity components, and
+  we directly solve this coupled equation, which results in a
+  slightly better coupling and a more accurate evolution.
 
 The other major option is ``castro.implicit_rotation_update``.
 This does the update of the Coriolis term in the momentum equation

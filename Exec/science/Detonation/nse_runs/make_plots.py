@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/env python
 
 import glob
 import os
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # make a plot of speed vs. CFL, grouped by Strang, SDC2, SDC3,
     # SDC4 for the same resolution
-    nzones = set([q.nzones for q in runs])
+    nzones = {q.nzones for q in runs}
     for nz in nzones:
         strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz and q.dtnuce == False]
         sdc2 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 2 and q.nzones == nz]

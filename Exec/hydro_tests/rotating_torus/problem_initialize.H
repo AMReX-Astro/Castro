@@ -3,7 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
-#include <math.H>
+#include <Castro_math.H>
 #include <Rotation.H>
 #include <Castro_util.H>
 
@@ -19,13 +19,12 @@ void problem_initialize ()
     auto omega = get_omega();
 #else
     // Provide a dummy value so that we can compile without rotation.
-    Real omega[3] = {0.0_rt, 0.0_rt, 2.0_rt * M_PI};
+    Real omega = 2.0_rt * M_PI;
 #endif
 
     // Figure out R_0, the maximum pressure radius.
 
-    problem::density_maximum_radius = std::pow(C::Gconst * point_mass /
-                                               (omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2]), 1.0_rt/3.0_rt);
+    problem::density_maximum_radius = std::pow(C::Gconst * point_mass / (omega * omega), 1.0_rt/3.0_rt);
 
     // Maximum and minimum vertical extent of the torus is the same as the radial extent
 

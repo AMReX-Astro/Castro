@@ -1,13 +1,6 @@
 name: docs build
 
-on:
-  push:
-    branches:
-      - development
-      - main
-  pull_request:
-    branches:
-      - development
+on: [push, pull_request]
 
 env:
   # enable color output from Sphinx
@@ -18,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install pandoc and doxygen
@@ -26,7 +19,7 @@ jobs:
           sudo apt install pandoc doxygen
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: "pip"

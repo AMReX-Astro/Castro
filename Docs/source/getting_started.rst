@@ -14,9 +14,9 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++17 (or later) compiler (for GCC, we need >= 9.0 for CUDA compilation)
+ * A C++20 (or later) compiler (for GCC, we need >= 13.1)
 
- * python (>= 3.7)
+ * python (>= 3.10)
 
  * GNU make (>= 3.82)
 
@@ -24,9 +24,9 @@ GCC is the main compiler suite used by the developers.
 
 For running in parallel, an MPI library is required.  For running on GPUs:
 
-* CUDA 11 or later is required for NVIDIA GPUs
+* CUDA 12 or later is required for NVIDIA GPUs
 
-* ROCM 4.5 or later is required for AMD GPUs
+* ROCM 6.3.1 or later is required for AMD GPUs (earlier versions have a register allocation bug)
 
 More information on parallel builds is given in section
 :ref:`ch:mpiplusx`.

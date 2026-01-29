@@ -46,8 +46,6 @@ Castro::pointmass_update(Real time, Real dt)
                 int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
                 int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
-#else
-                int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
                 int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));
@@ -127,8 +125,6 @@ Castro::pointmass_update(Real time, Real dt)
                     int icen = static_cast<int>(std::floor((problem::center[0] - problo[0]) / dx[0] + eps));
 #if AMREX_SPACEDIM >= 2
                     int jcen = static_cast<int>(std::floor((problem::center[1] - problo[1]) / dx[1] + eps));
-#else
-                    int jcen = 0;
 #endif
 #if AMREX_SPACEDIM == 3
                     int kcen = static_cast<int>(std::floor((problem::center[2] - problo[2]) / dx[2] + eps));

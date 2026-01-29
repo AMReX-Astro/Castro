@@ -56,10 +56,19 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
             for (int ii = 0; ii <= nsubx-1; ++ii) {
                 Real xx = xmin + ds[0] * (static_cast<Real>(ii) + 0.5_rt);
 
+                // This is distance squared away from the blast wave center.
                 Real dist = (problem::center[0] - xx) * (problem::center[0] - xx) +
                             (problem::center[1] - yy) * (problem::center[1] - yy) +
                             (problem::center[2] - zz) * (problem::center[2] - zz);
-
+#if AMREX_SPACEDIM == 2
+                // For spherical 2D, the distance is:
+                // dist = r^2 + r_0^2 - 2 r r_0 cos(θ - θ_0)
+                if (coord_type == 2) {
+                    dist = xx * xx + problem::center[0]*problem::center[0] -
+                           2.0_rt * xx * problem::center[0] *
+                           std::cos(yy - problem::center[1]);
+                }
+#endif
                 bool pert = false;
 
                 if (dist <= problem::r_init * problem::r_init) {
@@ -71,7 +80,7 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
                     // The volume of a cell is a annular cylindrical region.
                     // The main thing that matters is the distance from the
                     // symmetry axis.
-                    //   V = pi*dy*(x_r**2 - x_l**2) = pi*dy*dx*0.5*xx
+                    //   V = pi*dy*(x_r**2 - x_l**2) = 2*pi*dy*dx*xx
                     // (where x_r is the coordinate of the x right edge,
                     //        x_l is the coordinate of the x left edge,
                     //    and xx  is the coordinate of the x center of the cell)
@@ -91,15 +100,28 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
                     Real xl = xx - 0.5_rt * ds[0];
                     Real xr = xx + 0.5_rt * ds[0];
 
+                    // For spherically symmetric
                     // the volume of a subzone is (4/3) pi (xr^3 - xl^3).
                     // we can factor this as: (4/3) pi dr (xr^2 + xl*xr + xl^2)
                     // The (4/3) pi dr factor is common, so we can neglect it.
 
+                    Real vol = xr * xr + xl * xr + xl * xl;
+#if AMREX_SPACEDIM == 2
+                    // For spherical 2D, symmetry in azimuthal dir
+                    // the volume is: -2/3 pi (cos(θ_r) - cos(θ_l)) (xr^3 - xl^3)
+                    // Or -2/3 pi (cos(θ_r) - cos(θ_l)) dr (xr^2 + xl*xr + xl^2)
+                    // The -2/3 pi dr is common, so we neglect it.
+                    // Extra abs for potential negative volume.
+                    Real yl = yy - 0.5_rt * ds[1];
+                    Real yr = yy + 0.5_rt * ds[1];
+                    vol = std::abs((std::cos(yr) - std::cos(yl)) *
+                                   (xr * xr + xl * xr + xl * xl));
+#endif
                     if (pert) {
-                        vol_pert = vol_pert + (xr * xr + xl * xr + xl * xl);
+                        vol_pert = vol_pert + vol;
                     }
                     else {
-                        vol_ambient = vol_ambient + (xr * xr + xl * xr + xl * xl);
+                        vol_ambient = vol_ambient + vol;
                     }
 
                 }

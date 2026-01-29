@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
+import matplotlib
+matplotlib.use('agg')
 
 import os
 import sys
@@ -26,35 +29,37 @@ L_y = ds.domain_right_edge[1] - ds.domain_left_edge[1]
 fig = plt.figure()
 fig.set_size_inches(12.0, 9.0)
 
-grid = ImageGrid(fig, 111, nrows_ncols=(2, 2), axes_pad=0.75, cbar_pad="2%",
+grid = ImageGrid(fig, 111, nrows_ncols=(2, 2),
+                 axes_pad=0.75, cbar_pad="2%",
                  label_mode="L", cbar_mode="each")
 
 
-fields = ["Temp", "magvel", "X(C12)", "rho_enuc"]
+fields = ["Temp", "magvel", "X(C12)", "enuc"]
 
 for i, f in enumerate(fields):
 
-    sp = yt.SlicePlot(ds, "z", f, center=[xctr, yctr, 0.0], width=[L_x, L_y, 0.0], fontsize="12")
+    sp = yt.SlicePlot(ds, "z", f, center=[xctr, yctr, 0.0*cm],
+                      width=[L_x, L_y, 0.0*cm], fontsize="12")
     sp.set_buff_size((2000,2000))
 
     if f == "X(C12)":
         sp.set_log(f, True)
-        sp.set_cmap(f, "plasma")
-        sp.set_zlim(f, 1.e-8, 2.e-4)
+        sp.set_cmap(f, "magma")
+        sp.set_zlim(f, 1.e-8, 1.e-4)
 
     elif f == "magvel":
         sp.set_log(f, False)
         #sp.set_zlim(f, 1.e-3, 2.5e-2)
-        sp.set_cmap(f, "magma")
+        sp.set_cmap(f, "cividis")
 
     elif f == "Temp":
-        sp.set_log(f, False)
-        #sp.set_zlim(f, 1.e-3, 2.5e-2)
-
-    elif f == "rho_enuc":
         sp.set_log(f, True)
+        sp.set_zlim(f, 5.e7, 2.e8)
+
+    elif f == "enuc":
+        sp.set_log(f, True, linthresh=1.e11)
+        sp.set_zlim(f, 1.e11, 1.e14)
         sp.set_cmap(f, "plasma")
-        #sp.set_zlim(f, 1.e-3, 2.5e-2)
 
     sp.set_axes_unit("cm")
 
@@ -71,5 +76,4 @@ for i, f in enumerate(fields):
 
 fig.set_size_inches(8.0, 8.0)
 plt.tight_layout()
-plt.savefig("{}_slice.pdf".format(os.path.basename(plotfile)))
-
+plt.savefig(f"{os.path.basename(plotfile)}_slice.png")

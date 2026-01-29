@@ -49,7 +49,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in,
 
 
 void  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new,
+Castro::construct_new_thermo_source(MultiFab& source, const MultiFab& state_old, MultiFab& state_new,
                                     Real time, Real dt)
 {
 
@@ -117,7 +117,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
+Castro::fill_thermo_source (const MultiFab& state_in, MultiFab& thermo_src)
 {
 
   // Compute thermodynamic sources for the internal energy equation.
@@ -169,8 +169,18 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
       }
 
 #if AMREX_SPACEDIM >= 2
-      src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
-                                   U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
+      if (coord == 2) {
+          Real thetap = prob_lo[1] + (static_cast<Real>(j) + 1.5_rt)*dx[1];
+          Real thetam = prob_lo[1] + (static_cast<Real>(j) - 0.5_rt)*dx[1];
+          Real theta = 0.5_rt*(thetam + thetap);
+
+          src(i,j,k,UEINT) += -0.5_rt*(std::sin(thetap)*U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
+                                       std::sin(thetam)*U(i,j-1,k,UMY)/U(i,j-1,k,URHO)) /
+                                      (r*std::sin(theta)*dx[1]);
+      } else {
+          src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
+                                       U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
+      }
 #endif
 #if AMREX_SPACEDIM == 3
       src(i,j,k,UEINT) += -0.5_rt*(U(i,j,k+1,UMZ)/U(i,j,k+1,URHO) -

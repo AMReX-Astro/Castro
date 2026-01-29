@@ -58,10 +58,6 @@ MGRadBndry::MGRadBndry(const BoxArray& _grids,
   }
 }
 
-MGRadBndry::~MGRadBndry()
-{
-}
-
 void MGRadBndry::init(const int _ngroups)
 {
   // obsolete implementation of the Marshak boundary condition requires

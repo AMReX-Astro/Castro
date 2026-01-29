@@ -32,8 +32,10 @@ castro.do_sponge = 1
 castro.react_rho_min = 1.0
 castro.react_T_min = 5.e7
 
+castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
+castro.use_pslope = 1
 
 castro.use_flattening = 1
 
@@ -99,11 +101,27 @@ castro.small_temp   = 1.e5
 
 # problem parameters
 
-problem.model_name =  "sub_chandra.M_WD-1.10.M_He-0.050.hse.CO.10.00km"
-
 problem.pert_temp_factor = 20.0
 problem.pert_rad_factor = 0.5
 problem.R_pert = 1.e7
+
+problem.M_WD = 1.1
+problem.M_He  = 0.05
+
+problem.delta = 5.e6
+
+problem.temp_core = 1.e7
+problem.temp_base = 1.75e8
+
+problem.core_XC12 = 0.5
+problem.core_XO16 = 0.5
+
+problem.X_N14 = 0.0
+
+problem.low_density_cutoff = 1.e-4
+problem.temp_fluff = 7.5e7
+
+problem.model_min_res = 5.e5
 
 problem.mu_p = -5.0
 problem.mu_n = -12.0
@@ -142,7 +160,8 @@ integrator.use_jacobian_caching = 0
 
 integrator.ode_max_steps = 500000
 
-nse.nse_dx_independent = 1
+nse.nse_dx_independent = 0
 nse.nse_molar_independent = 0
 nse.ase_tol = 0.1
 nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 2

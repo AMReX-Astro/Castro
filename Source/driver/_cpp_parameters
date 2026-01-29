@@ -161,10 +161,14 @@ dual_energy_eta1             Real          1.0e0
 # remains unchanged.
 dual_energy_eta2             Real          1.0e-4
 
-# for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?  This is a well-balanced method that
-# does well with HSE
+# for the piecewise linear or piecewise parabolic reconstruction, do
+# we subtract off :math:`(\rho g)` from the pressure before limiting?
+# This is a well-balanced method that does well with HSE.
 use_pslope                   bool           0
+
+# for PPM, do we only use the perturbational pressure in the characteristic
+# tracing?  This is more in-depth than the simple `use_pslope` approach.
+ppm_well_balanced            bool           0
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
@@ -273,8 +277,9 @@ sdc_extra                    int           0
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1
 
-# for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
-use_axisymmetric_geom_source bool           1
+# Do we include geometry source terms due to local unit vectors in non-Cartesian Coord?
+# We currently support R-Z cylinderical 2D (Bernand-Champmartin) and R-THETA spherical 2D
+use_geom_source              bool          1
 
 # for simplified-SDC, do we add the reactive source prediction to the interface states
 # used in the advective source construction?
@@ -445,16 +450,19 @@ drive_initial_convection_reinit_period   Real    1.e200
 diffuse_temp                 bool           0                  DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            DIFFUSION
+diffuse_cutoff_density       Real          -1.e200             DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200             DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                DIFFUSION
+diffuse_cond_scale_fac       Real           1.0                DIFFUSION
 
+# evaluate diffusion source term using amrex built-in solver or
+# evaluate within castro
+diffuse_use_amrex_mlmg       bool           1                  DIFFUSION
 
 #-----------------------------------------------------------------------------
 # category: gravity and rotation
@@ -490,7 +498,12 @@ rot_source_type              int           4                  ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     bool           1                  ROTATION
 
-# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
+# the coordinate axis for the rotation vector
+# For Cartesian: (:math:`x=1`, :math:`y=2`, :math:`z=3`)
+# For non-Cartesian coordinates, this parameter doesn't do anything because:
+# For RZ (Cylindrical 2D), it is automatically set to z-axis (rot_axis = 2)
+# For Spherical2D, it is also assumed to be in the z-axis
+# i.e. cos(theta) r_hat - sin(theta) theta_hat in Spherical coordinate.
 rot_axis                     int           3                  ROTATION
 
 # include a central point mass

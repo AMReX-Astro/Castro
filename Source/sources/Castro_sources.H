@@ -25,7 +25,7 @@
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    static void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
+    static void apply_source_to_state (amrex::MultiFab& state, const amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
@@ -210,7 +210,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_sponge_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    void construct_new_sponge_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
@@ -223,8 +223,8 @@
 /// @param dt           timestep
 ///
     void apply_sponge(const amrex::Box& bx,
-                      amrex::Array4<amrex::Real const> const state,
-                      amrex::Array4<amrex::Real> const source,
+                      amrex::Array4<amrex::Real const> const& state,
+                      amrex::Array4<amrex::Real> const& source,
                       amrex::Real dt);
 
 #endif
@@ -238,7 +238,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_ext_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    void construct_old_ext_source(amrex::MultiFab& source, const amrex::MultiFab& state,
                                   amrex::Real time, amrex::Real dt);
 
 
@@ -252,7 +252,7 @@
 /// @param dt           timestep
 ///
     void construct_new_ext_source(amrex::MultiFab& source,
-                                  amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                                  const amrex::MultiFab& state_old, const amrex::MultiFab& state_new,
                                   amrex::Real time, amrex::Real dt);
 
 
@@ -291,7 +291,7 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_thermo_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+    void construct_new_thermo_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
                                      amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
@@ -301,7 +301,7 @@
 /// @param state_in    input state
 /// @param thermo_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
+    void fill_thermo_source(const amrex::MultiFab& state_in, amrex::MultiFab& thermo_src);
 
 
 ///
@@ -312,7 +312,7 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_geom_source(amrex::MultiFab& source, amrex::MultiFab& state,
+    void construct_old_geom_source(amrex::MultiFab& source, const amrex::MultiFab& state,
                                    amrex::Real time, amrex::Real dt);
 
 
@@ -325,20 +325,32 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_geom_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
-                                   amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+    void construct_new_geom_source(amrex::MultiFab& source, const amrex::MultiFab& state_old,
+                                   const amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
 
 
 ///
-/// Fill ``ext_src`` with axisymmetric geometry sources
+/// Fill ``ext_src`` with 2D cylindrical R-Z geometry sources
 ///
 /// @param time     current time
 /// @param dt       timestep
 /// @param S        state
 /// @param ext_src  MultiFab to fill with sources
 ///
-    void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+    void fill_RZ_geom_source(amrex::Real time, amrex::Real dt,
+                             const amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
+
+
+///
+/// Fill ``ext_src`` with 2D spherical R-Theta geometry sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S        state
+/// @param ext_src  MultiFab to fill with sources
+///
+    void fill_RTheta_geom_source(amrex::Real time, amrex::Real dt,
+                                 const amrex::MultiFab& cons_state, amrex::MultiFab& geom_src);
 
 
 ///

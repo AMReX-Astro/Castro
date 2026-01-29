@@ -104,12 +104,13 @@ validate_runparams()
     {
         // "castro"
         if (amrex::ParmParse::hasUnusedInputs(nm)) {
-            amrex::Print() << "Warning: the following " + nm + ".* parameters are ignored\n";
+            amrex::Print() << Font::Bold << FGColor::Yellow
+                           << "[WARNING] the following " + nm + ".* parameters are ignored\n";
             auto unused = amrex::ParmParse::getUnusedInputs(nm);
             for (const auto& p: unused) {
                 amrex::Print() << p << "\n";
             }
-            amrex::Print() << std::endl;
+            amrex::Print() << ResetDisplay << std::endl;
             if (castro::abort_on_invalid_params) {
                 amrex::Error("Error: invalid parameters");
             }
