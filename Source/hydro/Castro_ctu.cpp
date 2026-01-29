@@ -1,5 +1,6 @@
 #include <Castro.H>
 #include <Castro_util.H>
+#include <trace_ppm.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -22,6 +23,7 @@ Castro::consup_hydro(const Box& bx,
 #endif
                      const Real dt)
 {
+
   auto geomdata = geom.data();
 
   amrex::ParallelFor(bx, NUM_STATE,
@@ -113,30 +115,34 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
   // and doing characteristic tracing.  We do not apply the
   // transverse terms here.
 
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
+    const int coord = geom.Coord();
+
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
     if (idir == 0) {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qxm, qxp,
+      trace_ppm<0>(bx,
+                   U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                   qxm, qxp,
+                   dx, problo, coord,
 #if AMREX_SPACEDIM <= 2
-                dlogaX,
+                   dlogaX,
 #endif
-                vbx, dt);
+                   vbx, dt);
 
       enforce_reflect_states(bx, 0, qxm, qxp);
 
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qym, qyp,
+      trace_ppm<1>(bx,
+                   U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                   qym, qyp,
+                   dx, problo, coord,
 #if AMREX_SPACEDIM <= 2
-                dlogaY,
+                   dlogaY,
 #endif
-                vbx, dt);
+                   vbx, dt);
 
       enforce_reflect_states(bx, 1, qym, qyp);
 #endif
@@ -144,11 +150,11 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
 #if AMREX_SPACEDIM == 3
     } else {
-      trace_ppm(bx,
-                idir,
-                U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
-                qzm, qzp,
-                vbx, dt);
+      trace_ppm<2>(bx,
+                   U_arr, rho_inv_arr, q_arr, qaux_arr, srcQ,
+                   qzm, qzp,
+                   dx, problo, coord,
+                   vbx, dt);
 
       enforce_reflect_states(bx, 2, qzm, qzp);
 #endif

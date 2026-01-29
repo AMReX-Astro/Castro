@@ -82,6 +82,76 @@ load_passive_stencil(amrex::Array4<amrex::Real const> const& U_arr,
 
 }
 
+
+template <int idir>
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+load_stencil_t(amrex::Array4<amrex::Real const> const& q_arr,
+               const int i, const int j, const int k, const int ncomp,
+               amrex::Real* s) {
+
+    using namespace reconstruction;
+
+    if constexpr (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,ncomp);
+        s[im1] = q_arr(i-1,j,k,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i+1,j,k,ncomp);
+        s[ip2] = q_arr(i+2,j,k,ncomp);
+
+    } else if constexpr (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,ncomp);
+        s[im1] = q_arr(i,j-1,k,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i,j+1,k,ncomp);
+        s[ip2] = q_arr(i,j+2,k,ncomp);
+
+    } else if constexpr (idir == 2) {
+        s[im2] = q_arr(i,j,k-2,ncomp);
+        s[im1] = q_arr(i,j,k-1,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i,j,k+1,ncomp);
+        s[ip2] = q_arr(i,j,k+2,ncomp);
+
+    }
+
+}
+
+template <int idir>
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+load_passive_stencil_t(amrex::Array4<amrex::Real const> const& U_arr,
+                       amrex::Array4<amrex::Real const> const& rho_inv_arr,
+                       const int i, const int j, const int k, const int ncomp,
+                       amrex::Real* s) {
+
+    using namespace reconstruction;
+
+    if constexpr (idir == 0) {
+        s[im2] = U_arr(i-2,j,k,ncomp) * rho_inv_arr(i-2,j,k);
+        s[im1] = U_arr(i-1,j,k,ncomp) * rho_inv_arr(i-1,j,k);
+        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+        s[ip1] = U_arr(i+1,j,k,ncomp) * rho_inv_arr(i+1,j,k);
+        s[ip2] = U_arr(i+2,j,k,ncomp) * rho_inv_arr(i+2,j,k);
+
+    } else if constexpr (idir == 1) {
+        s[im2] = U_arr(i,j-2,k,ncomp) * rho_inv_arr(i,j-2,k);
+        s[im1] = U_arr(i,j-1,k,ncomp) * rho_inv_arr(i,j-1,k);
+        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+        s[ip1] = U_arr(i,j+1,k,ncomp) * rho_inv_arr(i,j+1,k);
+        s[ip2] = U_arr(i,j+2,k,ncomp) * rho_inv_arr(i,j+2,k);
+
+    } else if constexpr (idir == 2) {
+        s[im2] = U_arr(i,j,k-2,ncomp) * rho_inv_arr(i,j,k-2);
+        s[im1] = U_arr(i,j,k-1,ncomp) * rho_inv_arr(i,j,k-1);
+        s[i0]  = U_arr(i,j,k,ncomp) * rho_inv_arr(i,j,k);
+        s[ip1] = U_arr(i,j,k+1,ncomp) * rho_inv_arr(i,j,k+1);
+        s[ip2] = U_arr(i,j,k+2,ncomp) * rho_inv_arr(i,j,k+2);
+
+    }
+
+}
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 add_geometric_rho_source(amrex::Array4<amrex::Real const> const& q_arr,

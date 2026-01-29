@@ -10,27 +10,28 @@
 using namespace amrex::literals;
 using namespace reconstruction;
 
+template <int idir>
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int
-check_trace_source(amrex::Array4<amrex::Real const> const& srcQ, const int idir,
+check_trace_source(amrex::Array4<amrex::Real const> const& srcQ,
                    const int i, const int j, const int k, const int ncomp) {
 
     int do_trace = 0;
-    if (idir == 0) {
+    if constexpr (idir == 0) {
         for (int b = i-2; b <= i+2; b++) {
             if (std::abs(srcQ(b,j,k,ncomp)) > 0.0_rt) {
                 do_trace = 1;
                 break;
             }
         }
-    } else if (idir == 1) {
+    } else if constexpr (idir == 1) {
         for (int b = j-2; b <= j+2; b++) {
             if (std::abs(srcQ(i,b,k,ncomp)) > 0.0_rt) {
                 do_trace = 1;
                 break;
             }
         }
-    } else {
+    } else if constexpr (idir == 2) {
         for (int b = k-2; b <= k+2; b++) {
             if (std::abs(srcQ(i,j,b,ncomp)) > 0.0_rt) {
                 do_trace = 1;
