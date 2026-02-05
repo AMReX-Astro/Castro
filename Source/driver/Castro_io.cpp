@@ -864,7 +864,7 @@ Castro::writeBuildInfo ()
 
   std::cout << "\n";
 
-  jobInfoFile << "make flags:    " << buildInfoGetMakeFlags() << "\n";
+  std::cout << "make flags:    " << buildInfoGetMakeFlags() << "\n";
 
   std::cout << "\n";
 
@@ -874,8 +874,8 @@ Castro::writeBuildInfo ()
   std::cout << "\n";
 
 #ifdef AMREX_USE_CUDA
-  jobInfoFile << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
-  jobInfoFile << "\n";
+  std::cout << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  std::cout << "\n";
 #endif
 
   std::cout << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
