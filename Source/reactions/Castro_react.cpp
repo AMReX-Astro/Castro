@@ -281,6 +281,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 rr[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
+#if DIM_MODEL == 1
                 Real dist;
 
                 if (domain_is_plane_parallel) {
@@ -290,7 +291,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt, const int stra
                 }
 
                 burn_state.T_fixed = interpolate(dist, model::itemp);
-
+#elif DIM_MODEL == 2
+                burn_state.T_fixed = interpolate(rr[0], rr[1], model::itemp);
+#endif
             }
 #endif
 
@@ -632,6 +635,7 @@ Castro::react_state(Real time, Real dt)
                 rr[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
+#if DIM_MODEL == 1
                 Real dist;
 
                 if (domain_is_plane_parallel) {
@@ -641,7 +645,9 @@ Castro::react_state(Real time, Real dt)
                 }
 
                 burn_state.T_fixed = interpolate(dist, model::itemp);
-
+#elif DIM_MODEL == 2
+                burn_state.T_fixed = interpolate(rr[0], rr[1], model::itemp);
+#endif
             }
 #endif
 

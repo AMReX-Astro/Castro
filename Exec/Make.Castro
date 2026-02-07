@@ -175,13 +175,35 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
            Source/problems Source/sources
 endif
 
-MAX_NPTS_MODEL ?= 10000
 NUM_MODELS ?= 1
+DIM_MODEL  ?= 1
+
+# Only 1 or 2 dimensions are supported for now.
+ifeq ($(filter $(DIM_MODEL),1 2),)
+  $(error Invalid DIM_MODEL=$(DIM_MODEL). Must be 1 or 2.)
+endif
+
+ifeq ($(DIM_MODEL), 1)
+  MAX_NPTS_MODEL ?= 10000
+else ifeq ($(DIM_MODEL), 2)
+  MAX_NPTS_X_MODEL ?= 10000
+  MAX_NPTS_Y_MODEL ?= 10000
+endif
 
 ifeq ($(USE_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser
-  DEFINES += -DMODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
+  DEFINES += -DMODEL_PARSER \
+             -DNUM_MODELS=$(NUM_MODELS) \
+             -DDIM_MODEL=$(DIM_MODEL)
+
+  ifeq ($(DIM_MODEL), 1)
+    DEFINES += -DNPTS_MODEL=$(MAX_NPTS_MODEL)
+  else ifeq ($(DIM_MODEL), 2)
+    DEFINES += -DNPTS_X_MODEL=$(MAX_NPTS_X_MODEL) \
+               -DNPTS_Y_MODEL=$(MAX_NPTS_Y_MODEL)
+  endif
 endif
+
 
 ifeq ($(USE_RNG_STATE_INIT), TRUE)
   DEFINES += -DRNG_STATE_INIT
@@ -195,7 +217,7 @@ ifeq ($(USE_MHD), TRUE)
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity Source/scf 
+  Bdirs += Source/gravity Source/scf
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
 endif
