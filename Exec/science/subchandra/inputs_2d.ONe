@@ -1,8 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-amr.plot_files_output = 1
-amr.checkpoint_files_output = 1
-
 max_step = 1000000
 stop_time = 10.0
 
@@ -28,13 +25,13 @@ castro.do_grav  = 1
 castro.do_react = 1
 castro.do_sponge = 1
 
-castro.react_rho_min = 100.0
+castro.react_rho_min = 500.0
 castro.react_T_min = 5.e7
 
 castro.disable_shock_burning = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.use_pslope = 1
+castro.ppm_well_balanced = 1
 
 castro.use_flattening = 1
 
@@ -94,6 +91,12 @@ amr.max_grid_size   = 256      # maximum grid size allowed -- used to control pa
 amr.blocking_factor = 32       # block factor in grid generation
 
 # I/O
+
+amr.plot_files_output = 1
+amr.checkpoint_files_output = 1
+# with the SLURM HUP functionality, we get a checkpoint near
+# the end of the queue window -- don't do a plotfile then too
+amr.write_plotfile_with_checkpoint = 0
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 50     # number of timesteps between checkpoints
@@ -167,17 +170,26 @@ integrator.SMALL_X_SAFE = 1.e-30
 integrator.do_species_clip = 0
 
 integrator.rtol_spec = 1.e-5
-integrator.atol_spec = 1.e-5
+integrator.atol_spec = 1.e-8
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-5
 integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
 
-# disable jacobian caching in VODE
-integrator.use_jacobian_caching = 0
+integrator.use_jacobian_caching = 1
 
-integrator.ode_max_steps = 20000
+# force a small number of steps to get a retry at the burn level
+# instead of the Castro level
+integrator.ode_max_steps = 5000
 
 integrator.use_burn_retry = 1
 integrator.retry_swap_jacobian = 1
+
+# NSE
+
+nse.nse_molar_independent = 0
+nse.nse_dx_independent = 0
+nse.ase_tol = 0.1
+nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 1

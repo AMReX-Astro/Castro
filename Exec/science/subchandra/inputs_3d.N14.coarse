@@ -1,8 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
-amr.plot_files_output = 1
-amr.checkpoint_files_output = 1
-
 max_step = 100000
 stop_time = 10.0
 
@@ -97,6 +94,12 @@ amr.max_grid_size   = 256      # maximum grid size allowed -- used to control pa
 amr.blocking_factor = 32       # block factor in grid generation
 
 # I/O
+
+amr.plot_files_output = 1
+amr.checkpoint_files_output = 1
+# with the SLURM HUP functionality, we get a checkpoint near
+# the end of the queue window -- don't do a plotfile then too
+amr.write_plotfile_with_checkpoint = 0
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 25     # number of timesteps between checkpoints
