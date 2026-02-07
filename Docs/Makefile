@@ -29,6 +29,7 @@ ifneq ($(NO_DOXYGEN),TRUE)
 	breathe-apidoc --o source doxy_files/xml -g class,file
 	python3 make_api.py
 endif
+	python parse_changelog.py ../CHANGES.md > source/changelog.md
 	jupyter nbconvert --to rst source/yt_example.ipynb
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
