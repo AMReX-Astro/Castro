@@ -106,10 +106,11 @@ integrator.atol_spec = 1.e-8
 integrator.rtol_enuc = 1.e-8
 integrator.atol_enuc = 1.e-8
 
-integrator.jacobian = 2
+integrator.jacobian = 1
 integrator.ode_max_steps = 1500000
 
 nse.nse_molar_independent = 0
 nse.nse_dx_independent = 0
 nse.ase_tol = 0.1
 nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 2

@@ -1,3 +1,31 @@
+# 26.02
+
+  * update CI due to Microphysics optimizations (#3189, #3203)
+
+  * `Detonation` : fix plotting script for mass fractions (#3200)
+
+  * fix make flags in ``job_info`` (#3195)
+
+  * fix radiation compilation due to ``Array4`` changes (#3198)
+
+  * ``xrb_spherical`` : fix ash field in plot output
+
+  * cppcheck fixes
+
+  * update to C++20 (#3097)
+
+  * optimization and cleaning of ``check_for_negative_density`` (#3191)
+
+  * diffusion optimization and modernization (#3192)
+
+  * optimize a divide in SDC react (#3194)
+
+  * optimize the transverse flux correction in CTU hydro (#3181)
+
+  * ``massive_star`` : add another 3D visualization script
+
+  * optimize ``ambient_fill` (#3190)
+
 # 26.01
 
   * `massive_star` : add volume-rendering scripts (#3186)

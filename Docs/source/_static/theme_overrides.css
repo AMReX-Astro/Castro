@@ -34,7 +34,7 @@ div#example-notebook div.highlight-default div.highlight {
 
 .wy-side-nav-search>div.branch{
     font-weight:normal;
-    color:rgba(255,255,255,0.3);
+    color:rgba(255,255,255);
     font-size:100%;
     display:inline-block;
     padding:4px 6px;
@@ -48,3 +48,24 @@ div#example-notebook div.highlight-default div.highlight {
     color:#fcfcfc;
     font-weight:bold;
 }
+
+/* Underline links everywhere */
+.wy-nav-content a {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.15em;
+}
+
+/* Left sidebar navigation links */
+.wy-menu a {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.15em;
+}
+
+.wy-side-nav-search a {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.15em;
+}
+
