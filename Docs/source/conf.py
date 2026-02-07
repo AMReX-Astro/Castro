@@ -61,6 +61,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_prompt',
               'sphinx_mdinclude',
               'breathe',
+              'sphinx_rtd_theme_ext_color_contrast',
               'IPython.sphinxext.ipython_console_highlighting']
 
 # bibtex
