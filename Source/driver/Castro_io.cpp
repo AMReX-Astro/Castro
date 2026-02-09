@@ -864,10 +864,19 @@ Castro::writeBuildInfo ()
 
   std::cout << "\n";
 
+  std::cout << "make flags:    " << buildInfoGetMakeFlags() << "\n";
+
+  std::cout << "\n";
+
   std::cout << "COMP:          " << buildInfoGetComp() << "\n";
   std::cout << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   std::cout << "\n";
+
+#ifdef AMREX_USE_CUDA
+  std::cout << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  std::cout << "\n";
+#endif
 
   std::cout << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   std::cout << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
