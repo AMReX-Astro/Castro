@@ -897,6 +897,12 @@ Castro::initMFs()
     }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      P_theta.define(getEdgeBoxArray(1), dmap, 1, 0);
+    }
+#endif
+
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(AMREX_SPACEDIM);
@@ -2618,6 +2624,12 @@ Castro::FluxRegCrseInit() {
     }
 #endif
 
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      fine_level.pres_reg.CrseInit(P_theta, 1, 0, 0, 1, pres_crse_scale);
+    }
+#endif
+
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
       for (int i = 0; i < AMREX_SPACEDIM; ++i) {
@@ -2645,6 +2657,12 @@ Castro::FluxRegFineAdd() {
 #if (AMREX_SPACEDIM <= 2)
     if (!Geom().IsCartesian()) {
       getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    }
+#endif
+
+#if (AMREX_SPACEDIM == 2)
+    if (Geom().IsSPHERICAL()) {
+      getLevel(level).pres_reg.FineAdd(P_theta, 1, 0, 0, 1, pres_fine_scale);
     }
 #endif
 
@@ -2883,14 +2901,22 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
 #if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
 
+            // Get pressure flux register of this level.
+
             reg = &getLevel(lev).pres_reg;
 
-            MultiFab dr(crse_lev.grids, crse_lev.dmap, 1, 0);
-            dr.setVal(crse_lev.geom.CellSize(0));
+            // Clear out flux at the internal borders,
+            // i.e. not the borders between coarse and fine boxes.
 
             reg->ClearInternalBorders(crse_lev.geom);
 
-            reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
+            // Perform the reflux
+            // i.e. U^{c, new} = U^{c, old} + (Σ p^f A^f dt^f - p^c A^c dt^c) / V^c
+            // Note that the pressure flux register holds what's inside the parenthesis
+            // And this is only done for U = UMX for radial pressure flux register
+            // which is stored in the 0-dir of pres_reg.
+
+            reg->Reflux(crse_state, crse_lev.volume, 0, 1.0, 0, UMX, 1, crse_lev.geom);
 
             if (update_sources_after_reflux || !in_post_timestep) {
 
@@ -2911,6 +2937,39 @@ Castro::reflux (int crse_level, int fine_level, bool in_post_timestep)
                 MultiFab::Add(crse_lev.P_radial, tmp_fluxes, 0, 0, crse_lev.P_radial.nComp(), 0);
 
             }
+
+#if (AMREX_SPACEDIM == 2)
+            // Now deal with theta pressure flux register with 2d spherical geometry
+
+            if (Geom().IsSPHERICAL()) {
+
+                // Do reflux, but note theta pressure flux register is stored
+                // in the 1-dir of pres_reg. And it is only applied for U=UMY.
+
+                reg->Reflux(crse_state, crse_lev.volume, 1, 1.0, 0, UMY, 1, crse_lev.geom);
+
+                if (update_sources_after_reflux || !in_post_timestep) {
+
+                    MultiFab tmp_fluxes(crse_lev.P_theta.boxArray(),
+                                        crse_lev.P_theta.DistributionMap(),
+                                        crse_lev.P_theta.nComp(), crse_lev.P_theta.nGrow());
+
+                    tmp_fluxes.setVal(0.0);
+
+                    for (OrientationIter fi; fi.isValid(); ++fi)
+                        {
+                            const FabSet& fs = (*reg)[fi()];
+                            if (fi().coordDir() == 1) {
+                                fs.copyTo(tmp_fluxes, 0, 0, 0, tmp_fluxes.nComp());
+                            }
+                        }
+
+                    MultiFab::Add(crse_lev.P_theta, tmp_fluxes, 0, 0, crse_lev.P_theta.nComp(), 0);
+
+                }
+
+            }
+#endif
 
             reg->setVal(0.0);
 

@@ -85,6 +85,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial(The_Async_Arena());
 #endif
+#if AMREX_SPACEDIM == 2
+    FArrayBox ptheta(The_Async_Arena());
+#endif
     FArrayBox avis(The_Async_Arena());
 
     MultiFab& old_source = get_old_data(Source_Type);
@@ -655,8 +658,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         if (!Geom().IsCartesian()) {
           pradial.resize(xbx, 1);
         }
+#endif
 
-        Array4<Real> pradial_fab = pradial.array();
+#if AMREX_SPACEDIM == 2
+        if (Geom().IsSPHERICAL()) {
+          ptheta.resize(ybx, 1);
+        }
 #endif
 
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
@@ -672,15 +679,32 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // get the scaled radial pressure -- we need to treat this specially
 
           if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+            Array4<Real> pradial_fab = pradial.array();
             Array4<Real> const qex_arr = qe[idir].array();
 
             amrex::ParallelFor(nbx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
+              pradial_fab(i,j,k) = area_arr(i,j,k) * qex_arr(i,j,k,GDPRES) * dt;
             });
-#endif
           }
+#endif
+
+#if AMREX_SPACEDIM == 2
+          // get the scaled pressure in the theta direction
+
+          if (idir == 1 && !mom_flux_has_p(1, 1, coord)) {
+            Array4<Real> ptheta_fab = ptheta.array();
+            Array4<Real> const qey_arr = qe[idir].array();
+
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+              ptheta_fab(i,j,k) = area_arr(i,j,k) * qey_arr(i,j,k,GDPRES) * dt;
+            });
+          }
+#endif
+
         }
 
 
@@ -709,12 +733,28 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
           if (!Geom().IsCartesian()) {
 
+            Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);
             const Real scale = stage_weight;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
             {
                 P_radial_fab(i,j,k,0) += scale * pradial_fab(i,j,k,0);
+            });
+
+          }
+#endif
+
+#if AMREX_SPACEDIM == 2
+          if (Geom().IsSPHERICAL()) {
+
+            Array4<Real> ptheta_fab = ptheta.array();
+            Array4<Real> P_theta_fab = P_theta.array(mfi);
+            const Real scale = stage_weight;
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(1), 1, i, j, k, n,
+            {
+                P_theta_fab(i,j,k,0) += scale * ptheta_fab(i,j,k,0);
             });
 
           }
