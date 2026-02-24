@@ -109,7 +109,7 @@ sdc_newton_solve(const Real dt_m,
 
     Array1D<Real, 1, NumSpec+1> f;
 
-    const int MAX_ITER = 100;
+    const int MAX_ITER = 200;
 
     ierr = newton::NEWTON_SUCCESS;
 
@@ -251,7 +251,7 @@ sdc_newton_subdivide(const Real dt_m,
     // converges or reaches our limit on the number of
     // subintervals.
 
-    const int MAX_NSUB = 64;
+    const int MAX_NSUB = 128;
     GpuArray<Real, NUM_STATE> U_begin;
 
     // subdivide the timestep and do multiple Newtons. We come
@@ -307,6 +307,10 @@ sdc_newton_subdivide(const Real dt_m,
             }
         }
         nsub *= 2;
+    }
+
+    if (ierr != newton::NEWTON_SUCCESS) {
+        std::cout << "Falled. " << ierr << std::endl;
     }
 }
 #endif
