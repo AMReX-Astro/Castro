@@ -6,11 +6,11 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import yt
-import sys
 import numpy as np
 from scipy.optimize import brentq
 
 yt.funcs.mylog.setLevel(50)
+
 
 class Profile:
     """read a plotfile using yt and store the 1d profile for T and enuc"""
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     T1 = args.temp0 - args.dtemp
     T2 = args.temp0
     T3 = args.temp0 + args.dtemp
-    
+
     t = []
     v = []
     vs = []
@@ -112,6 +112,9 @@ if __name__ == "__main__":
     x1_old = None
     x2_old = None
     x3_old = None
+
+    time_old = None
+    width_old = None
 
     for n in range(0, len(plot_nums), args.skip):
 
@@ -135,7 +138,7 @@ if __name__ == "__main__":
         except IndexError:
             # we are at the edge of the domain
             continue
-            
+
         width = p.find_flame_width()
 
         if x1_old is not None:
