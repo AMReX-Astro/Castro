@@ -60,7 +60,7 @@ sdc_solve(const Real dt_m,
 
         // failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton subcycling failed in sdc_solve");
+            amrex::Abort("Newton subcycling failed in sdc_solve");
         }
     } else if (sdc_solver == VODE_SOLVE) {
         // Use VODE to do the solution
@@ -79,8 +79,10 @@ sdc_solve(const Real dt_m,
 
         // Failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton failure in sdc_solve");
+            amrex::Abort("Newton failure in sdc_solve");
         }
+    } else {
+        amrex::Abort("invalid sdc_solver value");
     }
 }
 
