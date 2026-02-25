@@ -167,7 +167,7 @@ The follow parameters affect the coupling of hydro and gravity:
    (must be :math:`\geq 0`; default: 0.0)
 
 -  ``castro.point_mass_fix_solution`` : whether to keep density in
-   zones adjecent to the point mass constant by adding their mass
+   zones adjacent to the point mass constant by adding their mass
    change to the point mass object.
 
 -  ``castro.gw_dist`` : distance (in kpc) used for calculation of
