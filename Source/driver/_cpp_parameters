@@ -518,12 +518,17 @@ point_mass_fix_solution      bool           0                  GRAVITY
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                GRAVITY
 
-# This integer is used to activate parallel plane 1/r**2 gravity.
+# If enabled, shift the point mass away from the coordinate origin
+# by point_mass_location_offset. Note that the shift is done in the
+# negative direction.
+#
+# The shift is applied along the vertical direction:
+#   1D: x-direction
+#   2D: y-direction
+#   3D: z-direction
 point_mass_offset_is_true    bool           0                  GRAVITY
 
-# Distance, shifted from the origin, and used to compute the gravity on
-# plane parallel due to the action of an star with a radius given by this offset.
-
+# Distance of the point mass shifted from the problem center.
 point_mass_location_offset   Real          0.0                GRAVITY
 
 #-----------------------------------------------------------------------------
