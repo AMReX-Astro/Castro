@@ -164,7 +164,7 @@ Castro::shock(const Box& bx,
         Real dy{dx[1]};
         if (coord_type == 2) {
             // dx[1] is just dtheta
-            Real rc = (i + 0.5_rt) * dx[0];
+            Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             dy *= rc;
         }
         dP_y += -0.25_rt * dy * (U_src_arr(i,j+1,k,UMY) + 2.0_rt * U_src_arr(i,j,k,UMY) + U_src_arr(i,j-1,k,UMY));
