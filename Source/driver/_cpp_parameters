@@ -519,8 +519,8 @@ point_mass_fix_solution      bool           0                  GRAVITY
 gw_dist                      Real          0.0                GRAVITY
 
 # If enabled, shift the point mass away from the coordinate origin
-# by point_mass_location_offset. Note that the shift is done in the
-# negative direction.
+# by point_mass_location_offset. Note that the shift is along the negative
+# vertical direction. This is mainly used to model parallel-plane 1/r**2 gravity
 #
 # The shift is applied along the vertical direction:
 #   1D: x-direction
@@ -529,6 +529,7 @@ gw_dist                      Real          0.0                GRAVITY
 point_mass_offset_is_true    bool           0                  GRAVITY
 
 # Distance of the point mass shifted from the problem center.
+# This is to use in conjunction with point_mass_offset_is_true.
 point_mass_location_offset   Real          0.0                GRAVITY
 
 #-----------------------------------------------------------------------------
