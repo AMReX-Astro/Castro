@@ -276,10 +276,10 @@ sdc_newton_subdivide(const Real dt_m,
         Real dt_sub = dt_m / nsub;
 
         for (int isub = 0; isub < nsub; ++isub) {
-            // normalize species
+            // normalize species -- we are working with rho X_k here
             Real sum_rhoX = 0.0_rt;
             for (int n = 0; n < NumSpec; ++n) {
-                U_begin[UFS + n] = amrex::max(network_rp::small_x, U_begin[UFS + n]);
+                U_begin[UFS + n] = amrex::max(U_begin[URHO] * network_rp::small_x, U_begin[UFS + n]);
                 sum_rhoX += U_begin[UFS + n];
             }
             for (int n = 0; n < NumSpec; ++n) {
