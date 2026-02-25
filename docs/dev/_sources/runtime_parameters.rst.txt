@@ -488,10 +488,16 @@ namespace: ``castro``
 |                                            | and if set to a positive number. A standard value in the    |                             |
 |                                            | literature is 10.0 (kpc).                                   |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
-| ``point_mass_offset_is_true``              | This integer is used to activate parallel plane 1/r**2      | 0                           |
-|                                            | gravity.                                                    |                             |
+| ``point_mass_offset_is_true``              | If enabled, shift the point mass away from the coordinate   | 0                           |
+|                                            | origin by point_mass_location_offset. Note that the shift   |                             |
+|                                            | is along the negative vertical direction. This is mainly    |                             |
+|                                            | used to model parallel-plane 1/r**2 gravity The shift is    |                             |
+|                                            | applied along the vertical direction:   1D: x-direction     |                             |
+|                                            | 2D: y-direction   3D: z-direction                           |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
-| ``point_mass_location_offset``             |                                                             | 0.0                         |
+| ``point_mass_location_offset``             | Distance of the point mass shifted from the problem center. | 0.0                         |
+|                                            | This is to use in conjunction with                          |                             |
+|                                            | point_mass_offset_is_true.                                  |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 
 
