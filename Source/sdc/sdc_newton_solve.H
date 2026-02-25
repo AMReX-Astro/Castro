@@ -267,7 +267,7 @@ sdc_newton_subdivide(const Real dt_m,
         U_begin[n] = U_old[n];
     }
 
-    while (nsub < MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
+    while (nsub <= MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
         if (nsub > 1) {
             for (int n = 0; n < NUM_STATE; ++n) {
                 U_new[n] = U_old[n];
