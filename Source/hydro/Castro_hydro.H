@@ -611,20 +611,6 @@
 /// @param vbx       the valid region box (excluding ghost cells)
 /// @param dt        timestep
 ///
-    void trace_ppm(const amrex::Box& bx,
-                   const int idir,
-                   amrex::Array4<amrex::Real const> const& U_arr,
-                   amrex::Array4<amrex::Real const> const& rho_inv_arr,
-                   amrex::Array4<amrex::Real const> const& q_arr,
-                   amrex::Array4<amrex::Real const> const& qaux_arr,
-                   amrex::Array4<amrex::Real const> const& srcQ,
-                   amrex::Array4<amrex::Real> const& qm,
-                   amrex::Array4<amrex::Real> const& qp,
-#if (AMREX_SPACEDIM < 3)
-                   amrex::Array4<amrex::Real const> const& dloga,
-#endif
-                   const amrex::Box& vbx,
-                   const amrex::Real dt);
 
 ///
 /// Reconstruct the primitive state as pieceeise linear, integrate under them,
