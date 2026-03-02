@@ -908,8 +908,7 @@ Castro::valid_zones_to_burn(const MultiFab& State)
       return true;
     }
 
-    // Now, if we're limiting on rho, collect the
-    // minimum and/or maximum and compare.
+    // if we're limiting on rho, collect the minimum and/or maximum
 
     amrex::Vector<Real> small_limiters;
     amrex::Vector<Real> large_limiters;
@@ -928,6 +927,8 @@ Castro::valid_zones_to_burn(const MultiFab& State)
       largedens = State.max(URHO, 0, local);
       large_limiters.push_back(largedens);
     }
+
+    // if we're limiting on T, collect the minimum and/or maximum
 
     Real small_T = small;
     Real large_T = large;
@@ -974,7 +975,7 @@ Castro::valid_zones_to_burn(const MultiFab& State)
                 large_T = large_limiters[1];
             }
         } else {
-            large_T = large_limiters[1];
+            large_T = large_limiters[0];
         }
     }
 
@@ -983,8 +984,10 @@ Castro::valid_zones_to_burn(const MultiFab& State)
     // and large respectively, so if the limiters
     // are not on, these checks will not be triggered.
 
-    if (largedens >= react_rho_min && smalldens <= react_rho_max &&
-        large_T >= react_T_min && small_T <= react_T_max) {
+    if (largedens >= react_rho_min &&
+        smalldens <= react_rho_max &&
+        large_T >= react_T_min &&
+        small_T <= react_T_max) {
         return true;
     }
 
