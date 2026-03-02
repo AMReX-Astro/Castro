@@ -1,5 +1,10 @@
 # 26.03
 
+  * github action CI version updates (#3283)
+
+  * fix the time used in post-timestep regridding error estimators
+    (#3284)
+
   * fix the value of dx in the SCF diagnostic code (#3278)
 
   * fix the initial state in the SDC Newton subdivide solver (#3276)
