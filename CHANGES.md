@@ -1,9 +1,11 @@
 # 26.03
 
-  * github action CI version updates (#3283)
+  * fix the embiggener compilation (#3285)
 
   * fix the time used in post-timestep regridding error estimators
     (#3284)
+
+  * github action CI version updates (#3283)
 
   * fix the value of dx in the SCF diagnostic code (#3278)
 
