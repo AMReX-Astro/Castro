@@ -884,12 +884,18 @@ literature is 10.0 (kpc).</p></td>
 <td><p>0.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code></p></td>
-<td><p>This integer is used to activate parallel plane 1/r**2
-gravity.</p></td>
+<td><p>If enabled, shift the point mass away from the coordinate
+origin by point_mass_location_offset. Note that the shift
+is along the negative vertical direction. This is mainly
+used to model parallel-plane 1/r**2 gravity The shift is
+applied along the vertical direction:   1D: x-direction
+2D: y-direction   3D: z-direction</p></td>
 <td><p>0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code></p></td>
-<td></td>
+<td><p>Distance of the point mass shifted from the problem center.
+This is to use in conjunction with
+point_mass_offset_is_true.</p></td>
 <td><p>0.0</p></td>
 </tr>
 </tbody>

@@ -165,12 +165,7 @@ or a full Poisson solve. To enable gravity in the code, set:</p>
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>, and then turn it on in the inputs file
-via <code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> = 1. If you want to incorporate a point mass
-(through <code class="docutils literal notranslate"><span class="pre">castro.point_mass</span></code>), you must have:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_POINTMASS</span> <span class="o">=</span> <span class="n">TRUE</span>
-</pre></div>
-</div>
-<p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
+via <code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> = 1.</p>
 <p>There are currently three options for how gravity is calculated,
 controlled by setting <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code>. The options are
 <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, or <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>.
@@ -296,8 +291,19 @@ binning to grid resolution</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> : turn on/off gravity</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.moving_center</span></code> : do we recompute the center
 used for the multipole gravity solver each step?</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.use_point_mass</span></code> : whether to include a central point mass</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.point_mass</span></code> : point mass at the center of the star
 (must be <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 0.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.point_mass_fix_solution</span></code> : whether to keep density in
+zones adjacent to the point mass constant by adding their mass
+change to the point mass object.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.gw_dist</span></code> : distance (in kpc) used for calculation of
+the gravitational wave amplitude.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.point_mass_offset_is_true</span></code> : whether to shift the point
+mass away from the coordinate origin. This is useful to include
+a parallel-plane gravity with 1/r**2 scaling.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.point_mass_location_offset</span></code> : distance of the point mass
+shifted from the problem center along the vertical direction.</p></li>
 </ul>
 <p>Note that in the following, <code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code> is a hard-coded parameter
 in <code class="docutils literal notranslate"><span class="pre">Source/Gravity.cpp</span></code> which is currently set to 15. It
@@ -512,7 +518,8 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </section>
 <section id="point-mass">
 <h3>Point Mass<a class="headerlink" href="#point-mass" title="Link to this heading"></a></h3>
-<p>Pointmass gravity works with all other forms of gravity, it is not a
+<p>Point mass can be enabled via the runtime parameter, <code class="docutils literal notranslate"><span class="pre">castro.use_point_mass=1</span></code>.
+Pointmass gravity works with all other forms of gravity, it is not a
 separate option. Since the Poisson equation is linear in potential
 (and its derivative, the acceleration, is also linear), the point mass
 option works by adding the gravitational acceleration of the point
@@ -530,6 +537,26 @@ deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
 <code class="docutils literal notranslate"><span class="pre">pointmass_update()</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_pointmass.cpp</span></code>.</p>
+<p>Another useful option is <code class="docutils literal notranslate"><span class="pre">point_mass_offset_is_true</span></code>. If set to 1,
+then the location of the point mass is shifted away from the problem center
+by an amount given by <code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code>.
+The offset is applied along the vertical direction:</p>
+<ul class="simple">
+<li><p>1D: x-direction</p></li>
+<li><p>2D: y-direction</p></li>
+<li><p>3D: z-direction</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code> shifts the point mass in the
+<em>negative</em> vertical direction.</p>
+</div>
+<p>This option is useful for modelling parallel-plane gravity with an
+inverse-square law. For a parallel-plane problem, the problem center is
+typically chosen to be at the stellar surface. To represent the
+gravity of the underlying star, the point mass can be placed
+one stellar radius below the surface. In this case,
+<code class="docutils literal notranslate"><span class="pre">point_mass_location_offset</span></code> corresponds to the stellar radius.</p>
 </section>
 </section>
 <section id="gr-correction">
