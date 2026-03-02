@@ -1,5 +1,10 @@
 # 26.03
 
+  * fix the computation of zone location in hybrid momentum
+    for old gravity source (#3280)
+
+  * fix bounds issue in radiation flattening (#3279)
+
   * doc updates for point mass gravity (#3273) and accessibility
     (#3205)
 
