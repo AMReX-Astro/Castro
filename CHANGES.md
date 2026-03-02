@@ -1,7 +1,14 @@
 # 26.03
 
-  * fix the computation of zone location in hybrid momentum
-    for old gravity source (#3280)
+  * fix the value of dx in the SCF diagnostic code (#3278)
+
+  * fix the initial state in the SDC Newton subdivide solver (#3276)
+
+  * fix a check on the maximum number of iterations in `binary.H`
+    (#3277)
+
+  * fix the computation of zone location in hybrid momentum for old
+    gravity source (#3280)
 
   * fix bounds issue in radiation flattening (#3279)
 
