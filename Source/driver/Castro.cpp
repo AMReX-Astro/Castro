@@ -3513,9 +3513,9 @@ Castro::errorEst (TagBoxArray& tags,
     for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
         if (! etag.Field().empty()) {
-            mf = derive(etag.Field(), time, etag.NGrow());
+            mf = derive(etag.Field(), ltime, etag.NGrow());
         }
-        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, ltime, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
