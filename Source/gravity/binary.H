@@ -125,7 +125,7 @@ void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real
 
     // If we didn't converge, set the value to zero.
 
-    if (i >= max_iters) {
+    if (i > max_iters) {
         r = 0.0_rt;
     }
 }

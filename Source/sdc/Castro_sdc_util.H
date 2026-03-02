@@ -21,19 +21,19 @@ void
 normalize_species_sdc(const int i, const int j, const int k,
                       Array4<Real> const& u) {
 
-    GpuArray<Real, NumSpec> xn;
+    GpuArray<Real, NumSpec> rho_xn;
 
-    Real xn_sum = 0.0_rt;
+    Real rho_xn_sum = 0.0_rt;
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] = u(i,j,k,UFS+n);
-        xn[n] = amrex::max(network_rp::small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
-        xn_sum += xn[n];
+        rho_xn[n] = u(i,j,k,UFS+n);
+        rho_xn[n] = amrex::Clamp(rho_xn[n], network_rp::small_x * u(i,j,k,URHO), u(i,j,k,URHO));
+        rho_xn_sum += rho_xn[n];
     }
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] *= u(i,j,k,URHO) / xn_sum;
-        u(i,j,k,UFS+n) = xn[n];
+        rho_xn[n] *= u(i,j,k,URHO) / rho_xn_sum;
+        u(i,j,k,UFS+n) = rho_xn[n];
     }
 }
 
