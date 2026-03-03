@@ -2881,7 +2881,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #if AMREX_SPACEDIM >= 2
                      (*coeffs[1]).array(mfi), ybx,
 #endif
-                     dx, coord_type);
+                     problo, dx, coord_type);
     }
 }
 
