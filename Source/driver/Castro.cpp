@@ -4332,7 +4332,12 @@ Castro::define_new_center(const MultiFab& S, Real time)
     }
 #endif
 
-    // Find the position of the "center" by interpolating from data at cell centers
+    // Find the position of the "center" by interpolating from data at
+    // cell centers We only define a single 3x3 (or 3x3x3) box around
+    // max_index above, so this MultiFab should have a single local
+    // FAB.
+    AMREX_ALWAYS_ASSERT(mf.local_size() == 1);
+
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
 
