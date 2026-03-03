@@ -3359,7 +3359,7 @@ Castro::check_for_negative_density ()
 #ifndef AMREX_USE_GPU
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
-                                  << " with density = " << rho << "\n";
+                                  << " with density = " << rho << std::endl;
 #elif defined(ALLOW_GPU_PRINTF)
                         AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
                                             n, X, i, j, k, rho);
@@ -3513,9 +3513,9 @@ Castro::errorEst (TagBoxArray& tags,
     for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
         if (! etag.Field().empty()) {
-            mf = derive(etag.Field(), time, etag.NGrow());
+            mf = derive(etag.Field(), ltime, etag.NGrow());
         }
-        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, ltime, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.

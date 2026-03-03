@@ -35,7 +35,7 @@ f_sdc_jac(const Real dt_m,
     // we already do this in single_zone_react_source
 
     for (int n = 0; n < NumSpec; ++n) {
-        burn_state.xn[n] = std::max(network_rp::small_x, std::min(1.0_rt, burn_state.y[SFS+n] / burn_state.y[SRHO]));
+        burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] / burn_state.y[SRHO], network_rp::small_x, 1.0_rt);
     }
 #if NAUX_NET > 0
     amrex::Error("error: aux data not currently supported in true SDC");
@@ -244,30 +244,35 @@ sdc_newton_subdivide(const Real dt_m,
                      const int sdc_iteration,
                      Real& err_out,
                      int& ierr) {
-    // This is the driver for solving the nonlinear update for
-    // the reating/advecting system using Newton's method. It
-    // attempts to do the solution for the full dt_m requested,
-    // but if it fails, will subdivide the domain until it
-    // converges or reaches our limit on the number of
-    // subintervals.
+
+    // This is the driver for solving the nonlinear update for the
+    // reating/advecting system using Newton's method. It attempts to
+    // do the solution for the full dt_m requested, but if it fails,
+    // will subdivide the domain until it converges or reaches our
+    // limit on the number of subintervals.
 
     const int MAX_NSUB = 64;
     GpuArray<Real, NUM_STATE> U_begin;
 
-    // subdivide the timestep and do multiple Newtons. We come
-    // in here with an initial guess for the new solution
-    // stored in U_new. That only really makes sense for the
-    // case where we have 1 substep. Otherwise, we should just
-    // use the old time solution.
+    // subdivide the timestep and do multiple Newtons.
 
     int nsub = 1;
     ierr = newton::CONVERGENCE_FAILURE;
 
-    for (int n = 0; n < NUM_STATE; ++n) {
-        U_begin[n] = U_old[n];
-    }
+    while (nsub <= MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
 
-    while (nsub < MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
+        // For the first interval, we set the starting state to
+        // the old-time solution.
+
+        for (int n = 0; n < NUM_STATE; ++n) {
+            U_begin[n] = U_old[n];
+        }
+
+        // We come in here with an initial guess for the new solution
+        // stored in U_new. That only really makes sense for the case
+        // where we have 1 substep. Otherwise, we should just use the
+        // previous subinterval solution.
+
         if (nsub > 1) {
             for (int n = 0; n < NUM_STATE; ++n) {
                 U_new[n] = U_old[n];
@@ -276,10 +281,13 @@ sdc_newton_subdivide(const Real dt_m,
         Real dt_sub = dt_m / nsub;
 
         for (int isub = 0; isub < nsub; ++isub) {
-            // normalize species
+
+            // integrate from U_begin to U_new over a step dt_m / nsub
+
+            // normalize species -- we are working with rho X_k here
             Real sum_rhoX = 0.0_rt;
             for (int n = 0; n < NumSpec; ++n) {
-                U_begin[UFS + n] = amrex::max(network_rp::small_x, U_begin[UFS + n]);
+                U_begin[UFS + n] = amrex::max(U_begin[URHO] * network_rp::small_x, U_begin[UFS + n]);
                 sum_rhoX += U_begin[UFS + n];
             }
             for (int n = 0; n < NumSpec; ++n) {

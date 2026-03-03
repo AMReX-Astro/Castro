@@ -2361,7 +2361,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int hiVectXZ[3] = {domhi[0]+1, 0         , domhi[2]+1};
 
     const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
-    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
+    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[2]+1};
 
     const int bc_lo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
     const int bc_hi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
@@ -2558,7 +2558,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                                 locb[0] = problo[0];
                             }
                             else if (l == bc_hi[0]) {
-                                locb[0] = probhi[1];
+                                locb[0] = probhi[0];
                             }
                             else {
                                 locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
