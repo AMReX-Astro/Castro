@@ -14,6 +14,7 @@ apply_metric(const Box& bx,
 #if AMREX_SPACEDIM >= 2
              Array4<Real> const& ecy, const Box& ybx,
 #endif
+             GpuArray<Real, AMREX_SPACEDIM> problo,
              GpuArray<Real, AMREX_SPACEDIM> dx,
              const int coord_type);
 
