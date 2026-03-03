@@ -1013,8 +1013,8 @@ Gravity::test_residual (const Box& bx,
 #if AMREX_SPACEDIM == 3
                         Array4<Real> const& ecz,
 #endif
-                        GpuArray<Real, AMREX_SPACEDIM> dx,
-                        GpuArray<Real, AMREX_SPACEDIM> problo,
+                        const GpuArray<Real, AMREX_SPACEDIM>& dx,
+                        const GpuArray<Real, AMREX_SPACEDIM>& problo,
                         int coord_type)
 {
     // Test whether using the edge-based gradients
