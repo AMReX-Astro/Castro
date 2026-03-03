@@ -28,11 +28,12 @@ The different inputs files setup different fuels or solvers.
 
 * `inputs.C` : a pure C flame at a density of 5.e8 g/cc, appropriate
   for SN Ia.  This is a very small domain and the resolution
-  requirements are very dependent on the density---this uses a resolution
-  of about 2.e-5 cm.  It takes about 5.e-9 s to get established and has a speed
-  of about 6e6 cm/s.
+  requirements are very dependent on the density---this uses a
+  resolution of about 2.e-5 cm.  It takes about 5.e-9 s to get
+  established and has a speed of about 6e6 cm/s.
 
-## Analysis
+
+# Analysis
 
 There are several scripts in the `analysis/` subdirectory.  These
 include:
@@ -56,7 +57,14 @@ include:
 * `snapshot.py` : for a single plotfile, show the temperature,
   energy generation, and composition as a function of position.
   This will focus on only the most abundant nuclei.
-  
+
+* `flame_speed.py` : this loop over all the files and use a cubic
+  interpolant to find the position of the flame where the temperature
+  is T0, T0 +/- dT0, and then difference in time across files to find
+  the flame speed (with uncertainty).  T0 and dT0 can be set via
+  runtime parameters, and should be temperatures where the flame
+  profile is very steep.  The flame width is also computed.
+
 # Publications
 
 The SDC inputs files were used for a demonstration of a 4th order
