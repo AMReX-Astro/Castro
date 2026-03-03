@@ -259,7 +259,7 @@ sdc_newton_subdivide(const Real dt_m,
     int nsub = 1;
     ierr = newton::CONVERGENCE_FAILURE;
 
-    while (nsub < MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
+    while (nsub <= MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
 
         // For the first interval, we set the starting state to
         // the old-time solution.
