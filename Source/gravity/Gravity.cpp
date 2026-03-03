@@ -2859,9 +2859,9 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 {
     BL_PROFILE("Gravity::applyMetricTerms()");
 
-    auto dx = parent->Geom(level).CellSizeArray();
-    auto problo = parent->Geom(level).ProbLoArray();
-    int coord_type = parent->Geom(level).Coord();
+    const auto dx = parent->Geom(level).CellSizeArray();
+    const auto problo = parent->Geom(level).ProbLoArray();
+    const int coord_type = parent->Geom(level).Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
