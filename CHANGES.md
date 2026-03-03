@@ -1,20 +1,72 @@
+# 26.03
+
+  * fix the embiggener compilation (#3285)
+
+  * fix the time used in post-timestep regridding error estimators
+    (#3284)
+
+  * github action CI version updates (#3283)
+
+  * fix the value of dx in the SCF diagnostic code (#3278)
+
+  * fix the initial state in the SDC Newton subdivide solver (#3276)
+
+  * fix a check on the maximum number of iterations in `binary.H`
+    (#3277)
+
+  * fix the computation of zone location in hybrid momentum for old
+    gravity source (#3280)
+
+  * fix bounds issue in radiation flattening (#3279)
+
+  * doc updates for point mass gravity (#3273) and accessibility
+    (#3205)
+
+  * fix indexing in valid_zones_to_burn for corner case (#3270)
+
+  * fix small_x clamping in true SDC (#3268)
+
+  * fix some indexing in the 4th order code (#3266)
+
+  * add abort on invalid value of `sdc_solver` (#3267)
+
+  * fix `amrex_assert` on `cot` (#3261)
+
+  * fix radial vector used in rotation in 2d spherical geometry (#3262)
+
+  * fix indexing bug in low-z HSE BC (#3239)
+
+  * fix some `Make.package` header sources (#3238, #3240)
+
+  * fix vorticity magnitude for 2d spherical (#3265)
+
+  * make computation of radius consistently include problo (#3264)
+
+  * update CI due to Microphysics changes (#3263)
+
+  * fix indexing bugs in direct sum gravity (#3242)
+
+  * sync the build info with `job_info` (#3204)
+
+  * update the python version + fetch-depth in CI actions (#3199)
+
 # 26.02
 
   * update CI due to Microphysics optimizations (#3189, #3203)
 
   * `Detonation` : fix plotting script for mass fractions (#3200)
 
-  * fix make flags in ``job_info`` (#3195)
+  * fix make flags in `job_info` (#3195)
 
-  * fix radiation compilation due to ``Array4`` changes (#3198)
+  * fix radiation compilation due to `Array4` changes (#3198)
 
-  * ``xrb_spherical`` : fix ash field in plot output
+  * `xrb_spherical` : fix ash field in plot output
 
   * cppcheck fixes
 
   * update to C++20 (#3097)
 
-  * optimization and cleaning of ``check_for_negative_density`` (#3191)
+  * optimization and cleaning of `check_for_negative_density` (#3191)
 
   * diffusion optimization and modernization (#3192)
 
@@ -22,9 +74,9 @@
 
   * optimize the transverse flux correction in CTU hydro (#3181)
 
-  * ``massive_star`` : add another 3D visualization script
+  * `massive_star` : add another 3D visualization script
 
-  * optimize ``ambient_fill` (#3190)
+  * optimize `ambient_fill` (#3190)
 
 # 26.01
 
@@ -219,7 +271,7 @@
 
   * update `subch_planar` `README.md` (#3075)
 
-  * update ``diffusion_test`` with improved documentation for the 2D
+  * update `diffusion_test` with improved documentation for the 2D
     spherical test (#3072)
 
   * add protection to the build system that checks to make sure that a
@@ -731,7 +783,7 @@
      done to allow for a PPM implementation to be added without changing
      the default behavior of that method. (#2205)
 
-   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+   * The `castro.use_pslope` functionality to well-balance HSE has been
      extended to PPM (#2202)
 
 # 22.05
