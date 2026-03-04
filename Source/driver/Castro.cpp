@@ -515,6 +515,9 @@ Castro::read_params ()
         amrex::Error();
     }
 #endif
+
+    AMREX_ALWAYS_ASSERT(rot_axis >= 1 && rot_axis <= 3);
+
 #endif
 
 #ifdef SPONGE
