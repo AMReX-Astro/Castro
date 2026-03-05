@@ -27,6 +27,8 @@ amr.n_error_buf      = 2 2 2 2 2 0 0 0 0 0 0
 amr.blocking_factor  = 16
 amr.max_grid_size    = 32
 
+castro.max_tagging_radius = 0.6
+
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_grav  = 1
