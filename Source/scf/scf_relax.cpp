@@ -570,7 +570,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             auto geomdata = parent->Geom(lev).data();
-            const auto dx = parent->Geom(lev).CellSizeArray();
 
             ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
             ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
