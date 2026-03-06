@@ -7,6 +7,47 @@ using namespace amrex;
 
 #ifdef GRAVITY
 #ifdef ROTATION
+
+namespace scf {
+
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    Real scale_factor (int i, int j, int k,
+                       const GeometryData& geomdata,
+                       GpuArray<Real, 3> scf_r)
+    {
+        const auto *dx = geomdata.CellSize();
+
+        GpuArray<Real, 3> r = {0.0};
+        position(i, j, k, geomdata, r);
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+            r[n] -= problem::center[n];
+        }
+
+        // Do a trilinear interpolation to find the contribution from
+        // this grid point. Limit so that only the nearest zone centers
+        // can participate. This implies that the maximum allowable
+        // distance from the target location is 0.5 * dx.
+
+        GpuArray<Real, 3> rr = {0.0};
+
+        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+            rr[n] = std::abs(r[n] - scf_r[n]) / dx[n];
+        }
+
+        Real scale;
+
+        if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
+            scale = 0.0;
+        }
+        else {
+            scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
+        }
+
+        return scale;
+    }
+
+}
+
 void Castro::scf_relaxation() {
 
     AMREX_ASSERT(level == 0);
@@ -242,65 +283,15 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
+                    Real scale_A = scf::scale_factor(i, j, k, geomdata, scf_r_A);
 
-                    // The below assumes we are rotating on the z-axis.
+                    Real dphi_A = scale_A * phi_arr(i,j,k);
+                    Real dpsi_A = scale_A * psi_arr(i,j,k);
 
-                    Real r[3] = {0.0};
+                    Real scale_B = scf::scale_factor(i, j, k, geomdata, scf_r_B);
 
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
-                    // Do a trilinear interpolation to find the contribution from
-                    // this grid point. Limit so that only the nearest zone centers
-                    // can participate. This implies that the maximum allowable
-                    // distance from the target location is 0.5 * dx.
-
-                    Real rr[3] = {0.0};
-
-                    rr[0] = std::abs(r[0] - scf_r_A[0]) / dx[0];
-#if AMREX_SPACEDIM >= 2
-                    rr[1] = std::abs(r[1] - scf_r_A[1]) / dx[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    rr[2] = std::abs(r[2] - scf_r_A[2]) / dx[2];
-#endif
-
-                    Real scale;
-
-                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
-                        scale = 0.0;
-                    }
-                    else {
-                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
-                    }
-
-                    Real dphi_A = scale * phi_arr(i,j,k);
-                    Real dpsi_A = scale * psi_arr(i,j,k);
-
-                    rr[0] = std::abs(r[0] - scf_r_B[0]) / dx[0];
-#if AMREX_SPACEDIM >= 2
-                    rr[1] = std::abs(r[1] - scf_r_B[1]) / dx[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    rr[2] = std::abs(r[2] - scf_r_B[2]) / dx[2];
-#endif
-
-                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
-                        scale = 0.0;
-                    }
-                    else {
-                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
-                    }
-
-                    Real dphi_B = scale * phi_arr(i,j,k);
-                    Real dpsi_B = scale * psi_arr(i,j,k);
+                    Real dphi_B = scale_B * phi_arr(i,j,k);
+                    Real dpsi_B = scale_B * psi_arr(i,j,k);
 
                     return {dphi_A, dpsi_A, dphi_B, dpsi_B};
                 });
@@ -375,44 +366,15 @@ Castro::do_hscf_solve()
                 reduce_op.eval(bx, reduce_data,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
-                    const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
                     const auto coord = geomdata.Coord();
 
-                    // The below assumes we are rotating on the z-axis.
-
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
-                    // Do a trilinear interpolation to find the contribution from
-                    // this grid point. Limit so that only the nearest zone centers
-                    // can participate. This implies that the maximum allowable
-                    // distance from the target location is 0.5 * dx.
-
-                    Real rr[3] = {0.0};
-
-                    rr[0] = std::abs(r[0] - scf_r_A[0]) / dx[0];
-#if AMREX_SPACEDIM >= 2
-                    rr[1] = std::abs(r[1] - scf_r_A[1]) / dx[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    rr[2] = std::abs(r[2] - scf_r_A[2]) / dx[2];
-#endif
-                    Real scale;
-
-                    if (rr[0] > 1.0_rt || rr[1] > 1.0_rt || rr[2] > 1.0_rt) {
-                        scale = 0.0;
+                    position(i, j, k, geomdata, r);
+                    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                        r[n] -= problem::center[n];
                     }
-                    else {
-                        scale = (1.0_rt - rr[0]) * (1.0_rt - rr[1]) * (1.0_rt - rr[2]);
-                    }
+
+                    Real scale = scf::scale_factor(i, j, k, geomdata, scf_r_A);
 
                     auto omega = get_omega_vec(geomdata, j);
                     Real bernoulli_zone = scale * (phi_arr(i,j,k) + rotational_potential(r, omega, coord));
@@ -453,23 +415,17 @@ Castro::do_hscf_solve()
                 amrex::ParallelFor(bx,
                 [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
+                    const auto coord = geomdata.Coord();
+
                     // The Bernoulli equation says that energy is conserved:
                     // enthalpy + gravitational potential + rotational potential = const
                     // We already have the constant, so our goal is to construct the enthalpy field.
 
-                    const auto *dx = geomdata.CellSize();
-                    const auto *problo = geomdata.ProbLo();
-                    const auto coord = geomdata.Coord();
-
                     GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
+                    position(i, j, k, geomdata, r);
+                    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                        r[n] -= problem::center[n];
+                    }
 
                     auto omega = get_omega_vec(geomdata, j);
                     enthalpy_arr(i,j,k) = bernoulli - phi_arr(i,j,k) - rotational_potential(r, omega, coord);
@@ -614,15 +570,6 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             auto geomdata = parent->Geom(lev).data();
-            const auto dx = parent->Geom(lev).CellSizeArray();
-
-            Real dV = dx[0];
-#if AMREX_SPACEDIM >= 2
-            dV *= dx[1];
-#endif
-#if AMREX_SPACEDIM == 3
-            dV *= dx[2];
-#endif
 
             ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum> reduce_op;
             ReduceData<Real, Real, Real, Real> reduce_data(reduce_op);
@@ -643,21 +590,17 @@ Castro::do_hscf_solve()
                 {
                     Real dM = 0.0, dK = 0.0, dU = 0.0, dE = 0.0;
 
-                    const auto* problo = geomdata.ProbLo();
-                    const auto coord = geomdata.Coord();
-
-                    GpuArray<Real, 3> r = {0.0};
-
-                    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
-#if AMREX_SPACEDIM >= 2
-                    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
-#endif
-#if AMREX_SPACEDIM == 3
-                    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
-#endif
-
                     if (state_arr(i,j,k,URHO) > 0.0)
                     {
+                        const auto coord = geomdata.Coord();
+
+                        GpuArray<Real, 3> r = {0.0};
+                        position(i, j, k, geomdata, r);
+                        for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                            r[n] -= problem::center[n];
+                        }
+
+                        Real dV = geometry_util::volume(i, j, k, geomdata);
                         dM = state_arr(i,j,k,URHO) * dV;
 
                         auto omega = get_omega_vec(geomdata, j);
