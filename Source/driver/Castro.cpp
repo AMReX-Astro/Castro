@@ -11,6 +11,7 @@
 #include <string>
 #include <ctime>
 #include <memory>
+#include <numbers>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -310,13 +311,13 @@ Castro::read_params ()
           amrex::Error();
         }
 
-        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - std::numbers::pi) <= 1.e-4_rt) )
         {
           std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
           amrex::Error();
         }
 
-        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > std::numbers::pi) )
         {
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }

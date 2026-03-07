@@ -1,5 +1,7 @@
 #include <iomanip>
 
+#include <numbers>
+
 #include <Castro.H>
 #include <Castro_util.H>
 
@@ -465,11 +467,11 @@ Castro::gwstrain (Real time,
                 // We also need to then divide by the volume by 2*pi since
                 // it has already been integrated out.
 
-                dM /= (2.0_rt * M_PI);
+                dM /= (2.0_rt * std::numbers::pi);
 
-                dQtt(0,0) += dM * (2.0_rt * M_PI) * (inertial_vel[1] * inertial_vel[1] + pos[1] * inertial_g[1]);
-                dQtt(1,1) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
-                dQtt(2,2) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+                dQtt(0,0) += dM * (2.0_rt * std::numbers::pi) * (inertial_vel[1] * inertial_vel[1] + pos[1] * inertial_g[1]);
+                dQtt(1,1) += dM * std::numbers::pi * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+                dQtt(2,2) += dM * std::numbers::pi * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
 
             }
 
