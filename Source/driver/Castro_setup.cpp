@@ -1,5 +1,7 @@
 #include <cstdio>
 
+#include <array>
+
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
@@ -31,8 +33,7 @@ namespace {
     // Components are:
     //  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
     //
-    int scalar_bc[] =
-    {
+    constexpr std::array<int, 6> scalar_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -41,8 +42,7 @@ namespace {
         amrex::BCType::reflect_even
     };
 
-    int norm_vel_bc[] =
-    {
+    constexpr std::array<int, 6> norm_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -51,8 +51,7 @@ namespace {
         amrex::BCType::reflect_odd
     };
 
-    int tang_vel_bc[] =
-    {
+    constexpr std::array<int, 6> tang_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -62,8 +61,7 @@ namespace {
     };
 
 #ifdef MHD
-    int mag_field_bc[] =
-    {
+    constexpr std::array<int, 6> mag_field_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,

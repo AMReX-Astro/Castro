@@ -701,9 +701,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   // these names correspond to the integer flags setup in the
   // Castro_setup.cpp
-  const char* names_bc[] =
-    { "interior", "inflow", "outflow",
-      "symmetry", "slipwall", "noslipwall" };
+  constexpr std::array<std::string_view, 6> names_bc{
+      "interior", "inflow", "outflow",
+      "symmetry", "slipwall", "noslipwall"};
 
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
