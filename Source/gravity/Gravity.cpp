@@ -189,7 +189,7 @@ Gravity::read_params ()
             // on the finest level that we solve for.
 
             for (int lev = 1; lev < nlevs; ++lev) {
-                abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+                abs_tol[lev] = abs_tol[lev - 1] * amrex::Math::powi<2>(parent->refRatio(lev - 1)[0]);
             }
 
         } else if (n_abs_tol >= nlevs) {
