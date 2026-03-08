@@ -99,6 +99,8 @@ sdc_newton_solve(const Real dt_m,
     // upon exit, U_new will be returned with the value that satisfied
     // the nonlinear function
 
+    amrex::ignore_unused(sdc_iteration);
+
     JacNetArray2D Jac;
 
     // we will do the implicit update of only the terms that
@@ -218,10 +220,6 @@ sdc_newton_solve(const Real dt_m,
 
     for (int n = 0; n < NumSpec; ++n) {
         U_new[UFS+n] = burn_state.y[SFS+n];
-    }
-    auto v2 = 0.0_rt;
-    for (int m = 0; m < 3; ++m) {
-        v2 += U_new[UMX+m] * U_new[UMX+m];
     }
 
     U_new[UEINT] = burn_state.y[SEINT];

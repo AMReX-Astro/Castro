@@ -160,12 +160,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             auto R_m_old = (*R_old[m_start]).array(mfi);
             auto C_arr = C2.array();
 
+            auto lsdc_iteration = sdc_iteration;   // avoid capturing this
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 // solve U^{n+1} - dt_m R(U^{n+1}) - U^n - dt_m C = 0
                 // we use A_m and R_m_old to construct an initial guess for U^{n+1}
-                sdc_update_o2(i, j, k, k_m, k_n, A_m, R_m_old, C_arr, dt_m, sdc_iteration, m_start);
+                sdc_update_o2(i, j, k, k_m, k_n, A_m, R_m_old, C_arr, dt_m, lsdc_iteration, m_start);
             });
 
         } else {
@@ -209,10 +210,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // an average in Sburn
             make_cell_center(bx1, Sburn.array(mfi), U_new_center_arr, domain_lo, domain_hi);
 
+            auto lsdc_iteration = sdc_iteration;  // avoid capturing this
+
             amrex::ParallelFor(bx1,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, sdc_iteration);
+                sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, lsdc_iteration);
             });
 
             // enforce that the species sum to one after the reaction solve
