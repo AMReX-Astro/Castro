@@ -388,19 +388,18 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind ||
-      time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      time_integration_method == SimplifiedSpectralDeferredCorrections) {  // NOLINT(bugprone-branch-clone)
       source_ng = NUM_GROW_SRC;
   } else if (time_integration_method == SpectralDeferredCorrections) {
-      if (sdc_order == 2 && use_pslope) {  // NOLINT(bugprone-branch-clone)
+#ifdef SHOCK_VAR
+      source_ng = NUM_GROW_SRC;
+#else
+      if (sdc_order == 2 && use_pslope) {
           source_ng = NUM_GROW_SRC;
       } else {
-#ifdef SHOCK_VAR
-          // we need to reconstruct HSE with a shock
-          source_ng = NUM_GROW_SRC;
-#else
           source_ng = 1;
-#endif
       }
+#endif
   } else {
       amrex::Error("Unknown time_integration_method");
   }
