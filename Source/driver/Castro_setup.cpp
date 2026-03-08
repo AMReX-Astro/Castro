@@ -292,7 +292,7 @@ Castro::variableSetUp ()
   // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
-    use_retry = 0;
+    use_retry = false;
   }
 #endif
 #endif
@@ -387,17 +387,21 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   int source_ng = 0;
-  if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+  if (time_integration_method == CornerTransportUpwind ||
+      time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW_SRC;
-  }
-  else if (time_integration_method == SpectralDeferredCorrections) {
-    if (sdc_order == 2 && use_pslope) {
-      source_ng = NUM_GROW_SRC;
-    } else {
-      source_ng = 1;
-    }
-  }
-  else {
+  } else if (time_integration_method == SpectralDeferredCorrections) {
+      if (sdc_order == 2 && use_pslope) {  // NOLINT(bugprone-branch-clone)
+          source_ng = NUM_GROW_SRC;
+      } else {
+#ifdef SHOCK_VAR
+          // we need to reconstruct HSE with a shock
+          source_ng = NUM_GROW_SRC;
+#else
+          source_ng = 1;
+#endif
+      }
+  } else {
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),

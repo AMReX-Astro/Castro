@@ -557,7 +557,7 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
     MultiFab& old_source = get_old_data(Source_Type);
 
     FArrayBox shk(The_Async_Arena());
-    FArrayBox q(The_Async_Arena()), qaux(The_Async_Arena());
+    FArrayBox q_tmp(The_Async_Arena()), qaux_tmp(The_Async_Arena());
 
     for (MFIter mfi(Sborder, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
@@ -565,15 +565,15 @@ Castro::pre_advance_operators (Real time, Real dt)  // NOLINT(readability-conver
 
         shk.resize(bx, 1);
 #ifdef RADIATION
-        q.resize(obx, NQ);
+        q_tmp.resize(obx, NQ);
 #else
-        q.resize(obx, NQTHERM);
+        q_tmp.resize(obx, NQTHERM);
 #endif
-        qaux.resize(obx, NQAUX);
+        qaux_tmp.resize(obx, NQAUX);
 
         Array4<Real> const shk_arr = shk.array();
-        Array4<Real> const q_arr = q.array();
-        Array4<Real> const qaux_arr = qaux.array();
+        Array4<Real> const q_arr = q_tmp.array();
+        Array4<Real> const qaux_arr = qaux_tmp.array();
 
         Array4<Real const> const Sborder_old_arr = Sborder.array(mfi);
         Array4<Real> const S_old_arr = S_old.array(mfi);
