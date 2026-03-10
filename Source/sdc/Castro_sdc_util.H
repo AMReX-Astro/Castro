@@ -9,6 +9,7 @@
 #include <Castro_react_util.H>
 #include <sdc_newton_solve.H>
 #include <sdc_vode_solve.H>
+#include <sdc_powell_solve.H>
 #endif
 
 namespace sdc_solvers {
@@ -85,6 +86,10 @@ sdc_solve(const Real dt_m,
         if (ierr != newton_status::success) {
             amrex::Abort("Newton failure in sdc_solve");
         }
+
+    } else if (sdc_solver == sdc_solvers::hybrid_powell) {
+        sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
+
     } else {
         amrex::Abort("invalid sdc_solver value");
     }

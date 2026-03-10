@@ -33,10 +33,6 @@ namespace newton {
 
         GpuArray<Real, NUM_STATE> R_full;
 
-        // create a burn_t -- this will hold the full state, reconstructed
-        // from the current solution U
-
-
         // compute the temperature -- this can be removed shortly, since
         // we already do this in single_zone_react_source
 

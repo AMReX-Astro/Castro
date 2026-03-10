@@ -3,7 +3,7 @@
 
 #include <sdc_react_util.H>
 #include <hybrj.H>
-
+#include <hybrj_type.H>
 
 namespace powell {
 
@@ -11,66 +11,99 @@ namespace powell {
 
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void
-    f_sdc_jac(const Real dt_m,
-              burn_t& burn_state,
-              Array1D<Real, 1, NumSpec+1>& f,
-              JacNetArray2D& Jac) {
+    f_sdc(const amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
+          Array1D<Real, 1, NumSpec+1>& f,  // constraint equations to zero
+          burn_t& burn_state,
+          int& iflag) {
 
-        // This is used with the Newton solve and returns f and the Jacobian
+        // This is used with the hybrid Powell solver to compute f
+        // evaluated with x
+        //
+        // x is {rho X_1, rho X_2, ... rho X_N, rho e}
 
         GpuArray<Real, NUM_STATE> R_full;
 
-        // create a burn_t -- this will hold the full state, reconstructed
-        // from the current solution U
-
+        // we'll use the passed-in burn_t as our working state.  We need to
+        // sync it with the input state x
 
         // compute the temperature -- this can be removed shortly, since
         // we already do this in single_zone_react_source
 
         for (int n = 0; n < NumSpec; ++n) {
-            burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] / burn_state.y[SRHO], network_rp::small_x, 1.0_rt);
+            burn_state.xn[n] = amrex::Clamp(x(n+1) / burn_state.rho,
+                                            network_rp::small_x, 1.0_rt);
         }
 #if NAUX_NET > 0
         amrex::Error("error: aux data not currently supported in true SDC");
 #endif
 
-        burn_state.e = burn_state.y[SEINT] / burn_state.y[SRHO];
+        burn_state.e = x(NumSpec+1) / burn_state.rho;
 
         eos(eos_input_re, burn_state);
 
+        // get the reactive term for this state
+
         single_zone_react_source(burn_state, R_full);
 
-        // we are solving J dU = -f
         // where f is Eq. 36 evaluated with the current guess for U
-        // note: we store -f
+        // we use ydot_a here to be U^n + dt_m C
+        // Note: this is -f, it doesn't matter, since we are zeroing
+        // it.
+
+        auto dt_m = burn_state.time;
 
         for (int n = 1; n <= NumSpec; ++n) {
-            f(n) = -burn_state.y[SFS-1+n] +
+            f(n) = -burn_state.xn[n+1] +
                 dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
         }
-        f(NumSpec+1) = -burn_state.y[SEINT] +
+        f(NumSpec+1) = -burn_state.rho * burn_state.e +
             dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
 
-        // get the Jacobian.
+    }
+
+
+    AMREX_GPU_HOST_DEVICE AMREX_INLINE
+    void
+    jac_sdc(const amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
+            Array2D<Real, 1, NumSpec+1, 1, NumSpec+1>& Jac,  // constraint equations to zero
+            burn_t& burn_state,
+            int& iflag) {
+
+        // This is used with the hybrid Powell solver to compute J
+        // evaluated with x
+        //
+        // x is {rho X_1, rho X_2, ... rho X_N, rho e}
+
+        GpuArray<Real, NUM_STATE> R_full;
+
+        // we'll use the passed-in burn_t as our working state.  We need to
+        // sync it with the input state x
+
+        // compute the temperature -- this can be removed shortly, since
+        // we already do this in single_zone_react_source
+
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.xn[n] = amrex::Clamp(x(n+1) / burn_state.rho,
+                                            network_rp::small_x, 1.0_rt);
+        }
+#if NAUX_NET > 0
+        amrex::Error("error: aux data not currently supported in true SDC");
+#endif
+
+        burn_state.e = x(NumSpec+1) / burn_state.rho;
+
+        eos(eos_input_re, burn_state);
 
         // Instead of the decomposition into dw/dU and dR/dw
         // written out in the original paper Appendix A, we instead use the
         // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
         // we are not including density anymore.
 
+        auto dt_m = burn_state.time;
+
         single_zone_jac(burn_state, dt_m, Jac);
-
-        // Our Jacobian has the form:  J = I - dt dR/dw dwdU
-        // (Eq. 38), so now we fix that
-
-        for (int n = 1; n <= NumSpec+1; ++n) {
-            for (int m = 1; m <= NumSpec+1; ++m) {
-                Real coeff = (m == n) ? 1.0_rt : 0.0_rt;
-                Jac(n, m) = coeff - dt_m * Jac(n, m);
-            }
-        }
-
     }
+
 
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void
@@ -78,9 +111,7 @@ namespace powell {
                      GpuArray<Real, NUM_STATE> const& U_old,
                      GpuArray<Real, NUM_STATE> & U_new,
                      GpuArray<Real, NUM_STATE> const& C,
-                     const int sdc_iteration,
-                     Real& err_out,
-                     int& ierr) {
+                     const int sdc_iteration) {
 
         // the purpose of this function is to solve the system
         //  U - dt R(U) = U_old + dt C
@@ -115,7 +146,7 @@ namespace powell {
         copy_cons_to_burn_type(U_new, burn_state);
         burn_state.rho = U_new[URHO];
 
-        // for the Jacobian solve, we are solving
+        // we are solving
         //   f(U) = U - dt R(U) - U_old - dt C = 0
         // we define f_source = U_old + dt C so we are solving
         //   f(U) = U - dt R(U) - f_source = 0
@@ -130,17 +161,32 @@ namespace powell {
         // we need dt in the RHS, pass this through using the time field
         burn_state.time = dt_m;
 
+        // The Powell solver stores the solution vector in its own type
+        hybrj_t<NumSpec+1> hj;
+        hj.xtol = 1.e-10;
+        hj.mode = 1;
+
+        // locate the initial guess
+        for (int n = 0; n < NumSpec; ++n) {
+            hj.x(n+1) = U_new[UFS+n];
+        }
+        hj.x(NumSpec+1) = U_new[UEINT];
+
         // call the powell solver
 
-        TODO HERE
+        hybrj<NumSpec+1, burn_t>(hj, burn_state, f_sdc, jac_sdc);
+
+        if (hj.info != 1) {
+            amrex::Error("hybrid Powell solve failed");
+        }
 
         // update the full U_new
 
         for (int n = 0; n < NumSpec; ++n) {
-            U_new[UFS+n] = burn_state.y[SFS+n];
+            U_new[UFS+n] = hj.x(n+1);
         }
 
-        U_new[UEINT] = burn_state.y[SEINT];
+        U_new[UEINT] = hj.x(NumSpec+1);
 
         // we want to do a conservative update for (rho E), so first
         // figure out the energy generation rate
