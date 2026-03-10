@@ -11,9 +11,9 @@ namespace powell {
 
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void
-    f_sdc(const amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
+    f_sdc(amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
           Array1D<Real, 1, NumSpec+1>& f,  // constraint equations to zero
-          burn_t& burn_state,
+          const burn_t& burn_state_in,
           int& iflag) {
 
         // This is used with the hybrid Powell solver to compute f
@@ -25,6 +25,8 @@ namespace powell {
 
         // we'll use the passed-in burn_t as our working state.  We need to
         // sync it with the input state x
+
+        auto burn_state = burn_state_in;
 
         // compute the temperature -- this can be removed shortly, since
         // we already do this in single_zone_react_source
@@ -64,9 +66,9 @@ namespace powell {
 
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void
-    jac_sdc(const amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
-            Array2D<Real, 1, NumSpec+1, 1, NumSpec+1>& Jac,  // constraint equations to zero
-            burn_t& burn_state,
+    jac_sdc(amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
+            JacNetArray2D& Jac,  // constraint equations to zero
+            const burn_t& burn_state_in,
             int& iflag) {
 
         // This is used with the hybrid Powell solver to compute J
@@ -78,6 +80,8 @@ namespace powell {
 
         // we'll use the passed-in burn_t as our working state.  We need to
         // sync it with the input state x
+
+        auto burn_state = burn_state_in;
 
         // compute the temperature -- this can be removed shortly, since
         // we already do this in single_zone_react_source
@@ -162,7 +166,7 @@ namespace powell {
         burn_state.time = dt_m;
 
         // The Powell solver stores the solution vector in its own type
-        hybrj_t<NumSpec+1> hj;
+        hybrj_t<NumSpec+1, JacNetArray2D> hj;
         hj.xtol = 1.e-10;
         hj.mode = 1;
 
