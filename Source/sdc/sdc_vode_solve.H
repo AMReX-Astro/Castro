@@ -1,5 +1,5 @@
-#ifndef VODE_RHS_TRUE_SDC_H
-#define VODE_RHS_TRUE_SDC_H
+#ifndef SDC_VODE_SOLVE_H
+#define SDC_VODE_SOLVE_H
 
 #include <network.H>
 #include <burn_type.H>
@@ -114,4 +114,3 @@ sdc_vode_solve(const Real dt_m,
 }
 
 #endif
-
