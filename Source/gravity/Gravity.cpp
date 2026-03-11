@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -39,7 +40,7 @@ Real Gravity::mass_offset    =  0.0;
 
 // ************************************************************************************** //
 
-const Real Ggravity = 4.0 * M_PI * C::Gconst;
+const Real Ggravity = 4.0 * std::numbers::pi * C::Gconst;
 
 ///
 /// Multipole gravity data
@@ -189,7 +190,7 @@ Gravity::read_params ()
             // on the finest level that we solve for.
 
             for (int lev = 1; lev < nlevs; ++lev) {
-                abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+                abs_tol[lev] = abs_tol[lev - 1] * amrex::Math::powi<2>(parent->refRatio(lev - 1)[0]);
             }
 
         } else if (n_abs_tol >= nlevs) {
@@ -1579,13 +1580,13 @@ Gravity::compute_radial_mass(const Box& bx,
 
                         } else if (coord_type == 1) {
 
-                            vol_frac = 2.0_rt * M_PI * dx_frac * dy_frac * octant_factor * xx;
+                            vol_frac = 2.0_rt * std::numbers::pi * dx_frac * dy_frac * octant_factor * xx;
 
                         } else if (coord_type == 2) {
 
                             Real rlo = std::abs(lo_i + static_cast<Real>(ii  ) * dx_frac);
                             Real rhi = std::abs(lo_i + static_cast<Real>(ii+1) * dx_frac);
-                            vol_frac = (4.0_rt / 3.0_rt) * M_PI * (rhi * rhi * rhi - rlo * rlo * rlo);
+                            vol_frac = (4.0_rt / 3.0_rt) * std::numbers::pi * (rhi * rhi * rhi - rlo * rlo * rlo);
 
                         }
 
@@ -3414,8 +3415,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 Real rc  = (static_cast<Real>(i-1) + 0.5_rt) * dr;
                 Real rhi = (static_cast<Real>(i-1) + 1.0_rt) * dr;
 
-                Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
-                Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+                Real vol_shell = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
+                Real vol_zone  = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
                 dM = dM + (vol_shell / vol_zone) * mass[i-1];
             }
 
@@ -3425,8 +3426,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             // The mass at (i) is distributed into an upper and lower shell; the
             // contribution to the mass at zone center i is from the lower shell.
-            Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
-            Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+            Real vol_shell = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
+            Real vol_zone  = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
             dM = dM + (vol_shell / vol_zone) * mass[i];
 
             return dM;
@@ -3442,7 +3443,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             if (den[i] > 0.0_rt) {
                 Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * std::numbers::pi) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
                 Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl_local / (rc * C::c_light * C::c_light));
 
                 grav[i] = grav[i] * ga * gb * gc;
