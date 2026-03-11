@@ -61,7 +61,7 @@ Castro::source_flag(int src)
 #endif
 
     case geom_src:
-        if (geom.Coord() == 0) {
+        if (geom.Coord() == 0 || use_geom_source == 0) {
           return false;
         } else {
           return true;
