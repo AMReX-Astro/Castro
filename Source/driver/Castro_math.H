@@ -5,6 +5,7 @@
 #include <AMReX_Array.H>
 #include <AMReX_BLassert.H>
 #include <cmath>
+#include <numbers>
 
 using namespace amrex::literals;
 
@@ -32,8 +33,8 @@ amrex::Real cot(amrex::Real x) {
     // i.e. if x = -0.1 -> x = 0.1
     // and  if x = 5π/4 -> x = 3π/4
 
-    if (x < 0.0_rt || x > M_PI) {
-        x = M_PI - x;
+    if (x < 0.0_rt || x > std::numbers::pi) {
+        x = std::numbers::pi - x;
     }
     return std::cos(x) / std::sin(x);
 }

@@ -1,3 +1,5 @@
+#include <numbers>
+
 #include <Castro.H>
 #include <fundamental_constants.H>
 #include <Gravity.H>
@@ -337,7 +339,7 @@ Castro::do_hscf_solve()
 
             rotational_period = amrex::min(1.1_rt * rotational_period,
                                            amrex::max(0.9_rt * rotational_period,
-                                                      2.0_rt * M_PI / omega));
+                                                      2.0_rt * std::numbers::pi / omega));
 
         }
 
