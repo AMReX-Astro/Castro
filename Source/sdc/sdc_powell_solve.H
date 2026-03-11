@@ -1,5 +1,5 @@
 #ifndef SDC_POWELL_SOLVE_H
-#define SDC_POWEKK_SOLVE_H
+#define SDC_POWELL_SOLVE_H
 
 #include <sdc_react_util.H>
 #include <hybrj.H>
@@ -15,6 +15,8 @@ namespace powell {
           Array1D<Real, 1, NumSpec+1>& f,  // constraint equations to zero
           const burn_t& burn_state_in,
           int& iflag) {
+
+        amrex::ignore_unused(iflag);
 
         // This is used with the hybrid Powell solver to compute f
         // evaluated with x
@@ -75,8 +77,6 @@ namespace powell {
         // evaluated with x
         //
         // x is {rho X_1, rho X_2, ... rho X_N, rho e}
-
-        GpuArray<Real, NUM_STATE> R_full;
 
         // we'll use the passed-in burn_t as our working state.  We need to
         // sync it with the input state x
