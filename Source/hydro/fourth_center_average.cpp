@@ -15,8 +15,8 @@ Castro::make_cell_center(const Box& bx,
   // Take a cell-average state U and a convert it to a cell-center
   // state U_cc via U_cc = U - 1/24 L U
 
-  auto U_lo = lbound(U);
-  auto U_hi = ubound(U);
+  [[maybe_unused]] const auto U_lo = lbound(U);
+  [[maybe_unused]] const auto U_hi = ubound(U);
 
   const auto *lo = bx.loVect();
   const auto *hi = bx.hiVect();

@@ -25,7 +25,7 @@ cross_product(amrex::GpuArray<amrex::Real, 3> const& a,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 amrex::Real cot(amrex::Real x) {
 
-    constexpr amrex::Real eps = 1.e-14_rt;
+    [[maybe_unused]] constexpr amrex::Real eps = 1.e-14_rt;
     AMREX_ASSERT(std::abs(std::sin(x)) > eps);
 
     // we want to reflect outside of x in [0, pi]
