@@ -382,9 +382,9 @@ Castro::read_params ()
 #endif
 
 #ifdef TRUE_SDC
-    int max_level;
-    ppa.query("max_level", max_level);
-    if (max_level > 0) {
+    int max_level_tmp;
+    ppa.query("max_level", max_level_tmp);
+    if (max_level_tmp > 0) {
         amrex::Error("True SDC does not work with AMR.");
     }
 #endif

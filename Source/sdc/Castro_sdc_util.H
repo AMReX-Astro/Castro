@@ -125,6 +125,8 @@ sdc_update_o2(const int i, const int j, const int k,
               const int sdc_iteration, const int m_start) {
     // update k_m to k_n via advection -- this is a second-order accurate update
 
+    amrex::ignore_unused(m_start);
+
     // Here, dt_m is the timestep between time-nodes m and m+1
 
     GpuArray<Real, NUM_STATE> U_old;

@@ -898,31 +898,37 @@
                               amrex::Array4<amrex::Real> const& F,
                               const int idir, const bool is_avg);
 
+    static
     void make_cell_center(const Box& bx,
                           Array4<Real const> const& U,
                           Array4<Real> const& U_cc,
                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
+    static
     void make_cell_center_in_place(const Box& bx,
                                    Array4<Real> const& U,
                                    Array4<Real> const& tmp,
                                    GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
+    static
     void compute_lap_term(const Box& bx,
                           Array4<Real const> const& U,
                           Array4<Real> const& lap, const int ncomp,
                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
+    static
     void make_fourth_average(const Box& bx,
                              Array4<Real> const& q,
                              Array4<Real const> const& q_bar,
                              GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
+    static
     void make_fourth_in_place(const Box& bx,
                               Array4<Real> const& q,
                               Array4<Real> const& tmp,
                               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
+    static
     void make_fourth_in_place_n(const Box& bx,
                                 Array4<Real> const& q, const int ncomp,
                                 Array4<Real> const& tmp,

@@ -285,7 +285,6 @@ Castro::do_advance_sdc (Real time,
     if (sdc_order == 4) {
         // fill ghost cells on S_new -- we'll need these to convert to
         // centers
-        Real cur_time = state[State_Type].curTime();
         // we'll use Sborder to expand the state, but we already cleared
         // it at the end of the andance
         Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
