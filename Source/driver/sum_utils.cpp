@@ -329,6 +329,8 @@ Castro::gwstrain (Real time,
         return;
     }
 
+    constexpr amrex::Real c_light_4 = amrex::Math::powi<4>(C::c_light);
+
     GeometryData geomdata = geom.data();
 
     MultiFab& S_new = get_new_data(State_Type);
@@ -572,7 +574,7 @@ Castro::gwstrain (Real time,
 
         for (int j = 0; j < 3; ++j) {   // NOLINT(modernize-loop-convert)
             for (int i = 0; i < 3; ++i) {
-                h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
+                h[j][i] *= 2.0_rt * C::Gconst / (c_light_4 * r);
             }
         }
 
