@@ -23,27 +23,14 @@ f_sdc_jac(const Real dt_m,
           Array1D<Real, 1, NumSpec+1>& f,
           JacNetArray2D& Jac) {
 
-    // This is used with the Newton solve and returns f and the Jacobian
+    // This is used with the Newton solve and returns f and the
+    // Jacobian
+
+    // single_zone_react_source will use burn_state.y[] to fill
+    // burn_state.rho, burn_state.e, and burn_state.xn[] and then call
+    // the EOS to get the temperature.
 
     GpuArray<Real, NUM_STATE> R_full;
-
-    // create a burn_t -- this will hold the full state, reconstructed
-    // from the current solution U
-
-
-    // compute the temperature -- this can be removed shortly, since
-    // we already do this in single_zone_react_source
-
-    for (int n = 0; n < NumSpec; ++n) {
-        burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] / burn_state.y[SRHO], network_rp::small_x, 1.0_rt);
-    }
-#if NAUX_NET > 0
-    amrex::Error("error: aux data not currently supported in true SDC");
-#endif
-
-    burn_state.e = burn_state.y[SEINT] / burn_state.y[SRHO];
-
-    eos(eos_input_re, burn_state);
 
     single_zone_react_source(burn_state, R_full);
 
@@ -52,28 +39,30 @@ f_sdc_jac(const Real dt_m,
     // note: we store -f
 
     for (int n = 1; n <= NumSpec; ++n) {
-        f(n) = -burn_state.y[SFS-1+n] + dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
+        f(n) = -burn_state.y[SFS-1+n] +
+            dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
     }
-    f(NumSpec+1) = -burn_state.y[SEINT] + dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
+    f(NumSpec+1) = -burn_state.y[SEINT] +
+        dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
 
     // get the Jacobian.
 
-    // Instead of the decomposition into dw/dU and dR/dw
-    // written out in the original paper Appendix A, we instead use the
-    // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
-    // we are not including density anymore.
+    // Instead of the decomposition into dw/dU and dR/dw written out
+    // in the original paper Appendix A, we instead use the form from
+    // the simplified-SDC paper (Zingale et al. 2022).  Note: we are
+    // not including density anymore.
+
+    // note: single_zone_jac assumes that the burn_state is in sync
+    // already with the current solution guess.  In this case, that
+    // was done in single_zone_react_source.
 
     single_zone_jac(burn_state, dt_m, Jac);
 
     // Our Jacobian has the form:  J = I - dt dR/dw dwdU
     // (Eq. 38), so now we fix that
 
-    for (int n = 1; n <= NumSpec+1; ++n) {
-        for (int m = 1; m <= NumSpec+1; ++m) {
-            Real coeff = (m == n) ? 1.0_rt : 0.0_rt;
-            Jac(n, m) = coeff - dt_m * Jac(n, m);
-        }
-    }
+    Jac.mul(-dt_m);
+    Jac.add_identity();
 
 }
 
