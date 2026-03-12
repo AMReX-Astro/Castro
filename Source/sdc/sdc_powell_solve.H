@@ -76,6 +76,8 @@ namespace powell {
         // evaluated with x
         //
         // x is {rho X_1, rho X_2, ... rho X_N, rho e}
+        //
+        // using 1-based indexing
 
         // we'll use the passed-in burn_t as our working state.  We need to
         // sync it with the input state x
@@ -180,6 +182,7 @@ namespace powell {
         hybrj<NumSpec+1, burn_t>(hj, burn_state, f_sdc, jac_sdc);
 
         if (hj.info != 1) {
+            std::cout << "failure in the Powell solver, error code is: " << hj.info << std::endl;
             amrex::Error("hybrid Powell solve failed");
         }
 

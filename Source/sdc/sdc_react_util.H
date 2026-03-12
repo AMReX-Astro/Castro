@@ -95,6 +95,10 @@ single_zone_jac(burn_t& burn_state, const Real dt, T& Jac) {
 
         jac_info_t jac_info;
         jac_info.h = dt;
+
+        // note: numerical Jacobian works directly off of
+        // burn_state.T, burn_state.e, and burn_state.xn[]
+
         numerical_jac(burn_state, jac_info, Jac);
 
     } else {
