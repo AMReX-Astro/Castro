@@ -73,6 +73,8 @@ namespace powell {
             const burn_t& burn_state_in,
             int& iflag) {
 
+        amrex::ignore_unused(iflag);
+
         // This is used with the hybrid Powell solver to compute J
         // evaluated with x
         //
