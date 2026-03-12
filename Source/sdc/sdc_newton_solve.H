@@ -48,6 +48,10 @@ namespace newton {
 
         eos(eos_input_re, burn_state);
 
+        // fill the reactive term -- note that this will overwrite
+        // burn_state.rho, burn_state.e, and burn_state.xn[] based on
+        // the input burn_state.y[]
+
         single_zone_react_source(burn_state, R_full);
 
         // we are solving J dU = -f

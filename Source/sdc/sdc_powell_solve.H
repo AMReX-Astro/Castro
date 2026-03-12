@@ -22,34 +22,31 @@ namespace powell {
         // evaluated with x
         //
         // x is {rho X_1, rho X_2, ... rho X_N, rho e}
+        //
+        // using 1-based indexing
 
         GpuArray<Real, NUM_STATE> R_full;
 
         // we'll use the passed-in burn_t as our working state.  We need to
-        // sync it with the input state x
+        // sync it with the input state x.  The single_zone_react_source[]
+        // routine works off of burn_state.y[]
 
         auto burn_state = burn_state_in;
 
-        // compute the temperature -- this can be removed shortly, since
-        // we already do this in single_zone_react_source
-
         for (int n = 0; n < NumSpec; ++n) {
-            burn_state.xn[n] = amrex::Clamp(x(n+1) / burn_state.rho,
-                                            network_rp::small_x, 1.0_rt);
+            burn_state.y[SFS+n] = x(n+1);
         }
+        burn_state.y[SEINT] = x(NumSpec+1);
+
 #if NAUX_NET > 0
         amrex::Error("error: aux data not currently supported in true SDC");
 #endif
-
-        burn_state.e = x(NumSpec+1) / burn_state.rho;
-
-        eos(eos_input_re, burn_state);
 
         // get the reactive term for this state
 
         single_zone_react_source(burn_state, R_full);
 
-        // where f is Eq. 36 evaluated with the current guess for U
+        // now f (Eq. 36) is evaluated with the current guess for U
         // we use ydot_a here to be U^n + dt_m C
         // Note: this is -f, it doesn't matter, since we are zeroing
         // it.
@@ -57,10 +54,10 @@ namespace powell {
         auto dt_m = burn_state.time;
 
         for (int n = 1; n <= NumSpec; ++n) {
-            f(n) = -burn_state.xn[n+1] +
+            f(n) = -burn_state.y[SFS-1+n] +
                 dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
         }
-        f(NumSpec+1) = -burn_state.rho * burn_state.e +
+        f(NumSpec+1) = -burn_state.y[SEINT] +
             dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
 
     }
