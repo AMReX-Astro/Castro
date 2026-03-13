@@ -31,18 +31,6 @@ okay_to_burn(GpuArray<Real, NUM_STATE> const& state) {
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-bool
-okay_to_burn_type(burn_t const& state) {
-
-    if (state.T < react_T_min || state.T > react_T_max ||
-        state.rho < react_rho_min || state.rho > react_rho_max) {
-            return false;
-    }
-
-    return true;
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_react_source(burn_t& burn_state,
                          GpuArray<Real, NUM_STATE>& R) {
