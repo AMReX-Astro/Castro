@@ -167,7 +167,7 @@ sdc_newton_solve(const Real dt_m,
         dgesl<NumSpec+1, allow_pivot>(Jac, ipvt, f);
 #endif
 
-        // on output, f is the solution (dU)
+        // on output, f is the correction to the solution (dU)
         for (int n = 0; n < NumSpec; ++n) {
             burn_state.y[SFS+n] += f(n + 1);
         }
