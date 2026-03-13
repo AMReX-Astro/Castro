@@ -88,7 +88,7 @@ sdc_solve(const Real dt_m,
         }
 
     } else if (sdc_solver == sdc_solvers::hybrid_powell) {
-        sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
+        powell::sdc_powell_solve(dt_m, U_old, U_new, C, sdc_iteration);
 
     } else {
         amrex::Abort("invalid sdc_solver value");
