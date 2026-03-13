@@ -12,8 +12,14 @@ okay_to_burn(const int i, const int j, const int k,
 
     if (state(i,j,k,UTEMP) < react_T_min || state(i,j,k,UTEMP) > react_T_max ||
         state(i,j,k,URHO) < react_rho_min || state(i,j,k,URHO) > react_rho_max) {
-            return false;
+        return false;
     }
+
+#ifdef SHOCK_VAR
+    if (state(i,j,k,USHK) > 0.0_rt && disable_shock_burning == 1) {
+        return false;
+    }
+#endif
 
     return true;
 }
@@ -26,6 +32,12 @@ okay_to_burn(GpuArray<Real, NUM_STATE> const& state) {
         state[URHO] < react_rho_min || state[URHO] > react_rho_max) {
         return false;
     }
+
+#ifdef SHOCK_VAR
+    if (state[USHK] > 0.0_rt && disable_shock_burning == 1) {
+        return false;
+    }
+#endif
 
     return true;
 }
