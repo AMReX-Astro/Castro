@@ -12,6 +12,10 @@ namespace newton {
     constexpr int BAD_MASS_FRACTIONS = -3;
 
     constexpr Real species_failure_tolerance = 1.e-2_rt;
+
+    constexpr int MAX_ITER = 100;
+    constexpr int MAX_NSUB = 64;
+
 };
 
 #ifdef REACTIONS
@@ -100,8 +104,6 @@ sdc_newton_solve(const Real dt_m,
 
     Array1D<Real, 1, NumSpec+1> f;
 
-    const int MAX_ITER = 100;
-
     ierr = newton::NEWTON_SUCCESS;
 
     // update the density and momenta for this zone -- they don't react
@@ -137,7 +139,7 @@ sdc_newton_solve(const Real dt_m,
     Real err = 1.e30_rt;
     bool converged = false;
 
-    while (!converged && iter < MAX_ITER) {
+    while (!converged && iter < newton::MAX_ITER) {
 
         // burn_state.y[] will always contain the current guess for the solution
         // only the species and internal energy are updated though
@@ -238,7 +240,6 @@ sdc_newton_subdivide(const Real dt_m,
     // will subdivide the domain until it converges or reaches our
     // limit on the number of subintervals.
 
-    const int MAX_NSUB = 64;
     GpuArray<Real, NUM_STATE> U_begin;
 
     // subdivide the timestep and do multiple Newtons.
@@ -246,7 +247,7 @@ sdc_newton_subdivide(const Real dt_m,
     int nsub = 1;
     ierr = newton::CONVERGENCE_FAILURE;
 
-    while (nsub <= MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
+    while (nsub <= newton::MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
 
         // For the first interval, we set the starting state to
         // the old-time solution.
