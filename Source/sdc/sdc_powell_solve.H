@@ -11,14 +11,16 @@ namespace powell {
 
     AMREX_GPU_HOST_DEVICE AMREX_INLINE
     void
-    f_sdc(amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
-          Array1D<Real, 1, NumSpec+1>& f,  // constraint equations to zero
+    Z_sdc(amrex::Array1D<amrex::Real, 1, NumSpec+1>& x,  // solution vector
+          Array1D<Real, 1, NumSpec+1>& Z,  // constraint equations to zero
           const burn_t& burn_state_in,
           int& iflag) {
 
         amrex::ignore_unused(iflag);
 
-        // This is used with the hybrid Powell solver to compute f
+        // This is used with the hybrid Powell solver to compute Z,
+        // from Eq 36
+
         // evaluated with x
         //
         // x is {rho X_1, rho X_2, ... rho X_N, rho e}
@@ -38,27 +40,21 @@ namespace powell {
         }
         burn_state.y[SEINT] = x(NumSpec+1);
 
-#if NAUX_NET > 0
-        amrex::Error("error: aux data not currently supported in true SDC");
-#endif
-
         // get the reactive term for this state
 
         single_zone_react_source(burn_state, R_full);
 
-        // now f (Eq. 36) is evaluated with the current guess for U
+        // now Z (Eq. 36) is evaluated with the current guess for U
         // we use ydot_a here to be U^n + dt_m C
-        // Note: this is -f, it doesn't matter, since we are zeroing
-        // it.
 
         auto dt_m = burn_state.time;
 
         for (int n = 1; n <= NumSpec; ++n) {
-            f(n) = -burn_state.y[SFS-1+n] +
-                dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
+            Z(n) = burn_state.y[SFS-1+n] -
+                dt_m * R_full[UFS-1+n] - burn_state.ydot_a[SFS-1+n];
         }
-        f(NumSpec+1) = -burn_state.y[SEINT] +
-            dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
+        Z(NumSpec+1) = burn_state.y[SEINT] -
+            dt_m * R_full[UEINT] - burn_state.ydot_a[SEINT];
 
     }
 
@@ -73,7 +69,7 @@ namespace powell {
         amrex::ignore_unused(iflag);
 
         // This is used with the hybrid Powell solver to compute J
-        // evaluated with x
+        // evaluated with x.  This is Eq. 38.
         //
         // x is {rho X_1, rho X_2, ... rho X_N, rho e}
         //
@@ -84,20 +80,22 @@ namespace powell {
 
         auto burn_state = burn_state_in;
 
-        // compute the temperature -- this can be removed shortly, since
-        // we already do this in single_zone_react_source
-
         for (int n = 0; n < NumSpec; ++n) {
-            burn_state.xn[n] = amrex::Clamp(x(n+1) / burn_state.rho,
-                                            network_rp::small_x, 1.0_rt);
+            burn_state.y[SFS+n] = x(n+1);
         }
+        burn_state.y[SEINT] = x(NumSpec+1);
+
 #if NAUX_NET > 0
         amrex::Error("error: aux data not currently supported in true SDC");
 #endif
 
-        burn_state.e = x(NumSpec+1) / burn_state.rho;
+        // we don't actually need this reactive term, but it will
+        // ensure that the state is all synced.
 
-        eos(eos_input_re, burn_state);
+        {
+            GpuArray<Real, NUM_STATE> R_full;
+            single_zone_react_source(burn_state, R_full);
+        }
 
         // Instead of the decomposition into dw/dU and dR/dw
         // written out in the original paper Appendix A, we instead use the
@@ -107,6 +105,10 @@ namespace powell {
         auto dt_m = burn_state.time;
 
         single_zone_jac(burn_state, dt_m, Jac);
+
+        Jac.mul(-dt_m);
+        Jac.add_identity();
+
     }
 
 
@@ -168,7 +170,7 @@ namespace powell {
 
         // The Powell solver stores the solution vector in its own type
         hybrj_t<NumSpec+1, JacNetArray2D> hj;
-        hj.xtol = 1.e-10;
+        hj.xtol = 1.e-5;
         hj.mode = 1;
 
         // locate the initial guess
@@ -179,7 +181,7 @@ namespace powell {
 
         // call the powell solver
 
-        hybrj<NumSpec+1, burn_t>(hj, burn_state, f_sdc, jac_sdc);
+        hybrj<NumSpec+1, burn_t>(hj, burn_state, Z_sdc, jac_sdc);
 
         if (hj.info != 1) {
             std::cout << "failure in the Powell solver, error code is: " << hj.info << std::endl;
