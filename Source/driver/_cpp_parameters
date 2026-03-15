@@ -272,6 +272,15 @@ sdc_extra                    int           0
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1
 
+# do we apply damping to the corrections in the SDC Newton solver?
+sdc_newton_use_damping       int           0
+
+# for the SDC Newton solver with damping, what is the mass fraction
+# threshold below which we ignore species in the damping factor
+# calculation?
+sdc_newton_damping_xcutoff   Real          1.e-4
+
+
 # Do we include geometry source terms due to local unit vectors in non-Cartesian Coord?
 # We currently support R-Z cylinderical 2D (Bernand-Champmartin) and R-THETA spherical 2D
 use_geom_source              bool          1

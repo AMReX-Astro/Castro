@@ -193,25 +193,26 @@ sdc_newton_solve(const Real dt_m,
 
         amrex::Real alpha{1.0_rt};
         constexpr amrex::Real k = 10.0;
-        constexpr amrex::Real X_cutoff = 1.e-4_rt;
 
-        for (int n = 0; n < NumSpec; ++n) {
-            const amrex::Real rhoX = burn_state.y[SFS+n];
-            if (rhoX < burn_state.rho * X_cutoff) {
-                continue;
-            }
-            const amrex::Real drhoX = f(n + 1);
-            const amrex::Real phi = drhoX / rhoX;
+        if (castro::sdc_newton_use_damping) {
+            for (int n = 0; n < NumSpec; ++n) {
+                const amrex::Real rhoX = burn_state.y[SFS+n];
+                if (rhoX < burn_state.rho * castro::sdc_newton_damping_xcutoff) {
+                    continue;
+                }
+                const amrex::Real drhoX = f(n + 1);
+                const amrex::Real phi = drhoX / rhoX;
 
-            if (phi > 0.0_rt) {
-                alpha = std::min(alpha, (k - 1.0_rt) / phi);
-            } else if (phi < 0.0_rt) {
-                alpha = std::min(alpha, (1.0_rt / k - 1.0_rt) / phi);
+                if (phi > 0.0_rt) {
+                    alpha = std::min(alpha, (k - 1.0_rt) / phi);
+                } else if (phi < 0.0_rt) {
+                    alpha = std::min(alpha, (1.0_rt / k - 1.0_rt) / phi);
+                }
             }
+
+            // make sure we apply at least some correction
+            alpha = std::max(alpha, 5.e-2_rt);
         }
-
-        // make sure we apply at least some correction
-        alpha = std::max(alpha, 5.e-2_rt);
 
         for (int n = 0; n < NumSpec; ++n) {
             burn_state.y[SFS+n] += alpha * f(n + 1);
