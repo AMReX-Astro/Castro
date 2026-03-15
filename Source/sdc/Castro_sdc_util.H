@@ -58,12 +58,16 @@ sdc_solve(const Real dt_m,
         // We are going to assume we already have a good guess
         // for the solve in U_new and just pass the solve onto
         // the main Newton solve
-        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        std::vector<amrex::Real> err_history{};
+        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_history, ierr);
 
         // failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            std::cout << std::format("Newton subcycling failed in sdc_solve with err = {} and ierr = {}\n",
-                                     err_out, ierr);
+            std::cout << std::format("Newton subcycling failed in sdc_solve with ierr = {}\n",
+                                     ierr);
+            for (auto e : err_history) {
+                std::cout << e << std::endl;
+            }
             amrex::Abort("Newton failure");
         }
     } else if (sdc_solver == VODE_SOLVE) {
@@ -79,7 +83,8 @@ sdc_solve(const Real dt_m,
 
         // Now U_new is the update that VODE predicts, so we
         // will use that as the initial guess to the Newton solve
-        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        std::vector<amrex::Real> err_history{};
+        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_history, ierr);
 
         // Failing?
         if (ierr != newton::NEWTON_SUCCESS) {

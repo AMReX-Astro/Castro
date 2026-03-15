@@ -13,8 +13,8 @@ namespace newton {
 
     constexpr amrex::Real species_failure_tolerance = 1.e-2_rt;
 
-    constexpr int MAX_ITER = 200;
-    constexpr int MAX_NSUB = 64;
+    constexpr int MAX_ITER = 50;
+    constexpr int MAX_NSUB = 2048;
 
 };
 
@@ -276,7 +276,7 @@ sdc_newton_subdivide(const Real dt_m,
                      GpuArray<Real, NUM_STATE>& U_new,
                      GpuArray<Real, NUM_STATE> const& C,
                      const int sdc_iteration,
-                     Real& err_out,
+                     std::vector<amrex::Real>& err_out,
                      int& ierr) {
 
     // This is the driver for solving the nonlinear update for the
@@ -327,7 +327,9 @@ sdc_newton_subdivide(const Real dt_m,
                 U_begin[UFS + n] *= U_begin[URHO] / sum_rhoX;
             }
 
-            sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err_out, ierr);
+            amrex::Real err;
+            sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err, ierr);
+            err_out.push_back(err);
 
             // our solve may have resulted in mass fractions outside
             // of [0, 1] -- reject if this is the case
