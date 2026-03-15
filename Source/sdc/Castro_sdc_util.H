@@ -1,6 +1,8 @@
 #ifndef CASTRO_SDC_UTIL_H
 #define CASTRO_SDC_UTIL_H
 
+#include <format>
+
 #include <Castro.H>
 #ifdef REACTIONS
 #ifdef NEW_NETWORK_IMPLEMENTATION
@@ -60,7 +62,9 @@ sdc_solve(const Real dt_m,
 
         // failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            amrex::Abort("Newton subcycling failed in sdc_solve");
+            std::cout << std::format("Newton subcycling failed in sdc_solve with err = {} and ierr = {}\n",
+                                     err_out, ierr);
+            amrex::Abort("Newton failure");
         }
     } else if (sdc_solver == VODE_SOLVE) {
         // Use VODE to do the solution

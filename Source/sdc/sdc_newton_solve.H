@@ -11,12 +11,14 @@ namespace newton {
     constexpr int CONVERGENCE_FAILURE = -2;
     constexpr int BAD_MASS_FRACTIONS = -3;
 
-    constexpr Real species_failure_tolerance = 1.e-2_rt;
+    constexpr amrex::Real species_failure_tolerance = 1.e-2_rt;
 
-    constexpr int MAX_ITER = 100;
+    constexpr int MAX_ITER = 200;
     constexpr int MAX_NSUB = 64;
 
 };
+
+
 
 #ifdef REACTIONS
 
@@ -170,10 +172,52 @@ sdc_newton_solve(const Real dt_m,
 #endif
 
         // on output, f is the correction to the solution (dU)
+
+        // we want to limit the change by some amount k, such that
+        //
+        // 1/k < (U + dU) / U < k
+        //
+        // we'll write this as
+        //
+        // 1/k < 1 + φ < k
+        //
+        // where φ = dU/U
+        //
+        // we want to limit this, so we will introduce a term α, such that
+        //
+        // 1/k < 1 + α φ < k
+        //
+        // if φ > 0, then we need α < (k - 1) / φ
+        //
+        // if φ < 0, then we need α < |1/k - 1| / |φ|
+
+        amrex::Real alpha{1.0_rt};
+        constexpr amrex::Real k = 10.0;
+        constexpr amrex::Real X_cutoff = 1.e-4_rt;
+
         for (int n = 0; n < NumSpec; ++n) {
-            burn_state.y[SFS+n] += f(n + 1);
+            const amrex::Real rhoX = burn_state.y[SFS+n];
+            if (rhoX < burn_state.rho * X_cutoff) {
+                continue;
+            }
+            const amrex::Real drhoX = f(n + 1);
+            const amrex::Real phi = drhoX / rhoX;
+
+            if (phi > 0.0_rt) {
+                alpha = std::min(alpha, (k - 1.0_rt) / phi);
+            } else if (phi < 0.0_rt) {
+                alpha = std::min(alpha, (1.0_rt / k - 1.0_rt) / phi);
+            }
         }
-        burn_state.y[SEINT] += f(NumSpec+1);
+
+        // make sure we apply atleast some correct
+        alpha = std::max(alpha, 5.e-2_rt);
+
+        for (int n = 0; n < NumSpec; ++n) {
+            burn_state.y[SFS+n] += alpha * f(n + 1);
+
+        }
+        burn_state.y[SEINT] += alpha * f(NumSpec+1);
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
@@ -190,7 +234,7 @@ sdc_newton_solve(const Real dt_m,
                 eps = integrator_rp::rtol_enuc * std::abs(burn_state.y[SEINT]) +
                       integrator_rp::atol_enuc;
             }
-            err_sum += f(n) * f(n) / (eps * eps);
+            err_sum += (alpha * f(n)) * (alpha * f(n)) / (eps * eps);
         }
         err = std::sqrt(err_sum / static_cast<Real>(NumSpec+1));
 
