@@ -210,7 +210,7 @@ sdc_newton_solve(const Real dt_m,
             }
         }
 
-        // make sure we apply atleast some correction
+        // make sure we apply at least some correction
         alpha = std::max(alpha, 5.e-2_rt);
 
         for (int n = 0; n < NumSpec; ++n) {
