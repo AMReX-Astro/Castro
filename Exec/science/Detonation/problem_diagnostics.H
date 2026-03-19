@@ -24,10 +24,10 @@ Castro::problem_diagnostics ()
     const auto prob_lo = geom.ProbLoArray();
     const auto prob_hi = geom.ProbHiArray();
     const amrex::Real abort_x = prob_lo[0] +
-        problem::flame_domain_abort * (prob_hi[0] - prob_lo[0]);
+        problem::det_domain_abort * (prob_hi[0] - prob_lo[0]);
 
     if (rho_enuc_max > 0.0_rt && peak_x > abort_x) {
-        amrex::Abort("flame has reached the edge of the domain");
+        amrex::Abort("detonation has reached the edge of the domain");
     }
 }
 

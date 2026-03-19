@@ -34,7 +34,7 @@ the shock wave, and you will not get a detonation.
 
 ## Stopping condition
 
-The runtime parameter `problem.flame_domain_abort` can be used to
+The runtime parameter `problem.det_domain_abort` can be used to
 abort the simulation when the detonation reaches a particular fraction
 of the way through the domain.  E.g., setting this to `0.95` will stop
 the calculation when the detonation is 95% of the way through the
