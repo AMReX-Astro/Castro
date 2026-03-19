@@ -32,6 +32,17 @@ shockwave (as seen in the pressure field).
 Note: if the domain is too small, then the burning will decouple from
 the shock wave, and you will not get a detonation.
 
+## Stopping condition
+
+The runtime parameter `problem.flame_domain_abort` can be used to
+abort the simulation when the detonation reaches a particular fraction
+of the way through the domain.  E.g., setting this to `0.95` will stop
+the calculation when the detonation is 95% of the way through the
+domain.  This works by finding the location of the peak energy
+generation rate in the domain.
+
+Set it to a value > 1 to disable this feature.
+
 ## Inputs files
 
 Some important inputs files
