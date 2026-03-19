@@ -48,6 +48,6 @@ mu_p                 real         -6.0_rt         y
 
 mu_n                 real         -11.0_rt        y
 
-# abort when the flame reaches this fraction of the domain
-flame_domain_abort   real         0.95            y
+# abort when the detonation reaches this fraction of the domain
+det_domain_abort   real         0.95            y
 
