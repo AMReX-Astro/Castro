@@ -417,7 +417,7 @@ In the code, the objective is to evolve the state from the old time,
 
    G. [``GRAVITY``] gravity:
 
-      For full Poisson gravity, we solve for for gravity using:
+      For full Poisson gravity, we solve for gravity using:
 
       .. math::
 
@@ -857,7 +857,7 @@ summarize those differences.
    where :math:`\Sb^n` does not have an iteration subscript, since we always have the
    same old time state.
 
-   Applying this corrector to the the source at time :math:`n`, will give
+   Applying this corrector to the source at time :math:`n` will give
    us a source that is time-centered,
 
    .. math::
