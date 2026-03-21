@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Plot the structure of a single plotfile, including the most abundance nuclei
 
@@ -74,7 +74,7 @@ def get_nuc_profile(plotfile):
     return time, x_coord, nuc_fracs, nuc_names
 
 
-def doit(pf, xmin, xmax, nuc_thresh):
+def doit(pf, xmin, xmax, nuc_thresh, axis_label_size, tick_size, legend_size):
 
     f = plt.figure()
 
@@ -85,6 +85,13 @@ def doit(pf, xmin, xmax, nuc_thresh):
     ax_T = f.add_subplot(311)
     ax_e = f.add_subplot(312)
     ax_X = f.add_subplot(313)
+
+    for ax in [ax_T, ax_e, ax_X]:
+        ax.xaxis.label.set_size(axis_label_size)
+        ax.yaxis.label.set_size(axis_label_size)
+        ax.tick_params(axis='both', which='major', labelsize=tick_size)
+        ax.tick_params(axis='both', which='minor', labelsize=tick_size)
+
 
     time, x, T, enuc = get_Te_profile(pf)
 
@@ -106,9 +113,17 @@ def doit(pf, xmin, xmax, nuc_thresh):
             nplot += 1
 
     ax_T.set_ylabel("T (K)")
+    ax_T.set_xlabel("x (cm)")
     ax_T.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
     ax_T.yaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
+    ax_T.xaxis.offsetText.set_fontsize(axis_label_size)
+    ax_T.yaxis.offsetText.set_fontsize(axis_label_size)
+    ax_e.xaxis.offsetText.set_fontsize(axis_label_size)
+    ax_e.yaxis.offsetText.set_fontsize(axis_label_size)
+    ax_X.xaxis.offsetText.set_fontsize(axis_label_size)
+    ax_X.yaxis.offsetText.set_fontsize(axis_label_size)
+    
     if xmax > 0:
         ax_T.set_xlim(xmin, xmax)
         ax_e.set_xlim(xmin, xmax)
@@ -117,8 +132,7 @@ def doit(pf, xmin, xmax, nuc_thresh):
     max_enuc = np.abs(enuc).max()
     ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    #cur_lims = ax_e.get_ylim()
-    #ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
+    ax_e.set_xlabel("x (cm)")
     ax_e.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     ax_X.set_yscale("log")
@@ -130,10 +144,10 @@ def doit(pf, xmin, xmax, nuc_thresh):
     if nplot >= 5:
         ncol = 2
 
-    ax_X.legend(ncol=ncol, fontsize="small") #, loc="upper left")
+    ax_X.legend(ncol=ncol, fontsize=legend_size) #, loc="upper left")
     ax_X.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
-    f.text(0.02, 0.02, f"t = {float(time):8.3f} s", transform=f.transFigure)
+    f.text(0.02, 0.02, f"t = {float(time):8.3f} s", transform=f.transFigure, fontsize=axis_label_size)
     f.tight_layout()
 
     prefix = os.getcwd().split("/")[-1]
@@ -154,7 +168,13 @@ if __name__ == "__main__":
                    help="minimum value of X for a nuclei to be plotted")
     p.add_argument("plotfile", type=str, nargs=1,
                    help="plotfiles to plot")
+    p.add_argument("--axis_label_size", type=float, default=12.0,
+                   help="size of the x-axis text in points")
+    p.add_argument("--tick_size", type=float, default=12.0,
+                     help="size of the tick labels in points")
+    p.add_argument("--legend_size", type=float, default=12.0,\
+                    help="size of the legend text in points")
 
     args = p.parse_args()
 
-    doit(args.plotfile[0], args.xmin, args.xmax, args.nuc_thresh)
+    doit(args.plotfile[0], args.xmin, args.xmax, args.nuc_thresh, args.axis_label_size, args.tick_size, args.legend_size)
