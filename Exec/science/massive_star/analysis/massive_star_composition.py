@@ -94,6 +94,7 @@ L_y = ymax - ymin
 fig = plt.figure()
 fig.set_size_inches(12.0, 6.0)
 
+# set this to 0.1 instead to zoom in to the core
 width_frac = 1
 
 center=[xmin + 0.5*width_frac*L_x, yctr, 0.0*cm]
