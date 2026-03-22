@@ -276,9 +276,6 @@ Castro::do_advance_sdc (Real time,
     // the instantaneous reactive source from the last burn.  In the
     // future, we might want to do a quadrature over R_old[]
 
-    // At this point, Sburn contains the cell-center reaction source
-    // on one ghost-cell.  So we can use this to derive what we need.
-
     // this is done only for the plotfile
     MultiFab& R_new = get_new_data(Reactions_Type);
 
@@ -303,6 +300,12 @@ Castro::do_advance_sdc (Real time,
 
         if (sdc_order == 4) {
 
+            // At this point, Sburn contains the cell-center reaction
+            // source on one ghost-cell, since it was stored at the
+            // last construct_old_react_source.  So we can use this to
+            // derive what we need.
+
+
             // pass in the reaction source at centers (Sburn_arr), including
             // one ghost cell and derive everything that is needed including
             // 1 ghost cell
@@ -311,7 +314,6 @@ Castro::do_advance_sdc (Real time,
 
             Array4<const Real> const Sburn_arr = Sburn.array(mfi);
 
-            // we don't worry about the difference between centers and averages
             ca_store_reaction_state(obx, Sburn_arr, R_center_arr);
 
             // convert R_new from centers to averages in place
