@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+'''
+This script creates a single PNG from a pltfile/
+coloring regions by RGB code for composition.
+Red is proportional to iron group elements,
+blue is proportional to silicon group,
+green is proportional to Mg24 and lighter elements.
+'''
+
 import matplotlib
 matplotlib.use('agg')
 
@@ -84,17 +92,16 @@ L_y = ymax - ymin
 
 
 fig = plt.figure()
-fig.set_size_inches(12.0, 9.0)
+fig.set_size_inches(12.0, 6.0)
 
-width_frac = 0.1
+width_frac = 1
 
-center=[xmin + 0.25*width_frac*L_x, yctr, 0.0*cm]
-width=[0.5*width_frac*L_x, width_frac*L_y]
+center=[xmin + 0.5*width_frac*L_x, yctr, 0.0*cm]
+width=[width_frac*L_x, width_frac*L_y, 0.0*cm]
 
 slc = yt.SlicePlot(ds, "theta",
                    fields=[("gas", "iron_group"), ("gas", "si_group"), ("gas", "light_nuclei")],
-                   center=[xmin + 0.25*width_frac*L_x, yctr, 0.0*cm],
-                   width=[0.5*width_frac*L_x, width_frac*L_y, 0.0*cm], fontsize="12")
+                   center=center, width=width, fontsize="12")
 
 res = (1024, 512)
 frb = slc.data_source.to_frb(width[0], res, height=width[1]) #width, res)#, center=center)
