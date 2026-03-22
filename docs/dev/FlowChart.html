@@ -486,7 +486,7 @@ Chapter <a class="reference internal" href="diffusion.html#ch-diffusion"><span c
 </li>
 <li><p>[<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>] angular momentum</p></li>
 <li><p>[<code class="docutils literal notranslate"><span class="pre">GRAVITY</span></code>] gravity:</p>
-<p>For full Poisson gravity, we solve for for gravity using:</p>
+<p>For full Poisson gravity, we solve for gravity using:</p>
 <div class="math notranslate nohighlight">
 \[\gb^n = -\nabla\phi^n, \qquad
       \Delta\phi^n = 4\pi G\rho^n,\]</div>
@@ -931,7 +931,7 @@ source Multifabs before adding the current source.  The corrector
 \[\Sb^\mathrm{corr} = \frac{1}{2} \left ( \Sb^{n+1,(k-1)} - S^n \right )\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Sb^n\)</span> does not have an iteration subscript, since we always have the
 same old time state.</p>
-<p>Applying this corrector to the the source at time <span class="math notranslate nohighlight">\(n\)</span>, will give
+<p>Applying this corrector to the source at time <span class="math notranslate nohighlight">\(n\)</span> will give
 us a source that is time-centered,</p>
 <div class="math notranslate nohighlight">
 \[{\bf S}(\Ub)^{n+1/2} = \frac{1}{2} \left ( {\bf S}(\Ub)^n + {\bf S}(\Ub)^{n+1,(k-1)} \right )\]</div>

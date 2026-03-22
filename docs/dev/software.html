@@ -309,11 +309,11 @@ pointer to a data buffer. The real floating point data are stored as
 one-dimensional arrays in <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> es. The associated <code class="docutils literal notranslate"><span class="pre">Box</span></code> can be
 used to reshape the 1D array into multi-dimensional arrays to be used
 by Fortran subroutines. The key part of the C++ AMReX data
-structures is that this data buffer can be cast a a DIM+1 dimensional array that
+structures is that this data buffer can be cast as a DIM+1 dimensional array that
 we can easily fill in C++ kernels.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Castro is complied for a specific dimensionality.</p>
+<p>Castro is compiled for a specific dimensionality.</p>
 </div>
 </section>
 <section id="multifab">
@@ -558,7 +558,7 @@ cells. You want to ensure that the ghost cells are filled
 difference is that for the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that will be the target
 of the ghost cell filling, we pass in a reference to the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> itself.</p>
 <p>The main thing you need to be careful of here, is that you
-need to ensure that the the time you are at is consistent with
+need to ensure that the time you are at is consistent with
 the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> ’s time. Here’s an example from the radiation
 portion of the code <code class="docutils literal notranslate"><span class="pre">MGFLDRadSolver.cpp</span></code>:</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Real</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">castro</span><span class="o">-&gt;</span><span class="n">get_state_data</span><span class="p">(</span><span class="n">Rad_Type</span><span class="p">).</span><span class="n">curTime</span><span class="p">();</span>
@@ -570,7 +570,7 @@ portion of the code <code class="docutils literal notranslate"><span class="pre"
 </div>
 <p>In this example, <code class="docutils literal notranslate"><span class="pre">S_new</span></code> is a pointer to the new-time-level
 <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>. So this operation will use the
-<code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data to fill its own ghost cells. we fill the
+<code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data to fill its own ghost cells. We fill the
 <code class="docutils literal notranslate"><span class="pre">ngrow</span></code> ghost cells of the new-time-level <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data,
 for all the components.</p>
 <p>Note that in this example, because the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> lives in the
