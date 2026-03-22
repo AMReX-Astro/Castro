@@ -316,8 +316,8 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>papa</strong> – parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </p></li>
-<li><p><strong>is</strong> – </p></li>
-<li><p><strong>bReadSpecial</strong> – </p></li>
+<li><p><strong>is</strong> – input stream for checkpoint data </p></li>
+<li><p><strong>bReadSpecial</strong> – whether to read problem-specific restart data </p></li>
 </ul>
 </dd>
 </dl>
@@ -485,7 +485,7 @@
 <dd><p>Timestamp particles</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ngrow</strong> – </p>
+<dd class="field-odd"><p><strong>ngrow</strong> – number of ghost cells </p>
 </dd>
 </dl>
 </dd></dl>
@@ -601,7 +601,7 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1ab3633097a3989c3202b3d4ce396329a2"></span><a class="reference internal" href="../file/Castro_8H.html#_CPPv414advance_status" title="advance_status"><span class="n"><span class="pre">advance_status</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">do_advance_ctu</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealE" title="Link to this definition"></a><br /></dt>
-<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
+<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is done using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -620,7 +620,7 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro19save_data_for_retryEv">
 <span id="_CPPv3N6Castro19save_data_for_retryEv"></span><span id="_CPPv2N6Castro19save_data_for_retryEv"></span><span id="Castro::save_data_for_retry"></span><span class="target" id="classCastro_1ae5cb03c2c7288e91505c7e31c9a3f718"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">save_data_for_retry</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro19save_data_for_retryEv" title="Link to this definition"></a><br /></dt>
-<dd><p>Save a copy of the old state data in case for the purposes of a retry. </p>
+<dd><p>Save a copy of the old state data for use by a retry. </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -640,7 +640,7 @@
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::subcycle_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a6877c202696435c2a51d99b9ff40f759"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">subcycle_advance_ctu</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="n"><span class="pre">amrex</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">amr_iteration</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">amr_ncycle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii" title="Link to this definition"></a><br /></dt>
-<dd><p>Subcyles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time. This is used only for the CTU advance.</p>
+<dd><p>Subcycles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time. This is used only for the CTU advance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -743,8 +743,8 @@
 <li><p><strong>subcycle</strong> – unused </p></li>
 <li><p><strong>n_cycle</strong> – the number of subcycles at this level </p></li>
 <li><p><strong>ref_ratio</strong> – unused </p></li>
-<li><p><strong>dt_min</strong> – </p></li>
-<li><p><strong>dt_level</strong> – </p></li>
+<li><p><strong>dt_min</strong> – minimum timestep allowed at each level </p></li>
+<li><p><strong>dt_level</strong> – timestep at each level </p></li>
 <li><p><strong>stop_time</strong> – End time of simulation </p></li>
 <li><p><strong>post_regrid_flag</strong> – Have we done regridding yet? </p></li>
 </ul>
@@ -787,7 +787,7 @@
 <dd><p>Contains operations to be done only after a full coarse timestep.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cumtime</strong> – </p>
+<dd class="field-odd"><p><strong>cumtime</strong> – cumulative simulation time </p>
 </dd>
 </dl>
 </dd></dl>
@@ -799,8 +799,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lbase</strong> – </p></li>
-<li><p><strong>new_finest</strong> – </p></li>
+<li><p><strong>lbase</strong> – the coarsest level affected by regridding </p></li>
+<li><p><strong>new_finest</strong> – the new finest AMR level </p></li>
 </ul>
 </dd>
 </dl>
@@ -924,7 +924,7 @@
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>S_new</strong> – </p></li>
+<li><p><strong>S_new</strong> – state at the new time </p></li>
 <li><p><strong>iteration</strong> – where we are in the current AMR subcycle </p></li>
 <li><p><strong>ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
@@ -939,6 +939,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>Bx</strong> – magnetic field in x </p></li>
+<li><p><strong>By</strong> – magnetic field in y </p></li>
+<li><p><strong>Bz</strong> – magnetic field in z </p></li>
 <li><p><strong>State</strong> – Current state (MultiFab) </p></li>
 <li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
@@ -969,6 +972,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>Bx</strong> – magnetic field in x </p></li>
+<li><p><strong>By</strong> – magnetic field in y </p></li>
+<li><p><strong>Bz</strong> – magnetic field in z </p></li>
 <li><p><strong>state</strong> – the state to operate on </p></li>
 <li><p><strong>time</strong> – current time </p></li>
 <li><p><strong>ng</strong> – number of ghost cells </p></li>
@@ -1147,7 +1153,7 @@
 <span id="_CPPv3N6Castro8getLevelEi"></span><span id="_CPPv2N6Castro8getLevelEi"></span><span id="Castro::getLevel__i"></span><span class="target" id="classCastro_1a3b6d83fb0569da5071dd5e36bc06abdd"></span><a class="reference internal" href="#_CPPv46Castro" title="Castro"><span class="n"><span class="pre">Castro</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">getLevel</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">lev</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro8getLevelEi" title="Link to this definition"></a><br /></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>lev</strong> – </p>
+<dd class="field-odd"><p><strong>lev</strong> – AMR level index </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1169,9 +1175,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>crse_level</strong> – </p></li>
-<li><p><strong>fine_level</strong> – </p></li>
-<li><p><strong>in_post_timestep</strong> – </p></li>
+<li><p><strong>crse_level</strong> – coarse AMR level index </p></li>
+<li><p><strong>fine_level</strong> – fine AMR level index </p></li>
+<li><p><strong>in_post_timestep</strong> – true if called from <a class="reference internal" href="../file/Castro_8H.html#classCastro_1ab6e57e80f78797b8322bbf86f65ed91d"><span class="std std-ref">post_timestep()</span></a></p></li>
 </ul>
 </dd>
 </dl>
@@ -1232,7 +1238,7 @@
 <dd><p>Do work at the end of the simulation - before the last outputs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>amr_level</strong> – </p>
+<dd class="field-odd"><p><strong>amr_level</strong> – AMR levels in the simulation hierarchy </p>
 </dd>
 </dl>
 </dd></dl>
@@ -1245,6 +1251,9 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>bx</strong> – Box to update </p></li>
+<li><p><strong>Bx</strong> – magnetic field in x </p></li>
+<li><p><strong>By</strong> – magnetic field in y </p></li>
+<li><p><strong>Bz</strong> – magnetic field in z </p></li>
 <li><p><strong>u</strong> – Current state (Fab) </p></li>
 </ul>
 </dd>
