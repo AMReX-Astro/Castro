@@ -13,3 +13,6 @@ sphinx-prompt
 codespell
 sphinx-math-dollar
 sphinx-copybutton
+
+# for accessibility
+sphinx-rtd-theme-ext-color-contrast

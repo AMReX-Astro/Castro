@@ -669,7 +669,7 @@ Castro::states(const Box& bx,
               ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
             }
 
-          } else if (lo_bc[2] == amrex::PhysBCType::interior) {
+          } else if (hi_bc[2] == amrex::PhysBCType::interior) {
             // we don't need to do anything here
 
           } else {
