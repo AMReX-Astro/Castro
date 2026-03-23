@@ -80,6 +80,7 @@ trans_laplacian(int i, int j, int k, int n,
     }
   }
 
+#if AMREX_SPACEDIM >= 2
   if (idir != 1) {
 
     if (j == domlo[1] && !lo_periodic[1]) {
@@ -92,6 +93,7 @@ trans_laplacian(int i, int j, int k, int n,
       lapy = a(i,j+1,k,n) - 2.0_rt*a(i,j,k,n) + a(i,j-1,k,n);
     }
   }
+#endif
 
 #if AMREX_SPACEDIM == 3
   if (idir != 2) {
