@@ -113,7 +113,6 @@ def doit(pf, xmin, xmax, nuc_thresh, axis_label_size, tick_size, legend_size):
             nplot += 1
 
     ax_T.set_ylabel("T (K)")
-    ax_T.set_xlabel("x (cm)")
     ax_T.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
     ax_T.yaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
@@ -132,7 +131,6 @@ def doit(pf, xmin, xmax, nuc_thresh, axis_label_size, tick_size, legend_size):
     max_enuc = np.abs(enuc).max()
     ax_e.set_yscale("symlog", linthresh=1.e-6 * max_enuc)
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
-    ax_e.set_xlabel("x (cm)")
     ax_e.xaxis.set_major_formatter(mticker.ScalarFormatter(useMathText=True))
 
     ax_X.set_yscale("log")
