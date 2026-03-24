@@ -22,7 +22,7 @@ single_zone_react_source(burn_t& burn_state,
     burn_state.e = burn_state.y[SEINT] * rhoInv;
 
     for (int n = 0; n < NumSpec; ++n) {
-       burn_state.xn[n] = amrex::max(amrex::min(burn_state.y[SFS+n] * rhoInv, 1.0_rt), small_x);
+       burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] * rhoInv, small_x, 1.0_rt);
     }
 
 #if NAUX_NET > 0
@@ -31,9 +31,7 @@ single_zone_react_source(burn_t& burn_state,
     }
 #endif
 
-#if NAUX_NET > 0
-    amrex::Error("error: aux data not currently supported in true SDC");
-#endif
+    static_assert(NAUX_NET == 0, "Error: aux data not currently supported in true SDC");
 
     // Ensure that the temperature going in is consistent with the internal energy.
     eos(eos_input_re, burn_state);
