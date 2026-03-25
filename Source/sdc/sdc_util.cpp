@@ -20,6 +20,10 @@ Castro::ca_sdc_update_advection_o2_lobatto(const Box& bx,
 
     // Gauss-Lobatto / trapezoid
 
+    amrex::ignore_unused(dt_m);
+    amrex::ignore_unused(A_m);
+    amrex::ignore_unused(m_start);
+
     amrex::ParallelFor(bx, k_n.nComp(),
     [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
     {
@@ -187,8 +191,12 @@ Castro::ca_sdc_compute_C2_lobatto(const Box& bx,
                                   int m_start)
 {
     // compute the source term C for the 2nd order Lobatto update
-
     // Here, dt_m is the timestep between time-nodes m and m+1
+
+    amrex::ignore_unused(dt_m);
+    amrex::ignore_unused(dt);
+    amrex::ignore_unused(A_m);
+    amrex::ignore_unused(m_start);
 
     amrex::ParallelFor(bx, C.nComp(),
     [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
@@ -222,6 +230,9 @@ Castro::ca_sdc_compute_C2_radau(const Box& bx,
 
     // construct the source term to the update for 2nd order
     // Radau
+
+    amrex::ignore_unused(A_0_old);
+    amrex::ignore_unused(R_0_old);
 
     if (m_start == 0)
     {
@@ -265,6 +276,9 @@ Castro::ca_sdc_compute_C4_lobatto(const Box& bx,
     // compute the 'C' term for the 4th-order solve with reactions
     // note: this 'C' is cell-averages
 
+    amrex::ignore_unused(A_m);
+    amrex::ignore_unused(dt_m);
+    amrex::ignore_unused(dt);
 
     // Gauss-Lobatto (Simpsons)
 
@@ -321,6 +335,8 @@ Castro::ca_sdc_compute_C4_radau(const Box& bx,
     // note: this 'C' is cell-averages
 
     // Radau
+
+    amrex::ignore_unused(R_0_old);
 
     if (m_start == 0)
     {
@@ -392,20 +408,20 @@ Castro::ca_sdc_conservative_update(const Box& bx, Real const dt_m,
 void Castro::ca_sdc_compute_initial_guess(const Box& bx,
                                           Array4<const Real> const& U_old,
                                           Array4<const Real> const& U_new,
-                                          Array4<const Real> const& A_old,
-                                          Array4<const Real> const& R_old,
+                                          Array4<const Real> const& Adv_old,
+                                          Array4<const Real> const& React_old,
                                           Array4<Real> const& U_guess,
-                                          Real const dt_m, int const sdc_iteration)
+                                          Real const dt_m, int const sdc_iter)
 {
     // compute the initial guess for the Newton solve
     // Here dt_m is the timestep to update from time node m to m+1
 
-    if (sdc_iteration == 0)
+    if (sdc_iter == 0)
     {
         amrex::ParallelFor(bx, U_guess.nComp(),
         [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
-            U_guess(i,j,k,n) = U_old(i,j,k,n) + dt_m * A_old(i,j,k,n) + dt_m * R_old(i,j,k,n);
+            U_guess(i,j,k,n) = U_old(i,j,k,n) + dt_m * Adv_old(i,j,k,n) + dt_m * React_old(i,j,k,n);
         });
     }
     else
@@ -422,7 +438,7 @@ void Castro::ca_sdc_compute_initial_guess(const Box& bx,
 
 #ifdef REACTIONS
 void Castro::ca_store_reaction_state(const Box& bx,
-                                     Array4<const Real> const& R_old,
+                                     Array4<const Real> const& React_old,
                                      Array4<Real> const& R_store)
 {
     // copy the data from the last node's reactive source to the state data
@@ -434,14 +450,14 @@ void Castro::ca_store_reaction_state(const Box& bx,
         amrex::ParallelFor(bx, NumSpec,
         [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
-            R_store(i,j,k,1+n) = R_old(i,j,k,UFS+n);
+            R_store(i,j,k,1+n) = React_old(i,j,k,UFS+n);
         });
 
 #if NAUX_NET > 0
         amrex::ParallelFor(bx, NumAux,
         [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
-            R_store(i,j,k,1+NumSpec+n) = R_old(i,j,k,UFX+n);
+            R_store(i,j,k,1+NumSpec+n) = React_old(i,j,k,UFX+n);
         });
 #endif
     }
@@ -449,7 +465,7 @@ void Castro::ca_store_reaction_state(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
-        R_store(i,j,k,0) = R_old(i,j,k,UEDEN);
+        R_store(i,j,k,0) = React_old(i,j,k,UEDEN);
     });
 }
 
