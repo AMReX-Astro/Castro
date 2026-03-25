@@ -57,3 +57,6 @@ v_inflow            real             0.0_rt       y
 mass_flux           real             0.0_rt
 
 smallx_init         real             0.0_rt       y
+
+# abort when the flame reaches this fraction of the domain
+flame_domain_abort   real         0.95            y
