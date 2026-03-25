@@ -624,7 +624,7 @@ We compute the primitive variables from the conserved variables.
 
 We also compute the flattening coefficient, :math:`\chi\in[0,1]`, used in
 the edge state prediction to further limit slopes near strong shocks.
-We use the same flattening procedure described in the the the original
+We use the same flattening procedure described in the original
 PPM paper :cite:`ppm` and the Flash paper :cite:`flash`.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
@@ -1227,4 +1227,3 @@ in your ``GNUmakefile``.  With this enabled, we see that the torus remains intac
    timesteps with the hybrid momentum algorithm, using :math:`64^3`
    zones.  With this angular-momentum preserving scheme we see that
    the initial torus is largely intact.
-

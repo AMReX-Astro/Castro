@@ -66,8 +66,12 @@
 /// for the primitive variable equations, S(q).
 ///
 /// @param bx      the box to operate over
+/// @param dt      timestep
 /// @param q_arr   primitive variable state array
-/// @param src     conserved source array
+/// @param old_src conserved source array
+#ifndef TRUE_SDC
+/// @param src_corr source correction array
+#endif
 /// @param srcQ    primitive variable source array
 ///
     void src_to_prim(const amrex::Box& bx, const Real dt,
@@ -85,9 +89,9 @@
 /// @param bx        the box to operate over
 /// @param time      current time
 /// @param uin       input conserved state
-/// @param Bx        x-component of magentic field (if USE_MHD=TRUE)
-/// @param By        y-component of magentic field (if USE_MHD=TRUE)
-/// @param Bz        z-component of magentic field (if USE_MHD=TRUE)
+/// @param Bx        x-component of magnetic field (if USE_MHD=TRUE)
+/// @param By        y-component of magnetic field (if USE_MHD=TRUE)
+/// @param Bz        z-component of magnetic field (if USE_MHD=TRUE)
 /// @param Erin      radiation energy (if USE_RAD=TRUE)
 /// @param lam       radiation flux limiter (if USE_RAD=TRUE)
 /// @param q_arr     output primitive state
@@ -199,6 +203,8 @@
 ///
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
+/// @param U_arr    the conserved variable state
+/// @param rho_inv_arr the inverse density array
 /// @param q_arr    the primitive variable state
 /// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
@@ -244,6 +250,8 @@
 ///
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
+/// @param U_arr    the conserved variable state
+/// @param rho_inv_arr the inverse density array
 /// @param q_arr    the primitive variable state
 /// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
@@ -290,6 +298,8 @@
 ///
 /// @param bx       the box to operate over
 /// @param vbx      the valid region box (excludes ghost cells)
+/// @param U_arr    the conserved variable state
+/// @param rho_inv_arr the inverse density array
 /// @param q_arr    the primitive variable state
 /// @param qaux_arr the auxiliary state
 /// @param srcQ     the source terms for the primitive variable equations
@@ -339,6 +349,7 @@
 /// @param idir        coordinate direction (0 = x, 1 = y, 2 = z)
 /// @param q_arr       the primitive variable state
 /// @param flatn_arr   flattening coefficient
+/// @param src_q_arr   source terms for the primitive variable equations
 /// @param dq          slope of the primitive variables
 /// @param qm          left interface state, e.g., q_{i-1/2,j,k,L}
 /// @param qp          right interface state, e.g., q_{i-1/2,j,k,R}
@@ -388,8 +399,8 @@
 /// @param area0   area of x faces
 /// @param area1   area of y faces
 /// @param area2   area of z faces
-/// @param q0      Godunuv state on x faces
-/// @param q1      Godunuv state on y faces
+/// @param q0      Godunov state on x faces
+/// @param q1      Godunov state on y faces
 /// @param vol     cell volume
 ///
     void mol_consup(const amrex::Box& bx,
@@ -456,7 +467,7 @@
 /// @param area_t    face area in the idir_t direction
 /// @param vol       cell volume
 /// @param hdt       1/2 * timestep
-/// @param cdt       weight * timestep, where the weight comes from the CTU algorithm
+/// @param cdtdx     weighted timestep over cell width from the CTU algorithm
 ///
      void trans_single(const amrex::Box& bx,
                        int idir_t, int idir_n,
@@ -494,7 +505,7 @@
 /// @param area_t    face area in the idir_t direction
 /// @param vol       cell volume
 /// @param hdt       1/2 * timestep
-/// @param cdt       weight * timestep, where the weight comes from the CTU algorithm
+/// @param cdtdx     weighted timestep over cell width from the CTU algorithm
 ///
      void actual_trans_single(const amrex::Box& bx,
                               int idir_t, int idir_n, int d,
@@ -532,7 +543,6 @@
 /// @param rflux_t2  radiation flux in the idir_t2 direction
 /// @param q_t1      Godunov state in the idir_t1 direction
 /// @param q_t2      Godunov state in the idir_t2 direction
-/// @param hdt       1/2 * timestep
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
@@ -573,8 +583,6 @@
 /// @param rflux_t2  radiation flux in the idir_t2 direction
 /// @param q_t1      Godunov state in the idir_t1 direction
 /// @param q_t2      Godunov state in the idir_t2 direction
-/// @param hdt       1/2 * timestep
-/// @param cdtdx_n   weight * timestep in idir_n direction
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
@@ -602,6 +610,8 @@
 ///
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param U_arr     the conserved variable state
+/// @param rho_inv_arr the inverse density array
 /// @param q_arr     primitive variable state
 /// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
@@ -627,18 +637,20 @@
                    const amrex::Real dt);
 
 ///
-/// Reconstruct the primitive state as pieceeise linear, integrate under them,
+/// Reconstruct the primitive state as piecewise linear, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
 ///
 /// @param bx           the box to operate over
 /// @param idir         coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param U_arr        the conserved variable state
+/// @param rho_inv_arr  the inverse density array
 /// @param q_arr        primitive variable state
 /// @param qaux_arr     the auxiliary state
+/// @param SrcQ         primitive variable equation source terms
 /// @param qm           left interface state (e.g., q_{i-1/2,j,k,L})
 /// @param qp           right interface state (e.g., q_{i-1/2,j,k,R})
 /// @param dloga        geometric factor dlog(area)
-/// @param srcQ         primitive variable equation source terms
 /// @param vbx          the valid region box (excluding ghost cells)
 /// @param dt           timestep
 ///
@@ -664,6 +676,8 @@
 ///
 /// @param bx        the box to operate over
 /// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param U_arr     the conserved variable state
+/// @param rho_inv_arr the inverse density array
 /// @param q_arr     primitive variable state
 /// @param qaux_arr  the auxiliary state
 /// @param srcQ      primitive variable equation source terms
@@ -693,7 +707,6 @@
 /// in update so it can be applied later to advance the state
 ///
 /// @param bx      the box to operate over
-/// @param shk     the shock flag
 /// @param U_new   the new hydrodynamics conserved state
 /// @param flux0   flux in the x direction
 /// @param qx      Godunov state in the x direction
@@ -842,7 +855,7 @@
 ///
 /// @param state        Current state
 /// @param source       MultiFab to save source to
-/// @param mult_factor
+/// @param mult_factor scaling factor applied to the source terms
 ///
     void fill_hybrid_hydro_source(amrex::MultiFab& source, const amrex::MultiFab& state, const amrex::Real mult_factor);
 
