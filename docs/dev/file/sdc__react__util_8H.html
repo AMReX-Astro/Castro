@@ -109,7 +109,6 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__math_8H.html">File Castro_math.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Castro__react__util_8H.html">File Castro_react_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8H.html">File Castro_rotation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc_8H.html">File Castro_sdc.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc__util_8H.html">File Castro_sdc_util.H</a></li>
@@ -217,6 +216,16 @@
 <h1>File sdc_react_util.H<a class="headerlink" href="#file-sdc-react-util-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__react__util_8H_1a458ec34dabb00ba390245d09763a6932"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">bool</span> <span class="pre">okay_to_burn</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="sdc__react__util_8H_1a7e22b78a8e608c31e7ef1103448ac2ac"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">bool</span> <span class="pre">okay_to_burn</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state)</span></span></dt>
+<dd></dd></dl>
+
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
 <span class="target" id="sdc__react__util_8H_1aac7ba095e4fdff3229a97d008930cc16"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_react_source</span> <span class="pre">(burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;R)</span></span></dt>
