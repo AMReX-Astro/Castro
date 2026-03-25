@@ -6,7 +6,7 @@
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
-#include <Castro_react_util.H>
+#include <sdc_react_util.H>
 #include <sdc_newton_solve.H>
 #include <sdc_vode_solve.H>
 #include <sdc_powell_solve.H>

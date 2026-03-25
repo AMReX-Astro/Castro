@@ -11,7 +11,6 @@
 #include <actual_network.H>
 #include <actual_rhs.H>
 #endif
-#include <Castro_react_util.H>
 #include <sdc_cons_to_burn.H>
 #include <burner.H>
 
