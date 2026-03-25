@@ -1267,6 +1267,9 @@ Gravity::test_composite_phi (int crse_level)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
 
+    // the lhas only really been tested with crse_level = 0
+    AMREX_ALWAYS_ASSERT(crse_level == 0);
+
     if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... test_composite_phi at base level " << crse_level << '\n';
@@ -1307,7 +1310,7 @@ Gravity::test_composite_phi (int crse_level)
                         time);
 
     // Average residual from fine to coarse level before printing the norm
-    for (int amr_lev = finest_level_local-1; amr_lev >= 0; --amr_lev)
+    for (int amr_lev = finest_level_local-1; amr_lev >= crse_level; --amr_lev)
     {
         const IntVect& ratio = parent->refRatio(amr_lev);
         int ilev = amr_lev - crse_level;
@@ -1316,7 +1319,8 @@ Gravity::test_composite_phi (int crse_level)
     }
 
     for (int amr_lev = crse_level; amr_lev <= finest_level_local; ++amr_lev) {
-        Real resnorm = res[amr_lev]->norm0();
+        int ilev = amr_lev - crse_level;
+        Real resnorm = res[ilev]->norm0();
         amrex::Print() << "      ... norm of composite residual at level "
                        << amr_lev << "  " << resnorm << '\n';
     }

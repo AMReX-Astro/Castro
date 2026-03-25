@@ -8,7 +8,7 @@
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
-#include <Castro_react_util.H>
+#include <sdc_react_util.H>
 #include <sdc_newton_solve.H>
 #include <vode_rhs_true_sdc.H>
 #endif
