@@ -1,3 +1,5 @@
+#include <numbers>
+
 #ifdef SPONGE
 #include <Castro.H>
 
@@ -133,7 +135,7 @@ Castro::apply_sponge(const Box& bx,
       } else if (rad >= sponge_lower_radius && rad <= sponge_upper_radius) {
         sponge_factor = sponge_lower_factor +
           0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (rad - sponge_lower_radius) / delta_r));
+          (1.0_rt - std::cos(std::numbers::pi * (rad - sponge_lower_radius) / delta_r));
 
       } else {
         sponge_factor = sponge_upper_factor;
@@ -152,7 +154,7 @@ Castro::apply_sponge(const Box& bx,
       } else if (rho <= sponge_upper_density && rho >= sponge_lower_density) {
         sponge_factor = sponge_lower_factor +
           0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (rho - sponge_upper_density) / delta_rho));
+          (1.0_rt - std::cos(std::numbers::pi * (rho - sponge_upper_density) / delta_rho));
 
       } else {
         sponge_factor = sponge_upper_factor;
@@ -189,7 +191,7 @@ Castro::apply_sponge(const Box& bx,
       } else if (p <= sponge_upper_pressure && p >= sponge_lower_pressure) {
         sponge_factor = sponge_lower_factor +
           0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (p - sponge_upper_pressure) / delta_p));
+          (1.0_rt - std::cos(std::numbers::pi * (p - sponge_upper_pressure) / delta_p));
 
       } else {
         sponge_factor = sponge_upper_factor;

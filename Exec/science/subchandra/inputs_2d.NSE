@@ -1,7 +1,4 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-amr.plot_files_output = 1
-amr.checkpoint_files_output = 1
-
 max_step = 1000000
 stop_time = 10.0
 
@@ -12,8 +9,6 @@ geometry.prob_lo   =  0.    0.
 geometry.prob_hi   =  5.12e9 1.024e10
 
 amr.n_cell         = 1280 2560
-
-amr.max_level      = 1       # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -63,7 +58,7 @@ castro.sponge_timescale     = 1.e-3
 castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.05     # scale back initial timestep by this factor
 castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
-castro.sum_interval   = 0       # timesteps between computing and printing volume averages
+castro.sum_interval   = 5       # timesteps between computing and printing volume averages
 castro.update_sources_after_reflux = 0
 castro.time_integration_method = 3
 
@@ -73,13 +68,34 @@ castro.max_subcycles = 32
 
 castro.abundance_failure_rho_cutoff = 1.0
 
+amr.v               = 1       # control verbosity in Amr.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
+
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5
+
 #castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
+
+# gridding
+
+amr.max_level      = 1       # maximum level number allowed
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
+amr.blocking_factor = 32       # block factor in grid generation
+
+# I/O
+
+amr.plot_files_output = 1
+amr.checkpoint_files_output = 1
+# with the SLURM HUP functionality, we get a checkpoint near
+# the end of the queue window -- don't do a plotfile then too
+amr.write_plotfile_with_checkpoint = 0
 
 amr.check_file      = subch_chk     # root name of checkpoint file
 amr.check_int       = 50     # number of timesteps between checkpoints
@@ -87,17 +103,8 @@ amr.plot_file       = subch_plt     # root name of plot file
 amr.plot_int        = -1     # number of timesteps between plotfiles
 amr.plot_per        = 2.e-3
 
-amr.max_grid_size   = 256      # maximum grid size allowed -- used to control parallelism
-amr.blocking_factor = 32       # block factor in grid generation
-
-amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 1       # control verbosity in Castro.cpp
-
 amr.derive_plot_vars = ALL
 castro.store_burn_weights = 1
-
-castro.small_dens   = 1.e-5
-castro.small_temp   = 1.e5
 
 # problem parameters
 
@@ -145,7 +152,8 @@ amr.refine.temperr.max_level = 3
 # Microphysics
 
 network.small_x = 1.e-10
-integrator.SMALL_X_SAFE = 1.e-10
+integrator.SMALL_X_SAFE = 1.e-30
+integrator.do_species_clip = 0
 
 integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5

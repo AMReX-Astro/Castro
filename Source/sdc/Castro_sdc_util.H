@@ -6,7 +6,7 @@
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
-#include <Castro_react_util.H>
+#include <sdc_react_util.H>
 #include <sdc_newton_solve.H>
 #include <vode_rhs_true_sdc.H>
 #endif
@@ -124,6 +124,8 @@ sdc_update_o2(const int i, const int j, const int k,
               const Real dt_m,
               const int sdc_iteration, const int m_start) {
     // update k_m to k_n via advection -- this is a second-order accurate update
+
+    amrex::ignore_unused(m_start);
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 

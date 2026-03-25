@@ -1,6 +1,8 @@
 #ifndef ROTATION_H
 #define ROTATION_H
 
+#include <numbers>
+
 #include <AMReX_Array.H>
 #include <Castro_math.H>
 #include <Castro_util.H>
@@ -18,7 +20,7 @@ Real get_omega()
     // shut off the source term by setting omega = 0.
 
     if (castro::rotational_period > 0.0_rt) {
-        omega = 2.0_rt * M_PI / castro::rotational_period;
+        omega = 2.0_rt * std::numbers::pi / castro::rotational_period;
     }
 
     return omega;

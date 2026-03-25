@@ -110,13 +110,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     // main update loop -- we are updating k_new[m_start] to
     // k_new[m_end]
 
-    FArrayBox U_center;
-    FArrayBox C_center;
-    FArrayBox U_new_center;
-    FArrayBox R_new;
-    FArrayBox tlap;
+    FArrayBox U_center(The_Async_Arena());
+    FArrayBox C_center(The_Async_Arena());
+    FArrayBox U_new_center(The_Async_Arena());
+    FArrayBox R_new(The_Async_Arena());
+    FArrayBox tlap(The_Async_Arena());
 
-    FArrayBox C2;
+    FArrayBox C2(The_Async_Arena());
 
     for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
@@ -134,7 +134,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // first compute the source term, C -- this differs depending
             // on whether we are Lobatto or Radau
             C2.resize(bx, NUM_STATE);
-            Elixir elix_C2 = C2.elixir();
             Array4<Real> const& C2_arr = C2.array();
 
             Array4<const Real> const& A_new_arr = (A_new[m_start])->array(mfi);
@@ -160,12 +159,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             auto R_m_old = (*R_old[m_start]).array(mfi);
             auto C_arr = C2.array();
 
+            auto lsdc_iteration = sdc_iteration;   // avoid capturing this
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 // solve U^{n+1} - dt_m R(U^{n+1}) - U^n - dt_m C = 0
                 // we use A_m and R_m_old to construct an initial guess for U^{n+1}
-                sdc_update_o2(i, j, k, k_m, k_n, A_m, R_m_old, C_arr, dt_m, sdc_iteration, m_start);
+                sdc_update_o2(i, j, k, k_m, k_n, A_m, R_m_old, C_arr, dt_m, lsdc_iteration, m_start);
             });
 
         } else {
@@ -180,7 +180,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
             U_center.resize(bx1, NUM_STATE);
-            Elixir elix_u_center = U_center.elixir();
             auto U_center_arr = U_center.array();
 
             make_cell_center(bx1, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
@@ -194,7 +193,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             // convert the C source to cell-centers
             C_center.resize(bx1, NUM_STATE);
-            Elixir elix_c_center = C_center.elixir();
             auto C_center_arr = C_center.array();
 
             make_cell_center(bx1, C_source.array(mfi), C_center_arr, domain_lo, domain_hi);
@@ -202,17 +200,18 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // solve for the updated cell-center U using our cell-centered C -- we
             // need to do this with one ghost cell
             U_new_center.resize(bx1, NUM_STATE);
-            Elixir elix_u_new_center = U_new_center.elixir();
             auto U_new_center_arr = U_new_center.array();
 
             // initialize U_new with our guess for the new state, stored as
             // an average in Sburn
             make_cell_center(bx1, Sburn.array(mfi), U_new_center_arr, domain_lo, domain_hi);
 
+            auto lsdc_iteration = sdc_iteration;  // avoid capturing this
+
             amrex::ParallelFor(bx1,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, sdc_iteration);
+                sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, lsdc_iteration);
             });
 
             // enforce that the species sum to one after the reaction solve
@@ -225,7 +224,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // compute R_i and in 1 ghost cell and then convert to <R> in
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
-            Elixir elix_R_new = R_new.elixir();
             Array4<Real> const& R_new_arr = R_new.array();
 
             amrex::ParallelFor(bx1,
@@ -235,7 +233,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             });
 
             tlap.resize(bx, 1);
-            Elixir elix_tlap = tlap.elixir();
             auto const tlap_arr = tlap.array();
 
             make_fourth_in_place(bx, R_new_arr, tlap_arr, domain_lo, domain_hi);
@@ -302,6 +299,10 @@ Castro::construct_old_react_source(MultiFab& U_state,
                                    const bool input_is_average)
 {
 
+    // note: there is a side effect here.  If we are fourth-order and
+    // coming in with input_is_average = true, then we make a backup
+    // of R_source when it is on cell-centers and store it in Sburn.
+
     BL_PROFILE("Castro::construct_old_react_source()");
 
     auto domain_lo = geom.Domain().loVect3d();
@@ -312,9 +313,9 @@ Castro::construct_old_react_source(MultiFab& U_state,
         // we have cell-averages
         // Note: we cannot tile these operations
 
-        FArrayBox U_center;
-        FArrayBox R_center;
-        FArrayBox tmp;
+        FArrayBox U_center(The_Async_Arena());
+        FArrayBox R_center(The_Async_Arena());
+        FArrayBox tmp(The_Async_Arena());
 
         for (MFIter mfi(U_state); mfi.isValid(); ++mfi)
         {
@@ -324,12 +325,12 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
             // Convert to centers
             U_center.resize(obx, NUM_STATE);
-            Elixir elix_u_center = U_center.elixir();
             auto const U_center_arr = U_center.array();
 
             make_cell_center(obx, U_state.array(mfi), U_center_arr, domain_lo, domain_hi);
 
-            // sometimes the Laplacian can make the species go negative near discontinuities
+            // sometimes the Laplacian can make the species go
+            // negative near discontinuities
             amrex::ParallelFor(obx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -338,7 +339,6 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
             // burn, including one ghost cell
             R_center.resize(obx, NUM_STATE);
-            Elixir elix_r_center = R_center.elixir();
             auto const R_center_arr = R_center.array();
 
             amrex::ParallelFor(obx,
@@ -348,14 +348,13 @@ Castro::construct_old_react_source(MultiFab& U_state,
             });
 
             // at this point, we have the reaction term on centers,
-            // including a ghost cell.  Save this into Sburn so we can use
-            // it later for the plotfile filling
+            // including a ghost cell.  Save this into Sburn so we can
+            // use it later for the plotfile filling
             Sburn[mfi].copy(R_center, obx, 0, obx, 0, NUM_STATE);
 
             // convert R to averages (in place)
 
             tmp.resize(bx, 1);
-            Elixir elix_tmp = tmp.elixir();
             auto const tmp_arr = tmp.array();
 
             make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
