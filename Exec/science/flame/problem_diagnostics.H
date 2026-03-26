@@ -1,21 +1,31 @@
 #ifndef problem_diagnostics_H
 #define problem_diagnostics_H
 
+#include <AMReX_REAL.H>
+
 AMREX_INLINE
 void
 Castro::problem_diagnostics ()
 {
     int finest_level = parent->finestLevel();
-    Real time        = state[State_Type].curTime();
+    amrex::Real time = state[State_Type].curTime();
 
-    Real T_max = -1.0e200;
-    Real T_min =  1.0e200;
-    Real grad_T_max = -1.0e200;
-    Real rho_fuel_dot = 0.0;
-    Real rho_fuel_initial = 1.0;
+    // for flame width
+    amrex::Real T_max = -1.0e200;
+    amrex::Real T_min =  1.0e200;
+    amrex::Real grad_T_max = -1.0e200;
 
-    Real flame_width = 0.0;
-    Real flame_speed = 0.0;
+    // for flame speed
+    amrex::Real rho_fuel_dot = 0.0;
+    amrex::Real rho_fuel_initial = 1.0;
+
+    // for peak energy generation location
+    amrex::Real rho_enuc_max = -1.e200;
+    amrex::Real peak_x = -1.e200;
+
+    // derived quantities
+    amrex::Real flame_width = 0.0;
+    amrex::Real flame_speed = 0.0;
 
     for (int lev = 0; lev <= finest_level; lev++)
     {
@@ -23,11 +33,15 @@ Castro::problem_diagnostics ()
 
         ca_lev.flame_width_properties(time, T_max, T_min, grad_T_max);
 
+        ca_lev.flame_peak_properties(time, rho_enuc_max, peak_x);
+
         // For now we only do the flame speed calculation on the coarse grid since
         // it doesn't share the same timestep as the fine grids.
 
-        if (lev == 0)
+        if (lev == 0) {
             ca_lev.flame_speed_properties(time, rho_fuel_dot);
+        }
+
     }
 
     ParallelDescriptor::ReduceRealMax(T_max);
@@ -35,6 +49,9 @@ Castro::problem_diagnostics ()
     ParallelDescriptor::ReduceRealMax(grad_T_max);
 
     flame_width = (T_max - T_min) / grad_T_max;
+
+    ParallelDescriptor::ReduceRealMax(rho_enuc_max);
+    ParallelDescriptor::ReduceRealMax(peak_x);
 
     ParallelDescriptor::ReduceRealSum(rho_fuel_dot);
 
@@ -64,6 +81,18 @@ Castro::problem_diagnostics ()
         datalog << std::setw(14) <<  std::setprecision(6) << flame_width;
         datalog << std::setw(14) <<  std::setprecision(6) << flame_speed << std::endl;
 
+    }
+
+    // check if the simulation is over -- have we crossed enough of
+    // the domain?
+
+    const auto prob_lo = geom.ProbLoArray();
+    const auto prob_hi = geom.ProbHiArray();
+    const amrex::Real abort_x = prob_lo[0] +
+        problem::flame_domain_abort * (prob_hi[0] - prob_lo[0]);
+
+    if (rho_enuc_max > 0.0_rt && peak_x > abort_x) {
+        amrex::Abort("flame has reached the edge of the domain");
     }
 }
 

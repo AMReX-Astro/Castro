@@ -1,11 +1,13 @@
-/* Implementations of functions in Problem.H go here */
+// Implementations of functions in Problem.H go here
 
 #include <Castro.H>
 
 using namespace amrex;
 
 void
-Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_T_max)
+Castro::flame_width_properties (amrex::Real time,
+                                amrex::Real& T_max, amrex::Real& T_min,
+                                amrex::Real& grad_T_max)
 {
     BL_PROFILE("Castro::flame_width_properties()");
 
@@ -16,7 +18,7 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
     BL_ASSERT(mf != nullptr);
 
     ReduceOps<ReduceOpMax, ReduceOpMin, ReduceOpMax> reduce_op;
-    ReduceData<Real, Real, Real> reduce_data(reduce_op);
+    ReduceData<amrex::Real, amrex::Real, amrex::Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
@@ -34,8 +36,8 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
             // Assumes 1D simulation, right now. Also assumes that
             // we have at least one ghost cell in the x dimension.
 
-            Real T = temp(i,j,k);
-            Real grad_T = std::abs(temp(i+1,j,k) - temp(i-1,j,k)) / (2.0_rt * dx[0]);
+            amrex::Real T = temp(i,j,k);
+            amrex::Real grad_T = std::abs(temp(i+1,j,k) - temp(i-1,j,k)) / (2.0_rt * dx[0]);
 
             // Ignore problem zones where we have a negative temperature
 
@@ -57,7 +59,7 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
 
 
 void
-Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
+Castro::flame_speed_properties (amrex::Real time, amrex::Real& rho_fuel_dot)
 {
     BL_PROFILE("Castro::flame_speed_properties()");
 
@@ -81,7 +83,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
   BL_ASSERT(mf != nullptr);
 
   ReduceOps<ReduceOpSum> reduce_op;
-  ReduceData<Real> reduce_data(reduce_op);
+  ReduceData<amrex::Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
@@ -102,4 +104,38 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
     ReduceTuple hv = reduce_data.value();
     rho_fuel_dot += amrex::get<0>(hv);
+}
+
+
+void
+Castro::flame_peak_properties (amrex::Real time,
+                               amrex::Real& rho_enuc_max, amrex::Real& peak_x)
+{
+    BL_PROFILE("Castro::flame_peak_properties()");
+
+    const auto dx = geom.CellSizeArray();
+    const auto prob_lo = geom.ProbLoArray();
+
+    auto mf = derive("rho_enuc", time, 0);
+    BL_ASSERT(mf != nullptr);
+
+    // find the peak energy generation rate and its index
+    // these functions work on the entire MultiFab and do a reduction so
+    // the information is available on all processors
+
+    const amrex::Real level_rho_enuc_max = mf->max(0);
+    const amrex::IntVect level_max_index = mf->maxIndex(0);
+
+    // now get the physical coordinate of the maximum -- we are assuming
+    // the flame is in the x-direction
+
+    const amrex::Real level_peak_x = prob_lo[0] +
+        (static_cast<amrex::Real>(level_max_index[0]) + 0.5_rt) * dx[0];
+
+    // find the max over all previous levels
+
+    if (level_rho_enuc_max > rho_enuc_max) {
+        rho_enuc_max = level_rho_enuc_max;
+        peak_x = level_peak_x;
+    }
 }

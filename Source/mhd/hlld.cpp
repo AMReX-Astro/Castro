@@ -382,7 +382,7 @@ Castro::hlld(const Box& bx,
       ((UsL(UMX) * UsL(UMAGX) + UsL(UMY) * UsL(UMAGY) + UsL(UMZ) * UsL(UMAGZ)) / UsL(URHO) -
        (UssL(UMX) * UssL(UMAGX) + UssL(UMY) * UssL(UMAGY) + UssL(UMZ) * UssL(UMAGZ)) / UssL(URHO)) *
       std::copysign(1.0_rt, qL(QMAGN));
-    UssR(UEDEN) = UsR(UEDEN) + std::sqrt(UsR(QRHO)) *
+    UssR(UEDEN) = UsR(UEDEN) + std::sqrt(UsR(URHO)) *
       ((UsR(UMX) * UsR(UMAGX) + UsR(UMY) * UsR(UMAGY) + UsR(UMZ) * UsR(UMAGZ)) / UsR(URHO) -
        (UssR(UMX) * UssR(UMAGX) + UssR(UMY) * UssR(UMAGY) + UssR(UMZ) * UssR(UMAGZ)) / UssR(URHO)) *
       std::copysign(1.0_rt, qR(QMAGN));
@@ -432,4 +432,3 @@ Castro::hlld(const Box& bx,
     flx(i,j,k,UTEMP) = 0.0;
   });
 }
-

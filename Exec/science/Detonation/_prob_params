@@ -47,3 +47,7 @@ ambient_e_r          real         0.0_rt
 mu_p                 real         -6.0_rt         y
 
 mu_n                 real         -11.0_rt        y
+
+# abort when the detonation reaches this fraction of the domain
+det_domain_abort   real         0.95            y
+
