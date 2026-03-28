@@ -1,3 +1,63 @@
+# 26.04
+
+  * add an assert to `test_composite_phi` to enforce assumptions (#3295)
+
+  * some cleaning / updates to the true-SDC code path: remove
+    redundant EOS calls in the Newton solver (#3314), add the ability
+    to disable burning in shocks (#3315), document a side effect in
+    `construct_old_reactive_source` (#3321), fix the number of ghost
+    cells when the shock variable is used (#3307), fix the initial guess
+    for the 2nd order nonlinear solve (#3275), fix the check on subdivisions
+    in the Newton loop (#3269)
+
+  * `flame` : abort the simulation when the flame reaches the edge of
+    the domain (#3320), and make the `flame_speed.py` script more
+    robust (#3272)
+
+  * `Detonation` : abort the simulation when the flame reaches the edge of
+    the domain (#3318)
+
+  * `massive_star` : normalize the composition image analysis script
+    (#3325)
+
+  * some doxygen fixes (#3324)
+
+  * fix the source flag logic for the geometry source (#3312)
+
+  * fix the diffusion high-side BCs (#3294)
+
+  * remove some debugging features from the radiation solver (#3293)
+
+  * add an assert on the rotation axis (#3296)
+
+  * replace `M_PI` with `std::numbers::pi` (#3303)
+
+  * use `amrex::Math::powi` in more places (#3304)
+
+  * `wdmerger` : remove the unused `abort_on_failure` parameter
+
+  * quiet unused variable warnings (#3311)
+
+  * use `constexpr` for BC types (#3302)
+
+  * codespell fixes (#3300)
+
+  * `nova` : default to RKC + some inputs tweaks
+
+  * `subchandra` : some fixes to make the reactions more robust
+    (#3196)
+
+  * SCF: set a maximum tagging radius for the test problem (#3299),
+    fix volume factors in 2D (#3297)
+
+  * gravity cleaning: pass data by const reference (#3289), apply
+    problo in axisymmetric (#3288)
+
+  * flush the output when we generate an invalid X to get the error
+    reported in the right place in stdout (#3206)
+
+  * MHD: fix minor indexing bug in the HLLD solver (#3287)
+  
 # 26.03
 
   * fix the embiggener compilation (#3285)
