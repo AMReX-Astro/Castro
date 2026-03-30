@@ -48,6 +48,7 @@ namespace timestep {
     estdt (const amrex::GeometryData& geomdata,
            const amrex::MultiFab& maskMF,
            const amrex::MultiFab& stateMF,
+           const amrex::MultiFab& reactMF,
            const MFs&... mfs)
     {
         amrex::ignore_unused(maskMF, mfs...);
