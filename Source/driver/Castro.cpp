@@ -359,6 +359,14 @@ Castro::read_params ()
       amrex::Error("Invalid CFL factor; must be between zero and one.");
     }
 
+#ifdef REACTIONS
+    if (! dtnuc_use_instantaneous && ! store_omegadot) {
+        if (dtnuc_X < 1.e200_rt) {
+            amrex::Error("Using average reaction source for X timestep limiter requires store_omegadot = 1");
+        }
+    }
+#endif
+
     // SDC does not support GPUs yet
 #ifdef AMREX_USE_GPU
     if (time_integration_method == SpectralDeferredCorrections) {

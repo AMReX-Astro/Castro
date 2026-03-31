@@ -467,13 +467,27 @@ namespace timestep {
 
                 eos(eos_input_rt, burn_state);
 
-                Array1D<Real, 1, neqs> ydot;
-                actual_rhs(burn_state, ydot);
+                Real dXdt[NumSpec]{derivative_floor};
+                Real dedt{derivative_floor};
 
-                Real dedt = ydot(net_ienuc);
-                Real dXdt[NumSpec];
-                for (int n = 0; n < NumSpec; ++n) {
-                    dXdt[n] = ydot(n+1) * aion[n];
+                if (castro::dtnuc_use_instantaneous) {
+                    Array1D<Real, 1, neqs> ydot;
+                    actual_rhs(burn_state, ydot);
+
+                    dedt = ydot(net_ienuc);
+                    for (int n = 0; n < NumSpec; ++n) {
+                        dXdt[n] = ydot(n+1) * aion[n];
+                    }
+                } else {
+                    // react_src(0) is rho S
+                    // react_src(1:) is rho omegadot -- only defined if store_omegadot = 1
+
+                    dedt = react_src(i,j,k,0) / burn_state.rho;
+                    if (castro::store_omegadot) {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            dXdt[n] = react_src(i,j,k,n+1);
+                        }
+                    }
                 }
 
                 // Apply a floor to the derivatives. This ensures that we don't
