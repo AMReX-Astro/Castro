@@ -399,9 +399,9 @@ dtnuc_X_threshold            Real          1.e-3
 
 # For the burning-based timestep limiter, do we use the instantaneous
 # reaction source or an average from the previous timestep or SDC
-# iteration?  Note: this requires setting store_omegadot=1 if the
+# iteration?  Note: using the average requires setting store_omegadot=1 if
 # dtnuc_X is used.
-dtnuc_use_instantaneous      bool          true
+dtnuc_use_average            bool          false
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
 do_react                     bool          true
