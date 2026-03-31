@@ -360,7 +360,7 @@ Castro::read_params ()
     }
 
 #ifdef REACTIONS
-    if (! dtnuc_use_instantaneous && ! store_omegadot) {
+    if (dtnuc_use_average && ! store_omegadot) {
         if (dtnuc_X < 1.e200_rt) {
             amrex::Error("Using average reaction source for X timestep limiter requires store_omegadot = 1");
         }

@@ -135,6 +135,8 @@ input parameter is necessary to enable this constraint. See Chapter
 Reactions
 ^^^^^^^^^
 
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_use_average
+
 If reactions are enabled, the timestep will also
 be limited by two constraints:
 
@@ -148,16 +150,21 @@ the :math:`n`\ th species. The safety factors correspond to the runtime paramete
 say that the timestep must be small enough so that no zone can change
 its internal energy by more than the fraction in one
 step, and so that no zone can change the abundance of any isotope by
-more than the fraction in one step. The time derivatives
-:math:`\dot{e}` and :math:`\dot{X}^n` are estimated by calling the right-hand-side
-of the nuclear network given the state at the time the timestep limiter
-is being calculated. (We use a small number floor to prevent division by zero.)
-To prevent the timestep from being dominated by trace species, there is
-an additional option ``castro.dtnuc_X_threshold`` which is the
-mass fraction threshold below which a species will not be considered in
-the timestep constraint. and are set to
-a large number by default, effectively disabling them. Typical choices
-for these values in the literature are :math:`\sim 0.1`.
+more than the fraction in one step.
+
+There are two ways we can estimate the time derivatives.  If
+``castro.dtnuc_use_average`` is ``true``, then we use the reactive
+source from the previous timestep or SDC iteration.  Otherwise, we
+estimate :math:`\dot{e}` and :math:`\dot{X}^n` by calling the
+right-hand-side of the nuclear network given the state at the time the
+timestep limiter is being calculated. (We use a small number floor to
+prevent division by zero.)  To prevent the timestep from being
+dominated by trace species, there is an additional option
+``castro.dtnuc_X_threshold`` which is the mass fraction threshold
+below which a species will not be considered in the timestep
+constraint. and are set to a large number by default, effectively
+disabling them. Typical choices for these values in the literature are
+:math:`\sim 0.1`.
 
 .. _sec:subcycling:
 

@@ -470,7 +470,10 @@ namespace timestep {
                 Real dXdt[NumSpec]{derivative_floor};
                 Real dedt{derivative_floor};
 
-                if (castro::dtnuc_use_instantaneous) {
+                if (! castro::dtnuc_use_average) {
+                    // use the instantaneous energy generation rate
+                    // for the limiter
+
                     Array1D<Real, 1, neqs> ydot;
                     actual_rhs(burn_state, ydot);
 
@@ -479,6 +482,9 @@ namespace timestep {
                         dXdt[n] = ydot(n+1) * aion[n];
                     }
                 } else {
+                    // use the average energy generation over the last
+                    // step or SDC iteration for the limiter
+
                     // react_src(0) is rho S
                     // react_src(1:) is rho omegadot -- only defined if store_omegadot = 1
 
