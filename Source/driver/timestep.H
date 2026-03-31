@@ -52,6 +52,7 @@ namespace timestep {
            const MFs&... mfs)
     {
         amrex::ignore_unused(maskMF, mfs...);
+        amrex::ignore_unused(reactMF);
 
         constexpr std::size_t N_mfs = sizeof...(MFs);
 
