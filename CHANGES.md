@@ -2,6 +2,10 @@
 
 ## 26.04
 
+  * update CI benchmarks due to Microphysics changes (#3330)
+
+  * add the change log to the docs (#3202)
+
   * add an assert to `test_composite_phi` to enforce assumptions (#3295)
 
   * some cleaning / updates to the true-SDC code path: remove
