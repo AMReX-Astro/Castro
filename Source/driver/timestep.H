@@ -57,7 +57,9 @@ namespace timestep {
         constexpr std::size_t N_mfs = sizeof...(MFs);
 
         auto const& ua = stateMF.const_arrays();
-
+#ifdef REACTIONS
+        auto const& ra = reactMF.const_arrays();
+#endif
         bool mask_covered_zones = maskMF.isDefined();
 
         MultiArray4<Real const> empty_arr{};
@@ -364,6 +366,7 @@ namespace timestep {
 
                 Array4<Real const> const& S = ua[box_no];
                 Array4<Real const> const& mask = ma[box_no];
+                Array4<Real const> const& react_src = ra[box_no];
 
                 IntVect idx(AMREX_D_DECL(i,j,k));
 
@@ -411,6 +414,10 @@ namespace timestep {
 
                 Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
+                // regardless if we are going to use the instantaneous
+                // reaction source or the average, we fill the burn
+                // state in case we need to evaluate NSE later
+
                 burn_t burn_state;
 
 #if AMREX_SPACEDIM == 1
@@ -443,6 +450,7 @@ namespace timestep {
                     burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                     return {ValLocPair<Real, IntVect>{dt_tmp, idx}};
                 }
+
 
                 Real e = burn_state.e;
                 Real X[NumSpec];
