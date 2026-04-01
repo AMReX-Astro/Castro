@@ -429,7 +429,7 @@ namespace TwoShock {
 
       amrex::Real co = std::sqrt(std::abs(gamco*po*tauo));
       co = amrex::max(raux.csmall, co);
-      amrex::Real clsq = std::pow(co*ro, 2);
+      amrex::Real clsq = amrex::Math::powi<2>(co*ro);
 
       // now that we know which state (left or right) we need to worry
       // about, get the value of gamstar and wosq across the wave we

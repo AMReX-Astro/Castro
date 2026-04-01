@@ -1,7 +1,7 @@
 //
 // Analysis routine for the radiation source test.
 //
-// This problem is a thermal relaxiation problem.  The domain is
+// This problem is a thermal relaxation problem.  The domain is
 // completely uniform, so we just need to look at the state variables
 // in a single zone.
 //

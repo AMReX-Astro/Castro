@@ -12,6 +12,10 @@ namespace newton {
     constexpr int BAD_MASS_FRACTIONS = -3;
 
     constexpr Real species_failure_tolerance = 1.e-2_rt;
+
+    constexpr int MAX_ITER = 100;
+    constexpr int MAX_NSUB = 64;
+
 };
 
 #ifdef REACTIONS
@@ -23,27 +27,14 @@ f_sdc_jac(const Real dt_m,
           Array1D<Real, 1, NumSpec+1>& f,
           JacNetArray2D& Jac) {
 
-    // This is used with the Newton solve and returns f and the Jacobian
+    // This is used with the Newton solve and returns f and the
+    // Jacobian
+
+    // single_zone_react_source will use burn_state.y[] to fill
+    // burn_state.rho, burn_state.e, and burn_state.xn[] and then call
+    // the EOS to get the temperature.
 
     GpuArray<Real, NUM_STATE> R_full;
-
-    // create a burn_t -- this will hold the full state, reconstructed
-    // from the current solution U
-
-
-    // compute the temperature -- this can be removed shortly, since
-    // we already do this in single_zone_react_source
-
-    for (int n = 0; n < NumSpec; ++n) {
-        burn_state.xn[n] = amrex::Clamp(burn_state.y[SFS+n] / burn_state.y[SRHO], network_rp::small_x, 1.0_rt);
-    }
-#if NAUX_NET > 0
-    amrex::Error("error: aux data not currently supported in true SDC");
-#endif
-
-    burn_state.e = burn_state.y[SEINT] / burn_state.y[SRHO];
-
-    eos(eos_input_re, burn_state);
 
     single_zone_react_source(burn_state, R_full);
 
@@ -52,28 +43,30 @@ f_sdc_jac(const Real dt_m,
     // note: we store -f
 
     for (int n = 1; n <= NumSpec; ++n) {
-        f(n) = -burn_state.y[SFS-1+n] + dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
+        f(n) = -burn_state.y[SFS-1+n] +
+            dt_m * R_full[UFS-1+n] + burn_state.ydot_a[SFS-1+n];
     }
-    f(NumSpec+1) = -burn_state.y[SEINT] + dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
+    f(NumSpec+1) = -burn_state.y[SEINT] +
+        dt_m * R_full[UEINT] + burn_state.ydot_a[SEINT];
 
     // get the Jacobian.
 
-    // Instead of the decomposition into dw/dU and dR/dw
-    // written out in the original paper Appendix A, we instead use the
-    // form from the simplified-SDC paper (Zingale et al. 2022).  Note:
-    // we are not including density anymore.
+    // Instead of the decomposition into dw/dU and dR/dw written out
+    // in the original paper Appendix A, we instead use the form from
+    // the simplified-SDC paper (Zingale et al. 2022).  Note: we are
+    // not including density anymore.
+
+    // note: single_zone_jac assumes that the burn_state is in sync
+    // already with the current solution guess.  In this case, that
+    // was done in single_zone_react_source.
 
     single_zone_jac(burn_state, dt_m, Jac);
 
     // Our Jacobian has the form:  J = I - dt dR/dw dwdU
     // (Eq. 38), so now we fix that
 
-    for (int n = 1; n <= NumSpec+1; ++n) {
-        for (int m = 1; m <= NumSpec+1; ++m) {
-            Real coeff = (m == n) ? 1.0_rt : 0.0_rt;
-            Jac(n, m) = coeff - dt_m * Jac(n, m);
-        }
-    }
+    Jac.mul(-dt_m);
+    Jac.add_identity();
 
 }
 
@@ -99,6 +92,8 @@ sdc_newton_solve(const Real dt_m,
     // upon exit, U_new will be returned with the value that satisfied
     // the nonlinear function
 
+    amrex::ignore_unused(sdc_iteration);
+
     JacNetArray2D Jac;
 
     // we will do the implicit update of only the terms that
@@ -108,8 +103,6 @@ sdc_newton_solve(const Real dt_m,
     // NumSpec+1 : (rho e)
 
     Array1D<Real, 1, NumSpec+1> f;
-
-    const int MAX_ITER = 100;
 
     ierr = newton::NEWTON_SUCCESS;
 
@@ -146,7 +139,7 @@ sdc_newton_solve(const Real dt_m,
     Real err = 1.e30_rt;
     bool converged = false;
 
-    while (!converged && iter < MAX_ITER) {
+    while (!converged && iter < newton::MAX_ITER) {
 
         // burn_state.y[] will always contain the current guess for the solution
         // only the species and internal energy are updated though
@@ -176,7 +169,7 @@ sdc_newton_solve(const Real dt_m,
         dgesl<NumSpec+1, allow_pivot>(Jac, ipvt, f);
 #endif
 
-        // on output, f is the solution (dU)
+        // on output, f is the correction to the solution (dU)
         for (int n = 0; n < NumSpec; ++n) {
             burn_state.y[SFS+n] += f(n + 1);
         }
@@ -219,10 +212,6 @@ sdc_newton_solve(const Real dt_m,
     for (int n = 0; n < NumSpec; ++n) {
         U_new[UFS+n] = burn_state.y[SFS+n];
     }
-    auto v2 = 0.0_rt;
-    for (int m = 0; m < 3; ++m) {
-        v2 += U_new[UMX+m] * U_new[UMX+m];
-    }
 
     U_new[UEINT] = burn_state.y[SEINT];
 
@@ -251,7 +240,6 @@ sdc_newton_subdivide(const Real dt_m,
     // will subdivide the domain until it converges or reaches our
     // limit on the number of subintervals.
 
-    const int MAX_NSUB = 64;
     GpuArray<Real, NUM_STATE> U_begin;
 
     // subdivide the timestep and do multiple Newtons.
@@ -259,7 +247,7 @@ sdc_newton_subdivide(const Real dt_m,
     int nsub = 1;
     ierr = newton::CONVERGENCE_FAILURE;
 
-    while (nsub < MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
+    while (nsub <= newton::MAX_NSUB && ierr != newton::NEWTON_SUCCESS) {
 
         // For the first interval, we set the starting state to
         // the old-time solution.
