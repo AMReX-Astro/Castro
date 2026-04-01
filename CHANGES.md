@@ -2,6 +2,9 @@
 
 ## 26.04
 
+  * update the burning timestep limiter to know about disabling burning
+    in shocks (#3331)
+
   * update CI benchmarks due to Microphysics changes (#3330)
 
   * add the change log to the docs (#3202)
