@@ -180,7 +180,6 @@ Castro::variableCleanUp ()
           std::cout << "Deleting radiation in variableCleanUp..." << '\n';
       }
       radiation.reset();
-      global::the_radiation_ptr = nullptr;
       if (report && ParallelDescriptor::IOProcessor()) {
           std::cout << "                                        done" << std::endl;
       }
