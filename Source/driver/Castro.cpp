@@ -97,18 +97,18 @@ Vector<Real> Castro::node_weights;
 
 #ifdef GRAVITY
 // the gravity object
-Gravity*     Castro::gravity  = nullptr;
+std::unique_ptr<Gravity> Castro::gravity;
 #endif
 
 #ifdef DIFFUSION
 // the diffusion object
-Diffusion*    Castro::diffusion  = nullptr;
+std::unique_ptr<Diffusion> Castro::diffusion;
 #endif
 
 #ifdef RADIATION
 
 // the radiation object
-Radiation*   Castro::radiation = nullptr;
+std::unique_ptr<Radiation> Castro::radiation;
 #endif
 
 
@@ -160,8 +160,7 @@ Castro::variableCleanUp ()
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
-    delete gravity;
-    gravity = nullptr;
+    gravity.reset();
   }
 #endif
 
@@ -170,8 +169,7 @@ Castro::variableCleanUp ()
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
-    delete diffusion;
-    diffusion = nullptr;
+    diffusion.reset();
   }
 #endif
 
@@ -181,8 +179,8 @@ Castro::variableCleanUp ()
       if (report && ParallelDescriptor::IOProcessor()) {
           std::cout << "Deleting radiation in variableCleanUp..." << '\n';
       }
-      delete radiation;
-      radiation = nullptr;
+      radiation.reset();
+      global::the_radiation_ptr = nullptr;
       if (report && ParallelDescriptor::IOProcessor()) {
           std::cout << "                                        done" << std::endl;
       }
@@ -190,8 +188,7 @@ Castro::variableCleanUp ()
 #endif
 
 #ifdef AMREX_PARTICLES
-  delete TracerPC;
-  TracerPC = 0;
+  TracerPC.reset();
 #endif
 
     desc_lst.clear();
@@ -724,7 +721,7 @@ Castro::Castro (Amr&            papa,
     if (do_grav == 1) {
       // gravity is a static object, only alloc if not already there
       if (gravity == nullptr) {
-        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+        gravity = std::make_unique<Gravity>(parent, parent->finestLevel(), &phys_bc, URHO);
       }
 
       // Passing numpts_1d at level 0
@@ -755,7 +752,7 @@ Castro::Castro (Amr&            papa,
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == nullptr) {
-        diffusion = new Diffusion(parent,&phys_bc);
+        diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
       }
 
       diffusion->install_level(level,this,volume,area.data());
@@ -765,8 +762,8 @@ Castro::Castro (Amr&            papa,
     if (do_radiation) {
       if (radiation == nullptr) {
         // radiation is a static object, only alloc if not already there
-        radiation = new Radiation(parent, this);
-        global::the_radiation_ptr = radiation;
+        radiation = std::make_unique<Radiation>(parent, this);
+        global::the_radiation_ptr = radiation.get();
       }
       radiation->regrid(level, grids, dmap);
 
@@ -2237,7 +2234,7 @@ Castro::post_restart ()
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == nullptr) {
-          diffusion = new Diffusion(parent,&phys_bc);
+          diffusion = std::make_unique<Diffusion>(parent, &phys_bc);
       }
 
       if (level == 0) {
