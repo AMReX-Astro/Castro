@@ -331,7 +331,6 @@ Castro::restart (Amr&     papa,
         // radiation is a static object, only alloc if not already there
         int rad_restart = 1; // disables quasi-steady initialization
         radiation = std::make_unique<Radiation>(parent, this, rad_restart);
-        global::the_radiation_ptr = radiation.get();
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
