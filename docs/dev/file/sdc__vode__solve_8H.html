@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File Castro_sdc_util.H &mdash; Castro  documentation</title>
+  <title>File sdc_vode_solve.H &mdash; Castro  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Castro_sources.H" href="Castro__sources_8H.html" />
-    <link rel="prev" title="File Castro_sdc.H" href="Castro__sdc_8H.html" /> 
+    <link rel="next" title="File slope.H" href="slope_8H.html" />
+    <link rel="prev" title="File sdc_react_util.H" href="sdc__react__util_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,7 +49,7 @@
   </form>
 </div>
     <div class="branch">
-        Branch: <a href="../../file/Castro__sdc__util_8H.html">main</a> | <a href="../file/Castro__sdc__util_8H.html">development</a>
+        Branch: <a href="../../file/sdc__vode__solve_8H.html">main</a> | <a href="../file/sdc__vode__solve_8H.html">development</a>
     </div>
 
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -111,13 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8H.html">File Castro_rotation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc_8H.html">File Castro_sdc.H</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_sdc_util.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv411sdc_solvers"><code class="docutils literal notranslate"><span class="pre">sdc_solvers</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N11sdc_solvers6solverE"><code class="docutils literal notranslate"><span class="pre">solver</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="Castro__sdc__util_8H.html">File Castro_sdc_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
@@ -182,7 +176,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__powell__solve_8H.html">File sdc_powell_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc__vode__solve_8H.html">File sdc_vode_solve.H</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_vode_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
 </ul>
@@ -210,9 +204,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../filelist.html">File list</a></li>
-      <li class="breadcrumb-item active">File Castro_sdc_util.H</li>
+      <li class="breadcrumb-item active">File sdc_vode_solve.H</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/file/Castro__sdc__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/sdc__vode__solve_8H.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -220,83 +214,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="file-castro-sdc-util-h">
-<h1>File Castro_sdc_util.H<a class="headerlink" href="#file-castro-sdc-util-h" title="Link to this heading"></a></h1>
+  <section id="file-sdc-vode-solve-h">
+<h1>File sdc_vode_solve.H<a class="headerlink" href="#file-sdc-vode-solve-h" title="Link to this heading"></a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1a43c65660ea37a7435d3bc3ff6cf770a7"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">normalize_species_sdc</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;u)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1af8bc73ff7cf67ec65bf3b450f7021751"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1a6e09bd3bc8838c425209d3fa6ebbf217"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_solve</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_new,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1a7e48d64fe23b0955660c16ad18605f9a"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_update_o2</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;k_m,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;k_n,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;A_m,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;R_m_old,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">m_start)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1acec349d6f4261f5ca61e4ad13863d4b3"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_update_centers_o4</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_new,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="Castro__sdc__util_8H_1abe832c49921ea75bb747c5406c0f757f"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">instantaneous_react</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;R_source)</span></span></dt>
+<span class="target" id="sdc__vode__solve_8H_1a3a46fbef272c137435f402f5ad778661"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_vode_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration)</span></span></dt>
 <dd></dd></dl>
 
 </div>
-<dl class="cpp type">
-<dt class="sig sig-object cpp" id="_CPPv411sdc_solvers">
-<span id="_CPPv311sdc_solvers"></span><span id="_CPPv211sdc_solvers"></span><span id="sdc_solvers"></span><span class="target" id="namespacesdc__solvers"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sdc_solvers</span></span></span><a class="headerlink" href="#_CPPv411sdc_solvers" title="Link to this definition"></a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
-<dl class="cpp enum">
-<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solverE">
-<span id="_CPPv3N11sdc_solvers6solverE"></span><span id="_CPPv2N11sdc_solvers6solverE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">solver</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solverE" title="Link to this definition"></a><br /></dt>
-<dd><p><em>Values:</em></p>
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver6newtonE">
-<span id="_CPPv3N11sdc_solvers6solver6newtonE"></span><span id="_CPPv2N11sdc_solvers6solver6newtonE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a466aa55825aa515326abf8ef673d72c2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newton</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver6newtonE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver4vodeE">
-<span id="_CPPv3N11sdc_solvers6solver4vodeE"></span><span id="_CPPv2N11sdc_solvers6solver4vodeE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a36afd944da84e0baeba2868b5f3d7202"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vode</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver4vodeE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver15vode_and_newtonE">
-<span id="_CPPv3N11sdc_solvers6solver15vode_and_newtonE"></span><span id="_CPPv2N11sdc_solvers6solver15vode_and_newtonE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604aba8090caf24f9faa63a89ff7e880028e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vode_and_newton</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver15vode_and_newtonE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp enumerator">
-<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver13hybrid_powellE">
-<span id="_CPPv3N11sdc_solvers6solver13hybrid_powellE"></span><span id="_CPPv2N11sdc_solvers6solver13hybrid_powellE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a58d4b23043cda5bdfff882c1b26cae7d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hybrid_powell</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver13hybrid_powellE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-</dd></dl>
-
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="Castro__sdc_8H.html" class="btn btn-neutral float-left" title="File Castro_sdc.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="Castro__sources_8H.html" class="btn btn-neutral float-right" title="File Castro_sources.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sdc__react__util_8H.html" class="btn btn-neutral float-left" title="File sdc_react_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="slope_8H.html" class="btn btn-neutral float-right" title="File slope.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

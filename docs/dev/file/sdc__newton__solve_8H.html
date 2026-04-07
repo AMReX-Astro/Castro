@@ -24,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File sdc_react_util.H" href="sdc__react__util_8H.html" />
+    <link rel="next" title="File sdc_powell_solve.H" href="sdc__powell__solve_8H.html" />
     <link rel="prev" title="File sdc_cons_to_burn.H" href="sdc__cons__to__burn_8H.html" /> 
 </head>
 
@@ -174,11 +174,11 @@
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File sdc_newton_solve.H</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv413newton_status"><code class="docutils literal notranslate"><span class="pre">newton_status</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N13newton_status6statusE"><code class="docutils literal notranslate"><span class="pre">status</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#_CPPv46newton"><code class="docutils literal notranslate"><span class="pre">newton</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton14NEWTON_SUCCESSE"><code class="docutils literal notranslate"><span class="pre">NEWTON_SUCCESS</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton15SINGULAR_MATRIXE"><code class="docutils literal notranslate"><span class="pre">SINGULAR_MATRIX</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton19CONVERGENCE_FAILUREE"><code class="docutils literal notranslate"><span class="pre">CONVERGENCE_FAILURE</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton18BAD_MASS_FRACTIONSE"><code class="docutils literal notranslate"><span class="pre">BAD_MASS_FRACTIONS</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton25species_failure_toleranceE"><code class="docutils literal notranslate"><span class="pre">species_failure_tolerance</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton8MAX_ITERE"><code class="docutils literal notranslate"><span class="pre">MAX_ITER</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#_CPPv4N6newton8MAX_NSUBE"><code class="docutils literal notranslate"><span class="pre">MAX_NSUB</span></code></a></li>
@@ -186,10 +186,11 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__powell__solve_8H.html">File sdc_powell_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__vode__solve_8H.html">File sdc_vode_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -227,49 +228,63 @@
              
   <section id="file-sdc-newton-solve-h">
 <h1>File sdc_newton_solve.H<a class="headerlink" href="#file-sdc-newton-solve-h" title="Link to this heading"></a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="sdc__newton__solve_8H_1ab9eec9ac14a53d3b18735bd6c08d651d"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">f_sdc_jac</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">1,</span> <span class="pre">NumSpec+1</span> <span class="pre">&gt;</span> <span class="pre">&amp;f,</span> <span class="pre">JacNetArray2D</span> <span class="pre">&amp;Jac)</span></span></dt>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv413newton_status">
+<span id="_CPPv313newton_status"></span><span id="_CPPv213newton_status"></span><span id="newton_status"></span><span class="target" id="namespacenewton__status"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newton_status</span></span></span><a class="headerlink" href="#_CPPv413newton_status" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N13newton_status6statusE">
+<span id="_CPPv3N13newton_status6statusE"></span><span id="_CPPv2N13newton_status6statusE"></span><span class="target" id="namespacenewton__status_1a7070a466c4c1efbeafef24f69ca3b45b"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">status</span></span></span><a class="headerlink" href="#_CPPv4N13newton_status6statusE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N13newton_status6status7successE">
+<span id="_CPPv3N13newton_status6status7successE"></span><span id="_CPPv2N13newton_status6status7successE"></span><span class="target" id="namespacenewton__status_1a7070a466c4c1efbeafef24f69ca3b45ba90c720569b0e55dadbc7a0056100885f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">success</span></span></span><a class="headerlink" href="#_CPPv4N13newton_status6status7successE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="sdc__newton__solve_8H_1a5ff7c48d18f3cfaafd77996380114a1b"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N13newton_status6status15singular_matrixE">
+<span id="_CPPv3N13newton_status6status15singular_matrixE"></span><span id="_CPPv2N13newton_status6status15singular_matrixE"></span><span class="target" id="namespacenewton__status_1a7070a466c4c1efbeafef24f69ca3b45ba6a746f3438751bd884beb54352d50f00"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">singular_matrix</span></span></span><a class="headerlink" href="#_CPPv4N13newton_status6status15singular_matrixE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp function">
-<dt class="sig sig-object cpp">
-<span class="target" id="sdc__newton__solve_8H_1a26c3316beb53daf6366b84724d6141d5"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_subdivide</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N13newton_status6status19convergence_failureE">
+<span id="_CPPv3N13newton_status6status19convergence_failureE"></span><span id="_CPPv2N13newton_status6status19convergence_failureE"></span><span class="target" id="namespacenewton__status_1a7070a466c4c1efbeafef24f69ca3b45ba7570e87809e88b3fbfc144683b59fc26"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">convergence_failure</span></span></span><a class="headerlink" href="#_CPPv4N13newton_status6status19convergence_failureE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N13newton_status6status18bad_mass_fractionsE">
+<span id="_CPPv3N13newton_status6status18bad_mass_fractionsE"></span><span id="_CPPv2N13newton_status6status18bad_mass_fractionsE"></span><span class="target" id="namespacenewton__status_1a7070a466c4c1efbeafef24f69ca3b45ba1d941c0f477920cfd491f3e5cc92a940"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bad_mass_fractions</span></span></span><a class="headerlink" href="#_CPPv4N13newton_status6status18bad_mass_fractionsE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </div>
+</dd></dl>
+
 <dl class="cpp type">
 <dt class="sig sig-object cpp" id="_CPPv46newton">
 <span id="_CPPv36newton"></span><span id="_CPPv26newton"></span><span id="newton"></span><span class="target" id="namespacenewton"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newton</span></span></span><a class="headerlink" href="#_CPPv46newton" title="Link to this definition"></a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespacenewton_1a1a0f98d57b2de1aa8ded9ba2ca36fdc0"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">f_sdc_jac</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">1,</span> <span class="pre">NumSpec+1</span> <span class="pre">&gt;</span> <span class="pre">&amp;f,</span> <span class="pre">JacNetArray2D</span> <span class="pre">&amp;Jac)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespacenewton_1a5c3c764312bd1c474e34a007af6e6be2"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_solve</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="namespacenewton_1afe7cdf2b468fae46f9cfb7714b5d3b32"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">sdc_newton_subdivide</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">dt_m,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;U_old,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;U_new,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;C,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">sdc_iteration,</span> <span class="pre">Real</span> <span class="pre">&amp;err_out,</span> <span class="pre">int</span> <span class="pre">&amp;ierr)</span></span></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N6newton14NEWTON_SUCCESSE">
-<span id="_CPPv3N6newton14NEWTON_SUCCESSE"></span><span id="_CPPv2N6newton14NEWTON_SUCCESSE"></span><span id="newton::NEWTON_SUCCESS__i"></span><span class="target" id="namespacenewton_1ae9346576729c373d0ac79c9be05593d0"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEWTON_SUCCESS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N6newton14NEWTON_SUCCESSE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N6newton15SINGULAR_MATRIXE">
-<span id="_CPPv3N6newton15SINGULAR_MATRIXE"></span><span id="_CPPv2N6newton15SINGULAR_MATRIXE"></span><span id="newton::SINGULAR_MATRIX__i"></span><span class="target" id="namespacenewton_1a6087aa2c97d30a78634c400ef11f53c2"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SINGULAR_MATRIX</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv4N6newton15SINGULAR_MATRIXE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N6newton19CONVERGENCE_FAILUREE">
-<span id="_CPPv3N6newton19CONVERGENCE_FAILUREE"></span><span id="_CPPv2N6newton19CONVERGENCE_FAILUREE"></span><span id="newton::CONVERGENCE_FAILURE__i"></span><span class="target" id="namespacenewton_1afa37592a3e926f94856c5a9c98e26ea3"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CONVERGENCE_FAILURE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv4N6newton19CONVERGENCE_FAILUREE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N6newton18BAD_MASS_FRACTIONSE">
-<span id="_CPPv3N6newton18BAD_MASS_FRACTIONSE"></span><span id="_CPPv2N6newton18BAD_MASS_FRACTIONSE"></span><span id="newton::BAD_MASS_FRACTIONS__i"></span><span class="target" id="namespacenewton_1a37047d0287a1e67de2804538aa094462"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BAD_MASS_FRACTIONS</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv4N6newton18BAD_MASS_FRACTIONSE" title="Link to this definition"></a><br /></dt>
-<dd></dd></dl>
-
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N6newton25species_failure_toleranceE">
 <span id="_CPPv3N6newton25species_failure_toleranceE"></span><span id="_CPPv2N6newton25species_failure_toleranceE"></span><span id="newton::species_failure_tolerance__Real"></span><span class="target" id="namespacenewton_1a54a0613b5bec843e6f0f5e7eac02911e"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">Real</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">species_failure_tolerance</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.e-2</span></span><span class="n"><span class="pre">_rt</span></span><a class="headerlink" href="#_CPPv4N6newton25species_failure_toleranceE" title="Link to this definition"></a><br /></dt>
@@ -295,7 +310,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="sdc__cons__to__burn_8H.html" class="btn btn-neutral float-left" title="File sdc_cons_to_burn.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sdc__react__util_8H.html" class="btn btn-neutral float-right" title="File sdc_react_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sdc__powell__solve_8H.html" class="btn btn-neutral float-right" title="File sdc_powell_solve.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
