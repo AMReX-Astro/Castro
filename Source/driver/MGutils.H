@@ -8,13 +8,14 @@ using namespace amrex;
 
 void
 apply_metric(const Box& bx,
-             Array4<Real> const rhs, const Box& rbx,
-             Array4<Real> const ecx, const Box& xbx,
+             Array4<Real> const& rhs, const Box& rbx,
+             Array4<Real> const& ecx, const Box& xbx,
 
 #if AMREX_SPACEDIM >= 2
-             Array4<Real> const ecy, const Box& ybx,
+             Array4<Real> const& ecy, const Box& ybx,
 #endif
-             GpuArray<Real, AMREX_SPACEDIM> dx,
+             const GpuArray<Real, AMREX_SPACEDIM>& problo,
+             const GpuArray<Real, AMREX_SPACEDIM>& dx,
              const int coord_type);
 
 #endif

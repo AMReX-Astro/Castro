@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """This routine parses plain-text parameter files that list runtime
 parameters for use in our codes.  The general format of a parameter

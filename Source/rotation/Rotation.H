@@ -1,11 +1,12 @@
 #ifndef ROTATION_H
 #define ROTATION_H
 
+#include <numbers>
+
 #include <AMReX_Array.H>
-#include <Castro.H>
 #include <Castro_math.H>
 #include <Castro_util.H>
-
+#include <castro_params.H>
 
 ///
 /// Return the magnitude of omega along the rotating axis.
@@ -19,7 +20,7 @@ Real get_omega()
     // shut off the source term by setting omega = 0.
 
     if (castro::rotational_period > 0.0_rt) {
-        omega = 2.0_rt * M_PI / castro::rotational_period;
+        omega = 2.0_rt * std::numbers::pi / castro::rotational_period;
     }
 
     return omega;
@@ -144,7 +145,7 @@ rotational_potential(const GpuArray<Real, 3>& r, const GpuArray<Real, 3>& omega,
   if (castro::rotation_include_centrifugal == 1) {
 
       GpuArray<Real, 3> omega_cross_r;
-      cross_product(omega, r, omega_cross_r);
+      cross_product(omega, r_vec, omega_cross_r);
 
       for (int idir = 0; idir < 3; idir++) {
           phi -= 0.5_rt * omega_cross_r[idir] * omega_cross_r[idir];

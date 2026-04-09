@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Castro documentation build configuration file, created by
 # sphinx-quickstart on Mon Dec 25 18:42:54 2017.
@@ -60,6 +60,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_copybutton',
               'sphinx_prompt',
               'breathe',
+              'sphinx_rtd_theme_ext_color_contrast',
               'IPython.sphinxext.ipython_console_highlighting']
 
 # bibtex

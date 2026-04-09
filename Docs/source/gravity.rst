@@ -17,12 +17,7 @@ or a full Poisson solve. To enable gravity in the code, set::
     USE_GRAV = TRUE
 
 in the ``GNUmakefile``, and then turn it on in the inputs file
-via ``castro.do_grav`` = 1. If you want to incorporate a point mass
-(through ``castro.point_mass``), you must have::
-
-    USE_POINTMASS = TRUE
-
-in the ``GNUmakefile``.
+via ``castro.do_grav`` = 1.
 
 There are currently three options for how gravity is calculated,
 controlled by setting ``gravity.gravity_type``. The options are
@@ -166,8 +161,24 @@ The follow parameters affect the coupling of hydro and gravity:
 -  ``castro.moving_center`` : do we recompute the center
    used for the multipole gravity solver each step?
 
+-  ``castro.use_point_mass`` : whether to include a central point mass
+
 -  ``castro.point_mass`` : point mass at the center of the star
    (must be :math:`\geq 0`; default: 0.0)
+
+-  ``castro.point_mass_fix_solution`` : whether to keep density in
+   zones adjacent to the point mass constant by adding their mass
+   change to the point mass object.
+
+-  ``castro.gw_dist`` : distance (in kpc) used for calculation of
+   the gravitational wave amplitude.
+
+- ``castro.point_mass_offset_is_true`` : whether to shift the point
+  mass away from the coordinate origin. This is useful to include
+  a parallel-plane gravity with 1/r**2 scaling.
+
+- ``castro.point_mass_location_offset`` : distance of the point mass
+  shifted from the problem center along the vertical direction.
 
 Note that in the following, ``MAX_LEV`` is a hard-coded parameter
 in ``Source/Gravity.cpp`` which is currently set to 15. It
@@ -414,6 +425,7 @@ is :cite:`katz:2016`.
 Point Mass
 ----------
 
+Point mass can be enabled via the runtime parameter, ``castro.use_point_mass=1``.
 Pointmass gravity works with all other forms of gravity, it is not a
 separate option. Since the Poisson equation is linear in potential
 (and its derivative, the acceleration, is also linear), the point mass
@@ -431,6 +443,25 @@ deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
 ``pointmass_update()`` in ``Castro_pointmass.cpp``.
+
+Another useful option is ``point_mass_offset_is_true``. If set to 1,
+then the location of the point mass is shifted away from the problem center
+by an amount given by ``point_mass_location_offset``.
+The offset is applied along the vertical direction:
+
+- 1D: x-direction
+- 2D: y-direction
+- 3D: z-direction
+
+.. note:: ``point_mass_location_offset`` shifts the point mass in the
+          *negative* vertical direction.
+
+This option is useful for modelling parallel-plane gravity with an
+inverse-square law. For a parallel-plane problem, the problem center is
+typically chosen to be at the stellar surface. To represent the
+gravity of the underlying star, the point mass can be placed
+one stellar radius below the surface. In this case,
+``point_mass_location_offset`` corresponds to the stellar radius.
 
 GR correction
 =============

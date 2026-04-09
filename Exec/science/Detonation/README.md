@@ -32,6 +32,17 @@ shockwave (as seen in the pressure field).
 Note: if the domain is too small, then the burning will decouple from
 the shock wave, and you will not get a detonation.
 
+## Stopping condition
+
+The runtime parameter `problem.det_domain_abort` can be used to
+abort the simulation when the detonation reaches a particular fraction
+of the way through the domain.  E.g., setting this to `0.95` will stop
+the calculation when the detonation is 95% of the way through the
+domain.  This works by finding the location of the peak energy
+generation rate in the domain.
+
+Set it to a value > 1 to disable this feature.
+
 ## Inputs files
 
 Some important inputs files
@@ -45,6 +56,9 @@ Some important inputs files
 
 * `inputs-collision` : this is the inputs file used for the 1D collision
   simulations from Katz & Zingale, 2019, ApJ, 874, 169
+
+* `inputs-det-x.ONe` : this creates an O-Ne detonation.  It should be
+  build with `USE_NSE_NET=TRUE NETWORK_DIR=he-burn/ase-iron`
 
 Inputs files used in the regression test suite:
 

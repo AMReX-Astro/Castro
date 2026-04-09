@@ -123,7 +123,7 @@ problem.ash1_frac = 1.0e0
 
 problem.low_density_cutoff = 1.e-4
 
-problem.cutoff_density = 2.5e4
+problem.cutoff_density = 1.0
 problem.max_hse_tagging_level = 3
 problem.max_base_tagging_level = 2
 

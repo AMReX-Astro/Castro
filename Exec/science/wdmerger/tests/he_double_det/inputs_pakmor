@@ -286,9 +286,6 @@ integrator.atol_spec = 1.0e-6
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 
-# Do not abort or retry on a failed burn (Castro will handle this)
-integrator.abort_on_failure = 0
-
 # Renormalize abundances during the burn
 integrator.renormalize_abundances = 1
 
@@ -297,6 +294,9 @@ integrator.MAX_TEMP = 1.0e10
 
 # Use tabular rate evaluation when available
 network.use_tables = 1
+
+# Disable burning in shocks
+castro.disable_shock_burning = 1
 
 ############################################################################################
 # Gravity

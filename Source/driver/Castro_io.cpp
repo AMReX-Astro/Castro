@@ -615,6 +615,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << "\n";
 
+  jobInfoFile << "make flags:    " << buildInfoGetMakeFlags() << "\n";
+
+  jobInfoFile << "\n";
+
   jobInfoFile << "COMP:          " << buildInfoGetComp() << "\n";
   jobInfoFile << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
@@ -697,9 +701,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   // these names correspond to the integer flags setup in the
   // Castro_setup.cpp
-  const char* names_bc[] =
-    { "interior", "inflow", "outflow",
-      "symmetry", "slipwall", "noslipwall" };
+  constexpr std::array<std::string_view, 6> names_bc{
+      "interior", "inflow", "outflow",
+      "symmetry", "slipwall", "noslipwall"};
 
 
   jobInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
@@ -860,10 +864,19 @@ Castro::writeBuildInfo ()
 
   std::cout << "\n";
 
+  std::cout << "make flags:    " << buildInfoGetMakeFlags() << "\n";
+
+  std::cout << "\n";
+
   std::cout << "COMP:          " << buildInfoGetComp() << "\n";
   std::cout << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   std::cout << "\n";
+
+#ifdef AMREX_USE_CUDA
+  std::cout << "CUDA version:  " << buildInfoGetCUDAVersion() << "\n";
+  std::cout << "\n";
+#endif
 
   std::cout << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   std::cout << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
@@ -1096,9 +1109,7 @@ Castro::plotFileOutput(const std::string& dir,
     // The name is relative to the directory containing the Header file.
     //
     static const std::string BaseName = "/Cell";
-    char buf[64];
-    sprintf(buf, "Level_%d", level);
-    std::string Level = buf;
+    std::string Level = "Level_" + std::to_string(level);
     //
     // Now for the full pathname of that directory.
     //

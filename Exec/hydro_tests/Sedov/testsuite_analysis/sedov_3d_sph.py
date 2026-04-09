@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # run as: ./sedov_2d_sph_in_cyl.py castro_dir plotfle
 

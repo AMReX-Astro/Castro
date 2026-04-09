@@ -2,6 +2,8 @@
 
 #include <cstdio>
 #include <iostream>
+#include <numbers>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -60,8 +62,8 @@ Castro::do_energy_diagnostics()
       // additional 4*pi here because we want to weight them as covering
       // the full surface of a spherical shell.  This is compatible
       // with what volWgtSum does for volumes.
-      rr  *= (4.0 * M_PI);
-      rry *= (4.0 * M_PI);
+      rr  *= (4.0 * std::numbers::pi);
+      rry *= (4.0 * std::numbers::pi);
     }
 #elif (AMREX_SPACEDIM == 2)
     if (Geom().IsRZ()) {
@@ -69,8 +71,8 @@ Castro::do_energy_diagnostics()
       // been weighted by r in RZ coordinates.  We multiply by an
       // additional 2*pi here to be compatible with what volWgtSum
       // does for volumes.
-      rr  *= (2.0 * M_PI);
-      rry *= (2.0 * M_PI);
+      rr  *= (2.0 * std::numbers::pi);
+      rry *= (2.0 * std::numbers::pi);
     }
 #endif
 

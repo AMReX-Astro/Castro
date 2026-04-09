@@ -324,7 +324,7 @@ void rfface (Array4<Real> const fine,
         int i = flo.x;
         for (int k = flo.z; k <= fhi.z; ++k) {
             for (int j = flo.y; j <= fhi.y; ++j) {
-                fine(i,j,k) = crse(clo.x, j / jfac, k / kfac) / rfac;
+                fine(i,j,k) = crse(clo.x, static_cast<int>(j / jfac), static_cast<int>(k / kfac)) / rfac;
             }
         }
     }
@@ -341,7 +341,7 @@ void rfface (Array4<Real> const fine,
         int j = flo.y;
         for (int k = flo.z; k <= fhi.z; ++k) {
             for (int i = flo.x; i <= fhi.x; ++i) {
-                fine(i,j,k) = crse(i / ifac, clo.y, k / kfac) / rfac;
+                fine(i,j,k) = crse(static_cast<int>(i / ifac), clo.y, static_cast<int>(k / kfac)) / rfac;
             }
         }
     }
@@ -358,7 +358,7 @@ void rfface (Array4<Real> const fine,
         int k = flo.z;
         for (int j = flo.y; j <= fhi.y; ++j) {
             for (int i = flo.x; i <= fhi.x; ++i) {
-                fine(i,j,k) = crse(i / ifac, j / jfac, clo.z) / rfac;
+                fine(i,j,k) = crse(static_cast<int>(i / ifac), static_cast<int>(j / jfac), clo.z) / rfac;
             }
         }
     }

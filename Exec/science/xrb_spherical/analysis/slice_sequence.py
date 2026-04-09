@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import sys
 import argparse
@@ -25,8 +25,6 @@ parser.add_argument('-r', '--ratio', default=1.0, type=float,
 parser.add_argument('--displace_theta', action='store_true',
                     help="""whether to displace the theta that defines the center of the frame.
                         This is useful when theta represents the flame front position.""")
-parser.add_argument('--annotate_vline', action='store_true',
-                    help="whether to annotate a vertical line along the given theta")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
 
@@ -40,13 +38,16 @@ tracking_data = pd.read_csv(args.tracking_fname)
 fnames = tracking_data["fname"]
 front_thetas = tracking_data["front_theta"]
 
+# Process front_thetas with moving average so that frame doesn't jitter
+window = 10
+smooth_thetas = tracking_data['front_theta'].rolling(window, center=True).mean()
+
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(slice, [fname], args.fields, widthScale=args.width,
-                        widthRatio=args.ratio, theta=front_thetas[i],
-                        displace_theta=args.displace_theta, annotate_vline=args.annotate_vline,
-                        annotate_lat_lines=True): i
+                        widthRatio=args.ratio, theta=smooth_thetas[i], position=front_thetas[i],
+                        displace_theta=args.displace_theta): i
         for i, fname in enumerate(fnames)
     }
     try:

@@ -121,7 +121,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 #pragma omp parallel
 #endif
        {
-           FArrayBox coeff_cc;
+           FArrayBox coeff_cc(The_Async_Arena());;
 
            for (MFIter mfi(grown_state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
            {
@@ -133,9 +133,8 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
                const Box& obx = amrex::grow(bx, 1);
                coeff_cc.resize(obx, 1);
-               Elixir elix_coeff_cc = coeff_cc.elixir();
-               Array4<Real> const coeff_arr = coeff_cc.array();
 
+               Array4<Real> const coeff_arr = coeff_cc.array();
                Array4<Real const> const U_arr = grown_state.array(mfi);
 
                fill_temp_cond(obx, U_arr, coeff_arr);
@@ -146,16 +145,16 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
                    Array4<Real> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
 
-                   AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                   amrex::ParallelFor(nbx,
+                   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                    {
-
-                     if (idir == 0) {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
-                     } else if (idir == 1) {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
-                     } else {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
-                     }
+                       if (idir == 0) {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+                       } else if (idir == 1) {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+                       } else {
+                           edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+                       }
                    });
                }
            }
@@ -165,17 +164,19 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
 
    MultiFab CrseTemp;
 
-   if (level > 0) {
-       // Fill temperature at next coarser level, if it exists.
-       const BoxArray& crse_grids = getLevel(level-1).boxArray();
-       const DistributionMapping& crse_dmap = getLevel(level-1).DistributionMap();
-       CrseTemp.define(crse_grids,crse_dmap,1,1);
-       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,UTEMP,1);
-   }
-
    if (diffuse_use_amrex_mlmg) {
+
+       if (level > 0) {
+           // Fill temperature at next coarser level, if it exists.
+           const BoxArray& crse_grids = getLevel(level-1).boxArray();
+           const DistributionMapping& crse_dmap = getLevel(level-1).DistributionMap();
+           CrseTemp.define(crse_grids,crse_dmap,1,1);
+           FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,UTEMP,1);
+       }
+
        // Evaluates ∇ ⋅(k_th ∇T) using AMReX
        diffusion->applyop(level, Temperature, CrseTemp, TempDiffTerm, coeffs);
+
    } else {
        // Evaluates ∇ ⋅(k_th ∇T) without using AMReX
 #ifdef AMREX_USE_OMP
@@ -206,7 +207,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
            {
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
                    int il = i;
-                   int jl = j;
+                   int jl = j;  // NOLINT(misc-confusable-identifiers)
                    int kl = k;
 
                    int ir = i;

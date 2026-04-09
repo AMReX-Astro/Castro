@@ -305,8 +305,8 @@ public:
 #if AMREX_SPACEDIM == 3
                       amrex::Array4<amrex::Real> const& ecz,
 #endif
-                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx,
-                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
+                      const amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>& dx,
+                      const amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>& problo,
                       int coord_type);
 
 ///
@@ -362,7 +362,7 @@ public:
 /// @param level        Level index
 ///
   void compute_radial_mass(const amrex::Box& bx,
-                           amrex::Array4<amrex::Real const> const u,
+                           amrex::Array4<amrex::Real const> const& u,
                            RealVector& radial_mass,
                            RealVector& radial_vol,
 #ifdef GR_GRAV

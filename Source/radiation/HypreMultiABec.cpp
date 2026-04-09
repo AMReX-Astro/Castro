@@ -2858,7 +2858,6 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     finalizeVectors();
 
     HYPRE_SStructFACSetup2(sstruct_solver, A, b, x);
-    std::cin.get();
 
     delete[] plevels;
     delete[] prefinements;
@@ -3293,7 +3292,6 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 #if 0
     HYPRE_SStructMatrixPrint("A", A, 0);
     HYPRE_SStructVectorPrint("B", b, 0);
-    cin.get();
     std::cout << "HypreMultiABec: creating solver" << std::endl;
 #endif
     HYPRE_BoomerAMGCreate(&solver);
@@ -3558,7 +3556,6 @@ void HypreMultiABec::solve()
     //std::cout << "                                  done." << std::endl;
     //HYPRE_SStructVectorPrint("Xamg", x, 0);
     //HYPRE_SStructVectorPrint("Bamg", b, 0);
-    //cin.get();
   }
   else if (solver_flag == 101) {
     HYPRE_SStructFACSolve3(sstruct_solver, A, b, x);
@@ -3661,7 +3658,6 @@ void HypreMultiABec::solve()
     //std::cout << "                                  done." << std::endl;
     //HYPRE_SStructVectorPrint("Xamg", x, 0);
     //HYPRE_SStructVectorPrint("Bamg", b, 0);
-    //cin.get();
   }
   else if (solver_flag == 151 || solver_flag == 153) {
     int num_iterations, myid;
@@ -3908,8 +3904,6 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-        Real foo=1.e200;
-
         for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
             int i = mfi.index();
             const Box &reg = grids[level][i];

@@ -51,7 +51,7 @@ geometry.prob_hi =  5.12e9  5.12e9  5.12e9
 # Boundary conditions on hi x, y, and z edges
 castro.hi_bc = 2 2 2
 
-############################################################################################ 
+############################################################################################
 # Timestepping
 ############################################################################################
 
@@ -85,7 +85,7 @@ castro.retry_small_density_cutoff = 1.0e0
 # Don't abort for invalid X if the zone density is less than this threshold
 castro.abundance_failure_rho_cutoff = 1.0e0
 
-############################################################################################ 
+############################################################################################
 # Resolution, gridding and AMR
 ############################################################################################
 
@@ -186,7 +186,7 @@ castro.ppm_temp_fix = 0
 # 2 = HLL
 castro.riemann_solver = 0
 
-# For the CG Riemann solver, we need to tell the solver not to quit when 
+# For the CG Riemann solver, we need to tell the solver not to quit when
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.riemann_cg_blend = 2
 
@@ -282,6 +282,9 @@ integrator.MAX_TEMP = 1.0e10
 
 # Use tabular rate evaluation when available
 network.use_tables = 1
+
+# Disable burning in shocks
+castro.disable_shock_burning = 1
 
 ############################################################################################
 # Gravity

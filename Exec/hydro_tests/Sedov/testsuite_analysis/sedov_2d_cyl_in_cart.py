@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # run as: ./sedov_2d_cyl_in_cart.py castro_dir plotfle
 

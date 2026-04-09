@@ -17,6 +17,9 @@ USE_ROTATION ?= TRUE
 USE_MODEL_PARSER = TRUE
 NUM_MODELS = 2
 
+# Disable burning in shocksa
+USE_SHOCK_VAR = TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_HOME  ?= ../../..
 

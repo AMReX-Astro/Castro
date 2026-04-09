@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """This script parses the list of C++ runtime parameters and writes
 the necessary header and source files to make them available in

@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 20000
-stop_time =  0.035
+max_step = 4000000000
+stop_time =  0.003
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 4.e7  2500  2500
+geometry.prob_hi     = 2.0e6  2500  2500
 amr.n_cell           = 256   16    16
 
 
@@ -45,7 +45,7 @@ castro.cfl            = 0.2     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
 castro.change_max     = 1.025    # scale back initial timestep
 
-castro.dtnuc_e = 0.1
+#castro.dtnuc_e = 0.1
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -72,10 +72,10 @@ amr.derive_plot_vars = ALL
 
 # problem initialization
 
-problem.T_l = 1.1e9
+problem.T_l = 2.5e9
 problem.T_r = 1.75e8
 
-problem.dens = 1.1e6
+problem.dens = 9.0e7
 problem.cfrac = 0.0
 problem.nfrac = 0.0
 problem.ofrac = 0.5
@@ -109,8 +109,18 @@ integrator.rtol_spec = 1.e-5
 integrator.atol_spec = 1.e-5
 integrator.rtol_enuc = 1.e-5
 integrator.atol_enuc = 1.e-8
-integrator.jacobian = 2
+integrator.jacobian = 1
 
 integrator.X_reject_buffer = 4.0
 network.use_tables = 1
 
+integrator.use_burn_retry = 1
+integrator.retry_swap_jacobian = 1
+
+# NSE Things
+
+nse.nse_molar_independent = 0
+nse.nse_dx_independent = 0
+nse.ase_tol = 0.1
+nse.nse_skip_molar = 0
+nse.solve_nse_e_mode = 1

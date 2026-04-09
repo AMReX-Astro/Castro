@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """parse the _variables file and write a C++ header that defines the indices
  and size of state arrays.  We write:

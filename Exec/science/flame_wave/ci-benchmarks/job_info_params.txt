@@ -239,7 +239,8 @@
     integrator.retry_rtol_enuc = -1
     integrator.retry_atol_spec = -1
     integrator.retry_atol_enuc = -1
-    integrator.do_species_clip = 1
+    integrator.do_species_clip = 0
+    integrator.do_corrector_validation = 1
     integrator.use_number_densities = 0
     integrator.scale_system = 0
     integrator.nse_deriv_dt_factor = 0.05
@@ -247,7 +248,7 @@
     integrator.linalg_do_pivoting = 1
     screening.enable_chabrier1998_quantum_corr = 0
     screening.enable_debye_huckel_skip = 0
-    screening.debye_huckel_skip_threshold = 1.01
+    screening.debye_huckel_skip_threshold = 0.01
     neutrino_cooling.include_recomb = 0
     integrator.subtract_internal_energy = 0
     eos.use_eos_coulomb = 1

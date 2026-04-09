@@ -1,3 +1,182 @@
+# 26.03
+
+  * fix the embiggener compilation (#3285)
+
+  * fix the time used in post-timestep regridding error estimators
+    (#3284)
+
+  * github action CI version updates (#3283)
+
+  * fix the value of dx in the SCF diagnostic code (#3278)
+
+  * fix the initial state in the SDC Newton subdivide solver (#3276)
+
+  * fix a check on the maximum number of iterations in `binary.H`
+    (#3277)
+
+  * fix the computation of zone location in hybrid momentum for old
+    gravity source (#3280)
+
+  * fix bounds issue in radiation flattening (#3279)
+
+  * doc updates for point mass gravity (#3273) and accessibility
+    (#3205)
+
+  * fix indexing in valid_zones_to_burn for corner case (#3270)
+
+  * fix small_x clamping in true SDC (#3268)
+
+  * fix some indexing in the 4th order code (#3266)
+
+  * add abort on invalid value of `sdc_solver` (#3267)
+
+  * fix `amrex_assert` on `cot` (#3261)
+
+  * fix radial vector used in rotation in 2d spherical geometry (#3262)
+
+  * fix indexing bug in low-z HSE BC (#3239)
+
+  * fix some `Make.package` header sources (#3238, #3240)
+
+  * fix vorticity magnitude for 2d spherical (#3265)
+
+  * make computation of radius consistently include problo (#3264)
+
+  * update CI due to Microphysics changes (#3263)
+
+  * fix indexing bugs in direct sum gravity (#3242)
+
+  * sync the build info with `job_info` (#3204)
+
+  * update the python version + fetch-depth in CI actions (#3199)
+
+# 26.02
+
+  * update CI due to Microphysics optimizations (#3189, #3203)
+
+  * `Detonation` : fix plotting script for mass fractions (#3200)
+
+  * fix make flags in `job_info` (#3195)
+
+  * fix radiation compilation due to `Array4` changes (#3198)
+
+  * `xrb_spherical` : fix ash field in plot output
+
+  * cppcheck fixes
+
+  * update to C++20 (#3097)
+
+  * optimization and cleaning of `check_for_negative_density` (#3191)
+
+  * diffusion optimization and modernization (#3192)
+
+  * optimize a divide in SDC react (#3194)
+
+  * optimize the transverse flux correction in CTU hydro (#3181)
+
+  * `massive_star` : add another 3D visualization script
+
+  * optimize `ambient_fill` (#3190)
+
+# 26.01
+
+  * `massive_star` : add volume-rendering scripts (#3186)
+
+  * optimize `normalize_species` (#3179, #3183)
+
+  * optimize `copy_cons_to_burn` (#3184)
+
+  * `xrb_spherical` : update the plotting script (#3154)
+
+  * `flame_wave` : update the plotting script to fix sizing
+    and add "ash" (#3151)
+
+  * clang-tidy 21 fixes (#3163)
+
+  * eliminate circular include in `Rotation.H` (#3162)
+
+  * switch `python3` -> `python` in scripts (#3178)
+
+  * github CI action updates (#3185)
+
+  * add documentation on performance (#3177)
+
+# 25.12
+
+  * make some state arguments const in geometry sources (#3174)
+
+  * `flame_wave` : add a new plot script to show the flow through the
+    network (#3150)
+
+  * `subchandra` : assert on a potential divide-by-zero (#3171)
+
+  * `Detonation` : update the O/Ne inputs to use a more robust set of
+    NSE parameters (#3170)
+
+  * `subchandra` : allow for the core mass fractions to be set (#3166)
+
+  * remove unused declare in radiation (#3167)
+
+  * `wdmerger` : disable burning in shocks (#3169)
+
+  * fix `CHANGES.md` typo (#3168)
+
+# 25.11
+
+  * update shock burning docs (#3165)
+
+  * update github CI actions (#3161)
+
+  * fix indexing error in 4th order SDC initial energy derivation
+    (#3160)
+
+  * sync up with latest AMReX API (#3157)
+
+  * replace `sprintf`s with safer constructions (#3152)
+
+  * update the `Detonation` analysis scripts to use symlog
+    scaling for energy generation rate (#3153)
+
+  * update `subchandra` analysis scripts to show `lap_rho`
+    and the contour for NSE. (#3155)
+
+  * fix an issue with the makefile flag capturing (#3148)
+
+# 25.10
+
+  * bump up python version for codespell CI (#3147)
+
+  * store the "make" flags in the job_info file (#3144)
+
+  * `flame_wave`: the refinement criteria were updated to better
+    capture the ash (#3145)
+
+  * `Sedov`: the inputs files were consolidated and the analysis
+    tool was cleaned up.  Support for a 2D spherical geometry
+    test was also added (#3143)
+
+  * updated the check on geometry sources to allow it to work for 1D
+    spherical (#2993, #3140)
+
+  * added an addition check for the well-balanaced PPM reconstruction
+    to make sure that the interface pressure is positive (#3142)
+
+  * updated CI to match Microphysics changes (#3141)
+
+  * `flame_wave`: the analysis tools were updated (#3131)
+
+  * `diffusion_test`: the `README.md` was updated with information for
+    spherical coordinates (#3137)
+
+  * `Detonation`: Ne is allowed as a fuel composition (#3134)
+
+  * update CI due to AMReX changes (#3135)
+
+  * CI action dependency version updates (#3136)
+
+  * `xrb_spherical`: added new analysis scripts and inputs files
+    (#3074)
+
 # 25.09
 
   * rotation docs improvements (#3133)
@@ -92,7 +271,7 @@
 
   * update `subch_planar` `README.md` (#3075)
 
-  * update ``diffusion_test`` with improved documentation for the 2D
+  * update `diffusion_test` with improved documentation for the 2D
     spherical test (#3072)
 
   * add protection to the build system that checks to make sure that a
@@ -604,7 +783,7 @@
      done to allow for a PPM implementation to be added without changing
      the default behavior of that method. (#2205)
 
-   * The ``castro.use_pslope`` functionality to well-balance HSE has been
+   * The `castro.use_pslope` functionality to well-balance HSE has been
      extended to PPM (#2202)
 
 # 22.05

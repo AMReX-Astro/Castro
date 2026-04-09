@@ -52,8 +52,8 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
   $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
 endif
 
-# Require C++17
-CXXSTD := c++17
+# Require C++20
+CXXSTD := c++20
 
 # Use Lazy QueueReduction for the timing outputs
 LAZY := TRUE

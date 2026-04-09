@@ -307,6 +307,9 @@ integrator.use_burn_retry = 1
 integrator.retry_swap_jacobian = 1
 integrator.ode_max_steps = 10000
 
+# Disable burning in shocks
+castro.disable_shock_burning = 1
+
 ############################################################################################
 # Gravity
 ############################################################################################

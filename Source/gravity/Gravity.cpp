@@ -1,5 +1,6 @@
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -39,7 +40,7 @@ Real Gravity::mass_offset    =  0.0;
 
 // ************************************************************************************** //
 
-const Real Ggravity = 4.0 * M_PI * C::Gconst;
+const Real Ggravity = 4.0 * std::numbers::pi * C::Gconst;
 
 ///
 /// Multipole gravity data
@@ -189,7 +190,7 @@ Gravity::read_params ()
             // on the finest level that we solve for.
 
             for (int lev = 1; lev < nlevs; ++lev) {
-                abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+                abs_tol[lev] = abs_tol[lev - 1] * amrex::Math::powi<2>(parent->refRatio(lev - 1)[0]);
             }
 
         } else if (n_abs_tol >= nlevs) {
@@ -227,7 +228,7 @@ Gravity::read_params ()
 
         }
 
-        int n_rel_tol = pp.countval(rel_tol_name.c_str());
+        int n_rel_tol = pp.countval(rel_tol_name);
 
         if (n_rel_tol <= 1) {
 
@@ -235,7 +236,7 @@ Gravity::read_params ()
 
             if (n_rel_tol == 1) {
 
-                pp.get(rel_tol_name.c_str(), tol);
+                pp.get(rel_tol_name, tol);
 
             } else {
 
@@ -249,7 +250,7 @@ Gravity::read_params ()
 
         } else if (n_rel_tol >= nlevs) {
 
-            pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
+            pp.getarr(rel_tol_name, rel_tol, 0, nlevs);
 
         } else {
 
@@ -1013,8 +1014,8 @@ Gravity::test_residual (const Box& bx,
 #if AMREX_SPACEDIM == 3
                         Array4<Real> const& ecz,
 #endif
-                        GpuArray<Real, AMREX_SPACEDIM> dx,
-                        GpuArray<Real, AMREX_SPACEDIM> problo,
+                        const GpuArray<Real, AMREX_SPACEDIM>& dx,
+                        const GpuArray<Real, AMREX_SPACEDIM>& problo,
                         int coord_type)
 {
     // Test whether using the edge-based gradients
@@ -1266,6 +1267,9 @@ Gravity::test_composite_phi (int crse_level)
 {
     BL_PROFILE("Gravity::test_composite_phi()");
 
+    // the lhas only really been tested with crse_level = 0
+    AMREX_ALWAYS_ASSERT(crse_level == 0);
+
     if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor()) {
         std::cout << "   " << '\n';
         std::cout << "... test_composite_phi at base level " << crse_level << '\n';
@@ -1306,7 +1310,7 @@ Gravity::test_composite_phi (int crse_level)
                         time);
 
     // Average residual from fine to coarse level before printing the norm
-    for (int amr_lev = finest_level_local-1; amr_lev >= 0; --amr_lev)
+    for (int amr_lev = finest_level_local-1; amr_lev >= crse_level; --amr_lev)
     {
         const IntVect& ratio = parent->refRatio(amr_lev);
         int ilev = amr_lev - crse_level;
@@ -1315,7 +1319,8 @@ Gravity::test_composite_phi (int crse_level)
     }
 
     for (int amr_lev = crse_level; amr_lev <= finest_level_local; ++amr_lev) {
-        Real resnorm = res[amr_lev]->norm0();
+        int ilev = amr_lev - crse_level;
+        Real resnorm = res[ilev]->norm0();
         amrex::Print() << "      ... norm of composite residual at level "
                        << amr_lev << "  " << resnorm << '\n';
     }
@@ -1434,7 +1439,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 
 void
 Gravity::compute_radial_mass(const Box& bx,
-                             Array4<Real const> const u,
+                             Array4<Real const> const& u,
                              RealVector& radial_mass_local,
                              RealVector& radial_vol_local,
 #ifdef GR_GRAV
@@ -1579,13 +1584,13 @@ Gravity::compute_radial_mass(const Box& bx,
 
                         } else if (coord_type == 1) {
 
-                            vol_frac = 2.0_rt * M_PI * dx_frac * dy_frac * octant_factor * xx;
+                            vol_frac = 2.0_rt * std::numbers::pi * dx_frac * dy_frac * octant_factor * xx;
 
                         } else if (coord_type == 2) {
 
                             Real rlo = std::abs(lo_i + static_cast<Real>(ii  ) * dx_frac);
                             Real rhi = std::abs(lo_i + static_cast<Real>(ii+1) * dx_frac);
-                            vol_frac = (4.0_rt / 3.0_rt) * M_PI * (rhi * rhi * rhi - rlo * rlo * rlo);
+                            vol_frac = (4.0_rt / 3.0_rt) * std::numbers::pi * (rhi * rhi * rhi - rlo * rlo * rlo);
 
                         }
 
@@ -1771,7 +1776,7 @@ Gravity::init_multipole_grav() const
         maxWidth = amrex::max(maxWidth, probhi[2] - problo[2]);
     }
 
-    multipole::rmax = 0.5_rt * maxWidth * std::sqrt(static_cast<Real>(AMREX_SPACEDIM));
+    multipole::rmax = 0.5_rt * maxWidth * std::sqrt(static_cast<Real>(AMREX_SPACEDIM));  // NOLINT(modernize-use-std-numbers)
 }
 
 void
@@ -2361,7 +2366,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int hiVectXZ[3] = {domhi[0]+1, 0         , domhi[2]+1};
 
     const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
-    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
+    const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[2]+1};
 
     const int bc_lo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
     const int bc_hi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
@@ -2558,7 +2563,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                                 locb[0] = problo[0];
                             }
                             else if (l == bc_hi[0]) {
-                                locb[0] = probhi[1];
+                                locb[0] = probhi[0];
                             }
                             else {
                                 locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
@@ -2859,8 +2864,9 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 {
     BL_PROFILE("Gravity::applyMetricTerms()");
 
-    auto dx = parent->Geom(level).CellSizeArray();
-    int coord_type = parent->Geom(level).Coord();
+    const auto dx = parent->Geom(level).CellSizeArray();
+    const auto problo = parent->Geom(level).ProbLoArray();
+    const int coord_type = parent->Geom(level).Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2880,7 +2886,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #if AMREX_SPACEDIM >= 2
                      (*coeffs[1]).array(mfi), ybx,
 #endif
-                     dx, coord_type);
+                     problo, dx, coord_type);
     }
 }
 
@@ -3258,7 +3264,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 ratio *= parent->refRatio(lev)[0];
             }
 
-            Real* const lev_mass = radial_mass[lev].dataPtr();
+            const Real* const lev_mass = radial_mass[lev].dataPtr();
 
             amrex::ParallelFor(n1d/ratio,
             [=] AMREX_GPU_DEVICE (int i) noexcept
@@ -3413,8 +3419,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 Real rc  = (static_cast<Real>(i-1) + 0.5_rt) * dr;
                 Real rhi = (static_cast<Real>(i-1) + 1.0_rt) * dr;
 
-                Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
-                Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+                Real vol_shell = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rc  * rc  * rc);
+                Real vol_zone  = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
                 dM = dM + (vol_shell / vol_zone) * mass[i-1];
             }
 
@@ -3424,8 +3430,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             // The mass at (i) is distributed into an upper and lower shell; the
             // contribution to the mass at zone center i is from the lower shell.
-            Real vol_shell = (4.0_rt / 3.0_rt * M_PI) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
-            Real vol_zone  = (4.0_rt / 3.0_rt * M_PI) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
+            Real vol_shell = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rc  * rc  * rc  - rlo * rlo * rlo);
+            Real vol_zone  = (4.0_rt / 3.0_rt * std::numbers::pi) * dr * (rhi * rhi * rhi - rlo * rlo * rlo);
             dM = dM + (vol_shell / vol_zone) * mass[i];
 
             return dM;
@@ -3441,7 +3447,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
             if (den[i] > 0.0_rt) {
                 Real ga = (1.0_rt + pres[i] / (den[i] * C::c_light * C::c_light));
-                Real gb = (1.0_rt + (4.0_rt * M_PI) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
+                Real gb = (1.0_rt + (4.0_rt * std::numbers::pi) * rc * rc * rc * pres[i] / (mass_encl_local * C::c_light * C::c_light));
                 Real gc = 1.0_rt / (1.0_rt - 2.0_rt * C::Gconst * mass_encl_local / (rc * C::c_light * C::c_light));
 
                 grav[i] = grav[i] * ga * gb * gc;

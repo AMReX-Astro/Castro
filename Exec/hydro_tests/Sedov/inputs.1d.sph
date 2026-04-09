@@ -20,7 +20,7 @@ castro.hi_bc       =  2
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
-castro.ppm_type = 2
+castro.ppm_type = 1
 
 # TIME STEP CONTROL
 castro.cfl            = 0.5     # cfl number for hyperbolic system
@@ -76,3 +76,4 @@ problem.nsub = 10
 
 # EOS
 eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4
