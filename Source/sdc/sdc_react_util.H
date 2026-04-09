@@ -114,10 +114,10 @@ single_zone_react_source(const int i, const int j, const int k,
     }
 }
 
+template <typename T>
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-single_zone_jac(burn_t& burn_state, const Real dt,
-                JacNetArray2D& Jac) {
+single_zone_jac(burn_t& burn_state, const Real dt, T& Jac) {
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
@@ -135,6 +135,10 @@ single_zone_jac(burn_t& burn_state, const Real dt,
 
         jac_info_t jac_info;
         jac_info.h = dt;
+
+        // note: numerical Jacobian works directly off of
+        // burn_state.T, burn_state.e, and burn_state.xn[]
+
         numerical_jac(burn_state, jac_info, Jac);
 
     } else {
