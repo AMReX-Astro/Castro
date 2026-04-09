@@ -107,6 +107,7 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   else
     USERSuffix = .TRUESDC
   endif
+  EXTERN_CORE += $(MICROPHYSICS_HOME)/util/hybrj
 endif
 
 USE_MLMG = FALSE

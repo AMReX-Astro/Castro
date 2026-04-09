@@ -1139,7 +1139,7 @@ public:
     }
 
 #ifdef AMREX_PARTICLES
-    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
+    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC.get(); }
 #endif
 
     static amrex::Vector<std::string> source_names;
@@ -1413,13 +1413,13 @@ protected:
 ///
 /// There can be only one Gravity object, it covers all levels:
 ///
-    static class Gravity *gravity;
+    static std::unique_ptr<class Gravity> gravity;
 
 
 ///
 /// There can be only one Diffusion object, it covers all levels:
 ///
-    static class Diffusion *diffusion;
+    static std::unique_ptr<class Diffusion> diffusion;
 
 #ifdef RADIATION
 
@@ -1427,13 +1427,13 @@ protected:
 ///
 /// There can be only one Radiation object, it covers all levels:
 ///
-    static class Radiation *radiation;
+    static std::unique_ptr<class Radiation> radiation;
 
     friend class Radiation;
 #endif
 
 #ifdef AMREX_PARTICLES
-    static amrex::AmrTracerParticleContainer* TracerPC;
+    static std::unique_ptr<amrex::AmrTracerParticleContainer> TracerPC;
 #endif
 
     static amrex::IntVect hydro_tile_size;
