@@ -989,7 +989,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                        0.5_rt * (adv(i,j,kk,UMX) * adv(i,j,kk,UMX) +
                                  adv(i,j,kk,UMY) * adv(i,j,kk,UMY) +
                                  adv(i,j,kk,UMZ) * adv(i,j,kk,UMZ)) / dens_zone;
-                   adv(i,j,k,UTEMP) = temp_zone;
+                   adv(i,j,kk,UTEMP) = temp_zone;
                    for (int n = 0; n < NumSpec; n++) {
                        adv(i,j,kk,UFS+n) = dens_zone * X_zone[n];
                    }
@@ -1023,6 +1023,3 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 #endif
 
 }
-
-
-

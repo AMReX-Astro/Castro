@@ -6,7 +6,7 @@
 #ifdef NEW_NETWORK_IMPLEMENTATION
 #include <rhs.H>
 #endif
-#include <Castro_react_util.H>
+#include <sdc_react_util.H>
 #include <sdc_newton_solve.H>
 #include <vode_rhs_true_sdc.H>
 #endif
@@ -21,19 +21,19 @@ void
 normalize_species_sdc(const int i, const int j, const int k,
                       Array4<Real> const& u) {
 
-    GpuArray<Real, NumSpec> xn;
+    GpuArray<Real, NumSpec> rho_xn;
 
-    Real xn_sum = 0.0_rt;
+    Real rho_xn_sum = 0.0_rt;
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] = u(i,j,k,UFS+n);
-        xn[n] = amrex::max(network_rp::small_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), xn[n]));
-        xn_sum += xn[n];
+        rho_xn[n] = u(i,j,k,UFS+n);
+        rho_xn[n] = amrex::Clamp(rho_xn[n], network_rp::small_x * u(i,j,k,URHO), u(i,j,k,URHO));
+        rho_xn_sum += rho_xn[n];
     }
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] *= u(i,j,k,URHO) / xn_sum;
-        u(i,j,k,UFS+n) = xn[n];
+        rho_xn[n] *= u(i,j,k,URHO) / rho_xn_sum;
+        u(i,j,k,UFS+n) = rho_xn[n];
     }
 }
 
@@ -60,7 +60,7 @@ sdc_solve(const Real dt_m,
 
         // failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton subcycling failed in sdc_solve");
+            amrex::Abort("Newton subcycling failed in sdc_solve");
         }
     } else if (sdc_solver == VODE_SOLVE) {
         // Use VODE to do the solution
@@ -79,8 +79,10 @@ sdc_solve(const Real dt_m,
 
         // Failing?
         if (ierr != newton::NEWTON_SUCCESS) {
-            Abort("Newton failure in sdc_solve");
+            amrex::Abort("Newton failure in sdc_solve");
         }
+    } else {
+        amrex::Abort("invalid sdc_solver value");
     }
 }
 
@@ -122,6 +124,8 @@ sdc_update_o2(const int i, const int j, const int k,
               const Real dt_m,
               const int sdc_iteration, const int m_start) {
     // update k_m to k_n via advection -- this is a second-order accurate update
+
+    amrex::ignore_unused(m_start);
 
     // Here, dt_m is the timestep between time-nodes m and m+1
 

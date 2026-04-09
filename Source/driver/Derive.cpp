@@ -1039,17 +1039,17 @@ extern "C"
           // 2D spherical -- the coordinate ordering is r, theta, phi
           // Ignore d/dphi for azimuthal symmetry
 
-          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rc  = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
           Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
           Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
 
-          Real sinc = std::sin((static_cast<Real>(j) + 0.5_rt)*dx[1] + problo[1]);
+          Real sinc  = std::sin((static_cast<Real>(j) + 0.5_rt)*dx[1] + problo[1]);
           Real sinm1 = std::sin((static_cast<Real>(j) - 0.5_rt)*dx[1] + problo[1]);
           Real sinp1 = std::sin((static_cast<Real>(j) + 1.5_rt)*dx[1] + problo[1]);
 
           // d (sin(theta) v_phi)/dtheta
-          Real sinvphi_theta = 0.5_rt * (sinp1 * dat(i+1,j,k,3) / dat(i+1,j,k,0) -
-                                         sinm1 * dat(i-1,j,k,3) / dat(i-1,j,k,0)) / dx[1];
+          Real sinvphi_theta = 0.5_rt * (sinp1 * dat(i,j+1,k,3) / dat(i,j+1,k,0) -
+                                         sinm1 * dat(i,j-1,k,3) / dat(i,j-1,k,0)) / dx[1];
 
           // d (r v_phi)/dr
           Real rvphi_r = 0.5_rt * (rp1 * dat(i+1,j,k,3) / dat(i+1,j,k,0) -
@@ -1057,15 +1057,15 @@ extern "C"
 
           // d (r v_theta)/dr
           Real rvtheta_r = 0.5_rt * (rp1 * dat(i+1,j,k,2) / dat(i+1,j,k,0) -
-                                   rm1 * dat(i-1,j,k,2) / dat(i-1,j,k,0)) / dx[0];
+                                     rm1 * dat(i-1,j,k,2) / dat(i-1,j,k,0)) / dx[0];
 
           // dv_r/dtheta
-          Real vr_theta = 0.5_rt * (dat(i+1,j,k,1) / dat(i+1,j,k,0) -
-                                    dat(i-1,j,k,1) / dat(i-1,j,k,0)) / dx[1];
+          Real vr_theta = 0.5_rt * (dat(i,j+1,k,1) / dat(i,j+1,k,0) -
+                                    dat(i,j-1,k,1) / dat(i,j-1,k,0)) / dx[1];
 
           der(i,j,k,0) = std::sqrt((sinvphi_theta/sinc)*(sinvphi_theta/sinc) +
                                    (rvtheta_r - vr_theta)*(rvtheta_r - vr_theta) +
-                                   (rvphi_r*rvphi_r)) / r;
+                                   (rvphi_r*rvphi_r)) / rc;
 #else
           // 1-d spherical -- we don't really have a vorticity in this case
           der(i,j,k,0) = 0.0;

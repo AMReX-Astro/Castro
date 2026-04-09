@@ -1,5 +1,7 @@
 #include <cstdio>
 
+#include <array>
+
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
 #include <Castro.H>
@@ -31,8 +33,7 @@ namespace {
     // Components are:
     //  Interior, Inflow, Outflow,  Symmetry,     SlipWall,     NoSlipWall
     //
-    int scalar_bc[] =
-    {
+    constexpr std::array<int, 6> scalar_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -41,8 +42,7 @@ namespace {
         amrex::BCType::reflect_even
     };
 
-    int norm_vel_bc[] =
-    {
+    constexpr std::array<int, 6> norm_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -51,8 +51,7 @@ namespace {
         amrex::BCType::reflect_odd
     };
 
-    int tang_vel_bc[] =
-    {
+    constexpr std::array<int, 6> tang_vel_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -62,8 +61,7 @@ namespace {
     };
 
 #ifdef MHD
-    int mag_field_bc[] =
-    {
+    constexpr std::array<int, 6> mag_field_bc{
         amrex::BCType::int_dir,
         amrex::BCType::ext_dir,
         amrex::BCType::foextrap,
@@ -292,7 +290,7 @@ Castro::variableSetUp ()
   // for TRUE_SDC, we don't support retry
   if (use_retry) {
     amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
-    use_retry = 0;
+    use_retry = false;
   }
 #endif
 #endif
@@ -387,17 +385,20 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   int source_ng = 0;
-  if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+  if (time_integration_method == CornerTransportUpwind ||
+      time_integration_method == SimplifiedSpectralDeferredCorrections) {  // NOLINT(bugprone-branch-clone)
       source_ng = NUM_GROW_SRC;
-  }
-  else if (time_integration_method == SpectralDeferredCorrections) {
-    if (sdc_order == 2 && use_pslope) {
+  } else if (time_integration_method == SpectralDeferredCorrections) {
+#ifdef SHOCK_VAR
       source_ng = NUM_GROW_SRC;
-    } else {
-      source_ng = 1;
-    }
-  }
-  else {
+#else
+      if (sdc_order == 2 && use_pslope) {
+          source_ng = NUM_GROW_SRC;
+      } else {
+          source_ng = 1;
+      }
+#endif
+  } else {
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),

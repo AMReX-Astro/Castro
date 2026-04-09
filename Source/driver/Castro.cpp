@@ -11,6 +11,7 @@
 #include <string>
 #include <ctime>
 #include <memory>
+#include <numbers>
 
 #include <AMReX_Utility.H>
 #include <AMReX_CONSTANTS.H>
@@ -310,13 +311,13 @@ Castro::read_params ()
           amrex::Error();
         }
 
-        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - M_PI) <= 1.e-4_rt) )
+        if ( (hi_bc[1] != amrex::PhysBCType::symmetry) && (std::abs(dgeom.ProbHi(1) - std::numbers::pi) <= 1.e-4_rt) )
         {
           std::cerr << "ERROR:Castro::read_params: must set theta=pi boundary condition to Symmetry for spherical\n";
           amrex::Error();
         }
 
-        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > M_PI) )
+        if ( (dgeom.ProbLo(1) < 0.0_rt) && (dgeom.ProbHi(1) > std::numbers::pi) )
         {
           amrex::Abort("ERROR:Castro::read_params: Theta must be within [0, Pi] for spherical coordinate system in 2D");
         }
@@ -381,9 +382,9 @@ Castro::read_params ()
 #endif
 
 #ifdef TRUE_SDC
-    int max_level;
-    ppa.query("max_level", max_level);
-    if (max_level > 0) {
+    int max_level_tmp;
+    ppa.query("max_level", max_level_tmp);
+    if (max_level_tmp > 0) {
         amrex::Error("True SDC does not work with AMR.");
     }
 #endif
@@ -515,6 +516,9 @@ Castro::read_params ()
         amrex::Error();
     }
 #endif
+
+    AMREX_ALWAYS_ASSERT(rot_axis >= 1 && rot_axis <= 3);
+
 #endif
 
 #ifdef SPONGE
@@ -3359,7 +3363,7 @@ Castro::check_for_negative_density ()
 #ifndef AMREX_USE_GPU
                         std::cout << "Invalid X[" << n << "] = " << X << " in zone "
                                   << i << ", " << j << ", " << k
-                                  << " with density = " << rho << "\n";
+                                  << " with density = " << rho << std::endl;
 #elif defined(ALLOW_GPU_PRINTF)
                         AMREX_DEVICE_PRINTF("Invalid X[%d] = %g in zone (%d,%d,%d) with density = %g\n",
                                             n, X, i, j, k, rho);
@@ -3513,9 +3517,9 @@ Castro::errorEst (TagBoxArray& tags,
     for (const auto & etag : error_tags) {
         std::unique_ptr<MultiFab> mf;
         if (! etag.Field().empty()) {
-            mf = derive(etag.Field(), time, etag.NGrow());
+            mf = derive(etag.Field(), ltime, etag.NGrow());
         }
-        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+        etag(tags, mf.get(), TagBox::CLEAR, TagBox::SET, ltime, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.

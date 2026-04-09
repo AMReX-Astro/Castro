@@ -303,49 +303,49 @@ Castro::states(const Box& bx,
 
         if (i == domlo[0]) {
 
-          // reset the left state at domlo[0] if needed -- it is outside the domain
+            // reset the left state at domlo[0] if needed -- it is outside the domain
 
-          if (lo_bc[0] == amrex::PhysBCType::outflow) {
-            //al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
+            if (lo_bc[0] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
 
-          } else if (lo_bc[0] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QU) {
-              al(domlo[0],j,k,QU) = -ar(domlo[0],j,k,QU);
+            } else if (lo_bc[0] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QU) {
+                    al(domlo[0],j,k,QU) = -ar(domlo[0],j,k,QU);
+                } else {
+                    al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
+                }
+
+            } else if (lo_bc[0] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for -X in states");
             }
-
-          } else if (lo_bc[0] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for -X in states");
-          }
 
         }
 
         if (i == domhi[0]+1) {
 
-          // reset the right state at domhi[0]+1 if needed -- it is outside the domain
+            // reset the right state at domhi[0]+1 if needed -- it is outside the domain
 
-          if (hi_bc[0] == amrex::PhysBCType::outflow) {
-            //ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
+            if (hi_bc[0] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
 
-          } else if (hi_bc[0] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QU) {
-              ar(domhi[0]+1,j,k,QU) = -al(domhi[0]+1,j,k,QU);
+            } else if (hi_bc[0] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QU) {
+                    ar(domhi[0]+1,j,k,QU) = -al(domhi[0]+1,j,k,QU);
+                } else {
+                    ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
+                }
+
+            } else if (hi_bc[0] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for +X in states");
             }
-
-          } else if (hi_bc[0] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for +X in states");
-          }
 
         }
 
@@ -469,49 +469,49 @@ Castro::states(const Box& bx,
 
         if (j == domlo[1]) {
 
-          // reset the left state at domlo[1] if needed -- it is outside the domain
+            // reset the left state at domlo[1] if needed -- it is outside the domain
 
-          if (lo_bc[1] == amrex::PhysBCType::outflow) {
-            //al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
+            if (lo_bc[1] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
 
-          } else if (lo_bc[1] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QV) {
-              al(i,domlo[1],k,QV) = -ar(i,domlo[1],k,QV);
+            } else if (lo_bc[1] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QV) {
+                    al(i,domlo[1],k,QV) = -ar(i,domlo[1],k,QV);
+                } else {
+                    al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
+                }
+
+            } else if (lo_bc[1] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for -Y in states");
             }
-
-          } else if (lo_bc[1] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for -Y in states");
-          }
 
         }
 
         if (j == domhi[1]+1) {
 
-          // reset the right state at domhi[1]+1 if needed -- it is outside the domain
+            // reset the right state at domhi[1]+1 if needed -- it is outside the domain
 
-          if (hi_bc[1] == amrex::PhysBCType::outflow) {
-            //ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
+            if (hi_bc[1] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
 
-          } else if (hi_bc[1] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QV) {
-              ar(i,domhi[1]+1,k,QV) = -al(i,domhi[1]+1,k,QV);
+            } else if (hi_bc[1] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QV) {
+                    ar(i,domhi[1]+1,k,QV) = -al(i,domhi[1]+1,k,QV);
+                } else {
+                    ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
+                }
+
+            } else if (hi_bc[1] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for +Y in states");
             }
-
-          } else if (hi_bc[1] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for +Y in states");
-          }
 
         }
 
@@ -634,48 +634,48 @@ Castro::states(const Box& bx,
         // now handle any physical boundaries here by modifying the interface values
 
         if (k == domlo[2]) {
-          // reset the left state at domlo[2] if needed -- it is outside the domain
+            // reset the left state at domlo[2] if needed -- it is outside the domain
 
-          if (lo_bc[2] == amrex::PhysBCType::outflow) {
-            //al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
+            if (lo_bc[2] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
 
-          } else if (lo_bc[2] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QW) {
-              al(i,j,domlo[2],QW) = -ar(i,j,domlo[2],QW);
+            } else if (lo_bc[2] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QW) {
+                    al(i,j,domlo[2],QW) = -ar(i,j,domlo[2],QW);
+                } else {
+                    al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
+                }
+
+            } else if (lo_bc[2] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for -Z in states");
             }
-
-          } else if (lo_bc[2] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for -Z in states");
-          }
 
         }
 
         if (k == domhi[2]+1) {
-          // reset the right state at domhi[2]+1 if needed -- it is outside the domain
+            // reset the right state at domhi[2]+1 if needed -- it is outside the domain
 
-          if (hi_bc[2] == amrex::PhysBCType::outflow) {
-            //ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
+            if (hi_bc[2] == amrex::PhysBCType::outflow) {  // NOLINT(bugprone-branch-clone)
+                //ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
 
-          } else if (hi_bc[2] == amrex::PhysBCType::symmetry) {
-            if (ncomp == QW) {
-              ar(i,j,domhi[2]+1,QW) = -al(i,j,domhi[2]+1,QW);
+            } else if (hi_bc[2] == amrex::PhysBCType::symmetry) {
+                if (ncomp == QW) {
+                    ar(i,j,domhi[2]+1,QW) = -al(i,j,domhi[2]+1,QW);
+                } else {
+                    ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
+                }
+
+            } else if (hi_bc[2] == amrex::PhysBCType::interior) {
+                // we don't need to do anything here
+
             } else {
-              ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
+                // not supported
+                amrex::Error("ERROR: boundary conditions not supported for +Z in states");
             }
-
-          } else if (lo_bc[2] == amrex::PhysBCType::interior) {
-            // we don't need to do anything here
-
-          } else {
-            // not supported
-            amrex::Error("ERROR: boundary conditions not supported for +Z in states");
-          }
 
         }
 

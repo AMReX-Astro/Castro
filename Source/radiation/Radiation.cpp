@@ -304,7 +304,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   radtoE = 1.0;
-  //    radtoJ = c/(4.*M_PI);
+  //    radtoJ = c/(4 pi);
   Etorad = 1.0;
   radfluxtoF = 1.0;
 
