@@ -1,4 +1,4 @@
-# 25 km with burning in shock diabled, clipping off, w/ SDC, on GPUs.
+# 25 km with burning in shock disabled, clipping off, w/ SDC, on GPUs.
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -62,7 +62,7 @@ max_step = 10000000
 # Simulation end time
 stop_time = 1000.0
 
-# CFL number for hyperbolic system -- changing to 0.3 from 0.5 to resolve the invalid X issue
+# CFL number for hyperbolic system
 castro.cfl = 0.5
 
 # Fixed level 0 timestep; unused if < 0
@@ -453,7 +453,7 @@ amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.o
 # write plotfiles as single precision
 fab.format = NATIVE_32
 
-castro.store_omegadot = 1
+#castro.store_omegadot = 1 #for tracing testing only
 
 ############################################################################################
 # Problem parameters
