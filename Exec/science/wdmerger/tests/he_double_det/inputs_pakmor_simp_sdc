@@ -1,5 +1,4 @@
-# 50 km with burning in shock disabled, clipping off, w/ SDC, on GPUs.
-# Updated: Jan 29, 2026
+# 25 km with burning in shock diabled, clipping off, w/ SDC, on GPUs.
 
 ############################## CASTRO INPUTS ###############################################
 
@@ -16,7 +15,7 @@ geometry.is_periodic = 0 0 0
   geometry.coord_sys = 0
 
   # Lower boundary limits in physical space
-  geometry.prob_lo = -1.024e10 -1.024e10 -1.024e10
+  geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9
 
 #elif AMREX_SPACEDIM == 2
 
@@ -29,7 +28,7 @@ geometry.is_periodic = 0 0 0
 #endif
 
 # Upper boundary limits in physical space
-geometry.prob_hi = 1.024e10 1.024e10 1.024e10
+geometry.prob_hi = 5.12e9 5.12e9 5.12e9
 
 ############################################################################################
 # Boundary conditions
@@ -63,7 +62,7 @@ max_step = 10000000
 # Simulation end time
 stop_time = 1000.0
 
-# CFL number for hyperbolic system
+# CFL number for hyperbolic system -- changing to 0.3 from 0.5 to resolve the invalid X issue
 castro.cfl = 0.5
 
 # Fixed level 0 timestep; unused if < 0
@@ -101,7 +100,7 @@ castro.time_integration_method = 3 ## my main goal is to test SDC for DD !kb
 #if AMREX_SPACEDIM == 3
 
   # Number of cells on the coarse grid
-  amr.n_cell = 256 256 256
+  amr.n_cell = 512 512 512
 
 #elif AMREX_SPACEDIM == 2
 
@@ -111,10 +110,10 @@ castro.time_integration_method = 3 ## my main goal is to test SDC for DD !kb
 #endif
 
 # Maximum level number allowed
-amr.max_level = 3
+amr.max_level = 2
 
 # Refinement ratio
-amr.ref_ratio = 4 2 2
+amr.ref_ratio = 4 2
 
 # How many coarse timesteps between regridding
 amr.regrid_int = 2
@@ -126,7 +125,7 @@ castro.use_post_step_regrid = 0
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
 
 # Maximum grid size at each level
-amr.max_grid_size = 64 64 64 64 64 64 64 64
+amr.max_grid_size = 128
 
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 32
@@ -151,7 +150,7 @@ amr.refine.density.max_level = 1
 # Density2 refinement criterion
 amr.refine.density2.value_greater = 1.0e4
 amr.refine.density2.field_name = density
-amr.refine.density2.max_level = 14 ## only for debugging
+amr.refine.density2.max_level = 14  #since max lev is limited by 15 !kb
 
 # Temperature refinement criterion
 amr.refine.temperature.value_greater = 3.0e8
@@ -273,13 +272,13 @@ castro.dtnuc_e = 1.e200
 castro.dtnuc_X = 1.e200
 
 # Minimum temperature for allowing nuclear burning
-castro.react_T_min = 1.0e8
+castro.react_T_min = 5e7 #lowered floor for smoother burning by MZ !kb 
 
 # Maximum temperature for allowing nuclear burning
 castro.react_T_max = 1.0e12
 
 # Minimum density for allowing nuclear burning
-castro.react_rho_min = 1.0e6
+castro.react_rho_min = 1.0e4 #lowered floor for smoother burning by MZ !kb
 
 # Maximum density for allowing nuclear burning
 castro.react_rho_max = 1.0e12
@@ -317,6 +316,9 @@ castro.disable_shock_burning = 1 ## in general this is better for DD so I want t
 
 # Turn off clipping to make work easy for integrator
 integrator.do_species_clip = 0 ## MZ suggested this should be done !kb
+
+# For debugging negative densities
+castro.add_sdc_react_source_to_advection = 1 
 
 ############################################################################################
 # Gravity
@@ -379,7 +381,7 @@ castro.gw_dist = 10.0
 castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
-amr.plot_files_output = 0
+amr.plot_files_output = 1
 
 # Whether or not to output checkpoints
 amr.checkpoint_files_output = 1
@@ -409,7 +411,7 @@ amr.plot_int = -1
 amr.small_plot_file = smallplt
 
 # Simulation time between small plotfiles
-amr.small_plot_per = 1.0
+amr.small_plot_per = 0.1
 
 # Number of timesteps between small plotfiles
 amr.small_plot_int = -1
@@ -450,6 +452,8 @@ amr.data_log = star_diag.out primary_diag.out secondary_diag.out rotation_diag.o
 
 # write plotfiles as single precision
 fab.format = NATIVE_32
+
+castro.store_omegadot = 1
 
 ############################################################################################
 # Problem parameters
