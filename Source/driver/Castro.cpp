@@ -622,7 +622,7 @@ Castro::read_params ()
         if (ppr.countval("max_level") > 0) {
             int max_level;
             ppr.get("max_level", max_level);
-            BL_ASSERT(max_level <= MAX_LEV);
+            BL_ASSERT(max_level < MAX_LEV);
             info.SetMaxLevel(max_level);
         } else {
             // the default max_level of AMRErrorTagInfo is 1000, but make sure
