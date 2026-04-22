@@ -616,11 +616,11 @@ depending on the desired temporal order of accuracy), and iteratively
 updates the solution from node :math:`m` to :math:`m+1` as:
 
 .. math::
-   \begin{align}
+
    \avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
                                    &+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
                                    &+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
-   \end{align}
+
 
 
 .. index:: castro.sdc_order, castro.sdc_quadrature
