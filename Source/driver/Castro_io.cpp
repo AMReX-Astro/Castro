@@ -265,8 +265,8 @@ Castro::restart (Amr&     papa,
                    lo =   dlen/4    ;
                    hi = 3*dlen/4 - 1;
                 } else if (grown_factor == 3) {
-                   lo =   (dlen)/3    ;
-                   hi = 2*(dlen)/3 - 1;
+                   lo =   dlen/3    ;
+                   hi = 2*dlen/3 - 1;
                 } else {
                    amrex::Abort("Must have grown_factor = 2 or 3");
                 }
@@ -1089,7 +1089,7 @@ Castro::plotFileOutput(const std::string& dir,
             }
             os << '\n';
         }
-        os << (int) geom.Coord() << '\n';
+        os << static_cast<int>(geom.Coord()) << '\n';
         os << "0\n"; // Write bndry data.
 
 #ifdef RADIATION

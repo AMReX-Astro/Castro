@@ -1191,7 +1191,7 @@ Castro::initData ()
 
        ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
        ReduceData<int, int> reduce_data(reduce_op);
-       using ReduceTuple = typename decltype(reduce_data)::Type;
+       using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
@@ -2082,7 +2082,7 @@ Castro::post_timestep (int iteration_local)
         if (sum_per > 0.0) {
 
           const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
-          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor(cumtime / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
@@ -2492,7 +2492,7 @@ Castro::post_init (Real /*stop_time*/)
         if (sum_per > 0.0) {
 
           const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
-          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor(cumtime / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
@@ -3145,7 +3145,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<int> reduce_data(reduce_op);
-    using ReduceTuple = typename decltype(reduce_data)::Type;
+    using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
@@ -3317,7 +3317,7 @@ Castro::check_for_negative_density ()
 
     ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
     ReduceData<int, int> reduce_data(reduce_op);
-    using ReduceTuple = typename decltype(reduce_data)::Type;
+    using ReduceTuple = decltype(reduce_data)::Type;
 
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
@@ -3910,7 +3910,7 @@ Castro::check_div_B( MultiFab& Bx,
 
   ReduceOps<ReduceOpSum> reduce_op;
   ReduceData<int> reduce_data(reduce_op);
-  using ReduceTuple = typename decltype(reduce_data)::Type;
+  using ReduceTuple = decltype(reduce_data)::Type;
 
 
 #ifdef AMREX_USE_OMP
@@ -4289,13 +4289,13 @@ Castro::get_numpts ()
      numpts_1d = static_cast<int>(nx);
 #elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
-     Real ndiagsq = Real(nx*nx + ny*ny);
-     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
+     Real ndiagsq = static_cast<Real>(nx*nx + ny*ny);
+     numpts_1d = static_cast<int>(std::sqrt(ndiagsq))+2*NUM_GROW;
 #elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
-     Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
-     numpts_1d = int(std::sqrt(ndiagsq))+2*NUM_GROW;
+     Real ndiagsq = static_cast<Real>(nx*nx + ny*ny + nz*nz);
+     numpts_1d = static_cast<int>(std::sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
      if (verbose && ParallelDescriptor::IOProcessor()) {
