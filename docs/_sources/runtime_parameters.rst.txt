@@ -237,7 +237,7 @@ namespace: ``castro``
 |                                            | This only applies for true SDC.                             |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``sdc_solver``                             | which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 | 1                           |
-|                                            | = VODE for first iter                                       |                             |
+|                                            | = VODE for first iter, 4 = hybrid Powell                    |                             |
 +--------------------------------------------+-------------------------------------------------------------+-----------------------------+
 | ``use_geom_source``                        | Do we include geometry source terms due to local unit       | 1                           |
 |                                            | vectors in non-Cartesian Coord? We currently support R-Z    |                             |

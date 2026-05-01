@@ -112,9 +112,10 @@
 <li class="toctree-l2"><a class="reference internal" href="Castro__rotation_8H.html">File Castro_rotation.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sdc_8H.html">File Castro_sdc.H</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">File Castro_sdc_util.H</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv412NEWTON_SOLVE"><code class="docutils literal notranslate"><span class="pre">NEWTON_SOLVE</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv410VODE_SOLVE"><code class="docutils literal notranslate"><span class="pre">VODE_SOLVE</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#_CPPv412HYBRID_SOLVE"><code class="docutils literal notranslate"><span class="pre">HYBRID_SOLVE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv411sdc_solvers"><code class="docutils literal notranslate"><span class="pre">sdc_solvers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#_CPPv4N11sdc_solvers6solverE"><code class="docutils literal notranslate"><span class="pre">solver</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
@@ -179,10 +180,11 @@
 <li class="toctree-l2"><a class="reference internal" href="runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__powell__solve_8H.html">File sdc_powell_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sdc__react__util_8H.html">File sdc_react_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sdc__vode__solve_8H.html">File sdc_vode_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="timestep_8H.html">File timestep.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -253,24 +255,40 @@
 <dd></dd></dl>
 
 </div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv412NEWTON_SOLVE">
-<span id="_CPPv312NEWTON_SOLVE"></span><span id="_CPPv212NEWTON_SOLVE"></span><span id="NEWTON_SOLVE__i"></span><span class="target" id="Castro__sdc__util_8H_1a8cec721a3aa392fff75664a7f4c62128"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEWTON_SOLVE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv412NEWTON_SOLVE" title="Link to this definition"></a><br /></dt>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv411sdc_solvers">
+<span id="_CPPv311sdc_solvers"></span><span id="_CPPv211sdc_solvers"></span><span id="sdc_solvers"></span><span class="target" id="namespacesdc__solvers"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sdc_solvers</span></span></span><a class="headerlink" href="#_CPPv411sdc_solvers" title="Link to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-enums">Enums</p>
+<dl class="cpp enum">
+<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solverE">
+<span id="_CPPv3N11sdc_solvers6solverE"></span><span id="_CPPv2N11sdc_solvers6solverE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">solver</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solverE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver6newtonE">
+<span id="_CPPv3N11sdc_solvers6solver6newtonE"></span><span id="_CPPv2N11sdc_solvers6solver6newtonE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a466aa55825aa515326abf8ef673d72c2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">newton</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver6newtonE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv410VODE_SOLVE">
-<span id="_CPPv310VODE_SOLVE"></span><span id="_CPPv210VODE_SOLVE"></span><span id="VODE_SOLVE__i"></span><span class="target" id="Castro__sdc__util_8H_1a4a41a200d91b0bb168652693f04f16d5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VODE_SOLVE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv410VODE_SOLVE" title="Link to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver4vodeE">
+<span id="_CPPv3N11sdc_solvers6solver4vodeE"></span><span id="_CPPv2N11sdc_solvers6solver4vodeE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a36afd944da84e0baeba2868b5f3d7202"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vode</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver4vodeE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv412HYBRID_SOLVE">
-<span id="_CPPv312HYBRID_SOLVE"></span><span id="_CPPv212HYBRID_SOLVE"></span><span id="HYBRID_SOLVE__i"></span><span class="target" id="Castro__sdc__util_8H_1ab245439cd160db01984ffe53d9d151d5"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HYBRID_SOLVE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><a class="headerlink" href="#_CPPv412HYBRID_SOLVE" title="Link to this definition"></a><br /></dt>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver15vode_and_newtonE">
+<span id="_CPPv3N11sdc_solvers6solver15vode_and_newtonE"></span><span id="_CPPv2N11sdc_solvers6solver15vode_and_newtonE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604aba8090caf24f9faa63a89ff7e880028e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vode_and_newton</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver15vode_and_newtonE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N11sdc_solvers6solver13hybrid_powellE">
+<span id="_CPPv3N11sdc_solvers6solver13hybrid_powellE"></span><span id="_CPPv2N11sdc_solvers6solver13hybrid_powellE"></span><span class="target" id="namespacesdc__solvers_1a93f152fa9d258e0dacabfe22901b8604a58d4b23043cda5bdfff882c1b26cae7d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hybrid_powell</span></span></span><a class="headerlink" href="#_CPPv4N11sdc_solvers6solver13hybrid_powellE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </div>
+</dd></dl>
+
 </section>
 
 

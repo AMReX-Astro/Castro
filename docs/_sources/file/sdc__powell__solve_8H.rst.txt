@@ -1,0 +1,4 @@
+File sdc_powell_solve.H
+=======================
+
+.. doxygenfile:: sdc_powell_solve.H

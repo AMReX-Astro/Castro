@@ -174,10 +174,11 @@
 <li class="toctree-l2"><a class="reference internal" href="file/runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__newton__solve_8H.html">File sdc_newton_solve.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/sdc__powell__solve_8H.html">File sdc_powell_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__react__util_8H.html">File sdc_react_util.H</a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/sdc__vode__solve_8H.html">File sdc_vode_solve.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/slope_8H.html">File slope.H</a></li>
 <li class="toctree-l2"><a class="reference internal" href="file/timestep_8H.html">File timestep.H</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
@@ -511,9 +512,16 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__sdc__util_8H.html">File Castro_sdc_util.H</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv412NEWTON_SOLVE"><code class="docutils literal notranslate"><span class="pre">NEWTON_SOLVE</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv410VODE_SOLVE"><code class="docutils literal notranslate"><span class="pre">VODE_SOLVE</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv412HYBRID_SOLVE"><code class="docutils literal notranslate"><span class="pre">HYBRID_SOLVE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv411sdc_solvers"><code class="docutils literal notranslate"><span class="pre">sdc_solvers</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv4N11sdc_solvers6solverE"><code class="docutils literal notranslate"><span class="pre">solver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv4N11sdc_solvers6solver6newtonE"><code class="docutils literal notranslate"><span class="pre">newton</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv4N11sdc_solvers6solver4vodeE"><code class="docutils literal notranslate"><span class="pre">vode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv4N11sdc_solvers6solver15vode_and_newtonE"><code class="docutils literal notranslate"><span class="pre">vode_and_newton</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/Castro__sdc__util_8H.html#_CPPv4N11sdc_solvers6solver13hybrid_powellE"><code class="docutils literal notranslate"><span class="pre">hybrid_powell</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__sources_8H.html">File Castro_sources.H</a><ul>
@@ -1283,11 +1291,17 @@
 <li class="toctree-l1"><a class="reference internal" href="file/runtime__parameters_8H.html">File runtime_parameters.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__cons__to__burn_8H.html">File sdc_cons_to_burn.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__newton__solve_8H.html">File sdc_newton_solve.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv413newton_status"><code class="docutils literal notranslate"><span class="pre">newton_status</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N13newton_status6statusE"><code class="docutils literal notranslate"><span class="pre">status</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N13newton_status6status7successE"><code class="docutils literal notranslate"><span class="pre">success</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N13newton_status6status15singular_matrixE"><code class="docutils literal notranslate"><span class="pre">singular_matrix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N13newton_status6status19convergence_failureE"><code class="docutils literal notranslate"><span class="pre">convergence_failure</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N13newton_status6status18bad_mass_fractionsE"><code class="docutils literal notranslate"><span class="pre">bad_mass_fractions</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv46newton"><code class="docutils literal notranslate"><span class="pre">newton</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton14NEWTON_SUCCESSE"><code class="docutils literal notranslate"><span class="pre">NEWTON_SUCCESS</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton15SINGULAR_MATRIXE"><code class="docutils literal notranslate"><span class="pre">SINGULAR_MATRIX</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton19CONVERGENCE_FAILUREE"><code class="docutils literal notranslate"><span class="pre">CONVERGENCE_FAILURE</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton18BAD_MASS_FRACTIONSE"><code class="docutils literal notranslate"><span class="pre">BAD_MASS_FRACTIONS</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton25species_failure_toleranceE"><code class="docutils literal notranslate"><span class="pre">species_failure_tolerance</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton8MAX_ITERE"><code class="docutils literal notranslate"><span class="pre">MAX_ITER</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/sdc__newton__solve_8H.html#_CPPv4N6newton8MAX_NSUBE"><code class="docutils literal notranslate"><span class="pre">MAX_NSUB</span></code></a></li>
@@ -1295,7 +1309,12 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="file/sdc__powell__solve_8H.html">File sdc_powell_solve.H</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/sdc__powell__solve_8H.html#_CPPv46powell"><code class="docutils literal notranslate"><span class="pre">powell</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="file/sdc__react__util_8H.html">File sdc_react_util.H</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/sdc__vode__solve_8H.html">File sdc_vode_solve.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/slope_8H.html">File slope.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/timestep_8H.html">File timestep.H</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file/timestep_8H.html#_CPPv48timestep"><code class="docutils literal notranslate"><span class="pre">timestep</span></code></a><ul>
@@ -1312,7 +1331,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="file/vode__rhs__true__sdc_8H.html">File vode_rhs_true_sdc.H</a></li>
 </ul>
 </div>
 </section>
