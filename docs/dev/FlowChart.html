@@ -714,11 +714,9 @@ hydrodynamic source terms, <span class="math notranslate nohighlight">\({\bf S}\
 depending on the desired temporal order of accuracy), and iteratively
 updates the solution from node <span class="math notranslate nohighlight">\(m\)</span> to <span class="math notranslate nohighlight">\(m+1\)</span> as:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &amp;+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
+\[\begin{split}\avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &amp;+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
                                 &amp;+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
-                                &amp;+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
-\end{align}\end{split}\]</div>
+                                &amp;+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt\end{split}\]</div>
 <p id="index-4">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
 iteration gains us an order of accuracy in time, up to the order with
 which we discretize the integral at the end of the above expression.

@@ -218,10 +218,8 @@ this flag is also shown in <span id="id2">[<a class="reference internal" href="z
 <p>A zone is tagged as a shock if the following
 conditions are true:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align*}
-\nabla \cdot \ub &amp;&lt; 0 \\
-\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &amp;&gt; f_\mathrm{shock}
-\end{align*}\end{split}\]</div>
+\[\begin{split}\nabla \cdot \ub &amp;&lt; 0 \\
+\frac{|(\nabla p - \rho {\bf g}) \cdot \ub|}{p |\ub_\mathrm{cell}|} &amp;&gt; f_\mathrm{shock}\end{split}\]</div>
 <p>This requires that there is compression and that the pressure jump (excluding
 the part of the pressure that balances gravity) is large.  The runtime parameter</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">disable_shock_burning</span> <span class="o">=</span> <span class="mi">1</span>

@@ -163,12 +163,10 @@ for science simulations.  See the issues in the github repo.</p>
 <h2>Equations and Data Structures<a class="headerlink" href="#equations-and-data-structures" title="Link to this heading"></a></h2>
 <p>The ideal MHD equations we solve appear as:</p>
 <div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
-\frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &amp;= \rho \omegadot_k \\
+\[\begin{split}\frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &amp;= \rho \omegadot_k \\
 \frac{\partial \rho U_j}{\partial t} + \frac{\partial}{\partial x_j} (\rho U_i U_j + p \delta_{ij} - B_j B_i) &amp;= S_{\rho U_j} \\
 \frac{\partial \rho E}{\partial t} + \frac{\partial}{\partial x_j} \left [ U_j (\rho E + p) - B_j B_i u_i \right ] &amp;= S_{\rho E} + \rho H_\mathrm{nuc} \\
-\frac{\partial B_i}{\partial t} &amp;= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)
-\end{align}\end{split}\]</div>
+\frac{\partial B_i}{\partial t} &amp;= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)\end{split}\]</div>
 <p>where</p>
 <div class="math notranslate nohighlight">
 \[p = p_g + \frac{1}{2} B^2\]</div>
