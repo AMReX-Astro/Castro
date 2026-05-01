@@ -27,7 +27,8 @@ parser.add_argument('--displace_theta', action='store_true',
                         This is useful when theta represents the flame front position.""")
 parser.add_argument('--jobs', '-j', default=1, type=int,
                     help="""Number of workers to plot in parallel""")
-
+parser.add_argument('--show_streamlines', action='store_true',
+                    help="whether show the velocity streamlines in the background")
 args = parser.parse_args()
 
 # data has columns: fname, time, front_theta, theta_max_avg, max_avg, theta_max, max_val.
@@ -36,18 +37,18 @@ tracking_data = pd.read_csv(args.tracking_fname)
 
 # Get file name and theta of flame front
 fnames = tracking_data["fname"]
-front_thetas = tracking_data["front_theta"]
+flame_thetas = tracking_data["flame_theta"]
 
 # Process front_thetas with moving average so that frame doesn't jitter
 window = 10
-smooth_thetas = tracking_data['front_theta'].rolling(window, center=True).mean()
+smooth_thetas = tracking_data['flame_theta'].rolling(window, center=True).mean()
 
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(slice, [fname], args.fields, widthScale=args.width,
                         widthRatio=args.ratio, theta=smooth_thetas[i], position=front_thetas[i],
-                        displace_theta=args.displace_theta): i
+                        displace_theta=args.displace_theta, show_streamlines=args.show_streamlines): i
         for i, fname in enumerate(fnames)
     }
     try:

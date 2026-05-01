@@ -50,6 +50,18 @@ def _ash(field, data):
 
     return rhoAsh
 
+def _vs(field, data):
+    vr = data["boxlib", "x_velocity"]
+    vt = data["boxlib", "y_velocity"]
+    theta = data["index", "theta"]
+    return vr * np.sin(theta) + vt * np.cos(theta)
+
+def _vz(field, data):
+    vr = data["boxlib", "x_velocity"]
+    vt = data["boxlib", "y_velocity"]
+    theta = data[("index", "theta")]
+    return vr * np.cos(theta) - vt * np.sin(theta)
+
 
 def extract_info(ds,
                  loc: str = "top", widthScale: float = 3.0,
@@ -261,7 +273,8 @@ def slice(fnames:list[str], fields:list[str],
           theta: float | None = None,
           position: float | None = None,
           displace_theta: bool = False,
-          show_full_star: bool = False) -> None:
+          show_full_star: bool = False,
+          show_streamlines: bool = False) -> None:
     """
     A slice plot of the datasets for different field parameters for Spherical2D geometry.
 
@@ -301,6 +314,9 @@ def slice(fnames:list[str], fields:list[str],
 
     show_full_star:
       whether to plot the full star rather than a zoom-in
+
+    show_streamlines:
+      whether to annotate velocity streamlines
     """
 
     ts = [CastroDataset(fname) for fname in fnames]
@@ -327,11 +343,16 @@ def slice(fnames:list[str], fields:list[str],
                                              displace_theta=displace_theta,
                                              show_full_star=show_full_star)
 
-        #add rhoX_ash as a derived field
+        # add rhoX_ash as a derived field
         if "ash" in fields:
             ds.add_field(("gas", "ash"), function=_ash,
                          display_name=r"\rho X\left(ash\right)",
                          units="auto", sampling_type="cell")
+
+        # add velocity in cylindrical r and z direction -- for annotate velocity streamlines
+        if show_streamlines:
+            ds.add_field(("gas", "cyl_s_velocity"), function=_vs, sampling_type="cell", units="cm/s")
+            ds.add_field(("gas", "cyl_z_velocity"), function=_vz, sampling_type="cell", units="cm/s")
 
         for i, field in enumerate(fields):
             # Plot each field parameter
@@ -365,6 +386,11 @@ def slice(fnames:list[str], fields:list[str],
             sp.set_axes_unit("km")
             # sp.annotate_text((0.05, 0.05), f"{currentTime.in_cgs():8.5f} s")
 
+            # Plot velocity streamlines.
+            # Note it needs to be converted to cylindrical r-z velocity
+            if show_streamlines:
+                sp.annotate_streamlines("cyl_s_velocity", "cyl_z_velocity")
+
             # Plot a vertical to indicate flame front
             if position is not None:
                 sp.annotate_line([r[0]*np.sin(position), r[0]*np.cos(position)],
@@ -391,13 +417,13 @@ def slice(fnames:list[str], fields:list[str],
             time = ts[0].current_time.in_units("us")
 
         # Determine position of the text on grid
-        xyPositions = {(1, 1): (0.9, 0.08),
-                       (1, 2): (0.95, 0.075),
-                       (2, 2): (0.78, 0.02),
-                       (2, 3): (0.9, 0.02),
-                       (3, 3): (0.78, 0.02)
-                       }
-        xPosition, yPosition = xyPositions.get((nx, ny), (0.9, 0.08))
+        xyPositions = {(1, 1): (0.85, 0.08),
+                       (1, 2): (0.90, 0.075),
+                       (2, 2): (0.73, 0.02),
+                       (2, 3): (0.85, 0.02),
+                       (3, 3): (0.73, 0.02)}
+
+        xPosition, yPosition = xyPositions.get((nx, ny), (0.85, 0.08))
 
         fig.text(xPosition, yPosition, f"t = {time:.2f}", fontsize=18,
                  horizontalalignment='center', verticalalignment='center',
@@ -449,6 +475,8 @@ if __name__ == "__main__":
                         This is useful when theta represents the flame front position.""")
     parser.add_argument('--show_full_star', action='store_true',
                         help="whether show the full star in the background")
+    parser.add_argument('--show_streamlines', action='store_true',
+                        help="whether show the velocity streamlines in the background")
 
     args = parser.parse_args()
 
@@ -465,4 +493,5 @@ if __name__ == "__main__":
           widthScale=args.width, widthRatio=args.ratio,
           theta=args.theta, position=args.position,
           displace_theta=args.displace_theta,
-          show_full_star=args.show_full_star)
+          show_full_star=args.show_full_star,
+          show_streamlines=args.show_streamlines)
