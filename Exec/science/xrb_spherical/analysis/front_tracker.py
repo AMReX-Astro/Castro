@@ -12,7 +12,7 @@ from yt.units import cm
 from dataclasses import dataclass
 
 
-def track_front(ds, threshold=1e-6, percent=1e-3):
+def track_front(fname, threshold=1e-6, percent=1e-3):
     '''
     This function tracks the flame front and ash front position for a given dataset.
 
@@ -32,6 +32,7 @@ def track_front(ds, threshold=1e-6, percent=1e-3):
     4) Choose ash front with the first theta that have abar = 4
     '''
 
+    ds = CastroDataset(fname)
     time = ds.current_time.in_units("ms")
     ds.force_periodicity()
 
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     ###
     with ProcessPoolExecutor(max_workers=args.jobs) as executor:
         future_to_index = {
-            executor.submit(track_flame_front, fname, field=args.field,
+            executor.submit(track_front, fname,
                             threshold=args.threshold, percent=args.percent): i
             for i, fname in enumerate(args.fnames)
         }
@@ -140,7 +141,7 @@ if __name__ == "__main__":
             for future in as_completed(future_to_index):
                 i = future_to_index.pop(future)
                 try:
-                    tracking_data_array.append(future.result())
+                    tracking_data_list.append(future.result())
                 except Exception as exc:
                     print(f"{args.fnames[i]} generated an exception: {exc}", file=sys.stderr, flush=True)
         except KeyboardInterrupt:

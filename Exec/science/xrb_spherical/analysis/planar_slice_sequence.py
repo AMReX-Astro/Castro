@@ -4,7 +4,7 @@ import sys
 import argparse
 import numpy as np
 import pandas as pd
-from planar_slice import planar-slice
+from planar_slice import planar_slice
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 parser = argparse.ArgumentParser(description="""

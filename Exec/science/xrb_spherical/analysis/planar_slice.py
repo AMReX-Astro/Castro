@@ -55,7 +55,7 @@ FIELD_PRESETS = {
 }
 
 # Default Preset for plotting different massfractions
-DEFAULT_PRESET = dict(cmap="turbo", norm=LogNorm(vmin=1e-6, 1e-2), label="")
+DEFAULT_PRESET = dict(cmap="turbo", norm=LogNorm(vmin=1e-6, vmax=1e-2), label="")
 
 CONTOUR_LEVEL_PRESETS = {
     "pressure": np.logspace(np.log10(1e17), np.log10(1e24), 10),
@@ -170,7 +170,7 @@ def _Dvp_Dt(field, data):
     r     = data["index", "r"]
     theta = data["index", "theta"]
 
-    F_P = 0  # Axissymmetric -- no pressure grad in phi
+    F_P = 0  # Axisymmetric -- no pressure grad in phi
     F_geom = -(vt * vp / np.tan(theta) + vr * vp) / r
     F_coriolis = -2 * omega * (vt * np.cos(theta) + vr * np.sin(theta))
 
@@ -280,7 +280,7 @@ def add_derived_fields(ds):
 
 def planar_slice(fnames:list[str], fields:list[str],
                  figsize=(16, 9), contour_field=None,
-                 flame_front_theta=None, pressure_front_theta=None,
+                 flame_front_theta=None, ash_front_theta=None,
                  overplot_fine_levels=False,
                  annotate_velocity_streamlines=False,
                  annotate_acceleration_streamlines=False,
