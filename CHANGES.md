@@ -1,5 +1,20 @@
 # Changelog
 
+## 26.05
+
+  * Fix the maximum level of refinement for tagging in various input
+    files (#3138)
+
+  * Add the hybrid-Powell solver as an option for true-SDC (#3310)
+
+  * clarify how to override `CUDA_ARCH` (#3129)
+
+  * remove new / delete in favor of unique pointers (#3333)
+
+  * add `AGENTS.md` file (#3334)
+
+  * add an assert in `define_new_center` to enforce assumptions (#3290)
+
 ## 26.04
 
   * update the burning timestep limiter to know about disabling burning
@@ -2885,4 +2900,3 @@
      reset is now reflected in the ghost cells (this is a more
      consistent behavior).  Previously, the energy was never reset in
      the ghost cells.
-
