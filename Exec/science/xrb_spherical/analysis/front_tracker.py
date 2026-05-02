@@ -12,7 +12,7 @@ from yt.units import cm
 from dataclasses import dataclass
 
 
-def track_front(fname, threshold=1e-6, percent=1e-3):
+def track_front(ds, threshold=1e-6, percent=1e-3):
     '''
     This function tracks the flame front and ash front position for a given dataset.
 
@@ -32,7 +32,6 @@ def track_front(fname, threshold=1e-6, percent=1e-3):
     4) Choose ash front with the first theta that have abar = 4
     '''
 
-    ds = CastroDataset(fname)
     time = ds.current_time.in_units("ms")
     ds.force_periodicity()
 
@@ -126,6 +125,7 @@ if __name__ == "__main__":
     if args.threshold <= 0.0 or args.percent > 1.0:
         parser.error("threshold must be a float between (0, 1]")
 
+    ts = [CastroDataset(fname) for fname in args.fnames]
     tracking_data_list = []
 
     ###
@@ -133,9 +133,9 @@ if __name__ == "__main__":
     ###
     with ProcessPoolExecutor(max_workers=args.jobs) as executor:
         future_to_index = {
-            executor.submit(track_front, fname,
+            executor.submit(track_front, ds,
                             threshold=args.threshold, percent=args.percent): i
-            for i, fname in enumerate(args.fnames)
+            for i, ds in enumerate(ts)
         }
         try:
             for future in as_completed(future_to_index):

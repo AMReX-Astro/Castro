@@ -11,8 +11,8 @@ parser = argparse.ArgumentParser(description="""
 This script uses the planar_slice.py to create a
 time sequence of planar slice plots""")
 
-parser.add_argument('tracking_fname', type=str,
-                    help="""csv file generated from front_tracker.py to annotate front position.""")
+parser.add_argument('fnames', nargs='+', type=str,
+                    help="""dataset file names for time sequence plotting.""")
 parser.add_argument('-f', '--fields', nargs='+', type=str,
                     help="""field parameters for plotting. Accepts one or more datasets.
                     If multiple parameters are given, a grid of slice plots of different
@@ -26,6 +26,8 @@ parser.add_argument("--contour-field", default=None,
 parser.add_argument("--overplot-fine-levels", action="store_true",
                     help="""Overplot finer AMR level data on top of level 0.
                     This can make plotting a lot slower""")
+parser.add_argument("--annotate-front", action="store_true",
+                    help="Overlay vertical lines to indicate flame front and ash front.")
 parser.add_argument("--annotate-velocity-streamlines", action="store_true",
                     help="Overlay velocity streamlines.")
 parser.add_argument("--annotate-acceleration-streamlines", action="store_true",
@@ -37,24 +39,18 @@ parser.add_argument('--jobs', '-j', default=1, type=int,
 
 args = parser.parse_args()
 
-tracking_data = pd.read_csv(args.tracking_fname)
-fnames = tracking_data["fname"]
-flame_thetas = tracking_data["flame_theta"]
-ash_thetas = tracking_data["ash_theta"]
-
 # Parallelize the plotting
 with ProcessPoolExecutor(max_workers=args.jobs) as executor:
     future_to_index = {
         executor.submit(planar_slice, [fname], args.fields,
                         figsize=args.figsize, contour_field=args.contour_field,
-                        flame_front_theta=flame_thetas[i],
-                        ash_front_theta=ash_thetas[i],
                         overplot_fine_levels=args.overplot_fine_levels,
+                        annotate_front=args.annotate_front,
                         annotate_velocity_streamlines=args.annotate_velocity_streamlines,
                         annotate_acceleration_streamlines=args.annotate_acceleration_streamlines,
                         annotate_grids=args.annotate_grids,
                         outName=fname+"_planar_slice.png"): i
-        for i, fname in enumerate(fnames)
+        for i, fname in enumerate(args.fnames)
     }
     try:
         for future in as_completed(future_to_index):

@@ -12,6 +12,7 @@ from yt.frontends.boxlib.api import CastroDataset
 from matplotlib.patches import Rectangle
 import pynucastro as pyna
 from yt.units import (cm, s, g)
+from front_tracker import track_front
 
 ## Diverging colormap to use: "RdBu_r" or "coolwarm"
 ## Perceptually Uniform Sequential colormap to use: 'viridis', 'plasma', 'inferno', 'magma'
@@ -280,8 +281,8 @@ def add_derived_fields(ds):
 
 def planar_slice(fnames:list[str], fields:list[str],
                  figsize=(16, 9), contour_field=None,
-                 flame_front_theta=None, ash_front_theta=None,
                  overplot_fine_levels=False,
+                 annotate_front=False,
                  annotate_velocity_streamlines=False,
                  annotate_acceleration_streamlines=False,
                  annotate_grids=False,
@@ -368,6 +369,20 @@ def planar_slice(fnames:list[str], fields:list[str],
                 ar = cg0["boxlib", "Dvr_Dt"][:, :, 0].to_ndarray()
                 ax.streamplot(theta, radial, at, ar, density=1)
 
+            # Plot vertical line to indicate flame front and ash front
+            if annotate_front:
+                front_tracking_data = track_front(ds)
+                ash_front_theta = front_tracking_data["ash_theta"]
+                flame_front_theta = front_tracking_data["flame_theta"]
+
+                ax.axvline(ash_front_theta, linestyle="-.", color="k", linewidth=1.5)
+                ax.text(ash_front_theta, r[0] + 0.8*(r[1] - r[0]), "Ash\nFront",
+                        color="k", fontsize=12, ha="center", va="center", rotation=90)
+
+                ax.axvline(flame_front_theta, linestyle="-.", color="k", linewidth=1.5)
+                ax.text(flame_front_theta, r[0] + 0.8*(r[1] - r[0]), "Flame\nFront",
+                        color="k", fontsize=12, ha="center", va="center", rotation=90)
+
             # Annotate optional AMR grids
             if annotate_grids:
                 max_level = ds.max_level
@@ -392,18 +407,6 @@ def planar_slice(fnames:list[str], fields:list[str],
                 handles = [Rectangle((0,0), 1, 1, edgecolor=level_colors(l), facecolor="none", label=f"Level {l}")
                            for l in range(max_level + 1)]
                 ax.legend(handles=handles, loc="upper right", framealpha=0.5)
-
-            # Plot vertical line to indicate flame front and pressure front
-            # The theta position needs to be provided
-            if ash_front_theta is not None:
-                ax.axvline(ash_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(ash_front_theta, r[0] + 0.8*(r[1] - r[0]), "Ash\nFront",
-                        color="k", fontsize=12, ha="center", va="center", rotation=90)
-
-            if flame_front_theta is not None:
-                ax.axvline(flame_front_theta, linestyle="-.", color="k", linewidth=1.5)
-                ax.text(flame_front_theta, r[0] + 0.8*(r[1] - r[0]), "Flame\nFront",
-                        color="k", fontsize=12, ha="center", va="center", rotation=90)
 
             # Can I somehow annotate the slope line between unburnt fuel and ash interface -- and find its angle
 
@@ -454,13 +457,11 @@ if __name__ == "__main__":
                         metavar=("WIDTH", "HEIGHT"), help="Figure size in inches.")
     parser.add_argument("--contour-field", default=None,
                         help="Field variable to use for overplotting contour lines (e.g. 'pressure').")
-    parser.add_argument("--flame-front-theta", type=float, default=None, metavar="THETA",
-                        help="Theta position [rad] of the flame front for vertical line annotation.")
-    parser.add_argument("--ash-front-theta", type=float, default=None, metavar="THETA",
-                        help="Theta position [rad] of the ash front for vertical line annotation.")
     parser.add_argument("--overplot-fine-levels", action="store_true",
                         help="""Overplot finer AMR level data on top of level 0.
                         This can make plotting a lot slower""")
+    parser.add_argument("--annotate-front", action="store_true",
+                        help="Overlay vertical lines to indicate flame front and ash front.")
     parser.add_argument("--annotate-velocity-streamlines", action="store_true",
                         help="Overlay velocity streamlines.")
     parser.add_argument("--annotate-acceleration-streamlines", action="store_true",
@@ -480,9 +481,8 @@ if __name__ == "__main__":
         fields                            = args.fields,
         figsize                           = tuple(args.figsize),
         contour_field                     = args.contour_field,
-        flame_front_theta                 = args.flame_front_theta,
-        ash_front_theta                   = args.ash_front_theta,
         overplot_fine_levels              = args.overplot_fine_levels,
+        annotate_front                    = args.annotate_front,
         annotate_velocity_streamlines     = args.annotate_velocity_streamlines,
         annotate_acceleration_streamlines = args.annotate_acceleration_streamlines,
         annotate_grids                    = args.annotate_grids,
